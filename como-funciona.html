@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cómo Funciona | CRBOX | Casillero Virtual y Courier en Costa Rica</title>
+    <meta name="description" content="Conoce el proceso simple de CRBOX para comprar en USA y recibir en Costa Rica. Afíliate gratis, compra, recibe notificación y recibe tu paquete.">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky-header">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold text-orange-600">CRBOX</a>
+                    <span class="ml-2 text-gray-600 hidden md:inline">Casillero & Courier</span>
+                </div>
+                
+                <nav class="hidden md:flex space-x-6">
+                    <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
+                </nav>
+                
+                <div class="flex items-center space-x-3">
+                    <a href="calculadora.html" class="hidden md:inline-block primary-btn">Calcular Envío</a>
+                    <a href="afiliate.html" class="hidden md:inline-block secondary-btn">Afíliate Gratis</a>
+                    <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div class="md:hidden hidden" id="mobile-menu">
+                <div class="py-3 space-y-3">
+                    <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="block text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
+                    <div class="flex flex-col space-y-2 pt-2">
+                        <a href="calculadora.html" class="inline-block primary-btn text-center">Calcular Envío</a>
+                        <a href="afiliate.html" class="inline-block secondary-btn text-center">Afíliate Gratis</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumbs Navigation -->
+    <div class="bg-gray-100 py-2 border-b border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center text-sm text-gray-600">
+                <a href="index.html" class="hover:text-orange-600 transition-colors">Inicio</a>
+                <span class="mx-2"><i class="fas fa-chevron-right text-xs"></i></span>
+                <span class="text-orange-600 font-medium">Cómo Funciona</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Title -->
+    <section class="py-16 md:py-20 bg-gray-100">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">¿Cómo Funciona?</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Comprar en USA y recibir en Costa Rica nunca fue tan fácil. Sigue estos simples pasos y comienza a disfrutar de tus compras internacionales.</p>
+        </div>
+    </section>
+
+    <!-- Process Steps -->
+    <section class="py-16 md:py-24">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <!-- Step 1 -->
+                <div class="flex flex-wrap items-center mb-16">
+                    <div class="w-full md:w-1/3 mb-6 md:mb-0 flex justify-center">
+                        <div class="w-32 h-32 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                            <span class="text-5xl font-bold">1</span>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-2/3">
+                        <h3 class="text-2xl font-bold mb-4">Afíliate Gratis</h3>
+                        <p class="text-lg text-gray-600 mb-4">Completa el formulario de registro para obtener al instante tu dirección en Miami. Es 100% gratis y el proceso toma solo unos minutos.</p>
+                        <div class="bg-orange-50 rounded-lg p-4 border-l-4 border-orange-500">
+                            <p class="text-orange-800 text-sm"><strong>Importante:</strong> Asegúrate de proporcionar datos correctos para evitar problemas con tus entregas.</p>
+                        </div>
+                        <div class="mt-4">
+                            <a href="afiliate.html" class="text-orange-600 font-medium flex items-center hover:text-orange-700 transition-colors">
+                                Ir a Afiliarme
+                                <i class="fas fa-chevron-right ml-1 text-sm"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2 -->
+                <div class="flex flex-wrap items-center mb-16">
+                    <div class="w-full md:w-1/3 mb-6 md:mb-0 flex justify-center order-1 md:order-2">
+                        <div class="w-32 h-32 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                            <span class="text-5xl font-bold">2</span>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-2/3 order-2 md:order-1">
+                        <h3 class="text-2xl font-bold mb-4">Compra en USA</h3>
+                        <p class="text-lg text-gray-600 mb-4">Usa tu dirección en Miami para comprar en cualquier tienda de Estados Unidos. Si prefieres, nosotros realizamos la compra por ti.</p>
+                        <div class="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
+                            <p class="text-blue-800 text-sm"><strong>Consejo:</strong> Puedes comprar en Amazon, eBay, Walmart, Target, Best Buy y cientos de tiendas más. Usa siempre tu número de casillero en la dirección.</p>
+                        </div>
+                        <div class="mt-4">
+                            <a href="servicios.html#compras" class="text-orange-600 font-medium flex items-center hover:text-orange-700 transition-colors">
+                                Compras por Encargo
+                                <i class="fas fa-chevron-right ml-1 text-sm"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3 -->
+                <div class="flex flex-wrap items-center mb-16">
+                    <div class="w-full md:w-1/3 mb-6 md:mb-0 flex justify-center">
+                        <div class="w-32 h-32 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                            <span class="text-5xl font-bold">3</span>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-2/3">
+                        <h3 class="text-2xl font-bold mb-4">Recibe Notificación</h3>
+                        <p class="text-lg text-gray-600 mb-4">Te notificamos cuando tu paquete llegue a Miami. Sube la factura de tu compra para el trámite aduanal correspondiente y autoriza el envío.</p>
+                        <div class="bg-orange-50 rounded-lg p-4 border-l-4 border-orange-500">
+                            <p class="text-orange-800 text-sm"><strong>Recuerda:</strong> La factura es indispensable para realizar los trámites aduanales. Sin factura, no podremos procesar tu envío.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 4 -->
+                <div class="flex flex-wrap items-center">
+                    <div class="w-full md:w-1/3 mb-6 md:mb-0 flex justify-center order-1 md:order-2">
+                        <div class="w-32 h-32 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                            <span class="text-5xl font-bold">4</span>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-2/3 order-2 md:order-1">
+                        <h3 class="text-2xl font-bold mb-4">Recibe tu Paquete</h3>
+                        <p class="text-lg text-gray-600 mb-4">Entregamos en la puerta de tu casa u oficina en Costa Rica. Seguimiento automatizado las 24 horas, los 7 días de la semana.</p>
+                        <div class="bg-green-50 rounded-lg p-4 border-l-4 border-green-500">
+                            <p class="text-green-800 text-sm"><strong>¡Listo!</strong> Disfruta de tus compras y prepárate para el siguiente pedido. Una vez que pruebes CRBOX, no querrás usar otro servicio.</p>
+                        </div>
+                        <div class="mt-4">
+                            <a href="tarifas.html" class="text-orange-600 font-medium flex items-center hover:text-orange-700 transition-colors">
+                                Ver Tarifas de Entrega
+                                <i class="fas fa-chevron-right ml-1 text-sm"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="py-16 md:py-24 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <span class="text-orange-600 font-semibold mb-2 inline-block">PREGUNTAS FRECUENTES</span>
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Resolvemos tus Dudas</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Respondemos a tus dudas más comunes sobre nuestro proceso de envío.</p>
+            </div>
+            
+            <div class="max-w-3xl mx-auto">
+                <div class="space-y-6">
+                    <!-- FAQ Item 1 -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+                        <h3 class="text-xl font-semibold mb-3">¿Cuánto tiempo tarda en llegar mi paquete?</h3>
+                        <p class="text-gray-600">El tiempo de entrega depende del tipo de servicio. Para courier aéreo, el tiempo promedio es de 3 a 5 días hábiles desde que recibimos el paquete en Miami. Para carga marítima, el tiempo aproximado es de 6 a 7 días.</p>
+                    </div>
+                    
+                    <!-- FAQ Item 2 -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+                        <h3 class="text-xl font-semibold mb-3">¿Puedo consolidar varios paquetes?</h3>
+                        <p class="text-gray-600">¡Sí! Puedes consolidar múltiples paquetes para ahorrar en costos de envío. Solo debes esperar a que todos tus paquetes lleguen a nuestra bodega en Miami y luego nos indicas que deseas consolidarlos antes de subir las facturas.</p>
+                    </div>
+                    
+                    <!-- FAQ Item 3 -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+                        <h3 class="text-xl font-semibold mb-3">¿Qué pasa si no tengo la factura?</h3>
+                        <p class="text-gray-600">La factura es indispensable para realizar los trámites aduanales. Si no tienes la factura original, puedes enviar un comprobante de pago o captura de pantalla que muestre claramente el valor de la compra.</p>
+                    </div>
+                    
+                    <!-- FAQ Item 4 -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+                        <h3 class="text-xl font-semibold mb-3">¿Cómo puedo rastrear mi paquete?</h3>
+                        <p class="text-gray-600">Puedes rastrear tu paquete a través de nuestro sistema en línea usando tu número de tracking. También recibirás notificaciones automáticas por email en cada etapa del proceso de envío.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-center">
+                    <p class="text-gray-600">¿No encontraste lo que buscabas?</p>
+                    <a href="contacto.html" class="text-orange-600 font-medium hover:text-orange-700 transition-colors">Contáctanos para más información</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-16 md:py-20 gradient-bg">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">¡Comienza a comprar hoy mismo!</h2>
+            <p class="text-xl text-white text-opacity-90 mb-8 max-w-3xl mx-auto">Afíliate gratis y obtén tu dirección en Miami al instante</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="afiliate.html" class="primary-btn bg-white text-orange-600 hover:bg-gray-100">Crear Mi Casillero</a>
+                <a href="tarifas.html" class="secondary-btn border-white text-white hover:bg-orange-700 hover:text-white">Ver Tarifas</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">CRBOX</h3>
+                    <p class="text-gray-400 mb-4">Tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
+                    <ul class="space-y-2">
+                        <li><a href="servicios.html" class="text-gray-400 hover:text-white transition-colors">Servicios</a></li>
+                        <li><a href="como-funciona.html" class="text-gray-400 hover:text-white transition-colors">Cómo Funciona</a></li>
+                        <li><a href="tarifas.html" class="text-gray-400 hover:text-white transition-colors">Tarifas</a></li>
+                        <li><a href="calculadora.html" class="text-gray-400 hover:text-white transition-colors">Calculadora</a></li>
+                        <li><a href="afiliate.html" class="text-gray-400 hover:text-white transition-colors">Afíliate</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contacto</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">Sabana Norte, San José, Costa Rica</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-phone mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">+506-4000-1114</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">ventas@crbox.cr</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Horario de Atención</h3>
+                    <ul class="space-y-2">
+                        <li class="text-gray-400">Lunes a Viernes: 8:00 AM - 5:00 PM</li>
+                        <li class="text-gray-400">Sábados: 9:00 AM - 1:00 PM</li>
+                        <li class="text-gray-400">Domingos: Cerrado</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 CRBOX. Todos los derechos reservados.</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Términos y Condiciones</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/50640001114" class="fixed bottom-6 right-6 whatsapp-btn w-14 h-14 flex items-center justify-center text-white text-2xl z-50">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="fixed bottom-6 right-24 bg-orange-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Back to top button
+        const backToTopButton = document.getElementById('back-to-top');
+        
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.remove('opacity-0', 'invisible');
+                backToTopButton.classList.add('opacity-100', 'visible');
+            } else {
+                backToTopButton.classList.add('opacity-0', 'invisible');
+                backToTopButton.classList.remove('opacity-100', 'visible');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>

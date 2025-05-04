@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios | CRBOX | Casillero Virtual y Courier en Costa Rica</title>
+    <meta name="description" content="Conoce todos los servicios de CRBOX: Casillero virtual, compras por encargo, carga aérea y marítima para tus compras en USA.">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body class="bg-gray-50">
+      <!-- Header -->
+      <header class="bg-white shadow-sm sticky-header">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold text-orange-600">CRBOX</a>
+                    <span class="ml-2 text-gray-600 hidden md:inline">Casillero & Courier</span>
+                </div>
+                
+                <nav class="hidden md:flex space-x-6">
+                    <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
+                </nav>
+                
+                <div class="flex items-center space-x-3">
+                    <a href="calculadora.html" class="hidden md:inline-block primary-btn">Calcular Envío</a>
+                    <a href="afiliate.html" class="hidden md:inline-block secondary-btn">Afíliate Gratis</a>
+                    <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div class="md:hidden hidden" id="mobile-menu">
+                <div class="py-3 space-y-3">
+                    <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="block text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
+                    <div class="flex flex-col space-y-2 pt-2">
+                        <a href="calculadora.html" class="inline-block primary-btn text-center">Calcular Envío</a>
+                        <a href="afiliate.html" class="inline-block secondary-btn text-center">Afíliate Gratis</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumbs Navigation -->
+    <div class="bg-gray-100 py-2 border-b border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center text-sm text-gray-600">
+                <a href="index.html" class="hover:text-orange-600 transition-colors">Inicio</a>
+                <span class="mx-2"><i class="fas fa-chevron-right text-xs"></i></span>
+                <span class="text-orange-600 font-medium">Servicios</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Title -->
+    <section class="py-16 md:py-20 bg-gray-100">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Nuestros Servicios</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Soluciones integrales para tus compras y envíos internacionales. Conoce todos nuestros servicios y elige el que mejor se adapte a tus necesidades.</p>
+        </div>
+    </section>
+
+    <!-- Casillero Virtual -->
+    <section id="casillero" class="py-16 md:py-24">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap items-center">
+                <div class="w-full md:w-1/2 mb-10 md:mb-0 pr-0 md:pr-12">
+                    <img src="img/package.png" alt="Casillero Virtual" class="rounded-lg shadow-lg w-full">
+                </div>
+                <div class="w-full md:w-1/2">
+                    <span class="text-orange-600 font-semibold mb-2 inline-block">CASILLERO VIRTUAL</span>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6">Tu dirección en Miami totalmente gratis</h2>
+                    <p class="text-lg text-gray-600 mb-6">Obtén tu propia dirección en Miami para recibir tus compras de cualquier tienda en Estados Unidos. Sin cuota mensual ni costos de inscripción.</p>
+                    
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Dirección física permanente</h3>
+                                <p class="text-gray-600">Recibes una dirección única y permanente en Miami para todas tus compras.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Notificaciones automáticas</h3>
+                                <p class="text-gray-600">Te avisamos por email cuando tu paquete llegue a nuestro almacén en Miami.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Seguimiento 24/7</h3>
+                                <p class="text-gray-600">Accede a tu panel para revisar el estado de tus paquetes en cualquier momento.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="afiliate.html" class="primary-btn inline-block">Crear Mi Casillero</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Compras por Encargo -->
+    <section id="compras" class="py-16 md:py-24 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap items-center">
+                <div class="w-full md:w-1/2 order-2 md:order-1">
+                    <span class="text-orange-600 font-semibold mb-2 inline-block">COMPRAS POR ENCARGO</span>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6">Te ayudamos con tus compras en USA</h2>
+                    <p class="text-lg text-gray-600 mb-6">¿No tienes tarjeta internacional o prefieres que nos encarguemos de todo? Nosotros realizamos la compra por ti en cualquier tienda de Estados Unidos.</p>
+                    
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Sin complicaciones</h3>
+                                <p class="text-gray-600">Solo envíanos los enlaces de los productos que deseas comprar y nosotros nos encargamos del resto.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Múltiples tiendas</h3>
+                                <p class="text-gray-600">Podemos realizar compras en Amazon, eBay, Walmart, Best Buy, Target y cientos de tiendas más.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Pagos flexibles</h3>
+                                <p class="text-gray-600">Paga mediante transferencia bancaria, SINPE Móvil o efectivo en nuestras oficinas.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="contacto.html" class="primary-btn inline-block">Solicitar Cotización</a>
+                </div>
+                <div class="w-full md:w-1/2 mb-10 md:mb-0 order-1 md:order-2 pl-0 md:pl-12">
+                    <img src="img/cart.jpeg" alt="Compras por encargo" class="rounded-lg shadow-lg w-full">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Carga Aérea -->
+    <section id="carga-aerea" class="py-16 md:py-24">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap items-center">
+                <div class="w-full md:w-1/2 mb-10 md:mb-0 pr-0 md:pr-12">
+                    <img src="img/avion.jpeg" alt="Carga Aérea" class="rounded-lg shadow-lg w-full">
+                </div>
+                <div class="w-full md:w-1/2">
+                    <span class="text-orange-600 font-semibold mb-2 inline-block">CARGA AÉREA</span>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6">Servicio Express para tus envíos urgentes</h2>
+                    <p class="text-lg text-gray-600 mb-6">Nuestro servicio de carga aérea es ideal para envíos que necesitas recibir rápidamente. Envíos express de documentos y paquetes con entrega en Costa Rica en 3-5 días hábiles.</p>
+                    
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Tiempos de entrega rápidos</h3>
+                                <p class="text-gray-600">Recibe tus compras en Costa Rica en tan solo 3 a 5 días hábiles desde su llegada a Miami.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Ideal para courier</h3>
+                                <p class="text-gray-600">Perfecto para paquetes con valor CIF menor a $1,000 o peso no mayor a 30 kg.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Seguimiento en tiempo real</h3>
+                                <p class="text-gray-600">Monitorea el estatus de tu envío en cada etapa del proceso hasta la entrega final.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="tarifas.html#aerea" class="primary-btn inline-block">Ver Tarifas</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Carga Marítima -->
+    <section id="carga-maritima" class="py-16 md:py-24 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap items-center">
+                <div class="w-full md:w-1/2 order-2 md:order-1">
+                    <span class="text-orange-600 font-semibold mb-2 inline-block">CARGA MARÍTIMA</span>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6">Solución económica para grandes cargas</h2>
+                    <p class="text-lg text-gray-600 mb-6">Nuestro servicio de carga marítima consolidada es ideal para cargas de mayor volumen o peso. Perfecto para importaciones comerciales, muebles, electrodomésticos o mudanzas.</p>
+                    
+                    <div class="space-y-4 mb-8">
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Tarifas económicas</h3>
+                                <p class="text-gray-600">Costos significativamente menores para cargas de gran volumen en comparación con el transporte aéreo.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Transporte confiable</h3>
+                                <p class="text-gray-600">Tiempos de tránsito de aproximadamente 6-7 días desde la salida del puerto en Miami.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mr-3 text-lg mt-1"></i>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-1">Opciones de contenedor</h3>
+                                <p class="text-gray-600">Desde carga consolidada hasta contenedores completos según tus necesidades.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="tarifas.html#maritima" class="primary-btn inline-block">Ver Tarifas</a>
+                </div>
+                <div class="w-full md:w-1/2 mb-10 md:mb-0 order-1 md:order-2 pl-0 md:pl-12">
+                    <img src="img/cargo.jpeg" alt="Carga Marítima" class="rounded-lg shadow-lg w-full">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-16 md:py-20 gradient-bg">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">¿Listo para comenzar?</h2>
+            <p class="text-xl text-white text-opacity-90 mb-8 max-w-3xl mx-auto">Afíliate gratis hoy mismo y comienza a disfrutar de nuestros servicios</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="afiliate.html" class="primary-btn bg-white text-orange-600 hover:bg-gray-100">Crear Mi Casillero</a>
+                <a href="calculadora.html" class="secondary-btn border-white text-white hover:bg-orange-700 hover:text-white">Calcular un Envío</a>
+            </div>
+        </div>
+    </section>
+
+ <!-- Footer -->
+ <footer class="bg-gray-800 text-white py-12">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+                <h3 class="text-xl font-semibold mb-4">CRBOX</h3>
+                <p class="text-gray-400 mb-4">Tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
+                <ul class="space-y-2">
+                    <li><a href="servicios.html" class="text-gray-400 hover:text-white transition-colors">Servicios</a></li>
+                    <li><a href="como-funciona.html" class="text-gray-400 hover:text-white transition-colors">Cómo Funciona</a></li>
+                    <li><a href="tarifas.html" class="text-gray-400 hover:text-white transition-colors">Tarifas</a></li>
+                    <li><a href="calculadora.html" class="text-gray-400 hover:text-white transition-colors">Calculadora</a></li>
+                    <li><a href="afiliate.html" class="text-gray-400 hover:text-white transition-colors">Afíliate</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Contacto</h3>
+                <ul class="space-y-2">
+                    <li class="flex items-start">
+                        <i class="fas fa-map-marker-alt mt-1 mr-3 text-orange-500"></i>
+                        <span class="text-gray-400">Sabana Norte, San José, Costa Rica</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-phone mt-1 mr-3 text-orange-500"></i>
+                        <span class="text-gray-400">+506-4000-1114</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-envelope mt-1 mr-3 text-orange-500"></i>
+                        <span class="text-gray-400">ventas@crbox.cr</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Horario de Atención</h3>
+                <ul class="space-y-2">
+                    <li class="text-gray-400">Lunes a Viernes: 8:00 AM - 5:00 PM</li>
+                    <li class="text-gray-400">Sábados: 9:00 AM - 1:00 PM</li>
+                    <li class="text-gray-400">Domingos: Cerrado</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="border-t border-gray-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+            <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 CRBOX. Todos los derechos reservados.</p>
+            <div class="flex space-x-4">
+                <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Términos y Condiciones</a>
+                <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- WhatsApp Button -->
+<a href="https://wa.me/50640001114" class="fixed bottom-6 right-6 whatsapp-btn w-14 h-14 flex items-center justify-center text-white text-2xl z-50">
+    <i class="fab fa-whatsapp"></i>
+</a>
+
+<!-- Back to Top Button -->
+<button id="back-to-top" class="fixed bottom-6 right-24 bg-orange-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300">
+    <i class="fas fa-chevron-up"></i>
+</button>
+
+<script src="js/main.js"></script>
+<script>
+    // Back to top button
+    const backToTopButton = document.getElementById('back-to-top');
+    
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
+            backToTopButton.classList.remove('opacity-0', 'invisible');
+            backToTopButton.classList.add('opacity-100', 'visible');
+        } else {
+            backToTopButton.classList.add('opacity-0', 'invisible');
+            backToTopButton.classList.remove('opacity-100', 'visible');
+        }
+    });
+    
+    backToTopButton.addEventListener('click', function() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+@media (max-width: 768px) {
+    .mobile-center {
+        text-align: center;
+    }
+    
+    .mobile-order-1 {
+        order: 1;
+    }
+    
+    .mobile-order-2 {
+        order: 2;
+    }
+    
+    .feature-card {
+        margin-bottom: 1.5rem;
+    }
+    
+    h1 {
+        font-size: 2.25rem;
+    }
+    
+    h2 {
+        font-size: 1.75rem;
+    }
+    
+    .primary-btn, .secondary-btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 640px) {
+    section {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .grid {
+        gap: 1rem;
+    }
+}

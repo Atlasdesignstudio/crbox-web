@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Envíos | CRBOX | Casillero Virtual y Courier en Costa Rica</title>
+    <meta name="description" content="Calcula el costo de tu envío desde USA a Costa Rica. Conoce el precio exacto antes de realizar tu compra con nuestra calculadora.">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky-header">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-2xl font-bold text-orange-600">CRBOX</a>
+                    <span class="ml-2 text-gray-600 hidden md:inline">Casillero & Courier</span>
+                </div>
+                
+                <nav class="hidden md:flex space-x-6">
+                    <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
+                </nav>
+                
+                <div class="flex items-center space-x-3">
+                    <a href="calculadora.html" class="hidden md:inline-block primary-btn">Calcular Envío</a>
+                    <a href="afiliate.html" class="hidden md:inline-block secondary-btn">Afíliate Gratis</a>
+                    <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div class="md:hidden hidden" id="mobile-menu">
+                <div class="py-3 space-y-3">
+                    <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="block text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
+                    <div class="flex flex-col space-y-2 pt-2">
+                        <a href="calculadora.html" class="inline-block primary-btn text-center">Calcular Envío</a>
+                        <a href="afiliate.html" class="inline-block secondary-btn text-center">Afíliate Gratis</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumbs Navigation -->
+    <div class="bg-gray-100 py-2 border-b border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center text-sm text-gray-600">
+                <a href="index.html" class="hover:text-orange-600 transition-colors">Inicio</a>
+                <span class="mx-2"><i class="fas fa-chevron-right text-xs"></i></span>
+                <span class="text-orange-600 font-medium">Calculadora</span>
+            </div>
+        </div>
+    </div>
+    <!-- Page Title -->
+    <section class="py-16 md:py-20 bg-gray-100">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Calculadora de Envíos</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Conoce el costo aproximado de tu envío antes de realizar tu compra. Nuestras tarifas son transparentes y sin costos ocultos.</p>
+        </div>
+    </section>
+
+    <!-- Calculator -->
+    <section class="py-16 md:py-24">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 cta-shadow">
+                <h2 class="text-2xl font-bold mb-6 text-center">Calcula tu Envío</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Tipo de servicio</label>
+                        <select id="service-type" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <option value="aero">Servicio Courier Aéreo</option>
+                            <option value="maritimo">Carga Marítima</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Contenido del paquete</label>
+                        <select id="package-content" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <option value="electronico">Electrónicos</option>
+                            <option value="ropa">Ropa y accesorios</option>
+                            <option value="repuestos">Repuestos</option>
+                            <option value="suplementos">Suplementos</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Peso (libras)</label>
+                        <input type="number" id="weight" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Ej: 5">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Valor de compra ($)</label>
+                        <input type="number" id="purchase-value" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Ej: 100">
+                    </div>
+                    
+                    <div id="dimensions-container">
+                        <label class="block text-gray-700 font-medium mb-2">Dimensiones (pulgadas)</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="number" id="length" placeholder="Largo" class="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <input type="number" id="width" placeholder="Ancho" class="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <input type="number" id="height" placeholder="Alto" class="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Destino</label>
+                        <select id="destination" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <option value="gam">Gran Área Metropolitana</option>
+                            <option value="alajuela">Alajuela</option>
+                            <option value="cartago">Cartago</option>
+                            <option value="heredia">Heredia</option>
+                            <option value="guanacaste">Guanacaste</option>
+                            <option value="puntarenas">Puntarenas</option>
+                            <option value="limon">Limón</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <button id="calculate-btn" class="primary-btn w-full text-lg">
+                        Calcular Costo Total
+                    </button>
+                </div>
+                
+                <div id="result-section" class="mt-8 p-6 bg-gray-50 rounded-lg hidden">
+                    <h3 class="text-xl font-semibold mb-4">Resultado Estimado</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-gray-600">Costo de flete:</p>
+                            <p id="shipping-cost" class="font-semibold">$0.00</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Manejo:</p>
+                            <p id="handling-cost" class="font-semibold">$0.00</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Impuestos estimados:</p>
+                            <p id="tax-cost" class="font-semibold">$0.00</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Entrega:</p>
+                            <p id="delivery-cost" class="font-semibold">$0.00</p>
+                        </div>
+                        <div class="col-span-2 pt-4 border-t">
+                            <p class="text-gray-800">Costo total estimado:</p>
+                            <p id="total-cost" class="font-bold text-2xl text-orange-600">$0.00</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="mt-4 text-sm text-gray-600">* Esta es una estimación y el costo final puede variar según el peso real, dimensiones, impuestos aplicables y requisitos aduaneros.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How Rates Work -->
+    <section class="py-16 md:py-24 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold mb-4">¿Cómo Calculamos Nuestras Tarifas?</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Entendiendo nuestro sistema de precios transparente</p>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <div class="flex items-center mb-4">
+                            <div class="icon-circle">
+                                <i class="fas fa-weight text-orange-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold ml-4">Peso vs Volumen</h3>
+                        </div>
+                        <p class="text-gray-600">Calculamos el costo según el peso real o el peso volumétrico, lo que sea mayor. Para el peso volumétrico, dividimos el volumen (largo x ancho x alto en pulgadas) entre 166.</p>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <div class="flex items-center mb-4">
+                            <div class="icon-circle">
+                                <i class="fas fa-dollar-sign text-orange-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold ml-4">Valor de Compra</h3>
+                        </div>
+                        <p class="text-gray-600">El valor de compra determina los impuestos aduanales a pagar. Para envíos courier, aplica un impuesto aproximado de 13% sobre el valor CIF (valor de compra + flete + seguro).</p>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <div class="flex items-center mb-4">
+                            <div class="icon-circle">
+                                <i class="fas fa-shipping-fast text-orange-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold ml-4">Tipo de Servicio</h3>
+                        </div>
+                        <p class="text-gray-600">El servicio aéreo es más rápido pero tiene un costo por libra mayor. El servicio marítimo es más económico para cargas de gran volumen pero toma más tiempo.</p>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <div class="flex items-center mb-4">
+                            <div class="icon-circle">
+                                <i class="fas fa-map-marker-alt text-orange-600 text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold ml-4">Ubicación de Entrega</h3>
+                        </div>
+                        <p class="text-gray-600">La entrega en el Gran Área Metropolitana (GAM) tiene un costo estándar. Para entregas fuera del GAM, se aplica un recargo adicional según la distancia.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 md:py-20 gradient-bg">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">¿Listo para comenzar?</h2>
+            <p class="text-xl text-white text-opacity-90 mb-8 max-w-3xl mx-auto">Afíliate gratis y obtén tu dirección en Miami al instante</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="afiliate.html" class="primary-btn bg-white text-orange-600 hover:bg-gray-100">Crear Mi Casillero</a>
+                <a href="contacto.html" class="secondary-btn border-white text-white hover:bg-orange-700 hover:text-white">Solicitar Cotización</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">CRBOX</h3>
+                    <p class="text-gray-400 mb-4">Tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
+                    <ul class="space-y-2">
+                        <li><a href="servicios.html" class="text-gray-400 hover:text-white transition-colors">Servicios</a></li>
+                        <li><a href="como-funciona.html" class="text-gray-400 hover:text-white transition-colors">Cómo Funciona</a></li>
+                        <li><a href="tarifas.html" class="text-gray-400 hover:text-white transition-colors">Tarifas</a></li>
+                        <li><a href="calculadora.html" class="text-gray-400 hover:text-white transition-colors">Calculadora</a></li>
+                        <li><a href="afiliate.html" class="text-gray-400 hover:text-white transition-colors">Afíliate</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contacto</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">Sabana Norte, San José, Costa Rica</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-phone mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">+506-4000-1114</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">ventas@crbox.cr</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Horario de Atención</h3>
+                    <ul class="space-y-2">
+                        <li class="text-gray-400">Lunes a Viernes: 8:00 AM - 5:00 PM</li>
+                        <li class="text-gray-400">Sábados: 9:00 AM - 1:00 PM</li>
+                        <li class="text-gray-400">Domingos: Cerrado</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 CRBOX. Todos los derechos reservados.</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Términos y Condiciones</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/50640001114" class="fixed bottom-6 right-6 whatsapp-btn w-14 h-14 flex items-center justify-center text-white text-2xl z-50">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+    <script src="js/main.js"></script>
+    <script src="js/calculator.js"></script>
+</body>
+</html>
