@@ -10,8 +10,60 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/responsive.css">
+    
+    <style>
+        /* Estilos adicionales específicos para la calculadora */
+        .calculator-section {
+            transition: all 0.3s ease;
+        }
+        
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.3);
+        }
+        
+        .result-item {
+            transition: all 0.3s ease;
+        }
+        
+        .result-appear {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            text-align: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            width: 200px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
+
     <!-- Header -->
     <header class="bg-white shadow-sm sticky-header">
         <div class="container mx-auto px-4 py-4">
@@ -24,9 +76,9 @@
                 
                 <nav class="hidden md:flex space-x-6">
                     <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
-                    <a href="como-funciona.html" class="text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                    <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
                     <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
-                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
+                    <a href="calculadora.html" class="text-orange-600 font-medium transition-colors">Calculadora</a>
                     <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
                 </nav>
                 
@@ -43,9 +95,9 @@
             <div class="md:hidden hidden" id="mobile-menu">
                 <div class="py-3 space-y-3">
                     <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
-                    <a href="como-funciona.html" class="block text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
+                    <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
                     <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
-                    <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
+                    <a href="calculadora.html" class="block text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
                     <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
                     <div class="flex flex-col space-y-2 pt-2">
                         <a href="calculadora.html" class="inline-block primary-btn text-center">Calcular Envío</a>
@@ -66,250 +118,739 @@
             </div>
         </div>
     </div>
-    <!-- Page Title -->
-    <section class="py-16 md:py-20 bg-gray-100">
-        <div class="container mx-auto px-4 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4">Calculadora de Envíos</h1>
-            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Conoce el costo aproximado de tu envío antes de realizar tu compra. Nuestras tarifas son transparentes y sin costos ocultos.</p>
-        </div>
-    </section>
 
-    <!-- Calculator -->
-    <section class="py-16 md:py-24">
-        <div class="container mx-auto px-4">
-            <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 cta-shadow">
-                <h2 class="text-2xl font-bold mb-6 text-center">Calcula tu Envío</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-gray-700 font-medium mb-2">Tipo de servicio</label>
-                        <select id="service-type" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            <option value="aero">Servicio Courier Aéreo</option>
-                            <option value="maritimo">Carga Marítima</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-700 font-medium mb-2">Contenido del paquete</label>
-                        <select id="package-content" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+    <!-- Page Title with Wave -->
+<section class="py-16 md:py-24 relative" style="background: linear-gradient(135deg, #FF6B00 0%, #FF9A00 100%);">
+    <div class="container mx-auto px-4 text-center relative z-10">
+        <h1 class="text-4xl md:text-5xl font-bold mb-6 text-white">Calculadora de Envíos</h1>
+        <p class="text-xl text-white mb-8 max-w-3xl mx-auto">Servicios de courier con precios transparentes y competitivos. Conoce nuestras opciones para hacer llegar tus compras desde USA a Costa Rica sin sorpresas.</p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button id="toggle-aero" style="background-color: white; color: #FF6B00;" class="calc-type-btn active-calc-btn px-8 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center">
+                <i class="fas fa-plane mr-2"></i> Servicio Aéreo
+            </button>
+            <button id="toggle-maritimo" style="background-color: transparent; border: 2px solid white; color: white;" class="calc-type-btn px-8 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center">
+                <i class="fas fa-ship mr-2"></i> Servicio Marítimo
+            </button>
+        </div>
+    </div>
+    
+    <!-- Decorative Wave -->
+    <div class="absolute bottom-0 left-0 w-full overflow-hidden" style="transform: translateY(1px);">
+        <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#f9fafb" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"></path>
+        </svg>
+    </div>
+</section>
+
+<!-- Calculator -->
+<section class="py-16 md:py-24 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <!-- Calculadora Aérea -->
+        <div id="aero-calculator" class="calculator-container max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 cta-shadow calculator-section">
+            <h2 class="text-2xl font-bold mb-6 text-center">Calcula tu Envío Aéreo <span class="text-orange-600">en segundos</span></h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Contenido del paquete</label>
+                    <div class="relative">
+                        <select id="aero-package-content" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus appearance-none pr-10">
                             <option value="electronico">Electrónicos</option>
                             <option value="ropa">Ropa y accesorios</option>
                             <option value="repuestos">Repuestos</option>
                             <option value="suplementos">Suplementos</option>
                             <option value="otros">Otros</option>
                         </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-700 font-medium mb-2">Peso (libras)</label>
-                        <input type="number" id="weight" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Ej: 5">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-700 font-medium mb-2">Valor de compra ($)</label>
-                        <input type="number" id="purchase-value" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Ej: 100">
-                    </div>
-                    
-                    <div id="dimensions-container">
-                        <label class="block text-gray-700 font-medium mb-2">Dimensiones (pulgadas)</label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <input type="number" id="length" placeholder="Largo" class="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            <input type="number" id="width" placeholder="Ancho" class="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            <input type="number" id="height" placeholder="Alto" class="px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400"></i>
                         </div>
                     </div>
-                    
-                    <div>
-                        <label class="block text-gray-700 font-medium mb-2">Destino</label>
-                        <select id="destination" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            <option value="gam">Gran Área Metropolitana</option>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">
+                        Peso (kg)
+                        <span class="tooltip-container ml-1">
+                            <i class="fas fa-info-circle text-gray-400"></i>
+                            <span class="tooltip-text text-xs">Para conversión, 1 lb = 0.453 kg</span>
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="aero-weight" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus" placeholder="Ej: 2.3">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <span class="text-gray-400">kg</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">
+                        Valor de compra (USD)
+                        <span class="tooltip-container ml-1">
+                            <i class="fas fa-info-circle text-gray-400"></i>
+                            <span class="tooltip-text text-xs">El valor declarado en la factura comercial</span>
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <span class="text-gray-400">$</span>
+                        </div>
+                        <input type="number" id="aero-purchase-value" class="w-full pl-8 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus" placeholder="Ej: 100">
+                    </div>
+                </div>
+                
+                <div id="aero-dimensions-container">
+                    <label class="block text-gray-700 font-medium mb-2">
+                        Dimensiones (cm)
+                        <span class="tooltip-container ml-1">
+                            <i class="fas fa-info-circle text-gray-400"></i>
+                            <span class="tooltip-text text-xs">Para calcular el peso volumétrico</span>
+                        </span>
+                    </label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="relative">
+                            <input type="number" id="aero-length" placeholder="Largo" class="w-full px-3 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus">
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="aero-width" placeholder="Ancho" class="w-full px-3 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus">
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="aero-height" placeholder="Alto" class="w-full px-3 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus">
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Destino</label>
+                    <div class="relative">
+                        <select id="aero-destination" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus appearance-none pr-10">
+                            <option value="sanjose">San José</option>
                             <option value="alajuela">Alajuela</option>
-                            <option value="cartago">Cartago</option>
                             <option value="heredia">Heredia</option>
+                            <option value="cartago">Cartago</option>
                             <option value="guanacaste">Guanacaste</option>
                             <option value="puntarenas">Puntarenas</option>
                             <option value="limon">Limón</option>
                         </select>
-                    </div>
-                </div>
-                
-                <div class="mt-8">
-                    <button id="calculate-btn" class="primary-btn w-full text-lg">
-                        Calcular Costo Total
-                    </button>
-                </div>
-                
-                <div id="result-section" class="mt-8 p-6 bg-gray-50 rounded-lg hidden">
-                    <h3 class="text-xl font-semibold mb-4">Resultado Estimado</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-gray-600">Costo de flete:</p>
-                            <p id="shipping-cost" class="font-semibold">$0.00</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-600">Manejo:</p>
-                            <p id="handling-cost" class="font-semibold">$0.00</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-600">Impuestos estimados:</p>
-                            <p id="tax-cost" class="font-semibold">$0.00</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-600">Entrega:</p>
-                            <p id="delivery-cost" class="font-semibold">$0.00</p>
-                        </div>
-                        <div class="col-span-2 pt-4 border-t">
-                            <p class="text-gray-800">Costo total estimado:</p>
-                            <p id="total-cost" class="font-bold text-2xl text-orange-600">$0.00</p>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400"></i>
                         </div>
                     </div>
                 </div>
-                
-                <p class="mt-4 text-sm text-gray-600">* Esta es una estimación y el costo final puede variar según el peso real, dimensiones, impuestos aplicables y requisitos aduaneros.</p>
+            </div>
+            
+            <div class="mt-8">
+                <button id="aero-calculate-btn" class="primary-btn w-full text-lg py-4 flex items-center justify-center">
+                    <i class="fas fa-calculator mr-2"></i> Calcular Envío Aéreo
+                </button>
+            </div>
+            
+            <div id="aero-result-section" class="mt-8 p-6 bg-gray-50 rounded-lg hidden">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    Resultado Estimado (Envío Aéreo)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="result-item p-3 bg-white rounded-lg shadow-sm">
+                        <p class="text-gray-500 text-sm">Costo de flete:</p>
+                        <p id="aero-shipping-cost" class="font-semibold text-lg">$0.00</p>
+                    </div>
+                    <div class="result-item p-3 bg-white rounded-lg shadow-sm">
+                        <p class="text-gray-500 text-sm">Manejo:</p>
+                        <p id="aero-handling-cost" class="font-semibold text-lg">$0.00</p>
+                    </div>
+                    <div class="result-item p-3 bg-white rounded-lg shadow-sm">
+                        <p class="text-gray-500 text-sm">Impuestos estimados:</p>
+                        <p id="aero-tax-cost" class="font-semibold text-lg">$0.00</p>
+                    </div>
+                    <div class="result-item p-3 bg-white rounded-lg shadow-sm">
+                        <p class="text-gray-500 text-sm">Entrega:</p>
+                        <p id="aero-delivery-cost" class="font-semibold text-lg">$0.00</p>
+                    </div>
+                    <div class="col-span-1 md:col-span-2 result-item p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-orange-800 font-medium">Costo total estimado:</p>
+                                <p id="aero-weight-applied" class="text-xs text-orange-700 mt-1"></p>
+                            </div>
+                            <p id="aero-total-cost" class="font-bold text-2xl text-orange-600">$0.00</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </section>
+
+        <!-- Calculadora Marítima -->
+        <div id="maritimo-calculator" class="calculator-container max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 cta-shadow calculator-section hidden">
+            <h2 class="text-2xl font-bold mb-6 text-center">Calcula tu Envío Marítimo <span class="text-orange-600">en segundos</span></h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Contenido del paquete</label>
+                    <div class="relative">
+                        <select id="maritimo-package-content" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus appearance-none pr-10">
+                            <option value="electronico">Electrónicos</option>
+                            <option value="ropa">Ropa y accesorios</option>
+                            <option value="muebles">Muebles y equipamiento</option>
+                            <option value="vehiculos">Repuestos de vehículos</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">
+                        Valor de compra (USD)
+                        <span class="tooltip-container ml-1">
+                            <i class="fas fa-info-circle text-gray-400"></i>
+                            <span class="tooltip-text text-xs">El valor declarado en la factura comercial</span>
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <span class="text-gray-400">$</span>
+                        </div>
+                        <input type="number" id="maritimo-purchase-value" class="w-full pl-8 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus" placeholder="Ej: 1000">
+                    </div>
+                </div>
+                
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-gray-700 font-medium mb-2">
+                        Dimensiones (cm)
+                        <span class="tooltip-container ml-1">
+                            <i class="fas fa-info-circle text-gray-400"></i>
+                            <span class="tooltip-text text-xs">Para calcular los pies cúbicos</span>
+                        </span>
+                    </label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="relative">
+                            <input type="number" id="maritimo-length" placeholder="Largo" class="w-full px-3 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus">
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="maritimo-width" placeholder="Ancho" class="w-full px-3 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus">
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="maritimo-height" placeholder="Alto" class="w-full px-3 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus">
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Destino</label>
+                    <div class="relative">
+                        <select id="maritimo-destination" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus appearance-none pr-10">
+                            <option value="sanjose">San José</option>
+                            <option value="alajuela">Alajuela</option>
+                            <option value="heredia">Heredia</option>
+                            <option value="cartago">Cartago</option>
+                            <option value="guanacaste">Guanacaste</option>
+                            <option value="puntarenas">Puntarenas</option>
+                            <option value="limon">Limón</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Tipo de servicio marítimo</label>
+                    <div class="relative">
+                        <select id="maritimo-service-type" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent input-focus appearance-none pr-10">
+                            <option value="regular">Carga Consolidada Regular</option>
+                            <option value="large">Carga Grande (+100 pies cúbicos)</option>
+                            <option value="container">Contenedor Completo (Cotización Especial)</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8">
+                <button id="maritimo-calculate-btn" class="primary-btn w-full text-lg py-4 flex items-center justify-center">
+                    <i class="fas fa-calculator mr-2"></i> Calcular Envío Marítimo
+                </button>
+            </div>
+            
+            <div id="maritimo-result-section" class="mt-8 p-6 bg-gray-50 rounded-lg hidden">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    Resultado Estimado (Envío Marítimo)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="result-item p-3 bg-white rounded-lg shadow-sm">
+                        <p class="text-gray-500 text-sm">Volumen calculado:</p>
+                        <p id="maritimo-volume" class="font-semibold text-lg">0 pies cúbicos</p>
+                    </div>
+                    <div class="result-item p-3 bg-white rounded-lg shadow-sm">
+                        <p class="text-gray-500 text-sm">Costo de flete marítimo:</p>
+                        <p id="maritimo-shipping-cost" class="font-semibold text-lg">$0.00</p>
+                    </div>
+                    <div class="result-item p-3 bg-white rounded-lg shadow-sm">
+                        <p class="text-gray-500 text-sm">Manejo y documentación:</p>
+                        <p id="maritimo-handling-cost" class="font-semibold text-lg">$0.00</p>
+                    </div>
+                    <div class="result-item p-3 bg-white rounded-lg shadow-sm">
+                        <p class="text-gray-500 text-sm">Impuestos estimados:</p>
+                        <p id="maritimo-tax-cost" class="font-semibold text-lg">$0.00</p>
+                    </div>
+                    <div class="result-item p-3 bg-white rounded-lg shadow-sm">
+                        <p class="text-gray-500 text-sm">Entrega local:</p>
+                        <p id="maritimo-delivery-cost" class="font-semibold text-lg">$0.00</p>
+                    </div>
+                    <div class="result-item p-3 bg-white rounded-lg shadow-sm">
+                        <p class="text-gray-500 text-sm">Tiempo estimado:</p>
+                        <p id="maritimo-time" class="font-semibold text-lg">6-7 días</p>
+                    </div>
+                    <div class="col-span-1 md:col-span-2 result-item p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-orange-800 font-medium">Costo total estimado:</p>
+                                <p id="maritimo-notes" class="text-xs text-orange-700 mt-1"></p>
+                            </div>
+                            <p id="maritimo-total-cost" class="font-bold text-2xl text-orange-600">$0.00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+        <div class="mt-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400 text-sm text-blue-800 max-w-4xl mx-auto">
+            <p class="flex items-start">
+                <i class="fas fa-info-circle mt-1 mr-2"></i>
+                <span>Esta es una estimación y el costo final puede variar según el peso real, dimensiones, impuestos aplicables y requisitos aduaneros. Para cotizaciones más precisas, contacta directamente a nuestro equipo.</span>
+            </p>
+        </div>
+    </div>
+</section>
 
     <!-- How Rates Work -->
     <section class="py-16 md:py-24 bg-gray-50">
         <div class="container mx-auto px-4">
             <div class="text-center mb-16">
+                <span class="text-orange-600 font-semibold mb-2 inline-block">TRANSPARENCIA TOTAL</span>
                 <h2 class="text-3xl font-bold mb-4">¿Cómo Calculamos Nuestras Tarifas?</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Entendiendo nuestro sistema de precios transparente</p>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Entendiendo nuestro sistema de precios claro y sin costos ocultos</p>
             </div>
             
             <div class="max-w-4xl mx-auto">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <div class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 feature-card">
                         <div class="flex items-center mb-4">
                             <div class="icon-circle">
                                 <i class="fas fa-weight text-orange-600 text-xl"></i>
                             </div>
                             <h3 class="text-xl font-semibold ml-4">Peso vs Volumen</h3>
                         </div>
-                        <p class="text-gray-600">Calculamos el costo según el peso real o el peso volumétrico, lo que sea mayor. Para el peso volumétrico, dividimos el volumen (largo x ancho x alto en pulgadas) entre 166.</p>
+                        <p class="text-gray-600">Calculamos el costo según el peso real o el peso volumétrico, lo que sea mayor. Para el peso volumétrico, usamos la fórmula: (largo × ancho × alto en cm) ÷ 6000.</p>
                     </div>
                     
-                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <div class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 feature-card">
                         <div class="flex items-center mb-4">
                             <div class="icon-circle">
                                 <i class="fas fa-dollar-sign text-orange-600 text-xl"></i>
                             </div>
                             <h3 class="text-xl font-semibold ml-4">Valor de Compra</h3>
                         </div>
-                        <p class="text-gray-600">El valor de compra determina los impuestos aduanales a pagar. Para envíos courier, aplica un impuesto aproximado de 13% sobre el valor CIF (valor de compra + flete + seguro).</p>
+                        <p class="text-gray-600">El valor de compra determina los cargos por manejo y los impuestos aduanales. Para envíos courier, aplica un impuesto aproximado del 13% sobre el valor CIF (valor de compra + flete + seguro).</p>
                     </div>
                     
-                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <div class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 feature-card">
                         <div class="flex items-center mb-4">
                             <div class="icon-circle">
                                 <i class="fas fa-shipping-fast text-orange-600 text-xl"></i>
                             </div>
                             <h3 class="text-xl font-semibold ml-4">Tipo de Servicio</h3>
                         </div>
-                        <p class="text-gray-600">El servicio aéreo es más rápido pero tiene un costo por libra mayor. El servicio marítimo es más económico para cargas de gran volumen pero toma más tiempo.</p>
+                        <p class="text-gray-600">El servicio aéreo es más rápido con entrega en 3-5 días hábiles. El servicio marítimo es más económico para cargas voluminosas (>100 pies cúbicos) con entrega en 6-7 días desde la salida de Miami.</p>
                     </div>
                     
-                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <div class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 feature-card">
                         <div class="flex items-center mb-4">
                             <div class="icon-circle">
                                 <i class="fas fa-map-marker-alt text-orange-600 text-xl"></i>
                             </div>
                             <h3 class="text-xl font-semibold ml-4">Ubicación de Entrega</h3>
                         </div>
-                        <p class="text-gray-600">La entrega en el Gran Área Metropolitana (GAM) tiene un costo estándar. Para entregas fuera del GAM, se aplica un recargo adicional según la distancia.</p>
+                        <p class="text-gray-600">La entrega en San José, Heredia y Alajuela tiene tarifas estándar. Para Cartago aplica una tarifa intermedia, y para entregas fuera del Gran Área Metropolitana (Guanacaste, Puntarenas, Limón), se aplican tarifas especiales.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-10 bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Información Importante</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
+                            <h4 class="font-semibold text-green-800 mb-2">¿Qué incluye nuestro servicio?</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-600 mr-2 mt-1"></i>
+                                    <span class="text-green-800">Recepción y manejo en Miami</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-600 mr-2 mt-1"></i>
+                                    <span class="text-green-800">Transporte aéreo o marítimo a Costa Rica</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-600 mr-2 mt-1"></i>
+                                    <span class="text-green-800">Trámites aduanales básicos</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-600 mr-2 mt-1"></i>
+                                    <span class="text-green-800">Entrega a domicilio</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                            <h4 class="font-semibold text-yellow-800 mb-2">¿Qué NO incluye nuestro servicio?</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-start">
+                                    <i class="fas fa-times text-yellow-600 mr-2 mt-1"></i>
+                                    <span class="text-yellow-800">Impuestos de aduana (serán cobrados adicionalmente)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-times text-yellow-600 mr-2 mt-1"></i>
+                                    <span class="text-yellow-800">Trámites para permisos especiales</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-times text-yellow-600 mr-2 mt-1"></i>
+                                    <span class="text-yellow-800">Costos por inspecciones adicionales</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-times text-yellow-600 mr-2 mt-1"></i>
+                                    <span class="text-yellow-800">Servicios de compra por encargo (a menos que se solicite)</span>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="py-16 md:py-20 gradient-bg">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">¿Listo para comenzar?</h2>
-            <p class="text-xl text-white text-opacity-90 mb-8 max-w-3xl mx-auto">Afíliate gratis y obtén tu dirección en Miami al instante</p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="afiliate.html" class="primary-btn bg-white text-orange-600 hover:bg-gray-100">Crear Mi Casillero</a>
-                <a href="contacto.html" class="secondary-btn border-white text-white hover:bg-orange-700 hover:text-white">Solicitar Cotización</a>
-            </div>
+    <!-- CTA Section with Wave -->
+<section class="py-16 md:py-20 gradient-bg relative">
+    <div class="absolute inset-0 opacity-10 bg-pattern"></div>
+    <div class="container mx-auto px-4 text-center relative z-10">
+        <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">¿Listo para comenzar?</h2>
+        <p class="text-xl text-white text-opacity-90 mb-8 max-w-3xl mx-auto">Afíliate gratis y obtén tu dirección en Miami al instante</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="afiliate.html" style="background-color: white; color: #FF6B00;" class="px-8 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center">
+                <i class="fas fa-user-plus mr-2"></i> Crear Mi Casillero
+            </a>
+            <a href="contacto.html" style="background-color: transparent; border: 2px solid white; color: white;" class="hover:bg-white hover:text-orange-600 px-8 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center">
+                <i class="fas fa-envelope mr-2"></i> Solicitar Cotización
+            </a>
         </div>
-    </section>
+    </div>
+    
+    <!-- Decorative Wave -->
+    <div class="absolute bottom-0 left-0 w-full overflow-hidden" style="transform: translateY(1px);">
+        <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#1f2937" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"></path>
+        </svg>
+    </div>
+</section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="text-xl font-semibold mb-4">CRBOX</h3>
-                    <p class="text-gray-400 mb-4">Tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.</p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fab fa-whatsapp"></i>
-                        </a>
-                    </div>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
-                    <ul class="space-y-2">
-                        <li><a href="servicios.html" class="text-gray-400 hover:text-white transition-colors">Servicios</a></li>
-                        <li><a href="como-funciona.html" class="text-gray-400 hover:text-white transition-colors">Cómo Funciona</a></li>
-                        <li><a href="tarifas.html" class="text-gray-400 hover:text-white transition-colors">Tarifas</a></li>
-                        <li><a href="calculadora.html" class="text-gray-400 hover:text-white transition-colors">Calculadora</a></li>
-                        <li><a href="afiliate.html" class="text-gray-400 hover:text-white transition-colors">Afíliate</a></li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Contacto</h3>
-                    <ul class="space-y-2">
-                        <li class="flex items-start">
-                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-orange-500"></i>
-                            <span class="text-gray-400">Sabana Norte, San José, Costa Rica</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-phone mt-1 mr-3 text-orange-500"></i>
-                            <span class="text-gray-400">+506-4000-1114</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-envelope mt-1 mr-3 text-orange-500"></i>
-                            <span class="text-gray-400">ventas@crbox.cr</span>
-                        </li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Horario de Atención</h3>
-                    <ul class="space-y-2">
-                        <li class="text-gray-400">Lunes a Viernes: 8:00 AM - 5:00 PM</li>
-                        <li class="text-gray-400">Sábados: 9:00 AM - 1:00 PM</li>
-                        <li class="text-gray-400">Domingos: Cerrado</li>
-                    </ul>
+<!-- Footer -->
+<footer class="bg-gray-800 text-white py-12">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+                <h3 class="text-xl font-semibold mb-4">CRBOX</h3>
+                <p class="text-gray-400 mb-4">Tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
                 </div>
             </div>
             
-            <div class="border-t border-gray-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
-                <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 CRBOX. Todos los derechos reservados.</p>
-                <div class="flex space-x-4">
-                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Términos y Condiciones</a>
-                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</a>
-                </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
+                <ul class="space-y-2">
+                    <li><a href="servicios.html" class="text-gray-400 hover:text-white transition-colors">Servicios</a></li>
+                    <li><a href="como-funciona.html" class="text-gray-400 hover:text-white transition-colors">Cómo Funciona</a></li>
+                    <li><a href="tarifas.html" class="text-gray-400 hover:text-white transition-colors">Tarifas</a></li>
+                    <li><a href="calculadora.html" class="text-gray-400 hover:text-white transition-colors">Calculadora</a></li>
+                    <li><a href="afiliate.html" class="text-gray-400 hover:text-white transition-colors">Afíliate</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Contacto</h3>
+                <ul class="space-y-2">
+                    <li class="flex items-start">
+                        <i class="fas fa-map-marker-alt mt-1 mr-3 text-orange-500"></i>
+                        <span class="text-gray-400">Sabana Norte, San José, Costa Rica</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-phone mt-1 mr-3 text-orange-500"></i>
+                        <span class="text-gray-400">+506-4000-1114</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-envelope mt-1 mr-3 text-orange-500"></i>
+                        <span class="text-gray-400">ventas@crbox.cr</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Horario de Atención</h3>
+                <ul class="space-y-2">
+                    <li class="text-gray-400">Lunes a Viernes: 8:00 AM - 5:00 PM</li>
+                    <li class="text-gray-400">Sábados: 9:00 AM - 1:00 PM</li>
+                    <li class="text-gray-400">Domingos: Cerrado</li>
+                </ul>
             </div>
         </div>
-    </footer>
+        
+        <div class="border-t border-gray-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+            <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 CRBOX. Todos los derechos reservados.</p>
+            <div class="flex space-x-4">
+                <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Términos y Condiciones</a>
+                <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</a>
+            </div>
+        </div>
+    </div>
+</footer>
 
     <!-- WhatsApp Button -->
     <a href="https://wa.me/50640001114" class="fixed bottom-6 right-6 whatsapp-btn w-14 h-14 flex items-center justify-center text-white text-2xl z-50">
         <i class="fab fa-whatsapp"></i>
     </a>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="fixed bottom-6 right-24 bg-orange-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
     <script src="js/main.js"></script>
-    <script src="js/calculator.js"></script>
+    <script>
+        // Mejorado script de calculadora
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos DOM
+            const calculateBtn = document.getElementById('calculate-btn');
+            const resultSection = document.getElementById('result-section');
+            const serviceType = document.getElementById('service-type');
+            const packageContent = document.getElementById('package-content');
+            const weight = document.getElementById('weight');
+            const purchaseValue = document.getElementById('purchase-value');
+            const length = document.getElementById('length');
+            const width = document.getElementById('width');
+            const height = document.getElementById('height');
+            const destination = document.getElementById('destination');
+            
+            // Elementos de resultado
+            const shippingCost = document.getElementById('shipping-cost');
+            const handlingCost = document.getElementById('handling-cost');
+            const taxCost = document.getElementById('tax-cost');
+            const deliveryCost = document.getElementById('delivery-cost');
+            const totalCost = document.getElementById('total-cost');
+            const weightApplied = document.getElementById('weight-applied');
+            
+            // Evento de clic para calcular
+            calculateBtn.addEventListener('click', function() {
+                // Obtener valores
+                const weightValue = parseFloat(weight.value) || 0;
+                const purchaseValueNum = parseFloat(purchaseValue.value) || 0;
+                const lengthValue = parseFloat(length.value) || 0;
+                const widthValue = parseFloat(width.value) || 0;
+                const heightValue = parseFloat(height.value) || 0;
+                const destinationValue = destination.value;
+                const serviceTypeValue = serviceType.value;
+                const packageContentValue = packageContent.value;
+                
+                // Calcular peso volumétrico (fórmula: largo x ancho x alto en cm / 6000)
+                let volumetricWeight = 0;
+                if (lengthValue && widthValue && heightValue) {
+                    volumetricWeight = (lengthValue * widthValue * heightValue) / 6000;
+                }
+                
+                // Determinar cuál peso aplicar
+                const applicableWeight = Math.max(weightValue, volumetricWeight);
+                
+                // Calcular costos basados en el servicio seleccionado
+                let shipping = 0;
+                let handling = 0;
+                let taxes = 0;
+                let delivery = 0;
+                
+                // Calcular costo de flete (aéreo)
+                if (serviceTypeValue === 'aero') {
+                    if (applicableWeight <= 0.5) shipping = 5;
+                    else if (applicableWeight <= 1) shipping = 7;
+                    else if (applicableWeight <= 2) shipping = 11;
+                    else if (applicableWeight <= 3) shipping = 15;
+                    else if (applicableWeight <= 4) shipping = 19;
+                    else if (applicableWeight <= 5) shipping = 23;
+                    else if (applicableWeight <= 6) shipping = 27;
+                    else if (applicableWeight <= 7) shipping = 32;
+                    else if (applicableWeight <= 8) shipping = 36;
+                    else if (applicableWeight <= 9) shipping = 40;
+                    else if (applicableWeight <= 10) shipping = 44;
+                    else if (applicableWeight <= 11) shipping = 48;
+                    else if (applicableWeight <= 12) shipping = 52;
+                    else if (applicableWeight <= 13) shipping = 56;
+                    else if (applicableWeight <= 14) shipping = 60;
+                    else if (applicableWeight <= 15) shipping = 64;
+                    else if (applicableWeight <= 16) shipping = 68;
+                    else if (applicableWeight <= 17) shipping = 72;
+                    else if (applicableWeight <= 18) shipping = 76;
+                    else if (applicableWeight <= 19) shipping = 80;
+                    else if (applicableWeight <= 20) shipping = 84;
+                    else if (applicableWeight <= 100) shipping = 84 + ((applicableWeight - 20) * 3);
+                    else shipping = 84 + ((100 - 20) * 3) + ((applicableWeight - 100) * 2.3);
+                } else {
+                    // Marítimo (se calcula en pies cúbicos, aproximado)
+                    // Convertir de cm3 a pies cúbicos
+                    const cubicFeet = (lengthValue * widthValue * heightValue) / 28316.85;
+                    if (cubicFeet < 100) {
+                        shipping = cubicFeet * 18; // $18 por pie cúbico regular
+                    } else {
+                        shipping = cubicFeet * 16; // $16 por pie cúbico para volúmenes grandes
+                    }
+                }
+                
+                // Calcular cargo por manejo basado en valor de compra
+                if (purchaseValueNum < 20) handling = 1.5;
+                else if (purchaseValueNum <= 30) handling = 3.5;
+                else if (purchaseValueNum <= 50) handling = 5.5;
+                else if (purchaseValueNum <= 100) handling = 7;
+                else if (purchaseValueNum <= 200) handling = 14;
+                else if (purchaseValueNum <= 500) handling = 35;
+                else if (purchaseValueNum <= 1000) handling = 45;
+                else if (purchaseValueNum <= 2500) handling = 100;
+                else if (purchaseValueNum <= 5000) handling = 125;
+                else if (purchaseValueNum <= 10000) handling = 150;
+                else if (purchaseValueNum <= 15000) handling = 175;
+                else handling = purchaseValueNum * 0.005; // 0.5% del valor
+                
+                // Calcular impuestos aproximados (13% del valor CIF)
+                const cifValue = purchaseValueNum + shipping;
+                taxes = cifValue * 0.13;
+                
+                // Factor de impuestos adicionales según el tipo de producto
+                let taxFactor = 1.0;
+                switch (packageContentValue) {
+                    case 'electronico':
+                        taxFactor = 1.3; // 30% adicional para electrónicos
+                        break;
+                    case 'ropa':
+                        taxFactor = 1.15; // 15% adicional para ropa
+                        break;
+                    case 'repuestos':
+                        taxFactor = 1.1; // 10% adicional para repuestos
+                        break;
+                    case 'suplementos':
+                        taxFactor = 1.05; // 5% adicional para suplementos
+                        break;
+                    default:
+                        taxFactor = 1.0;
+                }
+                taxes *= taxFactor;
+                
+                // Calcular costo de entrega según destino y peso
+                if (destinationValue === 'sanjose' || destinationValue === 'heredia' || destinationValue === 'alajuela') {
+                    if (applicableWeight <= 10) delivery = 5;
+                    else if (applicableWeight <= 20) delivery = 7;
+                    else if (applicableWeight <= 50) delivery = 12;
+                    else delivery = 15;
+                } else if (destinationValue === 'cartago') {
+                    if (applicableWeight <= 10) delivery = 10;
+                    else if (applicableWeight <= 20) delivery = 15;
+                    else if (applicableWeight <= 50) delivery = 18;
+                    else delivery = 20;
+                } else {
+                    // Zonas alejadas
+                    if (applicableWeight <= 10) delivery = 15;
+                    else if (applicableWeight <= 20) delivery = 20;
+                    else if (applicableWeight <= 50) delivery = 25;
+                    else delivery = 30;
+                }
+                
+                // Calcular costo total
+                const total = shipping + handling + taxes + delivery;
+                
+                // Actualizar resultados
+                shippingCost.textContent = '$' + shipping.toFixed(2);
+                handlingCost.textContent = '$' + handling.toFixed(2);
+                taxCost.textContent = '$' + taxes.toFixed(2);
+                deliveryCost.textContent = '$' + delivery.toFixed(2);
+                totalCost.textContent = '$' + total.toFixed(2);
+                
+                // Mostrar el peso aplicado
+                if (volumetricWeight > weightValue) {
+                    weightApplied.textContent = 'Peso aplicado: ' + applicableWeight.toFixed(2) + ' kg (volumétrico)';
+                } else {
+                    weightApplied.textContent = 'Peso aplicado: ' + applicableWeight.toFixed(2) + ' kg (real)';
+                }
+                
+                // Mostrar sección de resultados con animación
+                resultSection.classList.remove('hidden');
+                resultSection.classList.add('result-appear');
+                
+                // Desplazar a los resultados
+                resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+            
+            // Cambiar visualización según el tipo de servicio
+            serviceType.addEventListener('change', function() {
+                const dimensionsContainer = document.getElementById('dimensions-container');
+                
+                if (this.value === 'maritimo') {
+                    dimensionsContainer.classList.remove('hidden');
+                    document.querySelector('label[for="weight"]').textContent = 'Peso (kg) - Opcional para marítimo';
+                } else {
+                    dimensionsContainer.classList.remove('hidden');
+                    document.querySelector('label[for="weight"]').textContent = 'Peso (kg)';
+                }
+            });
+            
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            
+            // Back to top button
+            const backToTopButton = document.getElementById('back-to-top');
+            
+            if (backToTopButton) {
+                window.addEventListener('scroll', function() {
+                    if (window.pageYOffset > 300) {
+                        backToTopButton.classList.remove('opacity-0', 'invisible');
+                        backToTopButton.classList.add('opacity-100', 'visible');
+                    } else {
+                        backToTopButton.classList.add('opacity-0', 'invisible');
+                        backToTopButton.classList.remove('opacity-100', 'visible');
+                    }
+                });
+                
+                backToTopButton.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 </html>

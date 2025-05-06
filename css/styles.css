@@ -147,3 +147,129 @@ body {
 .cta-shadow {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
+
+/* Background pattern */
+.bg-pattern {
+    background-image: url('data:image/svg+xml;charset=utf8,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.2"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+}
+
+/* Animate on scroll classes */
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.animate-on-scroll.animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Custom tab styling */
+.tab-content > div {
+    transition: all 0.3s ease;
+}
+
+/* Calculadora styling */
+input[type="number"], select {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="number"]:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
+}
+
+#calcular-btn {
+    transition: all 0.3s ease;
+}
+
+#calcular-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#resultado-calculo {
+    transition: all 0.3s ease;
+}
+
+/* Numeric steps in calculator section */
+.w-12.h-12.bg-orange-600.rounded-full {
+    background-color: var(--primary);
+    transition: all 0.3s ease;
+}
+
+.bg-gray-50.rounded-lg.p-4.border:hover .w-12.h-12.bg-orange-600.rounded-full {
+    transform: scale(1.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Info boxes enhancements */
+.bg-blue-50, .bg-green-50, .bg-orange-50, .bg-purple-50, .bg-yellow-50, .bg-red-50 {
+    transition: all 0.3s ease;
+}
+
+.bg-blue-50:hover, .bg-green-50:hover, .bg-orange-50:hover, .bg-purple-50:hover, .bg-yellow-50:hover, .bg-red-50:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Example card enhancements */
+.bg-white.p-4.rounded-lg.shadow-sm {
+    transition: all 0.3s ease;
+}
+
+.bg-white.p-4.rounded-lg.shadow-sm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+    
+    /* Adjust font sizes for mobile */
+    h1 {
+        font-size: 2rem !important;
+    }
+    
+    h2 {
+        font-size: 1.75rem !important;
+    }
+    
+    h3 {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Table adjustments for mobile */
+    table {
+        font-size: 0.875rem;
+    }
+    
+    th, td {
+        padding: 0.5rem !important;
+    }
+    
+    /* Improve touch targets on mobile */
+    .tab-content button, 
+    .tab-content a,
+    input, 
+    select {
+        min-height: 44px;
+    }
+    
+    /* Better spacing for form elements on mobile */
+    .p-6 {
+        padding: 1rem !important;
+    }
+    
+    .gap-6 {
+        gap: 1rem !important;
+    }
+}

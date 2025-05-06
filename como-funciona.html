@@ -10,7 +10,109 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #FF6B00 0%, #FF9A00 100%);
+        }
+        
+        .bg-pattern {
+            background-image: url('data:image/svg+xml;charset=utf8,%3Csvg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z" fill="%23ffffff" fill-opacity="0.1" fill-rule="evenodd"/%3E%3C/svg%3E');
+        }
+        
+        .step-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .step-card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .icon-circular {
+            width: 80px; 
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #FFF3E0;
+            color: #FF6B00;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .step-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .step-info p {
+            text-align: justify;
+            margin-bottom: 1rem;
+        }
+        
+        .step-badge {
+            background-color: #FFF3E0;
+            color: #FF6B00;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 1rem;
+            border-radius: 9999px;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        
+        .tip-box {
+            background-color: #F8F9FA;
+            border-left-width: 4px;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: auto;
+            text-align: left;
+            width: 100%;
+        }
+        
+        .tip-box p {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+        
+        .faq-item {
+            height: 100%;
+        }
+        
+        .testimonial-card {
+            height: 100%;
+        }
+        
+        /* Corregir colores de botones */
+        .cta-button-white {
+            background-color: white;
+            color: #FF6B00;
+        }
+        
+        .cta-button-white:hover {
+            background-color: #f9f9f9;
+            color: #FF6B00;
+        }
+        
+        .cta-button-outline {
+            background-color: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+        
+        .cta-button-outline:hover {
+            background-color: white;
+            color: #FF6B00;
+        }
+    </style>
 </head>
+
 <body class="bg-gray-50">
     <!-- Header -->
     <header class="bg-white shadow-sm sticky-header">
@@ -67,96 +169,140 @@
         </div>
     </div>
 
-    <!-- Page Title -->
-    <section class="py-16 md:py-20 bg-gray-100">
-        <div class="container mx-auto px-4 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4">¿Cómo Funciona?</h1>
-            <p class="text-xl text-gray-600 max-w-3xl mx-auto">Comprar en USA y recibir en Costa Rica nunca fue tan fácil. Sigue estos simples pasos y comienza a disfrutar de tus compras internacionales.</p>
+    <!-- Hero Section -->
+    <section class="py-16 md:py-24 gradient-bg relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-pattern"></div>
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="flex flex-col items-center">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h1 class="text-4xl md:text-5xl font-bold text-white mb-6">¿Cómo Funciona CRBOX?</h1>
+                    <p class="text-xl text-white mb-8">Comprar en USA y recibir en Costa Rica es sencillo con CRBOX. Cuatro pasos simples para que tus compras internacionales lleguen a tu puerta.</p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="#proceso" class="cta-button-white px-8 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center">
+                            Ver Proceso
+                            <i class="fas fa-arrow-down ml-2"></i>
+                        </a>
+                        <a href="afiliate.html" class="cta-button-outline px-8 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center">
+                            Afiliarme Ahora
+                            <i class="fas fa-user-plus ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Decorative Wave -->
+        <div class="hidden md:block absolute bottom-0 left-0 w-full overflow-hidden">
+            <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#f9fafb" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"></path>
+            </svg>
         </div>
     </section>
 
     <!-- Process Steps -->
-    <section class="py-16 md:py-24">
+    <section id="proceso" class="py-16 md:py-24 bg-gray-50">
         <div class="container mx-auto px-4">
-            <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <span class="text-orange-600 font-semibold mb-2 inline-block">NUESTRO PROCESO</span>
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Tu Compra en 4 Simples Pasos</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Un servicio diseñado para brindarte la mejor experiencia de compra internacional.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
                 <!-- Step 1 -->
-                <div class="flex flex-wrap items-center mb-16">
-                    <div class="w-full md:w-1/3 mb-6 md:mb-0 flex justify-center">
-                        <div class="w-32 h-32 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
-                            <span class="text-5xl font-bold">1</span>
+                <div class="feature-card p-6 step-card">
+                    <div class="step-card-content">
+                        <div class="text-center">
+                            <div class="icon-circular mb-4">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <span class="step-badge">PASO 1</span>
+                            <h3 class="text-xl font-bold mb-3">Afíliate Gratis</h3>
                         </div>
-                    </div>
-                    <div class="w-full md:w-2/3">
-                        <h3 class="text-2xl font-bold mb-4">Afíliate Gratis</h3>
-                        <p class="text-lg text-gray-600 mb-4">Completa el formulario de registro para obtener al instante tu dirección en Miami. Es 100% gratis y el proceso toma solo unos minutos.</p>
-                        <div class="bg-orange-50 rounded-lg p-4 border-l-4 border-orange-500">
-                            <p class="text-orange-800 text-sm"><strong>Importante:</strong> Asegúrate de proporcionar datos correctos para evitar problemas con tus entregas.</p>
-                        </div>
-                        <div class="mt-4">
-                            <a href="afiliate.html" class="text-orange-600 font-medium flex items-center hover:text-orange-700 transition-colors">
-                                Ir a Afiliarme
-                                <i class="fas fa-chevron-right ml-1 text-sm"></i>
-                            </a>
+                        <div class="step-info">
+                            <p class="text-gray-600">Completa nuestro formulario digital y obtén al instante tu dirección en Miami. El proceso toma solo unos minutos.</p>
+                            <div class="tip-box border-orange-500 bg-orange-50">
+                                <p class="text-orange-800"><strong>Ventaja CRBOX:</strong> Envíos desde Miami dos veces por semana con entrega promedio en 3-5 días hábiles.</p>
+                            </div>
+                            <div class="mt-6 text-center">
+                                <a href="afiliate.html" class="text-orange-600 font-medium flex items-center justify-center hover:text-orange-700 transition-colors">
+                                    Comenzar Ahora
+                                    <i class="fas fa-chevron-right ml-1 text-sm"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Step 2 -->
-                <div class="flex flex-wrap items-center mb-16">
-                    <div class="w-full md:w-1/3 mb-6 md:mb-0 flex justify-center order-1 md:order-2">
-                        <div class="w-32 h-32 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
-                            <span class="text-5xl font-bold">2</span>
+                <div class="feature-card p-6 step-card">
+                    <div class="step-card-content">
+                        <div class="text-center">
+                            <div class="icon-circular mb-4">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <span class="step-badge">PASO 2</span>
+                            <h3 class="text-xl font-bold mb-3">Compra en USA</h3>
                         </div>
-                    </div>
-                    <div class="w-full md:w-2/3 order-2 md:order-1">
-                        <h3 class="text-2xl font-bold mb-4">Compra en USA</h3>
-                        <p class="text-lg text-gray-600 mb-4">Usa tu dirección en Miami para comprar en cualquier tienda de Estados Unidos. Si prefieres, nosotros realizamos la compra por ti.</p>
-                        <div class="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
-                            <p class="text-blue-800 text-sm"><strong>Consejo:</strong> Puedes comprar en Amazon, eBay, Walmart, Target, Best Buy y cientos de tiendas más. Usa siempre tu número de casillero en la dirección.</p>
-                        </div>
-                        <div class="mt-4">
-                            <a href="servicios.html#compras" class="text-orange-600 font-medium flex items-center hover:text-orange-700 transition-colors">
-                                Compras por Encargo
-                                <i class="fas fa-chevron-right ml-1 text-sm"></i>
-                            </a>
+                        <div class="step-info">
+                            <p class="text-gray-600">Usa tu dirección de Miami para comprar en miles de tiendas online en Estados Unidos, o pídenos que hagamos la compra por ti.</p>
+                            <div class="tip-box border-blue-500 bg-blue-50">
+                                <p class="text-blue-800"><strong>Consejo clave:</strong> Incluye siempre tu número de casillero en la dirección para identificar tus paquetes correctamente.</p>
+                            </div>
+                            <div class="mt-6 text-center">
+                                <a href="servicios.html#compras" class="text-orange-600 font-medium flex items-center justify-center hover:text-orange-700 transition-colors">
+                                    Compras por Encargo
+                                    <i class="fas fa-chevron-right ml-1 text-sm"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Step 3 -->
-                <div class="flex flex-wrap items-center mb-16">
-                    <div class="w-full md:w-1/3 mb-6 md:mb-0 flex justify-center">
-                        <div class="w-32 h-32 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
-                            <span class="text-5xl font-bold">3</span>
+                <div class="feature-card p-6 step-card">
+                    <div class="step-card-content">
+                        <div class="text-center">
+                            <div class="icon-circular mb-4">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <span class="step-badge">PASO 3</span>
+                            <h3 class="text-xl font-bold mb-3">Recibe Notificación</h3>
                         </div>
-                    </div>
-                    <div class="w-full md:w-2/3">
-                        <h3 class="text-2xl font-bold mb-4">Recibe Notificación</h3>
-                        <p class="text-lg text-gray-600 mb-4">Te notificamos cuando tu paquete llegue a Miami. Sube la factura de tu compra para el trámite aduanal correspondiente y autoriza el envío.</p>
-                        <div class="bg-orange-50 rounded-lg p-4 border-l-4 border-orange-500">
-                            <p class="text-orange-800 text-sm"><strong>Recuerda:</strong> La factura es indispensable para realizar los trámites aduanales. Sin factura, no podremos procesar tu envío.</p>
+                        <div class="step-info">
+                            <p class="text-gray-600">Te alertamos inmediatamente cuando tu paquete llega a Miami. Sube la factura y autoriza el envío en pocos clics.</p>
+                            <div class="tip-box border-orange-500 bg-orange-50">
+                                <p class="text-orange-800"><strong>Importante:</strong> La factura es requisito indispensable para trámites aduanales. Sin este documento no podemos procesar tu envío.</p>
+                            </div>
+                            <div class="mt-6 text-center">
+                                <!-- Espacio para mantener alineación -->
+                                <div class="h-6"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Step 4 -->
-                <div class="flex flex-wrap items-center">
-                    <div class="w-full md:w-1/3 mb-6 md:mb-0 flex justify-center order-1 md:order-2">
-                        <div class="w-32 h-32 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
-                            <span class="text-5xl font-bold">4</span>
+                <div class="feature-card p-6 step-card">
+                    <div class="step-card-content">
+                        <div class="text-center">
+                            <div class="icon-circular mb-4">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <span class="step-badge">PASO 4</span>
+                            <h3 class="text-xl font-bold mb-3">Recibe tu Paquete</h3>
                         </div>
-                    </div>
-                    <div class="w-full md:w-2/3 order-2 md:order-1">
-                        <h3 class="text-2xl font-bold mb-4">Recibe tu Paquete</h3>
-                        <p class="text-lg text-gray-600 mb-4">Entregamos en la puerta de tu casa u oficina en Costa Rica. Seguimiento automatizado las 24 horas, los 7 días de la semana.</p>
-                        <div class="bg-green-50 rounded-lg p-4 border-l-4 border-green-500">
-                            <p class="text-green-800 text-sm"><strong>¡Listo!</strong> Disfruta de tus compras y prepárate para el siguiente pedido. Una vez que pruebes CRBOX, no querrás usar otro servicio.</p>
-                        </div>
-                        <div class="mt-4">
-                            <a href="tarifas.html" class="text-orange-600 font-medium flex items-center hover:text-orange-700 transition-colors">
-                                Ver Tarifas de Entrega
-                                <i class="fas fa-chevron-right ml-1 text-sm"></i>
-                            </a>
+                        <div class="step-info">
+                            <p class="text-gray-600">Entregamos directamente en tu casa u oficina en cualquier parte de Costa Rica, con seguimiento en cada etapa del proceso.</p>
+                            <div class="tip-box border-green-500 bg-green-50">
+                                <p class="text-green-800"><strong>Beneficio exclusivo:</strong> Seguimiento 24/7 de tu paquete en cada etapa del proceso.</p>
+                            </div>
+                            <div class="mt-6 text-center">
+                                <a href="tarifas.html" class="text-orange-600 font-medium flex items-center justify-center hover:text-orange-700 transition-colors">
+                                    Ver Tarifas de Entrega
+                                    <i class="fas fa-chevron-right ml-1 text-sm"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -164,59 +310,301 @@
         </div>
     </section>
 
-    <!-- FAQ -->
-    <section id="faq" class="py-16 md:py-24 bg-gray-50">
+    <!-- Features Banner -->
+    <section class="py-12 bg-white border-t border-b border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
+                        <i class="fas fa-shipping-fast text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Entregas Rápidas</h3>
+                    <p class="text-gray-600">Recibe tus compras en un tiempo promedio de 3-5 días hábiles.</p>
+                </div>
+                
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
+                        <i class="fas fa-map-marker-alt text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Cobertura Nacional</h3>
+                    <p class="text-gray-600">Entregamos en todas las provincias de Costa Rica.</p>
+                </div>
+                
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
+                        <i class="fas fa-shield-alt text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Garantía de Seguridad</h3>
+                    <p class="text-gray-600">Tus paquetes protegidos en cada etapa del envío.</p>
+                </div>
+                
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
+                        <i class="fas fa-headset text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Soporte Personalizado</h3>
+                    <p class="text-gray-600">Equipo de atención al cliente disponible para ayudarte.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Consolidation Benefits -->
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <div class="flex flex-col md:flex-row">
+                        <div class="w-full md:w-1/2 gradient-bg p-8 md:p-12 text-white flex items-center">
+                            <div>
+                                <h2 class="text-2xl md:text-3xl font-bold mb-4">Beneficios de Consolidar Paquetes</h2>
+                                <p class="mb-6">Aprovecha al máximo nuestro servicio combinando múltiples compras en un solo envío y ahorra significativamente.</p>
+                                <ul class="space-y-3">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle mt-1 mr-3"></i>
+                                        <span>Reduce costos de envío hasta un 40%</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle mt-1 mr-3"></i>
+                                        <span>Consolida compras de diferentes tiendas</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle mt-1 mr-3"></i>
+                                        <span>Optimiza el espacio y peso de tus envíos</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle mt-1 mr-3"></i>
+                                        <span>Menor impacto ambiental</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-1/2 p-8 md:p-12">
+                            <h3 class="text-xl font-bold mb-4">¿Cómo consolidar tus paquetes?</h3>
+                            <ol class="space-y-4">
+                                <li class="flex">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold mr-3">
+                                        1
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-700">Realiza tus compras en diferentes tiendas de USA usando tu dirección en Miami.</p>
+                                    </div>
+                                </li>
+                                <li class="flex">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold mr-3">
+                                        2
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-700">Espera a que todos tus paquetes lleguen a nuestra bodega en Miami.</p>
+                                    </div>
+                                </li>
+                                <li class="flex">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold mr-3">
+                                        3
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-700">Indícanos a través de la plataforma que deseas consolidar tus envíos.</p>
+                                    </div>
+                                </li>
+                                <li class="flex">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold mr-3">
+                                        4
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-700">Sube todas las facturas juntas y autoriza el envío consolidado.</p>
+                                    </div>
+                                </li>
+                            </ol>
+                            <div class="mt-6">
+                                <a href="calculadora.html" class="primary-btn inline-flex items-center">
+                                    Calcular Ahorro
+                                    <i class="fas fa-calculator ml-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-16 md:py-24 bg-white">
         <div class="container mx-auto px-4">
             <div class="text-center mb-16">
                 <span class="text-orange-600 font-semibold mb-2 inline-block">PREGUNTAS FRECUENTES</span>
                 <h2 class="text-3xl md:text-4xl font-bold mb-4">Resolvemos tus Dudas</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Respondemos a tus dudas más comunes sobre nuestro proceso de envío.</p>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Respondemos a las consultas más comunes sobre nuestro servicio.</p>
             </div>
             
             <div class="max-w-3xl mx-auto">
-                <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- FAQ Item 1 -->
-                    <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                        <h3 class="text-xl font-semibold mb-3">¿Cuánto tiempo tarda en llegar mi paquete?</h3>
-                        <p class="text-gray-600">El tiempo de entrega depende del tipo de servicio. Para courier aéreo, el tiempo promedio es de 3 a 5 días hábiles desde que recibimos el paquete en Miami. Para carga marítima, el tiempo aproximado es de 6 a 7 días.</p>
+                    <div class="feature-card p-6 faq-item">
+                        <div class="flex items-start mb-3">
+                            <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">¿Cuánto tiempo tarda en llegar mi paquete?</h3>
+                        </div>
+                        <p class="text-gray-600 ml-14 text-justify">Para courier aéreo, el tiempo promedio es de 3 a 5 días hábiles desde que recibimos el paquete en Miami. Para carga marítima, aproximadamente 6 a 7 días.</p>
                     </div>
                     
                     <!-- FAQ Item 2 -->
-                    <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                        <h3 class="text-xl font-semibold mb-3">¿Puedo consolidar varios paquetes?</h3>
-                        <p class="text-gray-600">¡Sí! Puedes consolidar múltiples paquetes para ahorrar en costos de envío. Solo debes esperar a que todos tus paquetes lleguen a nuestra bodega en Miami y luego nos indicas que deseas consolidarlos antes de subir las facturas.</p>
+                    <div class="feature-card p-6 faq-item">
+                        <div class="flex items-start mb-3">
+                            <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">¿Puedo consolidar varios paquetes?</h3>
+                        </div>
+                        <p class="text-gray-600 ml-14 text-justify">¡Sí! Espera a que todos tus paquetes lleguen a nuestra bodega en Miami y ahorra significativamente en costos de envío consolidándolos.</p>
                     </div>
                     
                     <!-- FAQ Item 3 -->
-                    <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                        <h3 class="text-xl font-semibold mb-3">¿Qué pasa si no tengo la factura?</h3>
-                        <p class="text-gray-600">La factura es indispensable para realizar los trámites aduanales. Si no tienes la factura original, puedes enviar un comprobante de pago o captura de pantalla que muestre claramente el valor de la compra.</p>
+                    <div class="feature-card p-6 faq-item">
+                        <div class="flex items-start mb-3">
+                            <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">¿Qué pasa si no tengo la factura?</h3>
+                        </div>
+                        <p class="text-gray-600 ml-14 text-justify">La factura es indispensable para trámites aduanales. Si no tienes la original, puedes enviar un comprobante de pago que muestre claramente el valor de la compra.</p>
                     </div>
                     
                     <!-- FAQ Item 4 -->
-                    <div class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                        <h3 class="text-xl font-semibold mb-3">¿Cómo puedo rastrear mi paquete?</h3>
-                        <p class="text-gray-600">Puedes rastrear tu paquete a través de nuestro sistema en línea usando tu número de tracking. También recibirás notificaciones automáticas por email en cada etapa del proceso de envío.</p>
+                    <div class="feature-card p-6 faq-item">
+                        <div class="flex items-start mb-3">
+                            <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                                <i class="fas fa-search-location"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">¿Cómo puedo rastrear mi paquete?</h3>
+                        </div>
+                        <p class="text-gray-600 ml-14 text-justify">Puedes rastrear tu paquete a través de nuestro sistema en línea usando tu número de tracking. También recibirás notificaciones automáticas en cada etapa.</p>
                     </div>
                 </div>
                 
-                <div class="mt-8 text-center">
-                    <p class="text-gray-600">¿No encontraste lo que buscabas?</p>
-                    <a href="contacto.html" class="text-orange-600 font-medium hover:text-orange-700 transition-colors">Contáctanos para más información</a>
+                <div class="mt-12 text-center">
+                    <p class="text-gray-600 mb-4">¿No encontraste lo que buscabas?</p>
+                    <a href="contacto.html" class="inline-flex items-center px-5 py-3 rounded-lg bg-orange-100 text-orange-700 font-medium hover:bg-orange-200 transition-colors">
+                        <i class="fas fa-comments mr-2"></i>
+                        Contáctanos para más información
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <span class="text-orange-600 font-semibold mb-2 inline-block">TESTIMONIOS</span>
+                <h2 class="text-3xl font-bold mb-4">Lo que dicen nuestros clientes</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Miles de costarricenses confían en CRBOX para sus compras internacionales.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <!-- Testimonial 1 -->
+                <div class="testimonial-card p-6 relative">
+                    <div class="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white text-xl">
+                        <i class="fas fa-quote-right"></i>
+                    </div>
+                    <div class="mb-4 flex">
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                    </div>
+                    <p class="text-gray-600 mb-4 text-justify">"He utilizado CRBOX durante más de un año y el servicio es excelente. Mis paquetes siempre llegan en perfectas condiciones y en el tiempo prometido."</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold">María Fernández</p>
+                            <p class="text-sm text-gray-500">San José</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="testimonial-card p-6 relative">
+                    <div class="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white text-xl">
+                        <i class="fas fa-quote-right"></i>
+                    </div>
+                    <div class="mb-4 flex">
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                    </div>
+                    <p class="text-gray-600 mb-4 text-justify">"La consolidación de paquetes me ha ahorrado mucho dinero. El proceso es sencillo y el seguimiento en tiempo real me da tranquilidad sobre mis compras."</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold">Carlos Montero</p>
+                            <p class="text-sm text-gray-500">Heredia</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 3 -->
+                <div class="testimonial-card p-6 relative">
+                    <div class="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white text-xl">
+                        <i class="fas fa-quote-right"></i>
+                    </div>
+                    <div class="mb-4 flex">
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                        <i class="fas fa-star text-yellow-400"></i>
+                    </div>
+                    <p class="text-gray-600 mb-4 text-justify">"El servicio al cliente es excepcional. Siempre responden rápidamente a mis consultas y me mantienen informada sobre el estado de mis envíos."</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold">Laura Jiménez</p>
+                            <p class="text-sm text-gray-500">Cartago</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Call to Action -->
-    <section class="py-16 md:py-20 gradient-bg">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">¡Comienza a comprar hoy mismo!</h2>
-            <p class="text-xl text-white text-opacity-90 mb-8 max-w-3xl mx-auto">Afíliate gratis y obtén tu dirección en Miami al instante</p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="afiliate.html" class="primary-btn bg-white text-orange-600 hover:bg-gray-100">Crear Mi Casillero</a>
-                <a href="tarifas.html" class="secondary-btn border-white text-white hover:bg-orange-700 hover:text-white">Ver Tarifas</a>
+    <section class="py-16 md:py-20 gradient-bg relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-pattern"></div>
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">¡Comienza a comprar hoy mismo!</h2>
+                <p class="text-xl text-white mb-8">Afíliate gratis y obtén tu dirección en Miami al instante</p>
+                <div class="flex flex-col sm:flex-row gap-6 justify-center">
+                    <a href="afiliate.html" class="cta-button-white px-6 py-3 rounded-lg font-medium transition-colors shadow-md flex items-center justify-center">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Crear Mi Casillero
+                    </a>
+                    <a href="calculadora.html" class="cta-button-outline px-6 py-3 rounded-lg font-medium transition-colors shadow-md flex items-center justify-center">
+                        <i class="fas fa-calculator mr-2"></i>
+                        Calcular Envío
+                    </a>
+                </div>
             </div>
+        </div>
+        
+        <!-- Decorative Wave -->
+        <div class="hidden md:block absolute bottom-0 left-0 w-full overflow-hidden">
+            <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#1f2937" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"></path>
+            </svg>
         </div>
     </section>
 
@@ -319,6 +707,14 @@
                 top: 0,
                 behavior: 'smooth'
             });
+        });
+        
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
         });
     </script>
 </body>

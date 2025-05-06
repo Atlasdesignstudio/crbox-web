@@ -16,16 +16,57 @@
     }
     
     h1 {
-        font-size: 2.25rem;
+        font-size: 2.25rem !important;
     }
     
     h2 {
-        font-size: 1.75rem;
+        font-size: 1.75rem !important;
+    }
+    
+    h3 {
+        font-size: 1.5rem !important;
     }
     
     .primary-btn, .secondary-btn {
         width: 100%;
         margin-bottom: 0.5rem;
+    }
+    
+    /* Tabla de tarifas optimizada para móvil */
+    table {
+        font-size: 0.875rem;
+    }
+    
+    th, td {
+        padding: 0.5rem !important;
+    }
+    
+    /* Ajustes de cálculo para móvil */
+    .grid-cols-3, .grid-cols-2 {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Mejorar la visibilidad de pestañas en móvil */
+    .border-b.border-gray-200 {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 0.5rem;
+    }
+    
+    #tab-calcular .grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Mejorar experiencia de formulario en móvil */
+    input, select, button {
+        min-height: 44px;
+        font-size: 16px; /* Previene zoom en iOS */
+    }
+    
+    /* Ajustar estructura de tabs para móvil */
+    ul.flex.flex-wrap {
+        justify-content: flex-start;
+        overflow-x: auto;
     }
 }
 
@@ -42,5 +83,92 @@
     
     .grid {
         gap: 1rem;
+    }
+    
+    /* Ajustes para tarifa por peso en móvil */
+    #tab-peso table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    /* Mejorar espacio en cards de cálculo */
+    .bg-gray-50.rounded-lg.p-4 {
+        padding: 1rem !important;
+    }
+    
+    /* Ajustes para ejemplo de cálculo */
+    .bg-green-50.p-6 {
+        padding: 1rem !important;
+    }
+    
+    /* Optimizar calculadora rápida */
+    .bg-gray-100.p-6 {
+        padding: 1rem !important;
+    }
+    
+    /* Mejor espaciado para bloques informativos */
+    .mt-6.grid.grid-cols-1.gap-4 > div {
+        margin-bottom: 1rem;
+    }
+    
+    /* Optimizar visualización de pasos */
+    .w-12.h-12 {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+    
+    /* Optimizar tamaño de las pestañas */
+    .inline-block.p-4 {
+        padding: 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Ajustar estructura de entregas a domicilio */
+    .grid-cols-3.gap-4.mb-6 {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Hacer que formulario de calculadora sea más fácil de usar */
+    .mb-4 input, .mb-4 select {
+        width: 100%;
+        margin-top: 0.25rem;
+    }
+    
+    /* Ajustar resultado de cálculo */
+    #resultado-calculo {
+        margin-top: 1rem;
+    }
+}
+
+/* Ajustes extra para pantallas muy pequeñas */
+@media (max-width: 480px) {
+    .tab-content {
+        margin: 0 -1rem;
+        width: calc(100% + 2rem);
+    }
+    
+    .tab-content > div {
+        border-radius: 0;
+    }
+    
+    .p-6 {
+        padding: 0.75rem !important;
+    }
+    
+    /* Mejor visibilidad para texto pequeño */
+    .text-sm {
+        font-size: 0.875rem !important;
+    }
+    
+    /* Optimizar espaciado horizontal */
+    .px-4 {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+    
+    /* Ajuste para contenedores de botones */
+    .flex.flex-col.sm\:flex-row.gap-4 {
+        gap: 0.5rem !important;
     }
 }
