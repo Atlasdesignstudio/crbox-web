@@ -191,6 +191,66 @@
 }
 </style>
 
+<!-- Statistics Section -->
+<section class="py-16 md:py-20 gradient-bg relative">
+    <div class="absolute inset-0 bg-pattern opacity-10"></div>
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+            <!-- Stat 1 -->
+            <div class="p-6">
+                <div class="text-4xl md:text-5xl font-bold text-white mb-2">
+                    <span class="counter" data-target="15000">0</span><span>+</span>
+                </div>
+                <p class="text-white text-lg opacity-90">Clientes Activos</p>
+            </div>
+
+            <!-- Stat 2 -->
+            <div class="p-6">
+                <div class="text-4xl md:text-5xl font-bold text-white mb-2">
+                    <span class="counter" data-target="20">0</span><span>+</span>
+                </div>
+                <p class="text-white text-lg opacity-90">Años de experiencia</p>
+            </div>
+
+            <!-- Stat 3 -->
+            <div class="p-6">
+                <div class="text-4xl md:text-5xl font-bold text-white mb-2">2-4</div>
+                <p class="text-white text-lg opacity-90">Días de Entrega</p>
+            </div>
+
+            <!-- Stat 4 -->
+            <div class="p-6">
+                <div class="text-4xl md:text-5xl font-bold text-white mb-2">
+                    <span class="counter" data-target="50000">0</span><span>+</span>
+                </div>
+                <p class="text-white text-lg opacity-90">Envíos Completados</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    const counters = document.querySelectorAll('.counter');
+  
+    counters.forEach(counter => {
+      const updateCount = () => {
+        const target = +counter.getAttribute('data-target');
+        const current = +counter.innerText.replace(/,/g, '');
+        const increment = target / 80;
+  
+        if (current < target) {
+          const newCount = Math.ceil(current + increment);
+          counter.innerText = newCount.toLocaleString();
+          requestAnimationFrame(updateCount);
+        } else {
+          counter.innerText = target.toLocaleString();
+        }
+      };
+  
+      updateCount();
+    });
+  </script>
+
     <!-- Trusted By -->
     <section class="py-10 bg-gray-50 border-t border-b border-gray-200">
         <div class="container mx-auto px-4">
@@ -292,7 +352,7 @@
         <div class="container mx-auto px-4">
             <div class="flex flex-wrap items-center">
                 <div class="w-full md:w-1/2 mb-10 md:mb-0 pr-0 md:pr-12">
-                    <img src="img/avion2.webp" alt="Centro logístico CRBOX" class="rounded-lg shadow-lg w-full">
+                    <img src="img/fotoindex.png" alt="Centro logístico CRBOX" class="rounded-lg shadow-lg w-full">
                 </div>
                 <div class="w-full md:w-1/2">
                     <span class="text-orange-600 font-semibold mb-2 inline-block">¿POR QUÉ CRBOX?</span>
