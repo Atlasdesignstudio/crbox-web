@@ -10,7 +10,92 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #FF6B00 0%, #FF9A00 100%);
+        }
+        
+        .bg-pattern {
+            background-image: url('data:image/svg+xml;charset=utf8,%3Csvg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z" fill="%23ffffff" fill-opacity="0.1" fill-rule="evenodd"/%3E%3C/svg%3E');
+        }
+        
+        .contact-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .location-card {
+            height: 100%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .location-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .icon-feature {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #FFF3E0;
+            color: #FF6B00;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-input:focus {
+            border-color: #FF6B00;
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
+        }
+        
+        .social-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .social-icon:hover {
+            transform: translateY(-3px);
+        }
+        
+        .contact-method {
+            transition: transform 0.3s ease;
+        }
+        
+        .contact-method:hover {
+            transform: translateX(5px);
+        }
+        
+        .cta-button-white {
+            background-color: white;
+            color: #FF6B00;
+        }
+        
+        .cta-button-white:hover {
+            background-color: #f9f9f9;
+            color: #FF6B00;
+        }
+        
+        .cta-button-outline {
+            background-color: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+        
+        .cta-button-outline:hover {
+            background-color: white;
+            color: #FF6B00;
+        }
+    </style>
 </head>
+
 <body class="bg-gray-50">
     <!-- Header -->
     <header class="bg-white shadow-sm sticky-header">
@@ -24,10 +109,10 @@
                 
                 <nav class="hidden md:flex space-x-6">
                     <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
-                    <a href="como-funciona.html" class="text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                    <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
                     <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
                     <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
-                    <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
+                    <a href="contacto.html" class="text-orange-600 font-medium transition-colors">Contacto</a>
                 </nav>
                 
                 <div class="flex items-center space-x-3">
@@ -43,10 +128,10 @@
             <div class="md:hidden hidden" id="mobile-menu">
                 <div class="py-3 space-y-3">
                     <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
-                    <a href="como-funciona.html" class="block text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
+                    <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
                     <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
                     <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
-                    <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
+                    <a href="contacto.html" class="block text-orange-600 font-medium py-2 transition-colors">Contacto</a>
                     <div class="flex flex-col space-y-2 pt-2">
                         <a href="calculadora.html" class="inline-block primary-btn text-center">Calcular Envío</a>
                         <a href="afiliate.html" class="inline-block secondary-btn text-center">Afíliate Gratis</a>
@@ -67,277 +152,433 @@
         </div>
     </div>
 
-    <!-- Page Title -->
-    <section class="py-16 md:py-20 gradient-bg relative overflow-hidden">
+    <!-- Hero Section -->
+    <section class="py-16 md:py-24 gradient-bg relative overflow-hidden">
         <div class="absolute inset-0 opacity-10 bg-pattern"></div>
         <div class="container mx-auto px-4 relative z-10">
-            <div class="text-center">
-                <h1 class="text-4xl md:text-5xl font-bold mb-4 text-white">Contáctanos</h1>
-                <p class="text-xl text-white max-w-3xl mx-auto">Estamos aquí para ayudarte con todas tus dudas y consultas. No dudes en ponerte en contacto con nosotros.</p>
+            <div class="flex flex-col items-center">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h1 class="text-4xl md:text-5xl font-bold text-white mb-6">Contáctanos</h1>
+                    <p class="text-xl text-white mb-8">Estamos aquí para ayudarte con todas tus dudas y consultas. Nuestro equipo de atención al cliente está listo para brindarte el soporte que necesitas.</p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="#sucursales" class="cta-button-white px-8 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center">
+                            Nuestras Sucursales
+                            <i class="fas fa-map-marker-alt ml-2"></i>
+                        </a>
+                        <a href="#formulario" class="cta-button-outline px-8 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center">
+                            Enviar Mensaje
+                            <i class="fas fa-paper-plane ml-2"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
         
         <!-- Decorative Wave -->
         <div class="hidden md:block absolute bottom-0 left-0 w-full overflow-hidden">
             <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fill="#ffffff" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"></path>
+                <path fill="#f9fafb" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"></path>
             </svg>
         </div>
     </section>
 
-<!-- Contact Info & Form -->
-<section class="py-16 md:py-24">
-    <div class="container mx-auto px-4">
-        <div class="flex flex-wrap -mx-4">
-            <!-- Contact Information -->
-            <div class="w-full lg:w-1/3 px-4 mb-12 lg:mb-0">
-                <div class="bg-white rounded-lg shadow-md p-8 h-full">
-                    <h2 class="text-2xl font-bold mb-6">Información de Contacto</h2>
-                    
-                    <div class="space-y-6">
-                        <div class="flex items-start">
-                            <div class="flex-shrink-0 mt-1">
-                                <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                </div>
+    <!-- Métodos de Contacto Rápido -->
+    <section class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <!-- Teléfono -->
+                <div class="contact-card bg-gray-50 rounded-xl p-6 text-center shadow-md">
+                    <div class="w-16 h-16 mx-auto bg-orange-100 rounded-full flex items-center justify-center text-orange-600 mb-4">
+                        <i class="fas fa-phone-alt text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Llámanos</h3>
+                    <p class="text-gray-600 mb-4">Nuestro equipo está listo para atenderte</p>
+                    <a href="tel:+50640001114" class="text-orange-600 font-semibold text-lg hover:underline">+506-4000-1114</a>
+                </div>
+                
+                <!-- Email -->
+                <div class="contact-card bg-gray-50 rounded-xl p-6 text-center shadow-md">
+                    <div class="w-16 h-16 mx-auto bg-orange-100 rounded-full flex items-center justify-center text-orange-600 mb-4">
+                        <i class="fas fa-envelope text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Escríbenos</h3>
+                    <p class="text-gray-600 mb-4">Te respondemos en menos de 24 horas</p>
+                    <a href="mailto:servicioalcliente@crbox.cr" class="text-orange-600 font-semibold text-lg hover:underline">servicioalcliente@crbox.cr</a>
+                </div>
+                
+                <!-- WhatsApp -->
+                <div class="contact-card bg-gray-50 rounded-xl p-6 text-center shadow-md">
+                    <div class="w-16 h-16 mx-auto bg-orange-100 rounded-full flex items-center justify-center text-orange-600 mb-4">
+                        <i class="fab fa-whatsapp text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">WhatsApp</h3>
+                    <p class="text-gray-600 mb-4">Mensajea directamente con nosotros</p>
+                    <a href="https://wa.me/50640001114" class="text-orange-600 font-semibold text-lg hover:underline">+506-4000-1114</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Nuestras Sucursales -->
+    <section id="sucursales" class="py-16 md:py-24 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <span class="text-orange-600 font-semibold mb-2 inline-block">ENCUÉNTRANOS</span>
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Nuestras Sucursales</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Visítanos en cualquiera de nuestras ubicaciones estratégicas en el área metropolitana.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <!-- Sucursal Sabana Norte -->
+                <div class="location-card bg-white rounded-xl overflow-hidden shadow-md">
+                    <div class="h-48 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-orange-600 bg-opacity-70 flex items-center justify-center z-10">
+                            <h3 class="text-2xl font-bold text-white">Sabana Norte</h3>
+                        </div>
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.1074461165126!2d-84.09093468567204!3d9.938838192747315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e8f8f8f8f8f8%3A0x1234567890abcdef!2sSabana+Norte%2C+San+Jos%C3%A9%2C+Costa+Rica!5e0!3m2!1sen!2scr!4v1634567890!5m2!1sen!2scr" width="100%" height="100%" style="border:0;" class="absolute inset-0" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-start mb-4">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4">
+                                <i class="fas fa-map-marker-alt"></i>
                             </div>
-                            <div class="ml-4">
-                                <h3 class="font-semibold mb-1">Dirección</h3>
-                                <p class="text-gray-600">Sabana Norte, San José, Costa Rica</p>
+                            <div>
+                                <h4 class="font-semibold mb-1">Dirección:</h4>
+                                <p class="text-gray-600">50 metros al Oeste del ICE en Sabana Norte, Edificio Torres del Parque, planta baja, Local #6.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start mb-4">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">Horario:</h4>
+                                <p class="text-gray-600">Lunes a Viernes de 7:00 am a 4:30pm</p>
                             </div>
                         </div>
                         
                         <div class="flex items-start">
-                            <div class="flex-shrink-0 mt-1">
-                                <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
-                                    <i class="fas fa-phone"></i>
-                                </div>
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4">
+                                <i class="fas fa-phone-alt"></i>
                             </div>
-                            <div class="ml-4">
-                                <h3 class="font-semibold mb-1">Teléfono</h3>
+                            <div>
+                                <h4 class="font-semibold mb-1">Teléfono:</h4>
                                 <p class="text-gray-600">+506-4000-1114</p>
                             </div>
                         </div>
                         
-                        <div class="flex items-start">
-                            <div class="flex-shrink-0 mt-1">
-                                <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
-                                    <i class="fas fa-envelope"></i>
-                                </div>
+                        <div class="mt-6">
+                            <a href="https://goo.gl/maps/XXXXXXXXXXXX" target="_blank" class="inline-flex items-center text-orange-600 font-medium hover:text-orange-700 transition-colors">
+                                Ver en Google Maps
+                                <i class="fas fa-external-link-alt ml-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sucursal Calle Blancos -->
+                <div class="location-card bg-white rounded-xl overflow-hidden shadow-md">
+                    <div class="h-48 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-orange-600 bg-opacity-70 flex items-center justify-center z-10">
+                            <h3 class="text-2xl font-bold text-white">Calle Blancos</h3>
+                        </div>
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.1074461165126!2d-84.09093468567204!3d9.938838192747315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e8f8f8f8f8f8%3A0x1234567890abcdef!2sCalle+Blancos%2C+San+Jos%C3%A9%2C+Costa+Rica!5e0!3m2!1sen!2scr!4v1634567890!5m2!1sen!2scr" width="100%" height="100%" style="border:0;" class="absolute inset-0" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-start mb-4">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4">
+                                <i class="fas fa-map-marker-alt"></i>
                             </div>
-                            <div class="ml-4">
-                                <h3 class="font-semibold mb-1">Email</h3>
-                                <p class="text-gray-600">ventas@crbox.cr</p>
+                            <div>
+                                <h4 class="font-semibold mb-1">Dirección:</h4>
+                                <p class="text-gray-600">Centro Comercial Plaza San Gabriel, Planta baja Oficinas de Amazon, Local #2.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start mb-4">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">Horario:</h4>
+                                <p class="text-gray-600">Lunes a Viernes de 7:00 am a 4:30pm</p>
+                                <p class="text-gray-600">Sábados de 9:00am a 12:30md</p>
                             </div>
                         </div>
                         
                         <div class="flex items-start">
-                            <div class="flex-shrink-0 mt-1">
-                                <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
-                                    <i class="fas fa-clock"></i>
-                                </div>
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4">
+                                <i class="fas fa-phone-alt"></i>
                             </div>
-                            <div class="ml-4">
-                                <h3 class="font-semibold mb-1">Horario de Atención</h3>
-                                <p class="text-gray-600">Lunes a Viernes: 8:00 AM - 5:00 PM</p>
-                                <p class="text-gray-600">Sábados: 9:00 AM - 1:00 PM</p>
-                                <p class="text-gray-600">Domingos: Cerrado</p>
+                            <div>
+                                <h4 class="font-semibold mb-1">Teléfono:</h4>
+                                <p class="text-gray-600">+506-4000-1114</p>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="mt-8">
-                        <h3 class="font-semibold mb-3">Síguenos</h3>
-                        <div class="flex space-x-4">
-                            <a href="#" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors">
-                                <i class="fab fa-facebook-f"></i>
-                            </a>
-                            <a href="#" class="w-10 h-10 rounded-full bg-pink-600 text-white flex items-center justify-center hover:bg-pink-700 transition-colors">
-                                <i class="fab fa-instagram"></i>
-                            </a>
-                            <a href="#" class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors">
-                                <i class="fab fa-whatsapp"></i>
+                        
+                        <div class="mt-6">
+                            <a href="https://goo.gl/maps/XXXXXXXXXXXX" target="_blank" class="inline-flex items-center text-orange-600 font-medium hover:text-orange-700 transition-colors">
+                                Ver en Google Maps
+                                <i class="fas fa-external-link-alt ml-2"></i>
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- Formulario de Contacto -->
+    <section id="formulario" class="py-16 md:py-24 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <span class="text-orange-600 font-semibold mb-2 inline-block">ESCRÍBENOS</span>
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Envíanos un Mensaje</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Completa el formulario y te responderemos a la brevedad posible.</p>
+            </div>
             
-            <!-- Contact Form -->
-            <div class="w-full lg:w-2/3 px-4">
-                <div class="bg-white rounded-lg shadow-md p-8">
-                    <h2 class="text-2xl font-bold mb-6">Envíanos un Mensaje</h2>
-                    
-                    <form id="contact-form">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="max-w-3xl mx-auto bg-gray-50 rounded-2xl shadow-lg overflow-hidden">
+                <div class="p-8 md:p-12">
+                    <form id="contact-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-gray-700 font-medium mb-2">Nombre *</label>
-                                <input type="text" name="name" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Tu nombre">
+                                <label for="nombre" class="block font-medium text-gray-700 mb-2">Nombre completo *</label>
+                                <input type="text" id="nombre" name="nombre" required class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Ingresa tu nombre">
                             </div>
+                            
                             <div>
-                                <label class="block text-gray-700 font-medium mb-2">Email *</label>
-                                <input type="email" name="email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Tu correo electrónico">
+                                <label for="email" class="block font-medium text-gray-700 mb-2">Correo electrónico *</label>
+                                <input type="email" id="email" name="email" required class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="ejemplo@correo.com">
                             </div>
                         </div>
                         
-                        <div class="mb-6">
-                            <label class="block text-gray-700 font-medium mb-2">Asunto *</label>
-                            <input type="text" name="subject" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Asunto del mensaje">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="telefono" class="block font-medium text-gray-700 mb-2">Teléfono</label>
+                                <input type="tel" id="telefono" name="telefono" class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="(+506) XXXX-XXXX">
+                            </div>
+                            
+                            <div>
+                                <label for="asunto" class="block font-medium text-gray-700 mb-2">Asunto *</label>
+                                <select id="asunto" name="asunto" required class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                                    <option value="" selected disabled>Selecciona un asunto</option>
+                                    <option value="informacion">Información general</option>
+                                    <option value="afiliacion">Afiliación</option>
+                                    <option value="seguimiento">Seguimiento de paquete</option>
+                                    <option value="encargo">Compras por encargo</option>
+                                    <option value="tarifas">Tarifas y costos</option>
+                                    <option value="otro">Otro asunto</option>
+                                </select>
+                            </div>
                         </div>
                         
-                        <div class="mb-6">
-                            <label class="block text-gray-700 font-medium mb-2">Mensaje *</label>
-                            <textarea name="message" rows="6" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="¿En qué podemos ayudarte?"></textarea>
+                        <div>
+                            <label for="mensaje" class="block font-medium text-gray-700 mb-2">Mensaje *</label>
+                            <textarea id="mensaje" name="mensaje" rows="6" required class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="¿En qué podemos ayudarte?"></textarea>
                         </div>
                         
-                        <div class="flex items-start mb-6">
-                            <input type="checkbox" name="terms" id="contact-terms" required class="mt-1 mr-2">
-                            <label for="contact-terms" class="text-gray-600">Acepto la <a href="#" class="text-orange-600 hover:text-orange-700">Política de Privacidad</a> *</label>
+                        <div class="flex items-start">
+                            <input type="checkbox" id="privacidad" name="privacidad" required class="mt-1 mr-3">
+                            <label for="privacidad" class="text-gray-600">Acepto la <a href="#" class="text-orange-600 hover:underline">Política de Privacidad</a> y el <a href="#" class="text-orange-600 hover:underline">tratamiento de mis datos</a> *</label>
                         </div>
                         
-                        <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-6 rounded-lg transition-colors">
-                            Enviar Mensaje
-                        </button>
+                        <div class="pt-2">
+                            <button type="submit" class="primary-btn w-full md:w-auto flex items-center justify-center">
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Enviar Mensaje
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Map Section -->
-<section class="py-16 md:py-24 bg-gray-50">
-    <div class="container mx-auto px-4">
-        <div class="text-center mb-16">
-            <h2 class="text-3xl font-bold mb-4">Nuestra Ubicación</h2>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Encuéntranos en nuestras oficinas en Sabana Norte y Calle Blancos, San José</p>
+    <!-- FAQ Links -->
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <span class="text-orange-600 font-semibold mb-2 inline-block">AYUDA RÁPIDA</span>
+                <h2 class="text-3xl font-bold mb-4">Preguntas Frecuentes</h2>
+                <p class="text-lg text-gray-600 mb-8 max-w-3xl mx-auto">Encuentra respuestas rápidas a las dudas más comunes sobre nuestros servicios</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <a href="como-funciona.html#faq" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
+                        <i class="fas fa-question text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">¿Cómo Funciona?</h3>
+                    <p class="text-gray-600 text-center">Aprende el proceso paso a paso para usar nuestro servicio</p>
+                </a>
+                
+                <a href="tarifas.html" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
+                        <i class="fas fa-dollar-sign text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Tarifas y Costos</h3>
+                    <p class="text-gray-600 text-center">Información detallada sobre nuestras tarifas y costos adicionales</p>
+                </a>
+                
+                <a href="servicios.html" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
+                        <i class="fas fa-box text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Nuestros Servicios</h3>
+                    <p class="text-gray-600 text-center">Conoce todos los servicios que ofrecemos para tus envíos</p>
+                </a>
+            </div>
         </div>
-        <div class="bg-white rounded-lg shadow-md p-2 max-w-5xl mx-auto">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.1074461165126!2d-84.09093468567204!3d9.938838192747315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e8f8f8f8f8f8%3A0x1234567890abcdef!2sSabana+Norte%2C+San+Jos%C3%A9%2C+Costa+Rica!5e0!3m2!1sen!2scr!4v1634567890!5m2!1sen!2scr" width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
-            <!-- Nota: Debes reemplazar la URL del iframe con las coordenadas exactas de ambas ubicaciones -->
-        </div>
-    </div>
-</section>
+    </section>
 
-<!-- FAQ Quick Links -->
-<section class="py-16 md:py-20">
-    <div class="container mx-auto px-4 text-center">
-        <h2 class="text-3xl font-bold mb-6">Preguntas Frecuentes</h2>
-        <p class="text-lg text-gray-600 mb-12 max-w-3xl mx-auto">Encuentra respuestas rápidas a las dudas más comunes sobre nuestros servicios</p>
+    <!-- Call to Action -->
+    <section class="py-16 md:py-20 gradient-bg relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-pattern"></div>
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">¿Listo para comenzar?</h2>
+                <p class="text-xl text-white mb-8">Afíliate gratis y obtén tu dirección en Miami al instante</p>
+                <div class="flex flex-col sm:flex-row gap-6 justify-center">
+                    <a href="afiliate.html" class="cta-button-white px-6 py-3 rounded-lg font-medium transition-colors shadow-md flex items-center justify-center">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Crear Mi Casillero
+                    </a>
+                    <a href="calculadora.html" class="cta-button-outline px-6 py-3 rounded-lg font-medium transition-colors shadow-md flex items-center justify-center">
+                        <i class="fas fa-calculator mr-2"></i>
+                        Calcular Envío
+                    </a>
+                </div>
+            </div>
+        </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <a href="como-funciona.html#faq" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow flex flex-col items-center">
-                <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
-                    <i class="fas fa-question text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-2">¿Cómo Funciona?</h3>
-                <p class="text-gray-600 text-center">Aprende el proceso paso a paso para usar nuestro servicio</p>
-            </a>
-            
-            <a href="tarifas.html" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow flex flex-col items-center">
-                <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
-                    <i class="fas fa-dollar-sign text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-2">Tarifas y Costos</h3>
-                <p class="text-gray-600 text-center">Información detallada sobre nuestras tarifas y costos adicionales</p>
-            </a>
-            
-            <a href="servicios.html" class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow flex flex-col items-center">
-                <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
-                    <i class="fas fa-box text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-semibold mb-2">Nuestros Servicios</h3>
-                <p class="text-gray-600 text-center">Conoce todos los servicios que ofrecemos para tus envíos</p>
-            </a>
+        <!-- Decorative Wave -->
+        <div class="hidden md:block absolute bottom-0 left-0 w-full overflow-hidden">
+            <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#1f2937" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"></path>
+            </svg>
         </div>
-    </div>
-</section>
+    </section>
 
-   <!-- Footer -->
-   <footer class="bg-gray-800 text-white py-12">
-    <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-                <h3 class="text-xl font-semibold mb-4">CRBOX</h3>
-                <p class="text-gray-400 mb-4">Tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.</p>
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">CRBOX</h3>
+                    <p class="text-gray-400 mb-4">Tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
+                    <ul class="space-y-2">
+                        <li><a href="servicios.html" class="text-gray-400 hover:text-white transition-colors">Servicios</a></li>
+                        <li><a href="como-funciona.html" class="text-gray-400 hover:text-white transition-colors">Cómo Funciona</a></li>
+                        <li><a href="tarifas.html" class="text-gray-400 hover:text-white transition-colors">Tarifas</a></li>
+                        <li><a href="calculadora.html" class="text-gray-400 hover:text-white transition-colors">Calculadora</a></li>
+                        <li><a href="afiliate.html" class="text-gray-400 hover:text-white transition-colors">Afíliate</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contacto</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">Sabana Norte, San José, Costa Rica</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-phone mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">+506-4000-1114</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">ventas@crbox.cr</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Horario de Atención</h3>
+                    <ul class="space-y-2">
+                        <li class="text-gray-400">Lunes a Viernes: 8:00 AM - 5:00 PM</li>
+                        <li class="text-gray-400">Sábados: 9:00 AM - 1:00 PM</li>
+                        <li class="text-gray-400">Domingos: Cerrado</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 CRBOX. Todos los derechos reservados.</p>
                 <div class="flex space-x-4">
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                        <i class="fab fa-whatsapp"></i>
-                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Términos y Condiciones</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</a>
                 </div>
             </div>
-            
-            <div>
-                <h3 class="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
-                <ul class="space-y-2">
-                    <li><a href="servicios.html" class="text-gray-400 hover:text-white transition-colors">Servicios</a></li>
-                    <li><a href="como-funciona.html" class="text-gray-400 hover:text-white transition-colors">Cómo Funciona</a></li>
-                    <li><a href="tarifas.html" class="text-gray-400 hover:text-white transition-colors">Tarifas</a></li>
-                    <li><a href="calculadora.html" class="text-gray-400 hover:text-white transition-colors">Calculadora</a></li>
-                    <li><a href="afiliate.html" class="text-gray-400 hover:text-white transition-colors">Afíliate</a></li>
-                </ul>
-            </div>
-            
-            <div>
-                <h3 class="text-lg font-semibold mb-4">Contacto</h3>
-                <ul class="space-y-2">
-                    <li class="flex items-start">
-                        <i class="fas fa-map-marker-alt mt-1 mr-3 text-orange-500"></i>
-                        <span class="text-gray-400">Sabana Norte, San José, Costa Rica</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-phone mt-1 mr-3 text-orange-500"></i>
-                        <span class="text-gray-400">+506-4000-1114</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-envelope mt-1 mr-3 text-orange-500"></i>
-                        <span class="text-gray-400">ventas@crbox.cr</span>
-                    </li>
-                </ul>
-            </div>
-            
-            <div>
-                <h3 class="text-lg font-semibold mb-4">Horario de Atención</h3>
-                <ul class="space-y-2">
-                    <li class="text-gray-400">Lunes a Viernes: 8:00 AM - 5:00 PM</li>
-                    <li class="text-gray-400">Sábados: 9:00 AM - 1:00 PM</li>
-                    <li class="text-gray-400">Domingos: Cerrado</li>
-                </ul>
-            </div>
         </div>
-        
-        <div class="border-t border-gray-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
-            <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 CRBOX. Todos los derechos reservados.</p>
-            <div class="flex space-x-4">
-                <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Términos y Condiciones</a>
-                <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</a>
-            </div>
-        </div>
-    </div>
-</footer>
+    </footer>
 
-<!-- WhatsApp Button -->
-<a href="https://wa.me/50640001114" class="fixed bottom-6 right-6 whatsapp-btn w-14 h-14 flex items-center justify-center text-white text-2xl z-50">
-    <i class="fab fa-whatsapp"></i>
-</a>
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/50640001114" class="fixed bottom-6 right-6 whatsapp-btn w-14 h-14 flex items-center justify-center text-white text-2xl z-50">
+        <i class="fab fa-whatsapp"></i>
+    </a>
 
-<script src="js/main.js"></script>
-<script>
-    // Simple form validation and submission
-    document.getElementById('contact-form').addEventListener('submit', function(e) {
-        e.preventDefault();
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="fixed bottom-6 right-24 bg-orange-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Back to top button
+        const backToTopButton = document.getElementById('back-to-top');
         
-        // Here you would typically send the form data to the server
-        // For demo purposes, we'll just show a success message
-        alert('¡Mensaje enviado con éxito! Te responderemos lo antes posible.');
-        this.reset();
-    });
-</script>
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.remove('opacity-0', 'invisible');
+                backToTopButton.classList.add('opacity-100', 'visible');
+            } else {
+                backToTopButton.classList.add('opacity-0', 'invisible');
+                backToTopButton.classList.remove('opacity-100', 'visible');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Form submission
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Aquí normalmente enviarías los datos a tu servidor
+            // Para propósitos de demostración, solo mostraremos un mensaje
+            
+            alert('¡Mensaje enviado con éxito! Te responderemos a la brevedad posible.');
+            this.reset();
+        });
+    </script>
 </body>
 </html>

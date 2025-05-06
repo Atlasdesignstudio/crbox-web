@@ -77,11 +77,19 @@
         <div class="w-full md:w-1/2 mobile-center mb-8 md:mb-0 mobile-order-2 md:order-1">
             <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">Tu casillero virtual <span class="text-orange-600">gratuito</span> en Miami</h1>
             <p class="text-xl text-gray-600 mb-8">Compra en cualquier tienda de USA y recibe tus paquetes en la puerta de tu casa en Costa Rica. Servicio rápido, seguro y con tarifas transparentes.</p>
-            <div class="flex flex-col sm:flex-row gap-4">
+            
+            <div class="flex flex-col sm:flex-row gap-4 mb-8">
                 <a href="afiliate.html" class="primary-btn text-center">Afíliate Gratis</a>
                 <a href="como-funciona.html" class="secondary-btn text-center">¿Cómo Funciona?</a>
             </div>
-            <div class="mt-8 flex items-center flex-wrap gap-6">
+            
+            <!-- Promoción bajo botones -->
+            <div class="bg-orange-50 rounded-lg p-4 mb-8 border-l-4 border-orange-500">
+                <h3 class="text-xl font-semibold mb-1 text-orange-800">¡Regístrate hoy!</h3>
+                <p class="text-orange-700">Obtén un 20% de descuento en el flete de tu primer envío</p>
+            </div>
+            
+            <div class="flex items-center flex-wrap gap-6">
                 <div class="flex items-center">
                     <i class="fas fa-check-circle text-green-500 mr-2"></i>
                     <span>Sin cuota mensual</span>
@@ -96,52 +104,25 @@
                 </div>
             </div>
         </div>
+        
         <div class="w-full md:w-1/2 flex justify-center mobile-order-1 md:order-2">
             <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md cta-shadow border border-gray-100">
-                <div class="bg-orange-50 rounded-lg p-4 mb-6 border-l-4 border-orange-500">
-                    <h3 class="text-xl font-semibold mb-2 text-orange-800">¡Prueba gratis!</h3>
-                    <p class="text-orange-700">Regístrate hoy y obtén un 10% de descuento en tu primer envío</p>
+                <!-- Contenedor de imagen -->
+                <div class="rounded-lg overflow-hidden bg-gray-50 mb-6 h-80 flex items-center justify-center">
+                    <img 
+                        src="img/character.png" 
+                        alt="CRBOX Delivery" 
+                        class="h-full w-auto object-contain"
+                    >
                 </div>
                 
-                <h3 class="text-xl font-semibold mb-4">¿Cuánto cuesta mi envío?</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Peso (libras)</label>
-                        <div class="relative">
-                            <input type="number" id="peso-calc" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Ej: 2">
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <span class="text-gray-400">lb</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Valor de compra</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                <span class="text-gray-400">$</span>
-                            </div>
-                            <input type="number" id="valor-calc" class="w-full pl-8 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Ej: 100">
-                        </div>
-                    </div>
-                    
-                    <button id="calcular-btn" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-colors">
-                        Calcular Costo
-                    </button>
+                <!-- Mensaje de confianza -->
+                <div class="text-center mb-4">
+                    <h3 class="text-2xl font-bold text-gray-900">¡CONFIANZA TOTAL!</h3>
                 </div>
                 
-                <!-- Resultado de cálculo (inicialmente oculto) -->
-                <div id="resultado-calculo" class="hidden mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div class="text-center">
-                        <p class="text-sm text-gray-500 mb-1">Costo aproximado de envío:</p>
-                        <p class="text-3xl font-bold text-orange-600 mb-2">$<span id="costo-total">0.00</span></p>
-                        <p class="text-xs text-gray-500">*Incluye impuestos estimados y entrega en GAM</p>
-                        <a href="calculadora.html" class="inline-block mt-3 text-orange-600 text-sm font-medium hover:underline">
-                            Ver cálculo detallado
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="flex items-center border-t border-gray-200 pt-4 mt-6">
+                <!-- Información de registro -->
+                <div class="flex items-center border-t border-gray-200 pt-4 mt-4">
                     <div class="bg-green-100 rounded-full p-2 mr-3">
                         <i class="fas fa-shield-alt text-green-600"></i>
                     </div>
@@ -151,6 +132,64 @@
         </div>
     </div>
 </section>
+
+<style>
+/* Estilos existentes */
+.primary-btn {
+    background-color: #FF6B00;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.primary-btn:hover {
+    background-color: #E05A00;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.secondary-btn {
+    background-color: white;
+    color: #FF6B00;
+    border: 2px solid #FF6B00;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.secondary-btn:hover {
+    background-color: #F5F7FA;
+    color: #E05A00;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cta-shadow {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Media queries */
+@media (max-width: 768px) {
+    .mobile-center {
+        text-align: center;
+    }
+    
+    .mobile-order-1 {
+        order: 1;
+    }
+    
+    .mobile-order-2 {
+        order: 2;
+    }
+}
+</style>
 
     <!-- Trusted By -->
     <section class="py-10 bg-gray-50 border-t border-b border-gray-200">
@@ -318,38 +357,173 @@
         </div>
     </section>
 
-    <!-- Testimonials Preview -->
-    <section class="py-16 md:py-24">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-16">
-                <span class="text-orange-600 font-semibold mb-2 inline-block">TESTIMONIOS</span>
-                <h2 class="text-3xl md:text-4xl font-bold mb-4">Lo Que Dicen Nuestros Clientes</h2>
+    <!-- Testimonials Section -->
+<section class="py-16 md:py-24 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-16">
+            <span class="text-orange-600 font-semibold mb-2 inline-block">TESTIMONIOS</span>
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Lo Que Dicen Nuestros Clientes</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">Descubre por qué cientos de costarricenses confían en CRBOX para sus compras internacionales</p>
+        </div>
+        
+        <!-- Testimonials Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Testimonial 1 -->
+            <div class="testimonial-card p-8 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <div class="mb-4 text-yellow-400">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600 mb-6">"He utilizado CRBOX para más de 30 compras y siempre ha sido una experiencia impecable. El servicio al cliente es excelente y los tiempos de entrega son muy rápidos."</p>
+                <div class="flex items-center">
+                    <div class="h-12 w-12 rounded-full bg-yellow-600 flex items-center justify-center text-white font-bold">
+                        MA
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="font-semibold">María Álvarez</h4>
+                        <p class="text-sm text-gray-500">Cliente desde 2020</p>
+                    </div>
+                </div>
             </div>
             
-            <!-- Display only one featured testimonial on homepage -->
-            <div class="max-w-xl mx-auto">
-                <div class="testimonial-card p-8">
-                    <div class="mb-4 text-yellow-400">
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
-                        <i class="fas fa-star"></i>
+            <!-- Testimonial 2 -->
+            <div class="testimonial-card p-8 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <div class="mb-4 text-yellow-400">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600 mb-6">"Como emprendedor, necesito que mis productos lleguen rápido y en perfectas condiciones. Con CRBOX nunca he tenido problemas. Su sistema de seguimiento es increíble, siempre sé exactamente dónde está mi paquete."</p>
+                <div class="flex items-center">
+                    <div class="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                        JM
                     </div>
-                    <p class="text-gray-600 mb-6">"He utilizado CRBOX para más de 30 compras y siempre ha sido una experiencia impecable. El servicio al cliente es excelente y los tiempos de entrega son muy rápidos."</p>
-                    <div class="flex items-center">
-                        <div class="h-12 w-12 rounded-full bg-orange-600 flex items-center justify-center text-white font-bold">
-                            MA
-                        </div>
-                        <div class="ml-4">
-                            <h4 class="font-semibold">María Álvarez</h4>
-                            <p class="text-sm text-gray-500">Cliente desde 2020</p>
-                        </div>
+                    <div class="ml-4">
+                        <h4 class="font-semibold">Juan Mora</h4>
+                        <p class="text-sm text-gray-500">Cliente desde 2021</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonial 3 -->
+            <div class="testimonial-card p-8 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <div class="mb-4 text-yellow-400">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star-half-alt"></i>
+                </div>
+                <p class="text-gray-600 mb-6">"Comparé varios servicios de casilleros y CRBOX ofrece, por mucho, las mejores tarifas. Además, su proceso de afiliación fue súper sencillo. Lo recomiendo a todos mis amigos que quieren comprar en USA."</p>
+                <div class="flex items-center">
+                    <div class="h-12 w-12 rounded-full bg-green-600 flex items-center justify-center text-white font-bold">
+                        CS
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="font-semibold">Carolina Solís</h4>
+                        <p class="text-sm text-gray-500">Cliente desde 2022</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonial 4 -->
+            <div class="testimonial-card p-8 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <div class="mb-4 text-yellow-400">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600 mb-6">"La consolidación de paquetes me ha ahorrado muchísimo dinero. Compré en 3 tiendas diferentes y CRBOX lo juntó todo en un solo envío. El descuento del 20% en mi primer flete fue un excelente incentivo para probarlos."</p>
+                <div class="flex items-center">
+                    <div class="h-12 w-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold">
+                        RC
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="font-semibold">Roberto Castro</h4>
+                        <p class="text-sm text-gray-500">Cliente desde 2022</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonial 5 -->
+            <div class="testimonial-card p-8 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <div class="mb-4 text-yellow-400">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600 mb-6">"Como madre de familia, valoro la seguridad y confiabilidad. CRBOX ha entregado todos mis pedidos de Amazon y Target directamente a mi puerta sin complicaciones. ¡El servicio al cliente siempre responde en minutos!"</p>
+                <div class="flex items-center">
+                    <div class="h-12 w-12 rounded-full bg-pink-600 flex items-center justify-center text-white font-bold">
+                        LV
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="font-semibold">Laura Vargas</h4>
+                        <p class="text-sm text-gray-500">Cliente desde 2021</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonial 6 -->
+            <div class="testimonial-card p-8 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                <div class="mb-4 text-yellow-400">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600 mb-6">"Soy fanático de la tecnología y siempre estoy comprando gadgets nuevos. CRBOX maneja mis productos con muchísimo cuidado y los trámites aduaneros son transparentes. Nunca más usaré otro courier."</p>
+                <div class="flex items-center">
+                    <div class="h-12 w-12 rounded-full bg-yellow-600 flex items-center justify-center text-white font-bold">
+                        AG
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="font-semibold">Andrés Gutiérrez</h4>
+                        <p class="text-sm text-gray-500">Cliente desde 2020</p>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
+
+<style>
+/* Estilos para efectos de hover en testimonios */
+.testimonial-card {
+    transition: all 0.3s ease;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Animación para estrellas */
+@keyframes twinkle {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+.text-yellow-400 i {
+    animation: twinkle 2s infinite;
+}
+
+.text-yellow-400 i:nth-child(1) { animation-delay: 0s; }
+.text-yellow-400 i:nth-child(2) { animation-delay: 0.4s; }
+.text-yellow-400 i:nth-child(3) { animation-delay: 0.8s; }
+.text-yellow-400 i:nth-child(4) { animation-delay: 1.2s; }
+.text-yellow-400 i:nth-child(5) { animation-delay: 1.6s; }
+</style>
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-12">

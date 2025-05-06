@@ -148,128 +148,90 @@ body {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Background pattern */
+/* Custom Styles for Affiliate Page */
 .bg-pattern {
-    background-image: url('data:image/svg+xml;charset=utf8,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.2"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+    background-image: url('data:image/svg+xml;charset=utf8,%3Csvg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z" fill="%23ffffff" fill-opacity="0.1" fill-rule="evenodd"/%3E%3C/svg%3E');
 }
 
-/* Animate on scroll classes */
-.animate-on-scroll {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+.btn-white {
+    background-color: white;
+    color: #EA580C; /* orange-600 */
 }
 
-.animate-on-scroll.animated {
-    opacity: 1;
-    transform: translateY(0);
+.btn-white:hover {
+    background-color: #f8fafc; /* slate-50 */
 }
 
-/* Custom tab styling */
-.tab-content > div {
+.btn-outline-white {
+    background-color: transparent;
+    border: 2px solid white;
+    color: white;
+}
+
+.btn-outline-white:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.primary-btn, .secondary-btn {
     transition: all 0.3s ease;
 }
 
-/* Calculadora styling */
-input[type="number"], select {
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-input[type="number"]:focus, select:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
-}
-
-#calcular-btn {
-    transition: all 0.3s ease;
-}
-
-#calcular-btn:hover {
-    background-color: var(--primary-dark);
+.primary-btn:hover, .secondary-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
-#resultado-calculo {
+.whatsapp-btn {
+    background-color: #25D366;
+    border-radius: 50%;
+    box-shadow: 0 6px 12px rgba(37, 211, 102, 0.3);
     transition: all 0.3s ease;
 }
 
-/* Numeric steps in calculator section */
-.w-12.h-12.bg-orange-600.rounded-full {
-    background-color: var(--primary);
-    transition: all 0.3s ease;
+.whatsapp-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(37, 211, 102, 0.4);
 }
 
-.bg-gray-50.rounded-lg.p-4.border:hover .w-12.h-12.bg-orange-600.rounded-full {
-    transform: scale(1.1);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.testimonial-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Info boxes enhancements */
-.bg-blue-50, .bg-green-50, .bg-orange-50, .bg-purple-50, .bg-yellow-50, .bg-red-50 {
-    transition: all 0.3s ease;
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-.bg-blue-50:hover, .bg-green-50:hover, .bg-orange-50:hover, .bg-purple-50:hover, .bg-yellow-50:hover, .bg-red-50:hover {
+.form-group:focus-within label {
+    color: #EA580C; /* orange-600 */
+}
+
+.registration-form .form-group {
+    transition: transform 0.3s ease;
+}
+
+.registration-form .form-group:focus-within {
     transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* Example card enhancements */
-.bg-white.p-4.rounded-lg.shadow-sm {
-    transition: all 0.3s ease;
+@keyframes shine {
+    from {
+        left: -200%;
+    }
+    to {
+        left: 200%;
+    }
 }
 
-.bg-white.p-4.rounded-lg.shadow-sm:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+.animate-shine {
+    animation: shine 1.5s infinite;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .sticky-header {
-        position: sticky;
-        top: 0;
-        z-index: 50;
-    }
-    
-    /* Adjust font sizes for mobile */
-    h1 {
-        font-size: 2rem !important;
-    }
-    
-    h2 {
-        font-size: 1.75rem !important;
-    }
-    
-    h3 {
-        font-size: 1.5rem !important;
-    }
-    
-    /* Table adjustments for mobile */
-    table {
-        font-size: 0.875rem;
-    }
-    
-    th, td {
-        padding: 0.5rem !important;
-    }
-    
-    /* Improve touch targets on mobile */
-    .tab-content button, 
-    .tab-content a,
-    input, 
-    select {
-        min-height: 44px;
-    }
-    
-    /* Better spacing for form elements on mobile */
-    .p-6 {
-        padding: 1rem !important;
-    }
-    
-    .gap-6 {
-        gap: 1rem !important;
-    }
+/* FAQ Accordion */
+.faq-toggle[aria-expanded="true"] .fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+.faq-content.active {
+    display: block;
 }
