@@ -119,37 +119,42 @@
     <!-- Header -->
     <header class="bg-white shadow-sm sticky-header">
         <div class="container mx-auto px-4 py-4">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <!-- Logo -->
                 <div class="flex items-center">
                     <a href="index.html">
                         <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-10 w-auto">
                     </a>
                 </div>
-                
+    
+                <!-- Menú navegación (escritorio) -->
                 <nav class="hidden md:flex space-x-6">
                     <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
                     <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
                     <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
-                    <a href="calculadora.html" class="text-orange-600 font-medium transition-colors">Calculadora</a>
+                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
                     <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
                 </nav>
-                
-                <div class="flex items-center space-x-3">
-                    <a href="calculadora.html" class="hidden md:inline-block primary-btn">Calcular Envío</a>
-                    <a href="afiliate.html" class="hidden md:inline-block secondary-btn">Afíliate Gratis</a>
-                    <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
+    
+                <!-- Botones acción (escritorio) -->
+                <div class="hidden md:flex items-center space-x-3">
+                    <a href="calculadora.html" class="primary-btn">Calcular Envío</a>
+                    <a href="afiliate.html" class="secondary-btn">Afíliate Gratis</a>
                 </div>
+    
+                <!-- Botón menú móvil -->
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
             </div>
-            
-            <!-- Mobile Menu -->
-            <div class="md:hidden hidden" id="mobile-menu">
+    
+            <!-- Menú móvil -->
+            <div class="md:hidden hidden mt-4" id="mobile-menu">
                 <div class="py-3 space-y-3">
                     <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
                     <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
                     <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
-                    <a href="calculadora.html" class="block text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
+                    <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
                     <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
                     <div class="flex flex-col space-y-2 pt-2">
                         <a href="calculadora.html" class="inline-block primary-btn text-center">Calcular Envío</a>
