@@ -8,12 +8,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const destinationSelect = document.getElementById('destination');
     
     const shippingCostEl = document.getElementById('shipping-cost');
-    const fuelSurchargeEl = document.getElementById('fuel-surcharge'); // Nuevo elemento para recargo por combustible
+    const fuelSurchargeEl = document.getElementById('fuel-surcharge');
     const handlingCostEl = document.getElementById('handling-cost');
     const taxCostEl = document.getElementById('tax-cost');
     const deliveryCostEl = document.getElementById('delivery-cost');
     const totalCostEl = document.getElementById('total-cost');
     const weightAppliedEl = document.getElementById('weight-applied');
+    const insuranceCostEl = document.getElementById('insurance-cost');
     
     // Toggle visibility of dimensions based on service type
     serviceTypeSelect.addEventListener('change', function() {
@@ -43,10 +44,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update UI
         shippingCostEl.textContent = `$${costs.shipping.toFixed(2)}`;
-        fuelSurchargeEl.textContent = `$${costs.fuelSurcharge.toFixed(2)}`; // Mostrar recargo por combustible
+        fuelSurchargeEl.textContent = `$${costs.fuelSurcharge.toFixed(2)}`;
         handlingCostEl.textContent = `$${costs.handling.toFixed(2)}`;
         taxCostEl.textContent = `$${costs.taxes.toFixed(2)}`;
         deliveryCostEl.textContent = `$${costs.delivery.toFixed(2)}`;
+        insuranceCostEl.textContent = `$${costs.insurance.toFixed(2)}`;
         totalCostEl.textContent = `$${costs.total.toFixed(2)}`;
         
         // Mostrar el peso aplicado (si es aplicable)
@@ -71,6 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let fuelSurcharge = 0;
         let volumetricWeight = 0;
         let applicableWeight = weight;
+        let insuranceCost = 0;
         
         // Calcular peso volumétrico si hay dimensiones
         const lengthInput = document.getElementById('length');
@@ -138,37 +141,169 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (purchaseValue < 15000) handlingCost = 175;
         else handlingCost = purchaseValue * 0.005; // 0.5% del valor
         
-        // Calcular impuestos estimados (base 13% + factor adicional por tipo de producto)
+        // Calcular impuestos estimados basados en el tipo de producto
         const cifValue = purchaseValue + shippingCost;
-        let baseTax = cifValue * 0.13;
+        let taxPercent = 0.13; // Valor base del impuesto (13%)
         
-        // Factor adicional basado en el tipo de producto (si está disponible)
+        // Obtener el tipo de producto seleccionado
         const packageContentSelect = document.getElementById('package-content');
         if (packageContentSelect) {
             const packageContent = packageContentSelect.value;
-            let taxFactor = 1.0;
             
-            switch (packageContent) {
-                case 'electronico':
-                    taxFactor = 1.3; // 30% adicional para electrónicos
-                    break;
-                case 'ropa':
-                    taxFactor = 1.15; // 15% adicional para ropa
-                    break;
-                case 'repuestos':
-                    taxFactor = 1.1; // 10% adicional para repuestos
-                    break;
-                case 'suplementos':
-                    taxFactor = 1.05; // 5% adicional para suplementos
-                    break;
-                default:
-                    taxFactor = 1.0;
+            // Mapeo de categorías y sus porcentajes de impuestos
+            const taxPercentages = {
+                'accesorios_impresora': 0.13,
+                'adaptador': 0.13,
+                'adornos': 0.2995,
+                'alarma': 0.1413,
+                'alfombra': 0.2995,
+                'amortiguadores': 0.4278,
+                'amplificador': 0.1413,
+                'amplificador_grabador': 0.4927,
+                'antena': 0.1413,
+                'anteojos': 0.2995,
+                'aros_bicicleta': 0.2430,
+                'aros_carro_moto': 0.4278,
+                'arrancador': 0.4278,
+                'articulos_fiesta': 0.2995,
+                'aspiradora': 0.4927,
+                'auricular_telefono': 0.1413,
+                'baterias': 0.4238,
+                'bicicleta_economica': 0.13,
+                'bicicleta_cara': 0.2995,
+                'binoculares': 0.2995,
+                'bocina': 0.1413,
+                'bola': 0.2430,
+                'bomba_aceite_agua': 0.1413,
+                'bombillos': 0.1978,
+                'bujias': 0.4278,
+                'cables_electricos': 0.2995,
+                'calculadora': 0.13,
+                'camara': 0.1413,
+                'cana_pescar': 0.2430,
+                'cargador': 0.1413,
+                'casco_seguridad': 0.29,
+                'case_cpu': 0.2995,
+                'cds': 0.1413,
+                'celulares': 0.13,
+                'cinturon': 0.4278,
+                'cluth': 0.4278,
+                'coche_bebe': 0.2995,
+                'colchon': 0.2995,
+                'computadora': 0.13,
+                'consola_videojuegos': 0.4927,
+                'control_remoto': 0.1413,
+                'cortinas': 0.2995,
+                'disco_duro': 0.13,
+                'diskman_walkman': 0.4927,
+                'dvds': 0.2430,
+                'electrodomesticos': 0.4927,
+                'equipo_sonido': 0.4927,
+                'equipo_karaoke': 0.4927,
+                'filtro_aceite_aire': 0.2430,
+                'filtro_agua': 0.1413,
+                'fluorescente': 0.2995,
+                'fotocopiadora': 0.1413,
+                'fuente_poder': 0.1413,
+                'gata_hidraulica': 0.1413,
+                'gorras': 0.2995,
+                'griferia': 0.2995,
+                'guitarra_acustica': 0.2995,
+                'guitarra_electrica': 0.2430,
+                'herramientas': 0.2430,
+                'home_teather': 0.4927,
+                'impresora': 0.13,
+                'instrumentos_musicales': 0.2995,
+                'ipod_mp3_mp4': 0.4927,
+                'joyeria_bisuteria': 0.2995,
+                'juego_mesa': 0.2995,
+                'juguetes': 0.2995,
+                'lampara': 0.2995,
+                'lector_dvd_cd': 0.4927,
+                'lente_contacto': 0.1978,
+                'lente_camara': 0.1413,
+                'libros': 0.01,
+                'llantas_vehiculo': 0.2430,
+                'llave_maya': 0.13,
+                'luces_carro': 0.1413,
+                'maletines_bolsos': 0.2995,
+                'manguera': 0.2995,
+                'maquina_coser_soldar': 0.1413,
+                'memoria': 0.13,
+                'microscopio': 0.1413,
+                'mixer': 0.4927,
+                'molduras_vehiculo': 0.4278,
+                'monitor': 0.13,
+                'muebles': 0.2995,
+                'mufla': 0.4278,
+                'ollas_sartenes': 0.2995,
+                'palos_golf': 0.2430,
+                'panos': 0.2995,
+                'papel': 0.2430,
+                'parabrisas': 0.1978,
+                'parlantes': 0.1413,
+                'partes_carroceria': 0.4278,
+                'patines': 0.2430,
+                'pelucas': 0.2995,
+                'pinon': 0.1413,
+                'plancha_pelo': 0.4927,
+                'platos_ceramica': 0.2995,
+                'posters': 0.2995,
+                'procesador': 0.13,
+                'proyector_video': 0.4927,
+                'quemador_cd_dvd': 0.4927,
+                'rack_carro': 0.4878,
+                'radiador': 0.4278,
+                'radio_carro': 0.4927,
+                'radio_comunicacion': 0.13,
+                'raqueta': 0.2430,
+                'rasuradora_electrica': 0.4927,
+                'refrigerador': 0.68,
+                'relojes': 0.2995,
+                'reproductor_bluray': 0.4927,
+                'repuestos_motor': 0.1413,
+                'retrovisor': 0.1978,
+                'romana': 0.1413,
+                'ropa': 0.2995,
+                'router': 0.13,
+                'sabanas': 0.2995,
+                'secadoras_pelo': 0.4927,
+                'silla_bebe_carro': 0.13,
+                'sleeping_bag': 0.2995,
+                'software': 0.13,
+                'sombrilla': 0.2995,
+                'sombrilla_fotografia': 0.2995,
+                'suspension_carro': 0.4278,
+                'suspension_moto': 0.4278,
+                'tabla_surf': 0.2430,
+                'tableta_electronica': 0.13,
+                'tarjeta_video_sonido': 0.13,
+                'tarjeta_madre': 0.13,
+                'teclado_musical': 0.2430,
+                'teclado_computadora': 0.13,
+                'telefonos': 0.13,
+                'televisor': 0.4927,
+                'tienda_campana': 0.2995,
+                'tripode': 0.2995,
+                'valvulas': 0.1413,
+                'vaso_vidrio': 0.2995,
+                'ventiladores_computadora': 0.2430,
+                'video_juegos': 0.1413,
+                'video_monitor': 0.4927,
+                'zapatos': 0.2995,
+                'otros': 0.2995
+            };
+            
+            // Obtener el porcentaje de impuesto específico para la categoría seleccionada
+            if (taxPercentages.hasOwnProperty(packageContent)) {
+                taxPercent = taxPercentages[packageContent];
+            } else {
+                taxPercent = 0.2995; // Valor predeterminado si no se encuentra la categoría
             }
-            
-            taxesEstimate = baseTax * taxFactor;
-        } else {
-            taxesEstimate = baseTax;
         }
+        
+        // Calcular los impuestos con el porcentaje específico
+        taxesEstimate = cifValue * taxPercent;
         
         // Calcular costo de entrega según destino y peso
         if (destination === 'sanjose' || destination === 'heredia' || destination === 'alajuela') {
@@ -189,8 +324,11 @@ document.addEventListener('DOMContentLoaded', function() {
             else deliveryCost = 30;
         }
         
-        // Calcular costo total incluyendo recargo por combustible
-        const totalCost = shippingCost + fuelSurcharge + handlingCost + taxesEstimate + deliveryCost;
+        // Calcular costo del seguro ($1 por cada $100 de valor, redondeando hacia arriba)
+        insuranceCost = Math.ceil(purchaseValue / 100);
+        
+        // Calcular costo total incluyendo recargo por combustible y seguro
+        const totalCost = shippingCost + fuelSurcharge + handlingCost + taxesEstimate + deliveryCost + insuranceCost;
         
         return {
             shipping: shippingCost,
@@ -198,6 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
             handling: handlingCost,
             taxes: taxesEstimate,
             delivery: deliveryCost,
+            insurance: insuranceCost,
             total: totalCost,
             volumetricWeight: volumetricWeight,
             applicableWeight: applicableWeight

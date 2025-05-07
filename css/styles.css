@@ -147,3 +147,483 @@ body {
 .cta-shadow {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
+
+/* Estilos específicos para el formulario de registro */
+.account-type-card {
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    background: white;
+    border: 2px solid transparent;
+}
+
+.account-type-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.account-type-card.active {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.account-type-card#personal-card {
+    background-color: white;
+}
+
+.account-type-card#personal-card.active {
+    border-color: var(--primary);
+    background-color: white;
+}
+
+.account-type-card#business-card {
+    background-color: white;
+}
+
+.account-type-card#business-card.active {
+    border-color: var(--secondary);
+    background-color: white;
+}
+
+.account-type-card#personal-card .w-12.h-12.rounded-full {
+    background-color: rgba(255, 107, 0, 0.1);
+}
+
+.account-type-card#business-card .w-12.h-12.rounded-full {
+    background-color: rgba(0, 82, 204, 0.1);
+}
+
+.form-container {
+    display: none;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.form-container.active {
+    display: block;
+    opacity: 1;
+    animation: fadeIn 0.5s ease forwards;
+}
+
+
+/* Animaciones para el formulario */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes shine {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+.pulse-animation {
+    animation: pulse 1.5s infinite;
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slideInRight {
+    animation: slideInRight 0.5s ease-in-out;
+}
+
+/* Estilos para las secciones numeradas del formulario */
+.form-section-number {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-right: 0.75rem;
+}
+
+/* Estilos para el formulario personal */
+.personal-form-number {
+    background-color: rgba(255, 107, 0, 0.1);
+    color: var(--primary);
+}
+
+/* Estilos para el formulario empresarial */
+.business-form-number {
+    background-color: rgba(0, 82, 204, 0.1);
+    color: var(--secondary);
+}
+
+/* Mejoras a los campos de formulario */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+input:focus, 
+select:focus, 
+textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.25);
+    border-color: var(--primary) !important;
+}
+
+#business-form input:focus,
+#business-form select:focus,
+#business-form textarea:focus {
+    box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.25);
+    border-color: var(--secondary) !important;
+}
+
+/* Estilo para los códigos promocionales */
+.promo-code-container {
+    background-color: var(--light);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+/* Estilo para las personas/contactos adicionales */
+.additional-person,
+.additional-contact {
+    background-color: var(--light);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.additional-person:hover,
+.additional-contact:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Estilo para el banner promocional */
+.promo-banner {
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.personal-promo-banner,
+.mt-6.bg-gradient-to-r.from-orange-100.to-amber-100 {
+    background: linear-gradient(135deg, rgba(255, 107, 0, 0.1) 0%, rgba(255, 154, 0, 0.1) 100%);
+    border-left: 4px solid var(--primary);
+}
+
+.business-promo-banner,
+.mt-6.bg-gradient-to-r.from-blue-100.to-indigo-100 {
+    background: linear-gradient(135deg, rgba(0, 82, 204, 0.1) 0%, rgba(0, 61, 153, 0.1) 100%);
+    border-left: 4px solid var(--secondary);
+}
+
+/* Indicadores de validación */
+.valid-input,
+.border-green-300 {
+    border-color: #10b981 !important;
+}
+
+.invalid-input,
+.border-red-300 {
+    border-color: #ef4444 !important;
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+/* Efecto de brillo para botones */
+.btn-shine,
+.group.relative.overflow-hidden {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-shine::after,
+.absolute.top-0.-inset-full.h-full.w-1\/2.z-5.block.transform.-skew-x-12.bg-gradient-to-r.from-transparent.to-white.opacity-20.group-hover\:animate-shine {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+    transform: skewX(-25deg);
+}
+
+.btn-shine:hover::after,
+.group:hover .absolute.top-0.-inset-full.h-full.w-1\/2.z-5.block.transform.-skew-x-12.bg-gradient-to-r.from-transparent.to-white.opacity-20 {
+    animation: shine 1.5s infinite;
+}
+
+/* Estilo para el botón de mostrar/ocultar contraseña */
+.toggle-password {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-password:hover {
+    color: var(--primary-dark);
+}
+
+#business-form .toggle-password:hover {
+    color: var(--secondary-dark);
+}
+
+/* Estilos para los botones de acción del formulario */
+.w-full.bg-orange-600.hover\:bg-orange-700.text-white.font-medium.py-3.px-4.rounded-lg.transition-all.text-lg {
+    background-color: var(--primary);
+    transition: all 0.3s ease;
+}
+
+.w-full.bg-orange-600.hover\:bg-orange-700.text-white.font-medium.py-3.px-4.rounded-lg.transition-all.text-lg:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.w-full.bg-blue-600.hover\:bg-blue-700.text-white.font-medium.py-3.px-4.rounded-lg.transition-all.text-lg {
+    background-color: var(--secondary);
+    transition: all 0.3s ease;
+}
+
+.w-full.bg-blue-600.hover\:bg-blue-700.text-white.font-medium.py-3.px-4.rounded-lg.transition-all.text-lg:hover {
+    background-color: var(--secondary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo para los iconos dentro del formulario */
+.w-8.h-8.rounded-full.bg-orange-100.flex.items-center.justify-center.text-orange-600.mr-2 {
+    background-color: rgba(255, 107, 0, 0.1);
+    color: var(--primary);
+}
+
+.w-8.h-8.rounded-full.bg-blue-100.flex.items-center.justify-center.text-blue-600.mr-2 {
+    background-color: rgba(0, 82, 204, 0.1);
+    color: var(--secondary);
+}
+
+.w-10.h-10.rounded-full.bg-orange-100.flex.items-center.justify-center.text-orange-600.mr-4 {
+    background-color: rgba(255, 107, 0, 0.1);
+    color: var(--primary);
+}
+
+.w-10.h-10.rounded-full.bg-blue-100.flex.items-center.justify-center.text-blue-600.mr-4 {
+    background-color: rgba(0, 82, 204, 0.1);
+    color: var(--secondary);
+}
+
+.w-12.h-12.rounded-full.bg-orange-100.flex.items-center.justify-center.text-orange-600.mr-4 {
+    background-color: rgba(255, 107, 0, 0.1);
+    color: var(--primary);
+}
+
+.w-12.h-12.rounded-full.bg-blue-100.flex.items-center.justify-center.text-blue-600.mr-4 {
+    background-color: rgba(0, 82, 204, 0.1);
+    color: var(--secondary);
+}
+
+/* Elementos decorativos del formulario */
+.absolute.top-0.right-0.w-32.h-32.bg-orange-100.rounded-bl-full.opacity-50 {
+    background-color: rgba(255, 107, 0, 0.1);
+}
+
+.absolute.bottom-0.left-0.w-24.h-24.bg-orange-50.rounded-tr-full.opacity-50 {
+    background-color: rgba(255, 107, 0, 0.05);
+}
+
+.absolute.top-0.right-0.w-32.h-32.bg-blue-100.rounded-bl-full.opacity-50 {
+    background-color: rgba(0, 82, 204, 0.1);
+}
+
+.absolute.bottom-0.left-0.w-24.h-24.bg-blue-50.rounded-tr-full.opacity-50 {
+    background-color: rgba(0, 82, 204, 0.05);
+}
+
+/* Estilos para los botones de aplicar código promocional */
+.absolute.right-2.top-2.bg-orange-600.hover\:bg-orange-700.text-white.px-4.py-1.rounded-lg.text-sm {
+    background-color: var(--primary);
+    transition: all 0.3s ease;
+}
+
+.absolute.right-2.top-2.bg-orange-600.hover\:bg-orange-700.text-white.px-4.py-1.rounded-lg.text-sm:hover {
+    background-color: var(--primary-dark);
+}
+
+.absolute.right-2.top-2.bg-blue-600.hover\:bg-blue-700.text-white.px-4.py-1.rounded-lg.text-sm {
+    background-color: var(--secondary);
+    transition: all 0.3s ease;
+}
+
+.absolute.right-2.top-2.bg-blue-600.hover\:bg-blue-700.text-white.px-4.py-1.rounded-lg.text-sm:hover {
+    background-color: var(--secondary-dark);
+}
+
+/* Estilos para los botones de agregar persona/contacto */
+.text-orange-600.hover\:text-orange-700.text-sm.font-medium.flex.items-center {
+    color: var(--primary);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.text-orange-600.hover\:text-orange-700.text-sm.font-medium.flex.items-center:hover {
+    color: var(--primary-dark);
+}
+
+.text-blue-600.hover\:text-blue-700.text-sm.font-medium.flex.items-center {
+    color: var(--secondary);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.text-blue-600.hover\:text-blue-700.text-sm.font-medium.flex.items-center:hover {
+    color: var(--secondary-dark);
+}
+
+/* Estilos para los enlaces dentro del formulario */
+.text-orange-600.hover\:text-orange-700.font-medium {
+    color: var(--primary);
+    transition: all 0.3s ease;
+}
+
+.text-orange-600.hover\:text-orange-700.font-medium:hover {
+    color: var(--primary-dark);
+}
+
+.text-blue-600.hover\:text-blue-700.font-medium {
+    color: var(--secondary);
+    transition: all 0.3s ease;
+}
+
+.text-blue-600.hover\:text-blue-700.font-medium:hover {
+    color: var(--secondary-dark);
+}
+
+/* Botones de eliminar persona/contacto */
+.remove-person,
+.remove-contact {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.remove-person:hover,
+.remove-contact:hover {
+    opacity: 0.8;
+}
+
+/* Mejoras de accesibilidad con estados de enfoque */
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.25);
+}
+
+#business-form button:focus {
+    box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.25);
+}
+
+/* Estado activo para las pestañas */
+button.active {
+    background-color: white;
+    color: var(--primary);
+}
+
+/* Pantallas pequeñas */
+@media (max-width: 768px) {
+    .account-type-card {
+        margin-bottom: 1rem;
+    }
+    
+    .grid.grid-cols-1.md\:grid-cols-2.gap-6 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Pantallas extra pequeñas */
+@media (max-width: 480px) {
+    .form-section-number {
+        min-width: 2rem;
+    }
+    
+    .promo-banner {
+        padding: 0.75rem;
+    }
+    
+    .testimonial-card {
+        padding: 1rem;
+    }
+}
+
+/* Soporte para modo oscuro si está habilitado */
+@media (prefers-color-scheme: dark) {
+    .additional-person,
+    .additional-contact {
+        background-color: #1f2937;
+        border-color: #374151;
+    }
+}
+
+/* Estilos adicionales para arreglar los indicadores circulares */
+#personal-dot {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+#business-dot {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.account-type-card.active #personal-dot,
+.account-type-card.active #business-dot {
+    opacity: 1;
+    visibility: visible;
+}
+
+.account-type-card:not(.active) #personal-dot,
+.account-type-card:not(.active) #business-dot {
+    opacity: 0;
+    visibility: hidden;
+}

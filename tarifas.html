@@ -304,12 +304,16 @@
                                         <span class="font-semibold text-green-700">$14</span>
                                     </li>
                                     <li class="flex justify-between">
+                                        <span>Seguro ($1 por $100):</span>
+                                        <span class="font-semibold text-green-700">$2</span>
+                                    </li>
+                                    <li class="flex justify-between">
                                         <span>Entrega a domicilio (San José):</span>
                                         <span class="font-semibold text-green-700">$5</span>
                                     </li>
                                     <li class="flex justify-between border-t pt-2 mt-2">
                                         <span class="font-bold">TOTAL:</span>
-                                        <span class="font-bold text-orange-600">$46.37</span>
+                                        <span class="font-bold text-orange-600">$48.37</span>
                                     </li>
                                     <li class="text-xs text-gray-500 mt-2 pt-2 border-t">
                                         <i class="fas fa-info-circle mr-1"></i> No incluye impuestos de importación, los cuales dependen de la categoría del producto.
@@ -671,6 +675,10 @@
                                 <p class="flex justify-between text-sm">
                                     <span>Cargo por manejo:</span>
                                     <span id="cargo-manejo" class="font-semibold">-</span>
+                                </p>
+                                <p class="flex justify-between text-sm">
+                                    <span>Seguro ($1 por $100):</span>
+                                    <span id="costo-seguro" class="font-semibold">-</span>
                                 </p>
                                 <p class="flex justify-between text-sm">
                                     <span>Entrega a domicilio:</span>
@@ -1267,9 +1275,12 @@ if (calcularBtn && resultadoCalculo) {
             else if (pesoAplicable <= 50) costoEntrega = 25;
             else costoEntrega = 30; // para pesos mayores en zonas alejadas
         }
+
+        // Calcular costo de seguro ($1 por cada $100 de valor, redondeando hacia arriba)
+const seguro = Math.ceil(valor / 100);
         
-        // Calcular costo total incluyendo cargo por combustible
-        const costoTotal = tarifaPeso + fuelSurcharge + cargoManejo + costoEntrega;
+        // Calcular costo total incluyendo cargo por combustible y seguro
+const costoTotal = tarifaPeso + fuelSurcharge + cargoManejo + costoEntrega + seguro;
             
             // Mostrar resultados con animación
 document.getElementById('peso-aplicable').textContent = pesoAplicable.toFixed(2) + ' kg' + (pesoVolumetrico > peso ? ' (volumétrico)' : ' (real)');
@@ -1278,6 +1289,7 @@ document.getElementById('cargo-manejo').textContent = '$' + cargoManejo.toFixed(
 document.getElementById('costo-entrega').textContent = '$' + costoEntrega.toFixed(2);
 // Añadir una nueva línea para mostrar el recargo por combustible
 document.getElementById('recargo-combustible').textContent = '$' + fuelSurcharge.toFixed(2);
+document.getElementById('costo-seguro').textContent = '$' + seguro.toFixed(2);
 document.getElementById('costo-total').textContent = '$' + costoTotal.toFixed(2);
             
             // Mostrar resultado con animación
