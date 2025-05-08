@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRBOX | Mis Paquetes | Casillero Virtual y Courier en Costa Rica</title>
+    <meta name="description" content="Gestiona y rastrea tus paquetes en CRBOX, tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky-header">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="index.html">
+                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-10 w-auto">
+                    </a>
+                </div>
+    
+                <!-- Menú navegación (escritorio) -->
+                <nav class="hidden md:flex space-x-6">
+                    <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
+                </nav>
+    
+                <!-- User menu (desktop) -->
+                <div class="hidden md:flex items-center space-x-3">
+                    <div class="relative group">
+                        <button class="flex items-center space-x-2 text-gray-700 hover:text-orange-600 transition-colors focus:outline-none">
+                            <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                                <i class="fas fa-user text-orange-600"></i>
+                            </div>
+                            <span class="font-medium">Mathias</span>
+                            <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180"></i>
+                        </button>
+                        <!-- Dropdown menu -->
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100 invisible opacity-0 transform -translate-y-3 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all">
+                            <a href="dashboard.html" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                                <i class="fas fa-tachometer-alt mr-2 text-orange-500"></i>
+                                Dashboard
+                            </a>
+                            <a href="mis-paquetes.html" class="block px-4 py-2 text-orange-600 bg-orange-50">
+                                <i class="fas fa-box mr-2 text-orange-500"></i>
+                                Mis Paquetes
+                            </a>
+                            <a href="mis-facturas.html" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                                <i class="fas fa-file-invoice-dollar mr-2 text-orange-500"></i>
+                                Mis Facturas
+                            </a>
+                            <a href="mi-cuenta.html" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                                <i class="fas fa-user-cog mr-2 text-orange-500"></i>
+                                Mi Cuenta
+                            </a>
+                            <div class="border-t border-gray-100 my-2"></div>
+                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-2 text-orange-500"></i>
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                    <a href="calculadora.html" class="primary-btn flex items-center">
+                        <i class="fas fa-calculator mr-2"></i>
+                        Calcular
+                    </a>
+                </div>
+    
+                <!-- Botón menú móvil -->
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+    
+            <!-- Menú móvil -->
+            <div class="md:hidden hidden mt-4" id="mobile-menu">
+                <div class="py-3 space-y-3">
+                    <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
+                    <div class="py-2 border-t border-gray-100 mt-2">
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center mr-2">
+                                <i class="fas fa-user text-orange-600"></i>
+                            </div>
+                            <span class="font-medium">Mathias Meneses</span>
+                        </div>
+                        <div class="space-y-2">
+                            <a href="dashboard.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
+                                <i class="fas fa-tachometer-alt mr-2 text-orange-500"></i>
+                                Dashboard
+                            </a>
+                            <a href="mis-paquetes.html" class="block text-orange-600 font-medium py-2">
+                                <i class="fas fa-box mr-2 text-orange-500"></i>
+                                Mis Paquetes
+                            </a>
+                            <a href="mis-facturas.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
+                                <i class="fas fa-file-invoice-dollar mr-2 text-orange-500"></i>
+                                Mis Facturas
+                            </a>
+                            <a href="mi-cuenta.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
+                                <i class="fas fa-user-cog mr-2 text-orange-500"></i>
+                                Mi Cuenta
+                            </a>
+                            <a href="#" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-2 text-orange-500"></i>
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                    <div class="flex flex-col space-y-2 pt-2">
+                        <a href="calculadora.html" class="inline-block primary-btn text-center">
+                            <i class="fas fa-calculator mr-2"></i>
+                            Calcular Envío
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dashboard Navigation Tabs -->
+    <div class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="container mx-auto px-4">
+            <div class="flex overflow-x-auto no-scrollbar">
+                <a href="dashboard.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+                    <i class="fas fa-tachometer-alt mr-2"></i>
+                    Dashboard
+                </a>
+                <a href="mis-paquetes.html" class="whitespace-nowrap px-6 py-4 font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none">
+                    <i class="fas fa-box mr-2"></i>
+                    Mis Paquetes
+                </a>
+                <a href="mis-facturas.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+                    <i class="fas fa-file-invoice-dollar mr-2"></i>
+                    Mis Facturas
+                </a>
+                <a href="mi-cuenta.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+                    <i class="fas fa-user-cog mr-2"></i>
+                    Mi Cuenta
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="py-8">
+        <div class="container mx-auto px-4">
+            
+            <!-- Page Title & Actions -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Mis Paquetes</h1>
+                    <p class="text-gray-600">Rastrea y gestiona tus envíos</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3">
+                    <button class="action-btn-light flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Actualizar
+                    </button>
+                    <button class="action-btn-primary flex items-center">
+                        <i class="fas fa-search mr-2"></i>
+                        Rastrear
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Search & Filter Section -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="md:col-span-2">
+                        <div class="relative">
+                            <input type="text" placeholder="Buscar por número de tracking o descripción" class="form-control pl-10">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <select class="form-control">
+                            <option value="">Todos los estados</option>
+                            <option value="MIAMI">MIAMI</option>
+                            <option value="CARGADO">CARGADO</option>
+                            <option value="EN ESPERA">EN ESPERA</option>
+                            <option value="EN TRANSITO">EN TRÁNSITO</option>
+                            <option value="SJO">SJO</option>
+                            <option value="CRBOX">CRBOX</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="relative">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="relative">
+                                    <input type="date" class="form-control pl-10" value="2025-04-08">
+                                    <i class="far fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                                <div class="relative">
+                                    <input type="date" class="form-control pl-10" value="2025-05-08">
+                                    <i class="far fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button class="action-btn-primary flex items-center px-6">
+                        <i class="fas fa-search mr-2"></i>
+                        Buscar Paquetes
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Status Icons -->
+            <div class="grid grid-cols-3 md:grid-cols-6 gap-4 mb-6">
+                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mb-2">
+                        <i class="fas fa-map-marker-alt text-xl"></i>
+                    </div>
+                    <span class="text-gray-700 text-sm font-medium">MIAMI</span>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-500 mb-2">
+                        <i class="fas fa-boxes text-xl"></i>
+                    </div>
+                    <span class="text-gray-700 text-sm font-medium">CARGADO</span>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-500 mb-2">
+                        <i class="fas fa-clock text-xl"></i>
+                    </div>
+                    <span class="text-gray-700 text-sm font-medium">EN ESPERA</span>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-500 mb-2">
+                        <i class="fas fa-shipping-fast text-xl"></i>
+                    </div>
+                    <span class="text-gray-700 text-sm font-medium">EN TRÁNSITO</span>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-teal-500 mb-2">
+                        <i class="fas fa-plane-arrival text-xl"></i>
+                    </div>
+                    <span class="text-gray-700 text-sm font-medium">SJO</span>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 mb-2">
+                        <i class="fas fa-box-open text-xl"></i>
+                    </div>
+                    <span class="text-gray-700 text-sm font-medium">CRBOX</span>
+                </div>
+            </div>
+            
+            <!-- Data Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="min-w-full overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="whitespace-nowrap">Estado</th>
+                                <th class="whitespace-nowrap">Tracking #</th>
+                                <th class="whitespace-nowrap">Carrier</th>
+                                <th class="whitespace-nowrap">Fecha</th>
+                                <th class="whitespace-nowrap">Peso</th>
+                                <th class="whitespace-nowrap">Descripción</th>
+                                <th class="whitespace-nowrap">Notas</th>
+                                <th class="whitespace-nowrap text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="empty-state">
+                                <td colspan="8" class="py-16">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                            <i class="fas fa-box-open text-3xl text-gray-300"></i>
+                                        </div>
+                                        <h3 class="text-xl font-semibold text-gray-500 mb-2">No se encontraron paquetes</h3>
+                                        <p class="text-gray-400 mb-4 text-center max-w-md">
+                                            No tienes ningún paquete registrado en el período seleccionado. Intenta con otras fechas o filtra por un estado diferente.
+                                        </p>
+                                        <a href="calculadora.html" class="action-btn-primary">
+                                            <i class="fas fa-calculator mr-2"></i>
+                                            Calcular un Envío
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex items-center justify-between border-t border-gray-100 px-6 py-3">
+                    <div class="flex items-center">
+                        <span class="mr-2 text-sm text-gray-600">Mostrar</span>
+                        <select class="form-control text-sm h-8 px-2">
+                            <option>10</option>
+                            <option>25</option>
+                            <option>50</option>
+                            <option>100</option>
+                        </select>
+                        <span class="ml-2 text-sm text-gray-600">registros</span>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">0 - 0 de 0</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button class="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <i class="fas fa-chevron-left text-gray-400"></i>
+                        </button>
+                        <button class="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <i class="fas fa-chevron-right text-gray-400"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual Tracking Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-xl font-bold text-gray-800">Rastrear un Paquete</h2>
+                </div>
+                <div class="p-6">
+                    <div class="max-w-2xl mx-auto">
+                        <p class="text-gray-600 mb-6">Puedes rastrear cualquier paquete ingresando el número de tracking proporcionado por el courier.</p>
+                        
+                        <div class="flex">
+                            <input type="text" placeholder="Ingresa el número de tracking" class="form-control rounded-r-none">
+                            <button class="action-btn-primary rounded-l-none px-6">
+                                <i class="fas fa-search mr-2"></i>
+                                Rastrear
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4 text-sm text-center">
+                            <span class="text-gray-500">
+                                Soportamos rastreo de: 
+                                <i class="fab fa-fedex ml-1 text-purple-600"></i>
+                                <i class="fab fa-ups ml-1 text-brown-600"></i>
+                                <i class="fas fa-shipping-fast ml-1 text-blue-600"></i>
+                                <i class="fas fa-mail-bulk ml-1 text-red-600"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">CRBOX</h3>
+                    <p class="text-gray-400 mb-4">Tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
+                    <ul class="space-y-2">
+                        <li><a href="servicios.html" class="text-gray-400 hover:text-white transition-colors">Servicios</a></li>
+                        <li><a href="como-funciona.html" class="text-gray-400 hover:text-white transition-colors">Cómo Funciona</a></li>
+                        <li><a href="tarifas.html" class="text-gray-400 hover:text-white transition-colors">Tarifas</a></li>
+                        <li><a href="calculadora.html" class="text-gray-400 hover:text-white transition-colors">Calculadora</a></li>
+                        <li><a href="afiliate.html" class="text-gray-400 hover:text-white transition-colors">Afíliate</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contacto</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">Sabana Norte, San José, Costa Rica</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-phone mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">+506-4000-1114</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">ventas@crbox.cr</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Horario de Atención</h3>
+                    <ul class="space-y-2">
+                        <li class="text-gray-400">Lunes a Viernes: 8:00 AM - 5:00 PM</li>
+                        <li class="text-gray-400">Sábados: 9:00 AM - 1:00 PM</li>
+                        <li class="text-gray-400">Domingos: Cerrado</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 CRBOX. Todos los derechos reservados.</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Términos y Condiciones</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/50640001114" class="fixed bottom-6 right-6 whatsapp-btn w-14 h-14 flex items-center justify-center text-white text-2xl z-50">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

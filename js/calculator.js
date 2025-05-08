@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 'refrigerador': 0.68,
                 'relojes': 0.2995,
                 'reproductor_bluray': 0.4927,
-                'repuestos_motor': 0.1413,
+                'repuestos_vehículo': 0.43,
                 'retrovisor': 0.1978,
                 'romana': 0.1413,
                 'ropa': 0.2995,

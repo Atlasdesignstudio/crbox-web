@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRBOX | Mi Cuenta | Casillero Virtual y Courier en Costa Rica</title>
+    <meta name="description" content="Administra tu cuenta personal en CRBOX, tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky-header">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="index.html">
+                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-10 w-auto">
+                    </a>
+                </div>
+    
+                <!-- Menú navegación (escritorio) -->
+                <nav class="hidden md:flex space-x-6">
+                    <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
+                </nav>
+    
+                <!-- User menu (desktop) -->
+                <div class="hidden md:flex items-center space-x-3">
+                    <div class="relative group">
+                        <button class="flex items-center space-x-2 text-gray-700 hover:text-orange-600 transition-colors focus:outline-none">
+                            <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                                <i class="fas fa-user text-orange-600"></i>
+                            </div>
+                            <span class="font-medium">Mathias</span>
+                            <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180"></i>
+                        </button>
+                        <!-- Dropdown menu -->
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100 invisible opacity-0 transform -translate-y-3 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all">
+                            <a href="dashboard.html" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                                <i class="fas fa-tachometer-alt mr-2 text-orange-500"></i>
+                                Dashboard
+                            </a>
+                            <a href="mis-paquetes.html" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                                <i class="fas fa-box mr-2 text-orange-500"></i>
+                                Mis Paquetes
+                            </a>
+                            <a href="mis-facturas.html" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                                <i class="fas fa-file-invoice-dollar mr-2 text-orange-500"></i>
+                                Mis Facturas
+                            </a>
+                            <a href="mi-cuenta.html" class="block px-4 py-2 text-orange-600 bg-orange-50">
+                                <i class="fas fa-user-cog mr-2 text-orange-500"></i>
+                                Mi Cuenta
+                            </a>
+                            <div class="border-t border-gray-100 my-2"></div>
+                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-2 text-orange-500"></i>
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                    <a href="calculadora.html" class="primary-btn flex items-center">
+                        <i class="fas fa-calculator mr-2"></i>
+                        Calcular
+                    </a>
+                </div>
+    
+                <!-- Botón menú móvil -->
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+    
+            <!-- Menú móvil -->
+            <div class="md:hidden hidden mt-4" id="mobile-menu">
+                <div class="py-3 space-y-3">
+                    <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
+                    <div class="py-2 border-t border-gray-100 mt-2">
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center mr-2">
+                                <i class="fas fa-user text-orange-600"></i>
+                            </div>
+                            <span class="font-medium">Mathias Meneses</span>
+                        </div>
+                        <div class="space-y-2">
+                            <a href="dashboard.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
+                                <i class="fas fa-tachometer-alt mr-2 text-orange-500"></i>
+                                Dashboard
+                            </a>
+                            <a href="mis-paquetes.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
+                                <i class="fas fa-box mr-2 text-orange-500"></i>
+                                Mis Paquetes
+                            </a>
+                            <a href="mis-facturas.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
+                                <i class="fas fa-file-invoice-dollar mr-2 text-orange-500"></i>
+                                Mis Facturas
+                            </a>
+                            <a href="mi-cuenta.html" class="block text-orange-600 font-medium py-2">
+                                <i class="fas fa-user-cog mr-2 text-orange-500"></i>
+                                Mi Cuenta
+                            </a>
+                            <a href="#" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
+                                <i class="fas fa-sign-out-alt mr-2 text-orange-500"></i>
+                                Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                    <div class="flex flex-col space-y-2 pt-2">
+                        <a href="calculadora.html" class="inline-block primary-btn text-center">
+                            <i class="fas fa-calculator mr-2"></i>
+                            Calcular Envío
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dashboard Navigation Tabs -->
+    <div class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="container mx-auto px-4">
+            <div class="flex overflow-x-auto no-scrollbar">
+                <a href="dashboard.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+                    <i class="fas fa-tachometer-alt mr-2"></i>
+                    Dashboard
+                </a>
+                <a href="mis-paquetes.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+                    <i class="fas fa-box mr-2"></i>
+                    Mis Paquetes
+                </a>
+                <a href="mis-facturas.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+                    <i class="fas fa-file-invoice-dollar mr-2"></i>
+                    Mis Facturas
+                </a>
+                <a href="mi-cuenta.html" class="whitespace-nowrap px-6 py-4 font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none">
+                    <i class="fas fa-user-cog mr-2"></i>
+                    Mi Cuenta
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="py-8">
+        <div class="container mx-auto px-4">
+            
+            <!-- Page Title & Actions -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Mi Cuenta</h1>
+                    <p class="text-gray-600">Información personal y preferencias</p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <button class="action-btn-primary flex items-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="profile-header">
+                    <div class="profile-header-pattern"></div>
+                    <div class="relative z-10 flex flex-col items-center">
+                        <div class="profile-avatar mx-auto bg-white">
+                            <span class="text-orange-600 font-bold text-3xl">MM</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Mathias Meneses</h2>
+                        <p class="text-white text-opacity-90">Casillero #50628595</p>
+                    </div>
+                </div>
+                
+                <div class="border-b border-gray-100">
+                    <div class="flex overflow-x-auto no-scrollbar">
+                        <button class="whitespace-nowrap px-6 py-4 font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none account-tab-btn" data-tab="personal-info">
+                            <i class="fas fa-user mr-2"></i>
+                            Información Personal
+                        </button>
+                        <button class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none account-tab-btn" data-tab="address-info">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                            Direcciones
+                        </button>
+                        <button class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none account-tab-btn" data-tab="security">
+                            <i class="fas fa-shield-alt mr-2"></i>
+                            Seguridad
+                        </button>
+                        <button class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none account-tab-btn" data-tab="notifications">
+                            <i class="fas fa-bell mr-2"></i>
+                            Notificaciones
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Personal Info Tab -->
+                <div class="p-6 account-tab" id="personal-info-tab">
+                    <form>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="form-group">
+                                <label for="first_name" class="form-label">Nombre</label>
+                                <input type="text" id="first_name" name="first_name" class="form-control" value="Mathias">
+                            </div>
+                            <div class="form-group">
+                                <label for="last_name" class="form-label">Apellido</label>
+                                <input type="text" id="last_name" name="last_name" class="form-control" value="Meneses">
+                            </div>
+                            <div class="form-group">
+                                <label for="email" class="form-label">Correo Electrónico</label>
+                                <input type="email" id="email" name="email" class="form-control" value="mMathiascrbox27@gmail.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="phone" class="form-label">Teléfono</label>
+                                <input type="tel" id="phone" name="phone" class="form-control" value="305 882 1718">
+                            </div>
+                            <div class="form-group md:col-span-2">
+                                <label for="id_type" class="form-label">Tipo de Identificación</label>
+                                <select id="id_type" name="id_type" class="form-control">
+                                    <option value="cedula">Cédula Nacional</option>
+                                    <option value="dimex">DIMEX</option>
+                                    <option value="passport">Pasaporte</option>
+                                </select>
+                            </div>
+                            <div class="form-group md:col-span-2">
+                                <label for="id_number" class="form-label">Número de Identificación</label>
+                                <input type="text" id="id_number" name="id_number" class="form-control" value="123456789">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 border-t border-gray-100 pt-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Preferencias</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="consolidate_packages" name="consolidate_packages" class="h-5 w-5 text-orange-600 rounded" checked>
+                                    <label for="consolidate_packages" class="ml-2 block text-gray-700">Consolidar paquetes automáticamente</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="inspect_packages" name="inspect_packages" class="h-5 w-5 text-orange-600 rounded" checked>
+                                    <label for="inspect_packages" class="ml-2 block text-gray-700">Inspeccionar paquetes al llegar a las instalaciones</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="insurance" name="insurance" class="h-5 w-5 text-orange-600 rounded">
+                                    <label for="insurance" class="ml-2 block text-gray-700">Aplicar seguro adicional a mis envíos (costo adicional)</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Address Info Tab (Hidden by default) -->
+                <div class="p-6 account-tab hidden" id="address-info-tab">
+                    <div class="mb-6 border-b border-gray-100 pb-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Mi Dirección en Miami</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="space-y-3">
+                                <p><span class="font-medium">Nombre:</span> Mathias Meneses</p>
+                                <p><span class="font-medium">Dirección:</span> 8155 NW 68TH ST</p>
+                                <p><span class="font-medium">Ciudad:</span> Miami</p>
+                                <p><span class="font-medium">Estado:</span> Florida</p>
+                                <p><span class="font-medium">Código Postal:</span> 33166</p>
+                                <p><span class="font-medium">País:</span> Estados Unidos</p>
+                                <p><span class="font-medium">Teléfono:</span> 305 882 1718</p>
+                                <p><span class="font-medium">Número de Casillero:</span> 50628595</p>
+                            </div>
+                            <button class="mt-4 text-blue-500 hover:text-blue-700 font-medium flex items-center" id="copy-address-btn">
+                                <i class="fas fa-copy mr-2"></i>
+                                Copiar dirección
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold text-gray-800">Direcciones en Costa Rica</h3>
+                            <button class="text-orange-600 hover:text-orange-700 font-medium flex items-center" id="add-address-btn">
+                                <i class="fas fa-plus mr-2"></i>
+                                Agregar Dirección
+                            </button>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">Casa</h4>
+                                    <span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">Principal</span>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="text-gray-500 hover:text-gray-700">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                    <button class="text-gray-500 hover:text-gray-700">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-1 text-gray-600">
+                                <p>Sabana Norte, San José, Costa Rica</p>
+                                <p>25 metros norte del Edificio Principal</p>
+                                <p>Teléfono: +506 8123-4567</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">Oficina</h4>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="text-gray-500 hover:text-gray-700">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                    <button class="text-gray-500 hover:text-gray-700">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-1 text-gray-600">
+                                <p>Escazú, San José, Costa Rica</p>
+                                <p>Plaza Comercial Escazú, Local #5</p>
+                                <p>Teléfono: +506 2210-9876</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Tab (Hidden by default) -->
+                <div class="p-6 account-tab hidden" id="security-tab">
+                    <div class="mb-6 border-b border-gray-100 pb-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Cambiar Contraseña</h3>
+                        <form>
+                            <div class="space-y-4">
+                                <div class="form-group">
+                                    <label for="current_password" class="form-label">Contraseña Actual</label>
+                                    <div class="relative">
+                                        <input type="password" id="current_password" name="current_password" class="form-control pr-10">
+                                        <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 toggle-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new_password" class="form-label">Nueva Contraseña</label>
+                                    <div class="relative">
+                                        <input type="password" id="new_password" name="new_password" class="form-control pr-10">
+                                        <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 toggle-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirm_password" class="form-label">Confirmar Nueva Contraseña</label>
+                                    <div class="relative">
+                                        <input type="password" id="confirm_password" name="confirm_password" class="form-control pr-10">
+                                        <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 toggle-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button type="button" class="action-btn-primary">
+                                        Actualizar Contraseña
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Seguridad de la Cuenta</h3>
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Autenticación de dos factores</h4>
+                                    <p class="text-gray-600 text-sm">Añade una capa extra de seguridad a tu cuenta</p>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 switch-container">
+                                    <input type="checkbox" id="toggle-2fa" class="absolute w-0 h-0 opacity-0">
+                                    <label for="toggle-2fa" class="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-200 ease-in-out hover:bg-gray-400">
+                                        <span class="block h-6 w-6 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium text-gray-800">Notificaciones de acceso</h4>
+                                    <p class="text-gray-600 text-sm">Recibe alertas cuando tu cuenta sea accedida desde un nuevo dispositivo</p>
+                                </div>
+                                <div class="relative inline-block w-12 h-6 switch-container">
+                                    <input type="checkbox" id="toggle-login-notifications" class="absolute w-0 h-0 opacity-0" checked>
+                                    <label for="toggle-login-notifications" class="block overflow-hidden h-6 rounded-full bg-orange-500 cursor-pointer transition-colors duration-200 ease-in-out">
+                                        <span class="block h-6 w-6 rounded-full bg-white shadow transform translate-x-6 transition-transform duration-200 ease-in-out"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notifications Tab (Hidden by default) -->
+                <div class="p-6 account-tab hidden" id="notifications-tab">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Preferencias de Notificación</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-medium text-gray-800">Notificaciones por correo electrónico</h4>
+                                <p class="text-gray-600 text-sm">Recibe actualizaciones importantes por correo electrónico</p>
+                            </div>
+                            <div class="relative inline-block w-12 h-6 switch-container">
+                                <input type="checkbox" id="toggle-email" class="absolute w-0 h-0 opacity-0" checked>
+                                <label for="toggle-email" class="block overflow-hidden h-6 rounded-full bg-orange-500 cursor-pointer transition-colors duration-200 ease-in-out">
+                                    <span class="block h-6 w-6 rounded-full bg-white shadow transform translate-x-6 transition-transform duration-200 ease-in-out"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-medium text-gray-800">Notificaciones por SMS</h4>
+                                <p class="text-gray-600 text-sm">Recibe alertas por mensaje de texto</p>
+                            </div>
+                            <div class="relative inline-block w-12 h-6 switch-container">
+                                <input type="checkbox" id="toggle-sms" class="absolute w-0 h-0 opacity-0">
+                                <label for="toggle-sms" class="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-200 ease-in-out hover:bg-gray-400">
+                                    <span class="block h-6 w-6 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-medium text-gray-800">Notificaciones push</h4>
+                                <p class="text-gray-600 text-sm">Recibe notificaciones en tu dispositivo móvil</p>
+                            </div>
+                            <div class="relative inline-block w-12 h-6 switch-container">
+                                <input type="checkbox" id="toggle-push" class="absolute w-0 h-0 opacity-0" checked>
+                                <label for="toggle-push" class="block overflow-hidden h-6 rounded-full bg-orange-500 cursor-pointer transition-colors duration-200 ease-in-out">
+                                    <span class="block h-6 w-6 rounded-full bg-white shadow transform translate-x-6 transition-transform duration-200 ease-in-out"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-100 pt-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Tipo de Notificaciones</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="notify_arrival" name="notify_arrival" class="h-5 w-5 text-orange-600 rounded" checked>
+                                    <label for="notify_arrival" class="ml-2 block text-gray-700">Llegada de paquetes a Miami</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="notify_transit" name="notify_transit" class="h-5 w-5 text-orange-600 rounded" checked>
+                                    <label for="notify_transit" class="ml-2 block text-gray-700">Paquetes en tránsito</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="notify_delivery" name="notify_delivery" class="h-5 w-5 text-orange-600 rounded" checked>
+                                    <label for="notify_delivery" class="ml-2 block text-gray-700">Entrega de paquetes</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="notify_invoice" name="notify_invoice" class="h-5 w-5 text-orange-600 rounded" checked>
+                                    <label for="notify_invoice" class="ml-2 block text-gray-700">Nuevas facturas</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="notify_promotions" name="notify_promotions" class="h-5 w-5 text-orange-600 rounded">
+                                    <label for="notify_promotions" class="ml-2 block text-gray-700">Promociones y ofertas especiales</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Delete Account Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-xl font-bold text-gray-800">Eliminar Cuenta</h2>
+                </div>
+                <div class="p-6">
+                    <div class="bg-red-50 rounded-lg p-4 border border-red-100">
+                        <div class="flex items-start">
+                            <div class="text-red-500 mt-1 mr-3">
+                                <i class="fas fa-exclamation-triangle text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-red-800 mb-1">¿Seguro que deseas eliminar tu cuenta?</h3>
+                                <p class="text-red-600 mb-2">
+                                    Esta acción es permanente y no se puede deshacer. Toda tu información personal, historial de envíos y facturas serán eliminados.
+                                </p>
+                                <div class="mt-4">
+                                    <button class="bg-white border border-red-500 text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg font-medium transition-colors">
+                                        Solicitar Eliminación de Cuenta
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">CRBOX</h3>
+                    <p class="text-gray-400 mb-4">Tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
+                    <ul class="space-y-2">
+                        <li><a href="servicios.html" class="text-gray-400 hover:text-white transition-colors">Servicios</a></li>
+                        <li><a href="como-funciona.html" class="text-gray-400 hover:text-white transition-colors">Cómo Funciona</a></li>
+                        <li><a href="tarifas.html" class="text-gray-400 hover:text-white transition-colors">Tarifas</a></li>
+                        <li><a href="calculadora.html" class="text-gray-400 hover:text-white transition-colors">Calculadora</a></li>
+                        <li><a href="afiliate.html" class="text-gray-400 hover:text-white transition-colors">Afíliate</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contacto</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">Sabana Norte, San José, Costa Rica</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-phone mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">+506-4000-1114</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">ventas@crbox.cr</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Horario de Atención</h3>
+                    <ul class="space-y-2">
+                        <li class="text-gray-400">Lunes a Viernes: 8:00 AM - 5:00 PM</li>
+                        <li class="text-gray-400">Sábados: 9:00 AM - 1:00 PM</li>
+                        <li class="text-gray-400">Domingos: Cerrado</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 CRBOX. Todos los derechos reservados.</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Términos y Condiciones</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/50640001114" class="fixed bottom-6 right-6 whatsapp-btn w-14 h-14 flex items-center justify-center text-white text-2xl z-50">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+    
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        // Account specific scripts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab navigation
+            const tabButtons = document.querySelectorAll('.account-tab-btn');
+            const tabContents = document.querySelectorAll('.account-tab');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Hide all tabs
+                    tabContents.forEach(tab => {
+                        tab.classList.add('hidden');
+                    });
+                    
+                    // Remove active class from all buttons
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('text-orange-600', 'border-orange-600');
+                        btn.classList.add('text-gray-600', 'border-transparent');
+                    });
+                    
+                    // Show selected tab
+                    document.getElementById(tabName + '-tab').classList.remove('hidden');
+                    
+                    // Add active class to clicked button
+                    this.classList.add('text-orange-600', 'border-orange-600');
+                    this.classList.remove('text-gray-600', 'border-transparent');
+                });
+            });
+            
+            // Toggle password visibility
+            const togglePasswordButtons = document.querySelectorAll('.toggle-password');
+            
+            togglePasswordButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const passwordInput = this.parentNode.querySelector('input');
+                    const icon = this.querySelector('i');
+                    
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+            
+            // Handle toggle switches
+            const toggleSwitches = document.querySelectorAll('.switch-container input[type="checkbox"]');
+            
+            toggleSwitches.forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const switchLabel = this.nextElementSibling;
+                    const switchIndicator = switchLabel.querySelector('span');
+                    
+                    if (this.checked) {
+                        switchLabel.classList.remove('bg-gray-300');
+                        switchLabel.classList.add('bg-orange-500');
+                        switchIndicator.classList.add('translate-x-6');
+                    } else {
+                        switchLabel.classList.remove('bg-orange-500');
+                        switchLabel.classList.add('bg-gray-300');
+                        switchIndicator.classList.remove('translate-x-6');
+                    }
+                });
+            });
+            
+            // Copy address to clipboard
+            const copyAddressBtn = document.getElementById('copy-address-btn');
+            
+            if (copyAddressBtn) {
+                copyAddressBtn.addEventListener('click', function() {
+                    const addressElements = document.querySelectorAll('#address-info-tab .bg-gray-50 p');
+                    let addressText = '';
+                    
+                    addressElements.forEach(element => {
+                        addressText += element.textContent + '\n';
+                    });
+                    
+                    // Copy to clipboard
+                    navigator.clipboard.writeText(addressText).then(() => {
+                        // Provide feedback
+                        const originalHTML = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-check mr-2 text-green-500"></i> ¡Dirección copiada!';
+                        
+                        setTimeout(() => {
+                            this.innerHTML = originalHTML;
+                        }, 2000);
+                    });
+                });
+            }
+            
+            // Add address functionality
+            const addAddressBtn = document.getElementById('add-address-btn');
+            
+            if (addAddressBtn) {
+                addAddressBtn.addEventListener('click', function() {
+                    // In a real implementation, this would open a modal or form
+                    alert('Esta funcionalidad estará disponible próximamente.');
+                });
+            }
+            
+            // Save changes button
+            const saveChangesBtn = document.querySelector('.action-btn-primary i.fa-save').parentElement;
+            
+            if (saveChangesBtn) {
+                saveChangesBtn.addEventListener('click', function() {
+                    // Show loading state
+                    const originalHTML = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
+                    this.disabled = true;
+                    
+                    // Simulate saving (would be an actual API call in production)
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
+                        
+                        setTimeout(() => {
+                            this.innerHTML = originalHTML;
+                            this.disabled = false;
+                        }, 1500);
+                    }, 1000);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

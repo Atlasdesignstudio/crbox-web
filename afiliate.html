@@ -415,12 +415,12 @@
 
                                             <!-- Código postal -->
                                             <div class="form-group">
-                                                <label class="block text-gray-700 font-medium mb-2">Código postal *</label>
+                                                <label class="block text-gray-700 font-medium mb-2">Código postal</label>
                                                 <div class="relative">
                                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                         <i class="fas fa-mailbox"></i>
                                                     </div>
-                                                    <input type="text" name="postal_code[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Código postal">
+                                                    <input type="text" name="postal_code[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Código postal">
                                                 </div>
                                             </div>
 
@@ -463,26 +463,32 @@
                                             </div>
 
                                             <!-- Distrito -->
-                                            <div class="form-group">
-                                                <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                                        <i class="fas fa-map-signs"></i>
-                                                    </div>
-                                                    <input type="text" name="district[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Distrito">
-                                                </div>
-                                            </div>
+<div class="form-group">
+    <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-map-signs"></i>
+        </div>
+        <select name="district[]" required class="district-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
+            <option value="" disabled selected>Seleccione distrito</option>
+            <!-- Los distritos se cargarán dinámicamente según el cantón -->
+        </select>
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </div>
+</div>
 
-                                            <!-- Barrio -->
-                                            <div class="form-group">
-                                                <label class="block text-gray-700 font-medium mb-2">Barrio</label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                                        <i class="fas fa-map-pin"></i>
-                                                    </div>
-                                                    <input type="text" name="neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Barrio">
-                                                </div>
-                                            </div>
+<!-- Barrio -->
+<div class="form-group">
+    <label class="block text-gray-700 font-medium mb-2">Barrio</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-map-pin"></i>
+        </div>
+        <input type="text" name="neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ingrese el barrio">
+    </div>
+</div>
                                             
                                             <div class="col-span-2">
                                                 <label class="block text-gray-700 font-medium mb-2">Dirección detallada *</label>
@@ -823,12 +829,12 @@
 
                                             <!-- Código postal -->
                                             <div class="form-group">
-                                                <label class="block text-gray-700 font-medium mb-2">Código postal *</label>
+                                                <label class="block text-gray-700 font-medium mb-2">Código postal</label>
                                                 <div class="relative">
                                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                         <i class="fas fa-mailbox"></i>
                                                     </div>
-                                                    <input type="text" name="company_postal_code[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Código postal">
+                                                    <input type="text" name="company_postal_code[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Código postal">
                                                 </div>
                                             </div>
 
@@ -871,26 +877,32 @@
                                             </div>
 
                                             <!-- Distrito -->
-                                            <div class="form-group">
-                                                <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                                        <i class="fas fa-map-signs"></i>
-                                                    </div>
-                                                    <input type="text" name="company_district[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Distrito">
-                                                </div>
-                                            </div>
+<div class="form-group">
+    <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-map-signs"></i>
+        </div>
+        <select name="company_district[]" required class="company-district-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
+            <option value="" disabled selected>Seleccione distrito</option>
+            <!-- Los distritos se cargarán dinámicamente según el cantón -->
+        </select>
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </div>
+</div>
 
-                                            <!-- Barrio -->
-                                            <div class="form-group">
-                                                <label class="block text-gray-700 font-medium mb-2">Barrio</label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                                        <i class="fas fa-map-pin"></i>
-                                                    </div>
-                                                    <input type="text" name="company_neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Barrio">
-                                                </div>
-                                            </div>
+<!-- Barrio -->
+<div class="form-group">
+    <label class="block text-gray-700 font-medium mb-2">Barrio</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-map-pin"></i>
+        </div>
+        <input type="text" name="company_neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ingrese el barrio">
+    </div>
+</div>
                                             
                                             <div class="col-span-2">
                                                 <label class="block text-gray-700 font-medium mb-2">Dirección detallada *</label>
@@ -1258,6 +1270,839 @@
 
     <script src="js/main.js"></script>
     <script>
+        // Base de datos completa de ubicaciones en Costa Rica
+const locationDatabase = {
+    san_jose: {
+        central: {
+            districts: [
+                {value: 'carmen', label: 'Carmen'},
+                {value: 'merced', label: 'Merced'},
+                {value: 'hospital', label: 'Hospital'},
+                {value: 'catedral', label: 'Catedral'},
+                {value: 'zapote', label: 'Zapote'},
+                {value: 'san_francisco', label: 'San Francisco de Dos Ríos'},
+                {value: 'uruca', label: 'Uruca'},
+                {value: 'mata_redonda', label: 'Mata Redonda'},
+                {value: 'pavas', label: 'Pavas'},
+                {value: 'hatillo', label: 'Hatillo'},
+                {value: 'san_sebastian', label: 'San Sebastián'}
+            ]
+        },
+        escazu: {
+            districts: [
+                {value: 'escazu', label: 'Escazú'},
+                {value: 'san_antonio', label: 'San Antonio'},
+                {value: 'san_rafael', label: 'San Rafael'}
+            ]
+        },
+        desamparados: {
+            districts: [
+                {value: 'desamparados', label: 'Desamparados'},
+                {value: 'san_miguel', label: 'San Miguel'},
+                {value: 'san_juan_de_dios', label: 'San Juan de Dios'},
+                {value: 'san_rafael_arriba', label: 'San Rafael Arriba'},
+                {value: 'san_antonio', label: 'San Antonio'},
+                {value: 'frailes', label: 'Frailes'},
+                {value: 'patarra', label: 'Patarrá'},
+                {value: 'san_cristobal', label: 'San Cristóbal'},
+                {value: 'rosario', label: 'Rosario'},
+                {value: 'damas', label: 'Damas'},
+                {value: 'san_rafael_abajo', label: 'San Rafael Abajo'},
+                {value: 'gravilias', label: 'Gravilias'},
+                {value: 'los_guido', label: 'Los Guido'}
+            ]
+        },
+        puriscal: {
+            districts: [
+                {value: 'santiago', label: 'Santiago'},
+                {value: 'mercedes_sur', label: 'Mercedes Sur'},
+                {value: 'barbacoas', label: 'Barbacoas'},
+                {value: 'grifo_alto', label: 'Grifo Alto'},
+                {value: 'san_rafael', label: 'San Rafael'},
+                {value: 'candelarita', label: 'Candelarita'},
+                {value: 'desamparaditos', label: 'Desamparaditos'},
+                {value: 'san_antonio', label: 'San Antonio'},
+                {value: 'chires', label: 'Chires'}
+            ]
+        },
+        tarrazu: {
+            districts: [
+                {value: 'san_marcos', label: 'San Marcos'},
+                {value: 'san_lorenzo', label: 'San Lorenzo'},
+                {value: 'san_carlos', label: 'San Carlos'}
+            ]
+        },
+        aserri: {
+            districts: [
+                {value: 'aserri', label: 'Aserrí'},
+                {value: 'tarbaca', label: 'Tarbaca'},
+                {value: 'vuelta_de_jorco', label: 'Vuelta de Jorco'},
+                {value: 'san_gabriel', label: 'San Gabriel'},
+                {value: 'legua', label: 'Legua'},
+                {value: 'monterrey', label: 'Monterrey'},
+                {value: 'salitrillos', label: 'Salitrillos'}
+            ]
+        },
+        mora: {
+            districts: [
+                {value: 'colon', label: 'Colón'},
+                {value: 'guayabo', label: 'Guayabo'},
+                {value: 'tabarcia', label: 'Tabarcia'},
+                {value: 'piedras_negras', label: 'Piedras Negras'},
+                {value: 'picagres', label: 'Picagres'},
+                {value: 'jaris', label: 'Jaris'},
+                {value: 'quitirrisi', label: 'Quitirrisí'}
+            ]
+        },
+        goicoechea: {
+            districts: [
+                {value: 'guadalupe', label: 'Guadalupe'},
+                {value: 'san_francisco', label: 'San Francisco'},
+                {value: 'calle_blancos', label: 'Calle Blancos'},
+                {value: 'mata_de_platano', label: 'Mata de Plátano'},
+                {value: 'ipis', label: 'Ipís'},
+                {value: 'rancho_redondo', label: 'Rancho Redondo'},
+                {value: 'purral', label: 'Purral'}
+            ]
+        },
+        santa_ana: {
+            districts: [
+                {value: 'santa_ana', label: 'Santa Ana'},
+                {value: 'salitral', label: 'Salitral'},
+                {value: 'pozos', label: 'Pozos'},
+                {value: 'uruca', label: 'Uruca'},
+                {value: 'piedades', label: 'Piedades'},
+                {value: 'brasil', label: 'Brasil'}
+            ]
+        },
+        alajuelita: {
+            districts: [
+                {value: 'alajuelita', label: 'Alajuelita'},
+                {value: 'san_josecito', label: 'San Josecito'},
+                {value: 'san_antonio', label: 'San Antonio'},
+                {value: 'concepcion', label: 'Concepción'},
+                {value: 'san_felipe', label: 'San Felipe'}
+            ]
+        },
+        vazquez_de_coronado: {
+            districts: [
+                {value: 'san_isidro', label: 'San Isidro'},
+                {value: 'san_rafael', label: 'San Rafael'},
+                {value: 'dulce_nombre_de_jesus', label: 'Dulce Nombre de Jesús'},
+                {value: 'patalillo', label: 'Patalillo'},
+                {value: 'cascajal', label: 'Cascajal'}
+            ]
+        },
+        tibas: {
+            districts: [
+                {value: 'san_juan', label: 'San Juan'},
+                {value: 'cinco_esquinas', label: 'Cinco Esquinas'},
+                {value: 'anselmo_llorente', label: 'Anselmo Llorente'},
+                {value: 'leon_xiii', label: 'León XIII'},
+                {value: 'colima', label: 'Colima'}
+            ]
+        },
+        moravia: {
+            districts: [
+                {value: 'san_vicente', label: 'San Vicente'},
+                {value: 'san_jeronimo', label: 'San Jerónimo'},
+                {value: 'trinidad', label: 'Trinidad'}
+            ]
+        },
+        montes_de_oca: {
+            districts: [
+                {value: 'san_pedro', label: 'San Pedro'},
+                {value: 'sabanilla', label: 'Sabanilla'},
+                {value: 'mercedes', label: 'Mercedes'},
+                {value: 'san_rafael', label: 'San Rafael'}
+            ]
+        },
+        turrubares: {
+            districts: [
+                {value: 'san_pablo', label: 'San Pablo'},
+                {value: 'san_pedro', label: 'San Pedro'},
+                {value: 'san_juan_de_mata', label: 'San Juan de Mata'},
+                {value: 'san_luis', label: 'San Luis'},
+                {value: 'carara', label: 'Carara'}
+            ]
+        },
+        dota: {
+            districts: [
+                {value: 'santa_maria', label: 'Santa María'},
+                {value: 'jardin', label: 'Jardín'},
+                {value: 'copey', label: 'Copey'}
+            ]
+        },
+        curridabat: {
+            districts: [
+                {value: 'curridabat', label: 'Curridabat'},
+                {value: 'granadilla', label: 'Granadilla'},
+                {value: 'sanchez', label: 'Sánchez'},
+                {value: 'tirrases', label: 'Tirrases'}
+            ]
+        },
+        perez_zeledon: {
+            districts: [
+                {value: 'san_isidro_del_general', label: 'San Isidro de El General'},
+                {value: 'general', label: 'El General'},
+                {value: 'daniel_flores', label: 'Daniel Flores'},
+                {value: 'rivas', label: 'Rivas'},
+                {value: 'san_pedro', label: 'San Pedro'},
+                {value: 'platanares', label: 'Platanares'},
+                {value: 'pejibaye', label: 'Pejibaye'},
+                {value: 'cajon', label: 'Cajón'},
+                {value: 'baru', label: 'Barú'},
+                {value: 'rio_nuevo', label: 'Río Nuevo'},
+                {value: 'paramo', label: 'Páramo'},
+                {value: 'la_amistad', label: 'La Amistad'}
+            ]
+        },
+        leon_cortes: {
+            districts: [
+                {value: 'san_pablo', label: 'San Pablo'},
+                {value: 'san_andres', label: 'San Andrés'},
+                {value: 'llano_bonito', label: 'Llano Bonito'},
+                {value: 'san_isidro', label: 'San Isidro'},
+                {value: 'santa_cruz', label: 'Santa Cruz'},
+                {value: 'san_antonio', label: 'San Antonio'}
+            ]
+        },
+        acosta: {
+            districts: [
+                {value: 'san_ignacio', label: 'San Ignacio'},
+                {value: 'guaitil', label: 'Guaitil'},
+                {value: 'palmichal', label: 'Palmichal'},
+                {value: 'cangrejal', label: 'Cangrejal'},
+                {value: 'sabanillas', label: 'Sabanillas'}
+            ]
+        }
+    },
+    alajuela: {
+        central: {
+            districts: [
+                {value: 'alajuela', label: 'Alajuela'},
+                {value: 'san_jose', label: 'San José'},
+                {value: 'carrizal', label: 'Carrizal'},
+                {value: 'san_antonio', label: 'San Antonio'},
+                {value: 'guacima', label: 'Guácima'},
+                {value: 'san_isidro', label: 'San Isidro'},
+                {value: 'sabanilla', label: 'Sabanilla'},
+                {value: 'san_rafael', label: 'San Rafael'},
+                {value: 'rio_segundo', label: 'Río Segundo'},
+                {value: 'desamparados', label: 'Desamparados'},
+                {value: 'turrucares', label: 'Turrúcares'},
+                {value: 'tambor', label: 'Tambor'},
+                {value: 'garita', label: 'Garita'},
+                {value: 'sarapiqui', label: 'Sarapiquí'}
+            ]
+        },
+        san_ramon: {
+            districts: [
+                {value: 'san_ramon', label: 'San Ramón'},
+                {value: 'santiago', label: 'Santiago'},
+                {value: 'san_juan', label: 'San Juan'},
+                {value: 'piedades_norte', label: 'Piedades Norte'},
+                {value: 'piedades_sur', label: 'Piedades Sur'},
+                {value: 'san_rafael', label: 'San Rafael'},
+                {value: 'san_isidro', label: 'San Isidro'},
+                {value: 'angeles', label: 'Ángeles'},
+                {value: 'alfaro', label: 'Alfaro'},
+                {value: 'volio', label: 'Volio'},
+                {value: 'concepcion', label: 'Concepción'},
+                {value: 'zapotal', label: 'Zapotal'},
+                {value: 'peñas_blancas', label: 'Peñas Blancas'}
+            ]
+        },
+        grecia: {
+            districts: [
+                {value: 'grecia', label: 'Grecia'},
+                {value: 'san_isidro', label: 'San Isidro'},
+                {value: 'san_jose', label: 'San José'},
+                {value: 'san_roque', label: 'San Roque'},
+                {value: 'tacares', label: 'Tacares'},
+                {value: 'rio_cuarto', label: 'Río Cuarto'},
+                {value: 'puente_de_piedra', label: 'Puente de Piedra'},
+                {value: 'bolivar', label: 'Bolívar'}
+            ]
+        },
+        san_mateo: {
+            districts: [
+                {value: 'san_mateo', label: 'San Mateo'},
+                {value: 'desmonte', label: 'Desmonte'},
+                {value: 'jesus_maria', label: 'Jesús María'},
+                {value: 'labrador', label: 'Labrador'}
+            ]
+        },
+        atenas: {
+            districts: [
+                {value: 'atenas', label: 'Atenas'},
+                {value: 'jesus', label: 'Jesús'},
+                {value: 'mercedes', label: 'Mercedes'},
+                {value: 'san_isidro', label: 'San Isidro'},
+                {value: 'concepcion', label: 'Concepción'},
+                {value: 'san_jose', label: 'San José'},
+                {value: 'santa_eulalia', label: 'Santa Eulalia'},
+                {value: 'escobal', label: 'Escobal'}
+            ]
+        },
+        naranjo: {
+            districts: [
+                {value: 'naranjo', label: 'Naranjo'},
+                {value: 'san_miguel', label: 'San Miguel'},
+                {value: 'san_jose', label: 'San José'},
+                {value: 'cirri_sur', label: 'Cirrí Sur'},
+                {value: 'san_jeronimo', label: 'San Jerónimo'},
+                {value: 'san_juan', label: 'San Juan'},
+                {value: 'rosario', label: 'El Rosario'},
+                {value: 'palmitos', label: 'Palmitos'}
+            ]
+        },
+        palmares: {
+            districts: [
+                {value: 'palmares', label: 'Palmares'},
+                {value: 'zaragoza', label: 'Zaragoza'},
+                {value: 'buenos_aires', label: 'Buenos Aires'},
+                {value: 'santiago', label: 'Santiago'},
+                {value: 'candelaria', label: 'Candelaria'},
+                {value: 'esquipulas', label: 'Esquipulas'},
+                {value: 'granja', label: 'La Granja'}
+            ]
+        },
+        poas: {
+            districts: [
+                {value: 'san_pedro', label: 'San Pedro'},
+                {value: 'san_juan', label: 'San Juan'},
+                {value: 'san_rafael', label: 'San Rafael'},
+                {value: 'carrillos', label: 'Carrillos'},
+                {value: 'sabana_redonda', label: 'Sabana Redonda'}
+            ]
+        },
+        orotina: {
+            districts: [
+                {value: 'orotina', label: 'Orotina'},
+                {value: 'mastate', label: 'El Mastate'},
+                {value: 'hacienda_vieja', label: 'Hacienda Vieja'},
+                {value: 'coyolar', label: 'Coyolar'},
+                {value: 'ceiba', label: 'La Ceiba'}
+            ]
+        },
+        san_carlos: {
+            districts: [
+                {value: 'quesada', label: 'Quesada'},
+                {value: 'florencia', label: 'Florencia'},
+                {value: 'buenavista', label: 'Buenavista'},
+                {value: 'aguas_zarcas', label: 'Aguas Zarcas'},
+                {value: 'venecia', label: 'Venecia'},
+                {value: 'pital', label: 'Pital'},
+                {value: 'fortuna', label: 'La Fortuna'},
+                {value: 'tigra', label: 'La Tigra'},
+                {value: 'palmera', label: 'La Palmera'},
+                {value: 'venado', label: 'Venado'},
+                {value: 'cutris', label: 'Cutris'},
+                {value: 'monterrey', label: 'Monterrey'},
+                {value: 'pocosol', label: 'Pocosol'}
+            ]
+        },
+        zarcero: {
+            districts: [
+                {value: 'zarcero', label: 'Zarcero'},
+                {value: 'laguna', label: 'Laguna'},
+                {value: 'tapesco', label: 'Tapesco'},
+                {value: 'guadalupe', label: 'Guadalupe'},
+                {value: 'palmira', label: 'Palmira'},
+                {value: 'zapote', label: 'Zapote'},
+                {value: 'brisas', label: 'Brisas'}
+            ]
+        },
+        sarchi: {
+            districts: [
+                {value: 'sarchi_norte', label: 'Sarchí Norte'},
+                {value: 'sarchi_sur', label: 'Sarchí Sur'},
+                {value: 'toro_amarillo', label: 'Toro Amarillo'},
+                {value: 'san_pedro', label: 'San Pedro'},
+                {value: 'rodriguez', label: 'Rodríguez'}
+            ]
+        },
+        upala: {
+            districts: [
+                {value: 'upala', label: 'Upala'},
+                {value: 'aguas_claras', label: 'Aguas Claras'},
+                {value: 'san_jose', label: 'San José (Pizote)'},
+                {value: 'bijagua', label: 'Bijagua'},
+                {value: 'delicias', label: 'Delicias'},
+                {value: 'dos_rios', label: 'Dos Ríos'},
+                {value: 'yolillal', label: 'Yolillal'},
+                {value: 'canalete', label: 'Canalete'}
+            ]
+        },
+        los_chiles: {
+            districts: [
+                {value: 'los_chiles', label: 'Los Chiles'},
+                {value: 'caño_negro', label: 'Caño Negro'},
+                {value: 'amparo', label: 'El Amparo'},
+                {value: 'san_jorge', label: 'San Jorge'}
+            ]
+        },
+        guatuso: {
+            districts: [
+                {value: 'san_rafael', label: 'San Rafael'},
+                {value: 'buenavista', label: 'Buenavista'},
+                {value: 'cote', label: 'Cote'},
+                {value: 'katira', label: 'Katira'}
+            ]
+        },
+        rio_cuarto: {
+            districts: [
+                {value: 'rio_cuarto', label: 'Río Cuarto'},
+                {value: 'santa_isabel', label: 'Santa Isabel'},
+                {value: 'santa_rita', label: 'Santa Rita'}
+            ]
+        }
+    },
+    cartago: {
+        central: {
+            districts: [
+                {value: 'oriental', label: 'Oriental'},
+                {value: 'occidental', label: 'Occidental'},
+                {value: 'carmen', label: 'Carmen'},
+                {value: 'san_nicolas', label: 'San Nicolás'},
+                {value: 'aguacaliente', label: 'Aguacaliente'},
+                {value: 'guadalupe', label: 'Guadalupe'},
+                {value: 'corralillo', label: 'Corralillo'},
+                {value: 'tierra_blanca', label: 'Tierra Blanca'},
+                {value: 'dulce_nombre', label: 'Dulce Nombre'},
+                {value: 'llano_grande', label: 'Llano Grande'},
+                {value: 'quebradilla', label: 'Quebradilla'}
+            ]
+        },
+        paraiso: {
+            districts: [
+                {value: 'paraiso', label: 'Paraíso'},
+                {value: 'santiago', label: 'Santiago'},
+                {value: 'orosi', label: 'Orosi'},
+                {value: 'cachi', label: 'Cachí'},
+                {value: 'llanos_de_santa_lucia', label: 'Llanos de Santa Lucía'}
+            ]
+        },
+        la_union: {
+            districts: [
+                {value: 'tres_rios', label: 'Tres Ríos'},
+                {value: 'san_diego', label: 'San Diego'},
+                {value: 'san_juan', label: 'San Juan'},
+                {value: 'san_rafael', label: 'San Rafael'},
+                {value: 'concepcion', label: 'Concepción'},
+                {value: 'dulce_nombre', label: 'Dulce Nombre'},
+                {value: 'san_ramon', label: 'San Ramón'},
+                {value: 'rio_azul', label: 'Río Azul'}
+            ]
+        },
+        jimenez: {
+            districts: [
+                {value: 'juan_viñas', label: 'Juan Viñas'},
+                {value: 'tucurrique', label: 'Tucurrique'},
+                {value: 'pejibaye', label: 'Pejibaye'}
+            ]
+        },
+        turrialba: {
+            districts: [
+                {value: 'turrialba', label: 'Turrialba'},
+                {value: 'la_suiza', label: 'La Suiza'},
+                {value: 'peralta', label: 'Peralta'},
+                {value: 'santa_cruz', label: 'Santa Cruz'},
+                {value: 'santa_teresita', label: 'Santa Teresita'},
+                {value: 'pavones', label: 'Pavones'},
+                {value: 'tuis', label: 'Tuis'},
+                {value: 'tayutic', label: 'Tayutic'},
+                {value: 'santa_rosa', label: 'Santa Rosa'},
+                {value: 'tres_equis', label: 'Tres Equis'},
+                {value: 'la_isabel', label: 'La Isabel'},
+                {value: 'chirripó', label: 'Chirripó'}
+            ]
+        },
+        alvarado: {
+            districts: [
+                {value: 'pacayas', label: 'Pacayas'},
+                {value: 'cervantes', label: 'Cervantes'},
+                {value: 'capellades', label: 'Capellades'}
+            ]
+        },
+        oreamuno: {
+            districts: [
+                {value: 'san_rafael', label: 'San Rafael'},
+                {value: 'cot', label: 'Cot'},
+                {value: 'potrero_cerrado', label: 'Potrero Cerrado'},
+                {value: 'cipreses', label: 'Cipreses'},
+                {value: 'santa_rosa', label: 'Santa Rosa'}
+            ]
+        },
+        el_guarco: {
+            districts: [
+                {value: 'tejar', label: 'El Tejar'},
+                {value: 'san_isidro', label: 'San Isidro'},
+                {value: 'tobosi', label: 'Tobosi'},
+                {value: 'patio_de_agua', label: 'Patio de Agua'}
+            ]
+        }
+    },
+    heredia: {
+        central: {
+            districts: [
+                {value: 'heredia', label: 'Heredia'},
+                {value: 'mercedes', label: 'Mercedes'},
+                {value: 'san_francisco', label: 'San Francisco'},
+                {value: 'ulloa', label: 'Ulloa'},
+                {value: 'varablanca', label: 'Varablanca'}
+            ]
+        },
+        barva: {
+            districts: [
+                {value: 'barva', label: 'Barva'},
+                {value: 'san_pedro', label: 'San Pedro'},
+                {value: 'san_pablo', label: 'San Pablo'},
+                {value: 'san_roque', label: 'San Roque'},
+                {value: 'santa_lucia', label: 'Santa Lucía'},
+                {value: 'san_jose_de_la_montaña', label: 'San José de la Montaña'}
+            ]
+        },
+        santo_domingo: {
+            districts: [
+                {value: 'santo_domingo', label: 'Santo Domingo'},
+                {value: 'san_vicente', label: 'San Vicente'},
+                {value: 'san_miguel', label: 'San Miguel'},
+                {value: 'paracito', label: 'Paracito'},
+                {value: 'santo_tomas', label: 'Santo Tomás'},
+                {value: 'santa_rosa', label: 'Santa Rosa'},
+                {value: 'tures', label: 'Tures'},
+                {value: 'para', label: 'Pará'}
+            ]
+        },
+        santa_barbara: {
+            districts: [
+                {value: 'santa_barbara', label: 'Santa Bárbara'},
+                {value: 'san_pedro', label: 'San Pedro'},
+                {value: 'san_juan', label: 'San Juan'},
+                {value: 'jesus', label: 'Jesús'},
+                {value: 'santo_domingo', label: 'Santo Domingo'},
+                {value: 'puraba', label: 'Purabá'}
+            ]
+        },
+        san_rafael: {
+            districts: [
+                {value: 'san_rafael', label: 'San Rafael'},
+                {value: 'san_josecito', label: 'San Josecito'},
+                {value: 'santiago', label: 'Santiago'},
+                {value: 'angeles', label: 'Ángeles'},
+                {value: 'concepcion', label: 'Concepción'}
+            ]
+        },
+        san_isidro: {
+            districts: [
+                {value: 'san_isidro', label: 'San Isidro'},
+                {value: 'san_jose', label: 'San José'},
+                {value: 'concepcion', label: 'Concepción'},
+                {value: 'san_francisco', label: 'San Francisco'}
+            ]
+        },
+        belen: {
+            districts: [
+                {value: 'san_antonio', label: 'San Antonio'},
+                {value: 'la_ribera', label: 'La Ribera'},
+                {value: 'la_asuncion', label: 'La Asunción'}
+            ]
+        },
+        flores: {
+            districts: [
+                {value: 'san_joaquin', label: 'San Joaquín'},
+                {value: 'barrantes', label: 'Barrantes'},
+                {value: 'llorente', label: 'Llorente'}
+            ]
+        },
+        san_pablo: {
+            districts: [
+                {value: 'san_pablo', label: 'San Pablo'},
+                {value: 'rincon_sabanilla', label: 'Rincón de Sabanilla'}
+            ]
+        },
+        sarapiqui: {
+            districts: [
+                {value: 'puerto_viejo', label: 'Puerto Viejo'},
+                {value: 'la_virgen', label: 'La Virgen'},
+                {value: 'horquetas', label: 'Horquetas'},
+                {value: 'llanuras_del_gaspar', label: 'Llanuras del Gaspar'},
+                {value: 'cureña', label: 'Cureña'}
+            ]
+        }
+    },
+    guanacaste: {
+        liberia: {
+            districts: [
+                {value: 'liberia', label: 'Liberia'},
+                {value: 'cañas_dulces', label: 'Cañas Dulces'},
+                {value: 'mayorga', label: 'Mayorga'},
+                {value: 'nacascolo', label: 'Nacascolo'},
+                {value: 'curubande', label: 'Curubandé'}
+            ]
+        },
+        nicoya: {
+            districts: [
+                {value: 'nicoya', label: 'Nicoya'},
+                {value: 'mansion', label: 'Mansión'},
+                {value: 'san_antonio', label: 'San Antonio'},
+                {value: 'quebrada_honda', label: 'Quebrada Honda'},
+                {value: 'samara', label: 'Sámara'},
+                {value: 'nosara', label: 'Nosara'},
+                {value: 'belen_de_nosarita', label: 'Belén de Nosarita'}
+            ]
+        },
+        santa_cruz: {
+            districts: [
+                {value: 'santa_cruz', label: 'Santa Cruz'},
+                {value: 'bolson', label: 'Bolsón'},
+                {value: 'veintisiete_de_abril', label: 'Veintisiete de Abril'},
+                {value: 'tempate', label: 'Tempate'},
+                {value: 'cartagena', label: 'Cartagena'},
+                {value: 'cuajiniquil', label: 'Cuajiniquil'},
+                {value: 'diria', label: 'Diriá'},
+                    {value: 'cabo_velas', label: 'Cabo Velas'}
+                    ]
+                },
+                bagaces: {
+            districts: [
+                {value: 'bagaces', label: 'Bagaces'},
+                {value: 'fortuna', label: 'La Fortuna'},
+                {value: 'mogote', label: 'Mogote'},
+                {value: 'rio_naranjo', label: 'Río Naranjo'}
+            ]
+        },
+        carrillo: {
+            districts: [
+                {value: 'filadelfia', label: 'Filadelfia'},
+                {value: 'palmira', label: 'Palmira'},
+                {value: 'sardinal', label: 'Sardinal'},
+                {value: 'belen', label: 'Belén'}
+            ]
+        },
+        cañas: {
+            districts: [
+                {value: 'cañas', label: 'Cañas'},
+                {value: 'palmira', label: 'Palmira'},
+                {value: 'san_miguel', label: 'San Miguel'},
+                {value: 'bebedero', label: 'Bebedero'},
+                {value: 'porozal', label: 'Porozal'}
+            ]
+        },
+        abangares: {
+            districts: [
+                {value: 'juntas', label: 'Las Juntas'},
+                {value: 'sierra', label: 'Sierra'},
+                {value: 'san_juan', label: 'San Juan'},
+                {value: 'colorado', label: 'Colorado'}
+            ]
+        },
+        tilaran: {
+            districts: [
+                {value: 'tilaran', label: 'Tilarán'},
+                {value: 'quebrada_grande', label: 'Quebrada Grande'},
+                {value: 'tronadora', label: 'Tronadora'},
+                {value: 'santa_rosa', label: 'Santa Rosa'},
+                {value: 'libano', label: 'Líbano'},
+                {value: 'tierras_morenas', label: 'Tierras Morenas'},
+                {value: 'arenal', label: 'Arenal'}
+            ]
+        },
+        nandayure: {
+            districts: [
+                {value: 'carmona', label: 'Carmona'},
+                {value: 'santa_rita', label: 'Santa Rita'},
+                {value: 'zapotal', label: 'Zapotal'},
+                {value: 'san_pablo', label: 'San Pablo'},
+                {value: 'porvenir', label: 'Porvenir'},
+                {value: 'bejuco', label: 'Bejuco'}
+            ]
+        },
+        la_cruz: {
+            districts: [
+                {value: 'la_cruz', label: 'La Cruz'},
+                {value: 'santa_cecilia', label: 'Santa Cecilia'},
+                {value: 'garita', label: 'La Garita'},
+                {value: 'santa_elena', label: 'Santa Elena'},
+                {value: 'santa_rosa', label: 'Santa Rosa (Provisional)'}
+            ]
+        },
+        hojancha: {
+            districts: [
+                {value: 'hojancha', label: 'Hojancha'},
+                {value: 'monte_romo', label: 'Monte Romo'},
+                {value: 'puerto_carrillo', label: 'Puerto Carrillo'},
+                {value: 'huacas', label: 'Huacas'},
+                {value: 'matambú', label: 'Matambú'}
+            ]
+        }
+    },
+    puntarenas: {
+        central: {
+            districts: [
+                {value: 'puntarenas', label: 'Puntarenas'},
+                {value: 'pitahaya', label: 'Pitahaya'},
+                {value: 'chomes', label: 'Chomes'},
+                {value: 'lepanto', label: 'Lepanto'},
+                {value: 'paquera', label: 'Paquera'},
+                {value: 'manzanillo', label: 'Manzanillo'},
+                {value: 'guacimal', label: 'Guacimal'},
+                {value: 'barranca', label: 'Barranca'},
+                {value: 'isla_del_coco', label: 'Isla del Coco'},
+                {value: 'cobano', label: 'Cóbano'},
+                {value: 'chacarita', label: 'Chacarita'},
+                {value: 'chira', label: 'Chira'},
+                {value: 'acapulco', label: 'Acapulco'},
+                {value: 'el_roble', label: 'El Roble'},
+                {value: 'arancibia', label: 'Arancibia'}
+            ]
+        },
+        esparza: {
+            districts: [
+                {value: 'espiritu_santo', label: 'Espíritu Santo'},
+                {value: 'san_juan_grande', label: 'San Juan Grande'},
+                {value: 'macacona', label: 'Macacona'},
+                {value: 'san_rafael', label: 'San Rafael'},
+                {value: 'san_jeronimo', label: 'San Jerónimo'},
+                {value: 'caldera', label: 'Caldera'}
+            ]
+        },
+        buenos_aires: {
+            districts: [
+                {value: 'buenos_aires', label: 'Buenos Aires'},
+                {value: 'volcan', label: 'Volcán'},
+                {value: 'potrero_grande', label: 'Potrero Grande'},
+                {value: 'boruca', label: 'Boruca'},
+                {value: 'pilas', label: 'Pilas'},
+                {value: 'colinas', label: 'Colinas'},
+                {value: 'changuena', label: 'Chánguena'},
+                {value: 'biolley', label: 'Biolley'},
+                {value: 'brunka', label: 'Brunka'}
+            ]
+        },
+        montes_de_oro: {
+            districts: [
+                {value: 'miramar', label: 'Miramar'},
+                {value: 'union', label: 'La Unión'},
+                {value: 'san_isidro', label: 'San Isidro'}
+            ]
+        },
+        osa: {
+            districts: [
+                {value: 'puerto_cortes', label: 'Puerto Cortés'},
+                {value: 'palmar', label: 'Palmar'},
+                {value: 'sierpe', label: 'Sierpe'},
+                {value: 'bahia_ballena', label: 'Bahía Ballena'},
+                {value: 'piedras_blancas', label: 'Piedras Blancas'},
+                {value: 'bahia_drake', label: 'Bahía Drake'}
+            ]
+        },
+        quepos: {
+            districts: [
+                {value: 'quepos', label: 'Quepos'},
+                {value: 'savegre', label: 'Savegre'},
+                {value: 'naranjito', label: 'Naranjito'}
+            ]
+        },
+        golfito: {
+            districts: [
+                {value: 'golfito', label: 'Golfito'},
+                {value: 'puerto_jimenez', label: 'Puerto Jiménez'},
+                {value: 'guaycara', label: 'Guaycara'},
+                {value: 'pavon', label: 'Pavón'}
+            ]
+        },
+        coto_brus: {
+            districts: [
+                {value: 'san_vito', label: 'San Vito'},
+                {value: 'sabalito', label: 'Sabalito'},
+                {value: 'aguabuena', label: 'Aguabuena'},
+                {value: 'limoncito', label: 'Limoncito'},
+                {value: 'pittier', label: 'Pittier'},
+                {value: 'gutierrez_brown', label: 'Gutiérrez Brown'}
+            ]
+        },
+        parrita: {
+            districts: [
+                {value: 'parrita', label: 'Parrita'}
+            ]
+        },
+        corredores: {
+            districts: [
+                {value: 'corredor', label: 'Corredor'},
+                {value: 'la_cuesta', label: 'La Cuesta'},
+                {value: 'canoas', label: 'Canoas'},
+                {value: 'laurel', label: 'Laurel'}
+            ]
+        },
+        garabito: {
+            districts: [
+                {value: 'jaco', label: 'Jacó'},
+                {value: 'tarcoles', label: 'Tárcoles'}
+            ]
+        }
+    },
+    limon: {
+        central: {
+            districts: [
+                {value: 'limon', label: 'Limón'},
+                {value: 'valle_la_estrella', label: 'Valle La Estrella'},
+                {value: 'rio_blanco', label: 'Río Blanco'},
+                {value: 'matama', label: 'Matama'}
+            ]
+        },
+        pococi: {
+            districts: [
+                {value: 'guapiles', label: 'Guápiles'},
+                {value: 'jimenez', label: 'Jiménez'},
+                {value: 'rita', label: 'Rita'},
+                {value: 'roxana', label: 'Roxana'},
+                {value: 'cariari', label: 'Cariari'},
+                {value: 'colorado', label: 'Colorado'},
+                {value: 'la_colonia', label: 'La Colonia'}
+            ]
+        },
+        siquirres: {
+            districts: [
+                {value: 'siquirres', label: 'Siquirres'},
+                {value: 'pacuarito', label: 'Pacuarito'},
+                {value: 'florida', label: 'Florida'},
+                {value: 'germania', label: 'Germania'},
+                {value: 'cairo', label: 'Cairo'},
+                {value: 'alegria', label: 'Alegría'},
+                {value: 'reventazon', label: 'Reventazón'}
+            ]
+        },
+        talamanca: {
+            districts: [
+                {value: 'bratsi', label: 'Bratsi'},
+                {value: 'sixaola', label: 'Sixaola'},
+                {value: 'cahuita', label: 'Cahuita'},
+                {value: 'telire', label: 'Telire'}
+            ]
+        },
+        matina: {
+            districts: [
+                {value: 'matina', label: 'Matina'},
+                {value: 'battan', label: 'Batán'},
+                {value: 'carrandi', label: 'Carrandi'}
+            ]
+        },
+        guacimo: {
+            districts: [
+                {value: 'guacimo', label: 'Guácimo'},
+                {value: 'mercedes', label: 'Mercedes'},
+                {value: 'pocora', label: 'Pocora'},
+                {value: 'rio_jimenez', label: 'Río Jiménez'},
+                {value: 'duacari', label: 'Duacarí'}
+                
+            ]
+        }
+    }
+};
+
         document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
     const mobileMenuButton = document.getElementById('mobile-menu-button');
@@ -1530,12 +2375,12 @@
 
                         <!-- Código postal -->
                         <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Código postal *</label>
+                            <label class="block text-gray-700 font-medium mb-2">Código postal</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                     <i class="fas fa-mailbox"></i>
                                 </div>
-                                <input type="text" name="postal_code[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Código postal">
+                                <input type="text" name="postal_code[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Código postal">
                             </div>
                         </div>
 
@@ -1577,26 +2422,32 @@
                         </div>
 
                         <!-- Distrito -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-map-signs"></i>
-                                </div>
-                                <input type="text" name="district[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Distrito">
-                            </div>
-                        </div>
+<div class="form-group">
+    <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-map-signs"></i>
+        </div>
+        <select name="district[]" required class="district-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
+            <option value="" disabled selected>Seleccione distrito</option>
+            <!-- Los distritos se cargarán dinámicamente según el cantón -->
+        </select>
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </div>
+</div>
 
-                        <!-- Barrio -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Barrio</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-map-pin"></i>
-                                </div>
-                                <input type="text" name="neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Barrio">
-                            </div>
-                        </div>
+<!-- Barrio -->
+<div class="form-group">
+    <label class="block text-gray-700 font-medium mb-2">Barrio</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-map-pin"></i>
+        </div>
+        <input type="text" name="neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ingrese el barrio">
+    </div>
+</div>
                         
                         <div class="col-span-2">
                             <label class="block text-gray-700 font-medium mb-2">Dirección detallada *</label>
@@ -1614,8 +2465,16 @@
             addressContainer.insertAdjacentHTML('beforeend', addressHtml);
             
             // Add event listener to province selectors in the new address
-            const newProvinceSelectors = document.querySelectorAll('.province-select');
-            setupProvinceSelectors(newProvinceSelectors);
+const newProvinceSelectors = document.querySelectorAll('.province-select');
+setupProvinceSelectors(newProvinceSelectors);
+
+// Add event listener to canton selectors in the new address
+const newCantonSelectors = document.querySelectorAll('.canton-select');
+setupCantonSelectors(newCantonSelectors);
+
+// Add event listener to district selectors in the new address
+const newDistrictSelectors = document.querySelectorAll('.district-select');
+setupDistrictSelectors(newDistrictSelectors);
             
             // Add event listener to remove button
             const removeButtons = document.querySelectorAll('.remove-address');
@@ -1686,12 +2545,12 @@
                         <!-- Resto de campos de dirección (idénticos a la versión personal pero con prefijos "company_") -->
                         <!-- Código postal -->
                         <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Código postal *</label>
+                            <label class="block text-gray-700 font-medium mb-2">Código postal</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                     <i class="fas fa-mailbox"></i>
                                 </div>
-                                <input type="text" name="company_postal_code[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Código postal">
+                                <input type="text" name="company_postal_code[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Código postal">
                             </div>
                         </div>
 
@@ -1732,26 +2591,33 @@
                             </div>
                         </div>
 
-                        <!-- Distrito y Barrio -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-map-signs"></i>
-                                </div>
-                                <input type="text" name="company_district[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Distrito">
-                            </div>
-                        </div>
+                        <!-- Distrito -->
+<div class="form-group">
+    <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-map-signs"></i>
+        </div>
+        <select name="company_district[]" required class="company-district-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
+            <option value="" disabled selected>Seleccione distrito</option>
+            <!-- Los distritos se cargarán dinámicamente según el cantón -->
+        </select>
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </div>
+</div>
 
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Barrio</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-map-pin"></i>
-                                </div>
-                                <input type="text" name="company_neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Barrio">
-                            </div>
-                        </div>
+<!-- Barrio -->
+<div class="form-group">
+    <label class="block text-gray-700 font-medium mb-2">Barrio</label>
+    <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <i class="fas fa-map-pin"></i>
+        </div>
+        <input type="text" name="company_neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ingrese el barrio">
+    </div>
+</div>
                         
                         <div class="col-span-2">
                             <label class="block text-gray-700 font-medium mb-2">Dirección detallada *</label>
@@ -1769,8 +2635,16 @@
             companyAddressContainer.insertAdjacentHTML('beforeend', addressHtml);
             
             // Add event listener to province selectors in the new address
-            const newProvinceSelectors = document.querySelectorAll('.company-province-select');
-            setupCompanyProvinceSelectors(newProvinceSelectors);
+const newProvinceSelectors = document.querySelectorAll('.company-province-select');
+setupCompanyProvinceSelectors(newProvinceSelectors);
+
+// Add event listener to canton selectors in the new address
+const newCompanyCantonSelectors = document.querySelectorAll('.company-canton-select');
+setupCompanyCantonSelectors(newCompanyCantonSelectors);
+
+// Add event listener to district selectors in the new address
+const newCompanyDistrictSelectors = document.querySelectorAll('.company-district-select');
+setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
             
             // Add event listener to remove button
             const removeButtons = document.querySelectorAll('.remove-company-address');
@@ -1991,16 +2865,27 @@
     }
 
     // Function to setup province and canton selectors for personal addresses
-    function setupProvinceSelectors(provinceSelectors) {
-        provinceSelectors.forEach(provinceSelector => {
-            provinceSelector.addEventListener('change', function() {
-                const province = this.value;
-                const cantonSelector = this.closest('.address-entry').querySelector('select[name="canton[]"]');
-                
-                // Clear current options
-                cantonSelector.innerHTML = '<option value="" disabled selected>Seleccione cantón</option>';
-                
-                // Add options based on selected province
+function setupProvinceSelectors(provinceSelectors) {
+    provinceSelectors.forEach(provinceSelector => {
+        provinceSelector.addEventListener('change', function() {
+            const province = this.value;
+            const cantonSelector = this.closest('.address-entry').querySelector('select[name="canton[]"]');
+            const districtSelector = this.closest('.address-entry').querySelector('select[name="district[]"]');
+            const neighborhoodSelector = this.closest('.address-entry').querySelector('select[name="neighborhood[]"]');
+            
+            // Clear current options
+            cantonSelector.innerHTML = '<option value="" disabled selected>Seleccione cantón</option>';
+            
+            // Reset district and neighborhood selectors
+            if (districtSelector) {
+                districtSelector.innerHTML = '<option value="" disabled selected>Seleccione distrito</option>';
+            }
+            
+            if (neighborhoodSelector) {
+                neighborhoodSelector.innerHTML = '<option value="" disabled selected>Seleccione barrio</option>';
+            }
+            
+            // Add options based on selected province
                 if (province === 'san_jose') {
                     const sanJoseCantons = ['Central', 'Escazú', 'Desamparados', 'Puriscal', 'Tarrazú', 'Aserrí', 'Mora', 'Goicoechea', 'Santa Ana', 'Alajuelita', 'Vázquez de Coronado', 'Tibás', 'Moravia', 'Montes de Oca', 'Turrubares', 'Dota', 'Curridabat', 'Pérez Zeledón', 'León Cortés', 'Acosta'];
                     
@@ -2070,16 +2955,27 @@
     }
 
     // Function to setup province and canton selectors for company addresses
-    function setupCompanyProvinceSelectors(provinceSelectors) {
-        provinceSelectors.forEach(provinceSelector => {
-            provinceSelector.addEventListener('change', function() {
-                const province = this.value;
-                const cantonSelector = this.closest('.address-entry').querySelector('select[name="company_canton[]"]');
-                
-                // Clear current options
-                cantonSelector.innerHTML = '<option value="" disabled selected>Seleccione cantón</option>';
-                
-                // Add options based on selected province
+function setupCompanyProvinceSelectors(provinceSelectors) {
+    provinceSelectors.forEach(provinceSelector => {
+        provinceSelector.addEventListener('change', function() {
+            const province = this.value;
+            const cantonSelector = this.closest('.address-entry').querySelector('select[name="company_canton[]"]');
+            const districtSelector = this.closest('.address-entry').querySelector('select[name="company_district[]"]');
+            const neighborhoodSelector = this.closest('.address-entry').querySelector('select[name="company_neighborhood[]"]');
+            
+            // Clear current options
+            cantonSelector.innerHTML = '<option value="" disabled selected>Seleccione cantón</option>';
+            
+            // Reset district and neighborhood selectors
+            if (districtSelector) {
+                districtSelector.innerHTML = '<option value="" disabled selected>Seleccione distrito</option>';
+            }
+            
+            if (neighborhoodSelector) {
+                neighborhoodSelector.innerHTML = '<option value="" disabled selected>Seleccione barrio</option>';
+            }
+            
+            // Add options based on selected province
                 if (province === 'san_jose') {
                     const sanJoseCantons = ['Central', 'Escazú', 'Desamparados', 'Puriscal', 'Tarrazú', 'Aserrí', 'Mora', 'Goicoechea', 'Santa Ana', 'Alajuelita', 'Vázquez de Coronado', 'Tibás', 'Moravia', 'Montes de Oca', 'Turrubares', 'Dota', 'Curridabat', 'Pérez Zeledón', 'León Cortés', 'Acosta'];
                     
@@ -2149,12 +3045,139 @@
     }
 
     // Initialize province selectors for personal addresses
-    const provinceSelectors = document.querySelectorAll('.province-select');
-    setupProvinceSelectors(provinceSelectors);
-    
-    // Initialize province selectors for company addresses
-    const companyProvinceSelectors = document.querySelectorAll('.company-province-select');
-    setupCompanyProvinceSelectors(companyProvinceSelectors);
+const provinceSelectors = document.querySelectorAll('.province-select');
+setupProvinceSelectors(provinceSelectors);
+
+// Initialize province selectors for company addresses
+const companyProvinceSelectors = document.querySelectorAll('.company-province-select');
+setupCompanyProvinceSelectors(companyProvinceSelectors);
+
+// Function to setup canton and district selectors for personal addresses
+function setupCantonSelectors(cantonSelectors) {
+    cantonSelectors.forEach(cantonSelector => {
+        cantonSelector.addEventListener('change', function() {
+            const canton = this.value;
+            const provinceSelector = this.closest('.address-entry').querySelector('select[name="province[]"]');
+            const province = provinceSelector ? provinceSelector.value : '';
+            const districtSelector = this.closest('.address-entry').querySelector('select[name="district[]"]');
+            const neighborhoodSelector = this.closest('.address-entry').querySelector('input[name="neighborhood[]"]');
+            
+            // Clear current options in district selector
+            if (districtSelector) {
+                districtSelector.innerHTML = '<option value="" disabled selected>Seleccione distrito</option>';
+            }
+            
+            // Add options based on selected canton
+            if (province && canton && locationDatabase[province] && locationDatabase[province][canton]) {
+                const districts = locationDatabase[province][canton].districts;
+                
+                districts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district.value;
+                    option.textContent = district.label;
+                    districtSelector.appendChild(option);
+                });
+            } else {
+                // Distritos genéricos para cantones no definidos
+                const genericDistricts = [
+                    {value: 'distrito_central', label: 'Distrito Central'},
+                    {value: 'distrito_norte', label: 'Distrito Norte'},
+                    {value: 'distrito_sur', label: 'Distrito Sur'},
+                    {value: 'distrito_este', label: 'Distrito Este'},
+                    {value: 'distrito_oeste', label: 'Distrito Oeste'}
+                ];
+                
+                genericDistricts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district.value;
+                    option.textContent = district.label;
+                    districtSelector.appendChild(option);
+                });
+            }
+        });
+    });
+}
+
+// Function to setup district selectors for personal addresses (without neighborhood logic)
+function setupDistrictSelectors(districtSelectors) {
+    districtSelectors.forEach(districtSelector => {
+        districtSelector.addEventListener('change', function() {
+            // Ya no necesitamos manipular los barrios porque ahora son campos de texto
+            // La función se mantiene por compatibilidad pero no hace nada con los barrios
+        });
+    });
+}
+
+// Function to setup canton and district selectors for company addresses
+function setupCompanyCantonSelectors(companyCantonSelectors) {
+    companyCantonSelectors.forEach(cantonSelector => {
+        cantonSelector.addEventListener('change', function() {
+            const canton = this.value;
+            const provinceSelector = this.closest('.address-entry').querySelector('select[name="company_province[]"]');
+            const province = provinceSelector ? provinceSelector.value : '';
+            const districtSelector = this.closest('.address-entry').querySelector('select[name="company_district[]"]');
+            
+            // Clear current options
+            if (districtSelector) {
+                districtSelector.innerHTML = '<option value="" disabled selected>Seleccione distrito</option>';
+            }
+            
+            // Add options based on selected canton and province
+            if (province && canton && locationDatabase[province] && locationDatabase[province][canton]) {
+                const districts = locationDatabase[province][canton].districts;
+                
+                districts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district.value;
+                    option.textContent = district.label;
+                    districtSelector.appendChild(option);
+                });
+            } else {
+                // Distritos genéricos para cantones no definidos
+                const genericDistricts = [
+                    {value: 'distrito_central', label: 'Distrito Central'},
+                    {value: 'distrito_norte', label: 'Distrito Norte'},
+                    {value: 'distrito_sur', label: 'Distrito Sur'},
+                    {value: 'distrito_este', label: 'Distrito Este'},
+                    {value: 'distrito_oeste', label: 'Distrito Oeste'}
+                ];
+                
+                genericDistricts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district.value;
+                    option.textContent = district.label;
+                    districtSelector.appendChild(option);
+                });
+            }
+        });
+    });
+}
+
+// Function to setup district selectors for company addresses (without neighborhood logic)
+function setupCompanyDistrictSelectors(companyDistrictSelectors) {
+    companyDistrictSelectors.forEach(districtSelector => {
+        districtSelector.addEventListener('change', function() {
+            // Ya no necesitamos manipular los barrios porque ahora son campos de texto
+            // La función se mantiene por compatibilidad pero no hace nada con los barrios
+        });
+    });
+}
+
+// Initialize canton selectors for personal addresses
+const cantonSelectors = document.querySelectorAll('.canton-select');
+setupCantonSelectors(cantonSelectors);
+
+// Initialize district selectors for personal addresses
+const districtSelectors = document.querySelectorAll('.district-select');
+setupDistrictSelectors(districtSelectors);
+
+// Initialize canton selectors for company addresses
+const companyCantonSelectors = document.querySelectorAll('.company-canton-select');
+setupCompanyCantonSelectors(companyCantonSelectors);
+
+// Initialize district selectors for company addresses
+const companyDistrictSelectors = document.querySelectorAll('.company-district-select');
+setupCompanyDistrictSelectors(companyDistrictSelectors);
     
     // Custom function to validate form fields in real-time
     const inputFields = document.querySelectorAll('input, select, textarea');
