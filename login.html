@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión | CRBOX | Casillero Virtual en Costa Rica</title>
+    <meta name="description" content="Accede a tu cuenta de CRBOX para gestionar tus envíos y compras desde USA a Costa Rica.">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky-header">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="index.html">
+                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-10 w-auto">
+                    </a>
+                </div>
+    
+                <!-- Menú navegación (escritorio) -->
+                <nav class="hidden md:flex space-x-6">
+                    <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
+                </nav>
+    
+                <!-- Botones acción (escritorio) -->
+<div class="hidden md:flex items-center space-x-4">
+    <a href="calculadora.html" class="primary-btn">Calcular Envío</a>
+    <a href="afiliate.html" class="secondary-btn">Afíliate Gratis</a>
+    <!-- Nuevo dropdown de usuario con más margen -->
+    <div class="relative ml-3" id="user-dropdown">
+        <button class="flex items-center justify-center w-11 h-11 rounded-full bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-orange-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-sm" id="user-menu-button" aria-expanded="false">
+            <i class="fas fa-user-circle text-2xl text-gray-500 hover:text-orange-600 transition-colors duration-300"></i>
+        </button>
+        <!-- Dropdown elegante (inicialmente oculto) -->
+        <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 py-1 focus:outline-none divide-y divide-gray-100 transform opacity-0 scale-95 pointer-events-none transition duration-200 ease-in-out z-50" id="user-dropdown-menu">
+            <div class="py-2 px-4">
+                <a href="login.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                    <i class="fas fa-sign-in-alt mr-3 text-orange-500"></i>
+                    <span>Iniciar Sesión</span>
+                </a>
+            </div>
+            <div class="py-2 px-4">
+                <a href="afiliate.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                    <i class="fas fa-user-plus mr-3 text-orange-500"></i>
+                    <span>Crear Cuenta</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+    
+                <!-- Botón menú móvil -->
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+    
+            <!-- Menú móvil -->
+            <div class="md:hidden hidden mt-4" id="mobile-menu">
+                <div class="py-3 space-y-3">
+                    <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
+                    <div class="flex flex-col space-y-2 pt-2">
+                        <a href="calculadora.html" class="inline-block primary-btn text-center">Calcular Envío</a>
+                        <a href="afiliate.html" class="inline-block secondary-btn text-center">Afíliate Gratis</a>
+                        <a href="#" class="flex items-center justify-center text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">
+                            <i class="fas fa-user-circle mr-2"></i> Iniciar Sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Login Section -->
+<section class="py-16 md:py-24 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="flex flex-wrap">
+                <!-- Formulario de Login -->
+                <div class="w-full lg:w-1/2 p-8 md:p-12 relative">
+                    <!-- Elementos decorativos -->
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-bl-full opacity-50"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-orange-50 rounded-tr-full opacity-50"></div>
+                    
+                    <!-- Contenido del formulario -->
+                    <div class="relative z-10">
+                        <div class="text-center mb-8">
+                            <h2 class="text-3xl font-bold mb-2">¡Bienvenido!</h2>
+                            <p class="text-gray-600">Ingresa a tu cuenta CRBOX</p>
+                        </div>
+                        
+                        <form id="login-form">
+                            <!-- Campo de email -->
+                            <div class="mb-6">
+                                <label for="email" class="block text-gray-700 font-medium mb-2">Correo electrónico</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="far fa-envelope text-gray-400"></i>
+                                    </div>
+                                    <input type="email" id="email" class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="tu@correo.com" required>
+                                </div>
+                            </div>
+                            
+                            <!-- Campo de contraseña -->
+                            <div class="mb-6">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label for="password" class="block text-gray-700 font-medium">Contraseña</label>
+                                    <a href="#" id="forgot-password-link" class="text-sm text-orange-600 hover:text-orange-800">¿Olvidaste tu contraseña?</a>
+                                </div>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-lock text-gray-400"></i>
+                                    </div>
+                                    <input type="password" id="password" class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="••••••••" required>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <button type="button" id="toggle-password" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Checkbox "Recordarme" -->
+                            <div class="flex items-center mb-6">
+                                <input type="checkbox" id="remember-me" class="h-4 w-4 text-orange-600 rounded border-gray-300 focus:ring-orange-500">
+                                <label for="remember-me" class="ml-2 block text-gray-700">Mantener sesión iniciada</label>
+                            </div>
+                            
+                            <a href="dashboard.html" class="login-link w-full py-3 px-4 rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg mb-4 text-center block">
+                                Iniciar Sesión
+                            </a>
+                            
+                            <!-- Error message placeholder -->
+                            <div id="error-container" class="hidden bg-red-100 text-red-700 p-3 rounded mb-4"></div>
+                            
+                            <!-- Separador -->
+                            <div class="my-6 flex items-center">
+                                <div class="flex-grow border-t border-gray-300"></div>
+                                <span class="px-4 text-sm text-gray-500">O continúa con</span>
+                                <div class="flex-grow border-t border-gray-300"></div>
+                            </div>
+                            
+                            <!-- Botones de social login -->
+                            <div class="grid grid-cols-3 gap-4 mb-6">
+                                <button type="button" class="social-login-btn flex items-center justify-center py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors group">
+                                    <img src="img/google-icon.svg" alt="Google" class="h-5 w-5">
+                                </button>
+                                <button type="button" class="social-login-btn flex items-center justify-center py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors group">
+                                    <i class="fab fa-facebook-f text-blue-600"></i>
+                                </button>
+                                <button type="button" class="social-login-btn flex items-center justify-center py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors group">
+                                    <i class="fab fa-apple text-gray-800"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Enlace a registro -->
+                            <div class="text-center">
+                                <p class="text-gray-600">¿No tienes una cuenta? <a href="afiliate.html" class="text-orange-600 font-semibold hover:text-orange-800">Regístrate ahora</a></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Columna de la imagen -->
+                <div class="hidden lg:block w-1/2 bg-orange-50 p-12">
+                    <div class="h-full flex flex-col justify-center items-center">
+                        <img src="img/character.png" alt="CRBOX Delivery" class="h-64 mb-8">
+                        <h3 class="text-2xl font-bold text-center mb-4">Tu casillero en Miami</h3>
+                        <p class="text-gray-600 text-center">Gestiona tus envíos desde USA y recibe tus paquetes en la puerta de tu casa en Costa Rica.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">CRBOX</h3>
+                    <p class="text-gray-400 mb-4">Tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Enlaces Rápidos</h3>
+                    <ul class="space-y-2">
+                        <li><a href="servicios.html" class="text-gray-400 hover:text-white transition-colors">Servicios</a></li>
+                        <li><a href="como-funciona.html" class="text-gray-400 hover:text-white transition-colors">Cómo Funciona</a></li>
+                        <li><a href="tarifas.html" class="text-gray-400 hover:text-white transition-colors">Tarifas</a></li>
+                        <li><a href="calculadora.html" class="text-gray-400 hover:text-white transition-colors">Calculadora</a></li>
+                        <li><a href="afiliate.html" class="text-gray-400 hover:text-white transition-colors">Afíliate</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Contacto</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">Sabana Norte, San José, Costa Rica</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-phone mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">+506-4000-1114</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope mt-1 mr-3 text-orange-500"></i>
+                            <span class="text-gray-400">ventas@crbox.cr</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Horario de Atención</h3>
+                    <ul class="space-y-2">
+                        <li class="text-gray-400">Lunes a Viernes: 8:00 AM - 5:00 PM</li>
+                        <li class="text-gray-400">Sábados: 9:00 AM - 1:00 PM</li>
+                        <li class="text-gray-400">Domingos: Cerrado</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm mb-4 md:mb-0">© 2025 CRBOX. Todos los derechos reservados.</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Términos y Condiciones</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">Política de Privacidad</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/50640001114" class="fixed bottom-6 right-6 whatsapp-btn w-14 h-14 flex items-center justify-center text-white text-2xl z-50">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Modal para recuperación de contraseña -->
+    <div id="password-reset-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 relative">
+            <button type="button" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600" id="close-modal">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mx-auto mb-4">
+                    <i class="fas fa-key text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Recuperar contraseña</h3>
+                <p class="text-gray-600">Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña</p>
+            </div>
+            
+            <form id="reset-password-form">
+                <div class="mb-5">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="far fa-envelope text-gray-400"></i>
+                        </div>
+                        <input type="email" id="reset-email" class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="tu@correo.com" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300">
+                    Enviar instrucciones
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center text-sm text-gray-600">
+                <p>¿Recordaste tu contraseña? <a href="#" id="back-to-login" class="text-orange-600 font-semibold hover:text-orange-800">Volver al inicio de sesión</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script para funcionamiento del login -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Referencias generales
+        const loginButton = document.getElementById('login-button');
+        const loginMenu = document.getElementById('login-menu');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const passwordResetModal = document.getElementById('password-reset-modal');
+        const closeModal = document.getElementById('close-modal');
+        const backToLogin = document.getElementById('back-to-login');
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const passwordField = document.getElementById('password');
+        
+        // Toggle del menú móvil
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+        
+        // Toggle del menú de login en el dropdown
+        if (loginButton && loginMenu) {
+            loginButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                loginMenu.classList.toggle('hidden');
+            });
+            
+            // Cerrar menú de login al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!loginButton.contains(e.target) && !loginMenu.contains(e.target)) {
+                    loginMenu.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Mostrar/ocultar contraseña
+        if (togglePasswordBtn && passwordField) {
+            togglePasswordBtn.addEventListener('click', function() {
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                togglePasswordBtn.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+            });
+        }
+        
+        // Funcionalidades para mostrar/ocultar contraseña (para otros campos de contraseña)
+        function setupPasswordToggle(toggleId, passwordId) {
+            const toggle = document.getElementById(toggleId);
+            const password = document.getElementById(passwordId);
+            
+            if (toggle && password) {
+                toggle.addEventListener('click', function() {
+                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                    password.setAttribute('type', type);
+                    toggle.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+                });
+            }
+        }
+        
+        // Configurar toggles de contraseña adicionales
+        setupPasswordToggle('page-toggle-password', 'page-password');
+        
+        // Manejo de TODOS los formularios de login
+        const loginForms = document.querySelectorAll('form');
+        loginForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Cambiar el texto del botón a "Cargando..."
+                const submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+                    submitButton.disabled = true;
+                }
+                
+                // Redirigir a dashboard.html después de una breve pausa
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 1000); // 1 segundo de "carga"
+            });
+        });
+        
+        // Manejo de recuperación de contraseña
+        const forgotPasswordLinks = document.querySelectorAll('a[href="#"]');
+        forgotPasswordLinks.forEach(link => {
+            if (link.textContent.includes('Olvidaste') || link.textContent.includes('olvidaste')) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (passwordResetModal) {
+                        passwordResetModal.classList.remove('hidden');
+                    }
+                });
+            }
+        });
+        
+        // Cerrar modal
+        if (closeModal) {
+            closeModal.addEventListener('click', function() {
+                passwordResetModal.classList.add('hidden');
+            });
+        }
+        
+        // Volver al login desde el modal
+        if (backToLogin) {
+            backToLogin.addEventListener('click', function(e) {
+                e.preventDefault();
+                passwordResetModal.classList.add('hidden');
+            });
+        }
+        
+        // Formulario de recuperación de contraseña
+        const resetForm = document.getElementById('reset-password-form');
+        if (resetForm) {
+            resetForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('reset-email').value;
+                
+                // Aquí iría la integración con el backend
+                // Por ahora, simulamos una respuesta
+                alert(`Se han enviado instrucciones de recuperación a: ${email}`);
+                passwordResetModal.classList.add('hidden');
+            });
+        }
+        
+        // Manejo de login social
+        const socialButtons = document.querySelectorAll('.grid.grid-cols-3.gap-4 button, .px-4.py-2.flex.space-x-2 button, .social-login-btn');
+        socialButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Determinar el proveedor de login
+                let provider = 'desconocido';
+                if (this.querySelector('.fab.fa-facebook-f')) provider = 'facebook';
+                else if (this.querySelector('.fab.fa-apple')) provider = 'apple';
+                else if (this.querySelector('img[alt="Google"]')) provider = 'google';
+                
+                // Simular tiempo de carga
+                const originalHTML = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.disabled = true;
+                
+                // Redirigir a dashboard después de una breve pausa
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            });
+        });
+        
+        // Cierre del modal al hacer clic fuera
+        window.addEventListener('click', function(e) {
+            if (e.target === passwordResetModal) {
+                passwordResetModal.classList.add('hidden');
+            }
+        });
+
+        // IMPORTANTE: Verifica si los campos del formulario existen
+        if (document.getElementById('email') && document.getElementById('password')) {
+            // Si existen los campos, rellenar con valores por defecto para facilitar pruebas
+            document.getElementById('email').value = 'prueba@crbox.cr';
+            document.getElementById('password').value = '12345';
+        }
+    });
+</script>
+<!-- Script para el dropdown de usuario -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Referencias
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userDropdownMenu = document.getElementById('user-dropdown-menu');
+        
+        // Toggle del dropdown de usuario
+        if (userMenuButton && userDropdownMenu) {
+            userMenuButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                // Toggle clases para animación suave
+                if (userDropdownMenu.classList.contains('opacity-0')) {
+                    // Mostrar menú
+                    userDropdownMenu.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                    userDropdownMenu.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
+                    userMenuButton.setAttribute('aria-expanded', 'true');
+                    userMenuButton.classList.add('bg-orange-50', 'border-orange-200');
+                    userMenuButton.querySelector('i').classList.add('text-orange-600');
+                } else {
+                    // Ocultar menú
+                    userDropdownMenu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                    userDropdownMenu.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+                    userMenuButton.setAttribute('aria-expanded', 'false');
+                    userMenuButton.classList.remove('bg-orange-50', 'border-orange-200');
+                    userMenuButton.querySelector('i').classList.remove('text-orange-600');
+                }
+            });
+            
+            // Cerrar al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!userMenuButton.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                    userDropdownMenu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                    userDropdownMenu.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+                    userMenuButton.setAttribute('aria-expanded', 'false');
+                    userMenuButton.classList.remove('bg-orange-50', 'border-orange-200');
+                    userMenuButton.querySelector('i').classList.remove('text-orange-600');
+                }
+            });
+            
+            // Prevenir cierre al hacer clic dentro del dropdown
+            userDropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+    });
+</script>
+</body>
+</html>

@@ -6,345 +6,968 @@
     <title>CRBOX | Mis Paquetes | Casillero Virtual y Courier en Costa Rica</title>
     <meta name="description" content="Gestiona y rastrea tus paquetes en CRBOX, tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.">
     
+    <!-- Favicons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
+    <link rel="manifest" href="img/favicon/site.webmanifest">
+    
+    <!-- Estilos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS personalizado -->
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    
+    <!-- Prefetch para mejorar rendimiento -->
+    <link rel="prefetch" href="dashboard.html">
+    <link rel="prefetch" href="mis-facturas.html">
+    <link rel="prefetch" href="mi-cuenta.html">
 </head>
-<body class="bg-gray-50">
+
+<body class="bg-gray-50 font-inter">
+    <!-- Skip to content (accesibilidad) -->
+    <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
+    
+    <!-- Toast Container para notificaciones -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col items-end space-y-2"></div>
+
     <!-- Header -->
-    <header class="bg-white shadow-sm sticky-header">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <a href="index.html">
-                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-10 w-auto">
-                    </a>
-                </div>
-    
-                <!-- Menú navegación (escritorio) -->
-                <nav class="hidden md:flex space-x-6">
-                    <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
-                    <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
-                    <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
-                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
-                    <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
-                </nav>
-    
-                <!-- User menu (desktop) -->
-                <div class="hidden md:flex items-center space-x-3">
-                    <div class="relative group">
-                        <button class="flex items-center space-x-2 text-gray-700 hover:text-orange-600 transition-colors focus:outline-none">
-                            <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-                                <i class="fas fa-user text-orange-600"></i>
-                            </div>
-                            <span class="font-medium">Mathias</span>
-                            <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180"></i>
-                        </button>
-                        <!-- Dropdown menu -->
-                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100 invisible opacity-0 transform -translate-y-3 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all">
-                            <a href="dashboard.html" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
-                                <i class="fas fa-tachometer-alt mr-2 text-orange-500"></i>
-                                Dashboard
-                            </a>
-                            <a href="mis-paquetes.html" class="block px-4 py-2 text-orange-600 bg-orange-50">
-                                <i class="fas fa-box mr-2 text-orange-500"></i>
-                                Mis Paquetes
-                            </a>
-                            <a href="mis-facturas.html" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
-                                <i class="fas fa-file-invoice-dollar mr-2 text-orange-500"></i>
-                                Mis Facturas
-                            </a>
-                            <a href="mi-cuenta.html" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
-                                <i class="fas fa-user-cog mr-2 text-orange-500"></i>
-                                Mi Cuenta
-                            </a>
-                            <div class="border-t border-gray-100 my-2"></div>
-                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors">
-                                <i class="fas fa-sign-out-alt mr-2 text-orange-500"></i>
-                                Cerrar Sesión
-                            </a>
-                        </div>
-                    </div>
-                    <a href="calculadora.html" class="primary-btn flex items-center">
-                        <i class="fas fa-calculator mr-2"></i>
-                        Calcular
-                    </a>
-                </div>
-    
-                <!-- Botón menú móvil -->
-                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
+<header class="bg-white shadow-sm sticky-header">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex flex-row justify-between items-center">
+            <!-- Logo -->
+            <div class="flex items-center">
+                <a href="index.html">
+                    <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-10 w-auto">
+                </a>
             </div>
     
-            <!-- Menú móvil -->
-            <div class="md:hidden hidden mt-4" id="mobile-menu">
-                <div class="py-3 space-y-3">
-                    <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
-                    <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
-                    <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
-                    <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
-                    <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
-                    <div class="py-2 border-t border-gray-100 mt-2">
-                        <div class="flex items-center mb-4">
-                            <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center mr-2">
-                                <i class="fas fa-user text-orange-600"></i>
-                            </div>
-                            <span class="font-medium">Mathias Meneses</span>
+            <!-- Menú navegación (escritorio) -->
+            <nav class="hidden md:flex space-x-6">
+                <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
+                <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
+                <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
+                <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
+            </nav>
+    
+            <!-- Botones acción (escritorio) -->
+            <div class="hidden md:flex items-center space-x-4">
+                <a href="calculadora.html" class="primary-btn">Calcular Envío</a>
+                <!-- Usuario logueado -->
+                <div class="relative" id="user-dropdown">
+                    <button class="flex items-center space-x-2 text-gray-700 hover:text-orange-600 transition-colors focus:outline-none border border-gray-200 rounded-full px-3 py-1.5 shadow-sm hover:border-orange-200" id="user-menu-button" aria-expanded="false">
+                        <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                            <i class="fas fa-user text-orange-600"></i>
                         </div>
-                        <div class="space-y-2">
-                            <a href="dashboard.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
-                                <i class="fas fa-tachometer-alt mr-2 text-orange-500"></i>
-                                Dashboard
+                        <span class="font-medium">Mathias</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <!-- Dropdown elegante (inicialmente oculto) -->
+                    <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 py-1 focus:outline-none divide-y divide-gray-100 transform opacity-0 scale-95 pointer-events-none transition duration-200 ease-in-out z-50" id="user-dropdown-menu">
+                        <div class="py-2 px-4">
+                            <a href="dashboard.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                <i class="fas fa-tachometer-alt w-5 text-center mr-3 text-orange-500"></i>
+                                <span>Dashboard</span>
                             </a>
-                            <a href="mis-paquetes.html" class="block text-orange-600 font-medium py-2">
-                                <i class="fas fa-box mr-2 text-orange-500"></i>
-                                Mis Paquetes
+                            <a href="mis-paquetes.html" class="flex items-center w-full px-2 py-2 text-sm text-orange-600 bg-orange-50 rounded-md transition-colors duration-150">
+                                <i class="fas fa-box w-5 text-center mr-3 text-orange-500"></i>
+                                <span>Mis Paquetes</span>
                             </a>
-                            <a href="mis-facturas.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
-                                <i class="fas fa-file-invoice-dollar mr-2 text-orange-500"></i>
-                                Mis Facturas
+                            <a href="mis-facturas.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                <i class="fas fa-file-invoice-dollar w-5 text-center mr-3 text-orange-500"></i>
+                                <span>Mis Facturas</span>
                             </a>
-                            <a href="mi-cuenta.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
-                                <i class="fas fa-user-cog mr-2 text-orange-500"></i>
-                                Mi Cuenta
+                            <a href="mi-cuenta.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                <i class="fas fa-user-cog w-5 text-center mr-3 text-orange-500"></i>
+                                <span>Mi Cuenta</span>
                             </a>
-                            <a href="#" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
-                                <i class="fas fa-sign-out-alt mr-2 text-orange-500"></i>
-                                Cerrar Sesión
-                            </a>
+                        </div>
+                        <div class="py-2 px-4">
+                            <button class="flex w-full items-center px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150" id="logout-button">
+                                <i class="fas fa-sign-out-alt w-5 text-center mr-3 text-orange-500"></i>
+                                <span>Cerrar Sesión</span>
+                            </button>
                         </div>
                     </div>
-                    <div class="flex flex-col space-y-2 pt-2">
-                        <a href="calculadora.html" class="inline-block primary-btn text-center">
-                            <i class="fas fa-calculator mr-2"></i>
-                            Calcular Envío
+                </div>
+            </div>
+    
+            <!-- Botón menú móvil -->
+            <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+    
+        <!-- Menú móvil -->
+        <div class="md:hidden hidden mt-4" id="mobile-menu">
+            <div class="py-3 space-y-3">
+                <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
+                <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
+                <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
+                <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
+                <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
+                
+                <!-- Sección usuario -->
+                <div class="border-t border-gray-200 mt-2 pt-2">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-orange-600"></i>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-800">Mathias Meneses</span>
+                            <p class="text-xs text-gray-500">Casillero #50628595</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Opciones de usuario -->
+                    <div class="space-y-2">
+                        <a href="dashboard.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors flex items-center">
+                            <i class="fas fa-tachometer-alt w-8 text-orange-500"></i> Dashboard
                         </a>
+                        <a href="mis-paquetes.html" class="block text-orange-600 font-medium py-2 flex items-center bg-orange-50 px-2 rounded-md">
+                            <i class="fas fa-box w-8 text-orange-500"></i> Mis Paquetes
+                        </a>
+                        <a href="mis-facturas.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors flex items-center">
+                            <i class="fas fa-file-invoice-dollar w-8 text-orange-500"></i> Mis Facturas
+                        </a>
+                        <a href="mi-cuenta.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors flex items-center">
+                            <i class="fas fa-user-cog w-8 text-orange-500"></i> Mi Cuenta
+                        </a>
+                        <button id="mobile-logout-button" class="block w-full text-left text-gray-700 hover:text-orange-600 py-2 transition-colors flex items-center">
+                            <i class="fas fa-sign-out-alt w-8 text-orange-500"></i> Cerrar Sesión
+                        </button>
                     </div>
+                </div>
+                
+                <div class="flex flex-col space-y-2 pt-2">
+                    <a href="calculadora.html" class="inline-block primary-btn text-center">Calcular Envío</a>
                 </div>
             </div>
         </div>
-    </header>
+    </div>
+</header>
 
     <!-- Dashboard Navigation Tabs -->
     <div class="bg-white border-b border-gray-200 shadow-sm">
         <div class="container mx-auto px-4">
-            <div class="flex overflow-x-auto no-scrollbar">
-                <a href="dashboard.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+            <div class="flex overflow-x-auto no-scrollbar custom-scrollbar">
+                <a href="dashboard.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none relative">
                     <i class="fas fa-tachometer-alt mr-2"></i>
                     Dashboard
+                    <span class="tab-hover-line absolute bottom-0 left-0 w-full transform scale-x-0 origin-left transition-transform"></span>
                 </a>
-                <a href="mis-paquetes.html" class="whitespace-nowrap px-6 py-4 font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none">
+                <a href="mis-paquetes.html" class="whitespace-nowrap px-6 py-4 font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none relative" aria-current="page">
                     <i class="fas fa-box mr-2"></i>
                     Mis Paquetes
+                    <div class="absolute -bottom-0.5 left-0 w-full h-0.5 bg-orange-600"></div>
                 </a>
-                <a href="mis-facturas.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+                <a href="mis-facturas.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none relative">
                     <i class="fas fa-file-invoice-dollar mr-2"></i>
                     Mis Facturas
+                    <span class="tab-hover-line absolute bottom-0 left-0 w-full transform scale-x-0 origin-left transition-transform"></span>
                 </a>
-                <a href="mi-cuenta.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+                <a href="mi-cuenta.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none relative">
                     <i class="fas fa-user-cog mr-2"></i>
                     Mi Cuenta
+                    <span class="tab-hover-line absolute bottom-0 left-0 w-full transform scale-x-0 origin-left transition-transform"></span>
                 </a>
             </div>
         </div>
     </div>
 
     <!-- Main Content -->
-    <main class="py-8">
+    <main class="py-8" id="main-content">
         <div class="container mx-auto px-4">
             
-            <!-- Page Title & Actions -->
+            <!-- Page Title & Welcome Bar -->
             <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                 <div>
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Mis Paquetes</h1>
-                    <p class="text-gray-600">Rastrea y gestiona tus envíos</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2 flex items-center">
+                        <span class="bg-orange-100 text-orange-600 p-2 rounded-lg mr-3">
+                            <i class="fas fa-box"></i>
+                        </span>
+                        Mis Paquetes
+                    </h1>
+                    <p class="text-gray-600">Rastrea y gestiona tus envíos en un solo lugar</p>
                 </div>
                 <div class="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3">
-                    <button class="action-btn-light flex items-center">
+                    <button id="refresh-btn" class="action-btn-light flex items-center shadow-sm hover:shadow-md transition-all" aria-label="Actualizar datos">
                         <i class="fas fa-sync-alt mr-2"></i>
                         Actualizar
                     </button>
-                    <button class="action-btn-primary flex items-center">
+                    <button id="track-modal-btn" class="action-btn-primary flex items-center shadow-button button-3d" aria-label="Rastrear paquete">
                         <i class="fas fa-search mr-2"></i>
                         Rastrear
                     </button>
                 </div>
             </div>
-            
-            <!-- Search & Filter Section -->
-            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="md:col-span-2">
-                        <div class="relative">
-                            <input type="text" placeholder="Buscar por número de tracking o descripción" class="form-control pl-10">
-                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+
+            <!-- Quick Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Total Paquetes -->
+                <div class="stat-card bg-white rounded-xl shadow-sm hover:shadow-lg border border-gray-100 p-6 transition-all duration-300 shine-effect">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">Total Paquetes</p>
+                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="total-paquetes">3</h3>
+                            <p class="text-xs text-gray-500 mt-2">
+                                <i class="fas fa-calendar-alt mr-1"></i> Último mes
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-boxes"></i>
                         </div>
                     </div>
-                    <div>
-                        <select class="form-control">
-                            <option value="">Todos los estados</option>
-                            <option value="MIAMI">MIAMI</option>
-                            <option value="CARGADO">CARGADO</option>
-                            <option value="EN ESPERA">EN ESPERA</option>
-                            <option value="EN TRANSITO">EN TRÁNSITO</option>
-                            <option value="SJO">SJO</option>
-                            <option value="CRBOX">CRBOX</option>
-                        </select>
+                </div>
+                
+                <!-- En Tránsito -->
+                <div class="stat-card bg-white rounded-xl shadow-sm hover:shadow-lg border border-gray-100 p-6 transition-all duration-300 shine-effect">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">En Tránsito</p>
+                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="en-transito">1</h3>
+                            <p class="text-xs text-gray-500 mt-2">
+                                <i class="fas fa-shipping-fast mr-1"></i> Actualmente
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                            <i class="fas fa-shipping-fast"></i>
+                        </div>
                     </div>
-                    <div>
-                        <div class="relative">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="relative">
-                                    <input type="date" class="form-control pl-10" value="2025-04-08">
-                                    <i class="far fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+                
+                <!-- En CRBOX -->
+                <div class="stat-card bg-white rounded-xl shadow-sm hover:shadow-lg border border-gray-100 p-6 transition-all duration-300 shine-effect">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">En CRBOX</p>
+                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="en-crbox">1</h3>
+                            <p class="text-xs text-gray-500 mt-2">
+                                <i class="fas fa-warehouse mr-1"></i> Listos para recoger
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- En Miami -->
+                <div class="stat-card bg-white rounded-xl shadow-sm hover:shadow-lg border border-gray-100 p-6 transition-all duration-300 shine-effect">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 mb-1">En Miami</p>
+                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="en-miami">1</h3>
+                            <p class="text-xs text-gray-500 mt-2">
+                                <i class="fas fa-map-marker-alt mr-1"></i> Recibidos
+                            </p>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra de búsqueda y filtros mejorada -->
+            <div class="bg-white rounded-xl shadow-md border border-gray-100 mb-8 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <!-- Búsqueda -->
+                        <div class="relative flex-grow">
+                            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <input 
+                                type="text" 
+                                id="search-input"
+                                placeholder="Buscar por tracking, descripción o tienda..." 
+                                class="w-full h-11 pl-10 pr-4 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+                                aria-label="Buscar paquete"
+                            >
+                        </div>
+                        
+                        <!-- Filtros desplegables -->
+                        <div class="flex gap-2">
+                            <!-- Filtro de estado -->
+                            <div class="relative">
+                                <select id="status-filter" class="h-11 pl-3 pr-10 rounded-lg appearance-none border border-gray-200 bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all">
+                                    <option value="">Todos los estados</option>
+                                    <option value="MIAMI">MIAMI</option>
+                                    <option value="CARGADO">CARGADO</option>
+                                    <option value="EN ESPERA">EN ESPERA</option>
+                                    <option value="EN TRÁNSITO">EN TRÁNSITO</option>
+                                    <option value="SJO">SJO</option>
+                                    <option value="CRBOX">CRBOX</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                    <i class="fas fa-chevron-down text-xs"></i>
                                 </div>
-                                <div class="relative">
-                                    <input type="date" class="form-control pl-10" value="2025-05-08">
-                                    <i class="far fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                            
+                            <!-- Filtro de fecha -->
+                            <div class="relative">
+                                <select id="date-filter" class="h-11 pl-3 pr-10 rounded-lg appearance-none border border-gray-200 bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all">
+                                    <option value="">Todos los periodos</option>
+                                    <option value="week">Última semana</option>
+                                    <option value="month" selected>Último mes</option>
+                                    <option value="quarter">Últimos 3 meses</option>
+                                    <option value="year">Último año</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                    <i class="fas fa-chevron-down text-xs"></i>
                                 </div>
+                            </div>
+                            
+                            <!-- Botón para ordenar -->
+                            <div class="relative">
+                                <select id="sort-by" class="h-11 pl-3 pr-10 rounded-lg appearance-none border border-gray-200 bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all">
+                                    <option value="recent">Más recientes</option>
+                                    <option value="oldest">Más antiguos</option>
+                                    <option value="status">Por estado</option>
+                                    <option value="weight">Por peso</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Botón de alternar vista -->
+                            <div class="flex border border-gray-200 rounded-lg overflow-hidden">
+                                <button id="list-view-btn" class="h-11 w-11 bg-orange-100 text-orange-600 flex items-center justify-center border-r border-gray-200" aria-label="Vista de lista" aria-pressed="true">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                                <button id="grid-view-btn" class="h-11 w-11 bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-700 flex items-center justify-center" aria-label="Vista de cuadrícula" aria-pressed="false">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Chips de filtros activos -->
+                    <div class="flex flex-wrap gap-2 mt-4" id="active-filters">
+                        <div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                            <span class="text-sm">Miami</span>
+                            <button class="ml-2 text-blue-400 hover:text-blue-700" aria-label="Eliminar filtro Miami">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="inline-flex items-center px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
+                            <span class="text-sm">Último mes</span>
+                            <button class="ml-2 text-purple-400 hover:text-purple-700" aria-label="Eliminar filtro Último mes">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                        
+                        <button id="clear-all-filters" class="inline-flex items-center px-3 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-all text-sm">
+                            <i class="fas fa-trash-alt mr-1 text-xs"></i>
+                            Limpiar filtros
+                        </button>
+                    </div>
                 </div>
-                <div class="mt-4 flex justify-end">
-                    <button class="action-btn-primary flex items-center px-6">
-                        <i class="fas fa-search mr-2"></i>
-                        Buscar Paquetes
+                
+                <!-- Etiquetas de estado rápido -->
+                <div class="grid grid-cols-3 sm:grid-cols-6 border-b border-gray-100">
+                    <button class="status-tab active flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="all">
+                        <span class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mb-2">
+                            <i class="fas fa-boxes"></i>
+                        </span>
+                        <span class="text-sm font-medium">Todos</span>
+                        <span class="text-xs text-gray-500">3</span>
+                    </button>
+                    <button class="status-tab flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="MIAMI">
+                        <span class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mb-2">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </span>
+                        <span class="text-sm font-medium">Miami</span>
+                        <span class="text-xs text-gray-500">1</span>
+                    </button>
+                    <button class="status-tab flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="CARGADO">
+                        <span class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-500 mb-2">
+                            <i class="fas fa-boxes"></i>
+                        </span>
+                        <span class="text-sm font-medium">Cargado</span>
+                        <span class="text-xs text-gray-500">0</span>
+                    </button>
+                    <button class="status-tab flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="EN TRÁNSITO">
+                        <span class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 mb-2">
+                            <i class="fas fa-shipping-fast"></i>
+                        </span>
+                        <span class="text-sm font-medium">En Tránsito</span>
+                        <span class="text-xs text-gray-500">1</span>
+                    </button>
+                    <button class="status-tab flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="SJO">
+                        <span class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-500 mb-2">
+                            <i class="fas fa-plane-arrival"></i>
+                        </span>
+                        <span class="text-sm font-medium">SJO</span>
+                        <span class="text-xs text-gray-500">0</span>
+                    </button>
+                    <button class="status-tab flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="CRBOX">
+                        <span class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 mb-2">
+                            <i class="fas fa-box-open"></i>
+                        </span>
+                        <span class="text-sm font-medium">CRBOX</span>
+                        <span class="text-xs text-gray-500">1</span>
                     </button>
                 </div>
-            </div>
-            
-            <!-- Status Icons -->
-            <div class="grid grid-cols-3 md:grid-cols-6 gap-4 mb-6">
-                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
-                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mb-2">
-                        <i class="fas fa-map-marker-alt text-xl"></i>
+                
+                <!-- Información de resultados -->
+                <div class="px-6 py-3 flex justify-between items-center bg-gray-50 border-b border-gray-100">
+                    <div class="text-sm text-gray-600">
+                        Mostrando <span class="font-medium" id="showing-count">3</span> de <span class="font-medium" id="total-count-display">3</span> paquetes
                     </div>
-                    <span class="text-gray-700 text-sm font-medium">MIAMI</span>
-                </div>
-                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
-                    <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-500 mb-2">
-                        <i class="fas fa-boxes text-xl"></i>
+                    <div class="flex items-center">
+                        <label for="items-per-page" class="text-sm text-gray-600 mr-2">Por página:</label>
+                        <select id="items-per-page" class="form-control text-sm h-8 px-2 rounded border-gray-200 focus:border-orange-500 focus:ring focus:ring-orange-200 focus:ring-opacity-50 transition-all">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
                     </div>
-                    <span class="text-gray-700 text-sm font-medium">CARGADO</span>
-                </div>
-                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
-                    <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-500 mb-2">
-                        <i class="fas fa-clock text-xl"></i>
-                    </div>
-                    <span class="text-gray-700 text-sm font-medium">EN ESPERA</span>
-                </div>
-                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
-                    <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-500 mb-2">
-                        <i class="fas fa-shipping-fast text-xl"></i>
-                    </div>
-                    <span class="text-gray-700 text-sm font-medium">EN TRÁNSITO</span>
-                </div>
-                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
-                    <div class="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-teal-500 mb-2">
-                        <i class="fas fa-plane-arrival text-xl"></i>
-                    </div>
-                    <span class="text-gray-700 text-sm font-medium">SJO</span>
-                </div>
-                <div class="flex flex-col items-center justify-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
-                    <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 mb-2">
-                        <i class="fas fa-box-open text-xl"></i>
-                    </div>
-                    <span class="text-gray-700 text-sm font-medium">CRBOX</span>
                 </div>
             </div>
-            
-            <!-- Data Table -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+
+            <!-- Vista de Lista -->
+            <div id="list-view" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8 transform transition-all hover:shadow-md">
                 <div class="min-w-full overflow-x-auto">
-                    <table class="data-table">
+                    <table class="data-table w-full">
                         <thead>
                             <tr>
-                                <th class="whitespace-nowrap">Estado</th>
-                                <th class="whitespace-nowrap">Tracking #</th>
-                                <th class="whitespace-nowrap">Carrier</th>
-                                <th class="whitespace-nowrap">Fecha</th>
-                                <th class="whitespace-nowrap">Peso</th>
-                                <th class="whitespace-nowrap">Descripción</th>
-                                <th class="whitespace-nowrap">Notas</th>
-                                <th class="whitespace-nowrap text-right">Acciones</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tracking #</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="empty-state">
-                                <td colspan="8" class="py-16">
-                                    <div class="flex flex-col items-center justify-center">
-                                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                                            <i class="fas fa-box-open text-3xl text-gray-300"></i>
-                                        </div>
-                                        <h3 class="text-xl font-semibold text-gray-500 mb-2">No se encontraron paquetes</h3>
-                                        <p class="text-gray-400 mb-4 text-center max-w-md">
-                                            No tienes ningún paquete registrado en el período seleccionado. Intenta con otras fechas o filtra por un estado diferente.
-                                        </p>
-                                        <a href="calculadora.html" class="action-btn-primary">
-                                            <i class="fas fa-calculator mr-2"></i>
-                                            Calcular un Envío
-                                        </a>
+                            <!-- Fila 1: Miami -->
+                            <tr class="border-b border-gray-100 hover:bg-orange-50 transition-all" data-status="MIAMI" data-date="2025-05-08">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="status-badge status-badge-blue">MIAMI</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="font-medium text-gray-900">TBA386728261000</div>
+                                    <div class="text-xs text-gray-500 mt-1">Amazon</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">08 Mayo, 2025</div>
+                                    <div class="text-xs text-gray-500">14:30</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">1.2 kg</div>
+                                    <div class="text-xs text-gray-500">30x20x15 cm</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">AirPods Pro 2</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-500">Notificar al llegar</div>
+                                </td>
+                                <td class="px-6 py-4 text-right whitespace-nowrap">
+                                    <div class="flex justify-end space-x-1">
+                                        <button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" data-id="1">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar" data-id="1">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear" data-id="1">
+                                            <i class="fas fa-search-location"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Fila 2: En tránsito -->
+                            <tr class="border-b border-gray-100 hover:bg-orange-50 transition-all" data-status="EN TRÁNSITO" data-date="2025-05-05">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="status-badge status-badge-green">EN TRÁNSITO</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="font-medium text-gray-900">1ZW4567X0367829401</div>
+                                    <div class="text-xs text-gray-500 mt-1">eBay</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">05 Mayo, 2025</div>
+                                    <div class="text-xs text-gray-500">09:15</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">3.5 kg</div>
+                                    <div class="text-xs text-gray-500">45x35x25 cm</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">Zapatos Nike Air Max</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-500">Envío prioritario</div>
+                                </td>
+                                <td class="px-6 py-4 text-right whitespace-nowrap">
+                                    <div class="flex justify-end space-x-1">
+                                        <button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" data-id="2">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar" data-id="2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear" data-id="2">
+                                            <i class="fas fa-search-location"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Fila 3: CRBOX -->
+                            <tr class="hover:bg-orange-50 transition-all" data-status="CRBOX" data-date="2025-05-01">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="status-badge status-badge-orange">CRBOX</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="font-medium text-gray-900">9102001248745983462731</div>
+                                    <div class="text-xs text-gray-500 mt-1">Best Buy</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">01 Mayo, 2025</div>
+                                    <div class="text-xs text-gray-500">16:45</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">5.8 kg</div>
+                                    <div class="text-xs text-gray-500">50x40x30 cm</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">iPad Pro 12.9" M3</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-500">Disponible para recoger</div>
+                                </td>
+                                <td class="px-6 py-4 text-right whitespace-nowrap">
+                                    <div class="flex justify-end space-x-1">
+                                        <button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" data-id="3">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar" data-id="3">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear" data-id="3">
+                                            <i class="fas fa-search-location"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- Paginación -->
                 <div class="flex items-center justify-between border-t border-gray-100 px-6 py-3">
-                    <div class="flex items-center">
-                        <span class="mr-2 text-sm text-gray-600">Mostrar</span>
-                        <select class="form-control text-sm h-8 px-2">
-                            <option>10</option>
-                            <option>25</option>
-                            <option>50</option>
-                            <option>100</option>
-                        </select>
-                        <span class="ml-2 text-sm text-gray-600">registros</span>
+                    <div class="flex items-center text-sm text-gray-500">
+                        Página <span class="font-medium mx-1">1</span> de <span class="font-medium mx-1">1</span>
                     </div>
-                    <div>
-                        <span class="text-sm text-gray-600">0 - 0 de 0</span>
-                    </div>
+                    
                     <div class="flex items-center space-x-1">
-                        <button class="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <button class="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled aria-label="Página anterior">
                             <i class="fas fa-chevron-left text-gray-400"></i>
                         </button>
-                        <button class="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <button class="h-8 w-8 flex items-center justify-center rounded bg-orange-100 text-orange-600 font-medium">1</button>
+                        <button class="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled aria-label="Página siguiente">
                             <i class="fas fa-chevron-right text-gray-400"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Manual Tracking Section -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-6 border-b border-gray-100">
-                    <h2 class="text-xl font-bold text-gray-800">Rastrear un Paquete</h2>
+            <!-- Vista de Cuadrícula (inicialmente oculta) -->
+            <div id="grid-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 hidden">
+                <!-- Tarjeta 1: Miami -->
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden transition-all transform hover:-translate-y-1" data-status="MIAMI" data-date="2025-05-08">
+                    <div class="relative h-2 bg-blue-500"></div>
+                    <div class="p-5">
+                        <div class="mb-4">
+                            <div class="flex justify-between items-start">
+                                <span class="status-badge status-badge-blue">MIAMI</span>
+                                <p class="text-xs text-gray-500">08 Mayo, 2025</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 mr-4 flex-shrink-0">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-900 mb-1">AirPods Pro 2</h4>
+                                <p class="text-sm text-gray-600 mb-3">Amazon</p>
+                                <div class="flex items-center text-xs text-gray-500 mb-1">
+                                    <i class="fas fa-hashtag mr-1"></i>
+                                    <span class="tracking-wide">TBA386728261000</span>
+                                </div>
+                                <div class="flex items-center text-xs text-gray-500 mb-1">
+                                    <i class="fas fa-weight mr-1"></i>
+                                    <span>1.2 kg (30x20x15 cm)</span>
+                                </div>
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    <span>Notificar al llegar</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
+                            <div class="flex space-x-1">
+                                <button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" data-id="1">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar" data-id="1">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear" data-id="1">
+                                    <i class="fas fa-search-location"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-6">
-                    <div class="max-w-2xl mx-auto">
-                        <p class="text-gray-600 mb-6">Puedes rastrear cualquier paquete ingresando el número de tracking proporcionado por el courier.</p>
+                
+                <!-- Tarjeta 2: En tránsito -->
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden transition-all transform hover:-translate-y-1" data-status="EN TRÁNSITO" data-date="2025-05-05">
+                    <div class="relative h-2 bg-green-500"></div>
+                    <div class="p-5">
+                        <div class="mb-4">
+                            <div class="flex justify-between items-start">
+                                <span class="status-badge status-badge-green">EN TRÁNSITO</span>
+                                <p class="text-xs text-gray-500">05 Mayo, 2025</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center text-green-600 mr-4 flex-shrink-0">
+                                <i class="fas fa-shoe-prints"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-900 mb-1">Zapatos Nike Air Max</h4>
+                                <p class="text-sm text-gray-600 mb-3">eBay</p>
+                                <div class="flex items-center text-xs text-gray-500 mb-1">
+                                    <i class="fas fa-hashtag mr-1"></i>
+                                    <span class="tracking-wide">1ZW4567X0367829401</span>
+                                </div>
+                                <div class="flex items-center text-xs text-gray-500 mb-1">
+                                    <i class="fas fa-weight mr-1"></i>
+                                    <span>3.5 kg (45x35x25 cm)</span>
+                                </div>
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    <span>Envío prioritario</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
+                            <div class="flex space-x-1">
+                                <button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" data-id="2">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar" data-id="2">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear" data-id="2">
+                                    <i class="fas fa-search-location"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tarjeta 3: CRBOX -->
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden transition-all transform hover:-translate-y-1" data-status="CRBOX" data-date="2025-05-01">
+                    <div class="relative h-2 bg-orange-500"></div>
+                    <div class="p-5">
+                        <div class="mb-4">
+                            <div class="flex justify-between items-start">
+                                <span class="status-badge status-badge-orange">CRBOX</span>
+                                <p class="text-xs text-gray-500">01 Mayo, 2025</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                                <i class="fas fa-tablet-alt"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-900 mb-1">iPad Pro 12.9" M3</h4>
+                                <p class="text-sm text-gray-600 mb-3">Best Buy</p>
+                                <div class="flex items-center text-xs text-gray-500 mb-1">
+                                    <i class="fas fa-hashtag mr-1"></i>
+                                    <span class="tracking-wide">9102001248745983462731</span>
+                                </div>
+                                <div class="flex items-center text-xs text-gray-500 mb-1">
+                                    <i class="fas fa-weight mr-1"></i>
+                                    <span>5.8 kg (50x40x30 cm)</span>
+                                </div>
+                                <div class="flex items-center text-xs text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    <span>Disponible para recoger</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
+                            <div class="flex space-x-1">
+                                <button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" data-id="3">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar" data-id="3">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear" data-id="3">
+                                    <i class="fas fa-search-location"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección inferior con consolidación y consejos -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Consolidation Card -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all transform hover:shadow-md col-span-1 md:col-span-2">
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <span class="bg-purple-100 text-purple-600 p-2 rounded-lg mr-3">
+                                <i class="fas fa-boxes"></i>
+                            </span>
+                            Consolidación de Paquetes
+                        </h2>
+                        <span class="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                            Ahorra hasta 40%
+                        </span>
+                    </div>
+                    <div class="p-6">
+                        <div class="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-md mb-6">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-lightbulb text-purple-600"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-purple-700">Consolidando tus paquetes en uno solo puedes <span class="font-semibold">ahorrar hasta un 40%</span> en tus costos de envío. Selecciona los paquetes que quieres consolidar.</p>
+                                </div>
+                            </div>
+                        </div>
                         
-                        <div class="flex">
-                            <input type="text" placeholder="Ingresa el número de tracking" class="form-control rounded-r-none">
-                            <button class="action-btn-primary rounded-l-none px-6">
-                                <i class="fas fa-search mr-2"></i>
-                                Rastrear
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="font-medium text-gray-700">Paquetes Disponibles para Consolidar</p>
+                            <div class="flex items-center">
+                                <span class="text-orange-600 font-bold text-lg mr-2">1/3</span>
+                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Solo Miami</span>
+                            </div>
+                        </div>
+                        
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6 overflow-hidden">
+                            <div class="bg-orange-600 h-2.5 rounded-full w-1/3 transition-all duration-1000"></div>
+                        </div>
+                        
+                        <!-- Paquetes para consolidar -->
+                        <div class="space-y-3 mb-6">
+                            <!-- Paquete 1: Seleccionable para consolidar -->
+                            <div class="bg-white rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all">
+                                <div class="flex items-center">
+                                    <div class="mr-3">
+                                        <input type="checkbox" id="consolidate-1" class="w-5 h-5 rounded border-gray-300 text-orange-600 focus:ring-orange-500">
+                                    </div>
+                                    <div class="flex-grow">
+                                        <div class="flex justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-800">AirPods Pro 2</p>
+                                                <p class="text-xs text-gray-500">TBA386728261000</p>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <span class="text-xs mr-2">1.2 kg</span>
+                                                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded">MIAMI</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Paquete 2: No disponible para consolidar -->
+                            <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                <div class="flex items-center opacity-60">
+                                    <div class="mr-3">
+                                        <input type="checkbox" disabled class="w-5 h-5 rounded border-gray-300 text-gray-400">
+                                    </div>
+                                    <div class="flex-grow">
+                                        <div class="flex justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-800">Zapatos Nike Air Max</p>
+                                                <p class="text-xs text-gray-500">1ZW4567X0367829401</p>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <span class="text-xs mr-2">3.5 kg</span>
+                                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded">EN TRÁNSITO</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Paquete 3: No disponible para consolidar -->
+                            <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                <div class="flex items-center opacity-60">
+                                    <div class="mr-3">
+                                        <input type="checkbox" disabled class="w-5 h-5 rounded border-gray-300 text-gray-400">
+                                    </div>
+                                    <div class="flex-grow">
+                                        <div class="flex justify-between">
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-800">iPad Pro 12.9" M3</p>
+                                                <p class="text-xs text-gray-500">9102001248745983462731</p>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <span class="text-xs mr-2">5.8 kg</span>
+                                                <span class="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-0.5 rounded">CRBOX</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center">
+                            <button id="create-consolidation" class="action-btn-primary flex items-center justify-center shadow-button button-3d">
+                                <i class="fas fa-object-group mr-2"></i>
+                                Crear Consolidación
                             </button>
                         </div>
                         
-                        <div class="mt-4 text-sm text-center">
-                            <span class="text-gray-500">
-                                Soportamos rastreo de: 
-                                <i class="fab fa-fedex ml-1 text-purple-600"></i>
-                                <i class="fab fa-ups ml-1 text-brown-600"></i>
-                                <i class="fas fa-shipping-fast ml-1 text-blue-600"></i>
-                                <i class="fas fa-mail-bulk ml-1 text-red-600"></i>
-                            </span>
+                        <p class="text-xs text-center text-gray-500 mt-3">
+                            Solo pueden consolidarse paquetes que estén en Miami y no hayan iniciado su tránsito a Costa Rica.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Consejos Rápidos y Casillero -->
+                <div class="space-y-6">
+                    <!-- Notificaciones Importantes -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all transform hover:shadow-md">
+    <div class="bg-blue-50 border-b border-blue-100 p-4 flex items-center justify-between">
+        <h2 class="text-lg font-bold text-gray-800 flex items-center">
+            <span class="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">
+                <i class="fas fa-bell"></i>
+            </span>
+            Notificaciones Importantes
+        </h2>
+        <span class="bg-blue-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+            3 nuevas
+        </span>
+    </div>
+    <div class="divide-y divide-gray-100">
+        <!-- Notificación 1 - Paquete llegado -->
+        <div class="p-4 hover:bg-gray-50 transition-colors">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-10 h-10 mr-3 bg-green-100 rounded-full flex items-center justify-center text-green-500">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-medium text-gray-900">Paquete listo para recoger</h3>
+                        <span class="text-xs text-gray-500">Hoy</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">Tu iPad Pro 12.9" M3 está disponible en CRBOX para recoger.</p>
+                    <div class="mt-2">
+                        <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Ver detalles</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notificación 2 - Promoción -->
+        <div class="p-4 hover:bg-gray-50 transition-colors">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-10 h-10 mr-3 bg-purple-100 rounded-full flex items-center justify-center text-purple-500">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-medium text-gray-900">Promoción especial</h3>
+                        <span class="text-xs text-gray-500">2 días</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">20% de descuento en envíos consolidados durante esta semana.</p>
+                    <div class="mt-2">
+                        <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Ver más</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notificación 3 - Sistema -->
+        <div class="p-4 hover:bg-gray-50 transition-colors">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 w-10 h-10 mr-3 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-500">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-medium text-gray-900">Mantenimiento programado</h3>
+                        <span class="text-xs text-gray-500">5 días</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">El sistema estará en mantenimiento el 15 de mayo de 8:00 PM a 10:00 PM.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ver todas las notificaciones -->
+    <div class="bg-gray-50 p-3 border-t border-gray-100 text-center">
+        <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center justify-center">
+            <span>Ver todas las notificaciones</span>
+            <i class="fas fa-chevron-right ml-1 text-xs"></i>
+        </a>
+    </div>
+</div>
+                    
+                    <!-- Consejos Rápidos -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all transform hover:shadow-md">
+                        <div class="p-5 border-b border-gray-100">
+                            <h2 class="text-lg font-bold text-gray-800 flex items-center">
+                                <span class="bg-green-100 text-green-600 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-lightbulb"></i>
+                                </span>
+                                Consejos Rápidos
+                            </h2>
+                        </div>
+                        <div class="p-5">
+                            <ul class="space-y-3">
+                                <li class="flex items-start">
+                                    <span class="flex-shrink-0 h-5 w-5 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5">
+                                        <i class="fas fa-check text-xs text-green-600"></i>
+                                    </span>
+                                    <p class="text-sm text-gray-600">La consolidación ahorra hasta <span class="font-medium text-gray-800">40%</span> en costos de envío.</p>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="flex-shrink-0 h-5 w-5 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5">
+                                        <i class="fas fa-check text-xs text-green-600"></i>
+                                    </span>
+                                    <p class="text-sm text-gray-600">Usa nuestra <a href="calculadora.html" class="text-orange-600 hover:text-orange-700 hover:underline">calculadora</a> para estimar costos antes de comprar.</p>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="flex-shrink-0 h-5 w-5 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5">
+                                        <i class="fas fa-check text-xs text-green-600"></i>
+                                    </span>
+                                    <p class="text-sm text-gray-600">Recibe notificaciones de tus paquetes activando el rastreo automático.</p>
+                                </li>
+                            </ul>
+                            
+                            <div class="mt-4 pt-3 border-t border-gray-100">
+                                <a href="como-funciona.html" class="text-orange-600 hover:text-orange-700 text-sm font-medium flex items-center">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    Ver más consejos y ayuda
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -353,20 +976,20 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12 mt-12">
+    <footer class="bg-gray-800 text-white py-12 mt-8">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
                     <h3 class="text-xl font-semibold mb-4">CRBOX</h3>
                     <p class="text-gray-400 mb-4">Tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.</p>
                     <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors transform hover:scale-110" aria-label="Facebook">
                             <i class="fab fa-facebook-f"></i>
                         </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors transform hover:scale-110" aria-label="Instagram">
                             <i class="fab fa-instagram"></i>
                         </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors transform hover:scale-110" aria-label="WhatsApp">
                             <i class="fab fa-whatsapp"></i>
                         </a>
                     </div>
@@ -392,11 +1015,11 @@
                         </li>
                         <li class="flex items-start">
                             <i class="fas fa-phone mt-1 mr-3 text-orange-500"></i>
-                            <span class="text-gray-400">+506-4000-1114</span>
+                            <a href="tel:+5064000114" class="text-gray-400 hover:text-white transition-colors">+506-4000-1114</a>
                         </li>
                         <li class="flex items-start">
                             <i class="fas fa-envelope mt-1 mr-3 text-orange-500"></i>
-                            <span class="text-gray-400">ventas@crbox.cr</span>
+                            <a href="mailto:ventas@crbox.cr" class="text-gray-400 hover:text-white transition-colors">ventas@crbox.cr</a>
                         </li>
                     </ul>
                 </div>
@@ -408,6 +1031,13 @@
                         <li class="text-gray-400">Sábados: 9:00 AM - 1:00 PM</li>
                         <li class="text-gray-400">Domingos: Cerrado</li>
                     </ul>
+                    <div class="mt-4 bg-gray-700 rounded-lg p-4">
+                        <p class="text-sm text-gray-300 mb-2">¿Necesitas ayuda?</p>
+                        <a href="tel:+5064000114" class="flex items-center text-white bg-orange-600 hover:bg-orange-700 py-2 px-4 rounded transition-colors">
+                            <i class="fas fa-headset mr-2"></i>
+                            Llámanos ahora
+                        </a>
+                    </div>
                 </div>
             </div>
             
@@ -422,12 +1052,1298 @@
     </footer>
 
     <!-- WhatsApp Button -->
-    <a href="https://wa.me/50640001114" class="fixed bottom-6 right-6 whatsapp-btn w-14 h-14 flex items-center justify-center text-white text-2xl z-50">
+    <a href="https://wa.me/50640001114" class="fixed bottom-6 right-6 whatsapp-btn w-14 h-14 flex items-center justify-center text-white text-2xl z-50 shadow-lg" aria-label="Contactar por WhatsApp">
         <i class="fab fa-whatsapp"></i>
     </a>
 
-    <!-- Scripts -->
-    <script src="js/main.js"></script>
-    <script src="js/dashboard.js"></script>
+    <!-- Modal de Detalles del Paquete -->
+    <div id="package-details-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h3 id="modal-title" class="text-xl font-bold text-gray-800">Detalles del Paquete</h3>
+                <button id="close-details-modal-btn" class="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 rounded-full" aria-label="Cerrar">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-bold text-gray-800" id="modal-product-name">AirPods Pro 2</h4>
+                        <p class="text-gray-500" id="modal-store">Amazon</p>
+                    </div>
+                    <div class="ml-auto">
+                        <span class="status-badge status-badge-blue" id="modal-status">MIAMI</span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h5 class="text-sm font-medium text-gray-500 mb-2">Información de Envío</h5>
+                        <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                            <div class="flex items-start">
+                                <i class="fas fa-hashtag w-5 text-orange-500 mt-0.5"></i>
+                                <div class="ml-3">
+                                    <p class="text-xs text-gray-500">Número de Tracking</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-tracking">TBA386728261000</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-calendar w-5 text-orange-500 mt-0.5"></i>
+                                <div class="ml-3">
+                                    <p class="text-xs text-gray-500">Fecha de Recepción</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-date">08 Mayo, 2025</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-truck w-5 text-orange-500 mt-0.5"></i>
+                                <div class="ml-3">
+                                    <p class="text-xs text-gray-500">Courier</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-courier">Amazon Logistics</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5 class="text-sm font-medium text-gray-500 mb-2">Dimensiones y Precio</h5>
+                        <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                            <div class="flex items-start">
+                                <i class="fas fa-weight w-5 text-orange-500 mt-0.5"></i>
+                                <div class="ml-3">
+                                    <p class="text-xs text-gray-500">Peso</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-weight">1.2 kg</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-box-open w-5 text-orange-500 mt-0.5"></i>
+                                <div class="ml-3">
+                                    <p class="text-xs text-gray-500">Dimensiones</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-dimensions">30x20x15 cm</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-dollar-sign w-5 text-orange-500 mt-0.5"></i>
+                                <div class="ml-3">
+                                    <p class="text-xs text-gray-500">Costo Estimado</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-cost">$15.99</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h5 class="text-sm font-medium text-gray-500 mb-2">Historial de Rastreo</h5>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="relative">
+                        <div class="absolute left-4 top-0 h-full w-0.5 bg-gray-200"></div>
+                        
+                        <div class="mb-4 ml-6 relative">
+                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
+                            <p class="text-sm font-medium text-gray-800">Recibido en Miami</p>
+                            <p class="text-xs text-gray-500">08 Mayo, 2025 - 14:30 PM</p>
+                        </div>
+                        
+                        <div class="mb-4 ml-6 relative">
+                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-gray-300 border-2 border-white"></div>
+                            <p class="text-sm font-medium text-gray-800">Enviado a CRBOX Miami</p>
+                            <p class="text-xs text-gray-500">07 Mayo, 2025 - 09:10 AM</p>
+                        </div>
+                        
+                        <div class="ml-6 relative">
+                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-gray-300 border-2 border-white"></div>
+                            <p class="text-sm font-medium text-gray-800">Enviado por el vendedor</p>
+                            <p class="text-xs text-gray-500">06 Mayo, 2025 - 16:45 PM</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-between">
+                    <button class="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-lg transition-all flex items-center">
+                        <i class="fas fa-print mr-2"></i>
+                        Imprimir Detalles
+                    </button>
+                    
+                    <button class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all flex items-center shadow-button button-3d">
+                        <i class="fas fa-search-location mr-2"></i>
+                        Rastrear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Rastreo de Paquete -->
+    <div id="tracking-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="tracking-modal-title">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h3 id="tracking-modal-title" class="text-xl font-bold text-gray-800">Rastrear Paquete</h3>
+                <button id="close-tracking-modal-btn" class="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 rounded-full" aria-label="Cerrar">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="mb-6">
+                    <label for="tracking-number-input" class="block text-sm font-medium text-gray-700 mb-2">Número de Tracking</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" id="tracking-number-input" class="h-12 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500" placeholder="Ingresa el número de tracking">
+                        <div class="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
+                            <button id="clear-tracking-input" class="inline-flex items-center border border-transparent rounded-lg px-2 text-gray-400 hover:text-gray-500">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4 text-center">
+                    <button id="track-package-btn" class="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all flex items-center justify-center mx-auto shadow-button button-3d">
+                        <i class="fas fa-search-location mr-2"></i>
+                        Buscar
+                    </button>
+                </div>
+                
+                <div id="tracking-results" class="hidden mt-6">
+                    <div class="mb-4 border-b border-gray-200 pb-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-xs text-gray-500">Número de tracking:</p>
+                                <p class="font-medium" id="result-tracking-number">TBA386728261000</p>
+                            </div>
+                            <div>
+                                <span class="status-badge status-badge-blue" id="result-status">MIAMI</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="relative">
+                        <div class="absolute left-4 top-0 h-full w-0.5 bg-gray-200"></div>
+                        
+                        <div class="mb-4 ml-6 relative">
+                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
+                            <p class="text-sm font-medium text-gray-800" id="tracking-step-1-title">Recibido en Miami</p>
+                            <p class="text-xs text-gray-500" id="tracking-step-1-date">08 Mayo, 2025 - 14:30 PM</p>
+                        </div>
+                        
+                        <div class="mb-4 ml-6 relative">
+                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-gray-300 border-2 border-white"></div>
+                            <p class="text-sm font-medium text-gray-800" id="tracking-step-2-title">Enviado a CRBOX Miami</p>
+                            <p class="text-xs text-gray-500" id="tracking-step-2-date">07 Mayo, 2025 - 09:10 AM</p>
+                        </div>
+                        
+                        <div class="ml-6 relative">
+                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-gray-300 border-2 border-white"></div>
+                            <p class="text-sm font-medium text-gray-800" id="tracking-step-3-title">Enviado por el vendedor</p>
+                            <p class="text-xs text-gray-500" id="tracking-step-3-date">06 Mayo, 2025 - 16:45 PM</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="tracking-no-results" class="hidden mt-6 text-center py-6">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-search text-gray-400 text-2xl"></i>
+                    </div>
+                    <h4 class="text-lg font-medium text-gray-800 mb-2">No encontramos resultados</h4>
+                    <p class="text-gray-500 text-sm">Verifica el número de tracking e intenta nuevamente.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSS Mejorado -->
+    <style>
+        /* Estilos base */
+        .font-inter {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Estilos de botones */
+        .action-btn-primary {
+            background-color: #FF6B00;
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn-primary:hover {
+            background-color: #DD6B20;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .action-btn-light {
+            background-color: white;
+            color: #4A5568;
+            border: 1px solid #E2E8F0;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn-light:hover {
+            background-color: #F7FAFC;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .action-btn-light:active {
+            transform: translateY(0);
+        }
+        
+        /* Botón primario */
+        .primary-btn {
+            background-color: #FF6B00;
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .primary-btn:hover {
+            background-color: #DD6B20;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .primary-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Formularios */
+        .form-control {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #E2E8F0;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(237, 137, 54, 0.5);
+            border-color: #FF6B00;
+        }
+        
+        /* Tabla de datos */
+        .data-table {
+            min-width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .data-table th {
+            padding: 0.75rem 1.5rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .data-table td {
+            padding: 1rem 1.5rem;
+            font-size: 0.875rem;
+            color: #4A5568;
+        }
+        
+        .data-table tr {
+            transition: background-color 0.3s ease;
+        }
+        
+        .data-table tr:hover {
+            background-color: #FFF5EB;
+        }
+        
+        /* Badges de estado */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 9999px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        
+        .status-badge-blue {
+            background-color: #E6F6FF;
+            color: #2B6CB0;
+        }
+        
+        .status-badge-green {
+            background-color: #E6FFFA;
+            color: #276749;
+        }
+        
+        .status-badge-orange {
+            background-color: #FFFAF0;
+            color: #C05621;
+        }
+        
+        .status-badge-purple {
+            background-color: #F3E8FF;
+            color: #6B46C1;
+        }
+        
+        .status-badge-gray {
+            background-color: #F7FAFC;
+            color: #4A5568;
+        }
+        
+        .status-badge-yellow {
+            background-color: #FFFBEB;
+            color: #975A16;
+        }
+        
+        /* Animaciones */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        /* Estilos del toast */
+        #toast-container .toast {
+            min-width: 280px;
+            margin-bottom: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            right: 0;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+        
+        #toast-container .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        /* Efecto de brillo para tarjetas */
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20%;
+            height: 200%;
+            opacity: 0;
+            transform: rotate(30deg);
+            background: rgba(255, 255, 255, 0.13);
+            background: linear-gradient(
+                to right, 
+                rgba(255, 255, 255, 0.13) 0%,
+                rgba(255, 255, 255, 0.13) 77%,
+                rgba(255, 255, 255, 0.5) 92%,
+                rgba(255, 255, 255, 0.0) 100%
+            );
+        }
+        
+        .shine-effect:hover::after {
+            opacity: 1;
+            left: 130%;
+            transition: left 0.7s ease, opacity 0.3s ease;
+        }
+        
+        /* Sombra para botones */
+        .shadow-button {
+            box-shadow: 0 4px 6px -1px rgba(255, 107, 0, 0.1), 0 2px 4px -1px rgba(255, 107, 0, 0.06);
+        }
+        
+        /* Efecto 3D para botones */
+        .button-3d {
+            transform: translateY(0);
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                0 -2px 0 0 rgba(255, 255, 255, 0.15) inset,
+                0 2px 0 0 rgba(0, 0, 0, 0.15) inset;
+            transition: all 0.2s ease;
+        }
+        
+        .button-3d:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+                0 4px 6px -2px rgba(0, 0, 0, 0.05),
+                0 -2px 0 0 rgba(255, 255, 255, 0.2) inset,
+                0 2px 0 0 rgba(0, 0, 0, 0.1) inset;
+        }
+        
+        .button-3d:active {
+            transform: translateY(1px);
+            box-shadow: 
+                0 2px 4px -1px rgba(0, 0, 0, 0.1), 
+                0 1px 2px -1px rgba(0, 0, 0, 0.05),
+                0 -1px 0 0 rgba(255, 255, 255, 0.1) inset,
+                0 1px 0 0 rgba(0, 0, 0, 0.2) inset;
+        }
+        
+        /* Skip to content (accesibilidad) */
+        .skip-to-content {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #FF6B00;
+            color: white;
+            padding: 8px;
+            z-index: 100;
+            transition: top 0.3s;
+        }
+        
+        .skip-to-content:focus {
+            top: 0;
+        }
+        
+        /* No-scrollbar utility */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;  /* Chrome, Safari and Opera */
+        }
+        
+        /* WhatsApp Button */
+        .whatsapp-btn {
+            background-color: #25D366;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .whatsapp-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(37, 211, 102, 0.5);
+        }
+        
+        /* Estilos para los tabs de estado */
+        .status-tab {
+            position: relative;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .status-tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .status-tab.active {
+            background-color: #FEF6EC;
+        }
+        
+        .status-tab.active::after {
+            background-color: #FF6B00;
+        }
+        
+        /* Mejoras para responsividad en móviles */
+        @media (max-width: 768px) {
+            .sticky-header {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+            }
+            
+            .data-table th, 
+            .data-table td {
+                padding: 0.75rem 0.5rem;
+            }
+            
+            .status-tab {
+                padding: 0.5rem 0.25rem;
+            }
+            
+            .status-tab .w-10.h-10 {
+                width: 2rem;
+                height: 2rem;
+            }
+        }
+    </style>
+
+    <!-- JavaScript Mejorado -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar componentes
+            initMobileMenu();
+            initStickyHeader();
+            initTabHoverEffects();
+            initCounterAnimation();
+            initCopyFunctions();
+            initToasts();
+            initViewToggle();
+            initStatusFilter();
+            initModalHandlers();
+            initSearchFilter();
+            
+            // Mostrar mensaje de bienvenida
+            showWelcomeMessage();
+        });
+        
+        // Toggle menú móvil
+        function initMobileMenu() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function() {
+                    const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+                    
+                    if (!isExpanded) {
+                        // Mostrar menú
+                        mobileMenu.classList.remove('hidden');
+                        setTimeout(() => {
+                            mobileMenu.classList.remove('opacity-0', 'scale-95');
+                            mobileMenu.classList.add('opacity-100', 'scale-100');
+                        }, 10);
+                        
+                        mobileMenuButton.innerHTML = '<i class="fas fa-times text-xl"></i>';
+                        mobileMenuButton.setAttribute('aria-expanded', 'true');
+                    } else {
+                        // Ocultar menú
+                        mobileMenu.classList.add('opacity-0', 'scale-95');
+                        mobileMenu.classList.remove('opacity-100', 'scale-100');
+                        
+                        setTimeout(() => {
+                            mobileMenu.classList.add('hidden');
+                            mobileMenuButton.innerHTML = '<i class="fas fa-bars text-xl"></i>';
+                        }, 300);
+                        
+                        mobileMenuButton.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+        }
+        
+        // Header sticky con sombra al scroll
+        function initStickyHeader() {
+            const header = document.querySelector('.sticky-header');
+            const tabBar = document.querySelector('.border-b.border-gray-200');
+            
+            if (!header) return;
+            
+            let lastScrollTop = 0;
+            
+            window.addEventListener('scroll', function() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Añadir sombra al hacer scroll
+                if (scrollTop > 10) {
+                    header.classList.add('shadow-md');
+                    if (tabBar) tabBar.classList.add('shadow-sm');
+                } else {
+                    header.classList.remove('shadow-md');
+                    if (tabBar) tabBar.classList.remove('shadow-sm');
+                }
+                
+                lastScrollTop = scrollTop;
+            });
+        }
+        
+        // Efecto hover para tabs
+        function initTabHoverEffects() {
+            const tabLinks = document.querySelectorAll('.tab-hover-line');
+            
+            tabLinks.forEach(link => {
+                const parentLink = link.parentNode;
+                
+                parentLink.addEventListener('mouseenter', function() {
+                    link.style.transform = 'scaleX(1)';
+                });
+                
+                parentLink.addEventListener('mouseleave', function() {
+                    link.style.transform = 'scaleX(0)';
+                });
+            });
+        }
+        
+        // Animar contadores
+        function initCounterAnimation() {
+            const counters = document.querySelectorAll('.counter-animation');
+            
+            if (counters.length === 0) return;
+            
+            counters.forEach(counter => {
+                const targetValue = counter.innerText;
+                
+                // Verificar si es una fracción (para paquetes consolidados)
+                if (targetValue.includes('/')) {
+                    const parts = targetValue.split('/');
+                    const current = parseInt(parts[0]);
+                    const total = parseInt(parts[1]);
+                    
+                    let count = 0;
+                    const duration = 1500; // milisegundos
+                    const increment = current / (duration / 16); // 60fps
+                    
+                    counter.innerText = '0/' + total;
+                    
+                    const updateCount = () => {
+                        if (count < current) {
+                            count += increment;
+                            if (count > current) count = current;
+                            
+                            counter.innerText = Math.floor(count) + '/' + total;
+                            requestAnimationFrame(updateCount);
+                        }
+                    };
+                    
+                    updateCount();
+                } else {
+                    // Número regular
+                    const target = parseInt(targetValue);
+                    
+                    let count = 0;
+                    const duration = 1500; // milisegundos
+                    const increment = target / (duration / 16); // 60fps
+                    
+                    counter.innerText = '0';
+                    
+                    const updateCount = () => {
+                        if (count < target) {
+                            count += increment;
+                            if (count > target) count = target;
+                            
+                            counter.innerText = Math.floor(count);
+                            requestAnimationFrame(updateCount);
+                        }
+                    };
+                    
+                    updateCount();
+                }
+            });
+        }
+        
+        // Inicializar funciones de copiado
+        function initCopyFunctions() {
+            // Copiar número de casillero
+            const copyBtn = document.getElementById('copy-casillero');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', function() {
+                    const casilleroNumber = '50628595';
+                    copyToClipboard(casilleroNumber);
+                    showToast('Número de casillero copiado al portapapeles', 'success');
+                });
+            }
+            
+            // Copiar dirección completa
+            const copyAddressBtn = document.getElementById('copy-address-btn');
+            if (copyAddressBtn) {
+                copyAddressBtn.addEventListener('click', function() {
+                    const address = "Mathias Meneses\n8155 NW 68TH ST\nMiami, FL 33166\nUSA\nCasillero: 50628595";
+                    copyToClipboard(address);
+                    showToast('Dirección completa copiada al portapapeles', 'success');
+                });
+            }
+        }
+        
+        // Copiar al portapapeles
+        function copyToClipboard(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text)
+                    .then(() => {})
+                    .catch(err => {
+                        console.error('Error al copiar:', err);
+                        fallbackCopyToClipboard(text);
+                    });
+            } else {
+                fallbackCopyToClipboard(text);
+            }
+        }
+        
+        // Alternativa para navegadores sin Clipboard API
+        function fallbackCopyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Error en fallback copy:', err);
+            }
+            
+            document.body.removeChild(textarea);
+        }
+        
+        // Inicializar sistema de toasts
+        function initToasts() {
+            // Verificar si existe el contenedor de toasts
+            if (!document.getElementById('toast-container')) {
+                const toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'fixed top-5 right-5 z-50 flex flex-col items-end space-y-2';
+                document.body.appendChild(toastContainer);
+            }
+        }
+        
+        // Mostrar toast notification
+        function showToast(message, type = 'info', duration = 3000) {
+            const toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) return;
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast flex items-center rounded-lg px-4 py-3 shadow-lg';
+            
+            // Estilos según el tipo
+            let iconClass = '';
+            switch (type) {
+                case 'success':
+                    toast.classList.add('bg-green-500', 'text-white');
+                    iconClass = 'fas fa-check-circle';
+                    break;
+                case 'error':
+                    toast.classList.add('bg-red-500', 'text-white');
+                    iconClass = 'fas fa-exclamation-circle';
+                    break;
+                case 'warning':
+                    toast.classList.add('bg-yellow-500', 'text-white');
+                    iconClass = 'fas fa-exclamation-triangle';
+                    break;
+                default: // info
+                    toast.classList.add('bg-blue-500', 'text-white');
+                    iconClass = 'fas fa-info-circle';
+                    break;
+            }
+            
+            toast.innerHTML = `
+                <i class="${iconClass} mr-2"></i>
+                <span>${message}</span>
+                <button class="ml-auto pl-3 text-white opacity-70 hover:opacity-100" onclick="this.parentNode.remove()" aria-label="Cerrar notificación">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Animar entrada
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            // Auto-eliminar
+            if (duration > 0) {
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        toast.classList.remove('show');
+                        setTimeout(() => {
+                            if (document.body.contains(toast)) {
+                                toast.remove();
+                            }
+                        }, 300);
+                    }
+                }, duration);
+            }
+            
+            return toast;
+        }
+        
+        // Toggle entre vista de lista y cuadrícula
+        function initViewToggle() {
+            const listViewBtn = document.getElementById('list-view-btn');
+            const gridViewBtn = document.getElementById('grid-view-btn');
+            const listView = document.getElementById('list-view');
+            const gridView = document.getElementById('grid-view');
+            
+            if (listViewBtn && gridViewBtn && listView && gridView) {
+                listViewBtn.addEventListener('click', () => {
+                    listView.classList.remove('hidden');
+                    gridView.classList.add('hidden');
+                    
+                    listViewBtn.classList.add('bg-orange-100', 'text-orange-600');
+                    listViewBtn.classList.remove('bg-white', 'text-gray-500');
+                    
+                    gridViewBtn.classList.add('bg-white', 'text-gray-500');
+                    gridViewBtn.classList.remove('bg-orange-100', 'text-orange-600');
+                    
+                    listViewBtn.setAttribute('aria-pressed', 'true');
+                    gridViewBtn.setAttribute('aria-pressed', 'false');
+                    
+                    // Guardar preferencia del usuario
+                    localStorage.setItem('preferredView', 'list');
+                });
+                
+                gridViewBtn.addEventListener('click', () => {
+                    gridView.classList.remove('hidden');
+                    listView.classList.add('hidden');
+                    
+                    gridViewBtn.classList.add('bg-orange-100', 'text-orange-600');
+                    gridViewBtn.classList.remove('bg-white', 'text-gray-500');
+                    
+                    listViewBtn.classList.add('bg-white', 'text-gray-500');
+                    listViewBtn.classList.remove('bg-orange-100', 'text-orange-600');
+                    
+                    gridViewBtn.setAttribute('aria-pressed', 'true');
+                    listViewBtn.setAttribute('aria-pressed', 'false');
+                    
+                    // Guardar preferencia del usuario
+                    localStorage.setItem('preferredView', 'grid');
+                });
+                
+                // Restaurar preferencia guardada
+                const preferredView = localStorage.getItem('preferredView');
+                if (preferredView === 'grid') {
+                    gridViewBtn.click();
+                }
+            }
+        }
+        
+        // Filtrado por estado
+        function initStatusFilter() {
+            const statusTabs = document.querySelectorAll('.status-tab');
+            const allRows = document.querySelectorAll('#list-view tbody tr');
+            const allCards = document.querySelectorAll('#grid-view > div');
+            const showingCount = document.getElementById('showing-count');
+            
+            if (statusTabs.length === 0) return;
+            
+            statusTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Quitar clases activas de todos los tabs
+                    statusTabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Añadir clase activa al tab clickeado
+                    tab.classList.add('active');
+                    
+                    const statusFilter = tab.getAttribute('data-status');
+                    let visibleCount = 0;
+                    
+                    // Filtrar filas en vista de lista
+                    allRows.forEach(row => {
+                        if (statusFilter === 'all' || row.getAttribute('data-status') === statusFilter) {
+                            row.style.display = '';
+                            visibleCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                    
+                    // Filtrar tarjetas en vista de cuadrícula
+                    allCards.forEach(card => {
+                        if (statusFilter === 'all' || card.getAttribute('data-status') === statusFilter) {
+                            card.style.display = '';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                    
+                    // Actualizar contador de resultados
+                    if (showingCount) {
+                        showingCount.textContent = visibleCount.toString();
+                    }
+                    
+                    // Añadir filtro como chip activo
+                    if (statusFilter !== 'all') {
+                        updateActiveFilters(statusFilter);
+                    } else {
+                        clearActiveFilters();
+                    }
+                });
+            });
+            
+            // Manejar chips de filtros activos
+            const clearAllFiltersBtn = document.getElementById('clear-all-filters');
+            if (clearAllFiltersBtn) {
+                clearAllFiltersBtn.addEventListener('click', () => {
+                    clearActiveFilters();
+                    
+                    // Activar tab "Todos"
+                    statusTabs.forEach(t => {
+                        if (t.getAttribute('data-status') === 'all') {
+                            t.click();
+                        }
+                    });
+                    
+                    showToast('Filtros limpiados', 'info');
+                });
+            }
+            
+            // Eliminar filtros individuales
+            const activeFilters = document.getElementById('active-filters');
+            if (activeFilters) {
+                activeFilters.addEventListener('click', (e) => {
+                    if (e.target.closest('button') && e.target.closest('button').parentNode.classList.contains('inline-flex')) {
+                        e.target.closest('button').parentNode.remove();
+                        
+                        // Activar tab "Todos"
+                        statusTabs.forEach(t => {
+                            if (t.getAttribute('data-status') === 'all') {
+                                t.click();
+                            }
+                        });
+                    }
+                });
+            }
+        }
+        
+        // Actualizar chips de filtros activos
+        function updateActiveFilters(filter) {
+            const activeFilters = document.getElementById('active-filters');
+            const existingFilters = activeFilters.querySelectorAll('.inline-flex');
+            
+            // Eliminar filtros de estado existentes
+            existingFilters.forEach(f => {
+                const filterText = f.querySelector('span').textContent;
+                if (['Miami', 'CARGADO', 'EN ESPERA', 'EN TRÁNSITO', 'SJO', 'CRBOX'].includes(filterText)) {
+                    f.remove();
+                }
+            });
+            
+            // Añadir nuevo filtro
+            const filterColors = {
+                'MIAMI': 'blue',
+                'CARGADO': 'purple',
+                'EN ESPERA': 'yellow',
+                'EN TRÁNSITO': 'green',
+                'SJO': 'teal',
+                'CRBOX': 'orange'
+            };
+            
+            const color = filterColors[filter] || 'blue';
+            
+            const filterEl = document.createElement('div');
+            filterEl.className = `inline-flex items-center px-3 py-1 rounded-full bg-${color}-50 text-${color}-700 border border-${color}-100`;
+            filterEl.innerHTML = `
+                <span class="text-sm">${filter}</span>
+                <button class="ml-2 text-${color}-400 hover:text-${color}-700" aria-label="Eliminar filtro ${filter}">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+            `;
+            
+            const clearAllBtn = document.getElementById('clear-all-filters');
+            if (clearAllBtn) {
+                activeFilters.insertBefore(filterEl, clearAllBtn);
+            } else {
+                activeFilters.appendChild(filterEl);
+            }
+        }
+        
+        // Limpiar todos los filtros activos
+        function clearActiveFilters() {
+            const activeFilters = document.getElementById('active-filters');
+            const filters = activeFilters.querySelectorAll('.inline-flex');
+            
+            filters.forEach(filter => filter.remove());
+            
+            // Mostrar todas las filas y tarjetas
+            const allRows = document.querySelectorAll('#list-view tbody tr');
+            const allCards = document.querySelectorAll('#grid-view > div');
+            
+            allRows.forEach(row => {
+                row.style.display = '';
+            });
+            
+            allCards.forEach(card => {
+                card.style.display = '';
+            });
+            
+            // Actualizar contador
+            const showingCount = document.getElementById('showing-count');
+            if (showingCount) {
+                showingCount.textContent = allRows.length.toString();
+            }
+        }
+        
+        // Manejar búsqueda
+        function initSearchFilter() {
+            const searchInput = document.getElementById('search-input');
+            const allRows = document.querySelectorAll('#list-view tbody tr');
+            const allCards = document.querySelectorAll('#grid-view > div');
+            const showingCount = document.getElementById('showing-count');
+            
+            if (!searchInput) return;
+            
+            searchInput.addEventListener('input', () => {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                let visibleCount = 0;
+                
+                if (searchTerm === '') {
+                    // Si no hay búsqueda, mostrar todo
+                    allRows.forEach(row => {
+                        row.style.display = '';
+                        visibleCount++;
+                    });
+                    
+                    allCards.forEach(card => {
+                        card.style.display = '';
+                    });
+                } else {
+                    // Filtrar filas en vista de lista
+                    allRows.forEach(row => {
+                        const textContent = row.textContent.toLowerCase();
+                        if (textContent.includes(searchTerm)) {
+                            row.style.display = '';
+                            visibleCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                    
+                    // Filtrar tarjetas en vista de cuadrícula
+                    allCards.forEach(card => {
+                        const textContent = card.textContent.toLowerCase();
+                        if (textContent.includes(searchTerm)) {
+                            card.style.display = '';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                }
+                
+                // Actualizar contador de resultados
+                if (showingCount) {
+                    showingCount.textContent = visibleCount.toString();
+                }
+            });
+        }
+        
+        // Manejar modales
+        function initModalHandlers() {
+            // Modal de detalles
+            const detailsModal = document.getElementById('package-details-modal');
+            const closeDetailsBtn = document.getElementById('close-details-modal-btn');
+            const detailBtns = document.querySelectorAll('.btn-detail');
+            
+            if (detailsModal && closeDetailsBtn && detailBtns.length > 0) {
+                // Abrir modal de detalles
+                detailBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        // Acá se cargarían los datos del paquete
+                        // Para demo, usamos datos estáticos
+                        
+                        detailsModal.classList.remove('hidden');
+                        document.body.style.overflow = 'hidden'; // Evitar scroll
+                    });
+                });
+                
+                // Cerrar modal de detalles
+                closeDetailsBtn.addEventListener('click', () => {
+                    detailsModal.classList.add('hidden');
+                    document.body.style.overflow = ''; // Restaurar scroll
+                });
+                
+                // Cerrar con click fuera
+                detailsModal.addEventListener('click', (e) => {
+                    if (e.target === detailsModal) {
+                        detailsModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+            
+            // Modal de rastreo
+            const trackingModal = document.getElementById('tracking-modal');
+            const closeTrackingBtn = document.getElementById('close-tracking-modal-btn');
+            const trackModalBtn = document.getElementById('track-modal-btn');
+            const trackPackageBtn = document.getElementById('track-package-btn');
+            const trackingNumberInput = document.getElementById('tracking-number-input');
+            const trackingResults = document.getElementById('tracking-results');
+            const trackingNoResults = document.getElementById('tracking-no-results');
+            
+            if (trackingModal && closeTrackingBtn && trackModalBtn) {
+                // Abrir modal de rastreo
+                trackModalBtn.addEventListener('click', () => {
+                    trackingModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Ocultar resultados
+                    if (trackingResults) trackingResults.classList.add('hidden');
+                    if (trackingNoResults) trackingNoResults.classList.add('hidden');
+                    
+                    // Limpiar input
+                    if (trackingNumberInput) trackingNumberInput.value = '';
+                    
+                    // Enfocar en el input
+                    setTimeout(() => {
+                        if (trackingNumberInput) trackingNumberInput.focus();
+                    }, 100);
+                });
+                
+                // Cerrar modal de rastreo
+                closeTrackingBtn.addEventListener('click', () => {
+                    trackingModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                });
+                
+                // Cerrar con click fuera
+                trackingModal.addEventListener('click', (e) => {
+                    if (e.target === trackingModal) {
+                        trackingModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                });
+                
+                // Botón de limpiar input
+                const clearTrackingBtn = document.getElementById('clear-tracking-input');
+                if (clearTrackingBtn && trackingNumberInput) {
+                    clearTrackingBtn.addEventListener('click', () => {
+                        trackingNumberInput.value = '';
+                        trackingNumberInput.focus();
+                    });
+                }
+                
+                // Botón de rastrear
+                if (trackPackageBtn && trackingNumberInput) {
+                    trackPackageBtn.addEventListener('click', () => {
+                        const trackingNumber = trackingNumberInput.value.trim();
+                        
+                        if (trackingNumber === '') {
+                            showToast('Ingresa un número de tracking', 'warning');
+                            return;
+                        }
+                        
+                        // Simulación de búsqueda para demo
+                        setTimeout(() => {
+                            // Actualizar número de tracking en resultados
+                            const resultTrackingNumber = document.getElementById('result-tracking-number');
+                            if (resultTrackingNumber) {
+                                resultTrackingNumber.textContent = trackingNumber;
+                            }
+                            
+                            // Verificar si coincide con algún paquete existente
+                            const existingTrackings = [
+                                'TBA386728261000',
+                                '1ZW4567X0367829401',
+                                '9102001248745983462731'
+                            ];
+                            
+                            if (existingTrackings.includes(trackingNumber) || Math.random() > 0.3) {
+                                // Mostrar resultados
+                                if (trackingResults) {
+                                    trackingResults.classList.remove('hidden');
+                                }
+                                if (trackingNoResults) {
+                                    trackingNoResults.classList.add('hidden');
+                                }
+                                
+                                showToast('Paquete encontrado', 'success');
+                            } else {
+                                // Mostrar sin resultados
+                                if (trackingResults) {
+                                    trackingResults.classList.add('hidden');
+                                }
+                                if (trackingNoResults) {
+                                    trackingNoResults.classList.remove('hidden');
+                                }
+                                
+                                showToast('No se encontraron resultados', 'warning');
+                            }
+                        }, 500);
+                    });
+                    
+                    // Permitir búsqueda con Enter
+                    if (trackingNumberInput) {
+                        trackingNumberInput.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') {
+                                trackPackageBtn.click();
+                            }
+                        });
+                    }
+                }
+            }
+            
+            // ESC para cerrar modales
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (detailsModal && !detailsModal.classList.contains('hidden')) {
+                        detailsModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                    
+                    if (trackingModal && !trackingModal.classList.contains('hidden')) {
+                        trackingModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                }
+            });
+        }
+        
+        // Mensaje de bienvenida
+        function showWelcomeMessage() {
+            // Verificar si es primera visita del día
+            const lastVisit = localStorage.getItem('lastVisit');
+            const today = new Date().toDateString();
+            
+            if (lastVisit !== today) {
+                // Determinar saludo según hora
+                const hour = new Date().getHours();
+                let greeting = 'Bienvenido';
+                
+                if (hour < 12) {
+                    greeting = '¡Buenos días';
+                } else if (hour < 18) {
+                    greeting = '¡Buenas tardes';
+                } else {
+                    greeting = '¡Buenas noches';
+                }
+                
+                // Mostrar toast
+                setTimeout(() => {
+                    showToast(`${greeting}, Mathias! Has iniciado sesión en CRBOX`, 'success', 5000);
+                }, 1000);
+                
+                // Guardar visita
+                localStorage.setItem('lastVisit', today);
+            }
+        }
+    </script>
 </body>
 </html>

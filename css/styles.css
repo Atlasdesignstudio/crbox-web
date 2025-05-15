@@ -627,3 +627,47 @@ button.active {
     opacity: 0;
     visibility: hidden;
 }
+
+    /* Estilos para el dropdown de usuario */
+    #user-dropdown-menu {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(229, 231, 235, 1);
+    }
+    
+    #user-dropdown-menu a {
+        border-radius: 0.375rem;
+    }
+    
+    #user-dropdown-menu a:hover i {
+        transform: translateX(2px);
+    }
+    
+    #user-dropdown-menu i {
+        transition: transform 0.2s ease;
+    }
+    
+    /* Efecto de elevación al hover en el botón */
+    #user-menu-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Transición suave para el botón */
+    #user-menu-button {
+        transition: all 0.2s ease;
+    }
+    
+    /* Efecto de pulsación al hacer clic */
+    #user-menu-button:active {
+        transform: translateY(1px);
+    }
+
+    /* Agregar esto a tu archivo styles.css */
+.login-link {
+    background-color: #FF6B00 !important;
+    color: white !important;
+}
+
+.login-link:hover {
+    background-color: #E05A00 !important;
+}

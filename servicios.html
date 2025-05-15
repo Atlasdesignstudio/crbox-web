@@ -108,10 +108,31 @@
                 </nav>
     
                 <!-- Botones acción (escritorio) -->
-                <div class="hidden md:flex items-center space-x-3">
-                    <a href="calculadora.html" class="primary-btn">Calcular Envío</a>
-                    <a href="afiliate.html" class="secondary-btn">Afíliate Gratis</a>
-                </div>
+<div class="hidden md:flex items-center space-x-4">
+    <a href="calculadora.html" class="primary-btn">Calcular Envío</a>
+    <a href="afiliate.html" class="secondary-btn">Afíliate Gratis</a>
+    <!-- Nuevo dropdown de usuario con más margen -->
+    <div class="relative ml-3" id="user-dropdown">
+        <button class="flex items-center justify-center w-11 h-11 rounded-full bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-orange-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-sm" id="user-menu-button" aria-expanded="false">
+            <i class="fas fa-user-circle text-2xl text-gray-500 hover:text-orange-600 transition-colors duration-300"></i>
+        </button>
+        <!-- Dropdown elegante (inicialmente oculto) -->
+        <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 py-1 focus:outline-none divide-y divide-gray-100 transform opacity-0 scale-95 pointer-events-none transition duration-200 ease-in-out z-50" id="user-dropdown-menu">
+            <div class="py-2 px-4">
+                <a href="login.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                    <i class="fas fa-sign-in-alt mr-3 text-orange-500"></i>
+                    <span>Iniciar Sesión</span>
+                </a>
+            </div>
+            <div class="py-2 px-4">
+                <a href="afiliate.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                    <i class="fas fa-user-plus mr-3 text-orange-500"></i>
+                    <span>Crear Cuenta</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
     
                 <!-- Botón menú móvil -->
                 <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
@@ -596,6 +617,54 @@
             top: 0,
             behavior: 'smooth'
         });
+    });
+</script>
+<!-- Script para el dropdown de usuario -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Referencias
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userDropdownMenu = document.getElementById('user-dropdown-menu');
+        
+        // Toggle del dropdown de usuario
+        if (userMenuButton && userDropdownMenu) {
+            userMenuButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                // Toggle clases para animación suave
+                if (userDropdownMenu.classList.contains('opacity-0')) {
+                    // Mostrar menú
+                    userDropdownMenu.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                    userDropdownMenu.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
+                    userMenuButton.setAttribute('aria-expanded', 'true');
+                    userMenuButton.classList.add('bg-orange-50', 'border-orange-200');
+                    userMenuButton.querySelector('i').classList.add('text-orange-600');
+                } else {
+                    // Ocultar menú
+                    userDropdownMenu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                    userDropdownMenu.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+                    userMenuButton.setAttribute('aria-expanded', 'false');
+                    userMenuButton.classList.remove('bg-orange-50', 'border-orange-200');
+                    userMenuButton.querySelector('i').classList.remove('text-orange-600');
+                }
+            });
+            
+            // Cerrar al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!userMenuButton.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                    userDropdownMenu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                    userDropdownMenu.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+                    userMenuButton.setAttribute('aria-expanded', 'false');
+                    userMenuButton.classList.remove('bg-orange-50', 'border-orange-200');
+                    userMenuButton.querySelector('i').classList.remove('text-orange-600');
+                }
+            });
+            
+            // Prevenir cierre al hacer clic dentro del dropdown
+            userDropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
     });
 </script>
 </body>
