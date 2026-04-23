@@ -1,6 +1,6 @@
 # CRBOX Analytics — Tracking Plan
 
-All events are pushed to `window.dataLayer` and consumed by GTM (container `GTM-XXXXXXX`).  
+All events are pushed to `window.dataLayer` and consumed by GTM (container `YOUR_GTM_CONTAINER_ID`).  
 Every push carries three automatic standard parameters in addition to the event-specific ones.
 
 ---

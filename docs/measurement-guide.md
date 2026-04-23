@@ -119,8 +119,8 @@ The fastest way to configure GTM is to import the pre-built container export fil
 2. Choose file: `docs/gtm-container-export.json`.
 3. Select **Existing workspace** (or create a new one) and choose **Merge** → **Rename conflicting tags, triggers, and variables**.
 4. Click **Confirm**.
-5. In the Variables panel, open **GA4 Measurement ID** and replace `G-XXXXXXXXXX` with your real GA4 Measurement ID.
-6. Verify the container ID placeholder `GTM-XXXXXXX` in all 6 HTML pages has already been replaced with your real container ID.
+5. In the Variables panel, open **GA4 Measurement ID** and verify the value is `G-B5BPHFRR18` — this is already your real GA4 Measurement ID.
+6. Verify the container ID placeholder `YOUR_GTM_CONTAINER_ID` in all 6 HTML pages has already been replaced with your real container ID.
 7. Click **Submit** to publish.
 
 > **Note:** The import creates all variables, triggers, and tags in a draft state. Always preview and verify before submitting.
@@ -132,7 +132,7 @@ The fastest way to configure GTM is to import the pre-built container export fil
 Use this if you prefer to build the container by hand or need to add items to an existing workspace.
 
 ### Container
-- Container ID: `GTM-XXXXXXX` — replace in every public HTML page before go-live.
+- Container ID: `YOUR_GTM_CONTAINER_ID` — replace in every public HTML page before go-live.
 - The snippet is already in place on all six public pages (head + noscript body tag).
 
 ### Constant Variable
@@ -141,9 +141,9 @@ Create one **Constant** variable:
 
 | GTM Variable Name     | Value           |
 |-----------------------|-----------------|
-| `GA4 Measurement ID`  | `G-XXXXXXXXXX`  |
+| `GA4 Measurement ID`  | `G-B5BPHFRR18`  |
 
-Replace `G-XXXXXXXXXX` with your real GA4 Measurement ID.
+The value `G-B5BPHFRR18` is already your real GA4 Measurement ID — no replacement needed.
 
 ### Data Layer Variables
 
@@ -230,7 +230,7 @@ After publishing the container and letting events flow for a session, go to **GA
 
 Use this checklist before trusting any data in GA4's Conversions report. GTM Preview Mode lets you confirm each tag fires on the correct user action, and GA4 DebugView lets you confirm the event lands in GA4 with the right parameters and the conversion flag set.
 
-> **Prerequisite:** Your GTM container must be published (or you must use Preview Mode against the draft). The GA4 Measurement ID Constant variable must already be set to your real `G-XXXXXXXXXX` value. All four events must already be toggled as conversions in GA4 Admin → Events (Section 6 checklist above).
+> **Prerequisite:** Your GTM container must be published (or you must use Preview Mode against the draft). The GA4 Measurement ID Constant variable must already be set to your real `G-B5BPHFRR18` value. All four events must already be toggled as conversions in GA4 Admin → Events (Section 6 checklist above).
 
 #### Step 1 — Enter GTM Preview Mode
 
@@ -329,7 +329,7 @@ Use this table when something goes wrong during the Section 6.1 verification ste
 |---------|-------------|------------|
 | **Tag Assistant won't connect** — the Tag Assistant panel never appears at the bottom of the test page, or shows "Waiting for Tag Assistant to connect" indefinitely | The page URL entered in GTM Preview does not exactly match the URL that loaded (http vs https, trailing slash, query string mismatch), or a browser extension (ad blocker, privacy shield) is blocking the Tag Assistant script | 1. Copy the URL directly from the address bar of the open test tab and paste it into the GTM Preview URL field — do not type it manually. 2. Disable ad blockers and privacy extensions for the test tab, or open an Incognito window with extensions disabled. 3. Confirm the GTM snippet (head + noscript body tags) is present on the page — missing snippets will also prevent connection. |
 | **Tag appears under "Tags Not Fired"** — the GA4 Event tag is listed under "Tags Not Fired" in Tag Assistant instead of "Tags Fired" | The Custom Event trigger name does not match the `event` value pushed to the dataLayer, or the trigger is attached to the wrong tag | 1. In Tag Assistant, click the tag under "Tags Not Fired" and look at the **Blocking Triggers** section — it will show why the trigger did not match. 2. In GTM, open the tag's trigger and compare the event name string (case-sensitive) to the `event` field in the `dataLayer.push(...)` call in `js/analytics.js`. Correct any mismatch. 3. Check that the trigger is actually assigned to this tag (Tags → Edit tag → Triggering). |
-| **Event missing from GA4 DebugView** — the tag shows as fired in Tag Assistant but the event never appears in DebugView | The GA4 Measurement ID Constant variable contains the wrong or placeholder value (`G-XXXXXXXXXX`), the DebugView filter is set to a different device, or there is a network request failure sending the hit | 1. In Tag Assistant, click the fired tag → inspect the **Measurement ID** field to confirm it shows your real `G-` ID, not the placeholder. 2. In GTM → Variables → `GA4 Measurement ID`, verify the Constant value is your real ID. 3. Open the browser's DevTools → Network tab → filter for `google-analytics.com/g/collect` — confirm the request is sent and returns HTTP 200. 4. Ensure you are viewing DebugView in the same browser profile where Tag Assistant is active. |
+| **Event missing from GA4 DebugView** — the tag shows as fired in Tag Assistant but the event never appears in DebugView | The GA4 Measurement ID Constant variable contains the wrong or placeholder value (`G-B5BPHFRR18`), the DebugView filter is set to a different device, or there is a network request failure sending the hit | 1. In Tag Assistant, click the fired tag → inspect the **Measurement ID** field to confirm it shows your real `G-` ID, not the placeholder. 2. In GTM → Variables → `GA4 Measurement ID`, verify the Constant value is your real ID. 3. Open the browser's DevTools → Network tab → filter for `google-analytics.com/g/collect` — confirm the request is sent and returns HTTP 200. 4. Ensure you are viewing DebugView in the same browser profile where Tag Assistant is active. |
 | **Event is present in DebugView but the blue star (conversion flag) is absent** | The event name in GA4 Admin → Events is not toggled as a conversion, the toggle was set very recently (GA4 can take up to 5 minutes to propagate), or the event name in DebugView does not exactly match the toggled name | 1. Go to GA4 Admin → Events and confirm the "Mark as conversion" toggle is blue (on) for the exact event name. 2. If the toggle is on, wait 5 minutes and re-trigger the event — the conversion flag propagates with a short delay. 3. Compare the event name string character-by-character: GA4 conversion matching is case-sensitive and does not allow leading/trailing spaces. |
 | **Parameter value is `undefined` or empty** — the event appears correctly in DebugView but one or more parameters show as `(not set)`, `undefined`, or are absent from the event detail | The Data Layer Variable in GTM is reading the wrong key name, the dataLayer push in `js/analytics.js` is missing that field, or the field is pushed after the event name (ordering issue) | 1. In Tag Assistant, click the fired tag → expand **Tag Parameters** and find the parameter showing as undefined. Note the GTM variable name mapped to it. 2. In GTM → Variables, open that Data Layer Variable and confirm the **Data Layer Variable Name** exactly matches the key used in `dataLayer.push(...)` in `js/analytics.js` (case-sensitive). 3. In `js/analytics.js`, confirm the field is included in the same `push` object as the `event` key — it must not be in a separate subsequent push. 4. Re-enter Preview Mode, repeat the trigger action, and re-check DebugView. |
 
@@ -519,7 +519,7 @@ After saving all definitions:
 
 Use this log to record when each custom definition was registered and confirmed. Update it as you complete each registration. This serves as the auditable record for the team.
 
-**GA4 Property ID:** *(fill in — Admin → Property settings → Property ID, format G-XXXXXXXXXX)*
+**GA4 Property ID:** *(fill in — Admin → Property settings → Property ID, format G-B5BPHFRR18)*
 **Completed by:** *(name)*
 **Date range of registration:** *(start date → end date)*
 
@@ -675,3 +675,24 @@ When any threshold is breached:
 3. **Check the browser console** on the relevant page for JavaScript errors.
 4. **Create an investigation ticket** describing which step breached, the observed rate, and the date. Assign it before closing the review session.
 5. **Follow up the next week** — if the rate has not recovered, escalate to a full UX or code review of the affected step.
+
+---
+
+## What you still need to do manually in GTM and GA4
+
+The steps below must be completed by hand in the respective dashboards. Complete them in the order listed.
+
+### In GTM (tagmanager.google.com)
+
+1. Open your GTM container and go to **Admin → Import Container**.
+2. Upload `docs/gtm-container-export.json`, choose **Merge → Rename conflicting tags** to avoid overwriting any custom work.
+3. Preview the container: open **GTM Preview Mode**, load each of the six site pages (`index.html`, `servicios.html`, `como-funciona.html`, `tarifas.html`, `calculadora.html`, `contacto.html`), and confirm events appear in the GTM debug panel.
+4. Once events are confirmed, click **Submit → Publish** and give the version a name (e.g. "v1 – real GA4 ID wired").
+
+### In GA4 (analytics.google.com → property G-B5BPHFRR18)
+
+5. Go to **Admin → Data Streams**, select your web stream, and confirm the Measurement ID shown is `G-B5BPHFRR18`.
+6. Open **Admin → Custom Definitions → Custom Dimensions** and register each dimension listed in this guide (`shipping_mode`, `calculator_type`, `form_type`, etc.).
+7. Go to **Admin → Events**, find `cta_afiliate_click`, `contact_form_submit`, `calculator_result`, and `whatsapp_click`, and toggle **Mark as conversion** for each.
+8. Open the **Realtime** report and navigate each page of the live site to confirm events appear within a few seconds.
+9. Build or verify the two Explore funnels (Calculator and Contact) as described in Section 4 of this guide.

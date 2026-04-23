@@ -47,7 +47,7 @@ Browser
 - GTM does not define the event schema — that is owned by `analytics.js` and documented in `docs/tracking-plan.md`.
 - GTM does not collect or store data — it is a tag dispatcher only.
 
-**Container ID:** `GTM-XXXXXXX` (replace before go-live in all 6 public pages).
+**Container ID:** `YOUR_GTM_CONTAINER_ID` (replace before go-live in all 6 public pages).
 
 ---
 
@@ -84,7 +84,7 @@ Browser
 4. GTM detects event 'calculator_query' via Custom Event trigger
 5. GTM reads DLVs: dlv-shipping_mode = 'aereo', dlv-total_usd = ..., etc.
 6. GTM fires GA4 Event Tag "GA4 - calculator_query"
-7. GA4 records the event under the Measurement ID G-XXXXXXXXXX
+7. GA4 records the event under the Measurement ID G-B5BPHFRR18
 ```
 
 ---

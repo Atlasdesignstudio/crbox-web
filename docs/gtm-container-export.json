@@ -7,13 +7,13 @@
     "containerId": "0",
     "containerVersionId": "0",
     "name": "CRBOX Analytics",
-    "description": "CRBOX GTM container — 1 Constant + 24 Data Layer Variables, 17 Custom Event triggers, 18 tags (GA4 Configuration + 17 GA4 Event tags). Import and replace GTM-XXXXXXX / G-XXXXXXXXXX before publishing.",
+    "description": "CRBOX GTM container — 1 Constant + 24 Data Layer Variables, 17 Custom Event triggers, 18 tags (GA4 Configuration + 17 GA4 Event tags). Import and replace YOUR_GTM_CONTAINER_ID before publishing; GA4 Measurement ID G-B5BPHFRR18 is already set.",
     "container": {
       "path": "accounts/0/containers/0",
       "accountId": "0",
       "containerId": "0",
       "name": "CRBOX",
-      "publicId": "GTM-XXXXXXX",
+      "publicId": "YOUR_GTM_CONTAINER_ID",
       "usageContext": ["WEB"]
     },
     "variable": [
@@ -24,9 +24,9 @@
         "name": "GA4 Measurement ID",
         "type": "c",
         "parameter": [
-          {"type": "TEMPLATE", "key": "value", "value": "G-XXXXXXXXXX"}
+          {"type": "TEMPLATE", "key": "value", "value": "G-B5BPHFRR18"}
         ],
-        "notes": "Replace G-XXXXXXXXXX with your real GA4 Measurement ID before publishing."
+        "notes": "GA4 Measurement ID is G-B5BPHFRR18 — already set."
       },
       {
         "accountId": "0",
@@ -603,7 +603,7 @@
           {"type": "TEMPLATE", "key": "measurementId", "value": "{{GA4 Measurement ID}}"}
         ],
         "firingTriggerId": ["2147479553"],
-        "notes": "Fires on All Pages. Replace G-XXXXXXXXXX in the GA4 Measurement ID variable."
+        "notes": "Fires on All Pages. GA4 Measurement ID is G-B5BPHFRR18 — already set."
       },
       {
         "accountId": "0",

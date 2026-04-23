@@ -1,7 +1,7 @@
 /**
  * CRBOX Analytics — dataLayer event taxonomy
  * GTM-ready dataLayer push helpers with automatic page context injection.
- * Replace GTM-XXXXXXX with your real container ID before going live.
+ * Replace YOUR_GTM_CONTAINER_ID with your real container ID before going live.
  *
  * Event naming: strict lowercase_snake_case for all event names and params.
  * Every push includes: page_path, page_name, page_type.

@@ -16,7 +16,7 @@
  */
 
 window.CRBOX_CONFIG = {
-    gtmId: 'GTM-XXXXXXX',
+    gtmId: 'YOUR_GTM_CONTAINER_ID',
 
     site: {
         name: 'CRBOX',
