@@ -52,7 +52,7 @@ Run this review every Monday (15–20 minutes):
 Run this deeper review once a month (45–60 minutes):
 
 ### Funnel Analysis
-- [ ] Build the full acquisition funnel in GA4 Explore: `calculator_start` → `calculator_query` → `calculator_result` → `cta_afiliate_click`. Identify the weakest step.
+- [ ] Open the saved **`CRBOX — Calculator Funnel`** exploration in GA4 Explore (see Section 7.1 to build it if not yet saved). Identify the weakest step by comparing completion rates across `calculator_start` → `calculator_query` → `calculator_result` → `cta_afiliate_click`.
 - [ ] Compare `shipping_mode = aereo` vs `shipping_mode = maritimo` on `calculator_result` — which service has more demand?
 - [ ] Review `destination` dimension on `calculator_result` — which provinces drive the most calculator completions?
 
@@ -62,8 +62,9 @@ Run this deeper review once a month (45–60 minutes):
 - [ ] Review `scroll_depth` by page — identify pages where most users drop below 50%.
 
 ### Form Friction Review
-- [ ] `form_start` vs `contact_form_submit` gap on `#contact-form` — is it improving month over month?
-- [ ] `form_start` vs submit gap on `#maritimo-quote-form` — same analysis.
+- [ ] Open the saved **`CRBOX — Contact Funnel`** exploration in GA4 Explore (see Section 7.2 to build it if not yet saved). Review the `form_id` breakdown to compare `contact-form` vs `maritimo-quote-form` completion rates.
+- [ ] `form_start` vs `contact_form_submit` gap on `contact-form` — is it improving month over month?
+- [ ] `form_start` vs submit gap on `maritimo-quote-form` — same analysis.
 
 ### KPI Baseline Update
 - [ ] Update the weekly KPI targets based on the first 30 days of data.
@@ -224,7 +225,116 @@ After publishing the container and letting events flow for a session, mark these
 
 ---
 
-## 7. Preview and Debug
+## 7. GA4 Explore Funnels — Build, Save, and Share
+
+GA4 Explore funnels are the fastest way to spot drop-off in the two highest-value user journeys. Build each funnel once, save it, and share it so the whole team can open it without recreating it.
+
+> **Prerequisite:** Events must have been received by GA4 at least once before they appear as options in Explore. If an event is missing from the step picker, trigger it from a live page (using GTM Preview Mode or a real visit) and wait up to 24 hours for it to appear.
+
+---
+
+### 7.1 Calculator Funnel — `calculator_start → calculator_query → calculator_result → cta_afiliate_click`
+
+#### Build steps
+
+1. In GA4, click **Explore** in the left sidebar.
+2. Click **Create a new exploration** → choose **Funnel exploration** as the technique.
+3. Name the exploration: **`CRBOX — Calculator Funnel`**.
+4. Under **Steps**, click **+ Add step** four times and configure each step:
+
+   | Step # | Step name (label) | Condition |
+   |--------|-------------------|-----------|
+   | 1 | Calculator Start | Event name `exactly matches` `calculator_start` |
+   | 2 | Calculator Query | Event name `exactly matches` `calculator_query` |
+   | 3 | Calculator Result | Event name `exactly matches` `calculator_result` |
+   | 4 | Affiliate CTA Click | Event name `exactly matches` `cta_afiliate_click` |
+
+5. Set **Make steps indirect** (allow other events between steps) — leave it enabled so users who take a non-linear path are still counted.
+6. Under **Breakdowns**, click **+ Add dimension** and select **`shipping_mode`** (custom dimension — register it first if not already visible; see the note in Section 7.3).
+7. Leave the date range at the default **Last 28 days** for a recurring view; switch to **Last 7 days** for weekly reviews.
+8. Click **Save** (the floppy-disk icon at the top right).
+
+#### Share with the team
+
+1. Open the saved exploration.
+2. Click the **Share** icon (person with a + symbol, top right).
+3. Choose **Share with property** → confirm. All GA4 users with at least Viewer access to the property can now open it from the Explore library.
+
+---
+
+### 7.2 Contact Funnel — `form_start → contact_form_submit`
+
+#### Build steps
+
+1. In GA4, click **Explore** → **Create a new exploration** → choose **Funnel exploration**.
+2. Name the exploration: **`CRBOX — Contact Funnel`**.
+3. Under **Steps**, click **+ Add step** twice:
+
+   | Step # | Step name (label) | Condition |
+   |--------|-------------------|-----------|
+   | 1 | Form Start | Event name `exactly matches` `form_start` |
+   | 2 | Form Submit | Event name `exactly matches` `contact_form_submit` |
+
+4. Under **Breakdowns**, click **+ Add dimension** and select **`form_id`** (custom dimension — register if not yet visible; see Section 7.3). This splits the funnel by `contact-form` vs `maritimo-quote-form` so you can see which form has higher drop-off.
+5. Enable **Make steps indirect** to account for users who navigate between sections before submitting.
+6. Click **Save**.
+
+#### Share with the team
+
+1. Open the saved exploration.
+2. Click the **Share** icon → **Share with property** → confirm.
+
+---
+
+### 7.3 Registering Custom Dimensions (if not already done)
+
+GA4 requires custom event parameters to be registered as Custom Dimensions before they appear in Explore. Do this once per parameter:
+
+1. Go to **GA4 Admin** → **Property** → **Custom definitions** → **Custom dimensions**.
+2. Click **Create custom dimension** for each parameter below:
+
+   | Dimension name | Scope | Event parameter |
+   |----------------|-------|-----------------|
+   | Shipping Mode | Event | `shipping_mode` |
+   | Form ID | Event | `form_id` |
+   | Destination | Event | `destination` |
+   | CTA Location | Event | `cta_location` |
+
+3. Click **Save**. Custom dimensions can take up to 24 hours to start populating in reports and Explore.
+
+---
+
+### 7.4 How to Interpret the Calculator Funnel
+
+Open **`CRBOX — Calculator Funnel`** in Explore and look at:
+
+| What to check | Healthy signal | Concerning signal |
+|---------------|---------------|-------------------|
+| **Step 1 → 2 drop-off** (`calculator_start` → `calculator_query`) | > 70% of starters submit a query | < 50% — users are interacting with inputs but not clicking "Calcular". Check for UX friction (button hard to find, form validation errors). |
+| **Step 2 → 3 drop-off** (`calculator_query` → `calculator_result`) | > 90% — results almost always display after a query | Significant drop here indicates a JavaScript error in the result-display logic. Check the browser console on calculadora.html. |
+| **Step 3 → 4 drop-off** (`calculator_result` → `cta_afiliate_click`) | > 25% of result viewers click the affiliate CTA | < 10% — users see the result but don't convert. The result page may not have a visible CTA or the price may be creating friction. |
+| **`shipping_mode` breakdown** | Both `aereo` and `maritimo` complete the funnel at similar rates | If one mode has much lower completion, its UX or pricing may be broken or unclear. |
+
+**Monthly action:** Compare the `aereo` vs `maritimo` rows in the breakdown — whichever mode has a higher completion rate is likely the stronger product-market fit. Use this to guide content and marketing emphasis.
+
+---
+
+### 7.5 How to Interpret the Contact Funnel
+
+Open **`CRBOX — Contact Funnel`** in Explore and look at:
+
+| What to check | Healthy signal | Concerning signal |
+|---------------|---------------|-------------------|
+| **Step 1 → 2 drop-off** (`form_start` → `contact_form_submit`) | > 60% of starters submit | < 40% — high abandon rate. The form may be too long, ask for unnecessary information, or have unclear field labels. |
+| **`form_id` breakdown — `contact-form`** | High completion | Most traffic; if low, the main contact form has friction. Review field count and required fields. |
+| **`form_id` breakdown — `maritimo-quote-form`** | Lower absolute volume, similar completion rate | If `maritimo-quote-form` completes at a much lower rate than `contact-form`, the maritime quote form likely has more friction (it asks for more fields). |
+| **Absolute step-1 volume vs page sessions** | `form_start` should be at least 30–40% of `contacto.html` page sessions | Very low `form_start` volume means users aren't scrolling to the form or aren't motivated to start. Consider moving the form higher or adding a mid-page CTA. |
+
+**Monthly action:** Track the `form_start → contact_form_submit` completion rate month over month. If you make form changes (remove a field, change copy), compare before/after in this funnel to measure the impact.
+
+---
+
+## 8. Preview and Debug
 
 1. Open **GTM Preview Mode** (Submit → Preview).
 2. Visit each of the 6 public pages and verify the expected events fire in the Tag Assistant panel:
