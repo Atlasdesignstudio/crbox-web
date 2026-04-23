@@ -12,6 +12,11 @@
  *
  *   node scripts/inject-gtm.js
  *
+ * Flags:
+ *   --warn-only   Log warnings for missing GTM tags but exit with code 0.
+ *                 Without this flag, any missing GTM tag causes exit code 1
+ *                 so CI/CD pipelines can block deploys automatically.
+ *
  * To change the GTM container ID in the future, update containerId in
  * gtm.config.json and re-run this script — that is the only file you need
  * to edit.  All public HTML pages in the project root are updated automatically.
@@ -19,6 +24,8 @@
 
 const fs = require('fs');
 const path = require('path');
+
+const WARN_ONLY = process.argv.includes('--warn-only');
 
 const ROOT = path.join(__dirname, '..');
 const CONFIG_PATH = path.join(ROOT, 'gtm.config.json');
@@ -68,3 +75,13 @@ for (const file of HTML_FILES) {
 
 console.log(`\nDone. ${updated} file(s) updated, ${unchanged} already up to date, ${warned} missing GTM tags.`);
 console.log(`GTM container ID: ${containerId}`);
+
+if (warned > 0) {
+  if (WARN_ONLY) {
+    console.warn(`\n[warn-only] ${warned} page(s) are missing GTM tags. Exiting with code 0 (--warn-only is set).`);
+  } else {
+    console.error(`\nERROR: ${warned} page(s) are missing GTM tags. Exiting with code 1.`);
+    console.error('Use --warn-only to log warnings without blocking the pipeline.');
+    process.exit(1);
+  }
+}
