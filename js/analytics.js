@@ -50,19 +50,29 @@ CRBOX.track = {
   },
 
   // Calculator: user requested a quote
-  calculatorQuery: function(weight, mode) {
+  // params: { mode, weight_kg, destination, purchase_value_usd }
+  calculatorQuery: function(params) {
+    params = params || {};
     this.push('calculator_query', {
-      package_weight_kg: weight || null,
-      shipping_mode: mode || null
+      shipping_mode: params.mode || null,
+      package_weight_kg: params.weight_kg || null,
+      destination: params.destination || null,
+      purchase_value_usd: params.purchase_value_usd || null
     });
   },
 
   // Calculator: result shown to the user
-  calculatorResult: function(weight, mode, estimatedCost) {
+  // params: { mode, weight_kg, destination, total_usd, shipping_usd, handling_usd, taxes_usd }
+  calculatorResult: function(params) {
+    params = params || {};
     this.push('calculator_result', {
-      package_weight_kg: weight || null,
-      shipping_mode: mode || null,
-      estimated_cost_usd: estimatedCost || null
+      shipping_mode: params.mode || null,
+      package_weight_kg: params.weight_kg || null,
+      destination: params.destination || null,
+      total_usd: params.total_usd || null,
+      shipping_usd: params.shipping_usd || null,
+      handling_usd: params.handling_usd || null,
+      taxes_usd: params.taxes_usd || null
     });
   }
 

@@ -1420,6 +1420,25 @@ insurance = Math.ceil(purchaseValueNum / 100);
                     
                     // Desplazar a los resultados
                     aeroResultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                    // Analytics: track calculator query and result
+                    if (window.CRBOX && window.CRBOX.track) {
+                        window.CRBOX.track.calculatorQuery({
+                            mode: 'aereo',
+                            weight_kg: applicableWeight,
+                            destination: destinationValue,
+                            purchase_value_usd: purchaseValueNum
+                        });
+                        window.CRBOX.track.calculatorResult({
+                            mode: 'aereo',
+                            weight_kg: applicableWeight,
+                            destination: destinationValue,
+                            total_usd: total,
+                            shipping_usd: shipping,
+                            handling_usd: handling,
+                            taxes_usd: taxes
+                        });
+                    }
                 });
             }
             
@@ -1436,6 +1455,12 @@ insurance = Math.ceil(purchaseValueNum / 100);
                         
                         // Desplazar al mensaje
                         maritimoConfirmation.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                        // Analytics: track maritime quote submission
+                        if (window.CRBOX && window.CRBOX.track) {
+                            window.CRBOX.track.calculatorQuery({ mode: 'maritimo' });
+                            window.CRBOX.track.calculatorResult({ mode: 'maritimo' });
+                        }
                         
                         // Limpiar formulario
                         maritimoForm.reset();
@@ -1524,6 +1549,7 @@ insurance = Math.ceil(purchaseValueNum / 100);
         }
     });
 </script>
+<script src="js/seo-config.js" defer></script>
 <script src="js/analytics.js" defer></script>
 </body>
 </html>
