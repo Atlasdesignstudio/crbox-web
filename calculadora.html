@@ -1423,13 +1423,13 @@ insurance = Math.ceil(purchaseValueNum / 100);
 
                     // Analytics: track calculator query and result
                     if (window.CRBOX && window.CRBOX.track) {
-                        window.CRBOX.track.calculatorQuery({
+                        window.CRBOX.track.calculator_query({
                             mode: 'aereo',
                             weight_kg: applicableWeight,
                             destination: destinationValue,
                             purchase_value_usd: purchaseValueNum
                         });
-                        window.CRBOX.track.calculatorResult({
+                        window.CRBOX.track.calculator_result({
                             mode: 'aereo',
                             weight_kg: applicableWeight,
                             destination: destinationValue,
@@ -1458,8 +1458,8 @@ insurance = Math.ceil(purchaseValueNum / 100);
 
                         // Analytics: track maritime quote submission
                         if (window.CRBOX && window.CRBOX.track) {
-                            window.CRBOX.track.calculatorQuery({ mode: 'maritimo' });
-                            window.CRBOX.track.calculatorResult({ mode: 'maritimo' });
+                            window.CRBOX.track.calculator_query({ mode: 'maritimo' });
+                            window.CRBOX.track.calculator_result({ mode: 'maritimo' });
                         }
                         
                         // Limpiar formulario
