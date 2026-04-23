@@ -14,7 +14,7 @@
  *
  * To change the GTM container ID in the future, update containerId in
  * gtm.config.json and re-run this script — that is the only file you need
- * to edit.  All six public pages are updated automatically.
+ * to edit.  All public HTML pages in the project root are updated automatically.
  */
 
 const fs = require('fs');
@@ -30,14 +30,10 @@ if (!containerId || !/^GTM-[A-Z0-9]+$/.test(containerId)) {
   process.exit(1);
 }
 
-const HTML_FILES = [
-  'index.html',
-  'servicios.html',
-  'como-funciona.html',
-  'tarifas.html',
-  'calculadora.html',
-  'contacto.html',
-];
+const HTML_FILES = fs
+  .readdirSync(ROOT)
+  .filter(f => f.endsWith('.html') && fs.statSync(path.join(ROOT, f)).isFile())
+  .sort();
 
 const GTM_PATTERN = /GTM-[A-Z0-9]+/g;
 
