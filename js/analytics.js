@@ -104,7 +104,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Auto-bind Afíliate CTA
   document.querySelectorAll('a[href="afiliate.html"]').forEach(function(el) {
     el.addEventListener('click', function() {
-      var loc = el.closest('section')?.id || el.closest('header') ? 'header' : 'footer';
+      var section = el.closest('section');
+      var loc = section ? (section.id || 'section') : (el.closest('header') ? 'header' : 'footer');
       CRBOX.track.afiliateCTA(loc);
     });
   });
@@ -112,7 +113,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Auto-bind Calculadora CTA
   document.querySelectorAll('a[href="calculadora.html"]').forEach(function(el) {
     el.addEventListener('click', function() {
-      var loc = el.closest('section')?.id || el.closest('header') ? 'header' : 'footer';
+      var section = el.closest('section');
+      var loc = section ? (section.id || 'section') : (el.closest('header') ? 'header' : 'footer');
       CRBOX.track.calculadoraCTA(loc);
     });
   });

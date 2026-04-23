@@ -1,19 +1,18 @@
 /**
  * CRBOX — Centralized SEO & Entity Configuration
  *
- * Single source of truth for:
- *   - Business entity facts used in JSON-LD structured data
- *   - GTM container ID (replace GTM-XXXXXXX before going live)
- *   - OG/meta defaults applied by analytics.js at runtime
- *   - Canonical domain base URL
+ * Single source of truth for business entity facts.
+ * All values here must match visible content on the site.
  *
  * HOW TO USE
  * ----------
- * 1. Replace CRBOX_CONFIG.gtmId with your real GTM container ID.
+ * 1. Replace gtmId with your real Google Tag Manager container ID.
  * 2. When business facts change (phone, hours, address) update ONLY this file.
- * 3. The analytics.js tracker reads this config via window.CRBOX_CONFIG.
- * 4. Inline JSON-LD blocks in each HTML page should mirror the values here;
- *    a future build step can auto-generate them from this file.
+ * 3. Update the matching inline JSON-LD blocks in each HTML page to stay in sync.
+ * 4. The analytics.js tracker may read CRBOX_CONFIG.tracking for event taxonomy.
+ *
+ * NOTE: Inline JSON-LD in HTML pages is the active structured data. This file
+ * is authoritative documentation for those values, not a runtime JSON-LD emitter.
  */
 
 window.CRBOX_CONFIG = {
