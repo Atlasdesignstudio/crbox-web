@@ -330,14 +330,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (toggleAero) {
     toggleAero.addEventListener('click', function() {
-      _calcMode = 'aereo';
-      CRBOX.track.calculator_tab_switch('aereo');
+      if (_calcMode !== 'aereo') {
+        _calcMode = 'aereo';
+        CRBOX.track.calculator_tab_switch('aereo');
+      }
     });
   }
   if (toggleMaritimo) {
     toggleMaritimo.addEventListener('click', function() {
-      _calcMode = 'maritimo';
-      CRBOX.track.calculator_tab_switch('maritimo');
+      if (_calcMode !== 'maritimo') {
+        _calcMode = 'maritimo';
+        CRBOX.track.calculator_tab_switch('maritimo');
+      }
     });
   }
 
