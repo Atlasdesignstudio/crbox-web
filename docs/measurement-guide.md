@@ -432,6 +432,8 @@ GA4 does not automatically surface custom event parameters in Explore or standar
 
 > **GA4 limit:** GA4 allows up to 50 event-scoped Custom Dimensions and 50 Custom Metrics per property on the free tier. The tables below use 14 dimensions and 7 metrics, well within that limit.
 
+> **Priority — register these two first:** `shipping_mode` (Shipping Mode) and `form_id` (Form ID) are hard prerequisites for the Calculator Funnel and Contact Funnel breakdowns respectively. If you are registering in stages, complete these two before building either funnel exploration. The remaining 12 dimensions and 7 metrics can follow in any order.
+
 ---
 
 #### 7.3.1 Custom Dimensions (string parameters)
@@ -444,12 +446,12 @@ GA4 does not automatically surface custom event parameters in Explore or standar
 |-------------------|-------|--------------------|----------------|
 | CTA Location      | Event | `cta_location`     | cta_afiliate_click, cta_calculadora_click, whatsapp_click, phone_click, email_click |
 | CTA Label         | Event | `cta_label`        | cta_afiliate_click, cta_calculadora_click |
-| Shipping Mode     | Event | `shipping_mode`    | calculator_start, calculator_query, calculator_result |
+| **Shipping Mode** ⬅ funnel breakdown | Event | `shipping_mode`    | calculator_start, calculator_query, calculator_result |
 | Destination       | Event | `destination`      | calculator_query, calculator_result |
 | To Mode           | Event | `to_mode`          | calculator_tab_switch |
 | Page Type         | Event | `page_type`        | all events |
 | Page Name         | Event | `page_name`        | all events |
-| Form ID           | Event | `form_id`          | form_start, form_abandon |
+| **Form ID** ⬅ funnel breakdown | Event | `form_id`          | form_start, form_abandon |
 | FAQ Question      | Event | `faq_question`     | faq_engage |
 | Section ID        | Event | `section_id`       | faq_engage, section_visible |
 | Nav Label         | Event | `nav_label`        | nav_click |
@@ -489,9 +491,65 @@ After saving all definitions:
 
 1. Go to **GA4 Explore** → open any exploration (or create a new blank one).
 2. In the **Variables** panel on the left, click **+** next to **Dimensions**.
-3. Search for `cta_location`, `shipping_mode`, `form_id`, etc. — each should appear under **Custom → Event-scoped**.
-4. Click **+** next to **Metrics** and search for `total_usd`, `depth_percent`, etc. — they should appear under **Custom**.
-5. If a parameter is missing, verify you saved the Custom Definition in step 7.3.1/7.3.2 and wait up to 24 hours for it to propagate.
+3. Search for `shipping_mode` — it must appear under **Custom → Event-scoped** before the Calculator Funnel breakdown will work.
+4. Search for `form_id` — it must appear under **Custom → Event-scoped** before the Contact Funnel breakdown will work.
+5. Continue searching for the remaining dimensions: `cta_location`, `cta_label`, `destination`, `to_mode`, `page_type`, `page_name`, `faq_question`, `section_id`, `nav_label`, `nav_destination`, `service_name`, `contact_subject`.
+6. Click **+** next to **Metrics** and search for `total_usd`, `shipping_usd`, `handling_usd`, `taxes_usd`, `purchase_value_usd`, `package_weight_kg`, `depth_percent` — they should appear under **Custom**.
+7. If a parameter is missing, verify you saved the Custom Definition in step 7.3.1/7.3.2 and wait up to 24 hours for it to propagate.
+
+> **Minimum required before building funnels:** Steps 3 and 4 (confirming `shipping_mode` and `form_id` are visible) must be complete before proceeding to Sections 7.1 and 7.2. The remaining dimensions and metrics can be verified in parallel with funnel exploration setup.
+
+---
+
+#### 7.3.4 Registration Completion Log
+
+Use this log to record when each custom definition was registered and confirmed. Update it as you complete each registration. This serves as the auditable record for the team.
+
+**GA4 Property ID:** *(fill in — Admin → Property settings → Property ID, format G-XXXXXXXXXX)*
+**Completed by:** *(name)*
+**Date range of registration:** *(start date → end date)*
+
+##### Custom Dimensions (14 total)
+
+| # | Dimension name | Event parameter | Registered | Confirmed in Explore | Notes |
+|---|----------------|-----------------|------------|----------------------|-------|
+| 1 | CTA Location | `cta_location` | - [ ] | - [ ] | |
+| 2 | CTA Label | `cta_label` | - [ ] | - [ ] | |
+| 3 | **Shipping Mode** ⬅ funnel breakdown | `shipping_mode` | - [ ] | - [ ] | Needed for Calculator Funnel breakdown |
+| 4 | Destination | `destination` | - [ ] | - [ ] | |
+| 5 | To Mode | `to_mode` | - [ ] | - [ ] | |
+| 6 | Page Type | `page_type` | - [ ] | - [ ] | |
+| 7 | Page Name | `page_name` | - [ ] | - [ ] | |
+| 8 | **Form ID** ⬅ funnel breakdown | `form_id` | - [ ] | - [ ] | Needed for Contact Funnel breakdown |
+| 9 | FAQ Question | `faq_question` | - [ ] | - [ ] | |
+| 10 | Section ID | `section_id` | - [ ] | - [ ] | |
+| 11 | Nav Label | `nav_label` | - [ ] | - [ ] | |
+| 12 | Nav Destination | `nav_destination` | - [ ] | - [ ] | |
+| 13 | Service Name | `service_name` | - [ ] | - [ ] | |
+| 14 | Contact Subject | `contact_subject` | - [ ] | - [ ] | |
+
+##### Custom Metrics (7 total)
+
+| # | Metric name | Event parameter | Unit | Registered | Confirmed in Explore | Notes |
+|---|-------------|-----------------|------|------------|----------------------|-------|
+| 1 | Package Weight (kg) | `package_weight_kg` | Standard (number) | - [ ] | - [ ] | |
+| 2 | Purchase Value (USD) | `purchase_value_usd` | Currency | - [ ] | - [ ] | |
+| 3 | Total USD | `total_usd` | Currency | - [ ] | - [ ] | |
+| 4 | Shipping USD | `shipping_usd` | Currency | - [ ] | - [ ] | |
+| 5 | Handling USD | `handling_usd` | Currency | - [ ] | - [ ] | |
+| 6 | Taxes USD | `taxes_usd` | Currency | - [ ] | - [ ] | |
+| 7 | Scroll Depth % | `depth_percent` | Standard (number) | - [ ] | - [ ] | |
+
+##### Completion sign-off
+
+- [ ] All 14 custom dimensions registered and saved in GA4 Admin → Custom definitions → Custom dimensions
+- [ ] All 7 custom metrics registered and saved in GA4 Admin → Custom definitions → Custom metrics
+- [ ] `shipping_mode` visible in Explore dimension picker under Custom → Event-scoped
+- [ ] `form_id` visible in Explore dimension picker under Custom → Event-scoped
+- [ ] Setup Status Checklist at the top of Section 7 updated to reflect completion
+
+**Sign-off date:** *(fill in)*
+**GA4 Explore verified by:** *(name)*
 
 ---
 
