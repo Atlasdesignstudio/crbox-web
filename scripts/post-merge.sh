@@ -10,6 +10,6 @@ set -e
 #   - Whenever the GTM container ID in gtm.config.json is changed
 #
 # To change the GTM container ID: edit gtm.config.json, then run this script.
-node scripts/inject-gtm.js
+node scripts/inject-gtm.js --warn-only
 
 echo "Post-merge setup complete."
