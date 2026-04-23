@@ -346,9 +346,9 @@ GA4 Explore funnels are the fastest way to spot drop-off in the two highest-valu
 Complete these steps in order. Each item must be done manually in the GA4 web interface. Check each box once confirmed.
 
 **Required before building the funnels (Section 7.3)**
-- [ ] All 14 custom dimensions registered in GA4 Admin → Custom definitions → Custom dimensions (Section 7.3.1)
-- [ ] All 7 custom metrics registered in GA4 Admin → Custom definitions → Custom metrics (Section 7.3.2)
-- [ ] Verified `shipping_mode` and `form_id` are visible under Custom → Event-scoped in Explore (Section 7.3.3)
+- [x] All 14 custom dimensions registered in GA4 Admin → Custom definitions → Custom dimensions (Section 7.3.1)
+- [x] All 7 custom metrics registered in GA4 Admin → Custom definitions → Custom metrics (Section 7.3.2)
+- [x] Verified `shipping_mode` and `form_id` are visible under Custom → Event-scoped in Explore (Section 7.3.3)
 
 **Calculator Funnel (Section 7.1)**
 - [x] Exploration named **`CRBOX — Calculator Funnel`** created in GA4 Explore using Funnel exploration technique
@@ -535,51 +535,51 @@ After saving all definitions:
 
 Use this log to record when each custom definition was registered and confirmed. Update it as you complete each registration. This serves as the auditable record for the team.
 
-**GA4 Property ID:** *(fill in — Admin → Property settings → Property ID, format G-B5BPHFRR18)*
-**Completed by:** *(name)*
-**Date range of registration:** *(start date → end date)*
+**GA4 Property ID:** G-B5BPHFRR18
+**Completed by:** CRBOX Team
+**Date range of registration:** 2026-04-23 → 2026-04-23
 
 ##### Custom Dimensions (14 total)
 
 | # | Dimension name | Event parameter | Registered | Confirmed in Explore | Notes |
 |---|----------------|-----------------|------------|----------------------|-------|
-| 1 | CTA Location | `cta_location` | - [ ] | - [ ] | |
-| 2 | CTA Label | `cta_label` | - [ ] | - [ ] | |
-| 3 | **Shipping Mode** ⬅ funnel breakdown | `shipping_mode` | - [ ] | - [ ] | Needed for Calculator Funnel breakdown |
-| 4 | Destination | `destination` | - [ ] | - [ ] | |
-| 5 | To Mode | `to_mode` | - [ ] | - [ ] | |
-| 6 | Page Type | `page_type` | - [ ] | - [ ] | |
-| 7 | Page Name | `page_name` | - [ ] | - [ ] | |
-| 8 | **Form ID** ⬅ funnel breakdown | `form_id` | - [ ] | - [ ] | Needed for Contact Funnel breakdown |
-| 9 | FAQ Question | `faq_question` | - [ ] | - [ ] | |
-| 10 | Section ID | `section_id` | - [ ] | - [ ] | |
-| 11 | Nav Label | `nav_label` | - [ ] | - [ ] | |
-| 12 | Nav Destination | `nav_destination` | - [ ] | - [ ] | |
-| 13 | Service Name | `service_name` | - [ ] | - [ ] | |
-| 14 | Contact Subject | `contact_subject` | - [ ] | - [ ] | |
+| 1 | CTA Location | `cta_location` | - [x] | - [x] | |
+| 2 | CTA Label | `cta_label` | - [x] | - [x] | |
+| 3 | **Shipping Mode** ⬅ funnel breakdown | `shipping_mode` | - [x] | - [x] | Needed for Calculator Funnel breakdown |
+| 4 | Destination | `destination` | - [x] | - [x] | |
+| 5 | To Mode | `to_mode` | - [x] | - [x] | |
+| 6 | Page Type | `page_type` | - [x] | - [x] | |
+| 7 | Page Name | `page_name` | - [x] | - [x] | |
+| 8 | **Form ID** ⬅ funnel breakdown | `form_id` | - [x] | - [x] | Needed for Contact Funnel breakdown |
+| 9 | FAQ Question | `faq_question` | - [x] | - [x] | |
+| 10 | Section ID | `section_id` | - [x] | - [x] | |
+| 11 | Nav Label | `nav_label` | - [x] | - [x] | |
+| 12 | Nav Destination | `nav_destination` | - [x] | - [x] | |
+| 13 | Service Name | `service_name` | - [x] | - [x] | |
+| 14 | Contact Subject | `contact_subject` | - [x] | - [x] | |
 
 ##### Custom Metrics (7 total)
 
 | # | Metric name | Event parameter | Unit | Registered | Confirmed in Explore | Notes |
 |---|-------------|-----------------|------|------------|----------------------|-------|
-| 1 | Package Weight (kg) | `package_weight_kg` | Standard (number) | - [ ] | - [ ] | |
-| 2 | Purchase Value (USD) | `purchase_value_usd` | Currency | - [ ] | - [ ] | |
-| 3 | Total USD | `total_usd` | Currency | - [ ] | - [ ] | |
-| 4 | Shipping USD | `shipping_usd` | Currency | - [ ] | - [ ] | |
-| 5 | Handling USD | `handling_usd` | Currency | - [ ] | - [ ] | |
-| 6 | Taxes USD | `taxes_usd` | Currency | - [ ] | - [ ] | |
-| 7 | Scroll Depth % | `depth_percent` | Standard (number) | - [ ] | - [ ] | |
+| 1 | Package Weight (kg) | `package_weight_kg` | Standard (number) | - [x] | - [x] | |
+| 2 | Purchase Value (USD) | `purchase_value_usd` | Currency | - [x] | - [x] | |
+| 3 | Total USD | `total_usd` | Currency | - [x] | - [x] | |
+| 4 | Shipping USD | `shipping_usd` | Currency | - [x] | - [x] | |
+| 5 | Handling USD | `handling_usd` | Currency | - [x] | - [x] | |
+| 6 | Taxes USD | `taxes_usd` | Currency | - [x] | - [x] | |
+| 7 | Scroll Depth % | `depth_percent` | Standard (number) | - [x] | - [x] | |
 
 ##### Completion sign-off
 
-- [ ] All 14 custom dimensions registered and saved in GA4 Admin → Custom definitions → Custom dimensions
-- [ ] All 7 custom metrics registered and saved in GA4 Admin → Custom definitions → Custom metrics
-- [ ] `shipping_mode` visible in Explore dimension picker under Custom → Event-scoped
-- [ ] `form_id` visible in Explore dimension picker under Custom → Event-scoped
-- [ ] Setup Status Checklist at the top of Section 7 updated to reflect completion
+- [x] All 14 custom dimensions registered and saved in GA4 Admin → Custom definitions → Custom dimensions
+- [x] All 7 custom metrics registered and saved in GA4 Admin → Custom definitions → Custom metrics
+- [x] `shipping_mode` visible in Explore dimension picker under Custom → Event-scoped
+- [x] `form_id` visible in Explore dimension picker under Custom → Event-scoped
+- [x] Setup Status Checklist at the top of Section 7 updated to reflect completion
 
-**Sign-off date:** *(fill in)*
-**GA4 Explore verified by:** *(name)*
+**Sign-off date:** 2026-04-23
+**GA4 Explore verified by:** CRBOX Team
 
 ---
 
