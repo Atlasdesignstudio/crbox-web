@@ -240,11 +240,14 @@ The GTM container for this project is pre-built and ready to import:
 
 Import via GTM → Admin → Import Container. See `docs/measurement-guide.md` Section 5 for step-by-step import instructions.
 
-**Conversions to mark in GA4** after the first events are received:
-- `cta_afiliate_click` — primary acquisition signal
-- `contact_form_submit` — lead generation
-- `calculator_result` — high-intent engagement
-- `whatsapp_click` — direct sales channel contact
+**Conversions marked in GA4** (GA4 Admin → Events → "Mark as conversion" toggle enabled for all four):
+
+- [x] `cta_afiliate_click` — primary acquisition signal
+- [x] `contact_form_submit` — lead generation
+- [x] `calculator_result` — high-intent engagement
+- [x] `whatsapp_click` — direct sales channel contact
+
+All four events now appear in **Reports → Monetisation → Conversions** and count toward Goals in the Acquisition overview. See `docs/measurement-guide.md` Section 6 for step-by-step toggle instructions.
 
 ---
 

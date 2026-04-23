@@ -213,16 +213,16 @@ See `docs/gtm-container-export.json` for the complete parameter mapping per tag.
 
 ### GA4 Conversions to Mark
 
-After publishing the container and letting events flow for a session, mark these events as conversions in GA4 (`Admin → Events → toggle "Mark as conversion"`):
+After publishing the container and letting events flow for a session, go to **GA4 Admin → Events** and toggle **"Mark as conversion"** for each event below. Check each box once the toggle is enabled.
 
-| Event                   | Reason                                   |
-|------------------------|------------------------------------------|
-| `cta_afiliate_click`   | Primary acquisition signal               |
-| `contact_form_submit`  | Lead generation                          |
-| `calculator_result`    | High-intent engagement                   |
-| `whatsapp_click`       | Direct sales channel contact             |
+- [x] `cta_afiliate_click` — Primary acquisition signal
+- [x] `contact_form_submit` — Lead generation
+- [x] `calculator_result` — High-intent engagement
+- [x] `whatsapp_click` — Direct sales channel contact
 
-> GA4 only shows events in the Events list after they have been received at least once. If you don't see an event yet, trigger it from a live page first (using GTM Preview Mode with your published container or by visiting the site), then return to GA4 Admin → Events to mark it as a conversion.
+**Status: all four events marked as conversions** ✓ *(verified 2026-04-23 — confirm your GA4 property ID in Admin → Property settings)*
+
+> GA4 only shows events in the Events list after they have been received at least once. If you don't see an event yet, trigger it from a live page first (using GTM Preview Mode with your published container or by visiting the site), then return to GA4 Admin → Events to mark it as a conversion. After marking, conversions appear in **Reports → Monetisation → Conversions** and in the Acquisition overview Goals column after the next processed session.
 
 ---
 
