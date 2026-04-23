@@ -286,21 +286,72 @@ GA4 Explore funnels are the fastest way to spot drop-off in the two highest-valu
 
 ---
 
-### 7.3 Registering Custom Dimensions (if not already done)
+### 7.3 Registering Custom Dimensions and Custom Metrics (required for all parameters)
 
-GA4 requires custom event parameters to be registered as Custom Dimensions before they appear in Explore. Do this once per parameter:
+GA4 does not automatically surface custom event parameters in Explore or standard reports. Every parameter must be registered once in GA4 Admin before it becomes selectable in funnels, segments, and explorations. Parameters arrive in GA4 without this step but remain invisible in the reporting UI.
 
-1. Go to **GA4 Admin** → **Property** → **Custom definitions** → **Custom dimensions**.
-2. Click **Create custom dimension** for each parameter below:
+> **GA4 limit:** GA4 allows up to 50 event-scoped Custom Dimensions and 50 Custom Metrics per property on the free tier. The tables below use 14 dimensions and 7 metrics, well within that limit.
 
-   | Dimension name | Scope | Event parameter |
-   |----------------|-------|-----------------|
-   | Shipping Mode | Event | `shipping_mode` |
-   | Form ID | Event | `form_id` |
-   | Destination | Event | `destination` |
-   | CTA Location | Event | `cta_location` |
+---
 
-3. Click **Save**. Custom dimensions can take up to 24 hours to start populating in reports and Explore.
+#### 7.3.1 Custom Dimensions (string parameters)
+
+1. Go to **GA4 Admin** → **Property** → **Custom definitions** → **Custom dimensions** tab.
+2. Click **Create custom dimension** for each row below. Set **Scope** to **Event** for all of them.
+3. Click **Save** after each one.
+
+| Dimension name    | Scope | Event parameter    | Used by events |
+|-------------------|-------|--------------------|----------------|
+| CTA Location      | Event | `cta_location`     | cta_afiliate_click, cta_calculadora_click, whatsapp_click, phone_click, email_click |
+| CTA Label         | Event | `cta_label`        | cta_afiliate_click, cta_calculadora_click |
+| Shipping Mode     | Event | `shipping_mode`    | calculator_start, calculator_query, calculator_result |
+| Destination       | Event | `destination`      | calculator_query, calculator_result |
+| To Mode           | Event | `to_mode`          | calculator_tab_switch |
+| Page Type         | Event | `page_type`        | all events |
+| Page Name         | Event | `page_name`        | all events |
+| Form ID           | Event | `form_id`          | form_start, form_abandon |
+| FAQ Question      | Event | `faq_question`     | faq_engage |
+| Section ID        | Event | `section_id`       | faq_engage, section_visible |
+| Nav Label         | Event | `nav_label`        | nav_click |
+| Nav Destination   | Event | `nav_destination`  | nav_click |
+| Service Name      | Event | `service_name`     | service_card_click |
+| Contact Subject   | Event | `contact_subject`  | contact_form_submit |
+
+> **PII exclusion:** `phone_number` and `email_address` are direct personal identifiers. GA4's Terms of Service prohibit sending PII to GA4. These parameters must **not** be registered as Custom Dimensions, and their GTM tags should suppress those fields before sending to GA4. See the GTM tag for `phone_click` and `email_click` — confirm `phone_number` and `email_address` are omitted from the GA4 Event tag parameter mappings.
+
+> Custom dimensions can take up to 24 hours to start populating in reports and Explore after they are registered.
+
+---
+
+#### 7.3.2 Custom Metrics (numeric parameters)
+
+1. Go to **GA4 Admin** → **Property** → **Custom definitions** → **Custom metrics** tab.
+2. Click **Create custom metric** for each row below. Set **Scope** to **Event** and **Unit of measurement** as shown.
+3. Click **Save** after each one.
+
+| Metric name          | Scope | Unit of measurement | Event parameter       | Used by events |
+|----------------------|-------|---------------------|-----------------------|----------------|
+| Package Weight (kg)  | Event | Standard (number)   | `package_weight_kg`   | calculator_query, calculator_result |
+| Purchase Value (USD) | Event | Currency            | `purchase_value_usd`  | calculator_query |
+| Total USD            | Event | Currency            | `total_usd`           | calculator_result |
+| Shipping USD         | Event | Currency            | `shipping_usd`        | calculator_result |
+| Handling USD         | Event | Currency            | `handling_usd`        | calculator_result |
+| Taxes USD            | Event | Currency            | `taxes_usd`           | calculator_result |
+| Scroll Depth %       | Event | Standard (number)   | `depth_percent`       | scroll_depth |
+
+> **Currency metrics** will display with the currency symbol in reports once your GA4 property currency is configured (Admin → Property settings → Currency).
+
+---
+
+#### 7.3.3 Verifying registration in Explore
+
+After saving all definitions:
+
+1. Go to **GA4 Explore** → open any exploration (or create a new blank one).
+2. In the **Variables** panel on the left, click **+** next to **Dimensions**.
+3. Search for `cta_location`, `shipping_mode`, `form_id`, etc. — each should appear under **Custom → Event-scoped**.
+4. Click **+** next to **Metrics** and search for `total_usd`, `depth_percent`, etc. — they should appear under **Custom**.
+5. If a parameter is missing, verify you saved the Custom Definition in step 7.3.1/7.3.2 and wait up to 24 hours for it to propagate.
 
 ---
 
