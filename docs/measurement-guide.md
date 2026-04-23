@@ -365,6 +365,7 @@ Complete these steps in order. Each item must be done manually in the GA4 web in
 - [ ] `form_id` breakdown added
 - [ ] Make steps indirect enabled
 - [ ] Exploration saved
+- [ ] New users / Returning users segment comparison added and saved
 - [ ] Shared with property (Share icon → Share with property)
 
 > **Where to find saved explorations:** Once shared, both explorations appear in the GA4 Explore library for all users with at least Viewer access to the property. Open GA4 → Explore → look for the CRBOX entries in the "Shared with me" or "All explorations" tab.
@@ -437,6 +438,22 @@ Comparing first-time visitors against returning visitors in the same funnel reve
 
 1. Open the saved exploration.
 2. Click the **Share** icon → **Share with property** → confirm.
+
+#### Add a New vs Returning Visitor segment comparison
+
+Comparing first-time visitors against returning visitors in the Contact Funnel reveals whether form abandonment is driven by unfamiliarity and trust barriers (an onboarding or credibility problem) or by form friction that affects everyone equally. Follow these steps after the funnel is saved:
+
+1. Open **`CRBOX — Contact Funnel`** in GA4 Explore.
+2. In the **Variables** panel on the left, locate **Segments** and click **+** next to it.
+3. In the segment picker, search for **"New users"** — this is a GA4 system segment that already exists in every property; no custom setup is required. Click it to add it to the Variables panel.
+4. Repeat step 3 for **"Returning users"** (another built-in GA4 system segment).
+5. In the **Tab settings** panel on the right, find the **Segment comparisons** section and drag both **New users** and **Returning users** from the Variables panel into the **Segment comparisons** drop zone.
+6. The funnel will now display two side-by-side bars for each step — one for new users, one for returning users. The drop-off percentage at each step is calculated independently within each segment so the rates are directly comparable.
+7. Click **Save** again to persist the segment comparison with the exploration.
+
+> **GA4 system segments note:** "New users" and "Returning users" are pre-built by Google and based on the `newVsReturning` user property collected automatically by the GA4 tag. No custom dimension registration is required for these segments.
+
+> **Scope reminder:** For new vs returning analysis, set the funnel to **Count users** (toggle at the top of Tab settings) so that each person is counted once per segment, giving true first-visit vs repeat-visit completion rates.
 
 ---
 
@@ -610,6 +627,21 @@ Open **`CRBOX — Contact Funnel`** in Explore and look at:
 | **Absolute step-1 volume vs page sessions** | `form_start` should be at least 30–40% of `contacto.html` page sessions | Very low `form_start` volume means users aren't scrolling to the form or aren't motivated to start. Consider moving the form higher or adding a mid-page CTA. |
 
 **Monthly action:** Track the `form_start → contact_form_submit` completion rate month over month. If you make form changes (remove a field, change copy), compare before/after in this funnel to measure the impact.
+
+#### Interpreting the New vs Returning Visitor segment gap
+
+After adding the segment comparison (see Section 7.2), look at the `form_start → contact_form_submit` completion rate for new users versus returning users. Use the guidance below to decide what action to take.
+
+| Observation | What it likely means | Recommended action |
+|-------------|---------------------|--------------------|
+| **New users complete `form_start → contact_form_submit` at a significantly lower rate than returning users** (gap > 20 pp) | First-time visitors are abandoning before submitting — this is most likely a trust and credibility barrier. New users haven't built confidence in the brand yet and hesitate to share contact details. Returning users have already cleared this hurdle, which is why they complete at a higher rate. | Add credibility signals near the form (e.g. "We respond within 24 hours", a privacy reassurance line, or a customer testimonial). Review the field order: put the least-sensitive fields (name, subject) first and email/phone later. Consider softening the submit button label (e.g. "Send my question" instead of "Submit"). |
+| **Both segments abandon at similar rates** (gap < 10 pp) | Form friction is the primary driver of drop-off, not trust or familiarity. Both new and returning visitors are hitting the same obstacle. | Focus on reducing form friction: audit each required field for necessity, simplify field labels, and check for validation errors that may be blocking submission (open the browser console on contacto.html and attempt a test submission). |
+| **New and returning users complete at similar, healthy rates** (gap < 10 pp, overall rate > 60%) | The contact funnel performs consistently for both visitor types. Drop-off is not driven by trust or form friction issues. | No segment-specific action needed. Continue monitoring month over month and investigate any drop in overall volume instead. |
+| **Returning users complete at a lower rate than new users on any step** | Unusual — may indicate a UX regression that appeared after returning users last visited, or a data quality issue with the `newVsReturning` user property. | Verify the returning-user sample size is at least 50 users within the date range. If valid, check whether any recent form changes (new required field, changed copy, or layout shift) degraded an experience returning users had previously completed without friction. |
+
+> **Minimum sample size:** Segment comparisons become unreliable when either segment has fewer than ~50 users in the funnel within the selected date range. If the returning-user count is very small, extend the date range to **Last 90 days** before drawing conclusions.
+
+> **Threshold to watch:** A gap of more than 20 percentage points between new and returning users on the `form_start → contact_form_submit` step is a strong signal of a trust or onboarding barrier worth prioritizing. A gap smaller than 10 pp means the two segments are behaviorally similar and overall form friction is the more likely driver of abandonment.
 
 ---
 
