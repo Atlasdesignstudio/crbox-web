@@ -107,15 +107,45 @@ Run this deeper review once a month (45–60 minutes):
 
 ---
 
-## 5. GTM Setup Checklist
+## 5. GTM Setup — Import the Container File (Recommended)
+
+The fastest way to configure GTM is to import the pre-built container export file. It contains 1 Constant variable (GA4 Measurement ID) + 24 Data Layer Variables, 17 Custom Event triggers, and 18 tags (1 GA4 Configuration + 17 GA4 Event tags) already wired together.
+
+### Import steps
+
+1. Go to **GTM** → your workspace → **Admin** → **Import Container**.
+2. Choose file: `docs/gtm-container-export.json`.
+3. Select **Existing workspace** (or create a new one) and choose **Merge** → **Rename conflicting tags, triggers, and variables**.
+4. Click **Confirm**.
+5. In the Variables panel, open **GA4 Measurement ID** and replace `G-XXXXXXXXXX` with your real GA4 Measurement ID.
+6. Verify the container ID placeholder `GTM-XXXXXXX` in all 6 HTML pages has already been replaced with your real container ID.
+7. Click **Submit** to publish.
+
+> **Note:** The import creates all variables, triggers, and tags in a draft state. Always preview and verify before submitting.
+
+---
+
+## 6. GTM Setup — Manual Checklist (alternative to import)
+
+Use this if you prefer to build the container by hand or need to add items to an existing workspace.
 
 ### Container
 - Container ID: `GTM-XXXXXXX` — replace in every public HTML page before go-live.
 - The snippet is already in place on all six public pages (head + noscript body tag).
 
-### dataLayer Variables to expose in GTM
+### Constant Variable
 
-Create one **Data Layer Variable** for each field that GA4 tags will read:
+Create one **Constant** variable:
+
+| GTM Variable Name     | Value           |
+|-----------------------|-----------------|
+| `GA4 Measurement ID`  | `G-XXXXXXXXXX`  |
+
+Replace `G-XXXXXXXXXX` with your real GA4 Measurement ID.
+
+### Data Layer Variables
+
+Create one **Data Layer Variable** for each field that GA4 tags will read. All use Data Layer Version 2.
 
 | GTM Variable Name        | Data Layer Key          |
 |--------------------------|-------------------------|
@@ -129,16 +159,24 @@ Create one **Data Layer Variable** for each field that GA4 tags will read:
 | `dlv - destination`      | `destination`           |
 | `dlv - purchase_value`   | `purchase_value_usd`    |
 | `dlv - total_usd`        | `total_usd`             |
+| `dlv - shipping_usd`     | `shipping_usd`          |
+| `dlv - handling_usd`     | `handling_usd`          |
+| `dlv - taxes_usd`        | `taxes_usd`             |
 | `dlv - depth_percent`    | `depth_percent`         |
 | `dlv - section_id`       | `section_id`            |
 | `dlv - form_id`          | `form_id`               |
 | `dlv - faq_question`     | `faq_question`          |
 | `dlv - service_name`     | `service_name`          |
 | `dlv - contact_subject`  | `contact_subject`       |
+| `dlv - phone_number`     | `phone_number`          |
+| `dlv - email_address`    | `email_address`         |
+| `dlv - nav_label`        | `nav_label`             |
+| `dlv - nav_destination`  | `nav_destination`       |
+| `dlv - to_mode`          | `to_mode`               |
 
-### GTM Trigger Recommendations
+### Custom Event Triggers
 
-Create one **Custom Event** trigger per event name:
+Create one **Custom Event** trigger per event name (use exact match, not regex):
 
 | Trigger Name                     | Event Name                |
 |----------------------------------|---------------------------|
@@ -160,9 +198,20 @@ Create one **Custom Event** trigger per event name:
 | `CE - scroll_depth`              | `scroll_depth`            |
 | `CE - section_visible`           | `section_visible`         |
 
+### GA4 Tags
+
+Create one **GA4 Configuration** tag (type: Google Tag) firing on All Pages, using `{{GA4 Measurement ID}}`.
+
+Create one **GA4 Event** tag per trigger, named `GA4 - <event_name>`. Each tag:
+- Uses measurement ID: `{{GA4 Measurement ID}}`
+- Sets event name to the exact event name (e.g. `cta_afiliate_click`)
+- Maps all standard parameters (`page_path`, `page_name`, `page_type`) plus event-specific parameters from their DLVs
+
+See `docs/gtm-container-export.json` for the complete parameter mapping per tag.
+
 ### GA4 Conversions to Mark
 
-Mark these events as conversions in GA4 (`Admin → Events → Mark as conversion`):
+After publishing the container and letting events flow for a session, mark these events as conversions in GA4 (`Admin → Events → toggle "Mark as conversion"`):
 
 | Event                   | Reason                                   |
 |------------------------|------------------------------------------|
@@ -171,14 +220,23 @@ Mark these events as conversions in GA4 (`Admin → Events → Mark as conversio
 | `calculator_result`    | High-intent engagement                   |
 | `whatsapp_click`       | Direct sales channel contact             |
 
+> GA4 only shows events in the Events list after they have been received at least once. If you don't see an event yet, trigger it from a live page first (using GTM Preview Mode with your published container or by visiting the site), then return to GA4 Admin → Events to mark it as a conversion.
+
 ---
 
-## 6. Preview and Debug
+## 7. Preview and Debug
 
 1. Open **GTM Preview Mode** (Submit → Preview).
-2. Visit each of the 6 public pages and verify the expected events fire in the Tag Assistant panel.
-3. Confirm `page_type` is correct on each page.
-4. Test scroll depth by scrolling to 25%, 50%, 75%, and 90% on a long page (e.g., tarifas.html).
-5. Test the calculator flow: start → query → result.
+2. Visit each of the 6 public pages and verify the expected events fire in the Tag Assistant panel:
+   - **index.html** — scroll depth, section_visible (main-content, stats, servicios, cta-afiliate), nav_click, cta_afiliate_click, cta_calculadora_click, whatsapp_click
+   - **servicios.html** — section_visible (servicios-destacados, casillero, compras, carga-aerea, carga-maritima), service_card_click, nav_click
+   - **como-funciona.html** — section_visible (proceso, faq, cta-como-funciona), faq_engage, nav_click
+   - **tarifas.html** — section_visible (aerea, maritima, cta-tarifas), scroll_depth, nav_click
+   - **calculadora.html** — calculator_start, calculator_tab_switch, calculator_query, calculator_result, section_visible (aero-calculator), form_start, form_abandon
+   - **contacto.html** — contact_form_submit, form_start, form_abandon, phone_click, email_click, whatsapp_click, section_visible (sucursales, formulario)
+3. Confirm `page_type` is correct on each page (check the dataLayer variable in Tag Assistant).
+4. Test scroll depth by scrolling slowly to 25%, 50%, 75%, and 90% on a long page (e.g., tarifas.html).
+5. Test the full calculator flow: interact with a field (calculator_start) → click calculate (calculator_query) → verify result appears (calculator_result).
 6. Submit a test contact form and confirm `contact_form_submit` fires.
 7. Open the browser console and run `window.dataLayer` to inspect all pushed events.
+8. Use GA4 DebugView (`Admin → DebugView`) to confirm parameters are arriving correctly.

@@ -232,6 +232,55 @@ Every push carries three automatic standard parameters in addition to the event-
 
 ---
 
+## GTM Configuration Files
+
+The GTM container for this project is pre-built and ready to import:
+
+- **`docs/gtm-container-export.json`** — importable GTM container with 1 Constant variable (GA4 Measurement ID) + 24 Data Layer Variables, 17 Custom Event triggers, 18 tags (GA4 Configuration + 17 GA4 Event tags), and all parameter mappings already wired.
+
+Import via GTM → Admin → Import Container. See `docs/measurement-guide.md` Section 5 for step-by-step import instructions.
+
+**Conversions to mark in GA4** after the first events are received:
+- `cta_afiliate_click` — primary acquisition signal
+- `contact_form_submit` — lead generation
+- `calculator_result` — high-intent engagement
+- `whatsapp_click` — direct sales channel contact
+
+---
+
+## Complete Data Layer Variable Reference
+
+All 24 Data Layer Variables created in GTM (Data Layer Version 2). A separate Constant variable holds the GA4 Measurement ID.
+
+| GTM Variable Name        | Data Layer Key         | Used by events                                         |
+|--------------------------|------------------------|--------------------------------------------------------|
+| `dlv - page_path`        | `page_path`            | all events                                             |
+| `dlv - page_name`        | `page_name`            | all events                                             |
+| `dlv - page_type`        | `page_type`            | all events                                             |
+| `dlv - cta_location`     | `cta_location`         | cta_afiliate_click, cta_calculadora_click, whatsapp_click, phone_click, email_click |
+| `dlv - cta_label`        | `cta_label`            | cta_afiliate_click, cta_calculadora_click              |
+| `dlv - phone_number`     | `phone_number`         | phone_click                                            |
+| `dlv - email_address`    | `email_address`        | email_click                                            |
+| `dlv - contact_subject`  | `contact_subject`      | contact_form_submit                                    |
+| `dlv - form_id`          | `form_id`              | form_start, form_abandon                               |
+| `dlv - faq_question`     | `faq_question`         | faq_engage                                             |
+| `dlv - section_id`       | `section_id`           | faq_engage, section_visible                            |
+| `dlv - nav_label`        | `nav_label`            | nav_click                                              |
+| `dlv - nav_destination`  | `nav_destination`      | nav_click                                              |
+| `dlv - service_name`     | `service_name`         | service_card_click                                     |
+| `dlv - shipping_mode`    | `shipping_mode`        | calculator_start, calculator_query, calculator_result  |
+| `dlv - to_mode`          | `to_mode`              | calculator_tab_switch                                  |
+| `dlv - package_weight`   | `package_weight_kg`    | calculator_query, calculator_result                    |
+| `dlv - destination`      | `destination`          | calculator_query, calculator_result                    |
+| `dlv - purchase_value`   | `purchase_value_usd`   | calculator_query                                       |
+| `dlv - total_usd`        | `total_usd`            | calculator_result                                      |
+| `dlv - shipping_usd`     | `shipping_usd`         | calculator_result                                      |
+| `dlv - handling_usd`     | `handling_usd`         | calculator_result                                      |
+| `dlv - taxes_usd`        | `taxes_usd`            | calculator_result                                      |
+| `dlv - depth_percent`    | `depth_percent`        | scroll_depth                                           |
+
+---
+
 ## JavaScript API Reference
 
 All methods live on `window.CRBOX.track`. Loaded via `js/analytics.js` (deferred, before `</body>` on all 6 public pages).
