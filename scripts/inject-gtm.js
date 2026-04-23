@@ -39,6 +39,7 @@ const GTM_PATTERN = /GTM-[A-Z0-9]+/g;
 
 let updated = 0;
 let unchanged = 0;
+let warned = 0;
 
 for (const file of HTML_FILES) {
   const filePath = path.join(ROOT, file);
@@ -49,9 +50,13 @@ for (const file of HTML_FILES) {
   }
 
   const original = fs.readFileSync(filePath, 'utf8');
+  const hasGtmTag = /GTM-[A-Z0-9]+/.test(original);
   const replaced = original.replace(GTM_PATTERN, containerId);
 
-  if (replaced === original) {
+  if (!hasGtmTag) {
+    console.warn(`  WARN  ${file} (no GTM tag found — page may be missing tracking)`);
+    warned++;
+  } else if (replaced === original) {
     console.log(`  OK    ${file} (already up to date)`);
     unchanged++;
   } else {
@@ -61,5 +66,5 @@ for (const file of HTML_FILES) {
   }
 }
 
-console.log(`\nDone. ${updated} file(s) updated, ${unchanged} already up to date.`);
+console.log(`\nDone. ${updated} file(s) updated, ${unchanged} already up to date, ${warned} missing GTM tags.`);
 console.log(`GTM container ID: ${containerId}`);
