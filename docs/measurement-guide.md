@@ -232,6 +232,34 @@ GA4 Explore funnels are the fastest way to spot drop-off in the two highest-valu
 
 > **Prerequisite:** Events must have been received by GA4 at least once before they appear as options in Explore. If an event is missing from the step picker, trigger it from a live page (using GTM Preview Mode or a real visit) and wait up to 24 hours for it to appear.
 
+### Setup Status Checklist
+
+Complete these steps in order. Each item must be done manually in the GA4 web interface. Check each box once confirmed.
+
+**Required before building the funnels (Section 7.3)**
+- [ ] All 14 custom dimensions registered in GA4 Admin → Custom definitions → Custom dimensions (Section 7.3.1)
+- [ ] All 7 custom metrics registered in GA4 Admin → Custom definitions → Custom metrics (Section 7.3.2)
+- [ ] Verified `shipping_mode` and `form_id` are visible under Custom → Event-scoped in Explore (Section 7.3.3)
+
+**Calculator Funnel (Section 7.1)**
+- [ ] Exploration named **`CRBOX — Calculator Funnel`** created in GA4 Explore using Funnel exploration technique
+- [ ] 4 steps configured: `calculator_start` → `calculator_query` → `calculator_result` → `cta_afiliate_click`
+- [ ] `shipping_mode` breakdown added
+- [ ] Make steps indirect enabled
+- [ ] Exploration saved
+- [ ] New users / Returning users segment comparison added and saved
+- [ ] Shared with property (Share icon → Share with property)
+
+**Contact Funnel (Section 7.2)**
+- [ ] Exploration named **`CRBOX — Contact Funnel`** created in GA4 Explore using Funnel exploration technique
+- [ ] 2 steps configured: `form_start` → `contact_form_submit`
+- [ ] `form_id` breakdown added
+- [ ] Make steps indirect enabled
+- [ ] Exploration saved
+- [ ] Shared with property (Share icon → Share with property)
+
+> **Where to find saved explorations:** Once shared, both explorations appear in the GA4 Explore library for all users with at least Viewer access to the property. Open GA4 → Explore → look for the CRBOX entries in the "Shared with me" or "All explorations" tab.
+
 ---
 
 ### 7.1 Calculator Funnel — `calculator_start → calculator_query → calculator_result → cta_afiliate_click`
