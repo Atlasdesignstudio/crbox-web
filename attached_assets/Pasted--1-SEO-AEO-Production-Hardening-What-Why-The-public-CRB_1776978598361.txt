@@ -1,0 +1,154 @@
+#1 - SEO, AEO & Production Hardening
+
+## What & Why
+The public CRBOX website is missing foundational technical SEO infrastructure, has no safe indexing strategy for private/demo pages, has no structured data for machine understanding and AI-answer citation, and has no analytics instrumentation. This task makes the public site production-ready for search engines, AI-answer systems, and marketing measurement without redesigning the UI.
+
+## Scope
+Include only the public-facing marketing site and shared public assets.
+
+Public pages in scope:
+- index.html
+- servicios.html
+- como-funciona.html
+- tarifas.html
+- calculadora.html
+- contacto.html
+- js/main.js
+- css/styles.css
+- css/responsive.css
+- img/crbox-logo.png
+- any public images/assets used by those pages
+
+Private/demo pages out of scope for production readiness, except for indexing controls:
+- login.html
+- afiliate.html
+- dashboard.html
+- mis-paquetes.html
+- mis-facturas.html
+- mi-cuenta.html
+
+## Critical rules
+- Do not redesign or restyle the UI unless required for crawlability, accessibility, trust, or measurement.
+- Do not invent business facts, branch addresses, business hours, legal claims, transit promises, pricing facts, customs claims, or service guarantees. Only use information already present in the codebase, or add clearly marked placeholders where missing.
+- Structured data, metadata, FAQ content, and search-facing copy must match visible page content.
+- Optimize for crawlability, clarity, semantic structure, citation-readiness, and measurement — not for spammy or manipulative “AI SEO” tactics.
+
+## Done looks like
+- robots.txt exists and guides crawlers toward public pages while discouraging crawling of private/demo paths
+- sitemap.xml exists listing all six canonical public URLs with correct priorities and lastmod dates
+- a user-friendly 404.html page exists with navigation back to the site
+- every public page has a rel=canonical tag pointing to its own absolute canonical URL
+- every private/demo page has a robots meta directive preventing indexing
+- every public page has valid, page-specific title and meta description optimized for Costa Rica shipping intent
+- every public page has complete Open Graph and Twitter Card tags using images that actually exist
+- public pages have consistent favicon links and theme-color meta
+- all public pages have a skip-to-content link
+- index.html has Organization + LocalBusiness + WebSite JSON-LD
+- servicios.html has relevant Service / OfferCatalog-style structured data where appropriate
+- como-funciona.html has visible FAQ content and matching FAQPage schema
+- contacto.html has ContactPage or relevant organization/contact structured data
+- tarifas.html exposes key pricing information in crawlable HTML, including real tables where appropriate
+- all key answer content is visible in plain HTML, not only hidden in JS-only interactions
+- a centralized shared config exists for entity data and tracking placeholders
+- GTM placeholder is implemented consistently across public pages
+- js/analytics.js exists with a clean dataLayer event taxonomy
+- key public interactions are trackable: calculator usage, CTA clicks, WhatsApp clicks, contact submit, call clicks, email clicks, FAQ engagement
+- CDN usage has performance basics improved (preconnect, non-fragile loading decisions, image lazy-loading where appropriate)
+- meta keywords is removed from all pages
+- internal linking is verified so no public page is orphaned
+- alt text is meaningful across public images
+- OG image references point to real assets
+- a post-launch checklist exists for Search Console, Bing Webmaster Tools, AI visibility monitoring, GTM, and GA4 setup
+
+## Out of scope
+- redesigning UI
+- backend integration or real authentication
+- real client portal functionality
+- paid campaign creation
+- GA4 property creation, Search Console verification, or Bing account setup requiring user action outside the codebase
+
+## Steps
+1. Create robots.txt and sitemap.xml
+- Create robots.txt for the public site
+- Allow crawling of public pages
+- Discourage crawling of private/demo paths
+- Create sitemap.xml for the six public canonical URLs with priorities and lastmod dates
+
+2. Create 404.html
+- Build a simple on-brand 404 page with links back to the homepage and major public pages
+
+3. Add canonical, indexing, favicon, and social meta fixes
+- Add canonical tags to all public pages
+- Add robots noindex directives to all private/demo pages
+- Remove meta keywords from public pages
+- Add favicon links and theme-color meta to public pages
+- Fix OG/Twitter image references to existing assets
+
+4. Add structured data
+- Add Organization + LocalBusiness + WebSite JSON-LD to index.html
+- Add Service-related structured data to servicios.html
+- Add FAQPage schema to como-funciona.html only if the FAQ is fully visible in HTML and matches exactly
+- Add relevant contact/organization structured data to contacto.html
+- Centralize reusable entity data in a shared config file or clearly documented block
+
+5. Strengthen answer-intent content on public pages
+- Ensure public pages clearly answer major search intents in visible HTML:
+  - shipping by air to Costa Rica
+  - shipping by sea to Costa Rica
+  - shipping from USA to Costa Rica
+  - transit times
+  - pricing and calculator usage
+  - customs/taxes overview if supported by existing content
+  - prohibited or restricted items if supported by existing content
+  - branch pickup vs home delivery if supported by existing content
+- Ensure servicios.html, como-funciona.html, and tarifas.html each target distinct intent and do not feel duplicative
+
+6. Improve accessibility basics
+- Add skip-to-content links
+- Verify heading hierarchy
+- Improve alt attributes
+- Check labels, focus states, and landmark clarity where relevant
+
+7. Add GTM placeholder and analytics layer
+- Add GTM placeholder snippets consistently across public pages
+- Create js/analytics.js with dataLayer helpers
+- Track:
+  - Afíliate CTA clicks
+  - Calcular Envío CTA clicks
+  - WhatsApp clicks
+  - contact form submissions
+  - phone clicks
+  - email clicks
+  - FAQ engagement
+  - calculator interactions/results
+- Keep tracking implementation simple and centralized
+
+8. Improve performance foundations
+- Add preconnect hints for external asset origins where appropriate
+- Add lazy loading to below-the-fold images
+- Reduce inline CSS/JS where practical without redesigning the site
+- Keep critical content available in initial HTML
+
+9. Verify internal linking and crawl flow
+- Confirm every public page is linked through nav, footer, or contextual links
+- Remove orphan pages
+- Improve contextual links where useful for both users and crawlers
+
+10. Create a post-launch checklist
+- Write .local/post-launch-checklist.md with exact next steps for:
+  - submitting sitemap
+  - Google Search Console
+  - Bing Webmaster Tools
+  - replacing GTM placeholder with real container ID
+  - GA4 setup
+  - conversion configuration
+  - validating structured data
+  - checking indexability and noindex behavior
+  - monitoring AI-answer citations / visibility where possible
+
+## Deliverables
+- concise audit summary
+- critical / medium / low issue list
+- file-by-file implementation plan
+- implemented fixes
+- post-launch checklist
