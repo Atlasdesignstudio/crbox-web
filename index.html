@@ -1,32 +1,136 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
+    <!-- End Google Tag Manager -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRBOX | Casillero Virtual y Courier en Costa Rica | Compras en USA</title>
     <meta name="description" content="CRBOX, tu casillero virtual en Miami para compras en USA. Servicio de courier confiable con entrega rápida en Costa Rica. ¡Afíliate gratis!">
-    <meta name="keywords" content="casillero virtual, courier Costa Rica, compras USA, servicio de entrega, Miami, transporte aéreo, transporte marítimo, consolidador de carga">
-    
+    <link rel="canonical" href="https://crbox.cr/">
+    <meta name="theme-color" content="#FF6B00">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" href="img/crbox-logo.png">
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://crbox.cr/">
     <meta property="og:title" content="CRBOX | Tu Casillero Virtual en Miami">
     <meta property="og:description" content="Compra en USA y recibe en Costa Rica. Casillero 100% gratuito, servicio profesional y tarifas transparentes.">
-    <meta property="og:image" content="https://crbox.cr/img/og-image.jpg">
+    <meta property="og:image" content="https://crbox.cr/img/fotoindex.png">
+    <meta property="og:locale" content="es_CR">
+    <meta property="og:site_name" content="CRBOX">
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://crbox.cr/">
-    <meta property="twitter:title" content="CRBOX | Tu Casillero Virtual en Miami">
-    <meta property="twitter:description" content="Compra en USA y recibe en Costa Rica. Casillero 100% gratuito, servicio profesional y tarifas transparentes.">
-    <meta property="twitter:image" content="https://crbox.cr/img/twitter-image.jpg">
-    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://crbox.cr/">
+    <meta name="twitter:title" content="CRBOX | Tu Casillero Virtual en Miami">
+    <meta name="twitter:description" content="Compra en USA y recibe en Costa Rica. Casillero 100% gratuito, servicio profesional y tarifas transparentes.">
+    <meta name="twitter:image" content="https://crbox.cr/img/fotoindex.png">
+
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/responsive.css">
+
+    <!-- Structured Data: Organization + LocalBusiness + WebSite -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://crbox.cr/#organization",
+          "name": "CRBOX",
+          "url": "https://crbox.cr/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://crbox.cr/img/crbox-logo.png"
+          },
+          "description": "Casillero virtual en Miami y servicio de courier para compras en USA con entrega en Costa Rica. Empresa registrada ante Aduanas como Courier y Consolidadora de Carga.",
+          "telephone": "+506-4000-1114",
+          "email": "ventas@crbox.cr",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "50 metros al Oeste del ICE, Edificio Torres del Parque, planta baja, Local #6",
+            "addressLocality": "Sabana Norte",
+            "addressRegion": "San José",
+            "addressCountry": "CR"
+          },
+          "areaServed": "CR",
+          "foundingDate": "2005",
+          "numberOfEmployees": {
+            "@type": "QuantitativeValue",
+            "minValue": 1
+          },
+          "contactPoint": [
+            {
+              "@type": "ContactPoint",
+              "telephone": "+506-4000-1114",
+              "contactType": "customer service",
+              "availableLanguage": "Spanish",
+              "areaServed": "CR"
+            }
+          ],
+          "sameAs": []
+        },
+        {
+          "@type": "LocalBusiness",
+          "@id": "https://crbox.cr/#localbusiness",
+          "name": "CRBOX",
+          "url": "https://crbox.cr/",
+          "image": "https://crbox.cr/img/fotoindex.png",
+          "logo": "https://crbox.cr/img/crbox-logo.png",
+          "description": "Casillero virtual en Miami y servicio de courier para compras en USA con entrega en Costa Rica.",
+          "telephone": "+506-4000-1114",
+          "email": "ventas@crbox.cr",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "50 metros al Oeste del ICE, Edificio Torres del Parque, planta baja, Local #6",
+            "addressLocality": "Sabana Norte",
+            "addressRegion": "San José",
+            "addressCountry": "CR"
+          },
+          "openingHoursSpecification": [
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+              "opens": "07:00",
+              "closes": "16:30"
+            },
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": ["Saturday"],
+              "opens": "09:00",
+              "closes": "12:30"
+            }
+          ],
+          "priceRange": "$$"
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://crbox.cr/#website",
+          "url": "https://crbox.cr/",
+          "name": "CRBOX",
+          "description": "Casillero virtual en Miami y courier para compras en USA con entrega en Costa Rica.",
+          "publisher": { "@id": "https://crbox.cr/#organization" }
+        }
+      ]
+    }
+    </script>
 </head>
 <body class="bg-gray-50">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-orange-600 text-white px-4 py-2 rounded-md z-50">Saltar al contenido principal</a>
     <!-- Header -->
     <header class="bg-white shadow-sm sticky-header">
         <div class="container mx-auto px-4 py-4">
@@ -112,7 +216,7 @@
     </header>
 
     <!-- Hero Section -->
-<section class="py-16 md:py-24 bg-white">
+<section id="main-content" class="py-16 md:py-24 bg-white">
     <div class="container mx-auto px-4 flex flex-wrap items-center">
         <div class="w-full md:w-1/2 mobile-center mb-8 md:mb-0 mobile-order-2 md:order-1">
             <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">Tu casillero virtual <span class="text-orange-600">gratuito</span> en Miami</h1>
@@ -300,7 +404,7 @@
                     <img src="img/amazon.png" alt="Amazon logo" class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition">
                 </div>
                 <div class="text-center">
-                    <img src="img/Temu-Logo.png" alt="eBay logo" class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition">
+                    <img src="img/Temu-Logo.png" alt="Temu logo" class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition">
                 </div>
                 <div class="text-center">
                     <img src="img/Walmart_logo.png" alt="Walmart logo" class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition">
@@ -780,5 +884,6 @@
             }
         });
     </script>
+    <script src="js/analytics.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Disallow: /login.html
+Disallow: /dashboard.html
+Disallow: /mis-paquetes.html
+Disallow: /mis-facturas.html
+Disallow: /mi-cuenta.html
+
+# Sitemap
+Sitemap: https://crbox.cr/sitemap.xml

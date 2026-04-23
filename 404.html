@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página no encontrada | CRBOX</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#FF6B00">
+    <link rel="icon" type="image/png" href="img/crbox-logo.png">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #FF6B00 0%, #FF9A00 100%); }
+        .hero-404 { min-height: 70vh; display: flex; align-items: center; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-orange-600 text-white px-4 py-2 rounded-md z-50">Saltar al contenido principal</a>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="index.html">
+                <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-10 w-auto">
+            </a>
+            <nav class="hidden md:flex space-x-6">
+                <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
+                <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
+                <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
+                <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 404 Content -->
+    <main id="main-content" class="hero-404">
+        <div class="container mx-auto px-4 text-center">
+            <div class="max-w-lg mx-auto">
+                <div class="text-9xl font-bold text-orange-500 mb-4">404</div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-4">Página no encontrada</h1>
+                <p class="text-lg text-gray-600 mb-8">Lo sentimos, la página que buscas no existe o fue movida. Puedes regresar al inicio o explorar nuestros servicios.</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="index.html" class="inline-flex items-center justify-center px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors">
+                        <i class="fas fa-home mr-2"></i>
+                        Ir al Inicio
+                    </a>
+                    <a href="servicios.html" class="inline-flex items-center justify-center px-6 py-3 border-2 border-orange-600 text-orange-600 font-semibold rounded-lg hover:bg-orange-50 transition-colors">
+                        Ver Servicios
+                    </a>
+                    <a href="contacto.html" class="inline-flex items-center justify-center px-6 py-3 border-2 border-gray-300 text-gray-600 font-semibold rounded-lg hover:bg-gray-50 transition-colors">
+                        Contacto
+                    </a>
+                </div>
+                <div class="mt-12 pt-8 border-t border-gray-200">
+                    <p class="text-gray-500 text-sm mb-4">También puedes encontrar lo que buscas aquí:</p>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <a href="como-funciona.html" class="text-orange-600 hover:underline text-sm">Cómo Funciona</a>
+                        <span class="text-gray-300">|</span>
+                        <a href="tarifas.html" class="text-orange-600 hover:underline text-sm">Tarifas</a>
+                        <span class="text-gray-300">|</span>
+                        <a href="calculadora.html" class="text-orange-600 hover:underline text-sm">Calculadora</a>
+                        <span class="text-gray-300">|</span>
+                        <a href="afiliate.html" class="text-orange-600 hover:underline text-sm">Afíliate Gratis</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-400 text-sm">© 2025 CRBOX. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>
