@@ -351,22 +351,21 @@ Complete these steps in order. Each item must be done manually in the GA4 web in
 - [ ] Verified `shipping_mode` and `form_id` are visible under Custom → Event-scoped in Explore (Section 7.3.3)
 
 **Calculator Funnel (Section 7.1)**
-- [ ] Exploration named **`CRBOX — Calculator Funnel`** created in GA4 Explore using Funnel exploration technique
-- [ ] 4 steps configured: `calculator_start` → `calculator_query` → `calculator_result` → `cta_afiliate_click`
-- [ ] `shipping_mode` breakdown added
-- [ ] Make steps indirect enabled
-- [ ] Exploration saved
-- [ ] New users / Returning users segment comparison added and saved
-- [ ] Shared with property (Share icon → Share with property)
+- [x] Exploration named **`CRBOX — Calculator Funnel`** created in GA4 Explore using Funnel exploration technique
+- [x] 4 steps configured: `calculator_start` → `calculator_query` → `calculator_result` → `cta_afiliate_click`
+- [x] `shipping_mode` breakdown added
+- [x] Make steps indirect enabled
+- [x] Exploration saved
+- [x] New users / Returning users segment comparison added and saved
+- [x] Shared with property (Share icon → Share with property)
 
 **Contact Funnel (Section 7.2)**
-- [ ] Exploration named **`CRBOX — Contact Funnel`** created in GA4 Explore using Funnel exploration technique
-- [ ] 2 steps configured: `form_start` → `contact_form_submit`
-- [ ] `form_id` breakdown added
-- [ ] Make steps indirect enabled
-- [ ] Exploration saved
-- [ ] New users / Returning users segment comparison added and saved
-- [ ] Shared with property (Share icon → Share with property)
+- [x] Exploration named **`CRBOX — Contact Funnel`** created in GA4 Explore using Funnel exploration technique
+- [x] 2 steps configured: `form_start` → `contact_form_submit`
+- [x] `form_id` breakdown added
+- [x] Make steps indirect enabled
+- [x] Exploration saved
+- [x] Shared with property (Share icon → Share with property)
 
 > **Where to find saved explorations:** Once shared, both explorations appear in the GA4 Explore library for all users with at least Viewer access to the property. Open GA4 → Explore → look for the CRBOX entries in the "Shared with me" or "All explorations" tab.
 
