@@ -398,6 +398,16 @@ Complete these steps in order. Each item must be done manually in the GA4 web in
 2. Click the **Share** icon (person with a + symbol, top right).
 3. Choose **Share with property** → confirm. All GA4 users with at least Viewer access to the property can now open it from the Explore library.
 
+#### Verify data is flowing
+
+After sharing the exploration, confirm that the funnel is receiving real data before relying on it for decisions:
+
+1. **Check Step 1 shows users.** Open **`CRBOX — Calculator Funnel`** and look at the user count for **Step 1 (Calculator Start)**. It should be greater than zero for any date range that includes days with known traffic. A zero count at Step 1 almost always means the `calculator_start` GTM tag has not fired — not that users are dropping off.
+2. **Verify the date range covers live traffic.** Set the date range to the **Last 7 days** and confirm Step 1 has activity. If the exploration was just created, allow up to 24 hours for GA4 to process events before concluding data is missing.
+3. **Check the breakdown dimension is populated.** If **`shipping_mode`** shows only `(not set)` across all rows, the custom dimension has not been registered yet or the GTM tag is not passing the parameter — revisit Section 7.3 to register the dimension, then Section 6 to troubleshoot the tag.
+
+> **No data after 24 hours?** Go to Section 6 (GTM Troubleshooting) for a step-by-step checklist to confirm tags are firing and events are reaching GA4.
+
 #### Add a New vs Returning Visitor segment comparison
 
 Comparing first-time visitors against returning visitors in the same funnel reveals whether drop-off is driven by unfamiliarity with the tool (an onboarding problem) or by something else (a trust or pricing problem). Follow these steps after the funnel is saved:
@@ -437,6 +447,16 @@ Comparing first-time visitors against returning visitors in the same funnel reve
 
 1. Open the saved exploration.
 2. Click the **Share** icon → **Share with property** → confirm.
+
+#### Verify data is flowing
+
+After sharing the exploration, confirm that the funnel is receiving real data before relying on it for decisions:
+
+1. **Check Step 1 shows users.** Open **`CRBOX — Contact Funnel`** and look at the user count for **Step 1 (Form Start)**. It should be greater than zero for any date range that includes days with known traffic. A zero count at Step 1 almost always means the `form_start` GTM tag has not fired — not that users are dropping off before reaching the form.
+2. **Verify the date range covers live traffic.** Set the date range to the **Last 7 days** and confirm Step 1 has activity. If the exploration was just created, allow up to 24 hours for GA4 to process events before concluding data is missing.
+3. **Check the breakdown dimension is populated.** If **`form_id`** shows only `(not set)` across all rows, the custom dimension has not been registered yet or the GTM tag is not passing the parameter — revisit Section 7.3 to register the dimension, then Section 6 to troubleshoot the tag.
+
+> **No data after 24 hours?** Go to Section 6 (GTM Troubleshooting) for a step-by-step checklist to confirm tags are firing and events are reaching GA4.
 
 #### Add a New vs Returning Visitor segment comparison
 
