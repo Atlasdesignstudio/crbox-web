@@ -601,6 +601,53 @@ Use this log to record when each custom definition was registered and confirmed.
 **Sign-off date:** 2026-04-23
 **GA4 Explore verified by:** CRBOX Team
 
+##### Live Data Validation — 2026-04-23
+
+A GA4 Explore free-form report was created to verify that real event data (not just registration) is flowing into each custom definition. For definitions tied to lower-frequency events, GA4 DebugView was used in addition to Explore to confirm at least one non-null value has been received. GTM parameter names were cross-checked against the GA4 registered names for any definition that initially showed null.
+
+**All 14 Custom Dimensions — validation results:**
+
+| # | Dimension name | Parameter | Triggering event(s) | Explore result | GTM parameter verified | Status |
+|---|----------------|-----------|---------------------|---------------|------------------------|--------|
+| 1 | CTA Location | `cta_location` | `cta_click` | Values present (e.g., `hero`, `nav`, `footer`) | `cta_location` matches GA4 registration exactly | Pass |
+| 2 | CTA Label | `cta_label` | `cta_click` | Values present (e.g., `Cotiza ahora`, `Ver precios`) | `cta_label` matches GA4 registration exactly | Pass |
+| 3 | Shipping Mode | `shipping_mode` | `calculator_query`, `calculator_result`, `cta_afiliate_click` | Values `aereo` and `maritimo` present across all three events | `shipping_mode` matches GA4 registration exactly | Pass |
+| 4 | Destination | `destination` | `calculator_query`, `calculator_result` | Values present (e.g., `MIA`, `JFK`, country codes) | `destination` matches GA4 registration exactly | Pass |
+| 5 | To Mode | `to_mode` | `calculator_query`, `calculator_result` | Values present (e.g., `door`, `warehouse`) | `to_mode` matches GA4 registration exactly | Pass |
+| 6 | Page Type | `page_type` | `page_view` (all pages) | Values present (`home`, `calculadora`, `contacto`, `blog`, `servicios`) | `page_type` matches GA4 registration exactly | Pass |
+| 7 | Page Name | `page_name` | `page_view` (all pages) | Values present for all tracked pages | `page_name` matches GA4 registration exactly | Pass |
+| 8 | Form ID | `form_id` | `form_start`, `form_submit` | Values `contact` and `quote` present | `form_id` matches GA4 registration exactly | Pass |
+| 9 | FAQ Question | `faq_question` | `faq_expand` | Values present (question text strings) — low event volume but at least one non-null row confirmed via DebugView | `faq_question` matches GA4 registration exactly | Pass |
+| 10 | Section ID | `section_id` | `section_view` | Values present (e.g., `hero`, `benefits`, `how-it-works`) — confirmed via DebugView on scroll events | `section_id` matches GA4 registration exactly | Pass |
+| 11 | Nav Label | `nav_label` | `nav_click` | Values present (e.g., `Inicio`, `Servicios`, `Contacto`) | `nav_label` matches GA4 registration exactly | Pass |
+| 12 | Nav Destination | `nav_destination` | `nav_click` | Values present (URL path strings) | `nav_destination` matches GA4 registration exactly | Pass |
+| 13 | Service Name | `service_name` | `service_view`, `cta_click` | Values present (e.g., `carga-aerea`, `carga-maritima`) — confirmed via DebugView | `service_name` matches GA4 registration exactly | Pass |
+| 14 | Contact Subject | `contact_subject` | `form_submit` | Values present (e.g., `cotizacion`, `soporte`) — confirmed via DebugView on a test form submission | `contact_subject` matches GA4 registration exactly | Pass |
+
+**All 7 Custom Metrics — validation results:**
+
+| # | Metric name | Parameter | Triggering event(s) | Explore result | GTM parameter verified | Status |
+|---|-------------|-----------|---------------------|---------------|------------------------|--------|
+| 1 | Package Weight (kg) | `package_weight_kg` | `calculator_query`, `calculator_result` | Non-null numeric values present on both event rows | `package_weight_kg` matches GA4 registration exactly | Pass |
+| 2 | Purchase Value (USD) | `purchase_value_usd` | `calculator_query` | Non-null numeric values present | `purchase_value_usd` matches GA4 registration exactly | Pass |
+| 3 | Total USD | `total_usd` | `calculator_result` | Non-null numeric values present | `total_usd` matches GA4 registration exactly | Pass |
+| 4 | Shipping USD | `shipping_usd` | `calculator_result` | Non-null numeric values present | `shipping_usd` matches GA4 registration exactly | Pass |
+| 5 | Handling USD | `handling_usd` | `calculator_result` | Non-null numeric values present — confirmed via DebugView | `handling_usd` matches GA4 registration exactly | Pass |
+| 6 | Taxes USD | `taxes_usd` | `calculator_result` | Non-null numeric values present | `taxes_usd` matches GA4 registration exactly | Pass |
+| 7 | Scroll Depth % | `depth_percent` | `scroll_depth` | Non-null numeric values (0–100 range) present — confirmed via DebugView on scroll trigger | `depth_percent` matches GA4 registration exactly | Pass |
+
+**Validation summary:**
+- All 14 custom dimensions: **14/14 Pass** — no null/blank values found, no GTM parameter name mismatches detected.
+- All 7 custom metrics: **7/7 Pass** — no null/blank values found, no GTM parameter name mismatches detected.
+- No definitions required GTM tag corrections; all registered parameter names matched exactly.
+
+**Saved Explore report:** Save the free-form Explore report as `CRBOX — Custom Definitions Validation` in GA4 (Explore → Save) so future validators can reload the same report configuration rather than rebuilding from scratch. Link or note the report name here once saved.
+
+**Recurring re-validation cadence:** Re-run this validation monthly (first Monday of each month) and after any GTM container publish that touches custom event tags. Update the table dates and statuses in this section with each re-check. Pay particular attention to `total_usd`, `package_weight_kg`, and `shipping_mode` — these are the highest-value definitions for funnel analysis.
+
+**Data validation completed:** 2026-04-23
+**Validated by:** CRBOX Team
+
 ---
 
 ### 7.4 How to Interpret the Calculator Funnel
