@@ -35,7 +35,8 @@ Run this review every Monday (15–20 minutes):
 - [ ] `cta_afiliate_click` count — compare to prior week.
 - [ ] `contact_form_submit` count — compare to prior week.
 - [ ] `whatsapp_click` count — compare to prior week.
-- [ ] Calculator funnel: `calculator_start` → `calculator_query` → `calculator_result` — which step has the biggest drop-off?
+- [ ] Calculator funnel: `calculator_start` → `calculator_query` → `calculator_result` — which step has the biggest drop-off? Check against the alert thresholds in Section 9; escalate if any step falls below its alert threshold.
+- [ ] Contact funnel: `form_start` → `contact_form_submit` — check each form against its threshold (Section 9): `contact-form` ≤ 40% and `maritimo-quote-form` ≤ 35% are alert levels. Flag any form below its threshold for investigation.
 
 ### Content Engagement
 - [ ] Which `section_id` values appear most in `section_visible` events? Are high-intent sections (e.g. `cta-afiliate`, `formulario`, `aero-calculator`) being reached?
@@ -52,7 +53,7 @@ Run this review every Monday (15–20 minutes):
 Run this deeper review once a month (45–60 minutes):
 
 ### Funnel Analysis
-- [ ] Open the saved **`CRBOX — Calculator Funnel`** exploration in GA4 Explore (see Section 7.1 to build it if not yet saved). Identify the weakest step by comparing completion rates across `calculator_start` → `calculator_query` → `calculator_result` → `cta_afiliate_click`.
+- [ ] Open the saved **`CRBOX — Calculator Funnel`** exploration in GA4 Explore (see Section 7.1 to build it if not yet saved). Identify the weakest step by comparing completion rates across `calculator_start` → `calculator_query` → `calculator_result` → `cta_afiliate_click`. Compare each step against the alert thresholds in **Section 9**; any step at or below its alert threshold requires an investigation ticket before the next monthly review.
 - [ ] Compare `shipping_mode = aereo` vs `shipping_mode = maritimo` on `calculator_result` — which service has more demand?
 - [ ] Review `destination` dimension on `calculator_result` — which provinces drive the most calculator completions?
 
@@ -62,7 +63,7 @@ Run this deeper review once a month (45–60 minutes):
 - [ ] Review `scroll_depth` by page — identify pages where most users drop below 50%.
 
 ### Form Friction Review
-- [ ] Open the saved **`CRBOX — Contact Funnel`** exploration in GA4 Explore (see Section 7.2 to build it if not yet saved). Review the `form_id` breakdown to compare `contact-form` vs `maritimo-quote-form` completion rates.
+- [ ] Open the saved **`CRBOX — Contact Funnel`** exploration in GA4 Explore (see Section 7.2 to build it if not yet saved). Review the `form_id` breakdown to compare `contact-form` vs `maritimo-quote-form` completion rates. Check both against the alert thresholds in **Section 9**; if either form falls at or below its alert threshold, raise it as a priority action item.
 - [ ] `form_start` vs `contact_form_submit` gap on `contact-form` — is it improving month over month?
 - [ ] `form_start` vs submit gap on `maritimo-quote-form` — same analysis.
 
@@ -401,3 +402,49 @@ Open **`CRBOX — Contact Funnel`** in Explore and look at:
 6. Submit a test contact form and confirm `contact_form_submit` fires.
 7. Open the browser console and run `window.dataLayer` to inspect all pushed events.
 8. Use GA4 DebugView (`Admin → DebugView`) to confirm parameters are arriving correctly.
+
+---
+
+## 9. Drop-off Alert Thresholds
+
+Use this table during every weekly and monthly review. If any funnel step's completion rate reaches or drops below the **Alert Threshold**, stop and investigate before moving on. Do not wait until the next review cycle.
+
+> **How to calculate a step rate:** Divide the completing-step event count by the entering-step event count for the same date range in GA4 Explore. Use **Last 7 days** for weekly reviews and **Last 28 days** for monthly reviews.
+
+### 9.1 Calculator Funnel Thresholds
+
+| Funnel Step | Metric | Healthy Baseline | Alert Threshold | When to Escalate |
+|-------------|--------|-----------------|-----------------|-----------------|
+| **Step 1 → 2:** `calculator_start` → `calculator_query` | % of starters who submit a query | > 70% | ≤ 50% | Users interact with inputs but don't click "Calcular" — check for UX friction, button visibility, or form validation errors |
+| **Step 2 → 3:** `calculator_query` → `calculator_result` | % of queries that return a result | > 90% | ≤ 80% | Significant drop signals a JavaScript error in the result-display logic — check the browser console on calculadora.html |
+| **Step 3 → 4:** `calculator_result` → `cta_afiliate_click` | % of result viewers who click the affiliate CTA | > 25% | ≤ 10% | Users see results but don't convert — the CTA may not be visible or the displayed price is creating friction |
+
+**Weekly check:** Look at steps 1→2 and 3→4. Step 2→3 dropping below 80% always indicates a code regression — treat it as urgent.
+
+**Monthly check:** Compare `aereo` vs `maritimo` rows in the `shipping_mode` breakdown. If either mode's step 1→2 rate drops below 50%, investigate that mode's UX and pricing presentation separately.
+
+---
+
+### 9.2 Contact Funnel Thresholds
+
+| Funnel Step | Metric | Healthy Baseline | Alert Threshold | When to Escalate |
+|-------------|--------|-----------------|-----------------|-----------------|
+| **Step 1 → 2 (`contact-form`):** `form_start` → `contact_form_submit` | % of starters who submit the main contact form | > 60% | ≤ 40% | Form is too long, fields are unclear, or a required field is blocking submission — review field count and labels |
+| **Step 1 → 2 (`maritimo-quote-form`):** `form_start` → `contact_form_submit` | % of starters who submit the maritime quote form | > 50% | ≤ 35% | The quote form asks for more fields; a lower rate is expected, but a sustained drop suggests a specific friction point (e.g. a new required field) |
+| **`form_start` volume vs page sessions** | `form_start` count ÷ `contacto.html` sessions | ≥ 30% | < 20% | Users aren't scrolling to the form or aren't motivated to start — consider moving the form higher or adding a mid-page CTA |
+
+**Weekly check:** If `contact_form_submit` count drops week-over-week, check both form completion rates against their thresholds: `contact-form` alert threshold is ≤ 40%; `maritimo-quote-form` alert threshold is ≤ 35%. Flag either form that breaches its threshold immediately.
+
+**Monthly check:** Track the `contact-form` completion rate month over month. Any form-copy or field changes should be evaluated using a before/after comparison in the Contact Funnel exploration.
+
+---
+
+### 9.3 Escalation Protocol
+
+When any threshold is breached:
+
+1. **Note the date** and the exact rate observed — record it in a shared log (e.g. a sheet or Notion page).
+2. **Check for zero-event anomalies first** — a tag that stopped firing will produce an artificially low rate. Verify in GA4 DebugView or GTM Preview Mode.
+3. **Check the browser console** on the relevant page for JavaScript errors.
+4. **Create an investigation ticket** describing which step breached, the observed rate, and the date. Assign it before closing the review session.
+5. **Follow up the next week** — if the rate has not recovered, escalate to a full UX or code review of the affected step.
