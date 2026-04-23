@@ -226,6 +226,101 @@ After publishing the container and letting events flow for a session, go to **GA
 
 ---
 
+### 6.1 Verifying Conversions with GTM Preview Mode
+
+Use this checklist before trusting any data in GA4's Conversions report. GTM Preview Mode lets you confirm each tag fires on the correct user action, and GA4 DebugView lets you confirm the event lands in GA4 with the right parameters and the conversion flag set.
+
+> **Prerequisite:** Your GTM container must be published (or you must use Preview Mode against the draft). The GA4 Measurement ID Constant variable must already be set to your real `G-XXXXXXXXXX` value. All four events must already be toggled as conversions in GA4 Admin → Events (Section 6 checklist above).
+
+#### Step 1 — Enter GTM Preview Mode
+
+1. Go to **GTM** → your workspace → click **Preview** (top right, next to Submit).
+2. Enter the URL of the page you want to test (e.g. `https://your-domain.com/index.html`) and click **Connect**.
+3. A new browser tab opens on that page. A **Tag Assistant** panel appears at the bottom confirming "Tag Assistant Connected".
+4. Keep the Tag Assistant tab open alongside the page tab throughout testing — it updates in real time as you interact with the page.
+
+#### Step 2 — Open GA4 DebugView
+
+1. In a separate browser tab, go to **GA4** → **Admin** → **DebugView** (under the Property column).
+2. DebugView shows events arriving from your current browser session in real time (typically within a few seconds). Events appear as a timeline; click any event to expand its parameters.
+3. Confirmed conversions appear with a **blue star icon** next to the event name in DebugView.
+
+> **Tip:** GA4 DebugView only shows hits from browsers where `gtm_debug` is active (set automatically by Tag Assistant) or where `ga-debug` is enabled. Keep both tabs open in the same browser profile.
+
+#### Step 3 — Trigger and verify each conversion event
+
+Work through the four conversion events in order. For each event, perform the trigger action, then check both the GTM Tag Assistant panel and GA4 DebugView.
+
+---
+
+##### `cta_afiliate_click`
+
+| Field | Detail |
+|-------|--------|
+| **Pages to visit** | index.html (primary), or any of the 6 public pages — all include at least one Afíliate CTA |
+| **Trigger action** | Click any button or link that navigates to `afiliate.html` (look for "Afíliate" or "Afiliate" CTAs in the hero, mid-page CTA section, or footer) |
+| **GTM Tag Assistant** | In the Summary panel, `GA4 - cta_afiliate_click` should appear under **Tags Fired**. Click it to confirm `cta_location` and `cta_label` are populated. |
+| **GA4 DebugView** | `cta_afiliate_click` appears in the event timeline with a **blue star** (conversion flag). Click the event to confirm `cta_location`, `cta_label`, `page_name`, and `page_type` are present. |
+
+---
+
+##### `contact_form_submit`
+
+| Field | Detail |
+|-------|--------|
+| **Pages to visit** | contacto.html |
+| **Trigger action** | Fill in all required fields of the `#contact-form` (name, email, subject, message) and click the submit button |
+| **GTM Tag Assistant** | `GA4 - contact_form_submit` should appear under **Tags Fired**. Click it to verify `contact_subject` matches the value you selected in the subject field. |
+| **GA4 DebugView** | `contact_form_submit` appears with a **blue star**. Expand the event and confirm `contact_subject`, `page_name` (`contacto`), and `page_type` (`contact`) are correct. |
+
+> **Note:** If the form navigates away immediately on submit, the dataLayer push may fire before the tag has time to send. If the event is missing, check whether the GA4 tag is set to fire on **form submission** (not on page unload) and that `transport_url` or beacon transport is configured in the GTM tag settings.
+
+---
+
+##### `calculator_result`
+
+| Field | Detail |
+|-------|--------|
+| **Pages to visit** | calculadora.html |
+| **Trigger action** | Enter valid values in the aereo calculator (weight, purchase value, destination) and click "Calcular Envío Aéreo". The result panel should appear. To also test maritime, switch to the Marítimo tab, fill in the maritime quote form (`#nombre`, destination, weight), and submit. |
+| **GTM Tag Assistant** | `GA4 - calculator_result` appears under **Tags Fired** immediately after the result is displayed. Click it to confirm `shipping_mode`, `package_weight_kg`, `destination`, `total_usd`, `shipping_usd`, `handling_usd`, and `taxes_usd` are populated with the values you entered. |
+| **GA4 DebugView** | `calculator_result` appears with a **blue star**. Verify the numeric parameters (`total_usd`, `shipping_usd`, etc.) match what was displayed in the calculator result panel on the page. |
+
+> **Also check:** `calculator_query` should fire just before `calculator_result` in both the Tag Assistant and DebugView. If `calculator_result` fires but `calculator_query` is absent, there is a sequencing issue in the dataLayer push logic in `js/analytics.js`.
+
+---
+
+##### `whatsapp_click`
+
+| Field | Detail |
+|-------|--------|
+| **Pages to visit** | Any page — the floating WhatsApp button is present on all 6 public pages. contacto.html also has inline WhatsApp links. |
+| **Trigger action** | Click the floating WhatsApp button (or any `<a href^="https://wa.me/">` link). You do not need to complete the WhatsApp conversation — the click itself fires the event. |
+| **GTM Tag Assistant** | `GA4 - whatsapp_click` appears under **Tags Fired**. Click it to confirm `cta_location` is `floating_button` (or the correct section id for inline links). |
+| **GA4 DebugView** | `whatsapp_click` appears with a **blue star**. Confirm `cta_location` and standard parameters (`page_name`, `page_type`) are correct. |
+
+---
+
+#### Step 4 — Confirm the conversion flag in DebugView
+
+For each of the four events above, the **blue star icon** in DebugView confirms GA4 has recognized the event as a conversion. If the star is absent:
+
+1. Verify the event name in DebugView exactly matches the name toggled as a conversion in GA4 Admin → Events (case-sensitive, no extra spaces).
+2. Check that the "Mark as conversion" toggle in GA4 Admin → Events is **on** (blue) for that event name.
+3. Note that GA4 can take up to a few minutes to reflect the conversion toggle in DebugView for the current session. If you toggled the conversion status recently, wait 5 minutes and re-trigger the event.
+4. If the event does not appear in DebugView at all, the problem is upstream in GTM — return to Tag Assistant and confirm the tag appears under **Tags Fired** (not **Tags Not Fired**).
+
+#### Step 5 — Exit Preview Mode and publish
+
+Once all four events show as conversions in DebugView and all parameters are correct in Tag Assistant:
+
+1. Close the Tag Assistant tab.
+2. Return to GTM → click **Leave Preview**.
+3. If you made any tag or trigger changes during verification, click **Submit** to publish the updated container.
+4. Record the verification date in the GA4 Conversions to Mark checklist above.
+
+---
+
 ## 7. GA4 Explore Funnels — Build, Save, and Share
 
 GA4 Explore funnels are the fastest way to spot drop-off in the two highest-value user journeys. Build each funnel once, save it, and share it so the whole team can open it without recreating it.
