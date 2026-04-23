@@ -261,6 +261,22 @@ GA4 Explore funnels are the fastest way to spot drop-off in the two highest-valu
 2. Click the **Share** icon (person with a + symbol, top right).
 3. Choose **Share with property** → confirm. All GA4 users with at least Viewer access to the property can now open it from the Explore library.
 
+#### Add a New vs Returning Visitor segment comparison
+
+Comparing first-time visitors against returning visitors in the same funnel reveals whether drop-off is driven by unfamiliarity with the tool (an onboarding problem) or by something else (a trust or pricing problem). Follow these steps after the funnel is saved:
+
+1. Open **`CRBOX — Calculator Funnel`** in GA4 Explore.
+2. In the **Variables** panel on the left, locate **Segments** and click **+** next to it.
+3. In the segment picker, search for **"New users"** — this is a GA4 system segment that already exists in every property; no custom setup is required. Click it to add it to the Variables panel.
+4. Repeat step 3 for **"Returning users"** (another built-in GA4 system segment).
+5. In the **Tab settings** panel on the right, find the **Segment comparisons** section and drag both **New users** and **Returning users** from the Variables panel into the **Segment comparisons** drop zone. You can compare up to four segments at once; two is the recommended starting point.
+6. The funnel will now display two side-by-side bars for each step — one for new users, one for returning users. The drop-off percentage shown at each step is calculated independently within each segment so the rates are directly comparable.
+7. Click **Save** again to persist the segment comparison with the exploration.
+
+> **GA4 system segments note:** "New users" and "Returning users" are pre-built by Google and based on the `newVsReturning` user property collected automatically by the GA4 tag. No custom dimension registration is required for these segments.
+
+> **Scope reminder:** GA4 funnel explorations use session-scoped or user-scoped counting depending on the "Count users" vs "Count events" toggle at the top of Tab settings. For new vs returning analysis, set the funnel to **Count users** so that each person is counted once per segment, giving true first-visit vs repeat-visit completion rates.
+
 ---
 
 ### 7.2 Contact Funnel — `form_start → contact_form_submit`
@@ -368,6 +384,22 @@ Open **`CRBOX — Calculator Funnel`** in Explore and look at:
 | **`shipping_mode` breakdown** | Both `aereo` and `maritimo` complete the funnel at similar rates | If one mode has much lower completion, its UX or pricing may be broken or unclear. |
 
 **Monthly action:** Compare the `aereo` vs `maritimo` rows in the breakdown — whichever mode has a higher completion rate is likely the stronger product-market fit. Use this to guide content and marketing emphasis.
+
+#### Interpreting the New vs Returning Visitor segment gap
+
+After adding the segment comparison (see Section 7.1), look at each funnel step's completion rate for new users versus returning users. Use the guidance below to decide what action to take.
+
+| Observation | What it likely means | Recommended action |
+|-------------|---------------------|--------------------|
+| **New users complete step 1→2 at a significantly lower rate than returning users** (gap > 20 pp) | First-time visitors don't understand how to use the calculator — they start interacting but don't reach the "Calcular" button. This is an onboarding/UX clarity problem, not a trust problem. | Improve calculator onboarding: add a short instructional label or placeholder text on the inputs, make the "Calcular" button more prominent, or add a one-line explainer ("Enter weight and destination, then click Calcular"). |
+| **New users complete step 2→3 at a similar rate to returning users** | Result-display logic works equally well for both groups — the gap, if any, is not caused by the product. | No action needed on the result step. Focus improvement effort on step 1→2 if that gap is large. |
+| **New users complete step 3→4 (result → affiliate CTA click) at a significantly lower rate than returning users** (gap > 15 pp) | Returning users already trust the brand and are more likely to click through. First-time visitors need more reassurance at the result screen — they see the price but aren't confident enough to act. This is a trust problem. | Add social proof or credibility signals near the affiliate CTA on the result view (e.g., a brief trust statement, a star rating, or a "used by X customers" note). Consider A/B testing a softer CTA copy ("See your shipping options" vs "Start shipping now"). |
+| **New and returning users complete all steps at similar rates** (gap < 10 pp on every step) | The funnel performs consistently for both groups. Any overall drop-off is not explained by user familiarity — look instead at traffic source, device type, or shipping mode as explanatory factors. | No segment-specific action needed. Use the `shipping_mode` breakdown to continue investigating overall drop-off causes. |
+| **Returning users complete at a lower rate than new users on any step** | Unusual — could indicate a UX regression that appeared after returning users last visited, or a data quality issue (e.g., the `newVsReturning` property is miscategorizing users). | First verify the data: check whether the returning-user sample size is large enough to be meaningful (at least 50 users per step). If the sample is valid, investigate whether a recent code change degraded an experience that returning users had memorized. |
+
+> **Minimum sample size:** Segment comparisons become unreliable when either segment has fewer than ~50 users in the funnel within the selected date range. If the returning-user count is very small, extend the date range to **Last 90 days** before drawing conclusions.
+
+> **Threshold to watch:** A gap of more than 20 percentage points on step 1→2 between new and returning users is a strong signal of an onboarding problem worth prioritizing. A gap of more than 15 percentage points on step 3→4 is a strong signal of a trust gap. Gaps smaller than 10 pp on all steps mean the two segments are behaviorally similar and no segment-specific action is needed.
 
 ---
 
