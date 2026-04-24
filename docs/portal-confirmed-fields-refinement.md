@@ -23,7 +23,7 @@ helper, or expansion/accordion content.
 | `descripcionfactura` (`getuserpackages`) | Mis Paquetes — package detail modal, new "Factura asociada" group (passive metadata, hidden when empty) | "Detalle" |
 | `invoicesCount` (`getuserpackages`) | Mis Paquetes — package detail modal, new "Factura asociada" group (only when `> 0`) | "Facturas asociadas: N" |
 | `totalvolume` (`getuserpackages`) | Mis Paquetes — package detail modal, "Dimensiones y Peso" block (already present from prior pass; verified) | "Volumen" |
-| `Factura.volumentricWeigth` (`getfacturas`) | Mis Facturas — bills table, new column between "Peso" and "Descuento" | "Peso Vol." |
+| `Factura.volumentricWeigth` (`getfacturas`) | Mis Facturas — bills table, new column between "Peso" and "Descuento" | "Peso Volumétrico" |
 
 Notes on placement:
 - Overview surfaces (Mis Paquetes list/grid) intentionally stayed
@@ -61,7 +61,7 @@ Audited surfaces:
 | Stats / summary cards (`_renderBillsStats`) | `bill.total` only — invoice count + summed `total`. No fabricated paid / pending counts. | Mapped only ✓ |
 | Search filter (`_applyBillsSearch`) | `bill.factura` only — case-insensitive substring match against the invoice number. | Mapped only ✓ |
 | Date helper (`_fmtDate`) | Reads pre-derived `bill.bestDate` (= `Factura.billedDate || Factura.createdDate`). When both are null, the helper returns the neutral `—` placeholder and never throws. | Safe ✓ |
-| Empty / loading / error states | All `<td colspan>` values updated from 9 to 10 to match the new "Peso Vol." column. Preserved-empty markup, search-empty fallback, loading row, error row, and the user-info-failure error row are all consistent. | Consistent ✓ |
+| Empty / loading / error states | All `<td colspan>` values updated from 9 to 10 to match the new "Peso Volumétrico" column. Preserved-empty markup, search-empty fallback, loading row, error row, and the user-info-failure error row are all consistent. | Consistent ✓ |
 | Inline expansion `<td colspan>` | Updated to 10 to match the new column count. | Consistent ✓ |
 | Loader (`_loadBills`) | Always calls `CRBOXPortalAPI.mapBill(r)` over the raw response array (with the historical `bills / Bills / facturas` envelope fallback for older response shapes). | Mapped only ✓ |
 
