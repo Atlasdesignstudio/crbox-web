@@ -43,10 +43,23 @@
     d.setMonth(d.getMonth() - (monthsBack || 1));
     return d;
   }
-  // 30-day window (used as the default across all pages)
+  // 30-day window (the historical default for packages, where activity is
+  // continuous — most customers receive packages every few days).
   function _last30Days() {
     var d = new Date();
     d.setDate(d.getDate() - 30);
+    return d;
+  }
+  // N-month window. Used by surfaces whose activity is sparser than
+  // packages (e.g. facturas, which are issued at the cadence the
+  // courier closes shipments — typically far less often than once a
+  // month). 30 days is too narrow for those surfaces and routinely
+  // returned an empty list even for customers with a healthy invoice
+  // history. The bills page now defaults to a 6-month window so the
+  // initial render has a realistic chance of returning real rows.
+  function _lastNMonths(n) {
+    var d = new Date();
+    d.setMonth(d.getMonth() - (n || 6));
     return d;
   }
 
@@ -158,7 +171,8 @@
     var token = CRBOXAuth.getToken();
     if (!token) return Promise.reject(new Error('Sesión no iniciada. Por favor inicia sesión.'));
 
-    var start = formatDate(startDate || _last30Days());
+    // Bills default to a 6-month window — see _lastNMonths above.
+    var start = formatDate(startDate || _lastNMonths(6));
     var end   = formatDate(endDate   || _defaultEndDate());
 
     var url = BASE + '/getfacturas/' +
@@ -321,6 +335,7 @@
     recoverPassword:    recoverPassword,
     formatDate:         formatDate,
     last30Days:         _last30Days,
+    lastNMonths:        _lastNMonths,
     defaultStartDate:   _defaultStartDate,
     defaultEndDate:     _defaultEndDate,
     // Field accessors

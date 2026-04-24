@@ -124,7 +124,130 @@ billing-lifecycle implications the backend doesn't support yet.
 - Static HTML defaults for the new modal lines stay neutral (`—`),
   so live data never collides with stale placeholders during a flash.
 
-## 8. Remaining limitations — backend semantics, not UI
+## 8. Debug + completion pass — Mis Facturas empty-render fix
+
+The bills page was loading successfully and going through the full
+fetch → map → render path, but it was still rendering the empty state
+for many real customers. End-to-end debug pinned the cause to the
+**default date window**, not to the mapper, the renderer, the
+envelope handling, or the strict-shape contract.
+
+### Root cause
+
+`getBills()` (and the page's `_getStart()` fallback) defaulted to
+`_last30Days()` — the same 30-day window used for packages.
+
+That default is correct for `getuserpackages` because customers
+typically receive packages every few days. It is **wrong** for
+`getfacturas` because invoices are issued at the cadence the courier
+closes shipments (typically far less often than once a month). On the
+30-day default, real customers with a healthy invoice history
+routinely got an empty array back from the API, the mapper preserved
+that emptiness honestly, and the page correctly rendered the
+"No se encontraron facturas en el período seleccionado" empty state.
+
+The empty render was therefore **technically truthful** but
+**functionally broken** — the page never had a realistic chance to
+show real rows on first paint.
+
+A second problem amplified the failure: the Desde / Hasta date inputs
+were never pre-populated, so the user couldn't see what range had
+just been queried. The empty-state copy says "Intenta con otras
+fechas" — but the user had no visible "current fechas" to compare
+against, so the call to action was opaque.
+
+### Fix
+
+1. **`js/portal-api.js`**
+   - New `_lastNMonths(n)` helper (defaults to 6) exposed as
+     `CRBOXPortalAPI.lastNMonths`. Documented in code why packages
+     stay on 30 days while bills move to 6 months.
+   - `getBills()` now defaults its `startDate` to `_lastNMonths(6)`
+     instead of `_last30Days()` when the caller passes no start.
+   - `_last30Days()` is still exported and is still the default for
+     `getPackages()` (no behavioral change for the packages page).
+
+2. **`mis-facturas.html`**
+   - The `_loadBills` envelope unwrapper was hardened: now accepts a
+     bare array (the historical confirmed shape) plus
+     `{ Facturas | facturas | Bills | bills | data | Data | Result | result }`
+     wrappers, plus a single `{ Factura, ... }` row treated as a
+     one-element list. This eliminates the "real data returned but
+     wrapped in a key the page didn't recognize" silent-empty mode.
+   - `_loadBills` now emits two `console.info` diagnostic lines on
+     every load: `[CRBOX][bills] request` (start + end always; email
+     only when the debug flag is on) and `[CRBOX][bills] response`
+     (raw length, mapped length, envelope shape always; the actual
+     first-raw / first-mapped invoice rows only when the debug flag
+     is on). The PII payload is gated behind
+     `localStorage.setItem('CRBOX_DEBUG_BILLS', '1')` so production
+     consoles never leak account email, invoice numbers, totals, or
+     recibos. All logging is wrapped in try/catch.
+   - `_parseLocalDate()` is a new local-date parser used by
+     `_getStart()` / `_getEnd()`. Native `<input type="date">`
+     yields strings like `2026-04-24`, and `new Date('2026-04-24')`
+     parses as UTC midnight — in Costa Rica (UTC-6) that becomes
+     2026-04-23 18:00 local, which would silently send the API the
+     wrong day. The new parser splits the `YYYY-MM-DD` fields and
+     constructs a local Date so the visible input value and the
+     value sent to the API always agree.
+   - `_getStart()` and `_getEnd()` switched from `last30Days` to
+     `lastNMonths(6)` for the start side; end side unchanged.
+   - The Desde / Hasta date inputs are now pre-populated on init with
+     the active default range (6 months ago → today), formatted as
+     `YYYY-MM-DD` so the native `<input type="date">` accepts them.
+     Pre-population only happens when the input has no value — user
+     selections survive a refresh of the table button.
+   - The static empty-state copy already said "Intenta con otras
+     fechas"; now that the inputs are visibly populated, that
+     instruction is finally actionable.
+
+### Verified end-to-end
+
+- **Request firing on init.** Yes — line ~890 of `mis-facturas.html`
+  calls `_loadBills(email, _getStart(), _getEnd())` from
+  `DOMContentLoaded`. The `[CRBOX][bills] request` console line
+  confirms it on every load.
+- **Authenticated email** comes from `CRBOXAuth.getEmail()`.
+- **Default date range** is now `(today − 6 months) → today`,
+  formatted as `DD-MM-YYYY` for the API.
+- **API URL** is
+  `https://clients.crbox.cr/api/crboxwebapi/getfacturas/{email}/{DD-MM-YYYY}/{DD-MM-YYYY}`.
+- **Envelope unwrap** accepts the confirmed bare-array shape plus all
+  the common .NET-style wrappers; the diagnostic line logs
+  `envelopeIsArray` and `envelopeKeys` so future shape changes are
+  immediately visible in devtools.
+- **Mapper preserves length.** `bills = raw.map(mapBill)` does not
+  filter, so `mappedLen === rawLen` for any non-throwing input. Rows
+  with partial nulls (missing `billedDate`, missing
+  `descuentoCorporativo`, missing `masterAirShipment`, empty
+  `Recibos[]`) still render — `_orDash`, `_fmtNum`, `_fmtDate`, and
+  `_renderRecibosCell` all return the neutral `—` for missing values
+  rather than dropping the row.
+- **Renderer reaches the table.** `_loadBills` → `_renderBillsStats`
+  → `_applyBillsSearch` (no search query on first paint) →
+  `_renderBillsTable(_cachedBills, { preservedEmpty: true })` →
+  `_renderBillRow` per bill. Same array drives stats and table.
+- **Empty state only on truly empty data.** `_renderBillsTable` only
+  renders the empty state when `bills.length === 0`. Stats card and
+  table read from the same final `_cachedBills` array.
+- **No fake payment status reintroduced.** The "Estado de Pago" card
+  still shows the honest "Próximamente" treatment.
+
+### Remaining backend-driven limitations
+
+- **Customers with no invoices in the last 6 months still see the
+  empty state.** This is correct behavior — the API legitimately
+  returns `[]` for them. The pre-populated date inputs now make it
+  trivial to extend the range manually, and the empty-state copy
+  already prompts the user to try other dates.
+- **No payment-status field in `getfacturas`.** No paid / pending /
+  overdue summary is fabricated; the Estado de Pago card stays on
+  "Próximamente".
+- **No public PDF download endpoint.** The download button on each
+  row keeps surfacing the honest "próximamente" toast.
+
+## 9. Remaining limitations — backend semantics, not UI
 
 These are not UI gaps; they are limits driven by what the backend
 exposes today.

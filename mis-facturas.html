@@ -685,6 +685,51 @@
         _renderBillsTable(filtered, { emptyMsg: 'Ninguna factura coincide con la búsqueda.' });
       }
 
+      // Diagnostics: enabled only when the user has explicitly opted in
+      // via `localStorage.setItem('CRBOX_DEBUG_BILLS', '1')`. This keeps
+      // PII (account email, invoice numbers, totals, recibos) out of
+      // the production console while still giving operators a one-line
+      // toggle for live triage. The non-sensitive counter line below
+      // (raw / mapped length, envelope keys) always logs at info level.
+      function _bills_debug_enabled() {
+        try { return window.localStorage && localStorage.getItem('CRBOX_DEBUG_BILLS') === '1'; }
+        catch (e) { return false; }
+      }
+
+      // Parse a `YYYY-MM-DD` string from a native <input type="date">
+      // as a *local* date rather than UTC. `new Date('2026-04-24')`
+      // is parsed as UTC midnight, which in Costa Rica (UTC-6) becomes
+      // 2026-04-23 18:00 local — the API would then receive the wrong
+      // day and the visible range would silently disagree with the
+      // input value. This helper avoids that drift.
+      function _parseLocalDate(s) {
+        if (!s) return null;
+        var m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (!m) {
+          var d = new Date(s);
+          return isNaN(d.getTime()) ? null : d;
+        }
+        return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+      }
+
+      // Defensive envelope unwrapper: getfacturas has historically been
+      // returned as a bare array, but real-world .NET shells often wrap
+      // it as { Facturas: [...] }, { facturas: [...] }, { Bills: [...] },
+      // { bills: [...] }, or { data: [...] }. We accept all of those so
+      // the page never silently empties because of a wrapper change.
+      function _unwrapBillsEnvelope(data) {
+        if (Array.isArray(data)) return data;
+        if (!data || typeof data !== 'object') return [];
+        var keys = ['Facturas', 'facturas', 'Bills', 'bills', 'data', 'Data', 'Result', 'result'];
+        for (var i = 0; i < keys.length; i++) {
+          if (Array.isArray(data[keys[i]])) return data[keys[i]];
+        }
+        // Single-row response (no wrapper): treat as a one-element list
+        // when it carries the confirmed { Factura, ... } shape.
+        if (data.Factura && typeof data.Factura === 'object') return [data];
+        return [];
+      }
+
       function _loadBills(email, startDate, endDate) {
         var tbody = document.getElementById('bills-tbody');
         if (!tbody) return Promise.resolve();
@@ -692,10 +737,35 @@
           '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando facturas...</td></tr>';
         _resetBillsStats();
 
+        // Diagnostic: always log the date range that produced the
+        // current result (no PII), so the empty-state case can be
+        // triaged from the browser console without a redeploy. The
+        // detailed payload preview is gated behind the debug flag.
+        var debug = _bills_debug_enabled();
+        try {
+          var reqLine = { start: CRBOXPortalAPI.formatDate(startDate),
+                          end:   CRBOXPortalAPI.formatDate(endDate) };
+          if (debug) reqLine.email = email;
+          console.info('[CRBOX][bills] request', reqLine);
+        } catch (e) { /* noop — logging must never break the page */ }
+
         return CRBOXPortalAPI.getBills(email, startDate, endDate)
           .then(function (data) {
-            var raw = Array.isArray(data) ? data : (data.bills || data.Bills || data.facturas || []);
+            var raw = _unwrapBillsEnvelope(data);
             var bills = raw.map(function (r) { return CRBOXPortalAPI.mapBill(r); });
+            try {
+              var resLine = { rawLen: raw.length,
+                              mappedLen: bills.length,
+                              envelopeIsArray: Array.isArray(data),
+                              envelopeKeys: (data && typeof data === 'object' && !Array.isArray(data))
+                                ? Object.keys(data) : null };
+              // PII (full invoice rows) only when the debug flag is on.
+              if (debug) {
+                resLine.firstRaw    = raw[0]    || null;
+                resLine.firstMapped = bills[0]  || null;
+              }
+              console.info('[CRBOX][bills] response', resLine);
+            } catch (e) { /* noop */ }
             _cachedBills = bills;
             _renderBillsStats(bills);
             _applyBillsSearch();
@@ -813,15 +883,41 @@
         var email = CRBOXAuth.getEmail();
         if (!email) return;
 
-        var dateInputs = document.querySelectorAll('input[type="date"]');
-        var startInput = dateInputs[0] || null;
-        var endInput   = dateInputs[1] || null;
+        var startInput = document.getElementById('bills-date-from');
+        var endInput   = document.getElementById('bills-date-to');
+
+        // Pre-populate the Desde / Hasta inputs with the active default
+        // window (last 6 months → today) so the user can see exactly
+        // which range produced the current result and adjust it without
+        // guessing. Also fixes the "empty page with no visible date
+        // context" failure mode where customers couldn't tell that the
+        // 30-day default had silently filtered out their real invoices.
+        function _toIsoDate(d) {
+          var yyyy = d.getFullYear();
+          var mm   = String(d.getMonth() + 1).padStart(2, '0');
+          var dd   = String(d.getDate()).padStart(2, '0');
+          return yyyy + '-' + mm + '-' + dd;
+        }
+        if (startInput && !startInput.value) {
+          startInput.value = _toIsoDate(CRBOXPortalAPI.lastNMonths(6));
+        }
+        if (endInput && !endInput.value) {
+          endInput.value = _toIsoDate(CRBOXPortalAPI.defaultEndDate());
+        }
 
         function _getStart() {
-          return startInput && startInput.value ? new Date(startInput.value) : CRBOXPortalAPI.last30Days();
+          if (startInput && startInput.value) {
+            var d = _parseLocalDate(startInput.value);
+            if (d) return d;
+          }
+          return CRBOXPortalAPI.lastNMonths(6);
         }
         function _getEnd() {
-          return endInput && endInput.value ? new Date(endInput.value) : CRBOXPortalAPI.defaultEndDate();
+          if (endInput && endInput.value) {
+            var d = _parseLocalDate(endInput.value);
+            if (d) return d;
+          }
+          return CRBOXPortalAPI.defaultEndDate();
         }
 
         var buscarBtn = document.getElementById('bills-search-btn');
