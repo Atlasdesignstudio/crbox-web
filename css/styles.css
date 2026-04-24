@@ -671,3 +671,41 @@ button.active {
 .login-link:hover {
     background-color: #E05A00 !important;
 }
+
+/* ===== Modern breadcrumb bar ===== */
+.crbox-breadcrumb {
+    background: #ffffff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+
+.crbox-breadcrumb .flex.items-center {
+    font-size: 0.72rem !important;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.crbox-breadcrumb a {
+    color: #94a3b8 !important;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.crbox-breadcrumb a:hover {
+    color: #f97316 !important;
+}
+
+/* Current page label */
+.crbox-breadcrumb .text-orange-600 {
+    color: #374151 !important;
+    font-weight: 600 !important;
+}
+
+/* Separator chevron */
+.crbox-breadcrumb .mx-2 {
+    color: #cbd5e1 !important;
+    margin-left: 0.4rem !important;
+    margin-right: 0.4rem !important;
+}
