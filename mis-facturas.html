@@ -222,7 +222,7 @@
                 </div>
             </div>
             
-            <!-- Summary Cards -->
+            <!-- Summary Cards (derivadas de la respuesta real de getfacturas) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <div class="flex items-center mb-4">
@@ -231,14 +231,14 @@
                         </div>
                         <div>
                             <h3 class="text-sm font-medium text-gray-500">Total Facturas</h3>
-                            <p class="text-2xl font-bold">0</p>
+                            <p class="text-2xl font-bold" id="bills-stat-total">—</p>
                         </div>
                     </div>
                     <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-blue-500 rounded-full" style="width: 0%"></div>
+                        <div id="bills-stat-total-bar" class="h-full bg-blue-500 rounded-full" style="width: 0%"></div>
                     </div>
                 </div>
-                
+
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-4">
@@ -246,14 +246,14 @@
                         </div>
                         <div>
                             <h3 class="text-sm font-medium text-gray-500">Facturas Pagadas</h3>
-                            <p class="text-2xl font-bold">0</p>
+                            <p class="text-2xl font-bold" id="bills-stat-paid">—</p>
                         </div>
                     </div>
                     <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-green-500 rounded-full" style="width: 0%"></div>
+                        <div id="bills-stat-paid-bar" class="h-full bg-green-500 rounded-full" style="width: 0%"></div>
                     </div>
                 </div>
-                
+
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 mr-4">
@@ -261,11 +261,11 @@
                         </div>
                         <div>
                             <h3 class="text-sm font-medium text-gray-500">Facturas Pendientes</h3>
-                            <p class="text-2xl font-bold">0</p>
+                            <p class="text-2xl font-bold" id="bills-stat-pending">—</p>
                         </div>
                     </div>
                     <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-orange-500 rounded-full" style="width: 0%"></div>
+                        <div id="bills-stat-pending-bar" class="h-full bg-orange-500 rounded-full" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
@@ -341,68 +341,33 @@
                 </div>
                 <div class="p-6">
                     <div class="max-w-3xl mx-auto">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <h3 class="font-semibold text-lg mb-3 flex items-center">
-                                    <i class="fas fa-university text-orange-500 mr-2"></i>
-                                    Transferencia Bancaria
-                                </h3>
-                                <ul class="space-y-3">
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                                        <span><span class="font-medium">Banco:</span> Banco Nacional de Costa Rica</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                                        <span><span class="font-medium">Cuenta IBAN:</span> CR06015100010012345678</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                                        <span><span class="font-medium">A nombre de:</span> CRBOX Logistics S.A.</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                                        <span><span class="font-medium">Cédula jurídica:</span> 3-101-123456</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-lg mb-3 flex items-center">
-                                    <i class="fas fa-credit-card text-orange-500 mr-2"></i>
-                                    Otros Métodos de Pago
-                                </h3>
-                                <ul class="space-y-3">
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                                        <span><span class="font-medium">SINPE Móvil:</span> 8888-1234</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                                        <span><span class="font-medium">Efectivo:</span> Pago en oficinas</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                                        <span><span class="font-medium">Tarjeta:</span> Visa / Mastercard (en oficinas)</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-6 border-t border-gray-100 pt-6">
-                            <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                                <div class="flex items-start">
-                                    <div class="text-blue-500 mt-1 mr-3">
-                                        <i class="fas fa-info-circle text-xl"></i>
+                        <div class="bg-blue-50 rounded-lg p-5 border border-blue-100">
+                            <div class="flex items-start">
+                                <div class="text-blue-500 mt-1 mr-3">
+                                    <i class="fas fa-info-circle text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-blue-800 mb-1">Solicita los datos de pago actualizados</h3>
+                                    <p class="text-blue-700 mb-3">
+                                        Para evitar errores con cuentas bancarias, IBAN o SINPE Móvil desactualizados, los datos de pago se entregan por canales oficiales bajo solicitud.
+                                    </p>
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        <a href="mailto:ventas@crbox.cr?subject=Solicito%20datos%20de%20pago" class="inline-flex items-center justify-center bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                            <i class="fas fa-envelope mr-2"></i>
+                                            ventas@crbox.cr
+                                        </a>
+                                        <a href="https://wa.me/50640001114" class="inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                            <i class="fab fa-whatsapp mr-2"></i>
+                                            WhatsApp
+                                        </a>
+                                        <a href="tel:+50640001114" class="inline-flex items-center justify-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                            <i class="fas fa-phone mr-2"></i>
+                                            +506-4000-1114
+                                        </a>
                                     </div>
-                                    <div>
-                                        <h3 class="font-semibold text-blue-800 mb-1">Información Importante</h3>
-                                        <p class="text-blue-600 mb-2">
-                                            Al realizar tu pago, siempre indica el número de factura en la descripción o referencia del depósito.
-                                        </p>
-                                        <p class="text-blue-600">
-                                            Una vez realizado el pago, envía el comprobante a <span class="font-medium">pagos@crbox.cr</span> o por WhatsApp al <span class="font-medium">+506-8888-1234</span>.
-                                        </p>
-                                    </div>
+                                    <p class="text-xs text-blue-600 mt-3">
+                                        Recuerda incluir siempre el número de factura en la referencia del depósito y enviarnos el comprobante de pago.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -613,15 +578,51 @@
         '</tr>';
       }
 
+      function _setStat(id, val, barId, fraction) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = (val == null ? '—' : String(val));
+        if (barId) {
+          var bar = document.getElementById(barId);
+          if (bar) {
+            var pct = Math.max(0, Math.min(100, Math.round((fraction || 0) * 100)));
+            bar.style.width = pct + '%';
+          }
+        }
+      }
+
+      // El backend de getfacturas no garantiza un campo de estado de pago
+      // confirmado, por lo que sólo mostramos el conteo total real (que
+      // sí se deriva de la longitud del array). "Pagadas" y "Pendientes"
+      // se quedan en "Sin datos disponibles" hasta que exista una
+      // señal contractual confiable.
+      function _renderBillsStats(bills) {
+        var total = bills.length;
+        _setStat('bills-stat-total', total, 'bills-stat-total-bar', total > 0 ? 1 : 0);
+        var paidEl = document.getElementById('bills-stat-paid');
+        if (paidEl) paidEl.textContent = 'Sin datos';
+        var pendingEl = document.getElementById('bills-stat-pending');
+        if (pendingEl) pendingEl.textContent = 'Sin datos';
+        _setStat(null, null, 'bills-stat-paid-bar',    0);
+        _setStat(null, null, 'bills-stat-pending-bar', 0);
+      }
+
+      function _resetBillsStats() {
+        _setStat('bills-stat-total',   '—', 'bills-stat-total-bar',   0);
+        _setStat('bills-stat-paid',    '—', 'bills-stat-paid-bar',    0);
+        _setStat('bills-stat-pending', '—', 'bills-stat-pending-bar', 0);
+      }
+
       function _loadBills(email, startDate, endDate) {
         var tbody = document.getElementById('bills-tbody');
         if (!tbody) return;
         tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-400">' +
           '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando facturas...</td></tr>';
+        _resetBillsStats();
 
         CRBOXPortalAPI.getBills(email, startDate, endDate)
           .then(function (data) {
             var bills = Array.isArray(data) ? data : (data.bills || data.Bills || data.facturas || []);
+            _renderBillsStats(bills);
             if (bills.length === 0) {
               tbody.innerHTML = '<tr><td colspan="10" class="text-center py-12 text-gray-400">' +
                 '<i class="fas fa-receipt text-4xl mb-3 block"></i>' +
@@ -634,6 +635,7 @@
             console.warn('[CRBOX] getBills error:', err);
             tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-orange-500">' +
               'No se pudieron cargar las facturas. Recarga la página.</td></tr>';
+            _resetBillsStats();
           });
       }
 

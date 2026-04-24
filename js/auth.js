@@ -168,7 +168,9 @@
     var contact1   = c.contactName1       || c.ContactName1        || '';
     var contact2   = c.contactName2       || c.ContactName2        || '';
     var isCompany  = c.isCompany          || c.IsCompany           || 0;
-    var newsletter = c.receivesNewsletter || c.ReceivesNewsletter  || false;
+    var newsletter = (typeof formEdits.receivesNewsletter === 'boolean')
+      ? formEdits.receivesNewsletter
+      : (c.receivesNewsletter || c.ReceivesNewsletter || false);
     var responsab  = c.responsabilidad    || c.Responsabilidad     || 0;
     var idResp     = c.idResponsabilidad  || c.IdResponsabilidad   || '';
     var omitir     = c.omitirReceptor     || c.OmitirReceptor      || false;

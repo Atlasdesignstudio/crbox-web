@@ -171,7 +171,7 @@
                     <p class="text-gray-600">Información personal y preferencias</p>
                 </div>
                 <div class="mt-4 md:mt-0">
-                    <button class="action-btn-primary flex items-center">
+                    <button id="save-profile-btn" class="action-btn-primary flex items-center">
                         <i class="fas fa-save mr-2"></i>
                         Guardar Cambios
                     </button>
@@ -252,19 +252,9 @@
                         
                         <div class="mt-6 border-t border-gray-100 pt-6">
                             <h3 class="text-xl font-semibold text-gray-800 mb-4">Preferencias</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="consolidate_packages" name="consolidate_packages" class="h-5 w-5 text-orange-600 rounded" checked>
-                                    <label for="consolidate_packages" class="ml-2 block text-gray-700">Consolidar paquetes automáticamente</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="inspect_packages" name="inspect_packages" class="h-5 w-5 text-orange-600 rounded" checked>
-                                    <label for="inspect_packages" class="ml-2 block text-gray-700">Inspeccionar paquetes al llegar a las instalaciones</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="insurance" name="insurance" class="h-5 w-5 text-orange-600 rounded">
-                                    <label for="insurance" class="ml-2 block text-gray-700">Aplicar seguro adicional a mis envíos (costo adicional)</label>
-                                </div>
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500 flex items-start">
+                                <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2"></i>
+                                <span>Las preferencias de consolidación, inspección y seguro estarán disponibles próximamente. Por ahora, contáctanos para coordinarlas con tu envío.</span>
                             </div>
                         </div>
                     </form>
@@ -341,9 +331,10 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <button type="button" class="action-btn-primary">
+                                    <button type="button" id="update-password-btn" class="action-btn-primary">
                                         Actualizar Contraseña
                                     </button>
+                                    <p class="text-xs text-gray-500 mt-2">Esta acción usa el botón "Guardar Cambios" para enviar la nueva contraseña al servidor.</p>
                                 </div>
                             </div>
                         </form>
@@ -351,32 +342,9 @@
                     
                     <div>
                         <h3 class="text-xl font-semibold text-gray-800 mb-4">Seguridad de la Cuenta</h3>
-                        <div class="space-y-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="font-medium text-gray-800">Autenticación de dos factores</h4>
-                                    <p class="text-gray-600 text-sm">Añade una capa extra de seguridad a tu cuenta</p>
-                                </div>
-                                <div class="relative inline-block w-12 h-6 switch-container">
-                                    <input type="checkbox" id="toggle-2fa" class="absolute w-0 h-0 opacity-0">
-                                    <label for="toggle-2fa" class="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-200 ease-in-out hover:bg-gray-400">
-                                        <span class="block h-6 w-6 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out"></span>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="font-medium text-gray-800">Notificaciones de acceso</h4>
-                                    <p class="text-gray-600 text-sm">Recibe alertas cuando tu cuenta sea accedida desde un nuevo dispositivo</p>
-                                </div>
-                                <div class="relative inline-block w-12 h-6 switch-container">
-                                    <input type="checkbox" id="toggle-login-notifications" class="absolute w-0 h-0 opacity-0" checked>
-                                    <label for="toggle-login-notifications" class="block overflow-hidden h-6 rounded-full bg-orange-500 cursor-pointer transition-colors duration-200 ease-in-out">
-                                        <span class="block h-6 w-6 rounded-full bg-white shadow transform translate-x-6 transition-transform duration-200 ease-in-out"></span>
-                                    </label>
-                                </div>
-                            </div>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500 flex items-start">
+                            <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2"></i>
+                            <span>La autenticación de dos factores y las notificaciones de acceso estarán disponibles próximamente.</span>
                         </div>
                     </div>
                 </div>
@@ -384,70 +352,20 @@
                 <!-- Notifications Tab (Hidden by default) -->
                 <div class="p-6 account-tab hidden" id="notifications-tab">
                     <h3 class="text-xl font-semibold text-gray-800 mb-4">Preferencias de Notificación</h3>
-                    <div class="space-y-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h4 class="font-medium text-gray-800">Notificaciones por correo electrónico</h4>
-                                <p class="text-gray-600 text-sm">Recibe actualizaciones importantes por correo electrónico</p>
+
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500 flex items-start mb-6">
+                        <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2"></i>
+                        <span>Los canales de email, SMS y push y las notificaciones de paquetes / facturas estarán disponibles próximamente. Por ahora solo puedes gestionar la suscripción a promociones.</span>
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Suscripciones</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="notify_promotions" name="notify_promotions" class="h-5 w-5 text-orange-600 rounded">
+                                <label for="notify_promotions" class="ml-2 block text-gray-700">Promociones y ofertas especiales</label>
                             </div>
-                            <div class="relative inline-block w-12 h-6 switch-container">
-                                <input type="checkbox" id="toggle-email" class="absolute w-0 h-0 opacity-0" checked>
-                                <label for="toggle-email" class="block overflow-hidden h-6 rounded-full bg-orange-500 cursor-pointer transition-colors duration-200 ease-in-out">
-                                    <span class="block h-6 w-6 rounded-full bg-white shadow transform translate-x-6 transition-transform duration-200 ease-in-out"></span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h4 class="font-medium text-gray-800">Notificaciones por SMS</h4>
-                                <p class="text-gray-600 text-sm">Recibe alertas por mensaje de texto</p>
-                            </div>
-                            <div class="relative inline-block w-12 h-6 switch-container">
-                                <input type="checkbox" id="toggle-sms" class="absolute w-0 h-0 opacity-0">
-                                <label for="toggle-sms" class="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-200 ease-in-out hover:bg-gray-400">
-                                    <span class="block h-6 w-6 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out"></span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h4 class="font-medium text-gray-800">Notificaciones push</h4>
-                                <p class="text-gray-600 text-sm">Recibe notificaciones en tu dispositivo móvil</p>
-                            </div>
-                            <div class="relative inline-block w-12 h-6 switch-container">
-                                <input type="checkbox" id="toggle-push" class="absolute w-0 h-0 opacity-0" checked>
-                                <label for="toggle-push" class="block overflow-hidden h-6 rounded-full bg-orange-500 cursor-pointer transition-colors duration-200 ease-in-out">
-                                    <span class="block h-6 w-6 rounded-full bg-white shadow transform translate-x-6 transition-transform duration-200 ease-in-out"></span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="border-t border-gray-100 pt-6">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Tipo de Notificaciones</h3>
-                            <div class="space-y-4">
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="notify_arrival" name="notify_arrival" class="h-5 w-5 text-orange-600 rounded" checked>
-                                    <label for="notify_arrival" class="ml-2 block text-gray-700">Llegada de paquetes a Miami</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="notify_transit" name="notify_transit" class="h-5 w-5 text-orange-600 rounded" checked>
-                                    <label for="notify_transit" class="ml-2 block text-gray-700">Paquetes en tránsito</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="notify_delivery" name="notify_delivery" class="h-5 w-5 text-orange-600 rounded" checked>
-                                    <label for="notify_delivery" class="ml-2 block text-gray-700">Entrega de paquetes</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="notify_invoice" name="notify_invoice" class="h-5 w-5 text-orange-600 rounded" checked>
-                                    <label for="notify_invoice" class="ml-2 block text-gray-700">Nuevas facturas</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="notify_promotions" name="notify_promotions" class="h-5 w-5 text-orange-600 rounded">
-                                    <label for="notify_promotions" class="ml-2 block text-gray-700">Promociones y ofertas especiales</label>
-                                </div>
-                            </div>
+                            <p class="text-xs text-gray-500 ml-7">Esta preferencia se guarda al pulsar "Guardar Cambios" en la cabecera del perfil.</p>
                         </div>
                     </div>
                 </div>
@@ -465,14 +383,15 @@
                                 <i class="fas fa-exclamation-triangle text-xl"></i>
                             </div>
                             <div>
-                                <h3 class="font-semibold text-red-800 mb-1">¿Seguro que deseas eliminar tu cuenta?</h3>
+                                <h3 class="font-semibold text-red-800 mb-1">¿Deseas eliminar tu cuenta?</h3>
                                 <p class="text-red-600 mb-2">
-                                    Esta acción es permanente y no se puede deshacer. Toda tu información personal, historial de envíos y facturas serán eliminados.
+                                    La eliminación de cuenta debe coordinarse directamente con nuestro equipo de soporte. Escríbenos a <a href="mailto:ventas@crbox.cr?subject=Solicitud%20de%20eliminaci%C3%B3n%20de%20cuenta" class="underline font-medium">ventas@crbox.cr</a> o llámanos al +506-4000-1114.
                                 </p>
                                 <div class="mt-4">
-                                    <button class="bg-white border border-red-500 text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg font-medium transition-colors">
-                                        Solicitar Eliminación de Cuenta
-                                    </button>
+                                    <a href="mailto:ventas@crbox.cr?subject=Solicitud%20de%20eliminaci%C3%B3n%20de%20cuenta" class="inline-flex items-center bg-white border border-red-500 text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg font-medium transition-colors">
+                                        <i class="fas fa-envelope mr-2"></i>
+                                        Contactar Soporte
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -668,9 +587,24 @@
                 });
             }
             
+            // Forward "Actualizar Contraseña" click to the main save handler so it actually
+            // persists the new password via postedituser. Without this, the button was inert.
+            const updatePasswordBtn = document.getElementById('update-password-btn');
+            if (updatePasswordBtn) {
+                updatePasswordBtn.addEventListener('click', function () {
+                    var newPwd = (document.getElementById('new_password') || {}).value || '';
+                    var confPwd = (document.getElementById('confirm_password') || {}).value || '';
+                    if (!newPwd || !confPwd) {
+                        alert('Por favor ingresa la nueva contraseña y su confirmación.');
+                        return;
+                    }
+                    var mainBtn = document.getElementById('save-profile-btn');
+                    if (mainBtn) mainBtn.click();
+                });
+            }
+
             // Save changes button — real API call
-            const saveChangesBtn = document.querySelector('.action-btn-primary i.fa-save') &&
-                                   document.querySelector('.action-btn-primary i.fa-save').parentElement;
+            const saveChangesBtn = document.getElementById('save-profile-btn');
             
             if (saveChangesBtn) {
                 saveChangesBtn.addEventListener('click', function() {
@@ -684,6 +618,7 @@
                     btn.disabled = true;
 
                     var rawInfo = window.__crboxUserInfo || {};
+                    var newsletterEl = document.getElementById('notify_promotions');
                     var formEdits = {
                         firstName:       (document.getElementById('first_name')        || {}).value || '',
                         lastName1:       (document.getElementById('last_name')         || {}).value || '',
@@ -692,7 +627,8 @@
                         idType:          (document.getElementById('id_type')           || {}).value || '',
                         idNumber:        (document.getElementById('id_number')         || {}).value || '',
                         password:        (document.getElementById('new_password')      || {}).value || '',
-                        confirmPassword: (document.getElementById('confirm_password')  || {}).value || ''
+                        confirmPassword: (document.getElementById('confirm_password')  || {}).value || '',
+                        receivesNewsletter: newsletterEl ? !!newsletterEl.checked : undefined
                     };
                     var payload = CRBOXAuth.buildUpdateProfilePayload(rawInfo, formEdits);
 

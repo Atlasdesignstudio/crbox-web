@@ -26,29 +26,9 @@ document.addEventListener('DOMContentLoaded', function() {
  * (con actividad / sin actividad)
  */
 function initToggleActivityView() {
-    // El botón "Actualizar" podría alternar las vistas para demostración
-    const refreshButton = document.querySelector('button.text-sm.text-gray-500');
-    const withDataView = document.getElementById('activity-with-data');
-    const emptyView = document.getElementById('activity-empty');
-    
-    if (refreshButton && withDataView && emptyView) {
-        let showingData = true; // Por defecto, mostramos la vista con datos
-        
-        refreshButton.addEventListener('click', function() {
-            showingData = !showingData;
-            
-            if (showingData) {
-                withDataView.classList.remove('hidden');
-                emptyView.classList.add('hidden');
-            } else {
-                withDataView.classList.add('hidden');
-                emptyView.classList.remove('hidden');
-            }
-            
-            // Muestra un toast al actualizar
-            showToast('Actividad actualizada', 'info');
-        });
-    }
+    // No hay endpoint de actividad reciente confirmado. La vista vacía
+    // (#activity-empty) es la única visible y el botón "Actualizar" no
+    // alterna entre datos simulados.
 }
 
 /**
@@ -443,31 +423,27 @@ function updateNotificationBadges() {
  * Initialize copy to clipboard functionality
  */
 function initCopyFunctions() {
-    // Copy casillero number
-    const copyBtn = document.getElementById('copy-casillero');
-    if (copyBtn) {
-        copyBtn.addEventListener('click', function() {
-            const casilleroNumber = '50628595';
-            copyToClipboard(casilleroNumber, this, '<i class="far fa-copy mr-1"></i> Copiar', '<i class="fas fa-check mr-1"></i> ¡Copiado!');
-            showToast('Número de casillero copiado al portapapeles', 'success');
-        });
-    }
-    
+    // Copy casillero number — usa el valor real renderizado en #dashboard-casillero-num.
+    // El listener real está en el IIFE al final de dashboard.html (recibido del API getuserinfo).
+    // Aquí solo manejamos #copy-address-btn si existe en la página.
+
     // Copy address
     const copyAddressBtn = document.getElementById('copy-address-btn');
     if (copyAddressBtn) {
         copyAddressBtn.addEventListener('click', function() {
-            // Construir la dirección completa
+            // Construir la dirección completa con el casillero real
             const nameEl = document.getElementById('miami-address-name');
             const name = (nameEl && nameEl.textContent && nameEl.textContent.trim() !== '—') ? nameEl.textContent.trim() : '';
+            const casEl = document.getElementById('dashboard-casillero-num') || document.getElementById('miami-addr-casillero');
+            const casillero = (casEl && casEl.textContent && casEl.textContent.trim() !== '—') ? casEl.textContent.trim() : '';
             const address = "8155 NW 68TH ST";
             const city = "Miami";
             const state = "Florida";
             const zip = "33166";
             const phone = "305 882 1718";
-            
-            const fullAddress = `${name}\n${address}\n${city}, ${state} ${zip}\n${phone}\nCasillero: 50628595`;
-            
+
+            const fullAddress = `${name}\n${address}\n${city}, ${state} ${zip}\n${phone}` + (casillero ? `\nCasillero: ${casillero}` : '');
+
             copyToClipboard(fullAddress, this, '<i class="far fa-copy mr-2"></i> Copiar dirección', '<i class="fas fa-check mr-2"></i> ¡Copiado!');
             showToast('Dirección copiada al portapapeles', 'success');
         });
@@ -850,93 +826,12 @@ function initLazyLoading() {
 }
 
 /**
- * Initialize real-time package tracking updates
+ * Tracking en tiempo real: deshabilitado.
+ * No existe endpoint de tracking en vivo confirmado; los estados de los
+ * paquetes se obtienen vía CRBOXPortalAPI.getPackages (refrescable).
  */
 function initPackageTracking() {
-    // Simulated tracking updates (would be replaced with real API calls)
-    // Only implement if there are actual packages to track
-    const packageCount = document.querySelector('.text-3xl.font-bold.text-gray-800.counter-animation');
-    
-    if (packageCount && parseInt(packageCount.textContent) > 0) {
-        // Start periodic updates
-        const trackingInterval = setInterval(() => {
-            updatePackageStatuses();
-        }, 60000); // Check every minute
-        
-        // Initial update
-        updatePackageStatuses();
-    }
-}
-
-/**
- * Update package statuses with simulated data
- * This would be replaced with real API calls in production
- */
-function updatePackageStatuses() {
-    const packages = document.querySelectorAll('.package-item');
-    
-    if (packages.length === 0) return;
-    
-    packages.forEach(pkg => {
-        const statusElement = pkg.querySelector('.status-badge');
-        if (!statusElement) return;
-        
-        // Get current status
-        const currentStatus = statusElement.textContent.trim();
-        
-        // Simulated status progression
-        const statusProgression = [
-            'Recibido en Miami',
-            'En procesamiento',
-            'En tránsito',
-            'En aduana',
-            'En ruta de entrega',
-            'Entregado'
-        ];
-        
-        const currentIndex = statusProgression.indexOf(currentStatus);
-        
-        // Random chance to progress status (20%)
-        if (currentIndex < statusProgression.length - 1 && Math.random() < 0.2) {
-            const newStatus = statusProgression[currentIndex + 1];
-            
-            // Update status badge
-            statusElement.textContent = newStatus;
-            
-            // Update status class
-            statusElement.className = statusElement.className.replace(/status-badge-\w+/, getStatusClass(newStatus));
-            
-            // Show notification
-            const packageId = pkg.getAttribute('data-package-id') || 'desconocido';
-            showNotification(
-                'Actualización de Paquete',
-                `Tu paquete #${packageId} ahora está: ${newStatus}`,
-                newStatus === 'Entregado' ? 'success' : 'info'
-            );
-        }
-    });
-}
-
-/**
- * Get appropriate status badge class based on status text
- */
-function getStatusClass(status) {
-    switch (status) {
-        case 'Recibido en Miami':
-            return 'status-badge-blue';
-        case 'En procesamiento':
-            return 'status-badge-purple';
-        case 'En tránsito':
-            return 'status-badge-yellow';
-        case 'En aduana':
-            return 'status-badge-orange';
-        case 'En ruta de entrega':
-            return 'status-badge-info';
-        case 'Entregado':
-            return 'status-badge-green';
-        default:
-            return 'status-badge-gray';
-    }
+    // No-op: sin simulación de progresiones aleatorias.
 }
 
 /**
@@ -1110,97 +1005,6 @@ function applyDarkTheme() {
  */
 function applyLightTheme() {
     document.body.classList.remove('dark-theme');
-}
-
-/**
- * Ejemplo de función para obtener datos de paquetes desde una API
- * Esta función se debe implementar según el backend real
- */
-function fetchPackages() {
-    // Esta es una simulación, reemplazar con llamada API real
-    return new Promise((resolve, reject) => {
-        // Simular retraso de red
-        setTimeout(() => {
-            // Datos de ejemplo
-            const packages = [
-                {
-                    id: 'CR78945',
-                    description: 'Paquete Amazon',
-                    status: 'Recibido en Miami',
-                    weight: '1.5',
-                    dimensions: '30x20x15',
-                    trackingNumber: '9374839201837465',
-                    carrier: 'USPS',
-                    receivedDate: '2025-05-08T10:45:00'
-                },
-                {
-                    id: 'CR78946',
-                    description: 'Ropa Zara',
-                    status: 'En tránsito',
-                    weight: '0.8',
-                    dimensions: '25x15x10',
-                    trackingNumber: '65432187659043',
-                    carrier: 'FedEx',
-                    receivedDate: '2025-05-07T14:32:00'
-                }
-            ];
-            
-            resolve(packages);
-        }, 800);
-    });
-}
-
-/**
- * Ejemplo de función para obtener datos de facturas desde una API
- */
-function fetchInvoices() {
-    // Esta es una simulación, reemplazar con llamada API real
-    return new Promise((resolve, reject) => {
-        // Simular retraso de red
-        setTimeout(() => {
-            // Datos de ejemplo
-            const invoices = [
-                {
-                    id: 'F-2025-0123',
-                    amount: 45.50,
-                    status: 'Pendiente',
-                    dueDate: '2025-05-15',
-                    packages: ['CR78945'],
-                    createdDate: '2025-05-07T15:30:00'
-                }
-            ];
-            
-            resolve(invoices);
-        }, 600);
-    });
-}
-
-/**
- * Ejemplo de función para procesar un pago
- */
-function processPayment(invoiceId, paymentMethod, amount) {
-    // Esta es una simulación, reemplazar con llamada API real
-    return new Promise((resolve, reject) => {
-        // Simular retraso de red
-        setTimeout(() => {
-            // Simular éxito del 90% de las veces
-            if (Math.random() < 0.9) {
-                resolve({
-                    success: true,
-                    transactionId: 'TR' + Math.floor(Math.random() * 1000000),
-                    invoiceId: invoiceId,
-                    amount: amount,
-                    date: new Date().toISOString()
-                });
-            } else {
-                reject({
-                    success: false,
-                    error: 'Error procesando el pago',
-                    errorCode: 'PAYMENT_ERROR'
-                });
-            }
-        }, 1500);
-    });
 }
 
 /**

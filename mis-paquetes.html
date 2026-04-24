@@ -223,7 +223,7 @@
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-500 mb-1">Total Paquetes</p>
-                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="total-paquetes">3</h3>
+                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="total-paquetes">—</h3>
                             <p class="text-xs text-gray-500 mt-2">
                                 <i class="fas fa-calendar-alt mr-1"></i> Último mes
                             </p>
@@ -239,7 +239,7 @@
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-500 mb-1">En Tránsito</p>
-                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="en-transito">1</h3>
+                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="en-transito">—</h3>
                             <p class="text-xs text-gray-500 mt-2">
                                 <i class="fas fa-shipping-fast mr-1"></i> Actualmente
                             </p>
@@ -255,7 +255,7 @@
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-500 mb-1">En CRBOX</p>
-                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="en-crbox">1</h3>
+                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="en-crbox">—</h3>
                             <p class="text-xs text-gray-500 mt-2">
                                 <i class="fas fa-warehouse mr-1"></i> Listos para recoger
                             </p>
@@ -271,7 +271,7 @@
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-500 mb-1">En Miami</p>
-                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="en-miami">1</h3>
+                            <h3 class="text-3xl font-bold text-gray-800 counter-animation" id="en-miami">—</h3>
                             <p class="text-xs text-gray-500 mt-2">
                                 <i class="fas fa-map-marker-alt mr-1"></i> Recibidos
                             </p>
@@ -358,22 +358,8 @@
                         </div>
                     </div>
                     
-                    <!-- Chips de filtros activos -->
+                    <!-- Chips de filtros activos (los chips se agregan dinámicamente al cambiar el tab/estado) -->
                     <div class="flex flex-wrap gap-2 mt-4" id="active-filters">
-                        <div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                            <span class="text-sm">Miami</span>
-                            <button class="ml-2 text-blue-400 hover:text-blue-700" aria-label="Eliminar filtro Miami">
-                                <i class="fas fa-times-circle"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="inline-flex items-center px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
-                            <span class="text-sm">Último mes</span>
-                            <button class="ml-2 text-purple-400 hover:text-purple-700" aria-label="Eliminar filtro Último mes">
-                                <i class="fas fa-times-circle"></i>
-                            </button>
-                        </div>
-                        
                         <button id="clear-all-filters" class="inline-flex items-center px-3 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-all text-sm">
                             <i class="fas fa-trash-alt mr-1 text-xs"></i>
                             Limpiar filtros
@@ -388,49 +374,49 @@
                             <i class="fas fa-boxes"></i>
                         </span>
                         <span class="text-sm font-medium">Todos</span>
-                        <span class="text-xs text-gray-500">3</span>
+                        <span class="text-xs text-gray-500">—</span>
                     </button>
                     <button class="status-tab flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="MIAMI">
                         <span class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mb-2">
                             <i class="fas fa-map-marker-alt"></i>
                         </span>
                         <span class="text-sm font-medium">Miami</span>
-                        <span class="text-xs text-gray-500">1</span>
+                        <span class="text-xs text-gray-500">—</span>
                     </button>
                     <button class="status-tab flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="CARGADO">
                         <span class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-500 mb-2">
                             <i class="fas fa-boxes"></i>
                         </span>
                         <span class="text-sm font-medium">Cargado</span>
-                        <span class="text-xs text-gray-500">0</span>
+                        <span class="text-xs text-gray-500">—</span>
                     </button>
                     <button class="status-tab flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="EN TRÁNSITO">
                         <span class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 mb-2">
                             <i class="fas fa-shipping-fast"></i>
                         </span>
                         <span class="text-sm font-medium">En Tránsito</span>
-                        <span class="text-xs text-gray-500">1</span>
+                        <span class="text-xs text-gray-500">—</span>
                     </button>
                     <button class="status-tab flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="SJO">
                         <span class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-500 mb-2">
                             <i class="fas fa-plane-arrival"></i>
                         </span>
                         <span class="text-sm font-medium">SJO</span>
-                        <span class="text-xs text-gray-500">0</span>
+                        <span class="text-xs text-gray-500">—</span>
                     </button>
                     <button class="status-tab flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="CRBOX">
                         <span class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 mb-2">
                             <i class="fas fa-box-open"></i>
                         </span>
                         <span class="text-sm font-medium">CRBOX</span>
-                        <span class="text-xs text-gray-500">1</span>
+                        <span class="text-xs text-gray-500">—</span>
                     </button>
                 </div>
                 
                 <!-- Información de resultados -->
                 <div class="px-6 py-3 flex justify-between items-center bg-gray-50 border-b border-gray-100">
                     <div class="text-sm text-gray-600">
-                        Mostrando <span class="font-medium" id="showing-count">3</span> de <span class="font-medium" id="total-count-display">3</span> paquetes
+                        Mostrando <span class="font-medium" id="showing-count">—</span> de <span class="font-medium" id="total-count-display">—</span> paquetes
                     </div>
                     <div class="flex items-center">
                         <label for="items-per-page" class="text-sm text-gray-600 mr-2">Por página:</label>
@@ -504,7 +490,7 @@
                             Consolidación de Paquetes
                         </h2>
                         <span class="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                            Ahorra hasta 40%
+                            Próximamente
                         </span>
                     </div>
                     <div class="p-6">
@@ -514,99 +500,18 @@
                                     <i class="fas fa-lightbulb text-purple-600"></i>
                                 </div>
                                 <div class="ml-3">
-                                    <p class="text-sm text-purple-700">Consolidando tus paquetes en uno solo puedes <span class="font-semibold">ahorrar hasta un 40%</span> en tus costos de envío. Selecciona los paquetes que quieres consolidar.</p>
+                                    <p class="text-sm text-purple-700">Consolidar varios paquetes en un solo envío puede reducir el costo total. Pronto podrás solicitarlo desde el portal.</p>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="font-medium text-gray-700">Paquetes Disponibles para Consolidar</p>
-                            <div class="flex items-center">
-                                <span class="text-orange-600 font-bold text-lg mr-2">1/3</span>
-                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Solo Miami</span>
+
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 mx-auto bg-purple-50 rounded-full flex items-center justify-center text-purple-400 mb-3">
+                                <i class="fas fa-tools text-2xl"></i>
                             </div>
+                            <p class="text-base font-semibold text-gray-700 mb-1">Próximamente</p>
+                            <p class="text-sm text-gray-500 max-w-md mx-auto">La consolidación en línea estará disponible pronto. Mientras tanto, contáctanos para coordinar tu envío consolidado.</p>
                         </div>
-                        
-                        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6 overflow-hidden">
-                            <div class="bg-orange-600 h-2.5 rounded-full w-1/3 transition-all duration-1000"></div>
-                        </div>
-                        
-                        <!-- Paquetes para consolidar -->
-                        <div class="space-y-3 mb-6">
-                            <!-- Paquete 1: Seleccionable para consolidar -->
-                            <div class="bg-white rounded-lg p-3 border border-gray-200 hover:shadow-sm transition-all">
-                                <div class="flex items-center">
-                                    <div class="mr-3">
-                                        <input type="checkbox" id="consolidate-1" class="w-5 h-5 rounded border-gray-300 text-orange-600 focus:ring-orange-500">
-                                    </div>
-                                    <div class="flex-grow">
-                                        <div class="flex justify-between">
-                                            <div>
-                                                <p class="text-sm font-medium text-gray-800">AirPods Pro 2</p>
-                                                <p class="text-xs text-gray-500">TBA386728261000</p>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <span class="text-xs mr-2">1.2 kg</span>
-                                                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded">MIAMI</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Paquete 2: No disponible para consolidar -->
-                            <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                <div class="flex items-center opacity-60">
-                                    <div class="mr-3">
-                                        <input type="checkbox" disabled class="w-5 h-5 rounded border-gray-300 text-gray-400">
-                                    </div>
-                                    <div class="flex-grow">
-                                        <div class="flex justify-between">
-                                            <div>
-                                                <p class="text-sm font-medium text-gray-800">Zapatos Nike Air Max</p>
-                                                <p class="text-xs text-gray-500">1ZW4567X0367829401</p>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <span class="text-xs mr-2">3.5 kg</span>
-                                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded">EN TRÁNSITO</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Paquete 3: No disponible para consolidar -->
-                            <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                <div class="flex items-center opacity-60">
-                                    <div class="mr-3">
-                                        <input type="checkbox" disabled class="w-5 h-5 rounded border-gray-300 text-gray-400">
-                                    </div>
-                                    <div class="flex-grow">
-                                        <div class="flex justify-between">
-                                            <div>
-                                                <p class="text-sm font-medium text-gray-800">iPad Pro 12.9" M3</p>
-                                                <p class="text-xs text-gray-500">9102001248745983462731</p>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <span class="text-xs mr-2">5.8 kg</span>
-                                                <span class="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-0.5 rounded">CRBOX</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="flex justify-center">
-                            <button id="create-consolidation" class="action-btn-primary flex items-center justify-center shadow-button button-3d">
-                                <i class="fas fa-object-group mr-2"></i>
-                                Crear Consolidación
-                            </button>
-                        </div>
-                        
-                        <p class="text-xs text-center text-gray-500 mt-3">
-                            Solo pueden consolidarse paquetes que estén en Miami y no hayan iniciado su tránsito a Costa Rica.
-                        </p>
                     </div>
                 </div>
                 
@@ -621,72 +526,14 @@
             </span>
             Notificaciones Importantes
         </h2>
-        <span class="bg-blue-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-            3 nuevas
+        <span class="bg-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 rounded-full">
+            0 nuevas
         </span>
     </div>
-    <div class="divide-y divide-gray-100">
-        <!-- Notificación 1 - Paquete llegado -->
-        <div class="p-4 hover:bg-gray-50 transition-colors">
-            <div class="flex items-start">
-                <div class="flex-shrink-0 w-10 h-10 mr-3 bg-green-100 rounded-full flex items-center justify-center text-green-500">
-                    <i class="fas fa-box"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex justify-between items-start">
-                        <h3 class="font-medium text-gray-900">Paquete listo para recoger</h3>
-                        <span class="text-xs text-gray-500">Hoy</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mt-1">Tu iPad Pro 12.9" M3 está disponible en CRBOX para recoger.</p>
-                    <div class="mt-2">
-                        <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Ver detalles</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Notificación 2 - Promoción -->
-        <div class="p-4 hover:bg-gray-50 transition-colors">
-            <div class="flex items-start">
-                <div class="flex-shrink-0 w-10 h-10 mr-3 bg-purple-100 rounded-full flex items-center justify-center text-purple-500">
-                    <i class="fas fa-percentage"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex justify-between items-start">
-                        <h3 class="font-medium text-gray-900">Promoción especial</h3>
-                        <span class="text-xs text-gray-500">2 días</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mt-1">20% de descuento en envíos consolidados durante esta semana.</p>
-                    <div class="mt-2">
-                        <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Ver más</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Notificación 3 - Sistema -->
-        <div class="p-4 hover:bg-gray-50 transition-colors">
-            <div class="flex items-start">
-                <div class="flex-shrink-0 w-10 h-10 mr-3 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-500">
-                    <i class="fas fa-info-circle"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex justify-between items-start">
-                        <h3 class="font-medium text-gray-900">Mantenimiento programado</h3>
-                        <span class="text-xs text-gray-500">5 días</span>
-                    </div>
-                    <p class="text-sm text-gray-600 mt-1">El sistema estará en mantenimiento el 15 de mayo de 8:00 PM a 10:00 PM.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Ver todas las notificaciones -->
-    <div class="bg-gray-50 p-3 border-t border-gray-100 text-center">
-        <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center justify-center">
-            <span>Ver todas las notificaciones</span>
-            <i class="fas fa-chevron-right ml-1 text-xs"></i>
-        </a>
+    <div class="p-6 text-center">
+        <i class="fas fa-bell-slash text-3xl text-gray-300 mb-3 block"></i>
+        <p class="text-sm font-medium text-gray-500">No hay notificaciones</p>
+        <p class="text-xs text-gray-400 mt-1">Cuando recibas avisos importantes aparecerán aquí.</p>
     </div>
 </div>
                     
@@ -706,7 +553,7 @@
                                     <span class="flex-shrink-0 h-5 w-5 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5">
                                         <i class="fas fa-check text-xs text-green-600"></i>
                                     </span>
-                                    <p class="text-sm text-gray-600">La consolidación ahorra hasta <span class="font-medium text-gray-800">40%</span> en costos de envío.</p>
+                                    <p class="text-sm text-gray-600">Consolidar varios paquetes en un solo envío puede reducir el costo total.</p>
                                 </li>
                                 <li class="flex items-start">
                                     <span class="flex-shrink-0 h-5 w-5 rounded-full bg-green-100 flex items-center justify-center mr-3 mt-0.5">
@@ -831,11 +678,11 @@
                         <i class="fas fa-box"></i>
                     </div>
                     <div>
-                        <h4 class="text-xl font-bold text-gray-800" id="modal-product-name">AirPods Pro 2</h4>
-                        <p class="text-gray-500" id="modal-store">Amazon</p>
+                        <h4 class="text-xl font-bold text-gray-800" id="modal-product-name">—</h4>
+                        <p class="text-gray-500" id="modal-store">—</p>
                     </div>
                     <div class="ml-auto">
-                        <span class="status-badge status-badge-blue" id="modal-status">MIAMI</span>
+                        <span class="status-badge status-badge-blue" id="modal-status">—</span>
                     </div>
                 </div>
                 
@@ -847,21 +694,21 @@
                                 <i class="fas fa-hashtag w-5 text-orange-500 mt-0.5"></i>
                                 <div class="ml-3">
                                     <p class="text-xs text-gray-500">Número de Tracking</p>
-                                    <p class="text-sm font-medium text-gray-800" id="modal-tracking">TBA386728261000</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-tracking">—</p>
                                 </div>
                             </div>
                             <div class="flex items-start">
                                 <i class="fas fa-calendar w-5 text-orange-500 mt-0.5"></i>
                                 <div class="ml-3">
                                     <p class="text-xs text-gray-500">Fecha de Recepción</p>
-                                    <p class="text-sm font-medium text-gray-800" id="modal-date">08 Mayo, 2025</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-date">—</p>
                                 </div>
                             </div>
                             <div class="flex items-start">
                                 <i class="fas fa-truck w-5 text-orange-500 mt-0.5"></i>
                                 <div class="ml-3">
                                     <p class="text-xs text-gray-500">Courier</p>
-                                    <p class="text-sm font-medium text-gray-800" id="modal-courier">Amazon Logistics</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-courier">—</p>
                                 </div>
                             </div>
                         </div>
@@ -874,21 +721,21 @@
                                 <i class="fas fa-weight w-5 text-orange-500 mt-0.5"></i>
                                 <div class="ml-3">
                                     <p class="text-xs text-gray-500">Peso</p>
-                                    <p class="text-sm font-medium text-gray-800" id="modal-weight">1.2 kg</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-weight">—</p>
                                 </div>
                             </div>
                             <div class="flex items-start">
                                 <i class="fas fa-box-open w-5 text-orange-500 mt-0.5"></i>
                                 <div class="ml-3">
                                     <p class="text-xs text-gray-500">Dimensiones</p>
-                                    <p class="text-sm font-medium text-gray-800" id="modal-dimensions">30x20x15 cm</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-dimensions">—</p>
                                 </div>
                             </div>
                             <div class="flex items-start">
                                 <i class="fas fa-dollar-sign w-5 text-orange-500 mt-0.5"></i>
                                 <div class="ml-3">
                                     <p class="text-xs text-gray-500">Costo Estimado</p>
-                                    <p class="text-sm font-medium text-gray-800" id="modal-cost">$15.99</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-cost">—</p>
                                 </div>
                             </div>
                         </div>
@@ -896,28 +743,9 @@
                 </div>
                 
                 <h5 class="text-sm font-medium text-gray-500 mb-2">Historial de Rastreo</h5>
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <div class="relative">
-                        <div class="absolute left-4 top-0 h-full w-0.5 bg-gray-200"></div>
-                        
-                        <div class="mb-4 ml-6 relative">
-                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
-                            <p class="text-sm font-medium text-gray-800">Recibido en Miami</p>
-                            <p class="text-xs text-gray-500">08 Mayo, 2025 - 14:30 PM</p>
-                        </div>
-                        
-                        <div class="mb-4 ml-6 relative">
-                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-gray-300 border-2 border-white"></div>
-                            <p class="text-sm font-medium text-gray-800">Enviado a CRBOX Miami</p>
-                            <p class="text-xs text-gray-500">07 Mayo, 2025 - 09:10 AM</p>
-                        </div>
-                        
-                        <div class="ml-6 relative">
-                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-gray-300 border-2 border-white"></div>
-                            <p class="text-sm font-medium text-gray-800">Enviado por el vendedor</p>
-                            <p class="text-xs text-gray-500">06 Mayo, 2025 - 16:45 PM</p>
-                        </div>
-                    </div>
+                <div class="bg-gray-50 rounded-lg p-4 text-center text-gray-500">
+                    <i class="fas fa-history text-2xl text-gray-300 mb-2 block"></i>
+                    <p class="text-sm">No hay historial de eventos de rastreo disponible.</p>
                 </div>
                 
                 <div class="mt-6 flex justify-between">
@@ -973,38 +801,38 @@
                             <div class="flex items-center gap-2">
                                 <div>
                                     <p class="text-xs text-gray-500">Número de tracking:</p>
-                                    <p class="font-medium" id="result-tracking-number">TBA386728261000</p>
+                                    <p class="font-medium" id="result-tracking-number">—</p>
                                 </div>
                                 <button id="copy-tracking-number-btn" title="Copiar número de tracking" class="ml-1 text-gray-400 hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded transition-colors" aria-label="Copiar número de tracking">
                                     <i class="far fa-copy text-base"></i>
                                 </button>
                             </div>
                             <div>
-                                <span class="status-badge status-badge-blue" id="result-status">MIAMI</span>
+                                <span class="status-badge status-badge-blue" id="result-status">—</span>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="relative">
-                        <div class="absolute left-4 top-0 h-full w-0.5 bg-gray-200"></div>
-                        
-                        <div class="mb-4 ml-6 relative">
-                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
-                            <p class="text-sm font-medium text-gray-800" id="tracking-step-1-title">Recibido en Miami</p>
-                            <p class="text-xs text-gray-500" id="tracking-step-1-date">08 Mayo, 2025 - 14:30 PM</p>
+
+                    <!-- Detalles reales del paquete (status / fecha de ingreso / tienda) -->
+                    <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 space-y-2 mb-4">
+                        <div class="flex items-center text-sm">
+                            <span class="text-gray-500 w-32">Estado actual:</span>
+                            <span class="font-medium text-gray-800" id="result-status-text">—</span>
                         </div>
-                        
-                        <div class="mb-4 ml-6 relative">
-                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-gray-300 border-2 border-white"></div>
-                            <p class="text-sm font-medium text-gray-800" id="tracking-step-2-title">Enviado a CRBOX Miami</p>
-                            <p class="text-xs text-gray-500" id="tracking-step-2-date">07 Mayo, 2025 - 09:10 AM</p>
+                        <div class="flex items-center text-sm">
+                            <span class="text-gray-500 w-32">Fecha de ingreso:</span>
+                            <span class="font-medium text-gray-800" id="result-arrival-date">—</span>
                         </div>
-                        
-                        <div class="ml-6 relative">
-                            <div class="absolute -left-6 mt-1.5 w-4 h-4 rounded-full bg-gray-300 border-2 border-white"></div>
-                            <p class="text-sm font-medium text-gray-800" id="tracking-step-3-title">Enviado por el vendedor</p>
-                            <p class="text-xs text-gray-500" id="tracking-step-3-date">06 Mayo, 2025 - 16:45 PM</p>
+                        <div class="flex items-center text-sm">
+                            <span class="text-gray-500 w-32">Tienda:</span>
+                            <span class="font-medium text-gray-800" id="result-store">—</span>
                         </div>
+                    </div>
+
+                    <!-- Historial detallado: no expuesto por el backend -->
+                    <div class="text-center py-4 text-gray-500 border border-dashed border-gray-200 rounded-lg">
+                        <i class="fas fa-history text-2xl text-gray-300 mb-2 block"></i>
+                        <p class="text-sm">No hay historial de eventos de rastreo disponible.</p>
                     </div>
                 </div>
                 
@@ -1941,86 +1769,57 @@
                             return;
                         }
                         
-                        // Simulación de búsqueda para demo
-                        setTimeout(() => {
-                            // Actualizar número de tracking en resultados
-                            const resultTrackingNumber = document.getElementById('result-tracking-number');
-                            if (resultTrackingNumber) {
-                                resultTrackingNumber.textContent = trackingNumber;
+                        // Buscar el paquete entre los datos ya cargados (getPackages real).
+                        // No hay endpoint de tracking en vivo confirmado, así que la búsqueda
+                        // se limita a los paquetes del usuario cargados en esta sesión.
+                        var resultTrackingNumber = document.getElementById('result-tracking-number');
+                        if (resultTrackingNumber) resultTrackingNumber.textContent = trackingNumber;
+
+                        var isKnown = typeof window._CRBOX_isKnownTracking === 'function'
+                            ? window._CRBOX_isKnownTracking(trackingNumber)
+                            : false;
+
+                        if (isKnown) {
+                            var pkg = typeof window._CRBOX_findPackageByTracking === 'function'
+                                ? window._CRBOX_findPackageByTracking(trackingNumber)
+                                : null;
+
+                            if (pkg) {
+                                var pkgStatus  = pkg.Status || pkg.status || '';
+                                var pkgStore   = pkg.Store || pkg.store || pkg.Tienda || '—';
+                                var pkgDateRaw = pkg.ArrivalDate || pkg.arrivaldate || pkg.Date || pkg.date || '';
+                                var pkgDateStr = pkgDateRaw && typeof CRBOXPortalAPI !== 'undefined'
+                                    ? CRBOXPortalAPI.formatDate(new Date(pkgDateRaw))
+                                    : (pkgDateRaw || '—');
+
+                                var statusEl = document.getElementById('result-status');
+                                if (statusEl) {
+                                    var statusKey = typeof window._CRBOX_statusKey === 'function'
+                                        ? window._CRBOX_statusKey(pkgStatus) : (pkgStatus || '—');
+                                    var statusCls = typeof window._CRBOX_statusClass === 'function'
+                                        ? window._CRBOX_statusClass(pkgStatus) : 'status-badge-blue';
+                                    statusEl.textContent = statusKey;
+                                    statusEl.className = 'status-badge ' + statusCls;
+                                }
+
+                                var statusTextEl = document.getElementById('result-status-text');
+                                if (statusTextEl) statusTextEl.textContent = pkgStatus || '—';
+
+                                var arrivalEl = document.getElementById('result-arrival-date');
+                                if (arrivalEl) arrivalEl.textContent = pkgDateStr;
+
+                                var storeEl = document.getElementById('result-store');
+                                if (storeEl) storeEl.textContent = pkgStore;
                             }
-                            
-                            // Verificar si coincide con algún paquete cargado
-                            var isKnown = typeof window._CRBOX_isKnownTracking === 'function'
-                                ? window._CRBOX_isKnownTracking(trackingNumber)
-                                : false;
-                            
-                            if (isKnown) {
-                                // Obtener datos reales del paquete
-                                var pkg = typeof window._CRBOX_findPackageByTracking === 'function'
-                                    ? window._CRBOX_findPackageByTracking(trackingNumber)
-                                    : null;
 
-                                if (pkg) {
-                                    var pkgStatus  = pkg.Status || pkg.status || '';
-                                    var pkgStore   = pkg.Store || pkg.store || pkg.Tienda || '—';
-                                    var pkgDateRaw = pkg.ArrivalDate || pkg.arrivaldate || pkg.Date || pkg.date || '';
-                                    var pkgDateStr = pkgDateRaw && typeof CRBOXPortalAPI !== 'undefined'
-                                        ? CRBOXPortalAPI.formatDate(new Date(pkgDateRaw))
-                                        : (pkgDateRaw || '—');
-                                    var pkgWeight  = pkg.Weight || pkg.weight || '—';
-                                    var pkgDesc    = pkg.Description || pkg.description || '';
-
-                                    // Status badge
-                                    var statusEl = document.getElementById('result-status');
-                                    if (statusEl) {
-                                        var statusKey = typeof window._CRBOX_statusKey === 'function'
-                                            ? window._CRBOX_statusKey(pkgStatus) : (pkgStatus || 'MIAMI');
-                                        var statusCls = typeof window._CRBOX_statusClass === 'function'
-                                            ? window._CRBOX_statusClass(pkgStatus) : 'status-badge-blue';
-                                        statusEl.textContent = statusKey;
-                                        statusEl.className = 'status-badge ' + statusCls;
-                                    }
-
-                                    // Timeline step 1: estado actual + fecha
-                                    var step1Title = document.getElementById('tracking-step-1-title');
-                                    var step1Date  = document.getElementById('tracking-step-1-date');
-                                    if (step1Title) step1Title.textContent = 'Estado: ' + (pkgStatus || '—');
-                                    if (step1Date)  step1Date.textContent  = pkgDateStr;
-
-                                    // Timeline step 2: tienda
-                                    var step2Title = document.getElementById('tracking-step-2-title');
-                                    var step2Date  = document.getElementById('tracking-step-2-date');
-                                    if (step2Title) step2Title.textContent = 'Tienda: ' + pkgStore;
-                                    if (step2Date)  step2Date.textContent  = pkgDesc || '';
-
-                                    // Timeline step 3: peso
-                                    var step3Title = document.getElementById('tracking-step-3-title');
-                                    var step3Date  = document.getElementById('tracking-step-3-date');
-                                    if (step3Title) step3Title.textContent = 'Peso';
-                                    if (step3Date)  step3Date.textContent  = pkgWeight;
-                                }
-
-                                // Mostrar resultados
-                                if (trackingResults) {
-                                    trackingResults.classList.remove('hidden');
-                                }
-                                if (trackingNoResults) {
-                                    trackingNoResults.classList.add('hidden');
-                                }
-                                
-                                showToast('Paquete encontrado', 'success');
-                            } else {
-                                // Mostrar sin resultados
-                                if (trackingResults) {
-                                    trackingResults.classList.add('hidden');
-                                }
-                                if (trackingNoResults) {
-                                    trackingNoResults.classList.remove('hidden');
-                                }
-                                
-                                showToast('No se encontraron resultados', 'warning');
-                            }
-                        }, 500);
+                            if (trackingResults)   trackingResults.classList.remove('hidden');
+                            if (trackingNoResults) trackingNoResults.classList.add('hidden');
+                            showToast('Paquete encontrado', 'success');
+                        } else {
+                            if (trackingResults)   trackingResults.classList.add('hidden');
+                            if (trackingNoResults) trackingNoResults.classList.remove('hidden');
+                            showToast('No se encontraron resultados', 'warning');
+                        }
                     });
                     
                     // Permitir búsqueda con Enter
@@ -2488,18 +2287,32 @@
         var weight   = pkg.Weight || pkg.weight || '—';
         var desc     = pkg.Description || pkg.description || '—';
 
+        // Map optional fields when present in the real payload, otherwise '—'.
+        var dimensions = pkg.Dimensions || pkg.dimensions
+                       || pkg.Dimension  || pkg.dimension
+                       || pkg.Size       || pkg.size
+                       || '—';
+        var cost = pkg.Cost      || pkg.cost
+                 || pkg.Price     || pkg.price
+                 || pkg.Total     || pkg.total
+                 || pkg.EstimatedCost || pkg.estimatedcost
+                 || '—';
+        var courier = pkg.Courier || pkg.courier
+                    || pkg.Carrier || pkg.carrier
+                    || store;
+
         var setText = function(id, val) {
           var el = document.getElementById(id);
-          if (el) el.textContent = val;
+          if (el) el.textContent = (val == null || val === '') ? '—' : val;
         };
         setText('modal-product-name', desc);
         setText('modal-store', store);
         setText('modal-tracking', tracking);
         setText('modal-date', dateStr);
-        setText('modal-courier', store);
+        setText('modal-courier', courier);
         setText('modal-weight', weight);
-        setText('modal-dimensions', '—');
-        setText('modal-cost', '—');
+        setText('modal-dimensions', dimensions);
+        setText('modal-cost', cost);
 
         var statusEl = document.getElementById('modal-status');
         if (statusEl) {
