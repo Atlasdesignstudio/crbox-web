@@ -2071,6 +2071,51 @@
                                 : false;
                             
                             if (isKnown) {
+                                // Obtener datos reales del paquete
+                                var pkg = typeof window._CRBOX_findPackageByTracking === 'function'
+                                    ? window._CRBOX_findPackageByTracking(trackingNumber)
+                                    : null;
+
+                                if (pkg) {
+                                    var pkgStatus  = pkg.Status || pkg.status || '';
+                                    var pkgStore   = pkg.Store || pkg.store || pkg.Tienda || '—';
+                                    var pkgDateRaw = pkg.ArrivalDate || pkg.arrivaldate || pkg.Date || pkg.date || '';
+                                    var pkgDateStr = pkgDateRaw && typeof CRBOXPortalAPI !== 'undefined'
+                                        ? CRBOXPortalAPI.formatDate(new Date(pkgDateRaw))
+                                        : (pkgDateRaw || '—');
+                                    var pkgWeight  = pkg.Weight || pkg.weight || '—';
+                                    var pkgDesc    = pkg.Description || pkg.description || '';
+
+                                    // Status badge
+                                    var statusEl = document.getElementById('result-status');
+                                    if (statusEl) {
+                                        var statusKey = typeof window._CRBOX_statusKey === 'function'
+                                            ? window._CRBOX_statusKey(pkgStatus) : (pkgStatus || 'MIAMI');
+                                        var statusCls = typeof window._CRBOX_statusClass === 'function'
+                                            ? window._CRBOX_statusClass(pkgStatus) : 'status-badge-blue';
+                                        statusEl.textContent = statusKey;
+                                        statusEl.className = 'status-badge ' + statusCls;
+                                    }
+
+                                    // Timeline step 1: estado actual + fecha
+                                    var step1Title = document.getElementById('tracking-step-1-title');
+                                    var step1Date  = document.getElementById('tracking-step-1-date');
+                                    if (step1Title) step1Title.textContent = 'Estado: ' + (pkgStatus || '—');
+                                    if (step1Date)  step1Date.textContent  = pkgDateStr;
+
+                                    // Timeline step 2: tienda
+                                    var step2Title = document.getElementById('tracking-step-2-title');
+                                    var step2Date  = document.getElementById('tracking-step-2-date');
+                                    if (step2Title) step2Title.textContent = 'Tienda: ' + pkgStore;
+                                    if (step2Date)  step2Date.textContent  = pkgDesc || '';
+
+                                    // Timeline step 3: peso
+                                    var step3Title = document.getElementById('tracking-step-3-title');
+                                    var step3Date  = document.getElementById('tracking-step-3-date');
+                                    if (step3Title) step3Title.textContent = 'Peso';
+                                    if (step3Date)  step3Date.textContent  = pkgWeight;
+                                }
+
                                 // Mostrar resultados
                                 if (trackingResults) {
                                     trackingResults.classList.remove('hidden');
@@ -2551,6 +2596,15 @@
           return (p.TrackingNumber || p.trackingnumber || p.tracking || '').trim() === tn;
         });
       };
+
+      window._CRBOX_findPackageByTracking = function(tn) {
+        return _cachedPackages.find(function(p) {
+          return (p.TrackingNumber || p.trackingnumber || p.tracking || '').trim() === tn;
+        }) || null;
+      };
+
+      window._CRBOX_statusClass = _statusClass;
+      window._CRBOX_statusKey = _statusKey;
 
       // Delegated click handler for action buttons in dynamic package rows/cards
       document.addEventListener('click', function(e) {
