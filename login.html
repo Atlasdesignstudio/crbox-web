@@ -321,8 +321,20 @@
         
         // Toggle del menú móvil
         if (mobileMenuButton && mobileMenu) {
+            const stickyHeader = document.querySelector('.sticky-header');
             mobileMenuButton.addEventListener('click', function() {
-                mobileMenu.classList.toggle('hidden');
+                const isOpen = mobileMenu.classList.contains('is-open');
+                const icon = mobileMenuButton.querySelector('i');
+                if (isOpen) {
+                    mobileMenu.classList.remove('is-open');
+                    if (stickyHeader) stickyHeader.classList.remove('menu-open');
+                    if (icon) { icon.classList.replace('fa-times', 'fa-bars'); }
+                } else {
+                    mobileMenu.classList.add('is-open');
+                    if (stickyHeader) stickyHeader.classList.add('menu-open');
+                    if (icon) { icon.classList.replace('fa-bars', 'fa-times'); }
+                }
+                mobileMenuButton.blur();
             });
         }
         
