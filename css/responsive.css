@@ -37,10 +37,15 @@
       box-shadow: none !important;
     }
 
-    /* Sticky header: GPU layer prevents scroll-triggered repaint jumps */
+    /* Sticky header: GPU layer prevents scroll-triggered repaint jumps.
+       backdrop-filter is disabled on mobile: on iOS/WebKit, position:sticky +
+       backdrop-filter creates an oversized compositing region that intercepts
+       all touch taps while allowing scroll — making the page feel unresponsive. */
     .sticky-header {
       will-change: transform;
       transform: translateZ(0);
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
     }
 
     /* ===== Mobile menu smooth slide-down animation =====
