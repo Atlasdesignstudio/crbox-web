@@ -73,7 +73,7 @@
                         <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
                             <i class="fas fa-user text-orange-600"></i>
                         </div>
-                        <span class="font-medium" id="header-user-name">Mathias</span>
+                        <span class="font-medium" id="header-user-name">...</span>
                         <i class="fas fa-chevron-down text-xs"></i>
                     </button>
                     <!-- Dropdown elegante (inicialmente oculto) -->
@@ -128,8 +128,8 @@
                             <i class="fas fa-user text-orange-600"></i>
                         </div>
                         <div>
-                            <span class="font-medium text-gray-800" id="mobile-user-name">Mathias Meneses</span>
-                            <p class="text-xs text-gray-500" id="mobile-casillero-badge">Casillero #50628595</p>
+                            <span class="font-medium text-gray-800" id="mobile-user-name">Cargando...</span>
+                            <p class="text-xs text-gray-500" id="mobile-casillero-badge">Casillero #—</p>
                         </div>
                     </div>
                     
@@ -1774,7 +1774,7 @@
             const copyBtn = document.getElementById('copy-casillero');
             if (copyBtn) {
                 copyBtn.addEventListener('click', function() {
-                    const casilleroNumber = '50628595';
+                    const casilleroNumber = _cachedCasilleroNum || '';
                     copyToClipboard(casilleroNumber);
                     showToast('Número de casillero copiado al portapapeles', 'success');
                 });
@@ -1784,7 +1784,7 @@
             const copyAddressBtn = document.getElementById('copy-address-btn');
             if (copyAddressBtn) {
                 copyAddressBtn.addEventListener('click', function() {
-                    const address = "Mathias Meneses\n8155 NW 68TH ST\nMiami, FL 33166\nUSA\nCasillero: 50628595";
+                    const address = (_cachedFullName || 'CRBOX Cliente') + "\n8155 NW 68TH ST\nMiami, FL 33166\nUSA\nCasillero: " + (_cachedCasilleroNum || '');
                     copyToClipboard(address);
                     showToast('Dirección completa copiada al portapapeles', 'success');
                 });
@@ -2336,7 +2336,7 @@
                 
                 // Mostrar toast
                 setTimeout(() => {
-                    showToast(`${greeting}, Mathias! Has iniciado sesión en CRBOX`, 'success', 5000);
+                    showToast(`${greeting}${_cachedFullName ? ', ' + _cachedFullName.split(' ')[0] : ''}! Has iniciado sesión en CRBOX`, 'success', 5000);
                 }, 1000);
                 
                 // Guardar visita
@@ -2437,22 +2437,76 @@
         _txt('en-miami',       String(miami));
       }
 
-      function _loadPackages(idConsignee) {
+      function _applyHeader(info) {
+        var c = info.Consignee || info;
+        var firstName = c.consigneename  || c.ConsigneeName  || '';
+        var lastName1 = c.consigneelastname1 || c.ConsigneeLastName1 || '';
+        var fullName  = (firstName + ' ' + lastName1).trim() || firstName;
+        var casillero = String(c.idconsignee || c.IdConsignee || '');
+        _txt('header-user-name',      firstName || fullName);
+        _txt('mobile-user-name',      fullName);
+        _txt('mobile-casillero-badge','Casillero #' + casillero);
+        _cachedFullName     = fullName;
+        _cachedCasilleroNum = casillero;
+        return c.idconsignee || c.IdConsignee;
+      }
+
+      var _cachedConsigneeId  = null;
+      var _cachedFullName     = '';
+      var _cachedCasilleroNum = '';
+
+      function _dateFilterToDate(val) {
+        var d = new Date();
+        if (val === 'week')    { d.setDate(d.getDate() - 7);    return d; }
+        if (val === 'month')   { d.setDate(d.getDate() - 30);   return d; }
+        if (val === 'quarter') { d.setDate(d.getDate() - 90);   return d; }
+        if (val === 'year')    { d.setDate(d.getDate() - 365);  return d; }
+        return CRBOXPortalAPI.last30Days();
+      }
+
+      function _statusFilterToCode(val) {
+        var MAP = {
+          'MIAMI':       '1',
+          'SJO':         '2',
+          'CARGADO':     '3',
+          'EN TRÁNSITO': '4',
+          'EN ESPERA':   '6',
+          'CRBOX':       '5',
+          'ENTREGADO':   '7'
+        };
+        return (val && MAP[val]) ? MAP[val] : '1000';
+      }
+
+      function _applyFiltersFromUI(idConsignee) {
+        var tracking = (document.getElementById('search-input') || {}).value || '';
+        var statusVal = (document.getElementById('status-filter') || {}).value || '';
+        var dateVal   = (document.getElementById('date-filter')  || {}).value || 'month';
+        _loadPackages(idConsignee,
+          _dateFilterToDate(dateVal),
+          new Date(),
+          tracking || '*',
+          _statusFilterToCode(statusVal)
+        );
+      }
+
+      function _loadPackages(idConsignee, startDate, endDate, tracking, status) {
         var tbody = document.getElementById('packages-tbody');
         if (!tbody) return;
         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">' +
           '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando paquetes...</td></tr>';
 
         CRBOXPortalAPI.getPackages(idConsignee,
-          CRBOXPortalAPI.defaultStartDate(3),
-          CRBOXPortalAPI.defaultEndDate())
+          startDate  || CRBOXPortalAPI.last30Days(),
+          endDate    || CRBOXPortalAPI.defaultEndDate(),
+          tracking   || '*',
+          status     || '1000')
         .then(function (data) {
           var packages = Array.isArray(data) ? data : (data.packages || data.Packages || []);
           _renderStats(packages);
           if (packages.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-400">' +
               '<i class="fas fa-box-open text-4xl mb-3 block"></i>' +
-              'No tienes paquetes en los últimos 3 meses.</td></tr>';
+              'No tienes paquetes en el período seleccionado.</td></tr>';
             return;
           }
           tbody.innerHTML = packages.map(_renderRow).join('');
@@ -2464,23 +2518,33 @@
         });
       }
 
-      function _applyHeader(info) {
-        var firstName = info.consigneename  || info.ConsigneeName  || '';
-        var lastName1 = info.consigneelastname1 || info.ConsigneeLastName1 || '';
-        var fullName  = (firstName + ' ' + lastName1).trim() || firstName;
-        var casillero = String(info.idconsignee || info.IdConsignee || '');
-        _txt('header-user-name',      firstName || fullName);
-        _txt('mobile-user-name',      fullName);
-        _txt('mobile-casillero-badge','Casillero #' + casillero);
-        return info.idconsignee || info.IdConsignee;
-      }
-
       document.addEventListener('DOMContentLoaded', function () {
         if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
         CRBOXPortalAPI.getUserInfo()
           .then(function (info) {
             var idConsignee = _applyHeader(info);
+            _cachedConsigneeId = idConsignee;
             if (idConsignee) _loadPackages(idConsignee);
+
+            // Wire filter inputs
+            var searchInput   = document.getElementById('search-input');
+            var statusFilter  = document.getElementById('status-filter');
+            var dateFilter    = document.getElementById('date-filter');
+
+            function _onFilterChange() {
+              if (_cachedConsigneeId) _applyFiltersFromUI(_cachedConsigneeId);
+            }
+
+            if (statusFilter) statusFilter.addEventListener('change', _onFilterChange);
+            if (dateFilter)   dateFilter.addEventListener('change',   _onFilterChange);
+
+            var searchTimeout;
+            if (searchInput) {
+              searchInput.addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(_onFilterChange, 600);
+              });
+            }
           })
           .catch(function (err) { console.warn('[CRBOX] getUserInfo error:', err); });
       });

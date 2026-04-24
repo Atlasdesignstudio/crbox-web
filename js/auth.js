@@ -25,6 +25,14 @@
     guachipelin_escazu: 14
   };
 
+  // ─── PENDING compat shim ──────────────────────────────────────────────────
+  // afiliate.html references CRBOXAuth.PENDING.* — keep this mapping alive.
+  var PENDING = {
+    newPhoneId:   0,
+    newAddressId: 0,
+    sucursalIdMap: SUCURSAL_ID_MAP
+  };
+
   // ─── Storage helpers ──────────────────────────────────────────────────────
   function _store(remember) {
     return remember ? localStorage : sessionStorage;
@@ -137,33 +145,64 @@
   }
 
   // ─── Update Profile payload builder ───────────────────────────────────────
-  // Builds the URL-encoded body for the postedituser endpoint.
-  // profileData is populated from getuserinfo (with user edits merged in).
-  function buildUpdateProfilePayload(profileData) {
+  // rawApiResponse = full raw getuserinfo response ({ Consignee: {...}, Phones, Addresses, ... })
+  // formEdits      = optional flat overrides from form inputs:
+  //                  { firstName, lastName1, email, idType, idNumber }
+  function buildUpdateProfilePayload(rawApiResponse, formEdits) {
+    formEdits = formEdits || {};
+    // Normalise: accept both raw (has .Consignee) and flat objects
+    var c = (rawApiResponse && rawApiResponse.Consignee) ? rawApiResponse.Consignee : (rawApiResponse || {});
+
+    var firstName  = formEdits.firstName  || c.consigneename     || c.ConsigneeName     || '';
+    var lastName1  = formEdits.lastName1  || c.consigneelastname1 || c.ConsigneeLastName1 || '';
+    var lastName2  =                         c.consigneelastname2 || c.ConsigneeLastName2 || '';
+    var email      = formEdits.email      || c.email    || c.Email    || getEmail() || '';
+    var idType     = formEdits.idType     || c.identificationtype   || c.IdentificationType   || '';
+    var idNumber   = formEdits.idNumber   || c.identificationnumber || c.IdentificationNumber || '';
+    var idCons     = String(c.idconsignee || c.IdConsignee || '');
+    var birthDate  = c.birthDate          || c.BirthDate           || '';
+    var altEmail   = c.alternativeEmail   || c.AlternativeEmail    || '';
+    var country    = c.residenceCountry   || c.ResidenceCountry    || 'CR';
+    var contact1   = c.contactName1       || c.ContactName1        || '';
+    var contact2   = c.contactName2       || c.ContactName2        || '';
+    var isCompany  = c.isCompany          || c.IsCompany           || 0;
+    var newsletter = c.receivesNewsletter || c.ReceivesNewsletter  || false;
+    var responsab  = c.responsabilidad    || c.Responsabilidad     || 0;
+    var idResp     = c.idResponsabilidad  || c.IdResponsabilidad   || '';
+    var omitir     = c.omitirReceptor     || c.OmitirReceptor      || false;
+
+    var sucursal   = c.sucursal || c.Sucursal || {};
+    var sucursalId = sucursal._idsucursal || sucursal.IdSucursal || sucursal.idSucursal || '';
+
+    // Preserve nested phones/addresses from the raw response (keep real IDs)
+    var raw        = rawApiResponse || {};
+    var phones     = raw.Phones    || c.phones    || [];
+    var addresses  = raw.Addresses || c.addresses || [];
+
     var params = new URLSearchParams();
-    params.set('Consignee.IdConsignee',          String(profileData.idConsignee || profileData.idconsignee || ''));
+    params.set('Consignee.IdConsignee',          idCons);
     params.set('Token',                          getToken() || '');
-    params.set('Consignee.ConsigneeName',         profileData.firstName    || profileData.consigneename     || '');
-    params.set('Consignee.ConsigneeLastName1',    profileData.lastName1    || profileData.consigneelastname1 || '');
-    params.set('Consignee.ConsigneeLastName2',    profileData.lastName2    || profileData.consigneelastname2 || '');
-    params.set('Consignee.Email',                 profileData.email        || '');
-    params.set('ConfirmEmail',                    profileData.email        || '');
-    params.set('Consignee.IdentificationNumber',  profileData.idNumber     || profileData.identificationnumber || '');
-    params.set('Consignee.IdentificationType',    profileData.idType       || profileData.identificationtype   || '');
-    params.set('Consignee.IsCompany',             '0');
-    params.set('Consignee.ResidenceCountry',      profileData.country      || profileData.residencecountry      || 'CR');
-    params.set('Consignee.ReceivesNewsletter',    profileData.newsletter   ? 'true' : 'false');
-    params.set('Consignee.Responsabilidad',       '0');
-    params.set('Consignee.AlternativeEmail',      profileData.alternativeEmail  || profileData.alternativeemail  || '');
-    params.set('Consignee.ContactName1',          profileData.contactName1      || profileData.contactname1      || '');
-    params.set('Consignee.ContactName2',          profileData.contactName2      || profileData.contactname2      || '');
-    params.set('Consignee.IdResponsabilidad',     '');
-    params.set('Consignee.BirthDate',             '');
-    var sucursalId = (profileData.sucursal && (profileData.sucursal.idSucursal || profileData.sucursal._idsucursal)) || '';
+    params.set('Consignee.ConsigneeName',         firstName);
+    params.set('Consignee.ConsigneeLastName1',    lastName1);
+    params.set('Consignee.ConsigneeLastName2',    lastName2);
+    params.set('Consignee.Email',                 email);
+    params.set('ConfirmEmail',                    email);
+    params.set('Consignee.IdentificationNumber',  idNumber);
+    params.set('Consignee.IdentificationType',    idType);
+    params.set('Consignee.IsCompany',             isCompany ? '1' : '0');
+    params.set('Consignee.ResidenceCountry',      country);
+    params.set('Consignee.ReceivesNewsletter',    newsletter ? 'true' : 'false');
+    params.set('Consignee.Responsabilidad',       String(responsab));
+    params.set('Consignee.AlternativeEmail',      altEmail);
+    params.set('Consignee.ContactName1',          contact1);
+    params.set('Consignee.ContactName2',          contact2);
+    params.set('Consignee.IdResponsabilidad',     String(idResp));
+    params.set('Consignee.BirthDate',             birthDate);
+    params.set('Consignee.OmitirReceptor',        omitir ? 'true' : 'false');
     params.set('Consignee.Sucursal.IdSucursal',   String(sucursalId));
-    params.set('CompanyCode',                     profileData.companyCode  || '');
-    params.set('Phones',                          JSON.stringify(profileData.phones    || []));
-    params.set('Addresses',                       JSON.stringify(profileData.addresses || []));
+    params.set('CompanyCode',                     raw.CompanyCode || '');
+    params.set('Phones',                          JSON.stringify(phones));
+    params.set('Addresses',                       JSON.stringify(addresses));
     return params.toString();
   }
 
@@ -254,7 +293,8 @@
     doRegister:                doRegister,
     buildUpdateProfilePayload: buildUpdateProfilePayload,
     updateHeaderAuthState:     updateHeaderAuthState,
-    SUCURSAL_ID_MAP:           SUCURSAL_ID_MAP
+    SUCURSAL_ID_MAP:           SUCURSAL_ID_MAP,
+    PENDING:                   PENDING
   };
 
 }(window));

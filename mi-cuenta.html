@@ -47,7 +47,7 @@
                             <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
                                 <i class="fas fa-user text-orange-600"></i>
                             </div>
-                            <span class="font-medium" id="header-user-name">Mathias</span>
+                            <span class="font-medium" id="header-user-name">...</span>
                             <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180"></i>
                         </button>
                         <!-- Dropdown menu -->
@@ -100,7 +100,7 @@
                             <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center mr-2">
                                 <i class="fas fa-user text-orange-600"></i>
                             </div>
-                            <span class="font-medium" id="mobile-user-name">Mathias Meneses</span>
+                            <span class="font-medium" id="mobile-user-name">Cargando...</span>
                         </div>
                         <div class="space-y-2">
                             <a href="dashboard.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
@@ -186,8 +186,8 @@
                         <div class="profile-avatar mx-auto bg-white">
                             <span class="text-orange-600 font-bold text-3xl" id="profile-avatar-initials">MM</span>
                         </div>
-                        <h2 class="text-2xl font-bold text-white" id="profile-header-name">Mathias Meneses</h2>
-                        <p class="text-white text-opacity-90" id="profile-casillero">Casillero #50628595</p>
+                        <h2 class="text-2xl font-bold text-white" id="profile-header-name">Cargando...</h2>
+                        <p class="text-white text-opacity-90" id="profile-casillero">Casillero #—</p>
                     </div>
                 </div>
                 
@@ -218,19 +218,19 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="form-group">
                                 <label for="first_name" class="form-label">Nombre</label>
-                                <input type="text" id="first_name" name="first_name" class="form-control" value="Mathias">
+                                <input type="text" id="first_name" name="first_name" class="form-control" value="">
                             </div>
                             <div class="form-group">
                                 <label for="last_name" class="form-label">Apellido</label>
-                                <input type="text" id="last_name" name="last_name" class="form-control" value="Meneses">
+                                <input type="text" id="last_name" name="last_name" class="form-control" value="">
                             </div>
                             <div class="form-group">
                                 <label for="email" class="form-label">Correo Electrónico</label>
-                                <input type="email" id="email" name="email" class="form-control" value="mMathiascrbox27@gmail.com">
+                                <input type="email" id="email" name="email" class="form-control" value="">
                             </div>
                             <div class="form-group">
                                 <label for="phone" class="form-label">Teléfono</label>
-                                <input type="tel" id="phone" name="phone" class="form-control" value="305 882 1718">
+                                <input type="tel" id="phone" name="phone" class="form-control" value="">
                             </div>
                             <div class="form-group md:col-span-2">
                                 <label for="id_type" class="form-label">Tipo de Identificación</label>
@@ -242,7 +242,7 @@
                             </div>
                             <div class="form-group md:col-span-2">
                                 <label for="id_number" class="form-label">Número de Identificación</label>
-                                <input type="text" id="id_number" name="id_number" class="form-control" value="123456789">
+                                <input type="text" id="id_number" name="id_number" class="form-control" value="">
                             </div>
                         </div>
                         
@@ -272,14 +272,14 @@
                         <h3 class="text-xl font-semibold text-gray-800 mb-4">Mi Dirección en Miami</h3>
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <div class="space-y-3">
-                                <p><span class="font-medium">Nombre:</span> Mathias Meneses</p>
+                                <p><span class="font-medium">Nombre:</span> <span id="miami-addr-name">—</span></p>
                                 <p><span class="font-medium">Dirección:</span> 8155 NW 68TH ST</p>
                                 <p><span class="font-medium">Ciudad:</span> Miami</p>
                                 <p><span class="font-medium">Estado:</span> Florida</p>
                                 <p><span class="font-medium">Código Postal:</span> 33166</p>
                                 <p><span class="font-medium">País:</span> Estados Unidos</p>
                                 <p><span class="font-medium">Teléfono:</span> 305 882 1718</p>
-                                <p><span class="font-medium">Número de Casillero:</span> 50628595</p>
+                                <p><span class="font-medium">Número de Casillero:</span> <span id="miami-addr-casillero">—</span></p>
                             </div>
                             <button class="mt-4 text-blue-500 hover:text-blue-700 font-medium flex items-center" id="copy-address-btn">
                                 <i class="fas fa-copy mr-2"></i>
@@ -718,20 +718,23 @@
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
                     btn.disabled = true;
 
-                    var cachedInfo = {};
-                    try { cachedInfo = window.__crboxUserInfo || {}; } catch(e) {}
-                    var mergedData = Object.assign({}, cachedInfo, {
-                        firstName:  (document.getElementById('first_name')  || {}).value || cachedInfo.consigneename  || '',
-                        lastName1:  (document.getElementById('last_name')   || {}).value || cachedInfo.consigneelastname1 || '',
-                        email:      (document.getElementById('email')        || {}).value || CRBOXAuth.getEmail() || '',
-                        idType:     (document.getElementById('id_type')      || {}).value || cachedInfo.idtype || '',
-                        idNumber:   (document.getElementById('id_number')    || {}).value || cachedInfo.idnumber || ''
-                    });
-                    var payload = CRBOXAuth.buildUpdateProfilePayload(mergedData);
+                    var rawInfo = window.__crboxUserInfo || {};
+                    var formEdits = {
+                        firstName: (document.getElementById('first_name') || {}).value || '',
+                        lastName1:  (document.getElementById('last_name')  || {}).value || '',
+                        email:      (document.getElementById('email')       || {}).value || CRBOXAuth.getEmail() || '',
+                        idType:     (document.getElementById('id_type')     || {}).value || '',
+                        idNumber:   (document.getElementById('id_number')   || {}).value || ''
+                    };
+                    var payload = CRBOXAuth.buildUpdateProfilePayload(rawInfo, formEdits);
 
                     CRBOXPortalAPI.updateProfile(payload)
-                        .then(function () {
+                        .then(function (result) {
+                            window.__crboxUserInfo = result.userInfo || rawInfo;
                             btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
+                            if (typeof window.__crboxApplyProfile === 'function' && result.userInfo) {
+                                window.__crboxApplyProfile(result.userInfo);
+                            }
                             setTimeout(function () {
                                 btn.innerHTML = originalHTML;
                                 btn.disabled = false;
@@ -756,14 +759,16 @@
       function _txt(id, val) { var el = document.getElementById(id); if (el) el.textContent = val || ''; }
       function _applyProfile(info) {
         if (!info) return;
-        var firstName = info.consigneename  || info.ConsigneeName  || '';
-        var lastName1 = info.consigneelastname1 || info.ConsigneeLastName1 || '';
+        var c = info.Consignee || info;
+        var firstName = c.consigneename  || c.ConsigneeName  || '';
+        var lastName1 = c.consigneelastname1 || c.ConsigneeLastName1 || '';
         var fullName  = (firstName + ' ' + lastName1).trim() || firstName;
-        var casillero = String(info.idconsignee || info.IdConsignee || '');
-        var email     = info.email  || info.Email  || CRBOXAuth.getEmail() || '';
-        var phone     = info.phone  || info.Phone  || info.phonenumber || info.PhoneNumber || '';
-        var idType    = info.idtype || info.IdType || '';
-        var idNum     = info.idnumber || info.IdNumber || info.documentnumber || '';
+        var casillero = String(c.idconsignee || c.IdConsignee || '');
+        var email     = c.email  || c.Email  || CRBOXAuth.getEmail() || '';
+        var phones    = c.phones || [];
+        var phone     = phones.length > 0 ? (phones[0].phonenumber || '') : '';
+        var idType    = c.identificationtype   || c.IdentificationType   || '';
+        var idNum     = c.identificationnumber || c.IdentificationNumber || '';
 
         _txt('header-user-name', firstName || fullName);
         _txt('mobile-user-name', fullName);
@@ -796,11 +801,13 @@
           }
         }
 
-        var addrName = document.querySelector('#address-info-tab .space-y-3 p:first-child');
-        if (addrName) addrName.innerHTML = '<span class="font-medium">Nombre:</span> ' + fullName;
-        var addrCas = document.querySelector('#address-info-tab .space-y-3 p:last-child');
-        if (addrCas) addrCas.innerHTML = '<span class="font-medium">Número de Casillero:</span> ' + casillero;
+        var addrName = document.getElementById('miami-addr-name');
+        if (addrName) addrName.textContent = fullName;
+        var addrCasEl = document.getElementById('miami-addr-casillero');
+        if (addrCasEl) addrCasEl.textContent = casillero;
       }
+
+      window.__crboxApplyProfile = _applyProfile;
 
       document.addEventListener('DOMContentLoaded', function () {
         if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;

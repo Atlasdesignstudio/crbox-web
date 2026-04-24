@@ -40,7 +40,13 @@
   }
   function _defaultStartDate(monthsBack) {
     var d = new Date();
-    d.setMonth(d.getMonth() - (monthsBack || 3));
+    d.setMonth(d.getMonth() - (monthsBack || 1));
+    return d;
+  }
+  // 30-day window (used as the default across all pages)
+  function _last30Days() {
+    var d = new Date();
+    d.setDate(d.getDate() - 30);
     return d;
   }
 
@@ -54,10 +60,20 @@
     }
 
     var token = CRBOXAuth.getToken();
-    if (!token) return Promise.reject(new Error('No token'));
+    if (!token) {
+      // Not logged in — auth gate in auth.js will redirect; reject cleanly.
+      return Promise.reject(new Error('No token'));
+    }
 
     var email = CRBOXAuth.getEmail();
-    if (!email) return Promise.reject(new Error('Email not found in session'));
+    if (!email) {
+      // Token present but email missing → half-authenticated session; clear and redirect.
+      CRBOXAuth.clearToken();
+      if (window.location.pathname.indexOf('login') === -1) {
+        window.location.replace('login.html');
+      }
+      return Promise.reject(new Error('Email not found in session — session cleared'));
+    }
 
     return fetch(BASE + '/getuserinfo/' + encodeURIComponent(email), {
       headers: { 'Authorization': 'Bearer ' + token }
@@ -104,10 +120,10 @@
     var token = CRBOXAuth.getToken();
     if (!token) return Promise.reject(new Error('No token'));
 
-    var start = formatDate(startDate || _defaultStartDate(3));
+    var start = formatDate(startDate || _last30Days());
     var end   = formatDate(endDate   || _defaultEndDate());
-    var track = (tracking && tracking.trim()) ? tracking.trim() : '*';
-    var stat  = (status   && status.trim())   ? status.trim()   : '*';
+    var track = (tracking && String(tracking).trim()) ? String(tracking).trim() : '*';
+    var stat  = (status   && String(status).trim())   ? String(status).trim()   : '1000';
 
     var url = BASE + '/getuserpackages/' +
       idConsignee + '/' +
@@ -131,7 +147,7 @@
     var token = CRBOXAuth.getToken();
     if (!token) return Promise.reject(new Error('No token'));
 
-    var start = formatDate(startDate || _defaultStartDate(3));
+    var start = formatDate(startDate || _last30Days());
     var end   = formatDate(endDate   || _defaultEndDate());
 
     var url = BASE + '/getfacturas/' +
@@ -167,6 +183,7 @@
     getBills:           getBills,
     recoverPassword:    recoverPassword,
     formatDate:         formatDate,
+    last30Days:         _last30Days,
     defaultStartDate:   _defaultStartDate,
     defaultEndDate:     _defaultEndDate
   };
