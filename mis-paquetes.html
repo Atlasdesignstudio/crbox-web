@@ -1173,7 +1173,7 @@
                         Imprimir Detalles
                     </button>
                     
-                    <button class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all flex items-center shadow-button button-3d">
+                    <button id="modal-rastrear-btn" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all flex items-center shadow-button button-3d">
                         <i class="fas fa-search-location mr-2"></i>
                         Rastrear
                     </button>
@@ -2115,33 +2115,20 @@
             // no-op: API-driven search wired in the init script at bottom of file
         }
         
-        // Manejar modales
         function initModalHandlers() {
-            // Modal de detalles
-            const detailsModal = document.getElementById('package-details-modal');
-            const closeDetailsBtn = document.getElementById('close-details-modal-btn');
-            const detailBtns = document.querySelectorAll('.btn-detail');
-            
-            if (detailsModal && closeDetailsBtn && detailBtns.length > 0) {
-                // Abrir modal de detalles
-                detailBtns.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        // Acá se cargarían los datos del paquete
-                        // Para demo, usamos datos estáticos
-                        
-                        detailsModal.classList.remove('hidden');
-                        document.body.style.overflow = 'hidden'; // Evitar scroll
+            // Modal de detalles — close/backdrop handlers only.
+            // Opening with real data is handled by delegation in the IIFE script below.
+            var detailsModal = document.getElementById('package-details-modal');
+            var closeDetailsBtn = document.getElementById('close-details-modal-btn');
+
+            if (detailsModal) {
+                if (closeDetailsBtn) {
+                    closeDetailsBtn.addEventListener('click', function() {
+                        detailsModal.classList.add('hidden');
+                        document.body.style.overflow = '';
                     });
-                });
-                
-                // Cerrar modal de detalles
-                closeDetailsBtn.addEventListener('click', () => {
-                    detailsModal.classList.add('hidden');
-                    document.body.style.overflow = ''; // Restaurar scroll
-                });
-                
-                // Cerrar con click fuera
-                detailsModal.addEventListener('click', (e) => {
+                }
+                detailsModal.addEventListener('click', function(e) {
                     if (e.target === detailsModal) {
                         detailsModal.classList.add('hidden');
                         document.body.style.overflow = '';
@@ -2218,14 +2205,12 @@
                                 resultTrackingNumber.textContent = trackingNumber;
                             }
                             
-                            // Verificar si coincide con algún paquete existente
-                            const existingTrackings = [
-                                'TBA386728261000',
-                                '1ZW4567X0367829401',
-                                '9102001248745983462731'
-                            ];
+                            // Verificar si coincide con algún paquete cargado
+                            var isKnown = typeof window._CRBOX_isKnownTracking === 'function'
+                                ? window._CRBOX_isKnownTracking(trackingNumber)
+                                : false;
                             
-                            if (existingTrackings.includes(trackingNumber) || Math.random() > 0.3) {
+                            if (isKnown) {
                                 // Mostrar resultados
                                 if (trackingResults) {
                                     trackingResults.classList.remove('hidden');
@@ -2332,6 +2317,8 @@
       var _STATUS_GRID_DEFAULT = { bar: 'bg-gray-300', iconBg: 'bg-gray-100', iconTxt: 'text-gray-500', icon: 'fa-box' };
 
       var _cachedPackages = [];
+      var _renderedPackages = [];
+      var _currentModalPkg = null;
 
       function _statusClass(s) {
         s = (s || '').toUpperCase();
@@ -2351,7 +2338,7 @@
         return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
       }
 
-      function _renderRow(pkg) {
+      function _renderRow(pkg, idx) {
         var status      = _esc(pkg.Status || pkg.status || '');
         var statusKey   = _statusKey(status);
         var tracking    = _esc(pkg.TrackingNumber || pkg.trackingnumber || pkg.tracking || '');
@@ -2363,7 +2350,7 @@
         var notes       = _esc(pkg.Notes || pkg.notes || '');
 
         return '<tr class="border-b border-gray-100 hover:bg-orange-50 transition-all"' +
-               ' data-status="' + statusKey + '" data-date="' + _esc(dateRaw) + '">' +
+               ' data-status="' + statusKey + '" data-date="' + _esc(dateRaw) + '" data-pkg-idx="' + idx + '">' +
           '<td class="px-6 py-4 whitespace-nowrap">' +
             '<span class="status-badge ' + _statusClass(status) + '">' + statusKey + '</span>' +
           '</td>' +
@@ -2399,7 +2386,7 @@
         '</tr>';
       }
 
-      function _renderGridCard(pkg) {
+      function _renderGridCard(pkg, idx) {
         var status      = _esc(pkg.Status || pkg.status || '');
         var statusKey   = _statusKey(status);
         var tracking    = _esc(pkg.TrackingNumber || pkg.trackingnumber || pkg.tracking || '');
@@ -2412,7 +2399,7 @@
         var style       = STATUS_GRID_STYLE[statusKey] || _STATUS_GRID_DEFAULT;
 
         return '<div class="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden transition-all transform hover:-translate-y-1"' +
-               ' data-status="' + statusKey + '" data-date="' + _esc(dateRaw) + '">' +
+               ' data-status="' + statusKey + '" data-date="' + _esc(dateRaw) + '" data-pkg-idx="' + idx + '">' +
           '<div class="relative h-2 ' + style.bar + '"></div>' +
           '<div class="p-5">' +
             '<div class="mb-4">' +
@@ -2491,13 +2478,15 @@
         var gridView = document.getElementById('grid-view');
         var count    = sorted.length;
 
+        _renderedPackages = sorted;
+
         if (tbody) {
           if (count === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-400">' +
               '<i class="fas fa-box-open text-4xl mb-3 block"></i>' +
               'No tienes paquetes en el período seleccionado.</td></tr>';
           } else {
-            tbody.innerHTML = sorted.map(_renderRow).join('');
+            tbody.innerHTML = sorted.map(function(p, i) { return _renderRow(p, i); }).join('');
           }
         }
         if (gridView) {
@@ -2506,7 +2495,7 @@
               '<i class="fas fa-box-open text-4xl mb-3 block"></i>' +
               'No tienes paquetes en el período seleccionado.</div>';
           } else {
-            gridView.innerHTML = sorted.map(_renderGridCard).join('');
+            gridView.innerHTML = sorted.map(function(p, i) { return _renderGridCard(p, i); }).join('');
           }
         }
         var showingEl = document.getElementById('showing-count');
@@ -2613,6 +2602,123 @@
           }
         });
       }
+
+      function _openDetailsModal(pkg) {
+        var detailsModal = document.getElementById('package-details-modal');
+        if (!detailsModal) return;
+        _currentModalPkg = pkg;
+
+        var status   = pkg.Status || pkg.status || '';
+        var statusKey = _statusKey(status);
+        var tracking = pkg.TrackingNumber || pkg.trackingnumber || pkg.tracking || '—';
+        var store    = pkg.Store || pkg.store || pkg.Tienda || '—';
+        var dateRaw  = pkg.ArrivalDate || pkg.arrivaldate || pkg.Date || pkg.date || '';
+        var dateStr  = dateRaw ? CRBOXPortalAPI.formatDate(new Date(dateRaw)) : '—';
+        var weight   = pkg.Weight || pkg.weight || '—';
+        var desc     = pkg.Description || pkg.description || '—';
+
+        var setText = function(id, val) {
+          var el = document.getElementById(id);
+          if (el) el.textContent = val;
+        };
+        setText('modal-product-name', desc);
+        setText('modal-store', store);
+        setText('modal-tracking', tracking);
+        setText('modal-date', dateStr);
+        setText('modal-courier', store);
+        setText('modal-weight', weight);
+        setText('modal-dimensions', '—');
+        setText('modal-cost', '—');
+
+        var statusEl = document.getElementById('modal-status');
+        if (statusEl) {
+          statusEl.textContent = statusKey;
+          statusEl.className = 'status-badge ' + _statusClass(status);
+        }
+
+        detailsModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function _openTrackingModal(trackingNumber) {
+        var trackingModal = document.getElementById('tracking-modal');
+        var trackingInput = document.getElementById('tracking-number-input');
+        var trackingResults = document.getElementById('tracking-results');
+        var trackingNoResults = document.getElementById('tracking-no-results');
+        if (!trackingModal) return;
+
+        if (trackingResults) trackingResults.classList.add('hidden');
+        if (trackingNoResults) trackingNoResults.classList.add('hidden');
+        if (trackingInput) trackingInput.value = trackingNumber || '';
+
+        trackingModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        if (trackingNumber) {
+          setTimeout(function() {
+            var btn = document.getElementById('track-package-btn');
+            if (btn) btn.click();
+          }, 150);
+        }
+      }
+
+      // Expose a tracking lookup so the first-script tracking modal can check real packages
+      window._CRBOX_isKnownTracking = function(tn) {
+        return _cachedPackages.some(function(p) {
+          return (p.TrackingNumber || p.trackingnumber || p.tracking || '').trim() === tn;
+        });
+      };
+
+      // Delegated click handler for action buttons in dynamic package rows/cards
+      document.addEventListener('click', function(e) {
+        var detailBtn = e.target.closest('.btn-detail');
+        if (detailBtn) {
+          var row = detailBtn.closest('[data-pkg-idx]');
+          if (row) {
+            var idx = parseInt(row.getAttribute('data-pkg-idx'), 10);
+            var pkg = _renderedPackages[idx];
+            if (pkg) {
+              _openDetailsModal(pkg);
+            } else {
+              showToast('No se pudo cargar la información del paquete', 'warning');
+            }
+          }
+          return;
+        }
+
+        var editBtn = e.target.closest('.btn-edit');
+        if (editBtn) {
+          showToast('Edición de paquetes próximamente disponible', 'info');
+          return;
+        }
+
+        var trackBtn = e.target.closest('.btn-track');
+        if (trackBtn) {
+          var trow = trackBtn.closest('[data-pkg-idx]');
+          var trackingNum = '';
+          if (trow) {
+            var tidx = parseInt(trow.getAttribute('data-pkg-idx'), 10);
+            var tpkg = _renderedPackages[tidx];
+            if (tpkg) trackingNum = tpkg.TrackingNumber || tpkg.trackingnumber || tpkg.tracking || '';
+          }
+          _openTrackingModal(trackingNum);
+          return;
+        }
+
+        var rastrearBtn = e.target.closest('#modal-rastrear-btn');
+        if (rastrearBtn) {
+          var detailsModal = document.getElementById('package-details-modal');
+          if (detailsModal) {
+            detailsModal.classList.add('hidden');
+            document.body.style.overflow = '';
+          }
+          var rtrackingNum = _currentModalPkg
+            ? (_currentModalPkg.TrackingNumber || _currentModalPkg.trackingnumber || _currentModalPkg.tracking || '')
+            : '';
+          _openTrackingModal(rtrackingNum);
+          return;
+        }
+      });
 
       document.addEventListener('DOMContentLoaded', function () {
         if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
