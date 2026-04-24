@@ -1,0 +1,531 @@
+Refine and upgrade your current plan for the CRBOX real client portal build. Do not just restate the plan. Update it using the corrections and requirements below, then execute against that refined plan.
+
+You are implementing the new CRBOX client portal on the current website. The portal UI shell already exists and was designer-built. Your job is to make it fully functional with the real backend while preserving the current UI as much as possible.
+
+This is not a redesign task. It is a real functional integration task.
+
+# Critical instruction
+Inspect the current codebase first and reuse the existing portal UI, pages, styling, spacing, and structure wherever possible. Keep the same design language. Only change what is necessary to support:
+
+- real backend integration
+- authentication
+- protected portal navigation
+- loading states
+- empty states
+- success states
+- error states
+- real data rendering
+
+Do not broadly redesign layouts.
+Do not change visual hierarchy unnecessarily.
+Do not create a disconnected mini-app with a different design system unless absolutely unavoidable.
+
+# Your previous plan needs refinement
+Your prior plan is directionally good, but it is NOT complete enough yet. Refine it with the exact corrections below and then implement from that refined version.
+
+# Must-fix corrections
+
+## 1. Correct the update profile endpoint
+Do NOT use the test domain for profile update.
+
+This was already confirmed in real browser inspection:
+- real working profile update request went to:
+  `https://clients.crbox.cr/api/crboxwebapi/postedituser`
+
+So:
+- `postedituser` must use production:
+  `https://clients.crbox.cr/api/crboxwebapi/postedituser`
+
+Do not point updateProfile to:
+- `https://test.clients.crbox.cr/api/crboxwebapi/postedituser`
+
+That would be wrong.
+
+## 2. Treat getUserInfo as the canonical portal bootstrap and source of truth
+This endpoint is the most important endpoint in the portal.
+
+Confirmed endpoint:
+- `GET https://clients.crbox.cr/api/crboxwebapi/getuserinfo/{email}`
+
+This endpoint must be treated as:
+- the canonical authenticated user bootstrap
+- the source of truth for profile/account state
+- the source of backend-assigned IDs needed for profile update
+
+Use it to obtain:
+- `Consignee.idconsignee`
+- `Consignee.addresses[].idaddress`
+- `Consignee.phones[].idphone`
+- `Consignee.sucursal._idsucursal`
+- display data for dashboard and profile
+
+Do not duplicate or invent profile state outside this model unless it is clearly derived UI state.
+
+## 3. Registration needs to be much more explicit
+Your previous plan under-specified registration.
+
+You must explicitly wire the current real registration UI and map it to the confirmed backend contract.
+
+The current target is the personal registration flow only.
+Business registration stays out of scope for now and may remain placeholder/non-functional if not fully confirmed.
+
+You must explicitly define and implement:
+- which page/form is the active new registration UI
+- how each field maps to backend payload
+- how `Phones` is serialized
+- how `Addresses` is serialized
+- how branch/sucursal IDs are assigned
+- what happens after successful registration:
+  - recommended: show success feedback and redirect to login
+  - or offer immediate next-step CTA to log in
+
+## 4. Be explicit about afiliate.html
+The refined plan must explicitly state whether `afiliate.html` is the current real registration entry point and wire that page directly if so.
+
+Do not leave registration ambiguous.
+
+## 5. Be explicit about password recovery logic
+Confirmed legacy contract:
+- `GET https://clients.crbox.cr/api/crboxwebapi/getuserpasswordrecovery/{email}`
+
+Legacy behavior:
+- success when `response.data.Message === "OK"`
+- failure when message is not OK / false-like
+
+Implement this cleanly in the current login UI.
+Do not invent a different contract.
+
+## 6. Packages and bills empty arrays are valid success
+This is already confirmed from live requests.
+
+For both:
+- `getuserpackages(...)`
+- `getfacturas(...)`
+
+A response of:
+```json
+[]
+```
+means:
+- request succeeded
+- auth succeeded
+- there are simply no results
+
+This must render the existing empty-state UI cleanly.
+It must NOT be treated as an error.
+
+## 7. Tighten non-redesign constraints
+The refined plan must explicitly say:
+- do not redesign desktop
+- do not change copy unless needed for real functional states
+- do not break current mobile layouts
+- do not touch public pages outside what is needed for auth-aware state and navigation
+- do not replace existing UI components unless necessary
+
+## 8. Keep later-phase features isolated, not broken
+These remain later-phase and must not block the build:
+- purchase bill upload flow
+- purchase bill delete/view flow
+- tax return / Amazon refund flow
+- niche package row actions that depend on non-empty real package data
+
+If current UI already shows those actions:
+- keep them visually stable
+- do not leave broken behavior
+- either isolate them as placeholder/non-functional for now, or route them to a controlled fallback
+- do not let them break the main portal experience
+
+## 9. Add final QA validation checklist
+Your refined plan must end with a concrete validation pass covering:
+- correct login
+- wrong credentials
+- logout
+- refresh with valid session
+- refresh with expired session
+- dashboard bootstrap
+- getuserinfo rendering
+- profile edit success
+- packages empty state from []
+- bills empty state from []
+- password recovery success/failure messaging
+- registration success
+- registration duplicate email error
+- registration duplicate ID error
+
+# Confirmed backend intelligence to use as source of truth
+
+## Auth
+Login endpoint:
+`POST https://clients.crbox.cr/authtoken`
+
+Content-Type:
+`application/x-www-form-urlencoded`
+
+Body:
+- `grant_type=password`
+- `username={email}`
+- `password={password}`
+
+Confirmed success response:
+```json
+{
+  "access_token": "...",
+  "token_type": "bearer",
+  "expires_in": 86399
+}
+```
+
+All protected requests use:
+`Authorization: Bearer {token}`
+
+## CORS
+Confirmed working from `https://crbox.cr`
+
+Confirmed response headers included:
+- `Access-Control-Allow-Origin: https://crbox.cr`
+- `Access-Control-Allow-Credentials: true`
+
+Therefore direct browser calls are valid for the tested endpoints.
+Do not keep or add unnecessary proxy logic.
+
+If the current codebase still contains proxy code added earlier due to uncertainty, remove or revert that and use direct calls.
+
+## getUserInfo
+Confirmed endpoint:
+`GET https://clients.crbox.cr/api/crboxwebapi/getuserinfo/{email}`
+
+Confirmed real response includes:
+- `PendingDiscount`
+- `Consignee`
+- `Phones`
+- `Addresses`
+- `Password`
+- `ConfirmPassword`
+- `ConfirmEmail`
+- `CompanyCode`
+
+Confirmed real nested fields inside `Consignee` include:
+- `idconsignee`
+- `consigneename`
+- `consigneelastname1`
+- `consigneelastname2`
+- `identificationtype`
+- `identificationnumber`
+- `residenceCountry`
+- `email`
+- `alternativeEmail`
+- `contactName1`
+- `contactName2`
+- `sucursal._idsucursal`
+- `sucursal._name`
+- `addresses[]`
+- `phones[]`
+- `receivesNewsletter`
+- `isCompany`
+- `responsabilidad`
+- `idResponsabilidad`
+- `omitirReceptor`
+- `birthDate`
+
+Confirmed real example values seen:
+- `Consignee.idconsignee = 50628595`
+- `Consignee.sucursal._idsucursal = 14`
+- `addresses[0].idaddress = 71696`
+- `phones[0].idphone = 82385`
+
+## postEditUser
+Confirmed real working endpoint:
+`POST https://clients.crbox.cr/api/crboxwebapi/postedituser`
+
+Content-Type:
+`application/x-www-form-urlencoded`
+
+Auth:
+Bearer required
+
+Confirmed live successful response:
+```json
+{"StatusResult":"OK","Message":""}
+```
+
+Payload shape must include:
+- `Consignee.IdConsignee`
+- `Consignee.ConsigneeName`
+- `Consignee.ConsigneeLastName1`
+- `Consignee.ConsigneeLastName2`
+- `Consignee.Email`
+- `Consignee.BirthDate`
+- `Consignee.IdentificationType`
+- `Consignee.IdentificationNumber`
+- `Consignee.AlternativeEmail`
+- `Consignee.ResidenceCountry`
+- `Consignee.Sucursal.IdSucursal`
+- `Consignee.ContactName1`
+- `Consignee.ContactName2`
+- `Consignee.IsCompany`
+- `Consignee.ReceivesNewsletter`
+- `Consignee.Responsabilidad`
+- `Consignee.IdResponsabilidad`
+- `ConfirmEmail`
+- `Password`
+- `ConfirmPassword`
+- `CompanyCode`
+- `Consignee.OmitirReceptor`
+- `Phones` = JSON-stringified array
+- `Addresses` = JSON-stringified array
+
+Use the IDs and nested values returned by `getuserinfo`.
+Do not guess IDs.
+
+## Packages
+Confirmed endpoint:
+`GET https://clients.crbox.cr/api/crboxwebapi/getuserpackages/{id_user}/{fecha_inicial}/{fecha_final}/{numero_tracking}/{estado_tracking}`
+
+Confirmed real request example:
+`/api/crboxwebapi/getuserpackages/50628595/24-03-2026/24-04-2026/null/1000`
+
+Confirmed real response for inspected account:
+```json
+[]
+```
+
+This is a valid success empty state.
+
+Legacy status values:
+- `1000` = Todos
+- `1` = MIA
+- `2` = SJO
+- `3` = Loaded
+- `4` = InTransit
+- `5` = Crbox
+- `6` = En espera de factura
+
+## Bills
+Confirmed endpoint:
+`GET https://clients.crbox.cr/api/crboxwebapi/getfacturas/{email}/{fecha_inicial}/{fecha_final}`
+
+Confirmed real request example:
+`/api/crboxwebapi/getfacturas/mMathiascrbox27@gmail.com/24-03-2026/24-04-2026`
+
+Confirmed real response for inspected account:
+```json
+[]
+```
+
+This is a valid success empty state.
+
+## Password recovery
+Confirmed endpoint:
+`GET https://clients.crbox.cr/api/crboxwebapi/getuserpasswordrecovery/{email}`
+
+Legacy confirmed behavior:
+- success when `Message === "OK"`
+- failure otherwise
+
+## Registration
+Confirmed endpoint:
+`POST https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser`
+
+Content-Type:
+`application/x-www-form-urlencoded`
+
+No auth required
+
+Confirmed response envelope:
+```json
+{
+  "StatusResult": "OK" | "ERROR",
+  "Message": "..."
+}
+```
+
+Confirmed real responses:
+Success:
+```json
+{ "StatusResult": "OK", "Message": "" }
+```
+
+Duplicate ID:
+```json
+{ "StatusResult": "ERROR", "Message": "El número de identificación ya está registrado en la base de datos" }
+```
+
+Duplicate email:
+```json
+{ "StatusResult": "ERROR", "Message": "El correo ya existe en la base de datos" }
+```
+
+Confirmed registration payload fields:
+- `Consignee.ConsigneeName`
+- `Consignee.ConsigneeLastName1`
+- `Consignee.ConsigneeLastName2`
+- `Consignee.IdentificationNumber`
+- `Consignee.IdentificationType`
+- `Consignee.IsCompany`
+- `Consignee.BirthDate`
+- `Consignee.ResidenceCountry`
+- `Consignee.ReceivesNewsletter`
+- `Consignee.Responsabilidad`
+- `Consignee.IdResponsabilidad`
+- `Consignee.ContactName1`
+- `Consignee.ContactName2`
+- `Consignee.AlternativeEmail`
+- `CompanyCode`
+- `Consignee.Email`
+- `ConfirmEmail`
+- `Password`
+- `ConfirmPassword`
+- `Consignee.Sucursal.IdSucursal`
+- `Phones` as JSON-stringified array
+- `Addresses` as JSON-stringified array
+
+For new registrations, current practical assumption:
+- new phone id = `0`
+- new address id = `0`
+
+Keep these assumptions isolated in one config block for later refinement.
+
+Confirmed branch IDs from legacy production UI:
+- `1` = Sabana Norte (Oficina Central)
+- `12` = Guadalupe/Calle Blancos
+- `13` = Entrega a domicilio
+- `14` = Guachipelín Escazú / Distrito 4
+
+Use these mappings where branch selection exists.
+
+# What you must build now
+
+Implement the real new client portal with:
+
+1. real login
+2. real logout
+3. real auth persistence
+4. protected routing / protected pages
+5. dashboard / my account bootstrap from getuserinfo
+6. profile editing via postedituser
+7. packages page via getuserpackages
+8. bills page via getfacturas
+9. password recovery
+10. personal registration flow
+
+# Pages / files to inspect and wire
+Inspect the codebase and identify the existing UI pages/components that already correspond to:
+
+- login
+- registration / afiliate
+- dashboard
+- mi cuenta
+- mis paquetes
+- mis facturas
+- protected navigation / header auth state
+
+Then wire those existing pages instead of replacing them.
+
+# Implementation requirements
+
+## Auth model
+Implement a clean auth/session layer that stores:
+- access token
+- expires_at
+- authenticated email
+- remember-me preference if applicable
+
+Behavior:
+- default to session-only unless “Mantener sesión iniciada” is checked
+- on load, if token expired, clear auth state
+- protected pages redirect to login if unauthenticated
+- after login, persist the email because `getuserinfo(email)` depends on it
+
+## API layer
+Create or refine a centralized API module for:
+- login
+- getUserInfo
+- updateProfile
+- getPackages
+- getBills
+- recoverPassword
+- registerUser
+
+Do not scatter raw fetch calls across unrelated files.
+
+## Mapping / serialization
+Create clean mappers between:
+- backend profile response
+- frontend form state
+- backend update/register payloads
+
+Do not tightly couple raw backend shape directly to every UI component.
+
+## Loading states
+Add visible loading states for:
+- login submit
+- dashboard bootstrap
+- profile save
+- package search
+- bill search
+- registration submit
+- password recovery submit
+
+## Empty states
+Support the existing empty-state UI for:
+- packages = `[]`
+- bills = `[]`
+
+## Friendly Spanish errors
+Use safe Spanish messages for:
+- invalid login
+- network failure
+- expired session
+- duplicate email
+- duplicate ID
+- recovery failure
+- profile update failure
+- generic API issues
+
+# Architectural guidance
+Because direct API calls are confirmed working, use direct fetch/XHR to the backend.
+Do not keep the old proxy path if it was only introduced due to earlier uncertainty.
+If `server.py` was modified to proxy these calls, revert it to a plain static server unless another unrelated reason now requires the proxy.
+
+# Portal build priorities
+Execute in this order:
+
+1. inspect and map current existing UI/pages
+2. refine centralized auth/session layer
+3. refine centralized portal API layer
+4. wire login
+5. wire password recovery
+6. wire registration on the actual current registration UI
+7. wire protected auth-aware shell/navigation
+8. wire dashboard via getuserinfo
+9. wire mi cuenta via getuserinfo + postedituser
+10. wire mis paquetes via getuserpackages
+11. wire mis facturas via getfacturas
+12. polish loading/empty/error states
+13. final QA pass
+
+# Final QA checklist to perform
+You must validate all of these after implementation:
+
+- successful login
+- wrong-credentials login
+- logout
+- reload with active valid session
+- expired-session handling
+- dashboard loads real user data
+- profile form pre-fills from getuserinfo
+- profile save returns OK and keeps UI coherent
+- packages page handles [] cleanly
+- bills page handles [] cleanly
+- password recovery success feedback
+- password recovery failure feedback
+- registration success feedback
+- registration duplicate email feedback
+- registration duplicate ID feedback
+
+# Final constraint
+Do the implementation, not just a plan.
+Refine your prior plan using all corrections above, then build the portal.
+Preserve the current UI.
+Make the core new client portal functional now.
+Anything still not fully validated, like bill upload or tax return, should remain cleanly isolated for later rather than blocking the build.

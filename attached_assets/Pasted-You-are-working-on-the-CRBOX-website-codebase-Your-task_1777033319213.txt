@@ -1,0 +1,678 @@
+You are working on the CRBOX website codebase. Your task is to build the new **client portal** end-to-end on top of the current site and current UI, using the real backend contracts and legacy portal behavior that have already been reverse-engineered.
+
+This is not a redesign task. It is a **real functional integration and portal implementation task**.
+
+# Core Objective
+
+Build the new CRBOX client portal so that users can:
+
+- log in with real backend auth
+- stay authenticated
+- access a real protected client area
+- see their real account/dashboard data
+- edit their real profile data
+- see their real packages list
+- see their real bills list
+
+The current site already has a UI created by the founder/designer. You must inspect what already exists in the current codebase and preserve as much of that UI as possible. Reuse existing pages, components, styling, spacing, copy, and visual structure whenever possible. Only change what is necessary to make the portal functional, coherent, and production-ready.
+
+Do not do a broad redesign. Do not invent a new visual system. Do not break desktop styling. Keep the current design language and only adapt where needed for real functionality, missing states, and protected client flows.
+
+# Important Product Constraint
+
+The founder already created a UI for the new website. Your job is to **make it functional**, not to reinvent it.
+
+That means:
+
+- inspect the existing codebase first
+- identify current login / account / dashboard / portal-related pages and components
+- reuse existing UI wherever possible
+- keep the same visual style, layout logic, hierarchy, and language
+- only add or change the minimum needed to support real data, loading states, auth states, errors, empty states, and protected navigation
+
+# Scope to Build Now
+
+Build the new client portal with these features:
+
+1. Real auth
+2. Protected client area
+3. Dashboard / My Account bootstrap
+4. Edit profile
+5. Packages list
+6. Bills list
+
+Leave these as later-phase integrations or clearly isolated placeholders/fallbacks for now:
+
+- purchase bill upload flow
+- tax return / Amazon refund flow
+- any niche legacy action tied to package rows that is not yet fully validated
+- any business-account-specific workflow not confirmed yet
+
+These later items should be structured so they can be added later without re-architecting the portal.
+
+---
+
+# Backend and Legacy Portal Intelligence Already Confirmed
+
+Use this as source of truth.
+
+## 1. Auth contract
+
+Legacy portal uses bearer token auth.
+
+### Login endpoint
+POST `https://clients.crbox.cr/authtoken`
+
+Content-Type:
+`application/x-www-form-urlencoded`
+
+Body:
+- `grant_type=password`
+- `username={email}`
+- `password={password}`
+
+Confirmed successful response shape:
+```json
+{
+  "access_token": "...",
+  "token_type": "bearer",
+  "expires_in": 86399
+}
+```
+
+The legacy app used `@websanova/vue-auth`, but in the new site you should implement auth cleanly for the current architecture.
+
+### Auth header
+All protected backend calls use:
+`Authorization: Bearer {token}`
+
+### Important auth notes
+- token expiry must be tracked using `expires_in`
+- login errors must be handled gracefully
+- the legacy portal also stored the user email separately and used it to bootstrap `getuserinfo`
+- in the new implementation, preserve that logic in a cleaner way
+
+---
+
+## 2. CORS is confirmed working
+
+From real browser inspection, these backend endpoints already allow requests from:
+
+`https://crbox.cr`
+
+Response headers confirmed:
+- `Access-Control-Allow-Origin: https://crbox.cr`
+- `Access-Control-Allow-Credentials: true`
+
+This means direct browser calls are viable from the CRBOX frontend for the endpoints already tested.
+
+Do not introduce an unnecessary proxy unless the current architecture absolutely requires it.
+
+---
+
+## 3. Core bootstrap endpoint
+
+### GET current user info
+GET `https://clients.crbox.cr/api/crboxwebapi/getuserinfo/{email}`
+
+This is the most important endpoint in the whole portal. It returns the real profile object needed for the dashboard and for profile editing.
+
+Confirmed real response includes:
+
+- `PendingDiscount`
+- `Consignee`
+- top-level placeholders like `Phones`, `Addresses`, `Password`, `ConfirmPassword`, `ConfirmEmail`, `CompanyCode`
+
+Confirmed real fields inside `Consignee` include:
+
+- `idconsignee`
+- `consigneename`
+- `consigneelastname1`
+- `consigneelastname2`
+- `identificationtype`
+- `identificationnumber`
+- `residenceCountry`
+- `email`
+- `alternativeEmail`
+- `contactName1`
+- `contactName2`
+- `sucursal._idsucursal`
+- `sucursal._name`
+- `addresses[]`
+- `phones[]`
+- `receivesNewsletter`
+- `isCompany`
+- `responsabilidad`
+- `idResponsabilidad`
+- `omitirReceptor`
+- `birthDate`
+
+Confirmed real example values seen in production:
+- `Consignee.idconsignee = 50628595`
+- `Consignee.sucursal._idsucursal = 14`
+- `addresses[0].idaddress = 71696`
+- `phones[0].idphone = 82385`
+
+This endpoint solves the previously unknown backend-assigned IDs needed by `postedituser`.
+
+The new portal must use this endpoint immediately after login, and then use its response as the canonical user/account state.
+
+---
+
+## 4. Edit profile contract
+
+### Update profile endpoint
+POST `https://clients.crbox.cr/api/crboxwebapi/postedituser`
+
+Content-Type:
+`application/x-www-form-urlencoded`
+
+Auth:
+Bearer token required
+
+Confirmed real browser request succeeded with:
+```json
+{"StatusResult":"OK","Message":""}
+```
+
+This means `postedituser` is live and working.
+
+### Important
+The new portal must not guess IDs. It must use the IDs returned by `getuserinfo`.
+
+That means `postedituser` payload must be built using:
+- `Consignee.idconsignee`
+- `addresses[].idaddress`
+- `phones[].idphone`
+- `Consignee.sucursal._idsucursal`
+
+### Legacy payload pattern
+The legacy portal sends a form-urlencoded body with:
+
+- `Consignee.IdConsignee`
+- `Consignee.ConsigneeName`
+- `Consignee.ConsigneeLastName1`
+- `Consignee.ConsigneeLastName2`
+- `Consignee.Email`
+- `Consignee.BirthDate`
+- `Consignee.IdentificationType`
+- `Consignee.IdentificationNumber`
+- `Consignee.AlternativeEmail`
+- `Consignee.ResidenceCountry`
+- `Consignee.Sucursal.IdSucursal`
+- `Consignee.ContactName1`
+- `Consignee.ContactName2`
+- `Consignee.IsCompany`
+- `Consignee.ReceivesNewsletter`
+- `Consignee.Responsabilidad`
+- `Consignee.IdResponsabilidad`
+- `ConfirmEmail`
+- `Password`
+- `ConfirmPassword`
+- `CompanyCode`
+- `Consignee.OmitirReceptor`
+- `Phones` = JSON-stringified array
+- `Addresses` = JSON-stringified array
+
+Use this structure.
+
+### Edit profile implementation strategy
+Build it in a robust, production-minded way:
+- initial state comes from `getuserinfo`
+- form state is derived from that
+- submit serializes back to the backend shape
+- if password fields are empty, still support successful update
+- loading state on submit
+- success feedback
+- error fallback if API returns non-OK
+- do not destroy unedited nested data accidentally
+
+---
+
+## 5. Packages contract
+
+### Packages endpoint
+GET `https://clients.crbox.cr/api/crboxwebapi/getuserpackages/{id_user}/{fecha_inicial}/{fecha_final}/{numero_tracking}/{estado_tracking}`
+
+Auth:
+Bearer token required
+
+Confirmed real browser request format example:
+`/api/crboxwebapi/getuserpackages/50628595/24-03-2026/24-04-2026/null/1000`
+
+Confirmed response for the inspected account:
+`[]`
+
+That means:
+- endpoint is real
+- auth works
+- route format is correct
+- empty state must be supported
+
+### Legacy behavior
+The legacy packages page first called `getuserinfo(email)` to get `Consignee.idconsignee`, then called `getuserpackages(...)`.
+
+The new portal must follow that same logic.
+
+### Legacy filters inferred
+- start date
+- end date
+- tracking number
+- status
+
+Legacy status select values included:
+- `1000` = Todos
+- `1` = MIA
+- `2` = SJO
+- `3` = Loaded
+- `4` = InTransit
+- `5` = Crbox
+- `6` = En espera de factura
+
+Preserve this behavior unless the current new UI already expresses it differently.
+
+### Current implementation goal
+Build the real packages page with:
+- filters
+- loading state
+- empty state for `[]`
+- real table rendering
+
+Do not implement upload-bill/tax-return action logic now unless the current codebase already has a safe isolated place for it. Keep row action architecture extensible.
+
+---
+
+## 6. Bills contract
+
+### Bills endpoint
+GET `https://clients.crbox.cr/api/crboxwebapi/getfacturas/{email}/{fecha_inicial}/{fecha_final}`
+
+Auth:
+Bearer token required
+
+Confirmed real browser request format example:
+`/api/crboxwebapi/getfacturas/mMathiascrbox27@gmail.com/24-03-2026/24-04-2026`
+
+Confirmed response for the inspected account:
+`[]`
+
+That means:
+- endpoint is real
+- auth works
+- empty state must be supported
+
+### Legacy behavior
+The legacy bills page used:
+- `this.$auth.user().email`
+- date filters
+- empty state when no rows
+
+### Current implementation goal
+Build the real bills page with:
+- date filters
+- loading state
+- empty state for `[]`
+- real table rendering
+
+---
+
+## 7. Registration contract
+
+The registration endpoint and payload structure were already confirmed by Postman/manual testing.
+
+### Register endpoint
+POST `https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser`
+
+Content-Type:
+`application/x-www-form-urlencoded`
+
+No auth required
+
+Confirmed response envelope:
+```json
+{
+  "StatusResult": "OK" | "ERROR",
+  "Message": "..."
+}
+```
+
+Confirmed real responses:
+- success:
+```json
+{ "StatusResult": "OK", "Message": "" }
+```
+- duplicate ID:
+```json
+{ "StatusResult": "ERROR", "Message": "El número de identificación ya está registrado en la base de datos" }
+```
+- duplicate email:
+```json
+{ "StatusResult": "ERROR", "Message": "El correo ya existe en la base de datos" }
+```
+
+### Confirmed required payload fields
+- `Consignee.ConsigneeName`
+- `Consignee.ConsigneeLastName1`
+- `Consignee.ConsigneeLastName2`
+- `Consignee.IdentificationNumber`
+- `Consignee.IdentificationType`
+- `Consignee.IsCompany`
+- `Consignee.BirthDate`
+- `Consignee.ResidenceCountry`
+- `Consignee.ReceivesNewsletter`
+- `Consignee.Responsabilidad`
+- `Consignee.IdResponsabilidad`
+- `Consignee.ContactName1`
+- `Consignee.ContactName2`
+- `Consignee.AlternativeEmail`
+- `CompanyCode`
+- `Consignee.Email`
+- `ConfirmEmail`
+- `Password`
+- `ConfirmPassword`
+- `Consignee.Sucursal.IdSucursal`
+- `Phones` as JSON-stringified array
+- `Addresses` as JSON-stringified array
+
+### Important unresolved-but-practical registration assumptions
+For new registrations, current safest assumptions are:
+
+- new phone id = `0`
+- new address id = `0`
+
+This is based on the legacy model objects and prior testing logic. Isolate these assumptions in one config block so they can be changed later easily.
+
+### Important branch mapping
+Legacy production UI for profile edit clearly showed branch IDs:
+- `1` = Sabana Norte (Oficina Central)
+- `12` = Guadalupe/Calle Blancos
+- `13` = Entrega a domicilio
+- `14` = Guachipelín Escazú / Distrito 4
+
+Use these values where branch selection exists and where they match the current UI/business meaning.
+
+### Registration goal for this phase
+Build the real personal registration flow against the confirmed backend contract, keeping the current UI. If the current UI is already present on the site, wire it rather than replacing it.
+
+If there are still unresolved edge cases, isolate them cleanly so they can be refined later.
+
+---
+
+## 8. Password recovery contract
+
+Legacy portal uses:
+
+GET `https://clients.crbox.cr/api/crboxwebapi/getuserpasswordrecovery/{email}`
+
+Confirmed legacy logic:
+- if `response.data.Message == "OK"` → success
+- if `response.data.Message == "FALSE"` → user not found / failure path
+
+Build this recovery flow into the current login UI if the UI already exists, otherwise add the minimum compatible UI needed.
+
+---
+
+# Current Product Decision
+
+Build the new client portal now with the validated real flows.
+
+## Must be fully functional now
+- login
+- logout
+- auth persistence
+- protected routing
+- dashboard / my account bootstrap
+- profile read
+- profile edit
+- bills list
+- packages list
+- password recovery
+- personal registration
+
+## Can be deferred cleanly for later
+- purchase bill upload flow
+- purchase bill delete/view flow
+- tax return flow
+- highly specific package-row actions that depend on non-empty package records not yet validated in the inspected account
+
+These should not block the portal build. They should be isolated as later-phase integrations.
+
+---
+
+# UI / UX Implementation Rules
+
+1. Preserve the current new website UI as much as possible.
+2. Inspect the existing codebase first and map:
+   - current login page
+   - current affiliate/register page
+   - any current dashboard/client-area pages
+   - any current auth-aware header behavior
+3. Reuse existing styling, spacing, buttons, inputs, and layout.
+4. Only change what is needed to:
+   - support real backend data
+   - support loading
+   - support errors
+   - support success states
+   - support empty states
+   - support protected navigation
+5. Do not broadly redesign the site.
+6. Do not create a disconnected mini-app with a completely different style unless absolutely necessary.
+7. Desktop should remain visually intact.
+8. Mobile should remain clean and functional.
+
+---
+
+# Technical Requirements
+
+## Auth storage
+Implement a clean auth/session layer.
+
+Recommended stored values:
+- access token
+- expires_at timestamp
+- remembered email if needed for bootstrap
+- remember-me preference
+
+Support:
+- session-only storage by default
+- persistent storage when “Mantener sesión iniciada” is checked
+
+On app load:
+- if token exists and is still valid, user is authenticated
+- if expired, clear auth state and treat user as logged out
+- once authenticated, bootstrap profile with `getuserinfo(email)`
+
+## API layer
+Create a clean centralized API module, not scattered ad hoc fetch calls.
+
+Suggested modules:
+- `auth`
+- `clientPortalApi`
+- `profile mapper / serializer`
+
+Support:
+- login
+- getUserInfo
+- updateProfile
+- getPackages
+- getBills
+- passwordRecovery
+- registerUser
+
+## Data normalization
+Because backend shape is legacy/nested, create mappers between:
+- backend response
+- frontend portal state
+- backend update/register payload
+
+Do not couple raw response shape directly to every UI component.
+
+## Empty states
+Support clean empty states for:
+- packages = `[]`
+- bills = `[]`
+
+## Error handling
+Use user-friendly Spanish messages.
+Do not expose raw implementation errors unless useful.
+
+Handle:
+- wrong credentials
+- network issues
+- expired token
+- duplicate email
+- duplicate ID
+- profile update failure
+- empty list states
+
+## Loading states
+Add real loading states for:
+- login submit
+- dashboard bootstrap
+- profile save
+- package search
+- bill search
+- registration submit
+- password recovery submit
+
+## Protected routes
+Client-area routes must require auth.
+
+If unauthenticated:
+- redirect to login page or the defined client login entry point
+
+---
+
+# Functional Pages to Build or Wire
+
+## 1. Login page
+Requirements:
+- email
+- password
+- remember me
+- login button
+- password recovery trigger
+- link to registration
+- real backend auth
+- friendly errors
+- success redirect to new dashboard/client area
+
+## 2. Registration page / flow
+Requirements:
+- wire current founder-designed UI if present
+- submit real personal registration payload
+- duplicate email and duplicate ID error handling
+- success state and next step
+- ideally auto-redirect to login or offer immediate login after success
+
+## 3. Dashboard / My Account page
+Requirements:
+- load via `getuserinfo`
+- show greeting
+- account number = `Consignee.idconsignee`
+- email
+- branch/sucursal
+- pending discount if present
+- Miami address block if current UI already includes it
+- edit action
+
+## 4. Edit profile
+Requirements:
+- prefill from `getuserinfo`
+- preserve nested address/phone IDs
+- save via `postedituser`
+- success state
+- robust serialization
+- password optional
+- newsletter and fiscal flags preserved
+
+## 5. Packages page
+Requirements:
+- date range
+- tracking filter
+- status filter
+- search button
+- results table
+- empty state
+- auth protected
+
+## 6. Bills page
+Requirements:
+- date range
+- search button
+- results table
+- empty state
+- auth protected
+
+## 7. Password recovery
+Requirements:
+- email input
+- call `getuserpasswordrecovery`
+- success and failure messaging
+
+---
+
+# Architecture Recommendation
+
+Inspect the current project and choose the cleanest implementation path that fits the existing stack. Use the existing site structure where possible.
+
+Do not create technical debt just to move fast. Build it so that later integrations like bill upload and tax return can be added with minimal refactor.
+
+If the current codebase already has account-related pages/components, extend them rather than duplicating.
+
+If there is already a founder-designed protected area shell, use that as the basis.
+
+---
+
+# Expected Deliverable
+
+Implement a real, working new CRBOX client portal in the current site that supports:
+
+- real login
+- real auth persistence
+- real dashboard bootstrap
+- real profile read/edit
+- real packages search/list
+- real bills search/list
+- real password recovery
+- real personal registration
+
+with:
+- preserved current UI style
+- clean loading/error/empty states
+- clean API layer
+- maintainable structure
+- later-phase integrations isolated cleanly
+
+---
+
+# Implementation Notes to Respect
+
+- Do not remove the old portal URLs from existence yet.
+- The new portal should become the primary functional path, but any still-unimplemented niche action can remain isolated for later.
+- Where you are uncertain, prefer robust structure and clear TODO markers over fragile guessing.
+- Do not block the portal build waiting on later features.
+- Build the fully functional foundation now.
+
+---
+
+# Suggested Execution Order
+
+1. Inspect existing codebase and identify current UI pages/components for auth and portal.
+2. Build centralized auth/API/state utilities.
+3. Wire login.
+4. Wire password recovery.
+5. Wire registration.
+6. Wire protected routing and auth-aware shell/header.
+7. Wire dashboard with `getuserinfo`.
+8. Wire profile edit with `postedituser`.
+9. Wire packages page.
+10. Wire bills page.
+11. Add polish: loading, empty, success, and error states.
+12. Leave later-phase package row actions isolated but not blocking.
+
+---
+
+# Final Instruction
+
+Do a full implementation pass, not just a plan. Build the portal. Reuse the existing UI. Make it functional. Keep everything as real as possible. The missing later features can be added afterwards, but the core portal must be working now.
