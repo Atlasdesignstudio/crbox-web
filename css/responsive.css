@@ -30,23 +30,23 @@
     }
 
     /* ===== Mobile menu smooth slide-down animation =====
-       Override Tailwind's display:none with max-height transition
-       so the menu slides in/out instead of popping instantly.
-       Scoped to mobile so md:hidden still works on desktop. */
+       Default: collapsed (max-height:0). Opens via .is-open class.
+       No dependency on Tailwind's .hidden — zero class conflicts. */
     #mobile-menu {
       display: block !important;
       overflow: hidden;
-      max-height: 480px;
-      opacity: 1;
-      transition: max-height 0.35s ease-in-out, opacity 0.25s ease, margin 0.35s ease;
-      margin-top: 0.5rem;
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+      margin-top: 0;
+      transition: max-height 0.35s ease-in-out, opacity 0.25s ease, margin-top 0.3s ease;
     }
 
-    #mobile-menu.hidden {
-      max-height: 0 !important;
-      opacity: 0 !important;
-      pointer-events: none;
-      margin-top: 0 !important;
+    #mobile-menu.is-open {
+      max-height: 520px !important;
+      opacity: 1 !important;
+      pointer-events: auto;
+      margin-top: 0.5rem !important;
     }
 
     /* Afiliate hero section (py-20 md:py-28 gradient-bg) */

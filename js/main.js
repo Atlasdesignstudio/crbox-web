@@ -5,14 +5,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (mobileMenuButton && mobileMenu) {
         mobileMenuButton.addEventListener('click', function() {
-            const isHidden = mobileMenu.classList.contains('hidden');
+            const isOpen = mobileMenu.classList.contains('is-open');
             const icon = mobileMenuButton.querySelector('i');
-            if (isHidden) {
-                mobileMenu.classList.remove('hidden');
-                if (icon) { icon.classList.replace('fa-bars', 'fa-times'); }
-            } else {
-                mobileMenu.classList.add('hidden');
+            if (isOpen) {
+                mobileMenu.classList.remove('is-open');
                 if (icon) { icon.classList.replace('fa-times', 'fa-bars'); }
+            } else {
+                mobileMenu.classList.add('is-open');
+                if (icon) { icon.classList.replace('fa-bars', 'fa-times'); }
             }
         });
     }
