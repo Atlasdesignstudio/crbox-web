@@ -147,9 +147,9 @@
                                 <label for="remember-me" class="ml-2 block text-gray-700">Mantener sesión iniciada</label>
                             </div>
                             
-                            <a href="dashboard.html" class="login-link w-full py-3 px-4 rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg mb-4 text-center block">
+                            <button type="submit" class="login-link w-full py-3 px-4 rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg mb-4 text-center block" id="login-submit-btn">
                                 Iniciar Sesión
-                            </a>
+                            </button>
                             
                             <!-- Error message placeholder -->
                             <div id="error-container" class="hidden bg-red-100 text-red-700 p-3 rounded mb-4"></div>
@@ -305,6 +305,8 @@
         </div>
     </div>
 
+    <script src="js/cr-locations.js"></script>
+    <script src="js/auth.js"></script>
     <!-- Script para funcionamiento del login -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -379,25 +381,61 @@
         // Configurar toggles de contraseña adicionales
         setupPasswordToggle('page-toggle-password', 'page-password');
         
-        // Manejo de TODOS los formularios de login
-        const loginForms = document.querySelectorAll('form');
-        loginForms.forEach(form => {
-            form.addEventListener('submit', function(e) {
+        // Real login handler — wired to the CRBOX auth endpoint via CRBOXAuth.doLogin
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
-                // Cambiar el texto del botón a "Cargando..."
-                const submitButton = form.querySelector('button[type="submit"]');
-                if (submitButton) {
-                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
-                    submitButton.disabled = true;
+
+                const emailVal    = (document.getElementById('email') || {}).value || '';
+                const passwordVal = (document.getElementById('password') || {}).value || '';
+                const rememberVal = (document.getElementById('remember-me') || {}).checked || false;
+                const submitBtn   = document.getElementById('login-submit-btn');
+                const errorBox    = document.getElementById('error-container');
+
+                if (!emailVal || !passwordVal) {
+                    if (errorBox) {
+                        errorBox.textContent = 'Por favor ingrese su correo y contraseña.';
+                        errorBox.classList.remove('hidden');
+                    }
+                    return;
                 }
-                
-                // Redirigir a dashboard.html después de una breve pausa
-                setTimeout(function() {
-                    window.location.href = 'dashboard.html';
-                }, 1000); // 1 segundo de "carga"
+
+                // Loading state
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Iniciando sesión...';
+                    submitBtn.disabled = true;
+                }
+                if (errorBox) errorBox.classList.add('hidden');
+
+                if (typeof CRBOXAuth === 'undefined') {
+                    if (errorBox) {
+                        errorBox.textContent = 'Error interno: módulo de autenticación no cargado.';
+                        errorBox.classList.remove('hidden');
+                    }
+                    if (submitBtn) {
+                        submitBtn.innerHTML = 'Iniciar Sesión';
+                        submitBtn.disabled = false;
+                    }
+                    return;
+                }
+
+                CRBOXAuth.doLogin(emailVal, passwordVal, rememberVal)
+                    .then(function () {
+                        window.location.href = 'dashboard.html';
+                    })
+                    .catch(function (err) {
+                        if (errorBox) {
+                            errorBox.textContent = err.message || 'Error al iniciar sesión. Intente de nuevo.';
+                            errorBox.classList.remove('hidden');
+                        }
+                        if (submitBtn) {
+                            submitBtn.innerHTML = 'Iniciar Sesión';
+                            submitBtn.disabled = false;
+                        }
+                    });
             });
-        });
+        }
         
         // Manejo de recuperación de contraseña
         const forgotPasswordLinks = document.querySelectorAll('a[href="#"]');
@@ -472,12 +510,6 @@
             }
         });
 
-        // IMPORTANTE: Verifica si los campos del formulario existen
-        if (document.getElementById('email') && document.getElementById('password')) {
-            // Si existen los campos, rellenar con valores por defecto para facilitar pruebas
-            document.getElementById('email').value = 'prueba@crbox.cr';
-            document.getElementById('password').value = '12345';
-        }
     });
 </script>
 <!-- Script para el dropdown de usuario -->

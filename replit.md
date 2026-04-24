@@ -27,6 +27,27 @@ The script updates all six public HTML pages automatically. It must also be run 
 | calculadora.html | Calculator |
 | contacto.html | Contact |
 
+## JavaScript Modules
+
+| File | Purpose |
+|------|---------|
+| `js/main.js` | General UI: mobile menu, calculators, scroll animations, tabs |
+| `js/auth.js` | Auth module: token storage, login, registration, header state, logout |
+| `js/cr-locations.js` | Costa Rica INEC location code helpers (province/canton/district lookup) |
+| `js/dashboard.js` | Dashboard-specific logic (packages, invoices, account) |
+| `js/analytics.js` | Analytics event tracking |
+| `js/seo-config.js` | SEO/structured data configuration |
+
+### Auth integration (Task #53)
+
+- **CORS**: `clients.crbox.cr` confirmed to return `Access-Control-Allow-Origin: https://crbox.cr` — direct browser fetch is safe, no proxy needed.
+- **Login**: `CRBOXAuth.doLogin(email, password, remember)` POSTs to `https://clients.crbox.cr/authtoken`.
+- **Register**: `CRBOXAuth.doRegister(payload)` POSTs to `https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser`. Must inspect `StatusResult` — HTTP 200 alone is not success.
+- **Session**: `sessionStorage` by default; `localStorage` if "Mantener sesión iniciada" is checked. Keys: `crbox_access_token`, `crbox_expires_at`, `crbox_remember`.
+- **`PENDING_BACKEND_CONFIRMATION`** in `auth.js`: `newAddressId: 0` (unconfirmed), `newPhoneId: 0` (unconfirmed), `sucursalIdMap` all null (blocks submission until backend confirms IDs for Sabana Norte / Guadalupe / Domicilio).
+- **Update Profile scaffold**: `CRBOXAuth.buildUpdateProfilePayload()` is intentionally blocked until a GET-user endpoint is available.
+- **Script load order**: `cr-locations.js` → `auth.js` → `main.js` (all pages with shared header).
+
 ## Scripts
 
 | Script | Purpose |

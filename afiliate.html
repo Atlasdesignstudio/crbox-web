@@ -1296,6 +1296,8 @@
         <i class="fab fa-whatsapp"></i>
     </a>
 
+    <script src="js/cr-locations.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/main.js?v=6"></script>
     <script>
         // Base de datos completa de ubicaciones en Costa Rica
@@ -2846,22 +2848,270 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
     if (personalRegistrationForm) {
         personalRegistrationForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            // Here you would typically send the form data to the server
-            // For demo purposes, we'll just show a success message
-            
-            // Show success message
-            Swal.fire({
-                title: '¡Registro exitoso!',
-                text: 'Tu casillero ha sido creado. Recibirás un correo con los detalles de tu cuenta.',
-                icon: 'success',
-                confirmButtonText: 'Continuar',
-                confirmButtonColor: '#ea580c'
-            }).then((result) => {
-                // Redirect to success page or homepage
-                // window.location.href = 'registro-exitoso.html';
-            });
+
+            // ── Guard: CRBOXAuth and CRLocations must be loaded ───────────────
+            if (typeof CRBOXAuth === 'undefined' || typeof CRLocations === 'undefined') {
+                showRegError(personalRegistrationForm, 'Error interno: módulo de autenticación no cargado. Recargue la página.');
+                return;
+            }
+
+            // ── Collect top-level fields ──────────────────────────────────────
+            var firstName   = getField(personalRegistrationForm, 'first_name');
+            var lastNameRaw = getField(personalRegistrationForm, 'last_name');
+            var email       = getField(personalRegistrationForm, 'email');
+            var password    = getField(personalRegistrationForm, 'password');
+            var idType      = getField(personalRegistrationForm, 'id_type');
+            var idNumber    = getField(personalRegistrationForm, 'id_number');
+            var country     = getField(personalRegistrationForm, 'country') || 'CR';
+            var promoCode   = getField(personalRegistrationForm, 'promo_code');
+            var newsletter  = (personalRegistrationForm.querySelector('[name="newsletter"]') || {}).checked || false;
+
+            // Split last name on first space: "Herrera López" → "Herrera" + "López"
+            var nameParts  = lastNameRaw.trim().split(/\s+/);
+            var lastName1  = nameParts[0] || '';
+            var lastName2  = nameParts.slice(1).join(' ') || '';
+
+            // ── Collect Phones ────────────────────────────────────────────────
+            var phoneNumbers = personalRegistrationForm.querySelectorAll('[name="phone_number[]"]');
+            var phoneTypes   = personalRegistrationForm.querySelectorAll('[name="phone_type[]"]');
+            var phones = [];
+            var firstPhone = true;
+            for (var pi = 0; pi < phoneNumbers.length; pi++) {
+                var pNum  = (phoneNumbers[pi].value || '').trim().replace(/\s+/g, '');
+                var pType = phoneTypes[pi] ? phoneTypes[pi].value : 'movil';
+                if (!pNum) continue;
+                var ptObj = CRLocations.getPhoneType(pType);
+                phones.push({
+                    idphone:          CRBOXAuth.PENDING.newPhoneId,  // UNCONFIRMED
+                    phonenumber:      pNum,
+                    phoneextension:   '',
+                    isactive:         false,
+                    isprimary:        firstPhone,
+                    phonetype: {
+                        idphonetype:  ptObj.idphonetype,
+                        type:         ptObj.type,
+                        _bIsDeleted:  false,
+                        _bIsChanged:  true
+                    },
+                    consignees:              null,
+                    phonefreightforwarders:  null,
+                    phoneshippers:           null,
+                    _bIsDeleted: false,
+                    _bIsChanged: true
+                });
+                firstPhone = false;
+            }
+
+            // ── Collect Addresses ─────────────────────────────────────────────
+            var addressEntries = personalRegistrationForm.querySelectorAll('.address-entry');
+            var addresses = [];
+            var firstAddr = true;
+            var sucursalError = null;
+
+            for (var ai = 0; ai < addressEntries.length; ai++) {
+                var entry = addressEntries[ai];
+                var addrType    = getFieldInScope(entry, 'address_type[]');
+                var delivery    = getFieldInScope(entry, 'delivery_service[]');
+                var postalCode  = getFieldInScope(entry, 'postal_code[]');
+                var provinceVal = getFieldInScope(entry, 'province[]');
+                var cantonVal   = getFieldInScope(entry, 'canton[]');
+                var districtVal = getFieldInScope(entry, 'district[]');
+                var neighborVal = getFieldInScope(entry, 'neighborhood[]');
+                var addrDetails = getFieldInScope(entry, 'address_details[]');
+
+                // Sucursal guard — block if IdSucursal cannot be resolved
+                var idSucursal = CRBOXAuth.PENDING.sucursalIdMap[delivery];
+                if (idSucursal === null || idSucursal === undefined) {
+                    sucursalError = 'No se puede determinar la sucursal seleccionada ("' + delivery + '"). ' +
+                        'Por favor contacte a soporte para completar su registro.';
+                    break;
+                }
+
+                var provCode = CRLocations.getProvinceCode(provinceVal) || '0';
+                var cantIdx  = CRLocations.getCantonIndex(provinceVal, cantonVal) || '0';
+
+                // Get district index from the page's locationDatabase if available
+                var distIdx = '0';
+                if (typeof locationDatabase !== 'undefined') {
+                    var pKey = CRLocations.normalizeKey(provinceVal);
+                    var cKey = CRLocations.normalizeKey(cantonVal);
+                    var dbEntry = (locationDatabase[pKey] || {})[cKey];
+                    if (dbEntry && dbEntry.districts) {
+                        distIdx = CRLocations.getDistrictIndex(dbEntry.districts, districtVal);
+                    }
+                }
+
+                // Build line1 following the pattern in the Postman sample:
+                // "{province_label} {PROVINCE_UPPER} {CANTON_UPPER} {DISTRICT_UPPER} {direccion}"
+                var line1 = [provinceVal, provinceVal.toUpperCase(), cantonVal.toUpperCase(),
+                             districtVal.toUpperCase(), addrDetails].filter(Boolean).join(' ');
+
+                var atObj = CRLocations.getAddressType(addrType);
+
+                addresses.push({
+                    idaddress:  CRBOXAuth.PENDING.newAddressId,  // UNCONFIRMED
+                    line1:      line1,
+                    line2:      addrDetails || '',
+                    city:       cantonVal.toUpperCase(),
+                    zipcode:    postalCode || '',
+                    isactive:   false,
+                    isprimary:  firstAddr,
+                    provincia:  provCode,
+                    canton:     cantIdx,
+                    distrito:   distIdx,
+                    barrio:     '0',
+                    direccion:  addrDetails || '',
+                    state: {
+                        idstate:    parseInt(provCode, 10) || 0,
+                        statename:  provinceVal,
+                        country: {
+                            idcountry:    1,
+                            countryname:  'Costa Rica',
+                            statecountry: null,
+                            _bIsDeleted:  false,
+                            _bIsChanged:  true
+                        },
+                        _bIsDeleted: false,
+                        _bIsChanged: true
+                    },
+                    addresstype: {
+                        idaddresstype: atObj.idaddresstype,
+                        type:          atObj.type,
+                        _bIsDeleted:   false,
+                        _bIsChanged:   true
+                    },
+                    _bIsDeleted: false,
+                    _bIsChanged: true
+                });
+                firstAddr = false;
+            }
+
+            if (sucursalError) {
+                showRegError(personalRegistrationForm, sucursalError);
+                return;
+            }
+
+            if (phones.length === 0) {
+                showRegError(personalRegistrationForm, 'Agregue al menos un número de teléfono.');
+                return;
+            }
+            if (addresses.length === 0) {
+                showRegError(personalRegistrationForm, 'Agregue al menos una dirección.');
+                return;
+            }
+
+            // ── Build URL-encoded payload ─────────────────────────────────────
+            var params = new URLSearchParams();
+            params.set('Consignee.ConsigneeName',         firstName);
+            params.set('Consignee.ConsigneeLastName1',    lastName1);
+            params.set('Consignee.ConsigneeLastName2',    lastName2);
+            params.set('Consignee.Email',                 email);
+            params.set('ConfirmEmail',                    email);
+            params.set('Password',                        password);
+            params.set('ConfirmPassword',                 password);
+            params.set('Consignee.IdentificationType',    CRLocations.getIdentificationType(idType));
+            params.set('Consignee.IdentificationNumber',  idNumber);
+            params.set('Consignee.IsCompany',             'false');
+            params.set('Consignee.ResidenceCountry',      country);
+            params.set('Consignee.ReceivesNewsletter',    newsletter ? 'true' : 'false');
+            params.set('Consignee.Responsabilidad',       '0');
+            params.set('Consignee.AlternativeEmail',      '');
+            params.set('Consignee.ContactName1',          '');
+            params.set('Consignee.ContactName2',          '');
+            params.set('Consignee.IdResponsabilidad',     '');
+            params.set('Consignee.BirthDate',             '');
+            params.set('Consignee.Sucursal.IdSucursal',   '');  // guarded above; never reached with null
+            params.set('CompanyCode',                     promoCode || '');
+            params.set('Phones',                          JSON.stringify(phones));
+            params.set('Addresses',                       JSON.stringify(addresses));
+
+            // ── Loading state ─────────────────────────────────────────────────
+            var submitBtn = personalRegistrationForm.querySelector('button[type="submit"]');
+            var origLabel = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Procesando...';
+                submitBtn.disabled = true;
+            }
+            hideRegError(personalRegistrationForm);
+
+            // ── POST to API ───────────────────────────────────────────────────
+            CRBOXAuth.doRegister(params.toString())
+                .then(function (res) {
+                    if (res.StatusResult === 'OK') {
+                        showRegSuccess(personalRegistrationForm);
+                    } else {
+                        // Map known API error messages to friendly Spanish text
+                        var msg = res.Message || '';
+                        var friendly;
+                        if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
+                            friendly = 'El correo electrónico ya está registrado. ¿Ya tiene una cuenta?';
+                        } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
+                            friendly = 'El número de identificación ya está registrado en la base de datos.';
+                        } else if (msg) {
+                            friendly = msg;
+                        } else {
+                            friendly = 'Ocurrió un error al procesar el registro. Intente de nuevo.';
+                        }
+                        showRegError(personalRegistrationForm, friendly);
+                        if (submitBtn) {
+                            submitBtn.innerHTML = origLabel;
+                            submitBtn.disabled = false;
+                        }
+                    }
+                })
+                .catch(function (err) {
+                    showRegError(personalRegistrationForm, err.message || 'Error de conexión. Intente de nuevo.');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = origLabel;
+                        submitBtn.disabled = false;
+                    }
+                });
         });
+    }
+
+    // ── Registration helper functions ─────────────────────────────────────────
+    function getField(form, name) {
+        var el = form.querySelector('[name="' + name + '"]');
+        return el ? (el.value || '').trim() : '';
+    }
+    function getFieldInScope(scope, name) {
+        var el = scope.querySelector('[name="' + name + '"]');
+        return el ? (el.value || '').trim() : '';
+    }
+    function showRegError(form, msg) {
+        var box = form.querySelector('.reg-error-box');
+        if (!box) {
+            box = document.createElement('div');
+            box.className = 'reg-error-box bg-red-100 text-red-700 p-4 rounded-lg mb-4 text-sm';
+            var submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn && submitBtn.parentNode) {
+                submitBtn.parentNode.insertBefore(box, submitBtn);
+            } else {
+                form.appendChild(box);
+            }
+        }
+        box.textContent = msg;
+        box.style.display = 'block';
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    function hideRegError(form) {
+        var box = form.querySelector('.reg-error-box');
+        if (box) box.style.display = 'none';
+    }
+    function showRegSuccess(form) {
+        form.style.display = 'none';
+        var successDiv = document.createElement('div');
+        successDiv.className = 'text-center py-12 px-6';
+        successDiv.innerHTML =
+            '<div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">' +
+                '<i class="fas fa-check-circle text-green-500 text-4xl"></i>' +
+            '</div>' +
+            '<h3 class="text-2xl font-bold text-gray-800 mb-3">¡Registro exitoso!</h3>' +
+            '<p class="text-gray-600 mb-6">Tu casillero ha sido creado. Recibirás un correo con los detalles de tu cuenta.</p>' +
+            '<a href="login.html" class="inline-block bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-8 rounded-lg transition-colors">' +
+                'Iniciar Sesión' +
+            '</a>';
+        form.parentNode.insertBefore(successDiv, form.nextSibling);
     }
     
     if (businessRegistrationForm) {
