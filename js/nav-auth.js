@@ -2,7 +2,7 @@
     'use strict';
 
     document.addEventListener('DOMContentLoaded', function () {
-        var auth = window.CRBoxAuth;
+        var auth = window.CRBOXAuth;
         if (!auth || !auth.isLoggedIn()) return;
 
         // ── Desktop ───────────────────────────────────────────────────────────

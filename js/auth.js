@@ -302,9 +302,52 @@
     }
   }
 
+  // ─── Portal header dropdown toggle ───────────────────────────────────────
+  // Public pages each have their own inline dropdown handler; this function
+  // only activates on portal pages so it never double-binds.
+  var PORTAL_PAGES = ['dashboard.html', 'mis-paquetes.html', 'mis-facturas.html', 'mi-cuenta.html'];
+
+  function initPortalDropdown() {
+    var path = window.location.pathname;
+    var page = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+    if (PORTAL_PAGES.indexOf(page) === -1) return;
+
+    var btn  = document.getElementById('user-menu-button');
+    var menu = document.getElementById('user-dropdown-menu');
+    if (!btn || !menu) return;
+
+    function openMenu() {
+      menu.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+      menu.classList.add('opacity-100', 'scale-100');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+    function closeMenu() {
+      menu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+      menu.classList.remove('opacity-100', 'scale-100');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      menu.classList.contains('pointer-events-none') ? openMenu() : closeMenu();
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!menu.classList.contains('pointer-events-none') &&
+          !btn.contains(e.target) && !menu.contains(e.target)) {
+        closeMenu();
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeMenu();
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     enforceAuthGate();
     updateHeaderAuthState();
+    initPortalDropdown();
   });
 
   // ─── Public API ───────────────────────────────────────────────────────────
