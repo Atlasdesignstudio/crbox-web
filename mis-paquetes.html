@@ -1854,7 +1854,30 @@
                     if (showingCount) {
                         showingCount.textContent = visibleCount.toString();
                     }
-                    
+
+                    // Actualizar badge del tab activo para que coincida con lo visible
+                    const activeBadge = tab.querySelector('span.text-xs');
+                    if (activeBadge) {
+                        activeBadge.textContent = visibleCount.toString();
+                    }
+
+                    // Restaurar badges de los demás tabs a sus totales por estado
+                    if (statusFilter !== 'all') {
+                        statusTabs.forEach(t => {
+                            if (t === tab) return;
+                            const ds = (t.getAttribute('data-status') || '').trim();
+                            const badge = t.querySelector('span.text-xs');
+                            if (!badge) return;
+                            if (ds === 'all') return; // Todos keeps its total (set by _renderStats)
+                            // Count rows matching this tab's status
+                            let tabCount = 0;
+                            document.querySelectorAll('#list-view tbody tr[data-status]').forEach(row => {
+                                if (row.getAttribute('data-status') === ds) tabCount++;
+                            });
+                            badge.textContent = tabCount.toString();
+                        });
+                    }
+
                     // Añadir filtro como chip activo
                     if (statusFilter !== 'all') {
                         updateActiveFilters(statusFilter);
@@ -2405,8 +2428,39 @@
         }
         var showingEl = document.getElementById('showing-count');
         var totalEl   = document.getElementById('total-count-display');
-        if (showingEl) showingEl.textContent = String(count);
-        if (totalEl)   totalEl.textContent   = String(count);
+        if (totalEl) totalEl.textContent = String(count);
+
+        var activeTab    = document.querySelector('.status-tab.active');
+        var activeStatus = activeTab ? (activeTab.getAttribute('data-status') || 'all').trim() : 'all';
+
+        if (activeStatus !== 'all') {
+          var filteredCount = 0;
+          if (tbody) {
+            tbody.querySelectorAll('tr[data-status]').forEach(function (row) {
+              if (row.getAttribute('data-status') === activeStatus) {
+                row.style.display = '';
+                filteredCount++;
+              } else {
+                row.style.display = 'none';
+              }
+            });
+          }
+          if (gridView) {
+            gridView.querySelectorAll('[data-status]').forEach(function (card) {
+              if (card.getAttribute('data-status') === activeStatus) {
+                card.style.display = '';
+              } else {
+                card.style.display = 'none';
+              }
+            });
+          }
+          if (showingEl) showingEl.textContent = String(filteredCount);
+
+          var activeBadge = activeTab.querySelector('span.text-xs');
+          if (activeBadge) activeBadge.textContent = String(filteredCount);
+        } else {
+          if (showingEl) showingEl.textContent = String(count);
+        }
       }
 
       function _renderStats(packages) {
