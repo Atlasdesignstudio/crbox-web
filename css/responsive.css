@@ -2,6 +2,32 @@
    PANTALLAS <= 768px
 ========================= */
 @media (max-width: 768px) {
+    /* ===== Navbar: tighter vertical padding on mobile ===== */
+    .sticky-header .container {
+      padding-top: 0.625rem;
+      padding-bottom: 0.625rem;
+    }
+
+    /* ===== Mobile menu smooth slide-down animation =====
+       Override Tailwind's display:none with max-height transition
+       so the menu slides in/out instead of popping instantly.
+       Scoped to mobile so md:hidden still works on desktop. */
+    #mobile-menu {
+      display: block !important;
+      overflow: hidden;
+      max-height: 480px;
+      opacity: 1;
+      transition: max-height 0.35s ease-in-out, opacity 0.25s ease, margin 0.35s ease;
+      margin-top: 0.75rem;
+    }
+
+    #mobile-menu.hidden {
+      max-height: 0 !important;
+      opacity: 0 !important;
+      pointer-events: none;
+      margin-top: 0 !important;
+    }
+
     /* Afiliate hero section (py-20 md:py-28 gradient-bg) */
     section.py-20.gradient-bg {
       padding-top: 3rem !important;

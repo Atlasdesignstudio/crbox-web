@@ -5,7 +5,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (mobileMenuButton && mobileMenu) {
         mobileMenuButton.addEventListener('click', function() {
-            mobileMenu.classList.toggle('hidden');
+            const isHidden = mobileMenu.classList.contains('hidden');
+            const icon = mobileMenuButton.querySelector('i');
+            if (isHidden) {
+                mobileMenu.classList.remove('hidden');
+                if (icon) { icon.classList.replace('fa-bars', 'fa-times'); }
+            } else {
+                mobileMenu.classList.add('hidden');
+                if (icon) { icon.classList.replace('fa-times', 'fa-bars'); }
+            }
         });
     }
 
