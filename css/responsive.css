@@ -412,6 +412,46 @@
 /* =========================
    PANTALLAS <= 480px
 ========================= */
+/* ===== Testimonials carousel: mobile touch-scroll ===== */
+@media (max-width: 768px) {
+    .testimonials-carousel {
+        padding: 0;
+    }
+
+    .testimonials-arrow {
+        display: none !important;
+    }
+
+    .testimonials-overflow {
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .testimonials-overflow::-webkit-scrollbar {
+        display: none;
+    }
+
+    .testimonials-track {
+        transition: none;
+        gap: 1rem;
+        padding-right: 1rem;
+    }
+
+    .testimonials-track .testimonial-card {
+        min-width: 72% !important;
+        width: auto !important;
+        scroll-snap-align: start;
+    }
+
+    .testimonials-dots {
+        margin-top: 1.5rem;
+    }
+}
+
 @media (max-width: 480px) {
     /* Afiliate hero section tighter at very narrow widths */
     section.py-20.gradient-bg {

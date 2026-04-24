@@ -711,3 +711,91 @@ button.active {
     margin-left: 0.4rem !important;
     margin-right: 0.4rem !important;
 }
+
+/* =========================================
+   TESTIMONIALS CAROUSEL
+   ========================================= */
+.testimonials-carousel {
+    position: relative;
+    /* horizontal padding to give arrows room on desktop */
+    padding: 0 2.75rem;
+}
+
+.testimonials-overflow {
+    overflow: hidden;
+    width: 100%;
+}
+
+.testimonials-track {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 1.5rem;
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 0;
+}
+
+.testimonials-track .testimonial-card {
+    flex-shrink: 0;
+    /* width set by JS on desktop; CSS fallback for graceful degradation */
+    min-width: 280px;
+    transition: box-shadow 0.2s ease;
+}
+
+/* Arrow buttons — absolutely positioned outside the overflow */
+.testimonials-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    cursor: pointer;
+    color: #374151;
+    font-size: 0.8rem;
+    transition: background 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.15s ease;
+    z-index: 5;
+}
+
+.testimonials-arrow--prev { left: 0; }
+.testimonials-arrow--next { right: 0; }
+
+.testimonials-arrow:hover:not(:disabled) {
+    background: #f9fafb;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
+    transform: translateY(-50%) scale(1.07);
+}
+
+.testimonials-arrow:disabled {
+    opacity: 0.25;
+    cursor: default;
+    transform: translateY(-50%);
+}
+
+/* Dot indicators */
+.testimonials-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.testimonials-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: #d1d5db;
+    cursor: pointer;
+    transition: background 0.25s ease, width 0.25s ease;
+}
+
+.testimonials-dot.active {
+    background: #f97316;
+    width: 1.5rem;
+}

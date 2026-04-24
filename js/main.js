@@ -587,3 +587,92 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// ===== Testimonials Carousel (desktop) =====
+(function () {
+    var track    = document.getElementById('testimonialsTrack');
+    var overflow = document.getElementById('testimonialsOverflow');
+    var prevBtn  = document.getElementById('testimonialsArrowPrev');
+    var nextBtn  = document.getElementById('testimonialsArrowNext');
+    var dotsEl   = document.getElementById('testimonialsDots');
+
+    if (!track || !prevBtn || !nextBtn) return;
+
+    var cards     = track.querySelectorAll('.testimonial-card');
+    var total     = cards.length;          // 6
+    var perPage   = 3;
+    var maxIndex  = total - perPage;       // 3
+    var current   = 0;
+
+    var GAP = 24; // 1.5rem gap between cards
+
+    function setCardWidths() {
+        var w       = overflow.clientWidth;
+        var cardW   = (w - 2 * GAP) / 3;
+        cards.forEach(function (card) {
+            card.style.minWidth = cardW + 'px';
+            card.style.width    = cardW + 'px';
+        });
+        return cardW;
+    }
+
+    function setDots(idx) {
+        if (!dotsEl) return;
+        dotsEl.querySelectorAll('.testimonials-dot').forEach(function (d, i) {
+            d.classList.toggle('active', i === idx);
+        });
+    }
+
+    function update() {
+        var cardW = cards[0] ? cards[0].offsetWidth : 0;
+        var step  = cardW + GAP;
+        track.style.transform = 'translateX(-' + (current * step) + 'px)';
+        prevBtn.disabled = current === 0;
+        nextBtn.disabled = current >= maxIndex;
+        setDots(current);
+    }
+
+    prevBtn.addEventListener('click', function () {
+        if (current > 0) { current--; update(); }
+    });
+
+    nextBtn.addEventListener('click', function () {
+        if (current < maxIndex) { current++; update(); }
+    });
+
+    if (dotsEl) {
+        dotsEl.querySelectorAll('.testimonials-dot').forEach(function (dot) {
+            dot.addEventListener('click', function () {
+                var idx = parseInt(dot.getAttribute('data-index'), 10);
+                if (!isNaN(idx) && idx >= 0 && idx <= maxIndex) {
+                    current = idx;
+                    update();
+                }
+            });
+        });
+    }
+
+    function init() {
+        if (window.innerWidth >= 769) {
+            setCardWidths();
+            update();
+        } else {
+            // Reset JS widths — CSS handles mobile sizing
+            cards.forEach(function (card) {
+                card.style.minWidth = '';
+                card.style.width    = '';
+            });
+            track.style.transform = '';
+        }
+    }
+
+    window.addEventListener('resize', function() {
+        requestAnimationFrame(init);
+    });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { requestAnimationFrame(init); });
+    } else {
+        requestAnimationFrame(init);
+    }
+}());
