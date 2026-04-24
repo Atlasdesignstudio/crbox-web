@@ -15,6 +15,355 @@
     <link rel="stylesheet" href="css/styles.css?v=4">
     <link rel="stylesheet" href="css/responsive.css?v=11">
     <link rel="stylesheet" href="css/dashboard.css">
+
+    <!-- ==================================================================
+         MIS FACTURAS — page-scoped polish
+         Owns the design tokens (data-table / action-btn-* / form-control)
+         this page actually uses. They live inline in mis-paquetes.html
+         only, so without this block they have no base styling here at
+         all. Also tightens the filter bar, summary cards, table column
+         hierarchy and the "Información de Pago" module for desktop.
+         The mobile cardified layout lives in css/responsive.css and is
+         preserved unchanged.
+    ================================================================== -->
+    <style>
+      /* ---- Buttons ------------------------------------------------ */
+      .action-btn-primary {
+        background-color: #FF6B00; color: #fff;
+        font-weight: 500; padding: 0.625rem 1.25rem;
+        border-radius: 0.625rem;
+        display: inline-flex; align-items: center; justify-content: center;
+        white-space: nowrap;
+        transition: background-color .2s ease, transform .2s ease, box-shadow .2s ease;
+      }
+      .action-btn-primary:hover {
+        background-color: #DD6B20; transform: translateY(-1px);
+        box-shadow: 0 6px 14px -4px rgba(255, 107, 0, .35);
+      }
+      .action-btn-primary:active { transform: translateY(0); box-shadow: none; }
+      .action-btn-primary:focus-visible {
+        outline: none; box-shadow: 0 0 0 3px rgba(255, 107, 0, .35);
+      }
+
+      .action-btn-light {
+        background-color: #fff; color: #4A5568; border: 1px solid #E2E8F0;
+        font-weight: 500; padding: 0.625rem 1.25rem;
+        border-radius: 0.625rem;
+        display: inline-flex; align-items: center; justify-content: center;
+        white-space: nowrap;
+        transition: background-color .2s ease, border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+      }
+      .action-btn-light:hover {
+        background-color: #F7FAFC; border-color: #CBD5E0;
+        transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+      }
+      .action-btn-light:active { transform: translateY(0); box-shadow: none; }
+      .action-btn-light:focus-visible {
+        outline: none; box-shadow: 0 0 0 3px rgba(160, 174, 192, .35);
+      }
+
+      /* ---- Form controls ----------------------------------------- */
+      .form-control {
+        width: 100%;
+        padding: 0.5625rem 1rem;
+        border: 1px solid #E2E8F0; border-radius: 0.625rem;
+        background: #fff; color: #1F2937;
+        font-size: 0.9375rem; line-height: 1.4;
+        transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+      }
+      .form-control:hover { border-color: #CBD5E0; }
+      .form-control:focus {
+        outline: none; border-color: #FF6B00;
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, .18);
+      }
+      .form-control::placeholder { color: #9CA3AF; }
+      input[type="date"].form-control { color: #1F2937; }
+      input[type="date"].form-control::-webkit-calendar-picker-indicator {
+        opacity: .55; cursor: pointer;
+      }
+
+      /* ---- Filter bar -------------------------------------------- */
+      .filter-card {
+        background: #fff;
+        border: 1px solid #EDF0F4; border-radius: 0.875rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+      }
+      .filter-card .filter-card-body { padding: 1.25rem 1.5rem; }
+      .filter-card .filter-card-footer {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.875rem 1.5rem;
+        background: #FAFBFC; border-top: 1px solid #F1F2F4;
+        border-bottom-left-radius: 0.875rem;
+        border-bottom-right-radius: 0.875rem;
+      }
+      .filter-section-label {
+        display: inline-block;
+        font-size: 0.6875rem; font-weight: 600; color: #6B7280;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        margin-bottom: 0.4375rem;
+      }
+      .filter-clear-btn {
+        font-size: 0.8125rem; font-weight: 500; color: #6B7280;
+        background: transparent; border: 0; cursor: pointer;
+        padding: 0.375rem 0.625rem; border-radius: 0.5rem;
+        transition: color .15s ease, background-color .15s ease, box-shadow .15s ease;
+      }
+      .filter-clear-btn:hover { color: #C05621; background: #FFF5EB; }
+      .filter-clear-btn:focus-visible {
+        outline: none; color: #C05621;
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, .25);
+      }
+
+      /* ---- Summary cards (refined rhythm + hierarchy) ----------- */
+      .summary-card {
+        background: #fff;
+        border: 1px solid #EDF0F4; border-radius: 0.875rem;
+        padding: 1.25rem 1.375rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+        transition: transform .2s ease, box-shadow .2s ease;
+        display: flex; flex-direction: column; gap: 0.875rem;
+        min-height: 132px;
+      }
+      .summary-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px -8px rgba(15, 23, 42, .14);
+      }
+      .summary-card-head {
+        display: flex; align-items: center; gap: 0.875rem;
+      }
+      .summary-card-icon {
+        width: 2.625rem; height: 2.625rem; border-radius: 0.75rem;
+        display: inline-flex; align-items: center; justify-content: center;
+        flex-shrink: 0; font-size: 1.125rem;
+      }
+      .summary-card-icon.is-blue   { background: #E6F2FF; color: #1D4ED8; }
+      .summary-card-icon.is-green  { background: #E6F7EE; color: #15803D; }
+      .summary-card-icon.is-purple { background: #F1ECFF; color: #6D28D9; }
+      .summary-card-label {
+        font-size: 0.75rem; font-weight: 500; color: #6B7280;
+        text-transform: uppercase; letter-spacing: 0.05em;
+        margin: 0 0 0.125rem 0;
+      }
+      .summary-card-value {
+        font-size: 1.625rem; font-weight: 700; color: #111827;
+        line-height: 1.15; letter-spacing: -0.015em;
+        font-variant-numeric: tabular-nums;
+      }
+      .summary-card-value.is-soft { color: #9CA3AF; font-size: 1rem; font-weight: 500; }
+      .summary-card-helper {
+        font-size: 0.75rem; color: #9CA3AF; line-height: 1.45;
+      }
+      .summary-card-bar {
+        height: 0.375rem; background: #F3F4F6;
+        border-radius: 9999px; overflow: hidden;
+      }
+      .summary-card-bar > div {
+        height: 100%; background: linear-gradient(90deg, #3B82F6 0%, #60A5FA 100%);
+        border-radius: 9999px;
+        transition: width .35s ease;
+      }
+
+      /* ---- Data table -------------------------------------------- */
+      .data-table {
+        width: 100%; border-collapse: separate; border-spacing: 0;
+      }
+      .data-table thead th {
+        position: sticky; top: 0;
+        background: #F9FAFB;
+        padding: 0.875rem 1rem;
+        text-align: left;
+        font-size: 0.6875rem; font-weight: 600; color: #6B7280;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        border-bottom: 1px solid #E5E7EB;
+      }
+      .data-table thead th.text-right { text-align: right; }
+      .data-table tbody td {
+        padding: 0.9375rem 1rem;
+        font-size: 0.875rem;
+        color: #4B5563;
+        border-bottom: 1px solid #F3F4F6;
+        vertical-align: middle;
+      }
+      .data-table tbody tr:last-child td { border-bottom: 0; }
+      .data-table tbody tr.bill-row { transition: background-color .15s ease; }
+      .data-table tbody tr.bill-row:hover { background-color: #FFFAF3; }
+
+      /* Per-column visual hierarchy */
+      #bills-tbody > tr.bill-row > td[data-label="Factura"] {
+        font-weight: 600; color: #111827; font-size: 0.9375rem;
+        letter-spacing: -0.01em;
+      }
+      #bills-tbody > tr.bill-row > td[data-label="Fecha"],
+      #bills-tbody > tr.bill-row > td[data-label="Guía Master"],
+      #bills-tbody > tr.bill-row > td[data-label="Recibos"],
+      #bills-tbody > tr.bill-row > td[data-label="Descuento"] {
+        color: #6B7280;
+      }
+      #bills-tbody > tr.bill-row > td[data-label="Bultos"],
+      #bills-tbody > tr.bill-row > td[data-label="Peso"],
+      #bills-tbody > tr.bill-row > td[data-label="Peso Volumétrico"] {
+        font-variant-numeric: tabular-nums;
+        color: #4B5563;
+      }
+      #bills-tbody > tr.bill-row > td[data-label="Total"] {
+        font-weight: 700; color: #111827; font-size: 0.9375rem;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Compact action icons in the actions column */
+      .bill-actions-cell .btn-view-bill,
+      .bill-actions-cell .btn-download-bill {
+        width: 32px; height: 32px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 0.5rem;
+        transition: background-color .15s ease, color .15s ease;
+      }
+
+      /* Inline detail expansion (Recibos) */
+      #bills-tbody > tr.bill-detail-row > td { padding: 0 !important; }
+      #bills-tbody > tr.bill-detail-row { background: #FAFBFC; }
+
+      /* Tighter cells on mid-narrow desktops so columns don't crowd */
+      @media (min-width: 769px) and (max-width: 1100px) {
+        .data-table thead th,
+        .data-table tbody td { padding-left: 0.6875rem; padding-right: 0.6875rem; }
+      }
+
+      /* ---- Table footer (real count, not a fake pager) ---------- */
+      .bills-footer {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.875rem 1.5rem;
+        background: #FAFBFC; border-top: 1px solid #F1F2F4;
+      }
+      .bills-footer-count { font-size: 0.875rem; color: #6B7280; }
+      .bills-footer-count strong { color: #111827; font-weight: 600; }
+      .bills-footer-hint {
+        font-size: 0.75rem; color: #9CA3AF;
+        display: inline-flex; align-items: center; gap: 0.375rem;
+      }
+
+      /* ---- Información de Pago — refined CRBOX treatment -------- */
+      .payment-info-card {
+        background: #fff;
+        border: 1px solid #EDF0F4; border-radius: 0.875rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+        overflow: hidden;
+      }
+      .payment-info-header {
+        display: flex; align-items: center; gap: 0.875rem;
+        padding: 1.125rem 1.5rem;
+        border-bottom: 1px solid #F1F2F4;
+      }
+      .payment-info-header-icon {
+        width: 2.5rem; height: 2.5rem; border-radius: 0.625rem;
+        background: #FFF1E6; color: #C05621;
+        display: inline-flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+      }
+      .payment-info-header h2 {
+        font-size: 1.0625rem; font-weight: 700; color: #111827;
+        line-height: 1.2; margin: 0;
+      }
+      .payment-info-header .subtitle {
+        font-size: 0.8125rem; color: #6B7280; line-height: 1.35; margin-top: 0.125rem;
+      }
+      .payment-info-body { padding: 1.5rem; }
+      .payment-info-grid {
+        display: grid; grid-template-columns: 1fr; gap: 1.25rem;
+      }
+      @media (min-width: 768px) {
+        .payment-info-grid {
+          grid-template-columns: 1.05fr 0.95fr; gap: 2rem;
+          align-items: start;
+        }
+      }
+      .payment-info-copy h3 {
+        font-size: 0.9375rem; font-weight: 600; color: #111827;
+        margin: 0 0 0.4375rem 0;
+      }
+      .payment-info-copy p {
+        font-size: 0.875rem; color: #4B5563; line-height: 1.55; margin: 0 0 0.75rem 0;
+      }
+      .payment-info-copy .footnote {
+        font-size: 0.75rem; color: #9CA3AF; line-height: 1.5;
+        background: #FAFBFC; border: 1px dashed #E5E7EB;
+        border-radius: 0.5rem; padding: 0.625rem 0.75rem;
+        margin-top: 0.25rem;
+      }
+      .payment-info-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+      .payment-info-actions-label {
+        font-size: 0.6875rem; font-weight: 600; color: #6B7280;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        margin-bottom: 0.125rem;
+      }
+      .payment-info-action {
+        display: inline-flex; align-items: center; justify-content: space-between;
+        gap: 0.875rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid #E5E7EB; border-radius: 0.625rem;
+        background: #fff; color: #1F2937;
+        font-weight: 500; font-size: 0.9375rem;
+        text-decoration: none;
+        transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+      }
+      .payment-info-action:hover {
+        border-color: #FFB37A; background: #FFFAF3; transform: translateY(-1px);
+      }
+      .payment-info-action:focus-visible {
+        outline: none; border-color: #FF6B00;
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, .25);
+      }
+      .payment-info-action .label {
+        display: inline-flex; align-items: center; gap: 0.75rem; min-width: 0;
+      }
+      .payment-info-action .label .text {
+        display: flex; flex-direction: column; min-width: 0;
+      }
+      .payment-info-action .label .text .primary {
+        color: #111827; font-weight: 600; font-size: 0.9375rem;
+        line-height: 1.2;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .payment-info-action .label .text .secondary {
+        color: #6B7280; font-weight: 400; font-size: 0.75rem;
+        line-height: 1.3; margin-top: 0.0625rem;
+      }
+      .payment-info-action .icon-circle {
+        width: 2.25rem; height: 2.25rem; border-radius: 0.5rem;
+        display: inline-flex; align-items: center; justify-content: center;
+        flex-shrink: 0; font-size: 0.9375rem;
+      }
+      .icon-circle.icon-mail  { background: #FFF1E6; color: #C05621; }
+      .icon-circle.icon-wa    { background: #E6F8EE; color: #15803D; }
+      .icon-circle.icon-phone { background: #EEF2FF; color: #4338CA; }
+      .payment-info-action .chevron {
+        color: #9CA3AF; transition: transform .15s ease, color .15s ease;
+        flex-shrink: 0;
+      }
+      .payment-info-action:hover .chevron { color: #C05621; transform: translateX(2px); }
+
+      /* ---- Mobile-only refinements scoped to this page only ---- */
+      @media (max-width: 640px) {
+        .filter-card .filter-card-body { padding: 1rem; }
+        .filter-card .filter-card-footer {
+          flex-direction: column; align-items: stretch; gap: 0.5rem;
+          padding: 0.875rem 1rem;
+        }
+        .filter-card .filter-card-footer .action-btn-primary,
+        .filter-card .filter-card-footer .filter-clear-btn { width: 100%; text-align: center; }
+        .summary-card { min-height: 0; }
+        .summary-card-value { font-size: 1.375rem; }
+        .payment-info-header { padding: 1rem 1.125rem; }
+        .payment-info-body   { padding: 1.125rem; }
+        .bills-footer {
+          flex-direction: column; align-items: stretch;
+          gap: 0.375rem;
+          padding: 0.75rem 1rem;
+        }
+      }
+    </style>
 </head>
 <body class="bg-gray-50">
     <!-- Google Tag Manager (noscript) -->
@@ -190,86 +539,94 @@
             </div>
             
             <!-- Search & Filter Section -->
-            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <div class="relative">
-                            <input type="text" id="bills-search" placeholder="Buscar por número de factura" class="form-control pl-10">
-                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label for="bills-date-from" class="block text-xs font-medium text-gray-500 mb-1">Desde</label>
-                                <div class="relative">
-                                    <input type="date" id="bills-date-from" class="form-control pl-10">
-                                    <i class="far fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                </div>
+            <div class="filter-card mb-6">
+                <div class="filter-card-body">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5">
+                        <!-- Search field: spans 5/12 on desktop, full on mobile -->
+                        <div class="md:col-span-5">
+                            <label for="bills-search" class="filter-section-label">Búsqueda</label>
+                            <div class="relative">
+                                <input type="text" id="bills-search" placeholder="Buscar por número de factura" class="form-control pl-10">
+                                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                             </div>
-                            <div>
-                                <label for="bills-date-to" class="block text-xs font-medium text-gray-500 mb-1">Hasta</label>
-                                <div class="relative">
-                                    <input type="date" id="bills-date-to" class="form-control pl-10">
-                                    <i class="far fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <!-- Date range: spans 7/12 on desktop, two-up on mobile -->
+                        <div class="md:col-span-7">
+                            <span class="filter-section-label">Período</span>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="bills-date-from" class="sr-only">Desde</label>
+                                    <div class="relative">
+                                        <input type="date" id="bills-date-from" class="form-control pl-10" aria-label="Fecha desde">
+                                        <i class="far fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="bills-date-to" class="sr-only">Hasta</label>
+                                    <div class="relative">
+                                        <input type="date" id="bills-date-to" class="form-control pl-10" aria-label="Fecha hasta">
+                                        <i class="far fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 flex justify-end">
-                    <button id="bills-search-btn" class="action-btn-primary flex items-center px-6">
-                        <i class="fas fa-search mr-2"></i>
-                        Buscar Facturas
+                <div class="filter-card-footer">
+                    <button type="button" id="bills-filter-clear" class="filter-clear-btn" aria-label="Restablecer filtros">
+                        <i class="fas fa-undo-alt mr-1.5"></i>Restablecer filtros
+                    </button>
+                    <button id="bills-search-btn" class="action-btn-primary" aria-label="Buscar facturas">
+                        <i class="fas fa-search mr-2"></i>Buscar Facturas
                     </button>
                 </div>
             </div>
             
             <!-- Summary Cards (derivadas de la respuesta real de getfacturas) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mr-4">
-                            <i class="fas fa-receipt text-2xl"></i>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 mb-6">
+                <div class="summary-card">
+                    <div class="summary-card-head">
+                        <div class="summary-card-icon is-blue">
+                            <i class="fas fa-receipt"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-medium text-gray-500">Total Facturas</h3>
-                            <p class="text-2xl font-bold" id="bills-stat-total">—</p>
+                            <p class="summary-card-label">Total Facturas</p>
+                            <p class="summary-card-value" id="bills-stat-total">—</p>
                         </div>
                     </div>
-                    <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div id="bills-stat-total-bar" class="h-full bg-blue-500 rounded-full" style="width: 0%"></div>
+                    <div class="summary-card-bar" aria-hidden="true">
+                        <div id="bills-stat-total-bar" style="width: 0%"></div>
                     </div>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-4">
-                            <i class="fas fa-coins text-2xl"></i>
+                <div class="summary-card">
+                    <div class="summary-card-head">
+                        <div class="summary-card-icon is-green">
+                            <i class="fas fa-coins"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-medium text-gray-500">Total Facturado</h3>
-                            <p class="text-2xl font-bold" id="bills-stat-amount">—</p>
+                            <p class="summary-card-label">Total Facturado</p>
+                            <p class="summary-card-value" id="bills-stat-amount">—</p>
                         </div>
                     </div>
-                    <div class="text-xs text-gray-500 mt-2">
+                    <p class="summary-card-helper">
                         Suma de los totales reales de las facturas listadas.
-                    </div>
+                    </p>
                 </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-500 mr-4">
-                            <i class="fas fa-clock text-2xl"></i>
+                <div class="summary-card">
+                    <div class="summary-card-head">
+                        <div class="summary-card-icon is-purple">
+                            <i class="fas fa-clock"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-medium text-gray-500">Estado de Pago</h3>
-                            <p class="text-base font-medium text-gray-400">Próximamente</p>
+                            <p class="summary-card-label">Estado de Pago</p>
+                            <p class="summary-card-value is-soft">Próximamente</p>
                         </div>
                     </div>
-                    <div class="text-xs text-gray-500 mt-2">
+                    <p class="summary-card-helper">
                         El estado de pago se mostrará cuando esté disponible.
-                    </div>
+                    </p>
                 </div>
             </div>
             
@@ -312,71 +669,81 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="flex items-center justify-between border-t border-gray-100 px-6 py-3">
-                    <div class="flex items-center">
-                        <span class="mr-2 text-sm text-gray-600">Mostrar</span>
-                        <select class="form-control text-sm h-8 px-2">
-                            <option>10</option>
-                            <option>25</option>
-                            <option>50</option>
-                            <option>100</option>
-                        </select>
-                        <span class="ml-2 text-sm text-gray-600">registros</span>
-                    </div>
-                    <div>
-                        <span class="text-sm text-gray-600">0 - 0 de 0</span>
-                    </div>
-                    <div class="flex items-center space-x-1">
-                        <button class="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                            <i class="fas fa-chevron-left text-gray-400"></i>
-                        </button>
-                        <button class="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                            <i class="fas fa-chevron-right text-gray-400"></i>
-                        </button>
-                    </div>
+                <!-- Honest result summary. We do NOT render fake page
+                     navigation: there is no pagination contract in
+                     getfacturas yet. The count and visible-period are
+                     populated from the real cached payload. -->
+                <div class="bills-footer">
+                    <p class="bills-footer-count" id="bills-footer-count">
+                        <i class="fas fa-receipt mr-1.5 text-gray-400"></i>
+                        <span id="bills-footer-count-text">Sin resultados todavía</span>
+                    </p>
+                    <p class="bills-footer-hint">
+                        <i class="far fa-calendar-alt"></i>
+                        <span id="bills-footer-period">—</span>
+                    </p>
                 </div>
             </div>
 
             <!-- Payment Information Section -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-6 border-b border-gray-100">
-                    <h2 class="text-xl font-bold text-gray-800">Información de Pago</h2>
-                </div>
-                <div class="p-6">
-                    <div class="max-w-3xl mx-auto">
-                        <div class="bg-blue-50 rounded-lg p-5 border border-blue-100">
-                            <div class="flex items-start">
-                                <div class="text-blue-500 mt-1 mr-3">
-                                    <i class="fas fa-info-circle text-xl"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-blue-800 mb-1">Solicita los datos de pago actualizados</h3>
-                                    <p class="text-blue-700 mb-3">
-                                        Para evitar errores con cuentas bancarias, IBAN o SINPE Móvil desactualizados, los datos de pago se entregan por canales oficiales bajo solicitud.
-                                    </p>
-                                    <div class="flex flex-col sm:flex-row gap-3">
-                                        <a href="mailto:ventas@crbox.cr?subject=Solicito%20datos%20de%20pago" class="inline-flex items-center justify-center bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                            <i class="fas fa-envelope mr-2"></i>
-                                            ventas@crbox.cr
-                                        </a>
-                                        <a href="https://wa.me/50640001114" class="inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                            <i class="fab fa-whatsapp mr-2"></i>
-                                            WhatsApp
-                                        </a>
-                                        <a href="tel:+50640001114" class="inline-flex items-center justify-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                            <i class="fas fa-phone mr-2"></i>
-                                            +506-4000-1114
-                                        </a>
-                                    </div>
-                                    <p class="text-xs text-blue-600 mt-3">
-                                        Recuerda incluir siempre el número de factura en la referencia del depósito y enviarnos el comprobante de pago.
-                                    </p>
-                                </div>
-                            </div>
+            <section class="payment-info-card" aria-labelledby="payment-info-heading">
+                <header class="payment-info-header">
+                    <div class="payment-info-header-icon" aria-hidden="true">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div>
+                        <h2 id="payment-info-heading">Información de Pago</h2>
+                        <p class="subtitle">Datos bancarios bajo solicitud por canales oficiales</p>
+                    </div>
+                </header>
+                <div class="payment-info-body">
+                    <div class="payment-info-grid">
+                        <div class="payment-info-copy">
+                            <h3>Solicita los datos de pago actualizados</h3>
+                            <p>
+                                Para evitar errores con cuentas bancarias, IBAN o SINPE Móvil desactualizados, los datos de pago se entregan por canales oficiales bajo solicitud.
+                            </p>
+                            <p class="footnote">
+                                <i class="fas fa-info-circle mr-1.5 text-gray-400"></i>
+                                Recuerda incluir siempre el número de factura en la referencia del depósito y enviarnos el comprobante de pago.
+                            </p>
+                        </div>
+                        <div class="payment-info-actions" role="list" aria-label="Canales de contacto">
+                            <span class="payment-info-actions-label">Canales de contacto</span>
+                            <a href="mailto:ventas@crbox.cr?subject=Solicito%20datos%20de%20pago" class="payment-info-action" role="listitem">
+                                <span class="label">
+                                    <span class="icon-circle icon-mail" aria-hidden="true"><i class="fas fa-envelope"></i></span>
+                                    <span class="text">
+                                        <span class="primary">ventas@crbox.cr</span>
+                                        <span class="secondary">Correo electrónico</span>
+                                    </span>
+                                </span>
+                                <i class="fas fa-chevron-right chevron" aria-hidden="true"></i>
+                            </a>
+                            <a href="https://wa.me/50640001114" class="payment-info-action" role="listitem">
+                                <span class="label">
+                                    <span class="icon-circle icon-wa" aria-hidden="true"><i class="fab fa-whatsapp"></i></span>
+                                    <span class="text">
+                                        <span class="primary">WhatsApp</span>
+                                        <span class="secondary">Respuesta inmediata en horario hábil</span>
+                                    </span>
+                                </span>
+                                <i class="fas fa-chevron-right chevron" aria-hidden="true"></i>
+                            </a>
+                            <a href="tel:+50640001114" class="payment-info-action" role="listitem">
+                                <span class="label">
+                                    <span class="icon-circle icon-phone" aria-hidden="true"><i class="fas fa-phone"></i></span>
+                                    <span class="text">
+                                        <span class="primary">+506 4000-1114</span>
+                                        <span class="secondary">Teléfono · Lun a Vie 8:00–17:00</span>
+                                    </span>
+                                </span>
+                                <i class="fas fa-chevron-right chevron" aria-hidden="true"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
     </main>
 
@@ -624,6 +991,49 @@
         _setStat('bills-stat-total', EM_DASH, 'bills-stat-total-bar', 0);
         var amountEl = document.getElementById('bills-stat-amount');
         if (amountEl) amountEl.textContent = EM_DASH;
+        _renderBillsFooter(null, _cachedBills.length, 'loading');
+      }
+
+      // Honest footer line: real count of *visible* rows in the table,
+      // total cached count for the period, and real selected period.
+      // Replaces the old hard-coded "0 - 0 de 0" placeholder pager.
+      // Called from _renderBillsTable so it always tracks what the
+      // user is actually looking at (full set, search-filtered subset,
+      // loading state, or error state).
+      function _renderBillsFooter(visible, total, state) {
+        var countEl  = document.getElementById('bills-footer-count-text');
+        var periodEl = document.getElementById('bills-footer-period');
+        if (countEl) {
+          if (state === 'loading') {
+            countEl.textContent = 'Cargando facturas…';
+          } else if (state === 'error') {
+            countEl.textContent = 'No se pudieron cargar las facturas';
+          } else if (!visible || visible.length === 0) {
+            // Distinguish "no results in period" vs "no search matches"
+            if (typeof total === 'number' && total > 0) {
+              countEl.innerHTML = 'Sin coincidencias <span class="text-gray-400">(de ' + total + ' facturas en el período)</span>';
+            } else {
+              countEl.textContent = 'Sin facturas en este período';
+            }
+          } else if (typeof total === 'number' && total !== visible.length) {
+            countEl.innerHTML = 'Mostrando <strong>' + visible.length + '</strong> de <strong>' + total + '</strong> facturas';
+          } else if (visible.length === 1) {
+            countEl.innerHTML = 'Mostrando <strong>1</strong> factura';
+          } else {
+            countEl.innerHTML = 'Mostrando <strong>' + visible.length + '</strong> facturas';
+          }
+        }
+        if (periodEl) {
+          var startInput = document.getElementById('bills-date-from');
+          var endInput   = document.getElementById('bills-date-to');
+          var s = startInput && startInput.value ? _parseLocalDate(startInput.value) : null;
+          var e = endInput   && endInput.value   ? _parseLocalDate(endInput.value)   : null;
+          if (s && e) {
+            periodEl.textContent = _fmtDate(s) + ' – ' + _fmtDate(e);
+          } else {
+            periodEl.textContent = '—';
+          }
+        }
       }
 
       var _cachedBills = [];
@@ -662,12 +1072,14 @@
               '<i class="fas fa-receipt text-4xl mb-3 block"></i>' +
               _esc(opts.emptyMsg || 'No se encontraron facturas.') + '</td></tr>';
           }
+          _renderBillsFooter([], _cachedBills.length, 'normal');
           return;
         }
         tbody.innerHTML = bills.map(function (b) {
           var srcIdx = _cachedBills.indexOf(b);
           return _renderBillRow(b, srcIdx >= 0 ? srcIdx : 0);
         }).join('');
+        _renderBillsFooter(bills, _cachedBills.length, 'normal');
       }
 
       function _applyBillsSearch() {
@@ -780,7 +1192,12 @@
             _cachedBills = [];
             tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-orange-500">' +
               'No se pudieron cargar las facturas. Recarga la página.</td></tr>';
-            _resetBillsStats();
+            _setStat('bills-stat-total', EM_DASH, 'bills-stat-total-bar', 0);
+            var amountEl = document.getElementById('bills-stat-amount');
+            if (amountEl) amountEl.textContent = EM_DASH;
+            // Honest error footer state — never leaves the user looking
+            // at a stale "Cargando facturas…" message after a failure.
+            _renderBillsFooter(null, 0, 'error');
           });
       }
 
@@ -950,6 +1367,21 @@
               if (icon) icon.classList.remove('fa-spin');
               refreshBtn.disabled = false;
             });
+          });
+        }
+
+        // "Restablecer filtros" — clears the search input and resets the
+        // date range to the active default (last 6 months → today),
+        // then re-runs the load with the canonical defaults so the user
+        // never gets stuck in a narrow custom window.
+        var clearBtn = document.getElementById('bills-filter-clear');
+        if (clearBtn) {
+          clearBtn.addEventListener('click', function () {
+            var searchEl = document.getElementById('bills-search');
+            if (searchEl) searchEl.value = '';
+            if (startInput) startInput.value = _toIsoDate(CRBOXPortalAPI.lastNMonths(6));
+            if (endInput)   endInput.value   = _toIsoDate(CRBOXPortalAPI.defaultEndDate());
+            _loadBills(email, _getStart(), _getEnd());
           });
         }
 

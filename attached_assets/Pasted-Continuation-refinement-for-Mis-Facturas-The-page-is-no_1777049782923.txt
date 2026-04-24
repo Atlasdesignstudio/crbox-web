@@ -1,0 +1,178 @@
+Continuation refinement for Mis Facturas:
+
+The page is now loading real invoice data, so the problem is no longer the data pipeline. The current issue is visualization, table UX, filter/control UX, and overall composition quality. This is a UI/UX refinement continuation for Mis Facturas only.
+
+It should remain within the current CRBOX design system, but the page currently feels visually weak, dense, and outdated in key areas. The goal is to make Mis Facturas feel significantly more polished, premium, readable, and modern on both desktop and mobile, without redesigning the product or inventing unsupported semantics.
+
+## Core problems to fix
+1. The invoices table is rendering real data, but the visual presentation is poor:
+- headers feel cramped
+- columns visually collapse into each other
+- scanning is hard
+- spacing rhythm is weak
+- hierarchy between primary vs secondary fields is unclear
+- the result feels more like a raw data dump than a refined product table
+
+2. The filter/search/date controls feel old and weak in UX/UI:
+- date inputs/dropdowns/search do not feel premium
+- control hierarchy is unclear
+- layout/composition feels clunky
+- the page does not feel smooth or contemporary
+
+3. The Información de Pago module feels off-brand and under-resolved:
+- low contrast
+- weak visual hierarchy
+- composition does not feel aligned with the rest of the portal
+- it does not feel premium or clearly integrated into the CRBOX design language
+
+## Objective
+Refine Mis Facturas so it feels:
+- more premium
+- more readable
+- more intentional
+- more modern
+- better structured
+- aligned with best UX/UI practices
+- consistent with the rest of the portal
+- strong on both desktop and mobile
+
+This is not a redesign and not a backend task. It is a refinement of presentation, structure, spacing, hierarchy, and interaction quality.
+
+## What to improve
+
+### 1. Refine the invoices table UX/UI
+Keep the real data and truthful rendering, but improve the table presentation substantially.
+
+Focus on:
+- stronger hierarchy in the table
+- better spacing between columns and rows
+- cleaner visual grouping
+- making the most important fields easier to scan first
+- demoting lower-priority metadata visually
+- clearer distinction between:
+  - Factura
+  - Fecha
+  - Guía Master
+  - Recibos
+  - Bultos
+  - Peso / Peso Volumétrico
+  - Descuento
+  - Total
+  - Acciones
+
+Do not just keep all columns at equal visual weight.
+Make the table feel intentionally designed.
+
+If needed, refine column widths, wrapping behavior, alignment, and metadata treatment so it looks clean on desktop and remains usable on mobile.
+
+### 2. Improve table behavior for desktop and mobile
+Apply best-practice table UX for both breakpoints.
+
+For desktop:
+- make the table feel more premium and legible
+- avoid cramped headers and data collisions
+- ensure totals/actions are visually strong and scannable
+
+For mobile:
+- do not squeeze the desktop table badly
+- adapt it using the existing product language
+- prioritize the most useful fields first
+- use progressive disclosure / stacked metadata / row detail surfaces where needed
+- keep actions tap-friendly
+- preserve access to all real data without silently dropping important fields
+
+### 3. Refine search, filters, and date controls
+The filter/search/date area should feel much more polished and product-quality.
+
+Improve:
+- composition of the controls
+- spacing rhythm
+- input sizing
+- date control readability
+- search CTA prominence
+- how grouped controls visually relate to each other
+- desktop alignment and mobile stacking
+
+The controls should feel current, smooth, and intentional — not like default/raw form controls placed in a row.
+
+### 4. Refine summary cards
+The summary cards should feel more coherent with the page and the rest of the portal.
+
+Improve:
+- spacing
+- label/value hierarchy
+- supporting helper text treatment
+- alignment
+- balance across cards
+- visual rhythm relative to the filter bar and the table below
+
+Do not invent new metrics or fake states.
+Only improve the presentation of what is already truthfully supported.
+
+### 5. Refine “Información de Pago”
+This module needs a significant visual refinement while keeping the same truthful content and action logic.
+
+Problems to solve:
+- low contrast
+- weak readability
+- weak hierarchy
+- not feeling premium
+- not feeling fully on-brand
+- not feeling structurally integrated into the rest of the page
+
+Refine it so it feels:
+- clearer
+- better contrasted
+- more elegant
+- more intentional
+- visually consistent with CRBOX portal cards/modules
+- better balanced in typography, spacing, CTA grouping, and supporting text
+
+Do not turn it into a totally different component.
+Keep the same design system and tone, but make it feel much better designed.
+
+### 6. Improve overall page composition
+The full Mis Facturas page should be reviewed as one experience:
+- title block
+- actions (Actualizar / Exportar)
+- search/filter area
+- summary cards
+- invoices table
+- payment info module
+
+Make sure the page feels cohesive and professionally composed, not like separate blocks stacked without enough refinement.
+
+### 7. Best-practice polish
+Apply strong UX/UI best practices across the page:
+- information hierarchy
+- readability
+- spacing rhythm
+- contrast
+- responsive behavior
+- alignment
+- scanability
+- action clarity
+- table usability
+- mobile-first legibility where needed
+
+## Constraints
+- No redesign of the portal
+- No new design system
+- No fake data
+- No invented billing/payment semantics
+- No backend changes unless absolutely needed for rendering behavior
+- Keep truthfulness rules intact
+- Preserve all existing functionality
+- Keep desktop and mobile both strong
+
+## Deliverable
+Refine Mis Facturas so it feels clearly more polished, premium, readable, and aligned with best UX/UI practices on both desktop and mobile.
+
+At the end, report:
+1. what was improved in the table UX/UI
+2. what was improved in search/filter/date controls
+3. what was improved in the Información de Pago module
+4. what was improved specifically for mobile
+5. any remaining UX limitations caused by product/backend constraints rather than UI implementation
+
+This should feel like a product-quality refinement pass now that the real data is already loading correctly.
