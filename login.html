@@ -488,15 +488,17 @@
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Enviando...';
                 }
 
-                const doRecover = (typeof CRBOXPortalAPI !== 'undefined')
-                    ? CRBOXPortalAPI.recoverPassword(email)
-                    : Promise.resolve({ Message: 'OK' });
+                if (typeof CRBOXPortalAPI === 'undefined') {
+                    if (submitBtn) { submitBtn.innerHTML = origBtnHTML; submitBtn.disabled = false; }
+                    alert('Error interno: módulo de API no cargado. Recarga la página.');
+                    return;
+                }
+                const doRecover = CRBOXPortalAPI.recoverPassword(email);
 
                 doRecover
                     .then(function (data) {
                         if (submitBtn) { submitBtn.innerHTML = origBtnHTML; submitBtn.disabled = false; }
-                        var msg = data && (data.Message || data.message || '');
-                        if (msg === 'OK') {
+                        if (data && data.ok) {
                             passwordResetModal.classList.add('hidden');
                             const msgEl = document.getElementById('recovery-success-msg');
                             if (msgEl) {
@@ -506,10 +508,13 @@
                             } else {
                                 alert('Revisa tu correo ' + email + '. En minutos recibirás las instrucciones para restablecer tu contraseña.');
                             }
-                        } else if (msg === 'FALSE' || msg.toUpperCase() === 'FALSE') {
-                            alert('No encontramos una cuenta con ese correo. Verifica la dirección e intenta de nuevo.');
                         } else {
-                            alert('No se pudo procesar la solicitud. Verifica el correo e intenta de nuevo.');
+                            var rawMsg = (data && data.message) || '';
+                            if (rawMsg.toUpperCase() === 'FALSE') {
+                                alert('No encontramos una cuenta con ese correo. Verifica la dirección e intenta de nuevo.');
+                            } else {
+                                alert('No se pudo procesar la solicitud. Verifica el correo e intenta de nuevo.');
+                            }
                         }
                     })
                     .catch(function (err) {

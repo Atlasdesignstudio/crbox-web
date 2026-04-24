@@ -2484,7 +2484,7 @@
         _loadPackages(idConsignee,
           _dateFilterToDate(dateVal),
           new Date(),
-          tracking || '*',
+          tracking || '',
           _statusFilterToCode(statusVal)
         );
       }
@@ -2498,7 +2498,7 @@
         CRBOXPortalAPI.getPackages(idConsignee,
           startDate  || CRBOXPortalAPI.last30Days(),
           endDate    || CRBOXPortalAPI.defaultEndDate(),
-          tracking   || '*',
+          tracking   || '',
           status     || '1000')
         .then(function (data) {
           var packages = Array.isArray(data) ? data : (data.packages || data.Packages || []);

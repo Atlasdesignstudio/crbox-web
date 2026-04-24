@@ -147,7 +147,8 @@
   // ─── Update Profile payload builder ───────────────────────────────────────
   // rawApiResponse = full raw getuserinfo response ({ Consignee: {...}, Phones, Addresses, ... })
   // formEdits      = optional flat overrides from form inputs:
-  //                  { firstName, lastName1, email, idType, idNumber }
+  //   { firstName, lastName1, email, idType, idNumber, password, confirmPassword }
+  // password / confirmPassword are only included when non-empty (optional update).
   function buildUpdateProfilePayload(rawApiResponse, formEdits) {
     formEdits = formEdits || {};
     // Normalise: accept both raw (has .Consignee) and flat objects
@@ -203,6 +204,13 @@
     params.set('CompanyCode',                     raw.CompanyCode || '');
     params.set('Phones',                          JSON.stringify(phones));
     params.set('Addresses',                       JSON.stringify(addresses));
+    // Password is optional — only include when the user explicitly provides it
+    var pw      = formEdits.password        || '';
+    var pwConf  = formEdits.confirmPassword || pw;
+    if (pw) {
+      params.set('Password',        pw);
+      params.set('ConfirmPassword', pwConf);
+    }
     return params.toString();
   }
 

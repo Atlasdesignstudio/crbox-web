@@ -175,6 +175,7 @@
                         <i class="fas fa-save mr-2"></i>
                         Guardar Cambios
                     </button>
+                    <p id="save-error-msg" class="hidden mt-2 text-red-600 text-sm font-medium"></p>
                 </div>
             </div>
 
@@ -188,6 +189,9 @@
                         </div>
                         <h2 class="text-2xl font-bold text-white" id="profile-header-name">Cargando...</h2>
                         <p class="text-white text-opacity-90" id="profile-casillero">Casillero #—</p>
+                        <p class="text-white text-opacity-75 text-sm mt-1 hidden" id="account-sucursal-wrap">
+                          <i class="fas fa-map-marker-alt mr-1"></i><span id="account-sucursal"></span>
+                        </p>
                     </div>
                 </div>
                 
@@ -297,47 +301,8 @@
                             </button>
                         </div>
                         
-                        <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                            <div class="flex justify-between items-start mb-3">
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">Casa</h4>
-                                    <span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">Principal</span>
-                                </div>
-                                <div class="flex space-x-2">
-                                    <button class="text-gray-500 hover:text-gray-700">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>
-                                    <button class="text-gray-500 hover:text-gray-700">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="space-y-1 text-gray-600">
-                                <p>Sabana Norte, San José, Costa Rica</p>
-                                <p>25 metros norte del Edificio Principal</p>
-                                <p>Teléfono: +506 8123-4567</p>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <div class="flex justify-between items-start mb-3">
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">Oficina</h4>
-                                </div>
-                                <div class="flex space-x-2">
-                                    <button class="text-gray-500 hover:text-gray-700">
-                                        <i class="fas fa-pencil-alt"></i>
-                                    </button>
-                                    <button class="text-gray-500 hover:text-gray-700">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="space-y-1 text-gray-600">
-                                <p>Escazú, San José, Costa Rica</p>
-                                <p>Plaza Comercial Escazú, Local #5</p>
-                                <p>Teléfono: +506 2210-9876</p>
-                            </div>
+                        <div id="cr-addresses-list">
+                            <p class="text-gray-400 text-sm py-2">Cargando direcciones...</p>
                         </div>
                     </div>
                 </div>
@@ -720,11 +685,13 @@
 
                     var rawInfo = window.__crboxUserInfo || {};
                     var formEdits = {
-                        firstName: (document.getElementById('first_name') || {}).value || '',
+                        firstName:  (document.getElementById('first_name') || {}).value || '',
                         lastName1:  (document.getElementById('last_name')  || {}).value || '',
                         email:      (document.getElementById('email')       || {}).value || CRBOXAuth.getEmail() || '',
                         idType:     (document.getElementById('id_type')     || {}).value || '',
-                        idNumber:   (document.getElementById('id_number')   || {}).value || ''
+                        idNumber:   (document.getElementById('id_number')   || {}).value || '',
+                        password:   (document.getElementById('new_password') || {}).value || '',
+                        confirmPassword: (document.getElementById('confirm_password') || {}).value || ''
                     };
                     var payload = CRBOXAuth.buildUpdateProfilePayload(rawInfo, formEdits);
 
@@ -742,10 +709,19 @@
                         })
                         .catch(function (err) {
                             console.error('[CRBOX] updateProfile error:', err);
+                            var userMsg = (err && err.message) || 'No se pudo guardar el perfil. Intenta de nuevo.';
                             btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Error al guardar';
+                            btn.title = userMsg;
+                            var errEl = document.getElementById('save-error-msg');
+                            if (errEl) {
+                                errEl.textContent = userMsg;
+                                errEl.classList.remove('hidden');
+                                setTimeout(function () { errEl.classList.add('hidden'); }, 5000);
+                            }
                             setTimeout(function () {
                                 btn.innerHTML = originalHTML;
                                 btn.disabled = false;
+                                btn.title = '';
                             }, 2500);
                         });
                 });
@@ -759,16 +735,18 @@
       function _txt(id, val) { var el = document.getElementById(id); if (el) el.textContent = val || ''; }
       function _applyProfile(info) {
         if (!info) return;
+        var raw = info;
         var c = info.Consignee || info;
-        var firstName = c.consigneename  || c.ConsigneeName  || '';
-        var lastName1 = c.consigneelastname1 || c.ConsigneeLastName1 || '';
-        var fullName  = (firstName + ' ' + lastName1).trim() || firstName;
-        var casillero = String(c.idconsignee || c.IdConsignee || '');
-        var email     = c.email  || c.Email  || CRBOXAuth.getEmail() || '';
-        var phones    = c.phones || [];
-        var phone     = phones.length > 0 ? (phones[0].phonenumber || '') : '';
-        var idType    = c.identificationtype   || c.IdentificationType   || '';
-        var idNum     = c.identificationnumber || c.IdentificationNumber || '';
+        var firstName  = c.consigneename  || c.ConsigneeName  || '';
+        var lastName1  = c.consigneelastname1 || c.ConsigneeLastName1 || '';
+        var fullName   = (firstName + ' ' + lastName1).trim() || firstName;
+        var casillero  = String(c.idconsignee || c.IdConsignee || '');
+        var email      = c.email  || c.Email  || CRBOXAuth.getEmail() || '';
+        var phones     = c.phones || [];
+        var phone      = phones.length > 0 ? (phones[0].phonenumber || '') : '';
+        var idType     = c.identificationtype   || c.IdentificationType   || '';
+        var idNum      = c.identificationnumber || c.IdentificationNumber || '';
+        var newsletter = c.receivesNewsletter || c.ReceivesNewsletter || false;
 
         _txt('header-user-name', firstName || fullName);
         _txt('mobile-user-name', fullName);
@@ -805,6 +783,37 @@
         if (addrName) addrName.textContent = fullName;
         var addrCasEl = document.getElementById('miami-addr-casillero');
         if (addrCasEl) addrCasEl.textContent = casillero;
+
+        // Newsletter preference
+        var newsCheck = document.getElementById('notify_promotions');
+        if (newsCheck) newsCheck.checked = !!newsletter;
+
+        // Sucursal display in account settings
+        var suc = c.sucursal || c.Sucursal || {};
+        var sucName = suc._name || suc.Name || suc.name || '';
+        var sucEl = document.getElementById('account-sucursal');
+        if (sucEl && sucName) {
+          sucEl.textContent = sucName;
+          var sucWrap = document.getElementById('account-sucursal-wrap');
+          if (sucWrap) sucWrap.classList.remove('hidden');
+        }
+
+        // Costa Rica addresses — render each address
+        var addresses = raw.Addresses || c.addresses || [];
+        var addrList  = document.getElementById('cr-addresses-list');
+        if (addrList && addresses.length > 0) {
+          addrList.innerHTML = addresses.map(function (a) {
+            var addrStr = [
+              a.address1 || a.Address1 || '',
+              a.address2 || a.Address2 || '',
+              a.city     || a.City     || '',
+              a.province || a.Province || ''
+            ].filter(Boolean).join(', ');
+            return '<div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 mb-2 border border-gray-200">' +
+              '<i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>' + (addrStr || 'Dirección sin detalles') +
+              '</div>';
+          }).join('');
+        }
       }
 
       window.__crboxApplyProfile = _applyProfile;

@@ -213,9 +213,9 @@
                         <span class="w-2 h-2 rounded-full bg-green-500 mr-1 animate-pulse"></span>
                         Cuenta Activa
                     </span>
-                    <span class="inline-flex items-center ml-2 px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                    <span class="inline-flex items-center ml-2 px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 hidden" id="discount-badge">
                         <i class="fas fa-tag mr-1"></i>
-                        20% Descuento Disponible
+                        <span id="discount-badge-text">Descuento Disponible</span>
                     </span>
                 </div>
                 <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight" id="welcome-name-span">¡Bienvenido!</h1>
@@ -239,6 +239,9 @@
                     <div class="text-center">
                         <span class="block text-white font-bold text-xl md:text-2xl tracking-wider" id="dashboard-casillero-num">—</span>
                         <span class="block card-label text-orange-200 text-sm">Número de casillero</span>
+                        <span class="block text-orange-100 text-xs mt-1 hidden" id="dashboard-sucursal-wrap">
+                          <i class="fas fa-map-marker-alt mr-1"></i><span id="dashboard-sucursal"></span>
+                        </span>
                         <div class="flex justify-center mt-3">
                             <button id="copy-casillero" class="text-xs copy-button text-orange-200 hover:text-white flex items-center transition-colors focus:outline-none">
                                 <i class="far fa-copy mr-1"></i>
@@ -781,6 +784,31 @@
     _set('dashboard-casillero-num', casillero);
     _set('instruction-casillero-num', casillero);
     _set('miami-address-name', fullName);
+
+    // PendingDiscount badge
+    var pendingDiscount = info.PendingDiscount || info.pendingDiscount;
+    var discountBadge = document.getElementById('discount-badge');
+    if (discountBadge) {
+      if (pendingDiscount) {
+        var pct = (typeof pendingDiscount === 'number')
+          ? pendingDiscount + '% Descuento Disponible'
+          : String(pendingDiscount);
+        _set('discount-badge-text', pct);
+        discountBadge.classList.remove('hidden');
+      } else {
+        discountBadge.classList.add('hidden');
+      }
+    }
+
+    // Sucursal (pickup branch) display
+    var suc = c.sucursal || c.Sucursal || {};
+    var sucName = suc._name || suc.Name || suc.name || '';
+    var sucEl = document.getElementById('dashboard-sucursal');
+    if (sucEl && sucName) {
+      sucEl.textContent = sucName;
+      var sucWrap = document.getElementById('dashboard-sucursal-wrap');
+      if (sucWrap) sucWrap.classList.remove('hidden');
+    }
 
     var copyBtn = document.getElementById('copy-casillero');
     if (copyBtn) {

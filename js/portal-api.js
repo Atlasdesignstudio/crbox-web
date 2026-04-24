@@ -87,7 +87,8 @@
   }
 
   // ─── updateProfile ────────────────────────────────────────────────────────
-  // Sends postedituser, clears cache, re-fetches and returns fresh userInfo.
+  // Sends postedituser. Only clears cache + re-fetches when StatusResult==="OK".
+  // Rejects with an Error (message in Spanish) on API-level failure.
   // payload should be a pre-built URLSearchParams string
   // (use CRBOXAuth.buildUpdateProfilePayload).
   function updateProfile(payload) {
@@ -102,8 +103,14 @@
       },
       body: payload
     }).then(function (res) {
+      if (!res.ok) throw new Error('Error al guardar el perfil (' + res.status + ').');
       return res.json();
     }).then(function (data) {
+      var sr = data && (data.StatusResult || data.statusResult || '');
+      if (sr !== 'OK') {
+        var msg = (data && (data.Message || data.message)) || 'No se pudo guardar el perfil. Intenta de nuevo.';
+        return Promise.reject(new Error(msg));
+      }
       clearUserInfoCache();
       return getUserInfo({ forceRefresh: true }).then(function (info) {
         return { apiResponse: data, userInfo: info };
@@ -122,7 +129,7 @@
 
     var start = formatDate(startDate || _last30Days());
     var end   = formatDate(endDate   || _defaultEndDate());
-    var track = (tracking && String(tracking).trim()) ? String(tracking).trim() : '*';
+    var track = (tracking && String(tracking).trim() && String(tracking).trim() !== '*') ? String(tracking).trim() : 'null';
     var stat  = (status   && String(status).trim())   ? String(status).trim()   : '1000';
 
     var url = BASE + '/getuserpackages/' +
@@ -165,12 +172,16 @@
 
   // ─── recoverPassword ──────────────────────────────────────────────────────
   // GET endpoint — no auth required.
-  // data.Message === 'OK' means instructions were sent.
+  // Resolves {ok: true|false, message: string}; only rejects on network errors.
   function recoverPassword(email) {
     return fetch(BASE + '/getuserpasswordrecovery/' + encodeURIComponent(email))
       .then(function (res) {
-        if (!res.ok) throw new Error('recoverPassword failed: ' + res.status);
+        if (!res.ok) throw new Error('recoverPassword network error: ' + res.status);
         return res.json();
+      })
+      .then(function (data) {
+        var msg = (data && (data.Message || data.message || '')).toUpperCase();
+        return { ok: msg === 'OK', message: data && (data.Message || data.message || '') };
       });
   }
 
