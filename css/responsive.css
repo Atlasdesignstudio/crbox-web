@@ -37,17 +37,10 @@
       box-shadow: none !important;
     }
 
-    /* Sticky header: rounded bottom corners when menu is closed */
+    /* Sticky header: GPU layer prevents scroll-triggered repaint jumps */
     .sticky-header {
-      border-bottom-left-radius: 1.25rem;
-      border-bottom-right-radius: 1.25rem;
-      transition: border-bottom-left-radius 0.3s ease, border-bottom-right-radius 0.3s ease;
-    }
-
-    /* When menu is open, header connects flush to the menu panel */
-    .sticky-header.menu-open {
-      border-bottom-left-radius: 0 !important;
-      border-bottom-right-radius: 0 !important;
+      will-change: transform;
+      transform: translateZ(0);
     }
 
     /* ===== Mobile menu smooth slide-down animation =====
