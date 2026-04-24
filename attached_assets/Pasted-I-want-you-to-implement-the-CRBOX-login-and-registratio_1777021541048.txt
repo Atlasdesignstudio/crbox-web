@@ -1,0 +1,218 @@
+I want you to implement the CRBOX login and registration integration safely and in a production-minded way, based on the uploaded Postman collection and the confirmed API behavior below.
+
+Important:
+Do not guess undocumented backend behavior.
+Do not blindly copy the sample payloads as production truth.
+Move forward aggressively where the contract is confirmed, but isolate unresolved backend-sensitive fields instead of hardcoding assumptions.
+
+Context
+The public CRBOX website already has:
+- SEO/AEO hardening work
+- analytics/GTM/GA4 work
+- mobile optimization work in progress
+Do not redesign the site and do not disturb unrelated work unless necessary for login/register integration.
+
+Scope
+Focus on the auth + registration integration for:
+- login flow
+- token/session handling
+- logout
+- authenticated UI state
+- Afiliarse / registration form wiring
+- frontend success/error handling
+
+Do not touch unrelated pages or systems unless needed for this integration.
+
+Confirmed API findings
+
+1) Login
+Endpoint:
+POST https://clients.crbox.cr/authtoken
+
+Content-Type:
+application/x-www-form-urlencoded
+
+Body shape:
+grant_type=password&username={email}&password={password}
+
+Confirmed response shape from collection/testing:
+- access_token
+- token_type
+- expires_in
+
+Update Profile in the collection confirms the token is used as:
+Authorization: Bearer {token}
+
+2) Create Client
+Endpoint:
+POST https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser
+
+Content-Type:
+application/x-www-form-urlencoded
+
+Important:
+- The body is form-urlencoded
+- Phones and Addresses are JSON-stringified arrays embedded as string values inside the form body
+- The API returns HTTP 200 for both success and observed errors
+- Frontend must determine success/failure from the JSON body, not from HTTP status
+
+Confirmed Create Client response envelope:
+{
+  "StatusResult": "OK" | "ERROR",
+  "Message": "..."
+}
+
+Confirmed observed Create Client responses:
+Success:
+{
+  "StatusResult": "OK",
+  "Message": ""
+}
+
+Duplicate identification:
+{
+  "StatusResult": "ERROR",
+  "Message": "El número de identificación ya está registrado en la base de datos"
+}
+
+Duplicate email:
+{
+  "StatusResult": "ERROR",
+  "Message": "El correo ya existe en la base de datos"
+}
+
+Confirmed request contract details for Create Client
+
+Identity / user fields observed:
+- Consignee.ConsigneeName
+- Consignee.ConsigneeLastName1
+- Consignee.ConsigneeLastName2
+- Consignee.IdentificationNumber
+- Consignee.IdentificationType
+- Consignee.IsCompany
+- Consignee.BirthDate
+- Consignee.ResidenceCountry
+- Consignee.ReceivesNewsletter
+- Consignee.Responsabilidad
+- Consignee.IdResponsabilidad
+- Consignee.ContactName1
+- Consignee.ContactName2
+- Consignee.AlternativeEmail
+- CompanyCode
+
+Email/password fields observed:
+- Consignee.Email
+- ConfirmEmail
+- Password
+- ConfirmPassword
+
+Branch/sucursal field observed:
+- Consignee.Sucursal.IdSucursal
+
+Phones observed as JSON-stringified array in form field "Phones"
+Addresses observed as JSON-stringified array in form field "Addresses"
+
+Critical risk findings
+
+1) idaddress and idphone are not safe confirmed frontend inputs
+They appear to be backend/database record IDs from an existing template, not values a new registration frontend should hardcode.
+Do not reuse the sample IDs from the collection.
+
+2) Consignee.Sucursal.IdSucursal is not a safe fixed constant
+The collection shows different values across different users, so it is user-specific or business-specific.
+Do not silently hardcode it as final production truth.
+
+3) Consignee.IdConsignee is backend-assigned
+It appears in Update Profile but not in Create Client, so it should not be supplied for new registration.
+
+4) CORS is a likely architecture risk
+Do not assume direct browser-to-API calls are safe.
+You must evaluate whether:
+- direct frontend calls are workable
+- or a small server-side proxy is safer
+
+What I want you to do
+
+A. Analyze current codebase first
+Inspect the current frontend/project implementation before changing anything.
+Tell me:
+- what login/register UI already exists
+- what is currently fake/mock
+- what can be replaced directly
+- whether there is already a server-side layer or proxy capability available
+
+B. Implement the real login flow
+Implement:
+- login request to the real auth endpoint
+- token storage
+- token expiry handling using expires_in
+- logout
+- authenticated UI state
+- replacement of any fake login behavior
+
+Be conservative and secure:
+- prefer a production-minded session approach
+- explain whether sessionStorage or another approach is being used and why
+- do not leave fake redirects or fake auth states
+
+C. Implement the registration flow up to the safe boundary
+Build the Afiliarse registration integration using the confirmed contract:
+- application/x-www-form-urlencoded
+- JSON-stringified Phones and Addresses
+- proper field mapping from the form to the request body
+- proper handling of StatusResult and Message
+
+Implement frontend UX handling for:
+- success
+- duplicate email
+- duplicate identification number
+- unknown backend error
+
+Important:
+Do not hardcode idaddress or idphone from the sample payload.
+Do not silently assume final production values for unresolved backend-sensitive fields.
+
+D. Handle unresolved fields carefully
+For the unresolved fields:
+- idaddress
+- idphone
+- Consignee.Sucursal.IdSucursal
+
+I want you to choose the safest implementation strategy.
+If you must use a temporary guarded assumption, isolate it clearly in one place and label it as pending backend confirmation.
+Do not spread risky assumptions across the codebase.
+
+E. Evaluate integration architecture
+Assess whether the API should be called:
+- directly from the browser
+or
+- through a server-side proxy
+
+Do not overstate certainty.
+Explain the tradeoff clearly based on the current project structure.
+
+F. Keep the work disciplined
+- do not redesign the website
+- do not disturb unrelated SEO/mobile/analytics work
+- do not modify private/demo portal work unnecessarily
+- do not auto-run risky live create/update requests unless needed and clearly explained
+
+How I want the output
+First:
+1. concise analysis of the current implementation state
+2. what is safe to implement now
+3. what remains risky or blocked
+4. whether you recommend direct calls or a proxy
+
+Then:
+5. implement the safe parts
+6. summarize exactly what changed
+7. list exact files changed
+8. list the minimum remaining backend confirmations still needed
+
+Very important implementation rules
+- never use HTTP 200 alone to determine Create Client success
+- always inspect StatusResult
+- use Message for user-facing error interpretation where appropriate
+- do not hallucinate undocumented API behavior
+- do not treat sample template IDs as valid production inputs

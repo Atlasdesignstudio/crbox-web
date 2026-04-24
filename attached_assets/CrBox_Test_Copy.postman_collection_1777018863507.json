@@ -1,0 +1,216 @@
+{
+  "info": {
+    "_postman_id": "dd938ada-7e86-46d4-98e7-9f9a2c9402d3",
+    "name": "CrBox Test Copy",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "2532137",
+    "_collection_link": "https://go.postman.co/collection/2532137-dd938ada-7e86-46d4-98e7-9f9a2c9402d3?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Create Client",
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {
+          "content-type": true
+        }
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "Addresses=%5B%7B%22idaddress%22%3A42476%2C%22line1%22%3A%22Alajuela%20ALAJUELA%20SAN%20RAFAEL%20SAN%20RAFAEL%20Condominio%209-10%20Concasa%2C%20Apartamento%20E6-3%22%2C%22line2%22%3A%22Apartamento%20E6-3%22%2C%22city%22%3A%22ALAJUELA%22%2C%22zipcode%22%3A%2220108%22%2C%22isactive%22%3Afalse%2C%22isprimary%22%3Afalse%2C%22provincia%22%3A%222%22%2C%22canton%22%3A%221%22%2C%22distrito%22%3A%228%22%2C%22barrio%22%3A%220%22%2C%22direccion%22%3A%22Condominio%209-10%20Concasa%2C%20Apartamento%20E6-3%22%2C%22state%22%3A%7B%22idstate%22%3A2%2C%22statename%22%3A%22Alajuela%22%2C%22country%22%3A%7B%22idcountry%22%3A1%2C%22countryname%22%3A%22Costa%20Rica%22%2C%22statecountry%22%3Anull%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%2C%22addresstype%22%3A%7B%22idaddresstype%22%3A1%2C%22type%22%3A%22Casa%22%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%5D&CompanyCode=&ConfirmEmail=ivanalejandroherrera00%40gmail.com&ConfirmPassword=ivan12345&Consignee.AlternativeEmail=&Consignee.BirthDate=2025-03-15&Consignee.ConsigneeLastName1=Herrera&Consignee.ConsigneeLastName2=Herrera&Consignee.ConsigneeName=Ivan&Consignee.ContactName1=&Consignee.ContactName2=&Consignee.Email=ivanalejandroherrera00%40gmail.com&Consignee.IdResponsabilidad&Consignee.IdentificationNumber=707640777&Consignee.IdentificationType=Cedula%20%C3%B3%20Residencia&Consignee.IsCompany=false&Consignee.ReceivesNewsletter=true&Consignee.ResidenceCountry=CR&Consignee.Responsabilidad=0&Consignee.Sucursal.IdSucursal=1&Password=ivan12345&Phones=%5B%7B%22idphone%22%3A56842%2C%22phonenumber%22%3A%2261590905%22%2C%22phoneextension%22%3A%22%22%2C%22isactive%22%3Afalse%2C%22isprimary%22%3Afalse%2C%22phonetype%22%3A%7B%22idphonetype%22%3A1%2C%22type%22%3A%22Celular%22%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%2C%22consignees%22%3Anull%2C%22phonefreightforwarders%22%3Anull%2C%22phoneshippers%22%3Anull%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%5D",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser",
+          "protocol": "https",
+          "host": [
+            "test",
+            "clients",
+            "crbox",
+            "cr"
+          ],
+          "path": [
+            "api",
+            "crboxwebapi",
+            "postregisteruser"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Profile",
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {
+          "content-type": true
+        }
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "pzBpRl4BcF8Flqp9BNfKqWo7rxe1Ozc4hTYZZNV7EOQiTqXeuRjmPX8zbiEQZD39kkbK3Wr6Sa2zrumW06Q7vj04Y6uan_iCOibgfGAYfkvyqnI3Ywf0oe4fHR-8SDa0Dxp7vkZQexfb-Oz3NCQn041j3bMFOCdwy82ex_SyPia1lcw8Ek_ooigCryg1w-CQ_IlRP_N4_I2WzspVH3mOed5YHY-f55K7sfvg8mTMX6DW-sHS",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "Addresses=%5B%7B%22idaddress%22%3A80770%2C%22line1%22%3A%22Alajuela%20ALAJUELA%20SAN%20RAFAEL%20SAN%20RAFAEL%20Condominio%209-10%20Concasa%2C%20Apartamento%20E6-3%22%2C%22line2%22%3A%22Apartamento%20E6-3%22%2C%22city%22%3A%22ALAJUELA%22%2C%22zipcode%22%3A%2220108%22%2C%22isactive%22%3Afalse%2C%22isprimary%22%3Afalse%2C%22provincia%22%3A%222%22%2C%22canton%22%3A%221%22%2C%22distrito%22%3A%228%22%2C%22barrio%22%3A%220%22%2C%22direccion%22%3A%22Condominio%209-10%20Concasa%2C%20Apartamento%20E6-3%22%2C%22state%22%3A%7B%22idstate%22%3A2%2C%22statename%22%3A%22Alajuela%22%2C%22country%22%3A%7B%22idcountry%22%3A1%2C%22countryname%22%3A%22Costa%20Rica%22%2C%22statecountry%22%3Anull%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%2C%22addresstype%22%3A%7B%22idaddresstype%22%3A1%2C%22type%22%3A%22Casa%22%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%5D&CompanyCode&ConfirmEmail=alonso01%40gmail.com&ConfirmPassword&Consignee.AlternativeEmail&Consignee.ConsigneeLastName1=Blanco&Consignee.ConsigneeLastName2=Robleto&Consignee.ConsigneeName=Alonso&Consignee.ContactName1&Consignee.ContactName2&Consignee.Email=alonso01%40gmail.com&Consignee.IdConsignee=50609639&Consignee.IdResponsabilidad&Consignee.IdentificationNumber=112770148&Consignee.IdentificationType=Cedula%20%C3%B3%20Residencia&Consignee.IsCompany=false&Consignee.OmitirReceptor=N&Consignee.ReceivesNewsletter=false&Consignee.ResidenceCountry=CR&Consignee.Responsabilidad=0&Consignee.Sucursal.IdSucursal=13&Password&Phones=%5B%7B%22idphone%22%3A91785%2C%22phonenumber%22%3A%2261590905%22%2C%22phoneextension%22%3A%22%22%2C%22isactive%22%3Afalse%2C%22isprimary%22%3Afalse%2C%22phonetype%22%3A%7B%22idphonetype%22%3A1%2C%22type%22%3A%22Celular%22%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%2C%22consignees%22%3Anull%2C%22phonefreightforwarders%22%3Anull%2C%22phoneshippers%22%3Anull%2C%22_bIsDeleted%22%3Afalse%2C%22_bIsChanged%22%3Atrue%7D%5D",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://test.clients.crbox.cr/api/crboxwebapi/postedituser",
+          "protocol": "https",
+          "host": [
+            "test",
+            "clients",
+            "crbox",
+            "cr"
+          ],
+          "path": [
+            "api",
+            "crboxwebapi",
+            "postedituser"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "grant_type=password&password=yaxLExtx%21%23j%23sQG3&username=alonso01%40gmail.com",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://clients.crbox.cr/authtoken",
+          "protocol": "https",
+          "host": [
+            "clients",
+            "crbox",
+            "cr"
+          ],
+          "path": [
+            "authtoken"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Login",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "grant_type=password&password=yaxLExtx%21%23j%23sQG3&username=alonso01%40gmail.com",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://clients.crbox.cr/authtoken",
+              "protocol": "https",
+              "host": [
+                "clients",
+                "crbox",
+                "cr"
+              ],
+              "path": [
+                "authtoken"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            },
+            {
+              "key": "Pragma",
+              "value": "no-cache"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json;charset=UTF-8"
+            },
+            {
+              "key": "Expires",
+              "value": "-1"
+            },
+            {
+              "key": "Server",
+              "value": "Microsoft-IIS/8.5"
+            },
+            {
+              "key": "X-Powered-By",
+              "value": "ASP.NET"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 24 Apr 2026 05:36:50 GMT"
+            },
+            {
+              "key": "Content-Length",
+              "value": "300"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"access_token\": \"bs2W_8IMEhSoApnF2boYEGGO6B0LbrzWSfAkGR58eYmE21MdpZbmxwn2HHN0uJBuWEXdJ0GpxQaNjVs-vGVyPzVda6dKcehGI0ydnp_05lDnHG3_yuXGxDPutwsy-GbYIRAIQy9LihFLfjf_zi2cEe1JexEb1cj2Psjr8rz01uy9XWyEClGcKtWVgJdsXMZWJrDtrYk9mQnozZPPNGqO7krVkm2dAdsAC_-H85BQadVx22px\",\n    \"token_type\": \"bearer\",\n    \"expires_in\": 86399\n}"
+        }
+      ]
+    }
+  ]
+}

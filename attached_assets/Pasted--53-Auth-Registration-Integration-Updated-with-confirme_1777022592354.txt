@@ -1,0 +1,370 @@
+#53 - Auth & Registration Integration (Updated with confirmed API findings)
+
+I want you to implement the CRBOX auth and registration integration in a production-minded, careful way, using:
+1. the uploaded Postman collection
+2. the current frontend codebase
+3. the confirmed API behavior we already validated manually
+
+Important:
+Do not guess undocumented backend behavior.
+Do not blindly treat sample payloads as final production truth.
+Move forward aggressively where the contract is confirmed, but isolate unresolved backend-sensitive fields instead of hardcoding assumptions.
+
+==================================================
+GOAL
+==================================================
+
+Replace the fake login and fake registration behavior with real backend integration where it is now safe to do so.
+
+Focus on:
+- real login
+- token/session handling
+- logout
+- auth-aware UI state
+- Afíliate personal registration flow
+- safe scaffolding for future Update Profile support
+
+Do not redesign the site.
+Do not disturb unrelated SEO/mobile/analytics/public-site work unless necessary for auth/account integration.
+
+==================================================
+CURRENT KNOWN STATE
+==================================================
+
+Right now:
+- login is fake
+- registration is fake or not truly wired end-to-end
+- the backend contract is now much better understood from the Postman collection and real manual testing
+- some important backend-sensitive fields remain unresolved and must be isolated, not guessed
+
+==================================================
+CONFIRMED LOGIN CONTRACT
+==================================================
+
+Endpoint:
+POST https://clients.crbox.cr/authtoken
+
+Content-Type:
+application/x-www-form-urlencoded
+
+Body shape:
+grant_type=password&username={email}&password={password}
+
+Confirmed successful response fields:
+- access_token
+- token_type
+- expires_in
+
+Confirmed usage:
+- Update Profile uses this token as:
+  Authorization: Bearer {token}
+
+This means login is a Bearer-token auth flow and can be implemented now.
+
+Still unknown:
+- failed login response format
+- whether a test-environment login endpoint exists
+- whether direct browser calls will hit CORS from the actual frontend origin
+
+==================================================
+CONFIRMED CREATE CLIENT / REGISTRATION CONTRACT
+==================================================
+
+Endpoint:
+POST https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser
+
+Content-Type:
+application/x-www-form-urlencoded
+
+Important request pattern:
+- request body is application/x-www-form-urlencoded
+- Phones and Addresses are JSON-stringified arrays embedded as string values inside the form body
+- do not send a JSON body
+
+Confirmed response behavior:
+- API returns HTTP 200 for both success and observed errors
+- frontend must determine outcome from JSON body, not HTTP status
+
+Confirmed response envelope:
+{
+  "StatusResult": "OK" | "ERROR",
+  "Message": "..."
+}
+
+Confirmed observed Create Client responses:
+- success:
+  { "StatusResult": "OK", "Message": "" }
+
+- duplicate identification:
+  { "StatusResult": "ERROR", "Message": "El número de identificación ya está registrado en la base de datos" }
+
+- duplicate email:
+  { "StatusResult": "ERROR", "Message": "El correo ya existe en la base de datos" }
+
+Confirmed successful Create Client field set includes:
+Identity/profile fields:
+- Consignee.ConsigneeName
+- Consignee.ConsigneeLastName1
+- Consignee.ConsigneeLastName2
+- Consignee.IdentificationNumber
+- Consignee.IdentificationType
+- Consignee.IsCompany
+- Consignee.BirthDate
+- Consignee.ResidenceCountry
+- Consignee.ReceivesNewsletter
+- Consignee.Responsabilidad
+- Consignee.IdResponsabilidad
+- Consignee.ContactName1
+- Consignee.ContactName2
+- Consignee.AlternativeEmail
+- CompanyCode
+
+Email/password fields:
+- Consignee.Email
+- ConfirmEmail
+- Password
+- ConfirmPassword
+
+Branch/sucursal field:
+- Consignee.Sucursal.IdSucursal
+
+Complex fields:
+- Phones = JSON-stringified array
+- Addresses = JSON-stringified array
+
+Confirmed Create Client implementation rules:
+- frontend must always inspect StatusResult
+- frontend must not treat HTTP 200 as success by itself
+- known backend business errors already confirmed:
+  - duplicate email
+  - duplicate ID
+
+==================================================
+CRITICAL CREATE CLIENT RISKS
+==================================================
+
+These are NOT safe confirmed frontend-generated values:
+- idaddress
+- idphone
+
+They appear to be reused database/template IDs from persisted records.
+Do not reuse sample values from the collection.
+
+Consignee.Sucursal.IdSucursal is NOT safe as a fixed constant.
+It appears to be user-specific / business-specific.
+
+Do not silently spread assumptions like:
+- idaddress = 0
+- idphone = 0
+- IdSucursal = 1
+across the codebase as final truth.
+
+If a temporary guarded strategy is needed, isolate it in one place and clearly mark it as pending backend confirmation.
+
+==================================================
+CONFIRMED UPDATE PROFILE CONTRACT
+==================================================
+
+Endpoint:
+POST https://test.clients.crbox.cr/api/crboxwebapi/postedituser
+
+Content-Type:
+application/x-www-form-urlencoded
+
+Auth:
+Bearer token required
+
+Observed fields include:
+- Consignee.IdConsignee
+- idaddress
+- idphone
+- Consignee.Sucursal.IdSucursal
+- other scalar Consignee.* fields
+- Phones and Addresses with the same general nested structure as Create Client
+
+Critical findings:
+- Consignee.IdConsignee is backend-assigned and absent from Create Client
+- idaddress and idphone are real persisted DB row IDs
+- Consignee.Sucursal.IdSucursal is user-specific
+- Password / ConfirmPassword are present but empty in the observed Update Profile request
+- Consignee.BirthDate is absent from Update Profile
+
+This means:
+Update Profile cannot be safely completed end-to-end unless frontend first has a way to retrieve the authenticated user’s persisted profile object, including:
+- Consignee.IdConsignee
+- idaddress
+- idphone
+- current IdSucursal
+
+Do not fake these values.
+Do not guess them.
+Do not hardcode them.
+
+==================================================
+IMPLEMENTATION DIRECTION
+==================================================
+
+I do NOT want fake assumptions.
+I want you to implement the safe parts now and isolate the unresolved parts cleanly.
+
+What is safe to implement now:
+- real login flow
+- token/session handling
+- logout
+- authenticated UI state
+- real Create Client wiring for Afíliate personal registration
+- frontend success/error handling for Create Client
+- registration serializer for Phones and Addresses
+- request-building logic for Update Profile as a service/scaffold only, if useful
+
+What is NOT safe to fully finalize yet:
+- final treatment of idaddress for new registrations
+- final treatment of idphone for new registrations
+- final treatment of Consignee.Sucursal.IdSucursal
+- fully live Update Profile flow without a current-user/profile source
+
+==================================================
+ARCHITECTURE DECISION
+==================================================
+
+The previous plan proposed a server-side proxy in server.py.
+
+Do NOT assume that decision is final without evaluating the current codebase and integration risks.
+
+I want you to explicitly assess:
+- whether direct browser-to-API calls are appropriate
+- whether CORS is likely to block them from the actual frontend origin
+- whether a small server-side proxy is safer and cleaner
+- whether server.py is the right place for that in the current project structure
+
+Then recommend the safest production-minded path.
+Do not overstate certainty if CORS has not yet been tested from the actual frontend origin.
+
+==================================================
+FORM FIELD MAPPING
+==================================================
+
+Use the current Afíliate personal form and map it carefully to the confirmed API contract.
+
+Current form → backend intent:
+- first_name → Consignee.ConsigneeName
+- last_name (if single combined field) → split carefully into:
+  - first word → Consignee.ConsigneeLastName1
+  - remainder → Consignee.ConsigneeLastName2
+- email → Consignee.Email + ConfirmEmail
+- password → Password + ConfirmPassword
+- id_type → Consignee.IdentificationType
+- id_number → Consignee.IdentificationNumber
+- country → Consignee.ResidenceCountry
+- newsletter checkbox → Consignee.ReceivesNewsletter
+- promo_code → CompanyCode
+- phone inputs → Phones JSON-stringified array
+- address inputs / province-canton-district values → Addresses JSON-stringified array
+
+But:
+- do not hardcode unresolved backend-sensitive values silently
+- isolate them in one clearly labeled config/adapter layer if needed
+
+==================================================
+SESSION STRATEGY
+==================================================
+
+Implement a real token/session layer.
+
+I want you to choose a reasonable production-minded strategy and explain it.
+
+Baseline expectations:
+- store access_token
+- compute expires_at from expires_in
+- on page load, check whether token is expired
+- if expired, clear auth state
+- implement logout that clears auth state
+
+If there is a “Mantener sesión iniciada” checkbox, support persistent vs session-based storage if that makes sense with the existing UI.
+Do not overengineer.
+
+==================================================
+WHAT I WANT YOU TO DO
+==================================================
+
+A. Analyze current codebase first
+Inspect the current frontend/project implementation before changing anything.
+
+Tell me:
+- what login UI already exists
+- what registration UI already exists
+- what is currently fake/mock
+- what can be replaced directly
+- whether there is already any server-side capability relevant to proxying or auth integration
+
+B. Implement real login
+Implement:
+- login request
+- token/session handling
+- expiry handling
+- logout
+- replacement of fake login behavior
+- auth-aware UI state where appropriate
+
+C. Implement Create Client / Afíliate as far as it is reliable
+Implement:
+- request builder for application/x-www-form-urlencoded
+- JSON-stringified Phones and Addresses
+- frontend handling of StatusResult / Message
+- UX states for:
+  - success
+  - duplicate email
+  - duplicate identification number
+  - unknown backend error
+- loading state on submit
+
+D. Handle unresolved fields carefully
+For:
+- idaddress
+- idphone
+- Consignee.Sucursal.IdSucursal
+
+Do not treat temporary guesses as final truth.
+If you need a guarded temporary strategy, isolate it clearly in one place and label it as pending backend confirmation.
+
+E. Safe Update Profile scaffolding
+Do not fake a full working profile edit flow.
+Instead:
+- build only the safe structural parts if useful
+- clearly isolate the missing dependency on retrieving current persisted profile IDs
+- explain what exact data source is still needed to complete Update Profile safely
+
+F. Evaluate architecture
+Explicitly tell me whether you recommend:
+- direct frontend calls
+or
+- a small server-side proxy
+
+Explain why, based on the actual codebase and current knowledge.
+
+==================================================
+OUTPUT FORMAT
+==================================================
+
+First give me:
+1. concise analysis of the current implementation state
+2. what is safe to implement now
+3. what is still risky or blocked
+4. whether you recommend direct calls or a proxy
+
+Then:
+5. implement the safe parts
+6. summarize exactly what changed
+7. list exact files changed
+8. list the minimum remaining backend confirmations still needed
+
+==================================================
+IMPORTANT RULES
+==================================================
+
+- do not redesign the site
+- do not disturb unrelated SEO/mobile/analytics work
+- do not hallucinate undocumented backend behavior
+- do not treat HTTP 200 as success for Create Client without checking StatusResult
+- do not reuse sample DB IDs from the Postman collection as production values
+- move forward aggressively on the confirmed parts, but isolate unresolved backend-sensitive fields instead of guessing them
