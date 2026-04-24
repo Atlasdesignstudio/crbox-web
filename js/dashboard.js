@@ -458,7 +458,8 @@ function initCopyFunctions() {
     if (copyAddressBtn) {
         copyAddressBtn.addEventListener('click', function() {
             // Construir la dirección completa
-            const name = "Mathias Meneses";
+            const nameEl = document.getElementById('miami-address-name');
+            const name = (nameEl && nameEl.textContent && nameEl.textContent.trim() !== '—') ? nameEl.textContent.trim() : '';
             const address = "8155 NW 68TH ST";
             const city = "Miami";
             const state = "Florida";
@@ -699,15 +700,18 @@ function showWelcomeMessage() {
         
         // Get username if available
         const usernameElement = document.querySelector('.font-medium:not(.whitespace-nowrap)');
-        let username = 'Mathias';
+        let username = '';
         
         if (usernameElement && usernameElement.textContent) {
             username = usernameElement.textContent.trim();
         }
         
-        // Show welcome toast
+        // Show welcome toast — delay slightly so getuserinfo can populate the name
         setTimeout(() => {
-            showToast(`${greeting}, ${username}! Bienvenido a tu dashboard`, 'success');
+            const resolvedNameEl = document.getElementById('header-user-name');
+            const resolvedName = (resolvedNameEl && resolvedNameEl.textContent && resolvedNameEl.textContent.trim() !== '...') ? resolvedNameEl.textContent.trim() : username;
+            const toastMsg = resolvedName ? `${greeting}, ${resolvedName}! Bienvenido a tu dashboard` : `${greeting}! Bienvenido a tu dashboard`;
+            showToast(toastMsg, 'success');
         }, 1000);
         
         // Store last visit

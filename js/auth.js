@@ -22,7 +22,8 @@
     sabana_norte:       1,
     guadalupe:         12,
     domicilio:         13,
-    guachipelin_escazu: 14
+    guachipelin_escazu: 14,
+    guachipelín: 14
   };
 
   // ─── PENDING compat shim ──────────────────────────────────────────────────
