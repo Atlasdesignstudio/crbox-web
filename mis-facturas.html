@@ -737,35 +737,40 @@
           '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando facturas...</td></tr>';
         _resetBillsStats();
 
-        // Diagnostic: always log the date range that produced the
-        // current result (no PII), so the empty-state case can be
-        // triaged from the browser console without a redeploy. The
-        // detailed payload preview is gated behind the debug flag.
+        // Diagnostics: fully gated behind the debug flag so production
+        // consoles stay quiet. Operators flip
+        // `localStorage.setItem('CRBOX_DEBUG_BILLS','1')` on, refresh,
+        // and get the date range, envelope shape, raw / mapped
+        // counters, and the first raw / first mapped invoice row in
+        // one place. PII (email + full rows) is only emitted in this
+        // mode. All wrapped in try/catch — logging must never break
+        // the page.
         var debug = _bills_debug_enabled();
-        try {
-          var reqLine = { start: CRBOXPortalAPI.formatDate(startDate),
-                          end:   CRBOXPortalAPI.formatDate(endDate) };
-          if (debug) reqLine.email = email;
-          console.info('[CRBOX][bills] request', reqLine);
-        } catch (e) { /* noop — logging must never break the page */ }
+        if (debug) {
+          try {
+            console.info('[CRBOX][bills] request',
+              { email: email,
+                start: CRBOXPortalAPI.formatDate(startDate),
+                end:   CRBOXPortalAPI.formatDate(endDate) });
+          } catch (e) { /* noop */ }
+        }
 
         return CRBOXPortalAPI.getBills(email, startDate, endDate)
           .then(function (data) {
             var raw = _unwrapBillsEnvelope(data);
             var bills = raw.map(function (r) { return CRBOXPortalAPI.mapBill(r); });
-            try {
-              var resLine = { rawLen: raw.length,
-                              mappedLen: bills.length,
-                              envelopeIsArray: Array.isArray(data),
-                              envelopeKeys: (data && typeof data === 'object' && !Array.isArray(data))
-                                ? Object.keys(data) : null };
-              // PII (full invoice rows) only when the debug flag is on.
-              if (debug) {
-                resLine.firstRaw    = raw[0]    || null;
-                resLine.firstMapped = bills[0]  || null;
-              }
-              console.info('[CRBOX][bills] response', resLine);
-            } catch (e) { /* noop */ }
+            if (debug) {
+              try {
+                console.info('[CRBOX][bills] response',
+                  { rawLen: raw.length,
+                    mappedLen: bills.length,
+                    envelopeIsArray: Array.isArray(data),
+                    envelopeKeys: (data && typeof data === 'object' && !Array.isArray(data))
+                      ? Object.keys(data) : null,
+                    firstRaw:    raw[0]    || null,
+                    firstMapped: bills[0]  || null });
+              } catch (e) { /* noop */ }
+            }
             _cachedBills = bills;
             _renderBillsStats(bills);
             _applyBillsSearch();

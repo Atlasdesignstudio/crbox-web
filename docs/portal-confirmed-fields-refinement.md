@@ -174,15 +174,15 @@ against, so the call to action was opaque.
      wrappers, plus a single `{ Factura, ... }` row treated as a
      one-element list. This eliminates the "real data returned but
      wrapped in a key the page didn't recognize" silent-empty mode.
-   - `_loadBills` now emits two `console.info` diagnostic lines on
-     every load: `[CRBOX][bills] request` (start + end always; email
-     only when the debug flag is on) and `[CRBOX][bills] response`
-     (raw length, mapped length, envelope shape always; the actual
-     first-raw / first-mapped invoice rows only when the debug flag
-     is on). The PII payload is gated behind
-     `localStorage.setItem('CRBOX_DEBUG_BILLS', '1')` so production
-     consoles never leak account email, invoice numbers, totals, or
-     recibos. All logging is wrapped in try/catch.
+   - `_loadBills` emits diagnostic `console.info` lines (request line
+     with email + date range; response line with raw / mapped
+     counters, envelope shape, first raw row, first mapped row), but
+     **the entire diagnostic block is gated behind**
+     `localStorage.setItem('CRBOX_DEBUG_BILLS', '1')`. Production
+     consoles stay completely quiet by default — no PII, no operator
+     noise. Operators flip the flag on, refresh, and get all the
+     debug context they need in two namespaced lines. All logging is
+     wrapped in try/catch so it can never break the page.
    - `_parseLocalDate()` is a new local-date parser used by
      `_getStart()` / `_getEnd()`. Native `<input type="date">`
      yields strings like `2026-04-24`, and `new Date('2026-04-24')`
