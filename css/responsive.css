@@ -2,10 +2,31 @@
    PANTALLAS <= 768px
 ========================= */
 @media (max-width: 768px) {
-    /* ===== Navbar: tighter vertical padding on mobile ===== */
+    /* ===== Navbar: tight padding + guaranteed row layout on mobile ===== */
     .sticky-header .container {
-      padding-top: 0.625rem;
-      padding-bottom: 0.625rem;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+
+    /* Force logo and hamburger onto a single row regardless of other rules */
+    .sticky-header .container > div:first-child {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      flex-wrap: nowrap !important;
+      width: 100%;
+    }
+
+    /* Hamburger always visible and not squished */
+    #mobile-menu-button {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 0.5rem;
+      min-width: 44px;
+      min-height: 44px;
     }
 
     /* ===== Mobile menu smooth slide-down animation =====
@@ -18,7 +39,7 @@
       max-height: 480px;
       opacity: 1;
       transition: max-height 0.35s ease-in-out, opacity 0.25s ease, margin 0.35s ease;
-      margin-top: 0.75rem;
+      margin-top: 0.5rem;
     }
 
     #mobile-menu.hidden {
@@ -136,7 +157,13 @@
 
     /* Hero: more vertical gap between the two columns */
     #main-content .flex.flex-wrap {
-      gap: 2rem;
+      gap: 3rem;
+    }
+
+    /* Hero section: reduce vertical padding on mobile */
+    #main-content {
+      padding-top: 2.5rem !important;
+      padding-bottom: 2.5rem !important;
     }
 
     /* Hero: trust card — more breathing room */
