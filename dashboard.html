@@ -826,7 +826,16 @@
     if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
     CRBOXPortalAPI.getUserInfo()
       .then(function (info) { _applyUserInfo(info); })
-      .catch(function (err) { console.warn('[CRBOX] getUserInfo failed:', err); });
+      .catch(function (err) {
+        console.warn('[CRBOX] getUserInfo failed:', err);
+        var nameEl = document.getElementById('welcome-name-span');
+        if (nameEl) {
+          nameEl.textContent = 'No se pudo cargar tu información.';
+          nameEl.classList.add('text-orange-300');
+        }
+        var headerEl = document.getElementById('header-user-name');
+        if (headerEl) headerEl.textContent = 'Error';
+      });
   });
 }());
 </script>

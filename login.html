@@ -301,6 +301,7 @@
             
             <div class="mt-6 text-center text-sm text-gray-600">
                 <p id="recovery-success-msg" class="hidden mt-2 text-green-600 text-sm font-medium"></p>
+                <p id="recovery-error-msg"   class="hidden mt-2 text-red-600   text-sm font-medium"></p>
                 <p>¿Recordaste tu contraseña? <a href="#" id="back-to-login" class="text-orange-600 font-semibold hover:text-orange-800">Volver al inicio de sesión</a></p>
             </div>
         </div>
@@ -488,9 +489,29 @@
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Enviando...';
                 }
 
+                function _showRecoveryMsg(text, isError) {
+                    var successEl = document.getElementById('recovery-success-msg');
+                    var errorEl   = document.getElementById('recovery-error-msg');
+                    if (isError) {
+                        if (successEl) successEl.classList.add('hidden');
+                        if (errorEl) {
+                            errorEl.textContent = text;
+                            errorEl.classList.remove('hidden');
+                            setTimeout(function () { errorEl.classList.add('hidden'); }, 8000);
+                        }
+                    } else {
+                        if (errorEl) errorEl.classList.add('hidden');
+                        if (successEl) {
+                            successEl.textContent = text;
+                            successEl.classList.remove('hidden');
+                            setTimeout(function () { successEl.classList.add('hidden'); }, 8000);
+                        }
+                    }
+                }
+
                 if (typeof CRBOXPortalAPI === 'undefined') {
                     if (submitBtn) { submitBtn.innerHTML = origBtnHTML; submitBtn.disabled = false; }
-                    alert('Error interno: módulo de API no cargado. Recarga la página.');
+                    _showRecoveryMsg('Error interno: módulo de API no cargado. Recarga la página.', true);
                     return;
                 }
                 const doRecover = CRBOXPortalAPI.recoverPassword(email);
@@ -500,27 +521,20 @@
                         if (submitBtn) { submitBtn.innerHTML = origBtnHTML; submitBtn.disabled = false; }
                         if (data && data.ok) {
                             passwordResetModal.classList.add('hidden');
-                            const msgEl = document.getElementById('recovery-success-msg');
-                            if (msgEl) {
-                                msgEl.textContent = 'Revisa tu correo ' + email + '. En minutos recibirás las instrucciones para restablecer tu contraseña.';
-                                msgEl.classList.remove('hidden');
-                                setTimeout(function () { msgEl.classList.add('hidden'); }, 8000);
-                            } else {
-                                alert('Revisa tu correo ' + email + '. En minutos recibirás las instrucciones para restablecer tu contraseña.');
-                            }
+                            _showRecoveryMsg('Revisa tu correo ' + email + '. En minutos recibirás las instrucciones para restablecer tu contraseña.', false);
                         } else {
                             var rawMsg = (data && data.message) || '';
                             if (rawMsg.toUpperCase() === 'FALSE') {
-                                alert('No encontramos una cuenta con ese correo. Verifica la dirección e intenta de nuevo.');
+                                _showRecoveryMsg('No encontramos una cuenta con ese correo. Verifica la dirección e intenta de nuevo.', true);
                             } else {
-                                alert('No se pudo procesar la solicitud. Verifica el correo e intenta de nuevo.');
+                                _showRecoveryMsg('No se pudo procesar la solicitud. Verifica el correo e intenta de nuevo.', true);
                             }
                         }
                     })
                     .catch(function (err) {
                         if (submitBtn) { submitBtn.innerHTML = origBtnHTML; submitBtn.disabled = false; }
                         console.error('[CRBOX] recoverPassword error:', err);
-                        alert('Ocurrió un error. Por favor intenta más tarde.');
+                        _showRecoveryMsg('Ocurrió un error de conexión. Por favor intenta más tarde.', true);
                     });
             });
         }

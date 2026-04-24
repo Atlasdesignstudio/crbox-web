@@ -177,8 +177,18 @@
 
     // Preserve nested phones/addresses from the raw response (keep real IDs)
     var raw        = rawApiResponse || {};
-    var phones     = raw.Phones    || c.phones    || [];
+    var phones     = (raw.Phones    || c.phones    || []).slice(); // shallow clone
     var addresses  = raw.Addresses || c.addresses || [];
+
+    // Merge phone edit back into the first phone record
+    var editedPhone = formEdits.phone || '';
+    if (editedPhone) {
+      if (phones.length > 0) {
+        phones[0] = Object.assign({}, phones[0], { phonenumber: editedPhone });
+      } else {
+        phones = [{ idphone: 0, phonenumber: editedPhone }];
+      }
+    }
 
     var params = new URLSearchParams();
     params.set('Consignee.IdConsignee',          idCons);
@@ -277,7 +287,14 @@
   function enforceAuthGate() {
     var path = window.location.pathname;
     var page = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
-    if (PROTECTED_PAGES.indexOf(page) !== -1 && !isLoggedIn()) {
+    if (PROTECTED_PAGES.indexOf(page) === -1) return;
+    if (!isLoggedIn()) {
+      window.location.replace('login.html');
+      return;
+    }
+    // Token present but email missing → half-authenticated session; clear + redirect.
+    if (!getEmail()) {
+      clearToken();
       window.location.replace('login.html');
     }
   }

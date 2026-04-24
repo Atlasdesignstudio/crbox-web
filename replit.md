@@ -54,9 +54,9 @@ The script updates all six public HTML pages automatically. It must also be run 
 |--------|----------|-------|
 | `getUserInfo(opts)` | `GET /getuserinfo/{email}` | Session-cached; `{ forceRefresh: true }` to bypass |
 | `updateProfile(payload)` | `POST /postedituser` | Clears cache, re-fetches fresh info |
-| `getPackages(idConsignee, start, end, track, status)` | `GET /getuserpackages/...` | Defaults to last 3 months |
-| `getBills(email, start, end)` | `GET /getfacturas/...` | Defaults to last 3 months |
-| `recoverPassword(email)` | `GET /getuserpasswordrecovery/{email}` | No auth; check `data.Message === 'OK'` |
+| `getPackages(idConsignee, start, end, track, status)` | `GET /getuserpackages/...` | Default start: 30 days back; empty track → `null` path segment |
+| `getBills(email, start, end)` | `GET /getfacturas/...` | Default start: 30 days back |
+| `recoverPassword(email)` | `GET /getuserpasswordrecovery/{email}` | No auth; returns `{ok: bool, message: str}`; rejects only on network error |
 | `formatDate(date)` | — | Returns `DD-MM-YYYY` string |
 
 Portal pages wired (all four now call real API on DOMContentLoaded):
