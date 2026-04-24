@@ -460,6 +460,12 @@
                             </tr>
                         </thead>
                         <tbody id="packages-tbody">
+                            <tr id="list-initial-loading-row">
+                                <td colspan="7" class="text-center py-12 text-gray-400">
+                                    <i class="fas fa-spinner fa-spin text-2xl mb-3 block"></i>
+                                    Cargando paquetes...
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -2329,20 +2335,33 @@
 
         _renderedPackages = sorted;
 
+        var _emptyListHtml =
+          '<tr><td colspan="7">' +
+            '<div class="flex flex-col items-center justify-center py-16 text-gray-400">' +
+              '<i class="fas fa-box-open text-5xl mb-4 text-gray-300"></i>' +
+              '<p class="text-lg font-medium text-gray-500 mb-1">No tienes paquetes registrados</p>' +
+              '<p class="text-sm text-gray-400">Cuando realices una compra, tus paquetes aparecerán aquí.</p>' +
+            '</div>' +
+          '</td></tr>';
+        var _emptyGridHtml =
+          '<div class="col-span-3">' +
+            '<div class="flex flex-col items-center justify-center py-16 text-gray-400">' +
+              '<i class="fas fa-box-open text-5xl mb-4 text-gray-300"></i>' +
+              '<p class="text-lg font-medium text-gray-500 mb-1">No tienes paquetes registrados</p>' +
+              '<p class="text-sm text-gray-400">Cuando realices una compra, tus paquetes aparecerán aquí.</p>' +
+            '</div>' +
+          '</div>';
+
         if (tbody) {
           if (count === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-400">' +
-              '<i class="fas fa-box-open text-4xl mb-3 block"></i>' +
-              'No tienes paquetes en el período seleccionado.</td></tr>';
+            tbody.innerHTML = _emptyListHtml;
           } else {
             tbody.innerHTML = sorted.map(function(p, i) { return _renderRow(p, i); }).join('');
           }
         }
         if (gridView) {
           if (count === 0) {
-            gridView.innerHTML = '<div class="col-span-3 text-center py-12 text-gray-400">' +
-              '<i class="fas fa-box-open text-4xl mb-3 block"></i>' +
-              'No tienes paquetes en el período seleccionado.</div>';
+            gridView.innerHTML = _emptyGridHtml;
           } else {
             gridView.innerHTML = sorted.map(function(p, i) { return _renderGridCard(p, i); }).join('');
           }
