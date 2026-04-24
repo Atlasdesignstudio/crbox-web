@@ -300,6 +300,7 @@
       createdDate:             f.createdDate || '',
       masterAirShipmentNumber: _str(mas.masterairshipmentnumber || mas.masterAirShipmentNumber),
       weigth:                  _num(f.weigth),
+      volumentricWeigth:       _num(f.volumentricWeigth),
       cantidadBultos:          _num(f.cantidadBultos),
       total:                   _num(f.total),
       descuentoNombre:         _str(disc._nombre || disc.nombre),

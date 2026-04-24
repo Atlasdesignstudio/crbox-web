@@ -739,6 +739,13 @@
                                     <p class="text-sm font-medium text-gray-800" id="modal-hawb">—</p>
                                 </div>
                             </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-store w-5 text-orange-500 mt-0.5"></i>
+                                <div class="ml-3">
+                                    <p class="text-xs text-gray-500">Sucursal de retiro</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-sucursal">—</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -772,6 +779,30 @@
                                     <p class="text-xs text-gray-500">Peso volumétrico</p>
                                     <p class="text-sm font-medium text-gray-800" id="modal-volumetric">—</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de factura asociada (solo lectura, metadata pasiva
+                     desde getuserpackages). Se oculta automáticamente si el paquete
+                     no trae descripción ni recuento de facturas asociadas. No
+                     representa estado de pago, saldo, ni factura por pagar. -->
+                <div id="modal-factura-section" class="mb-6 hidden">
+                    <h5 class="text-sm font-medium text-gray-500 mb-2">Factura asociada</h5>
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                        <div id="modal-factura-desc-line" class="flex items-start hidden">
+                            <i class="fas fa-file-invoice w-5 text-orange-500 mt-0.5"></i>
+                            <div class="ml-3">
+                                <p class="text-xs text-gray-500">Detalle</p>
+                                <p class="text-sm text-gray-800" id="modal-factura-desc">—</p>
+                            </div>
+                        </div>
+                        <div id="modal-factura-count-line" class="flex items-start hidden">
+                            <i class="fas fa-layer-group w-5 text-orange-500 mt-0.5"></i>
+                            <div class="ml-3">
+                                <p class="text-xs text-gray-500">Facturas asociadas</p>
+                                <p class="text-sm text-gray-800" id="modal-factura-count">—</p>
                             </div>
                         </div>
                     </div>
@@ -2391,7 +2422,30 @@
         setText('modal-weight',       _fmtNum(pkg.totalweight, 'kg'));
         setText('modal-volume',       _fmtNum(pkg.totalvolume));
         setText('modal-volumetric',   _fmtNum(pkg.totalvolumetricweight, 'kg'));
+        setText('modal-sucursal',     pkg.consigneeSucursalName);
         setText('modal-notes',        pkg.consigneeNotes);
+
+        // "Factura asociada": metadata pasiva, sólo lectura, sin
+        // implicar estado de pago, saldo, factura por pagar, ni
+        // ciclo de cobro. La sección se oculta si no hay datos.
+        var facturaSection   = document.getElementById('modal-factura-section');
+        var facturaDescLine  = document.getElementById('modal-factura-desc-line');
+        var facturaCountLine = document.getElementById('modal-factura-count-line');
+        var facturaDescEl    = document.getElementById('modal-factura-desc');
+        var facturaCountEl   = document.getElementById('modal-factura-count');
+        var hasDesc  = !!(pkg.descripcionfactura && String(pkg.descripcionfactura).trim());
+        var hasCount = (pkg.invoicesCount !== null && pkg.invoicesCount !== undefined && Number(pkg.invoicesCount) > 0);
+        if (facturaSection) {
+          if (hasDesc || hasCount) {
+            facturaSection.classList.remove('hidden');
+            if (facturaDescLine) facturaDescLine.classList.toggle('hidden', !hasDesc);
+            if (hasDesc && facturaDescEl) facturaDescEl.textContent = pkg.descripcionfactura;
+            if (facturaCountLine) facturaCountLine.classList.toggle('hidden', !hasCount);
+            if (hasCount && facturaCountEl) facturaCountEl.textContent = String(pkg.invoicesCount);
+          } else {
+            facturaSection.classList.add('hidden');
+          }
+        }
 
         var statusEl = document.getElementById('modal-status');
         if (statusEl) {
