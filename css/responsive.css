@@ -52,25 +52,41 @@
 
     /* ===== Mobile menu smooth slide-down animation =====
        Default: collapsed (max-height:0). Opens via .is-open class.
-       No dependency on Tailwind's .hidden — zero class conflicts. */
+       Negative margins break out of the container's px-4 so the panel
+       is truly edge-to-edge; internal padding compensates for readability. */
     #mobile-menu {
       display: block !important;
       overflow: hidden;
       max-height: 0;
       opacity: 0;
       pointer-events: none;
-      margin-top: 0;
-      transition: max-height 0.35s ease-in-out, opacity 0.25s ease, margin-top 0.3s ease;
+      margin-top: 0 !important;
+      /* Break out of container horizontal padding */
+      margin-left: -1rem !important;
+      margin-right: -1rem !important;
+      padding-left: 1.25rem !important;
+      padding-right: 1.25rem !important;
+      transition: max-height 0.35s ease-in-out, opacity 0.25s ease;
     }
 
     #mobile-menu.is-open {
-      max-height: 520px !important;
+      max-height: 560px !important;
       opacity: 1 !important;
       pointer-events: auto;
-      margin-top: 0 !important;
+      border-top: 1px solid rgba(0, 0, 0, 0.07) !important;
       border-bottom-left-radius: 1.25rem !important;
       border-bottom-right-radius: 1.25rem !important;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.07) !important;
+    }
+
+    /* Remove the container's bottom padding gap that makes the menu look detached */
+    .sticky-header.menu-open .container {
+      padding-bottom: 0 !important;
+    }
+
+    /* Tighten the top gap inside the menu so it hugs the header row */
+    #mobile-menu > div.py-3 {
+      padding-top: 0.25rem !important;
     }
 
     /* Afiliate hero section (py-20 md:py-28 gradient-bg) */
