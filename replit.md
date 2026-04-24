@@ -40,9 +40,9 @@ The script updates all six public HTML pages automatically. It must also be run 
 
 ### Auth integration (Task #53)
 
-- **CORS**: `clients.crbox.cr` confirmed to return `Access-Control-Allow-Origin: https://crbox.cr` — direct browser fetch is safe, no proxy needed.
-- **Login**: `CRBOXAuth.doLogin(email, password, remember)` POSTs to `https://clients.crbox.cr/authtoken`.
-- **Register**: `CRBOXAuth.doRegister(payload)` POSTs to `https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser`. Must inspect `StatusResult` — HTTP 200 alone is not success.
+- **Proxy**: all auth requests go through same-origin proxy endpoints in `server.py` (`POST /api/auth/login`, `/api/auth/register`, `/api/auth/update`), which forward to the CRBOX backend via Python's `urllib.request` — no direct cross-origin browser fetch.
+- **Login**: `CRBOXAuth.doLogin(email, password, remember)` POSTs to `/api/auth/login` (proxied to `https://clients.crbox.cr/authtoken`).
+- **Register**: `CRBOXAuth.doRegister(payload)` POSTs to `/api/auth/register` (proxied to `https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser`). Must inspect `StatusResult` — HTTP 200 alone is not success.
 - **Session**: `sessionStorage` by default; `localStorage` if "Mantener sesión iniciada" is checked. Keys: `crbox_access_token`, `crbox_expires_at`, `crbox_remember`.
 - **`PENDING_BACKEND_CONFIRMATION`** in `auth.js`: `newAddressId: 0` (unconfirmed), `newPhoneId: 0` (unconfirmed), `sucursalIdMap` all null (blocks submission until backend confirms IDs for Sabana Norte / Guadalupe / Domicilio).
 - **Update Profile scaffold**: `CRBOXAuth.buildUpdateProfilePayload()` is intentionally blocked until a GET-user endpoint is available.
