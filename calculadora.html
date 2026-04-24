@@ -355,6 +355,7 @@
                         <label for="aero-package-content" class="block text-gray-700 font-medium mb-2">Contenido del paquete</label>
                         <div class="relative">
                             <select id="aero-package-content" class="w-full">
+                                <option value=""></option>
                                 <option value="accesorios_impresora">Accesorios de Impresora (13.00%)</option>
                                 <option value="adaptador">Adaptador (13.00%)</option>
                                 <option value="adornos">Adornos (29.95%)</option>
@@ -1644,7 +1645,9 @@ insurance = Math.ceil(purchaseValueNum / 100);
             sortField: { field: 'text', direction: 'asc' },
             searchField: ['text'],
             placeholder: 'Buscar contenido del paquete...',
-            diacritics: true
+            diacritics: true,
+            allowEmptyOption: true,
+            items: []
         });
     });
 </script>
