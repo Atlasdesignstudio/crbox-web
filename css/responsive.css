@@ -84,9 +84,6 @@
       padding-bottom: 0.5rem;
     }
 
-    #tab-calcular .grid {
-      grid-template-columns: 1fr !important;
-    }
 
     input,
     select,

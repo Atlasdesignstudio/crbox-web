@@ -86,7 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function initTabs() {
         // Tabs específicos que sabemos que existen en la página
         const tabsConfig = {
-            'tab-calcular-btn': 'tab-calcular',
             'tab-peso-btn': 'tab-peso',
             'tab-manejo-btn': 'tab-manejo', 
             'tab-valores-btn': 'tab-valores'
@@ -98,7 +97,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const content = document.getElementById(contentId);
             
             if (!btn || !content) {
-                console.error(`Tab button or content missing: ${btnId} -> ${contentId}`);
                 return;
             }
             
