@@ -5,40 +5,40 @@
     .mobile-center {
       text-align: center;
     }
-  
+
     .mobile-order-1 {
       order: 1;
     }
-  
+
     .mobile-order-2 {
       order: 2;
     }
-  
+
     .feature-card {
       margin-bottom: 1.5rem;
     }
-  
+
     h1 {
       font-size: 2rem !important;
       line-height: 1.2;
     }
-  
+
     h2 {
       font-size: 1.5rem !important;
       line-height: 1.3;
     }
-  
+
     h3 {
       font-size: 1.25rem !important;
       line-height: 1.3;
     }
-  
+
     p {
       font-size: 1rem;
       line-height: 1.6;
       margin-bottom: 1rem;
     }
-  
+
     .primary-btn,
     .secondary-btn {
       width: 100%;
@@ -47,138 +47,286 @@
       padding: 0.75rem 1.25rem;
       text-align: center;
     }
-  
-    /* Topbar container para apilar botones */
+
     .topbar-container {
       flex-direction: column;
       align-items: stretch;
       gap: 0.5rem;
     }
-  
-    /* Tabla de tarifas optimizada para móvil */
+
     table {
       font-size: 0.875rem;
     }
-  
+
     th,
     td {
       padding: 0.5rem !important;
     }
-  
-    .grid-cols-3,
-    .grid-cols-2 {
-      grid-template-columns: 1fr !important;
+
+    .overflow-x-auto {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
-  
+
     .border-b.border-gray-200 {
       overflow-x: auto;
       white-space: nowrap;
       padding-bottom: 0.5rem;
     }
-  
+
     #tab-calcular .grid {
       grid-template-columns: 1fr !important;
     }
-  
+
     input,
     select,
     button {
       min-height: 44px;
       font-size: 16px;
     }
-  
+
+    textarea {
+      font-size: 16px;
+    }
+
     ul.flex.flex-wrap {
       justify-content: flex-start;
       overflow-x: auto;
     }
-  }
-  
-  /* =========================
-     PANTALLAS <= 640px
-  ========================= */
-  @media (max-width: 640px) {
+
+    /* Header: logo + hamburger on same row */
+    .sticky-header .container > div {
+      flex-direction: row !important;
+      align-items: center !important;
+    }
+
+    .sticky-header .container > div > * + * {
+      margin-top: 0 !important;
+    }
+
+    /* Hero sections */
+    section.py-16,
+    section.py-16.md\:py-24 {
+      padding-top: 2.5rem !important;
+      padding-bottom: 2.5rem !important;
+    }
+
+    /* Servicios: service image blocks */
+    .service-img-block {
+      min-height: 220px;
+      height: 220px;
+    }
+
+    /* Tab buttons */
+    .flex.flex-wrap.justify-center.gap-2 {
+      gap: 0.5rem !important;
+    }
+
+    .flex.flex-wrap.justify-center.gap-2 > button {
+      flex: 1 1 auto;
+      min-width: 130px;
+      font-size: 0.875rem;
+      padding: 0.625rem 0.75rem;
+    }
+
+    /* Breadcrumb */
+    .bg-gray-100 .flex.items-center.text-sm {
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Floating buttons */
+    a.whatsapp-btn.fixed,
+    a.fixed.whatsapp-btn {
+      bottom: 5rem !important;
+    }
+
+    #back-to-top.fixed {
+      bottom: 5rem !important;
+    }
+
+    /* Footer */
+    footer .grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    footer .border-t.flex {
+      flex-direction: column !important;
+      text-align: center;
+    }
+
+    footer .border-t.flex > p {
+      margin-bottom: 0.75rem;
+    }
+
+    /* Stats block: 2-up on mobile */
+    #stats .grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* Calculadora: dimension inputs stack */
+    #aero-dimensions-container .grid,
+    #maritimo-quote-form .grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* Calculadora: service comparison table scrolls horizontally */
+    #service-comparison .overflow-hidden {
+      overflow-x: auto !important;
+      overflow-y: visible !important;
+      -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* =========================
+   PANTALLAS <= 640px
+========================= */
+@media (max-width: 640px) {
     section {
       padding-top: 2rem;
       padding-bottom: 2rem;
     }
-  
+
     .container {
       padding-left: 1rem;
       padding-right: 1rem;
     }
-  
+
     .grid {
       gap: 1rem;
     }
-  
+
     #tab-peso table {
       display: block;
       overflow-x: auto;
     }
-  
+
     .bg-gray-50.rounded-lg.p-4,
     .bg-green-50.p-6,
     .bg-gray-100.p-6 {
       padding: 1rem !important;
     }
-  
+
     .mt-6.grid.grid-cols-1.gap-4 > div {
       margin-bottom: 1rem;
     }
-  
+
     .w-12.h-12 {
       width: 2.5rem;
       height: 2.5rem;
     }
-  
+
     .inline-block.p-4 {
       padding: 0.75rem;
       font-size: 0.875rem;
     }
-  
-    .grid-cols-3.gap-4.mb-6 {
-      display: flex;
-      flex-direction: column;
-    }
-  
+
     .mb-4 input,
     .mb-4 select {
       width: 100%;
       margin-top: 0.25rem;
     }
-  
+
     #resultado-calculo {
       margin-top: 1rem;
     }
-  }
-  
-  /* =========================
-     PANTALLAS <= 480px
-  ========================= */
-  @media (max-width: 480px) {
+
+    /* Maritime weekly schedule */
+    #maritimo-calculator .bg-blue-50 .grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* Maritime calculator layout */
+    #maritimo-calculator .w-full.md\:w-5\/12,
+    #maritimo-calculator .w-full.md\:w-7\/12 {
+      width: 100% !important;
+    }
+}
+
+/* =========================
+   PANTALLAS <= 480px
+========================= */
+@media (max-width: 480px) {
     .tab-content {
       margin: 0 -1rem;
       width: calc(100% + 2rem);
     }
-  
+
     .tab-content > div {
       border-radius: 0;
     }
-  
+
     .p-6 {
       padding: 0.75rem !important;
     }
-  
+
     .text-sm {
       font-size: 0.875rem !important;
     }
-  
+
     .px-4 {
       padding-left: 0.75rem !important;
       padding-right: 0.75rem !important;
     }
-  
+
     .flex.flex-col.sm\:flex-row.gap-4 {
       gap: 0.5rem !important;
     }
-  }
+
+    h1 {
+      font-size: 1.75rem !important;
+    }
+
+    h2 {
+      font-size: 1.375rem !important;
+    }
+
+    section.py-16,
+    section.py-16.md\:py-24 {
+      padding-top: 2rem !important;
+      padding-bottom: 2rem !important;
+    }
+
+    #stats .text-4xl {
+      font-size: 1.75rem !important;
+    }
+
+    .tarifa-card,
+    .calculator-card {
+      width: 100% !important;
+    }
+
+    .flex.flex-wrap.justify-center.gap-2 > button {
+      font-size: 0.8125rem;
+      padding: 0.5rem 0.625rem;
+      min-width: 100px;
+    }
+}
+
+/* =========================
+   PANTALLAS <= 320px
+========================= */
+@media (max-width: 320px) {
+    h1 {
+      font-size: 1.5rem !important;
+    }
+
+    h2 {
+      font-size: 1.25rem !important;
+    }
+
+    .container {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+
+    .p-8,
+    .p-6 {
+      padding: 0.75rem !important;
+    }
+
+    .text-xl {
+      font-size: 1rem !important;
+    }
+}
