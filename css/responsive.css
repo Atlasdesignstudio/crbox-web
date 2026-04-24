@@ -222,16 +222,14 @@
       text-align: left !important;
     }
 
-    /* Promo box ("¡Regístrate hoy!"): left-align text so the left border makes sense */
-    #main-content .border-l-4.border-orange-500 {
+    /* Promo pill: always left-align on mobile */
+    #main-content .inline-flex.items-center.gap-3 {
       text-align: left !important;
     }
 
-    /* Checkmarks row: stack into a single centered column instead of uneven wrap */
-    #main-content .flex.items-center.flex-wrap.gap-6 {
-      flex-direction: column !important;
-      align-items: flex-start !important;
-      gap: 0.5rem !important;
+    /* Benefit chips: center them under the mobile text block */
+    .hero-benefits {
+      justify-content: center;
     }
 
     /* Servicios: service image blocks */

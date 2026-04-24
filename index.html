@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/responsive.css?v=8">
+    <link rel="stylesheet" href="css/responsive.css?v=9">
 
     <!-- Structured Data: Organization + LocalBusiness + WebSite -->
     <script type="application/ld+json">
@@ -222,24 +222,25 @@
             </div>
             
             <!-- Promoción bajo botones -->
-            <div class="bg-orange-50 rounded-lg p-4 mb-8 border-l-4 border-orange-500">
-                <h3 class="text-xl font-semibold mb-1 text-orange-800">¡Regístrate hoy!</h3>
-                <p class="text-orange-700">Obtén un 20% de descuento en el flete de tu primer envío</p>
+            <div class="inline-flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-full px-4 py-2 mb-6">
+                <span class="flex-shrink-0 bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full tracking-wide">20% OFF</span>
+                <span class="text-orange-700 text-sm font-medium">¡Regístrate hoy y ahorra en tu primer envío!</span>
             </div>
-            
-            <div class="flex items-center flex-wrap gap-6">
-                <div class="flex items-center">
-                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                    <span>Sin cuota mensual</span>
-                </div>
-                <div class="flex items-center">
-                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                    <span>Procesamiento 24/7</span>
-                </div>
-                <div class="flex items-center">
-                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                    <span>Entrega a domicilio</span>
-                </div>
+
+            <!-- Beneficios -->
+            <div class="flex flex-wrap gap-2 hero-benefits">
+                <span class="inline-flex items-center gap-1.5 text-sm text-gray-600 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm">
+                    <i class="fas fa-check text-orange-500 text-xs"></i>
+                    Sin cuota mensual
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-sm text-gray-600 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm">
+                    <i class="fas fa-check text-orange-500 text-xs"></i>
+                    Procesamiento 24/7
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-sm text-gray-600 bg-white border border-gray-200 rounded-full px-3 py-1.5 shadow-sm">
+                    <i class="fas fa-check text-orange-500 text-xs"></i>
+                    Entrega a domicilio
+                </span>
             </div>
         </div>
         
