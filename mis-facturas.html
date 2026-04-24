@@ -921,9 +921,7 @@
         return CRBOXPortalAPI.formatDate(d);
       }
 
-      // Build the "Recibos" cell: comma-separated list of real Recibo
-      // numbers, truncated with "+N más" when more than 3 entries are
-      // returned. The full list is available in the row detail surface.
+      // Recibos summary cell — first 3 numbers, "+N más" if more.
       function _renderRecibosCell(recibos) {
         if (!recibos || recibos.length === 0) return EM_DASH;
         var nums = recibos.map(function (r) { return _esc(r.number || EM_DASH); });
@@ -968,10 +966,8 @@
         }
       }
 
-      // Real, derived-from-payload stats only. "Total" = invoice count;
-      // "Total Facturado" = sum of confirmed Factura.total values.
-      // We do NOT fabricate paid/pending counts — there is no contractual
-      // payment-status field in getfacturas yet.
+      // Stats: invoice count + sum of Factura.total. No paid/pending —
+      // payment-status isn't in the contract.
       function _renderBillsStats(bills) {
         var total = bills.length;
         _setStat('bills-stat-total', total, 'bills-stat-total-bar', total > 0 ? 1 : 0);
@@ -994,12 +990,7 @@
         _renderBillsFooter(null, _cachedBills.length, 'loading');
       }
 
-      // Honest footer line: real count of *visible* rows in the table,
-      // total cached count for the period, and real selected period.
-      // Replaces the old hard-coded "0 - 0 de 0" placeholder pager.
-      // Called from _renderBillsTable so it always tracks what the
-      // user is actually looking at (full set, search-filtered subset,
-      // loading state, or error state).
+      // Footer: real visible count + total cached count + selected period.
       function _renderBillsFooter(visible, total, state) {
         var countEl  = document.getElementById('bills-footer-count-text');
         var periodEl = document.getElementById('bills-footer-period');
@@ -1009,7 +1000,6 @@
           } else if (state === 'error') {
             countEl.textContent = 'No se pudieron cargar las facturas';
           } else if (!visible || visible.length === 0) {
-            // Distinguish "no results in period" vs "no search matches"
             if (typeof total === 'number' && total > 0) {
               countEl.innerHTML = 'Sin coincidencias <span class="text-gray-400">(de ' + total + ' facturas en el período)</span>';
             } else {
@@ -1038,9 +1028,7 @@
 
       var _cachedBills = [];
 
-      // Preserved (legacy) empty-state markup for an empty getfacturas
-      // response: same icon, headline, copy and CTA button as the static
-      // tbody fallback. Used when the API returned [] for the period.
+      // Empty-state row used when the API returns [] for the period.
       function _preservedEmptyStateRow() {
         return '<tr class="empty-state">' +
           '<td colspan="10" class="py-16">' +
@@ -1097,23 +1085,8 @@
         _renderBillsTable(filtered, { emptyMsg: 'Ninguna factura coincide con la búsqueda.' });
       }
 
-      // Diagnostics: enabled only when the user has explicitly opted in
-      // via `localStorage.setItem('CRBOX_DEBUG_BILLS', '1')`. This keeps
-      // PII (account email, invoice numbers, totals, recibos) out of
-      // the production console while still giving operators a one-line
-      // toggle for live triage. The non-sensitive counter line below
-      // (raw / mapped length, envelope keys) always logs at info level.
-      function _bills_debug_enabled() {
-        try { return window.localStorage && localStorage.getItem('CRBOX_DEBUG_BILLS') === '1'; }
-        catch (e) { return false; }
-      }
-
-      // Parse a `YYYY-MM-DD` string from a native <input type="date">
-      // as a *local* date rather than UTC. `new Date('2026-04-24')`
-      // is parsed as UTC midnight, which in Costa Rica (UTC-6) becomes
-      // 2026-04-23 18:00 local — the API would then receive the wrong
-      // day and the visible range would silently disagree with the
-      // input value. This helper avoids that drift.
+      // Parse YYYY-MM-DD as a local date (avoid the UTC-midnight shift
+      // that would push the day off by one in Costa Rica's UTC-6).
       function _parseLocalDate(s) {
         if (!s) return null;
         var m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -1124,24 +1097,6 @@
         return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
       }
 
-      // Defensive envelope unwrapper: getfacturas has historically been
-      // returned as a bare array, but real-world .NET shells often wrap
-      // it as { Facturas: [...] }, { facturas: [...] }, { Bills: [...] },
-      // { bills: [...] }, or { data: [...] }. We accept all of those so
-      // the page never silently empties because of a wrapper change.
-      function _unwrapBillsEnvelope(data) {
-        if (Array.isArray(data)) return data;
-        if (!data || typeof data !== 'object') return [];
-        var keys = ['Facturas', 'facturas', 'Bills', 'bills', 'data', 'Data', 'Result', 'result'];
-        for (var i = 0; i < keys.length; i++) {
-          if (Array.isArray(data[keys[i]])) return data[keys[i]];
-        }
-        // Single-row response (no wrapper): treat as a one-element list
-        // when it carries the confirmed { Factura, ... } shape.
-        if (data.Factura && typeof data.Factura === 'object') return [data];
-        return [];
-      }
-
       function _loadBills(email, startDate, endDate) {
         var tbody = document.getElementById('bills-tbody');
         if (!tbody) return Promise.resolve();
@@ -1149,40 +1104,8 @@
           '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando facturas...</td></tr>';
         _resetBillsStats();
 
-        // Diagnostics: fully gated behind the debug flag so production
-        // consoles stay quiet. Operators flip
-        // `localStorage.setItem('CRBOX_DEBUG_BILLS','1')` on, refresh,
-        // and get the date range, envelope shape, raw / mapped
-        // counters, and the first raw / first mapped invoice row in
-        // one place. PII (email + full rows) is only emitted in this
-        // mode. All wrapped in try/catch — logging must never break
-        // the page.
-        var debug = _bills_debug_enabled();
-        if (debug) {
-          try {
-            console.info('[CRBOX][bills] request',
-              { email: email,
-                start: CRBOXPortalAPI.formatDate(startDate),
-                end:   CRBOXPortalAPI.formatDate(endDate) });
-          } catch (e) { /* noop */ }
-        }
-
         return CRBOXPortalAPI.getBills(email, startDate, endDate)
-          .then(function (data) {
-            var raw = _unwrapBillsEnvelope(data);
-            var bills = raw.map(function (r) { return CRBOXPortalAPI.mapBill(r); });
-            if (debug) {
-              try {
-                console.info('[CRBOX][bills] response',
-                  { rawLen: raw.length,
-                    mappedLen: bills.length,
-                    envelopeIsArray: Array.isArray(data),
-                    envelopeKeys: (data && typeof data === 'object' && !Array.isArray(data))
-                      ? Object.keys(data) : null,
-                    firstRaw:    raw[0]    || null,
-                    firstMapped: bills[0]  || null });
-              } catch (e) { /* noop */ }
-            }
+          .then(function (bills) {
             _cachedBills = bills;
             _renderBillsStats(bills);
             _applyBillsSearch();
@@ -1195,16 +1118,11 @@
             _setStat('bills-stat-total', EM_DASH, 'bills-stat-total-bar', 0);
             var amountEl = document.getElementById('bills-stat-amount');
             if (amountEl) amountEl.textContent = EM_DASH;
-            // Honest error footer state — never leaves the user looking
-            // at a stale "Cargando facturas…" message after a failure.
             _renderBillsFooter(null, 0, 'error');
           });
       }
 
-      // Inline expansion for "Ver factura": render the bill's Recibos[]
-      // using only the confirmed real fields. Uses a sibling <tr> below
-      // the bill row, toggles on click, and never invents line items
-      // beyond what the API returns.
+      // Inline detail expansion for "Ver factura": renders Recibos[].
       function _renderRecibosDetail(bill) {
         if (!bill.recibos || bill.recibos.length === 0) {
           return '<div class="p-4 text-sm text-gray-500 italic">Esta factura no incluye recibos individuales en la respuesta.</div>';

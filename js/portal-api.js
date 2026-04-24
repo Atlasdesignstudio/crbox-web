@@ -164,27 +164,40 @@
     });
   }
 
+  // Accept bare arrays or common .NET envelope wrappers. Centralized
+  // here so page code only ever consumes mapped bills.
+  function _unwrapBillsEnvelope(data) {
+    if (Array.isArray(data)) return data;
+    if (!data || typeof data !== 'object') return [];
+    var keys = ['Facturas', 'facturas', 'Bills', 'bills', 'data', 'Data', 'Result', 'result'];
+    for (var i = 0; i < keys.length; i++) {
+      if (Array.isArray(data[keys[i]])) return data[keys[i]];
+    }
+    if (data.Factura && typeof data.Factura === 'object') return [data];
+    return [];
+  }
+
   // ─── getBills ─────────────────────────────────────────────────────────────
-  // email: account email
-  // startDate / endDate: Date objects
+  // email: account email; startDate / endDate: Date objects
+  // Returns mapped bills array (page never sees raw payload).
   function getBills(email, startDate, endDate) {
     var token = CRBOXAuth.getToken();
     if (!token) return Promise.reject(new Error('Sesión no iniciada. Por favor inicia sesión.'));
 
-    // Bills default to a 6-month window — see _lastNMonths above.
     var start = formatDate(startDate || _lastNMonths(6));
     var end   = formatDate(endDate   || _defaultEndDate());
 
     var url = BASE + '/getfacturas/' +
-      encodeURIComponent(email) + '/' +
-      start + '/' +
-      end;
+      encodeURIComponent(email) + '/' + start + '/' + end;
 
     return fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     }).then(function (res) {
       if (!res.ok) throw new Error('No se pudieron cargar las facturas (' + res.status + ').');
       return res.json();
+    }).then(function (data) {
+      var raw = _unwrapBillsEnvelope(data);
+      return raw.map(function (r) { return mapBill(r); });
     });
   }
 
