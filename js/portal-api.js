@@ -52,33 +52,37 @@
 
   // ─── getUserInfo ──────────────────────────────────────────────────────────
   // Resolves with the getuserinfo JSON object.
-  // Uses a session-level cache; pass { forceRefresh: true } to bypass.
-  function getUserInfo(opts) {
-    opts = opts || {};
+  // Signature: getUserInfo(email?, token?, opts?)
+  //   All args optional — falls back to CRBOXAuth globals when omitted.
+  // Uses a session-level cache; pass opts = { forceRefresh: true } to bypass.
+  function getUserInfo(emailArg, tokenArg, optsArg) {
+    // Support legacy single-arg call: getUserInfo(opts)
+    var opts = (emailArg && typeof emailArg === 'object') ? emailArg : (optsArg || {});
+    var email = (emailArg && typeof emailArg === 'string') ? emailArg : CRBOXAuth.getEmail();
+    var token = (tokenArg && typeof tokenArg === 'string') ? tokenArg : CRBOXAuth.getToken();
+
     if (_userInfoCache && !opts.forceRefresh) {
       return Promise.resolve(_userInfoCache);
     }
 
-    var token = CRBOXAuth.getToken();
     if (!token) {
       // Not logged in — auth gate in auth.js will redirect; reject cleanly.
-      return Promise.reject(new Error('No token'));
+      return Promise.reject(new Error('Sesión no iniciada. Por favor inicia sesión.'));
     }
 
-    var email = CRBOXAuth.getEmail();
     if (!email) {
       // Token present but email missing → half-authenticated session; clear and redirect.
       CRBOXAuth.clearToken();
       if (window.location.pathname.indexOf('login') === -1) {
         window.location.replace('login.html');
       }
-      return Promise.reject(new Error('Email not found in session — session cleared'));
+      return Promise.reject(new Error('No se encontró el correo de sesión. Por favor inicia sesión de nuevo.'));
     }
 
     return fetch(BASE + '/getuserinfo/' + encodeURIComponent(email), {
       headers: { 'Authorization': 'Bearer ' + token }
     }).then(function (res) {
-      if (!res.ok) throw new Error('getUserInfo failed: ' + res.status);
+      if (!res.ok) throw new Error('No se pudo obtener la información de tu cuenta (' + res.status + ').');
       return res.json();
     }).then(function (data) {
       _userInfoCache = data;
@@ -93,7 +97,7 @@
   // (use CRBOXAuth.buildUpdateProfilePayload).
   function updateProfile(payload) {
     var token = CRBOXAuth.getToken();
-    if (!token) return Promise.reject(new Error('No token'));
+    if (!token) return Promise.reject(new Error('Sesión no iniciada. Por favor inicia sesión.'));
 
     return fetch(BASE + '/postedituser', {
       method:  'POST',
@@ -125,7 +129,7 @@
   // status: status filter or '' for all
   function getPackages(idConsignee, startDate, endDate, tracking, status) {
     var token = CRBOXAuth.getToken();
-    if (!token) return Promise.reject(new Error('No token'));
+    if (!token) return Promise.reject(new Error('Sesión no iniciada. Por favor inicia sesión.'));
 
     var start = formatDate(startDate || _last30Days());
     var end   = formatDate(endDate   || _defaultEndDate());
@@ -142,7 +146,7 @@
     return fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     }).then(function (res) {
-      if (!res.ok) throw new Error('getPackages failed: ' + res.status);
+      if (!res.ok) throw new Error('No se pudieron cargar los paquetes (' + res.status + ').');
       return res.json();
     });
   }
@@ -152,7 +156,7 @@
   // startDate / endDate: Date objects
   function getBills(email, startDate, endDate) {
     var token = CRBOXAuth.getToken();
-    if (!token) return Promise.reject(new Error('No token'));
+    if (!token) return Promise.reject(new Error('Sesión no iniciada. Por favor inicia sesión.'));
 
     var start = formatDate(startDate || _last30Days());
     var end   = formatDate(endDate   || _defaultEndDate());
@@ -165,7 +169,7 @@
     return fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     }).then(function (res) {
-      if (!res.ok) throw new Error('getBills failed: ' + res.status);
+      if (!res.ok) throw new Error('No se pudieron cargar las facturas (' + res.status + ').');
       return res.json();
     });
   }
@@ -176,7 +180,7 @@
   function recoverPassword(email) {
     return fetch(BASE + '/getuserpasswordrecovery/' + encodeURIComponent(email))
       .then(function (res) {
-        if (!res.ok) throw new Error('recoverPassword network error: ' + res.status);
+        if (!res.ok) throw new Error('Error de red al recuperar contraseña (' + res.status + ').');
         return res.json();
       })
       .then(function (data) {

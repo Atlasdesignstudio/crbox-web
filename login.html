@@ -520,14 +520,9 @@
                     .then(function (data) {
                         if (submitBtn) { submitBtn.innerHTML = origBtnHTML; submitBtn.disabled = false; }
                         if (data && data.ok) {
-                            _showRecoveryMsg('Te enviamos un correo a ' + email + ' con las instrucciones para restablecer tu contraseña.', false);
+                            _showRecoveryMsg('Te enviamos un correo para recuperar tu contraseña.', false);
                         } else {
-                            var rawMsg = (data && data.message) || '';
-                            if (rawMsg.toUpperCase() === 'FALSE') {
-                                _showRecoveryMsg('No encontramos esa cuenta. Verifica la dirección e intenta de nuevo.', true);
-                            } else {
-                                _showRecoveryMsg('No se pudo procesar la solicitud. Verifica el correo e intenta de nuevo.', true);
-                            }
+                            _showRecoveryMsg('No encontramos esa cuenta. Verifica la dirección e intenta de nuevo.', true);
                         }
                     })
                     .catch(function (err) {

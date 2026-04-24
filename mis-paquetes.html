@@ -1628,6 +1628,10 @@
     <script src="js/auth.js"></script>
     <!-- JavaScript Mejorado -->
     <script>
+        /* Page-level cached profile vars — read by initCopyFunctions/showWelcomeMessage, written by portal IIFE */
+        var _cachedFullName     = '';
+        var _cachedCasilleroNum = '';
+
         document.addEventListener('DOMContentLoaded', function() {
             // Inicializar componentes
             initMobileMenu();
@@ -2458,8 +2462,7 @@
       }
 
       var _cachedConsigneeId  = null;
-      var _cachedFullName     = '';
-      var _cachedCasilleroNum = '';
+      /* _cachedFullName and _cachedCasilleroNum are declared globally above the first <script> block */
 
       function _dateFilterToDate(val) {
         var d = new Date();
