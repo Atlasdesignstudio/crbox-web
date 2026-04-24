@@ -2516,6 +2516,29 @@
         _txt('en-transito',    String(transito));
         _txt('en-crbox',       String(crbox));
         _txt('en-miami',       String(miami));
+
+        var tabCounts = { 'all': total };
+        function _canonicalTabStatus(raw) {
+          var s = raw.toUpperCase();
+          if (s.indexOf('MIAMI')                              >= 0) return 'MIAMI';
+          if (s.indexOf('TRÁNSITO') >= 0 || s.indexOf('TRANSITO') >= 0) return 'EN TRÁNSITO';
+          if (s.indexOf('SJO')                               >= 0) return 'SJO';
+          if (s.indexOf('CARGADO')                           >= 0) return 'CARGADO';
+          if (s.indexOf('CRBOX')                             >= 0) return 'CRBOX';
+          if (s.indexOf('ESPERA')                            >= 0) return 'EN ESPERA';
+          if (s.indexOf('ENTREGADO')                         >= 0) return 'ENTREGADO';
+          return s.trim();
+        }
+        packages.forEach(function (p) {
+          var key = _canonicalTabStatus((p.Status || p.status || ''));
+          tabCounts[key] = (tabCounts[key] || 0) + 1;
+        });
+        document.querySelectorAll('.status-tab').forEach(function (tab) {
+          var ds = (tab.getAttribute('data-status') || '').trim();
+          var count = ds === 'all' ? total : (tabCounts[ds] || 0);
+          var badge = tab.querySelector('span.text-xs');
+          if (badge) badge.textContent = String(count);
+        });
       }
 
       function _applyHeader(info) {
