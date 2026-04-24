@@ -1,0 +1,209 @@
+Create a mobile-only UX/UI refinement pass for the CRBOX client portal. Focus exclusively on the mobile experience across all authenticated portal tabs and states.
+
+This is not a desktop task.
+This is not a redesign of the brand or design system.
+This is a mobile-native product polish and usability pass so the portal feels intentionally designed for phone use, not just responsive.
+
+## Objective
+Make the client portal feel:
+- truly mobile-native
+- premium
+- clean
+- smooth
+- easy to scan
+- easy to navigate with one hand
+- visually balanced
+- consistent across all portal tabs
+
+The goal is for the mobile experience to feel as if it was designed specifically for mobile from the beginning, not simply compressed from desktop.
+
+## Scope
+Apply this analysis and refinement across every tab in the client portal, including at minimum:
+- Dashboard
+- Mis Paquetes
+- Mis Facturas
+- Mi Cuenta
+- shared mobile header / nav / authenticated shell
+- cards
+- tables
+- filters
+- modals
+- empty states
+- loading states
+- error states
+- CTAs
+- dropdowns / tabs / segmented controls
+- any package or bill detail surfaces
+
+## Important constraints
+- Work on mobile only
+- Preserve the current design system, brand language, color palette, and product tone
+- Do not redesign the whole portal
+- Do not invent fake data
+- Do not change backend logic unless needed for mobile rendering
+- Do not worsen desktop while improving mobile
+- Reuse current UI primitives where possible, but adapt them intelligently for mobile usability
+
+## Specific issue observed
+On mobile, the current Dashboard hero already shows the problem clearly:
+- the Número de casillero card does not feel well composed
+- although centered, its spacing and margins do not feel premium or balanced
+- the CTAs do not feel properly resolved for mobile
+- buttons should feel more intentional, with stronger side padding behavior and better width logic
+- the section feels like a desktop composition squeezed into mobile rather than a true mobile-first layout
+
+Use this as a reference point for the kind of scrutiny to apply across the whole mobile portal.
+
+## What to improve
+### 1. Mobile composition and spacing
+Revisit each page purely from a mobile lens:
+- section spacing
+- side paddings
+- card containment
+- vertical rhythm
+- CTA spacing
+- relationship between heading, content, and action
+- breathing room between stacked elements
+
+Every section should feel visually balanced on phone.
+Nothing should feel awkwardly centered, floating, squeezed, or too wide/narrow for the viewport.
+
+### 2. Mobile-first CTA behavior
+Audit all major actions on mobile:
+- primary buttons
+- secondary buttons
+- inline actions
+- table actions
+- modal actions
+
+Rules:
+- CTAs should feel easy to tap
+- width behavior should feel intentional on mobile
+- side paddings should be premium and consistent
+- stacked buttons should feel elegant and balanced
+- buttons should not feel randomly centered or inconsistently sized
+- high-priority actions should be obvious without being visually heavy
+
+### 3. Dashboard mobile refinement
+Refine the mobile Dashboard specifically so it feels premium and native on phone.
+
+Pay special attention to:
+- hero composition
+- greeting block
+- casillero card
+- button stack
+- summary cards
+- recent activity
+- quick actions
+- informational sections
+
+The mobile version should feel purpose-built.
+For example:
+- the locker/casillero number presentation should feel visually strong and clean
+- spacing around that card should feel deliberate
+- content hierarchy should prioritize the most useful information
+- CTA stack should feel balanced and easier to use one-handed
+
+### 4. Mobile navigation and shell
+Audit the shared mobile portal shell:
+- header spacing
+- account identity treatment
+- nav overflow/truncation
+- active state clarity
+- tap target sizes
+- transitions between tabs/pages
+- dropdown usability if present
+- horizontal secondary navigation behavior
+
+The authenticated shell should feel smooth and stable across all pages.
+
+### 5. Tables must become mobile-native
+For any table in the portal, do a mobile usability analysis and optimize navigation for phone use.
+
+This is extremely important.
+
+For mobile table behavior:
+- prioritize scanability over desktop fidelity
+- preserve truthfulness and data integrity
+- make sure the user can actually navigate and understand the data on a phone
+- horizontal overflow, sticky columns, cardified rows, collapsible metadata, or progressive disclosure may be used only if needed, but always within the current product language
+- avoid dense unreadable desktop tables squeezed into a narrow viewport
+- important fields should surface first
+- lower-priority fields can move into detail surfaces or expandable rows where appropriate
+- actions must remain usable by touch
+- pagination / per-page / filters must remain usable on mobile
+
+Apply this carefully to:
+- Mis Paquetes
+- Mis Facturas
+- any other tab using dense tabular data
+
+### 6. Mobile filtering and control patterns
+Audit all mobile filter bars, search fields, selects, date inputs, tabs, badges, and sort controls.
+
+Ensure:
+- controls are not cramped
+- touch targets are large enough
+- stacked or wrapped layouts feel intentional
+- important filters are easy to understand
+- users can operate them comfortably on small screens
+- filter UX does not become visually chaotic
+
+### 7. Mobile detail surfaces and modals
+Audit package detail modals, tracking modals, invoice detail surfaces, and any account/settings overlays for mobile.
+
+Refine:
+- max width / height behavior
+- internal spacing
+- typography hierarchy
+- footer button layout
+- scroll behavior
+- readability of metadata blocks
+- whether dense information should be grouped differently on mobile
+
+These should feel like polished mobile sheets/dialogs, not desktop popups forced into a phone viewport.
+
+### 8. Mobile information hierarchy
+On every mobile page, re-check the order and prominence of information.
+
+Rules:
+- most important info first
+- actionable info before deep metadata
+- metadata should be readable but secondary
+- cards should not feel overloaded
+- phone users should understand state quickly
+- reduce friction in scanning
+
+### 9. Premium mobile polish
+Without changing the design system, make the mobile portal feel more premium through:
+- better alignment
+- better containment
+- stronger hierarchy
+- cleaner proportions
+- more elegant spacing
+- more consistent CTA treatment
+- smoother use of cards and grouped content
+- reduced visual awkwardness in stacked layouts
+
+The result should feel refined and intentional, not merely functional.
+
+## Deliverable
+Apply a mobile-only refinement pass across the full authenticated client portal and then provide a short report covering:
+
+1. Which pages/components were improved specifically for mobile
+2. What major mobile UX/UI issues were found
+3. What was changed to improve mobile navigation, hierarchy, and usability
+4. How tables were adapted for better mobile use
+5. Any remaining mobile limitations caused by backend/product constraints rather than UI implementation
+
+## Final quality check
+Before finishing, review the portal on a true narrow mobile viewport and ask:
+
+- Does this feel genuinely mobile-native?
+- Do CTAs feel premium and well placed?
+- Are the casillero and key identity blocks visually resolved?
+- Are tables actually usable on mobile?
+- Do all portal tabs feel like part of one coherent mobile product?
+- Does the mobile experience feel smooth, polished, and intentional?
+
+If not, refine further.

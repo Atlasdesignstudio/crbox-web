@@ -1,0 +1,100 @@
+Continuation refinement for this task:
+
+The scope is correct. Apply the following additional refinement rules while implementing it so the result stays truthful, compact, and architecturally clean.
+
+## 1. Mis Facturas strict-shape audit must include summaries/helpers too
+In the "Mis Facturas strict-shape audit + Peso Volumétrico column" step, do not limit the audit only to the table row renderer.
+
+Also audit:
+- any summary card logic
+- any stats helpers
+- any search/filter helper assumptions
+- any inline expansion/detail helper
+- any date-formatting helper
+- any empty/loading-state logic tied to column count
+
+Additional rule:
+- any existing summary card or helper logic that still assumes flat invoice fields must be migrated to consume the mapped bill object only, or be removed/neutralized if unsupported by the real shape.
+
+The bills page must be internally consistent everywhere, not just at the row level.
+
+## 2. Package-adjacent billing fields must read as passive metadata only
+For:
+- descripcionfactura
+- montofactura
+- invoicesCount
+
+if they are surfaced, they must read strictly as passive metadata, not as actionable billing state.
+
+Additional rule:
+- they must never imply:
+  - saldo
+  - monto pendiente
+  - factura por pagar
+  - paid / unpaid
+  - collection / billing lifecycle state
+  - any payment obligation
+
+If surfaced, they should appear only as quiet, neutral informational lines inside the package detail modal and nowhere else.
+
+## 3. Preserve restraint in the tracking modal
+If totalvolume is added to the tracking modal, confirm the block still feels compact and easy to scan on first glance.
+
+If the extra line makes the block visually dense, keep totalvolume only in the detail modal and document the reason.
+The detail modal remains the primary place for dimensional density.
+
+## 4. No dashboard expansion from ambiguous package-adjacent fields
+Reinforce the current rule:
+- do not introduce any new dashboard card, badge, summary, or metric from:
+  - invoicesCount
+  - descripcionfactura
+  - montofactura
+  - or any other package-adjacent billing field
+
+unless its meaning is unambiguously defensible and cannot be confused with invoice/payment lifecycle semantics.
+
+If there is any doubt, leave the dashboard unchanged and document the reason.
+
+## 5. Keep mapper discipline absolute
+js/portal-api.js remains the single source of truth for backend → UI normalization.
+
+Additional rule:
+- no new raw nested access may be introduced anywhere, including:
+  - table renderers
+  - detail renderers
+  - modal population logic
+  - summary-card helpers
+  - search/filter/sort helpers
+  - expansion/accordion content
+- all newly surfaced fields must first be normalized in the mapper, then consumed from the mapped object only
+
+## 6. Decision-quality reporting must explicitly mention rejected fields
+In the deliverable markdown, include not only:
+- what was surfaced
+- and what was hidden
+
+but also:
+- which fields were actively considered and rejected
+- where they were considered
+- why they were rejected
+- whether rejection was due to ambiguity, clutter risk, misleading semantics, or low user value
+
+This task should read like careful product judgment, not raw implementation.
+
+## 7. Final implementation standard
+The result should feel like:
+- same portal
+- same visual system
+- same truthfulness rules
+- but more complete and more disciplined
+
+Not a maximal data exposure pass.
+Not a redesign.
+Not a semantics guess.
+
+It should be a careful refinement where:
+- overview stays light
+- detail absorbs density
+- bills are strictly mapped to the real shape
+- ambiguous signals stay neutral
+- and every surfaced field earns its place.

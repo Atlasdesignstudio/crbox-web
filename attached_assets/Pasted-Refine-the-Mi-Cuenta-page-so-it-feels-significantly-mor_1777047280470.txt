@@ -1,0 +1,125 @@
+Refine the Mi Cuenta page so it feels significantly more polished, aesthetic, and premium without redesigning the product or changing the design system.
+
+Important: the current page feels too plain, too empty, and visually weak compared to the rest of the portal. It technically works, but the experience does not feel as refined, intentional, or well-composed as Dashboard / Mis Paquetes / Mis Facturas. The goal is to elevate it using the same existing CRBOX design language, not to invent a new one.
+
+## Objective
+Make Mi Cuenta feel:
+- cleaner
+- more premium
+- more visually balanced
+- more intentional in hierarchy
+- more aligned with the rest of the portal
+- smoother and more aesthetically resolved
+
+while still preserving:
+- the same design system
+- the same palette
+- the same product tone
+- the same overall layout logic
+- the same data and backend behavior
+
+## What is wrong now
+The current page feels:
+- too empty in large areas
+- visually under-designed
+- weak in hierarchy
+- too text-heavy in a plain way
+- lacking card structure and rhythm
+- less premium than the rest of the portal
+- more like a raw settings screen than a refined account experience
+
+## What to improve
+### 1. Improve visual composition
+Using the existing design system, recompose the page so it has:
+- better spacing rhythm
+- stronger alignment
+- more intentional grouping of information
+- more visually appealing section containment
+- a cleaner sense of structure
+
+Do not make it busy. Just make it feel designed.
+
+### 2. Make the profile area feel premium
+The avatar / initials area and top account section should feel more elegant and resolved.
+Use the same design language already present in the portal, but improve:
+- spacing
+- scale
+- typography hierarchy
+- visual framing
+- relation between identity, subtitle, and actions
+
+It should feel like a polished account overview, not a placeholder block.
+
+### 3. Improve tab/header treatment
+The section tabs such as:
+- Información Personal
+- Direcciones
+- Seguridad
+- Notificaciones
+
+should feel more refined and integrated into the page.
+Keep the same system and interaction logic, but improve:
+- spacing
+- alignment
+- active state clarity
+- elegance of the visual treatment
+
+### 4. Improve readability of account information
+The current information rows feel too plain.
+Without changing the data model, make the information presentation more aesthetic and easier to scan.
+
+Examples of what to improve:
+- field grouping
+- label/value hierarchy
+- whitespace
+- column balance
+- subtle section separation
+- alignment consistency
+
+The result should feel lighter, cleaner, and more premium.
+
+### 5. Improve the “Preferencias” area
+Even if some settings remain neutral or próximamente, the section should still feel intentional and well-designed.
+Right now it feels visually weak.
+Keep the truthful product logic, but present the content in a more polished way using the same UI primitives.
+
+### 6. Keep everything consistent with the rest of the portal
+Mi Cuenta should visually belong to the same family as:
+- Dashboard
+- Mis Paquetes
+- Mis Facturas
+
+Use the same:
+- spacing logic
+- card language
+- border radius
+- shadow/subtle elevation style
+- typographic tone
+- CTA style
+- icon treatment
+- section density
+
+Do not introduce a different aesthetic direction.
+
+## Constraints
+- No redesign of the whole portal
+- No new design system
+- No new color palette
+- No new typography system
+- No backend changes required
+- Do not break current functionality
+- Do not remove truthful/neutral states
+- Do not add fake features just to fill space
+
+## Deliverable
+Refine the page so it feels clearly more aesthetic and premium while still being unmistakably part of the current CRBOX portal system.
+
+The output should feel like:
+- same product
+- same system
+- same logic
+- but much better composed and visually resolved
+
+Before finishing, review it against this question:
+Does Mi Cuenta now feel as polished and aesthetically intentional as the rest of the portal?
+If not, refine further within the same design system.

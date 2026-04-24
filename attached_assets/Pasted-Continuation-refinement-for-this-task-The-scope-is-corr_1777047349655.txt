@@ -1,0 +1,88 @@
+Continuation refinement for this task:
+
+The scope is correct, but apply these refinement rules while implementing it.
+
+## 1. Keep the tracking modal compact
+When evaluating whether to surface totalvolume in the tracking modal, do not add it automatically if it makes the result block feel dense or cluttered.
+
+Rule:
+- totalvolume should definitely remain available in the package detail modal wherever dimensional metadata is shown.
+- In the tracking modal, only surface totalvolume if the metadata block remains visually compact, readable, and clearly scan-friendly.
+- If adding totalvolume makes the tracking modal too dense, keep it in the detail modal only and document that decision in the deliverable.
+
+## 2. Be extremely conservative with dashboard additions
+Do not introduce any new dashboard metric just because a field exists.
+
+In particular:
+- do not create a new dashboard metric from invoicesCount
+- do not create a new card like “Paquetes facturados”
+- do not infer billing/payment lifecycle from package-adjacent fields
+
+unless the user-facing meaning is clearly defensible from the response alone and cannot be confused with payment status, invoice status, or collection state.
+
+If there is any ambiguity, leave the dashboard unchanged and document the reason.
+
+## 3. Package-adjacent billing fields must remain neutral unless clearly defensible
+For:
+- descripcionfactura
+- montofactura
+- invoicesCount
+
+apply this rule:
+
+Only surface them if:
+- their meaning is clearly understandable to the end user,
+- their placement does not imply a payment obligation incorrectly,
+- and the wording can remain neutral and informational.
+
+Do not turn them into:
+- payment CTAs
+- “saldo”
+- “monto pendiente”
+- “factura por pagar”
+- invoice-status labels
+unless the backend explicitly supports that meaning.
+
+If surfaced, they should appear only as neutral package-adjacent information at detail level.
+
+## 4. Preserve visual restraint
+This task is about leveraging newly confirmed real fields, but not at the cost of elegance.
+
+Use this principle:
+- overview surfaces stay light
+- detail surfaces absorb density
+- if a field is real but low-priority, prefer detail modal placement over table clutter
+- if a field is real but ambiguous, prefer omission with rationale over forced display
+
+## 5. Keep Mis Facturas strictly mapped to the real shape
+Treat the bills page strictly as:
+- top-level array
+- each row = { Factura, Recibos[] }
+
+Make sure there are no lingering assumptions of:
+- flat invoice fields
+- guessed status
+- guessed subtotal
+- guessed currency
+- guessed paid/pending semantics
+
+Also make null dates safe:
+- billedDate falls back to createdDate
+- if both are null, render a neutral placeholder like —
+- never let null date formatting break row rendering
+
+## 6. Do not let mapper drift happen
+js/portal-api.js remains the single source of truth for backend → UI field mapping.
+
+All new fields added in this refinement must be normalized there first, then consumed by the page renderers.
+Do not scatter raw nested access across templates or render functions.
+
+## 7. Deliverable note must include decision quality
+In the markdown deliverable, explicitly include:
+- which newly confirmed fields were surfaced
+- where they were surfaced
+- which newly confirmed fields were intentionally not surfaced
+- why they were withheld
+- any field that was considered but rejected due to ambiguity, clutter risk, or misleading semantics
+
+This task should feel like a careful product refinement, not a maximal data dump.
