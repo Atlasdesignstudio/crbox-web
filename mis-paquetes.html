@@ -1952,9 +1952,6 @@
         // Filtrado por estado
         function initStatusFilter() {
             const statusTabs = document.querySelectorAll('.status-tab');
-            const allRows = document.querySelectorAll('#list-view tbody tr');
-            const allCards = document.querySelectorAll('#grid-view > div');
-            const showingCount = document.getElementById('showing-count');
             
             if (statusTabs.length === 0) return;
             
@@ -1968,6 +1965,11 @@
                     
                     const statusFilter = tab.getAttribute('data-status');
                     let visibleCount = 0;
+
+                    // Query live DOM so dynamically-rendered rows are included
+                    const allRows  = document.querySelectorAll('#list-view tbody tr');
+                    const allCards = document.querySelectorAll('#grid-view > div');
+                    const showingCount = document.getElementById('showing-count');
                     
                     // Filtrar filas en vista de lista
                     allRows.forEach(row => {
@@ -2105,57 +2107,12 @@
             }
         }
         
-        // Manejar búsqueda
+        // Search is now handled via the API-driven debounced listener in the
+        // portal-api script block below. This function is intentionally left as
+        // a no-op to avoid duplicate input listeners on #search-input that
+        // would overwrite the showing-count with stale DOM state.
         function initSearchFilter() {
-            const searchInput = document.getElementById('search-input');
-            const allRows = document.querySelectorAll('#list-view tbody tr');
-            const allCards = document.querySelectorAll('#grid-view > div');
-            const showingCount = document.getElementById('showing-count');
-            
-            if (!searchInput) return;
-            
-            searchInput.addEventListener('input', () => {
-                const searchTerm = searchInput.value.toLowerCase().trim();
-                let visibleCount = 0;
-                
-                if (searchTerm === '') {
-                    // Si no hay búsqueda, mostrar todo
-                    allRows.forEach(row => {
-                        row.style.display = '';
-                        visibleCount++;
-                    });
-                    
-                    allCards.forEach(card => {
-                        card.style.display = '';
-                    });
-                } else {
-                    // Filtrar filas en vista de lista
-                    allRows.forEach(row => {
-                        const textContent = row.textContent.toLowerCase();
-                        if (textContent.includes(searchTerm)) {
-                            row.style.display = '';
-                            visibleCount++;
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
-                    
-                    // Filtrar tarjetas en vista de cuadrícula
-                    allCards.forEach(card => {
-                        const textContent = card.textContent.toLowerCase();
-                        if (textContent.includes(searchTerm)) {
-                            card.style.display = '';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-                }
-                
-                // Actualizar contador de resultados
-                if (showingCount) {
-                    showingCount.textContent = visibleCount.toString();
-                }
-            });
+            // no-op: API-driven search wired in the init script at bottom of file
         }
         
         // Manejar modales
@@ -2366,6 +2323,15 @@
         'EN CRBOX':    'EN CRBOX',
         'ENTREGADO':   'ENTREGADO'
       };
+      var STATUS_GRID_STYLE = {
+        'MIAMI':       { bar: 'bg-blue-500',   iconBg: 'bg-blue-100',   iconTxt: 'text-blue-600',   icon: 'fa-box-open' },
+        'EN TRÁNSITO': { bar: 'bg-green-500',  iconBg: 'bg-green-100',  iconTxt: 'text-green-600',  icon: 'fa-truck' },
+        'EN CRBOX':    { bar: 'bg-orange-500', iconBg: 'bg-orange-100', iconTxt: 'text-orange-600', icon: 'fa-warehouse' },
+        'ENTREGADO':   { bar: 'bg-gray-400',   iconBg: 'bg-gray-100',   iconTxt: 'text-gray-600',   icon: 'fa-check-circle' }
+      };
+      var _STATUS_GRID_DEFAULT = { bar: 'bg-gray-300', iconBg: 'bg-gray-100', iconTxt: 'text-gray-500', icon: 'fa-box' };
+
+      var _cachedPackages = [];
 
       function _statusClass(s) {
         s = (s || '').toUpperCase();
@@ -2431,6 +2397,122 @@
             '</div>' +
           '</td>' +
         '</tr>';
+      }
+
+      function _renderGridCard(pkg) {
+        var status      = _esc(pkg.Status || pkg.status || '');
+        var statusKey   = _statusKey(status);
+        var tracking    = _esc(pkg.TrackingNumber || pkg.trackingnumber || pkg.tracking || '');
+        var store       = _esc(pkg.Store || pkg.store || pkg.Tienda || '');
+        var dateRaw     = pkg.ArrivalDate || pkg.arrivaldate || pkg.Date || pkg.date || '';
+        var dateStr     = dateRaw ? CRBOXPortalAPI.formatDate(new Date(dateRaw)) : '';
+        var weight      = _esc(pkg.Weight || pkg.weight || '');
+        var desc        = _esc(pkg.Description || pkg.description || '');
+        var notes       = _esc(pkg.Notes || pkg.notes || '');
+        var style       = STATUS_GRID_STYLE[statusKey] || _STATUS_GRID_DEFAULT;
+
+        return '<div class="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden transition-all transform hover:-translate-y-1"' +
+               ' data-status="' + statusKey + '" data-date="' + _esc(dateRaw) + '">' +
+          '<div class="relative h-2 ' + style.bar + '"></div>' +
+          '<div class="p-5">' +
+            '<div class="mb-4">' +
+              '<div class="flex justify-between items-start">' +
+                '<span class="status-badge ' + _statusClass(status) + '">' + statusKey + '</span>' +
+                '<p class="text-xs text-gray-500">' + (dateStr || '') + '</p>' +
+              '</div>' +
+            '</div>' +
+            '<div class="flex items-start">' +
+              '<div class="w-12 h-12 rounded-lg ' + style.iconBg + ' flex items-center justify-center ' + style.iconTxt + ' mr-4 flex-shrink-0">' +
+                '<i class="fas ' + style.icon + '"></i>' +
+              '</div>' +
+              '<div>' +
+                '<h4 class="font-medium text-gray-900 mb-1">' + (desc || '—') + '</h4>' +
+                '<p class="text-sm text-gray-600 mb-3">' + (store || '') + '</p>' +
+                '<div class="flex items-center text-xs text-gray-500 mb-1">' +
+                  '<i class="fas fa-hashtag mr-1"></i>' +
+                  '<span class="tracking-wide">' + (tracking || '') + '</span>' +
+                '</div>' +
+                (weight ? '<div class="flex items-center text-xs text-gray-500 mb-1"><i class="fas fa-weight mr-1"></i><span>' + weight + '</span></div>' : '') +
+                (notes  ? '<div class="flex items-center text-xs text-gray-500"><i class="fas fa-info-circle mr-1"></i><span>' + notes + '</span></div>' : '') +
+              '</div>' +
+            '</div>' +
+            '<div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">' +
+              '<div class="flex space-x-1">' +
+                '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles">' +
+                  '<i class="fas fa-eye"></i>' +
+                '</button>' +
+                '<button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar">' +
+                  '<i class="fas fa-edit"></i>' +
+                '</button>' +
+                '<button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear">' +
+                  '<i class="fas fa-search-location"></i>' +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }
+
+      function _sortPackages(packages, sortVal) {
+        var arr = packages.slice();
+        if (sortVal === 'oldest') {
+          arr.sort(function (a, b) {
+            var da = new Date(a.ArrivalDate || a.arrivaldate || a.Date || a.date || 0);
+            var db = new Date(b.ArrivalDate || b.arrivaldate || b.Date || b.date || 0);
+            return da - db;
+          });
+        } else if (sortVal === 'recent') {
+          arr.sort(function (a, b) {
+            var da = new Date(a.ArrivalDate || a.arrivaldate || a.Date || a.date || 0);
+            var db = new Date(b.ArrivalDate || b.arrivaldate || b.Date || b.date || 0);
+            return db - da;
+          });
+        } else if (sortVal === 'status') {
+          arr.sort(function (a, b) {
+            var sa = (a.Status || a.status || '').toUpperCase();
+            var sb = (b.Status || b.status || '').toUpperCase();
+            return sa < sb ? -1 : sa > sb ? 1 : 0;
+          });
+        } else if (sortVal === 'weight') {
+          arr.sort(function (a, b) {
+            var wa = parseFloat(a.Weight || a.weight || 0) || 0;
+            var wb = parseFloat(b.Weight || b.weight || 0) || 0;
+            return wb - wa;
+          });
+        }
+        return arr;
+      }
+
+      function _renderAll(packages) {
+        var sortEl   = document.getElementById('sort-by');
+        var sortVal  = sortEl ? sortEl.value : 'recent';
+        var sorted   = _sortPackages(packages, sortVal);
+        var tbody    = document.getElementById('packages-tbody');
+        var gridView = document.getElementById('grid-view');
+        var count    = sorted.length;
+
+        if (tbody) {
+          if (count === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-400">' +
+              '<i class="fas fa-box-open text-4xl mb-3 block"></i>' +
+              'No tienes paquetes en el período seleccionado.</td></tr>';
+          } else {
+            tbody.innerHTML = sorted.map(_renderRow).join('');
+          }
+        }
+        if (gridView) {
+          if (count === 0) {
+            gridView.innerHTML = '<div class="col-span-3 text-center py-12 text-gray-400">' +
+              '<i class="fas fa-box-open text-4xl mb-3 block"></i>' +
+              'No tienes paquetes en el período seleccionado.</div>';
+          } else {
+            gridView.innerHTML = sorted.map(_renderGridCard).join('');
+          }
+        }
+        var showingEl = document.getElementById('showing-count');
+        var totalEl   = document.getElementById('total-count-display');
+        if (showingEl) showingEl.textContent = String(count);
+        if (totalEl)   totalEl.textContent   = String(count);
       }
 
       function _renderStats(packages) {
@@ -2499,10 +2581,17 @@
       }
 
       function _loadPackages(idConsignee, startDate, endDate, tracking, status) {
-        var tbody = document.getElementById('packages-tbody');
+        var tbody    = document.getElementById('packages-tbody');
+        var gridView = document.getElementById('grid-view');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">' +
+
+        var loadingRow = '<tr><td colspan="7" class="text-center py-8 text-gray-400">' +
           '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando paquetes...</td></tr>';
+        tbody.innerHTML = loadingRow;
+        if (gridView) {
+          gridView.innerHTML = '<div class="col-span-3 text-center py-8 text-gray-400">' +
+            '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando paquetes...</div>';
+        }
 
         CRBOXPortalAPI.getPackages(idConsignee,
           startDate  || CRBOXPortalAPI.last30Days(),
@@ -2511,19 +2600,17 @@
           status     || '1000')
         .then(function (data) {
           var packages = Array.isArray(data) ? data : (data.packages || data.Packages || []);
+          _cachedPackages = packages;
           _renderStats(packages);
-          if (packages.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-400">' +
-              '<i class="fas fa-box-open text-4xl mb-3 block"></i>' +
-              'No tienes paquetes en el período seleccionado.</td></tr>';
-            return;
-          }
-          tbody.innerHTML = packages.map(_renderRow).join('');
+          _renderAll(packages);
         })
         .catch(function (err) {
           console.warn('[CRBOX] getPackages error:', err);
-          tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-orange-500">' +
-            'No se pudieron cargar los paquetes. Recarga la página.</td></tr>';
+          var errMsg = 'No se pudieron cargar los paquetes. Recarga la página.';
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-orange-500">' + errMsg + '</td></tr>';
+          if (gridView) {
+            gridView.innerHTML = '<div class="col-span-3 text-center py-8 text-orange-500">' + errMsg + '</div>';
+          }
         });
       }
 
@@ -2546,6 +2633,13 @@
 
             if (statusFilter) statusFilter.addEventListener('change', _onFilterChange);
             if (dateFilter)   dateFilter.addEventListener('change',   _onFilterChange);
+
+            var sortBy = document.getElementById('sort-by');
+            if (sortBy) {
+              sortBy.addEventListener('change', function () {
+                if (_cachedPackages.length > 0) _renderAll(_cachedPackages);
+              });
+            }
 
             var searchTimeout;
             if (searchInput) {
