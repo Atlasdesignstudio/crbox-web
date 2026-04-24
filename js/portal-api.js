@@ -189,6 +189,127 @@
       });
   }
 
+  // ─── Centralized field accessors ──────────────────────────────────────────
+  // Single source of truth for the confirmed `getuserpackages` and `getfacturas`
+  // response shapes. Every renderer must read through these helpers so we
+  // never reintroduce scattered guessed field-name fallback chains.
+
+  // Status id → canonical Spanish label (legacy CRBOX status set).
+  var STATUS_ID_NAME = {
+    1: 'MIAMI',
+    2: 'SJO',
+    3: 'CARGADO',
+    4: 'EN TRÁNSITO',
+    5: 'CRBOX',
+    6: 'EN ESPERA',
+    7: 'ENTREGADO'
+  };
+
+  // Status ids that count as "still in transit toward the customer"
+  // — i.e. not yet sitting in CRBOX (5) and not yet delivered (7).
+  // Used by the dashboard "Paquetes en camino" derivation.
+  var IN_TRANSIT_STATUS_IDS = [1, 2, 3, 4, 6];
+
+  // Defensible event-line per known statusId. Used by the dashboard
+  // "Actividad reciente" feed. Anything outside this map is skipped.
+  var STATUS_ID_EVENT = {
+    1: 'Recibido en Miami',
+    2: 'Recibido en SJO',
+    3: 'Cargado para envío',
+    4: 'En tránsito hacia Costa Rica',
+    5: 'Listo para retirar en CRBOX',
+    6: 'En espera',
+    7: 'Entregado'
+  };
+
+  function _num(v) {
+    if (v === null || v === undefined || v === '') return null;
+    var n = Number(v);
+    return isNaN(n) ? null : n;
+  }
+  function _str(v) {
+    if (v === null || v === undefined) return '';
+    return String(v);
+  }
+
+  // mapPackage: normalize one row of the getuserpackages response.
+  function mapPackage(raw) {
+    if (!raw || typeof raw !== 'object') raw = {};
+    var statusId = _num(raw.statusId);
+    return {
+      idwarehousereceipt:      raw.idwarehousereceipt || null,
+      statusId:                statusId,
+      statusName:              _str(raw.statusName),
+      number:                  _str(raw.number),
+      receiveddatetime:        raw.receiveddatetime || '',
+      createdDate:             raw.createdDate || '',
+      trackingNumber:          _str(raw.trackingNumber),
+      shipperName:             _str(raw.shipperName),
+      totalpieces:             _num(raw.totalpieces),
+      totalweight:             _num(raw.totalweight),
+      totalvolume:             _num(raw.totalvolume),
+      totalvolumetricweight:   _num(raw.totalvolumetricweight),
+      carrierName:             _str(raw.carrierName),
+      consigneeNotes:          _str(raw.consigneeNotes),
+      consigneeSucursalName:   _str(raw.consigneeSucursalName),
+      masterAirShipmentNumber: _str(raw.masterAirShipmentNumber),
+      airShipmentNumber:       _str(raw.airShipmentNumber),
+      descripcion:             _str(raw.descripcion),
+      invoicesCount:           _num(raw.invoicesCount),
+      hasPackage:              raw.hasPackage === true || raw.hasPackage === 'true',
+      impresoFactura:          raw.impresoFactura === true || raw.impresoFactura === 'true',
+      consolidadoFactura:      raw.consolidadoFactura === true || raw.consolidadoFactura === 'true',
+      emision:                 _str(raw.emision),
+      montofactura:            _num(raw.montofactura),
+      descripcionfactura:      _str(raw.descripcionfactura),
+      // Convenience derived fields
+      bestDate:                raw.receiveddatetime || raw.createdDate || '',
+      canonicalStatus:         (statusId && STATUS_ID_NAME[statusId]) || _str(raw.statusName).toUpperCase()
+    };
+  }
+
+  // mapRecibo: normalize one entry inside Factura.Recibos[].
+  function mapRecibo(raw) {
+    if (!raw || typeof raw !== 'object') raw = {};
+    var status = raw.status || {};
+    var shipper = raw.shipper || {};
+    var carrierInfo = raw.carrierinformation || {};
+    var carrier = carrierInfo.carrier || {};
+    return {
+      number:                _str(raw.number),
+      receiveddatetime:      raw.receiveddatetime || '',
+      totalweight:           _num(raw.totalweight),
+      totalvolume:           _num(raw.totalvolume),
+      totalvolumetricweight: _num(raw.totalvolumetricweight),
+      statusname:            _str(status.statusname),
+      shippername:           _str(shipper.shippername),
+      carriername:           _str(carrier.carriername)
+    };
+  }
+
+  // mapBill: normalize one row of the getfacturas response.
+  function mapBill(raw) {
+    if (!raw || typeof raw !== 'object') raw = {};
+    var f = raw.Factura || {};
+    var mas = f.masterAirShipment || {};
+    var disc = f.descuentoCorporativo || {};
+    var recArr = Array.isArray(raw.Recibos) ? raw.Recibos : [];
+    return {
+      factura:                 _str(f.factura),
+      billedDate:              f.billedDate || '',
+      createdDate:             f.createdDate || '',
+      masterAirShipmentNumber: _str(mas.masterairshipmentnumber || mas.masterAirShipmentNumber),
+      weigth:                  _num(f.weigth),
+      cantidadBultos:          _num(f.cantidadBultos),
+      total:                   _num(f.total),
+      descuentoNombre:         _str(disc._nombre || disc.nombre),
+      isInvoiced:              f.isInvoiced === true || f.isInvoiced === 'true',
+      recibos:                 recArr.map(mapRecibo),
+      // Convenience derived
+      bestDate:                f.billedDate || f.createdDate || ''
+    };
+  }
+
   // ─── Public API ───────────────────────────────────────────────────────────
   global.CRBOXPortalAPI = {
     getUserInfo:        getUserInfo,
@@ -200,7 +321,14 @@
     formatDate:         formatDate,
     last30Days:         _last30Days,
     defaultStartDate:   _defaultStartDate,
-    defaultEndDate:     _defaultEndDate
+    defaultEndDate:     _defaultEndDate,
+    // Field accessors
+    mapPackage:           mapPackage,
+    mapBill:              mapBill,
+    mapRecibo:            mapRecibo,
+    STATUS_ID_NAME:       STATUS_ID_NAME,
+    IN_TRANSIT_STATUS_IDS: IN_TRANSIT_STATUS_IDS,
+    STATUS_ID_EVENT:      STATUS_ID_EVENT
   };
 
 }(window));

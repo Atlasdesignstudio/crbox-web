@@ -184,30 +184,22 @@
             
             <!-- Search & Filter Section -->
             <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <div class="relative">
-                            <input type="text" placeholder="Buscar por número de factura" class="form-control pl-10">
+                            <input type="text" id="bills-search" placeholder="Buscar por número de factura" class="form-control pl-10">
                             <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                         </div>
-                    </div>
-                    <div>
-                        <select class="form-control">
-                            <option value="">Todos los estados</option>
-                            <option value="pendiente">Pendiente de pago</option>
-                            <option value="pagada">Pagada</option>
-                            <option value="anulada">Anulada</option>
-                        </select>
                     </div>
                     <div>
                         <div class="relative">
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="relative">
-                                    <input type="date" class="form-control pl-10" value="2025-04-08">
+                                    <input type="date" class="form-control pl-10">
                                     <i class="far fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                 </div>
                                 <div class="relative">
-                                    <input type="date" class="form-control pl-10" value="2025-05-08">
+                                    <input type="date" class="form-control pl-10">
                                     <i class="far fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                                 </div>
                             </div>
@@ -242,30 +234,30 @@
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-500 mr-4">
-                            <i class="fas fa-check-circle text-2xl"></i>
+                            <i class="fas fa-coins text-2xl"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-medium text-gray-500">Facturas Pagadas</h3>
-                            <p class="text-2xl font-bold" id="bills-stat-paid">—</p>
+                            <h3 class="text-sm font-medium text-gray-500">Total Facturado</h3>
+                            <p class="text-2xl font-bold" id="bills-stat-amount">—</p>
                         </div>
                     </div>
-                    <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div id="bills-stat-paid-bar" class="h-full bg-green-500 rounded-full" style="width: 0%"></div>
+                    <div class="text-xs text-gray-500 mt-2">
+                        Suma de los totales reales de las facturas listadas.
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 mr-4">
+                        <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-500 mr-4">
                             <i class="fas fa-clock text-2xl"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-medium text-gray-500">Facturas Pendientes</h3>
-                            <p class="text-2xl font-bold" id="bills-stat-pending">—</p>
+                            <h3 class="text-sm font-medium text-gray-500">Estado de Pago</h3>
+                            <p class="text-base font-medium text-gray-400">Próximamente</p>
                         </div>
                     </div>
-                    <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div id="bills-stat-pending-bar" class="h-full bg-orange-500 rounded-full" style="width: 0%"></div>
+                    <div class="text-xs text-gray-500 mt-2">
+                        El estado de pago se mostrará cuando esté disponible.
                     </div>
                 </div>
             </div>
@@ -279,25 +271,24 @@
                                 <th class="whitespace-nowrap">Factura</th>
                                 <th class="whitespace-nowrap">Fecha</th>
                                 <th class="whitespace-nowrap">Guía Master</th>
-                                <th class="whitespace-nowrap">Recibo</th>
-                                <th class="whitespace-nowrap">Bultos</th>
-                                <th class="whitespace-nowrap">Peso</th>
+                                <th class="whitespace-nowrap">Recibos</th>
+                                <th class="whitespace-nowrap text-right">Bultos</th>
+                                <th class="whitespace-nowrap text-right">Peso</th>
                                 <th class="whitespace-nowrap">Descuento</th>
-                                <th class="whitespace-nowrap">Total</th>
-                                <th class="whitespace-nowrap">Estado</th>
+                                <th class="whitespace-nowrap text-right">Total</th>
                                 <th class="whitespace-nowrap text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="bills-tbody">
                             <tr class="empty-state">
-                                <td colspan="10" class="py-16">
+                                <td colspan="9" class="py-16">
                                     <div class="flex flex-col items-center justify-center">
                                         <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                                             <i class="fas fa-file-invoice-dollar text-3xl text-gray-300"></i>
                                         </div>
                                         <h3 class="text-xl font-semibold text-gray-500 mb-2">No se encontraron facturas</h3>
                                         <p class="text-gray-400 mb-4 text-center max-w-md">
-                                            No tienes ninguna factura registrada en el período seleccionado. Intenta con otras fechas o filtra por un estado diferente.
+                                            No tienes ninguna factura registrada en el período seleccionado. Intenta con otras fechas.
                                         </p>
                                         <a href="calculadora.html" class="action-btn-primary">
                                             <i class="fas fa-calculator mr-2"></i>
@@ -540,37 +531,53 @@
         return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
       }
 
-      function _renderBillRow(bill) {
-        var num     = _esc(bill.InvoiceNumber || bill.invoicenumber || bill.NumFactura || '');
-        var date    = _esc(bill.Date || bill.date || bill.Fecha || '');
-        var desc    = _esc(bill.Description || bill.description || bill.Descripcion || '');
-        var subtot  = _esc(bill.SubTotal  || bill.subtotal  || '');
-        var iva     = _esc(bill.IVA       || bill.iva       || '');
-        var disc    = _esc(bill.Discount  || bill.discount  || '');
-        var total   = _esc(bill.Total     || bill.total     || '');
-        var curr    = _esc(bill.Currency  || bill.currency  || '');
-        var state   = _esc(bill.State     || bill.state     || bill.Estado || '');
+      var EM_DASH = '—';
+      function _orDash(v) {
+        if (v === null || v === undefined) return EM_DASH;
+        var s = String(v);
+        return s === '' ? EM_DASH : s;
+      }
+      function _fmtNum(v, decimals) {
+        if (v === null || v === undefined || v === '') return EM_DASH;
+        var n = Number(v);
+        if (isNaN(n)) return EM_DASH;
+        var d = (decimals === undefined) ? 2 : decimals;
+        return n.toLocaleString('es-CR', { minimumFractionDigits: d, maximumFractionDigits: d });
+      }
+      function _fmtDate(raw) {
+        if (!raw) return EM_DASH;
+        var d = new Date(raw);
+        if (isNaN(d.getTime())) return EM_DASH;
+        return CRBOXPortalAPI.formatDate(d);
+      }
 
-        return '<tr class="hover:bg-orange-50 transition-colors">' +
-          '<td class="whitespace-nowrap">' + num + '</td>' +
-          '<td class="whitespace-nowrap">' + date + '</td>' +
-          '<td>' + desc + '</td>' +
-          '<td class="whitespace-nowrap text-right">' + subtot + '</td>' +
-          '<td class="whitespace-nowrap text-right">' + iva + '</td>' +
-          '<td class="whitespace-nowrap text-right">' + disc + '</td>' +
-          '<td class="whitespace-nowrap text-right font-semibold">' + total + '</td>' +
-          '<td class="whitespace-nowrap">' + curr + '</td>' +
-          '<td class="whitespace-nowrap">' +
-            '<span class="px-2 py-1 rounded-full text-xs font-medium ' +
-              (state.toUpperCase().indexOf('PAG') >= 0 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700') +
-            '">' + state + '</span>' +
-          '</td>' +
+      // Build the "Recibos" cell: comma-separated list of real Recibo
+      // numbers, truncated with "+N más" when more than 3 entries are
+      // returned. The full list is available in the row detail surface.
+      function _renderRecibosCell(recibos) {
+        if (!recibos || recibos.length === 0) return EM_DASH;
+        var nums = recibos.map(function (r) { return _esc(r.number || EM_DASH); });
+        var head = nums.slice(0, 3).join(', ');
+        var extra = nums.length > 3 ? (' <span class="text-xs text-gray-500">+' + (nums.length - 3) + ' más</span>') : '';
+        return '<span class="font-medium text-gray-800">' + head + '</span>' + extra;
+      }
+
+      function _renderBillRow(bill, idx) {
+        return '<tr class="hover:bg-orange-50 transition-colors" data-bill-idx="' + idx + '">' +
+          '<td class="whitespace-nowrap font-medium text-gray-900">' + _esc(_orDash(bill.factura)) + '</td>' +
+          '<td class="whitespace-nowrap text-sm text-gray-700">' + _esc(_fmtDate(bill.bestDate)) + '</td>' +
+          '<td class="whitespace-nowrap text-sm text-gray-700">' + _esc(_orDash(bill.masterAirShipmentNumber)) + '</td>' +
+          '<td class="text-sm text-gray-700">' + _renderRecibosCell(bill.recibos) + '</td>' +
+          '<td class="whitespace-nowrap text-right text-sm text-gray-700">' + _esc(_fmtNum(bill.cantidadBultos, 0)) + '</td>' +
+          '<td class="whitespace-nowrap text-right text-sm text-gray-700">' + _esc(_fmtNum(bill.weigth)) + '</td>' +
+          '<td class="whitespace-nowrap text-sm text-gray-700">' + _esc(_orDash(bill.descuentoNombre)) + '</td>' +
+          '<td class="whitespace-nowrap text-right font-semibold text-gray-900">' + _esc(_fmtNum(bill.total)) + '</td>' +
           '<td class="whitespace-nowrap text-right">' +
             '<div class="flex justify-end space-x-1">' +
-              '<button class="btn-view-bill p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver factura">' +
+              '<button class="btn-view-bill p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver factura" aria-label="Ver factura">' +
                 '<i class="fas fa-eye"></i>' +
               '</button>' +
-              '<button class="btn-download-bill p-1.5 rounded-full text-gray-600 hover:text-gray-800 hover:bg-gray-100" title="Descargar">' +
+              '<button class="btn-download-bill p-1.5 rounded-full text-gray-600 hover:text-gray-800 hover:bg-gray-100" title="Descargar" aria-label="Descargar">' +
                 '<i class="fas fa-file-download"></i>' +
               '</button>' +
             '</div>' +
@@ -580,7 +587,7 @@
 
       function _setStat(id, val, barId, fraction) {
         var el = document.getElementById(id);
-        if (el) el.textContent = (val == null ? '—' : String(val));
+        if (el) el.textContent = (val == null ? EM_DASH : String(val));
         if (barId) {
           var bar = document.getElementById(barId);
           if (bar) {
@@ -590,54 +597,189 @@
         }
       }
 
-      // El backend de getfacturas no garantiza un campo de estado de pago
-      // confirmado, por lo que sólo mostramos el conteo total real (que
-      // sí se deriva de la longitud del array). "Pagadas" y "Pendientes"
-      // se quedan en "Sin datos disponibles" hasta que exista una
-      // señal contractual confiable.
+      // Real, derived-from-payload stats only. "Total" = invoice count;
+      // "Total Facturado" = sum of confirmed Factura.total values.
+      // We do NOT fabricate paid/pending counts — there is no contractual
+      // payment-status field in getfacturas yet.
       function _renderBillsStats(bills) {
         var total = bills.length;
         _setStat('bills-stat-total', total, 'bills-stat-total-bar', total > 0 ? 1 : 0);
-        var paidEl = document.getElementById('bills-stat-paid');
-        if (paidEl) paidEl.textContent = 'Sin datos';
-        var pendingEl = document.getElementById('bills-stat-pending');
-        if (pendingEl) pendingEl.textContent = 'Sin datos';
-        _setStat(null, null, 'bills-stat-paid-bar',    0);
-        _setStat(null, null, 'bills-stat-pending-bar', 0);
+        var amount = 0;
+        var anyAmount = false;
+        bills.forEach(function (b) {
+          if (b.total !== null && b.total !== undefined && !isNaN(Number(b.total))) {
+            amount += Number(b.total);
+            anyAmount = true;
+          }
+        });
+        var amountEl = document.getElementById('bills-stat-amount');
+        if (amountEl) amountEl.textContent = anyAmount ? _fmtNum(amount) : EM_DASH;
       }
 
       function _resetBillsStats() {
-        _setStat('bills-stat-total',   '—', 'bills-stat-total-bar',   0);
-        _setStat('bills-stat-paid',    '—', 'bills-stat-paid-bar',    0);
-        _setStat('bills-stat-pending', '—', 'bills-stat-pending-bar', 0);
+        _setStat('bills-stat-total', EM_DASH, 'bills-stat-total-bar', 0);
+        var amountEl = document.getElementById('bills-stat-amount');
+        if (amountEl) amountEl.textContent = EM_DASH;
+      }
+
+      var _cachedBills = [];
+
+      // Preserved (legacy) empty-state markup for an empty getfacturas
+      // response: same icon, headline, copy and CTA button as the static
+      // tbody fallback. Used when the API returned [] for the period.
+      function _preservedEmptyStateRow() {
+        return '<tr class="empty-state">' +
+          '<td colspan="9" class="py-16">' +
+            '<div class="flex flex-col items-center justify-center">' +
+              '<div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">' +
+                '<i class="fas fa-file-invoice-dollar text-3xl text-gray-300"></i>' +
+              '</div>' +
+              '<h3 class="text-xl font-semibold text-gray-500 mb-2">No se encontraron facturas</h3>' +
+              '<p class="text-gray-400 mb-4 text-center max-w-md">' +
+                'No tienes ninguna factura registrada en el período seleccionado. Intenta con otras fechas.' +
+              '</p>' +
+              '<a href="calculadora.html" class="action-btn-primary">' +
+                '<i class="fas fa-calculator mr-2"></i>Calcular un Envío' +
+              '</a>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      }
+
+      function _renderBillsTable(bills, opts) {
+        var tbody = document.getElementById('bills-tbody');
+        if (!tbody) return;
+        opts = opts || {};
+        if (!bills || bills.length === 0) {
+          if (opts.preservedEmpty) {
+            tbody.innerHTML = _preservedEmptyStateRow();
+          } else {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-12 text-gray-400">' +
+              '<i class="fas fa-receipt text-4xl mb-3 block"></i>' +
+              _esc(opts.emptyMsg || 'No se encontraron facturas.') + '</td></tr>';
+          }
+          return;
+        }
+        tbody.innerHTML = bills.map(function (b) {
+          var srcIdx = _cachedBills.indexOf(b);
+          return _renderBillRow(b, srcIdx >= 0 ? srcIdx : 0);
+        }).join('');
+      }
+
+      function _applyBillsSearch() {
+        var input = document.getElementById('bills-search');
+        var q = input && input.value ? input.value.trim().toLowerCase() : '';
+        if (!q) {
+          // No active search → restore the preserved empty-state when the
+          // backend itself returned 0 facturas for the selected period.
+          _renderBillsTable(_cachedBills, { preservedEmpty: true });
+          return;
+        }
+        var filtered = _cachedBills.filter(function (b) {
+          return String(b.factura || '').toLowerCase().indexOf(q) !== -1;
+        });
+        _renderBillsTable(filtered, { emptyMsg: 'Ninguna factura coincide con la búsqueda.' });
       }
 
       function _loadBills(email, startDate, endDate) {
         var tbody = document.getElementById('bills-tbody');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-400">' +
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-gray-400">' +
           '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando facturas...</td></tr>';
         _resetBillsStats();
 
         CRBOXPortalAPI.getBills(email, startDate, endDate)
           .then(function (data) {
-            var bills = Array.isArray(data) ? data : (data.bills || data.Bills || data.facturas || []);
+            var raw = Array.isArray(data) ? data : (data.bills || data.Bills || data.facturas || []);
+            var bills = raw.map(function (r) { return CRBOXPortalAPI.mapBill(r); });
+            _cachedBills = bills;
             _renderBillsStats(bills);
-            if (bills.length === 0) {
-              tbody.innerHTML = '<tr><td colspan="10" class="text-center py-12 text-gray-400">' +
-                '<i class="fas fa-receipt text-4xl mb-3 block"></i>' +
-                'No se encontraron facturas para el período seleccionado.</td></tr>';
-              return;
-            }
-            tbody.innerHTML = bills.map(_renderBillRow).join('');
+            _applyBillsSearch();
           })
           .catch(function (err) {
             console.warn('[CRBOX] getBills error:', err);
-            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-orange-500">' +
+            _cachedBills = [];
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-orange-500">' +
               'No se pudieron cargar las facturas. Recarga la página.</td></tr>';
             _resetBillsStats();
           });
       }
+
+      // Inline expansion for "Ver factura": render the bill's Recibos[]
+      // using only the confirmed real fields. Uses a sibling <tr> below
+      // the bill row, toggles on click, and never invents line items
+      // beyond what the API returns.
+      function _renderRecibosDetail(bill) {
+        if (!bill.recibos || bill.recibos.length === 0) {
+          return '<div class="p-4 text-sm text-gray-500 italic">Esta factura no incluye recibos individuales en la respuesta.</div>';
+        }
+        var rows = bill.recibos.map(function (r) {
+          var dateStr = _fmtDate(r.receiveddatetime);
+          return '<tr>' +
+            '<td class="px-3 py-2 text-sm font-medium text-gray-900">' + _esc(_orDash(r.number)) + '</td>' +
+            '<td class="px-3 py-2 text-sm text-gray-700">' + _esc(_orDash(r.statusname)) + '</td>' +
+            '<td class="px-3 py-2 text-sm text-gray-700">' + _esc(dateStr) + '</td>' +
+            '<td class="px-3 py-2 text-sm text-gray-700">' + _esc(_orDash(r.shippername)) + '</td>' +
+            '<td class="px-3 py-2 text-sm text-gray-700">' + _esc(_orDash(r.carriername)) + '</td>' +
+            '<td class="px-3 py-2 text-sm text-right text-gray-700">' + _esc(_fmtNum(r.totalweight)) + '</td>' +
+            '<td class="px-3 py-2 text-sm text-right text-gray-700">' + _esc(_fmtNum(r.totalvolumetricweight)) + '</td>' +
+          '</tr>';
+        }).join('');
+        return '<div class="p-4">' +
+          '<div class="text-xs uppercase tracking-wide text-gray-500 mb-2">Recibos incluidos</div>' +
+          '<div class="overflow-x-auto border border-gray-100 rounded-lg">' +
+            '<table class="min-w-full divide-y divide-gray-100">' +
+              '<thead class="bg-gray-50">' +
+                '<tr>' +
+                  '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Recibo</th>' +
+                  '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>' +
+                  '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Recibido</th>' +
+                  '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tienda</th>' +
+                  '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Carrier</th>' +
+                  '<th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Peso</th>' +
+                  '<th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Peso vol.</th>' +
+                '</tr>' +
+              '</thead>' +
+              '<tbody class="divide-y divide-gray-100 bg-white">' + rows + '</tbody>' +
+            '</table>' +
+          '</div>' +
+        '</div>';
+      }
+
+      function _toggleBillDetail(billRow, idx) {
+        var existing = billRow.nextElementSibling;
+        if (existing && existing.classList.contains('bill-detail-row')) {
+          existing.parentNode.removeChild(existing);
+          return;
+        }
+        var bill = _cachedBills[idx];
+        if (!bill) return;
+        var detailTr = document.createElement('tr');
+        detailTr.className = 'bill-detail-row bg-gray-50';
+        detailTr.innerHTML = '<td colspan="9">' + _renderRecibosDetail(bill) + '</td>';
+        billRow.parentNode.insertBefore(detailTr, billRow.nextSibling);
+      }
+
+      document.addEventListener('click', function (e) {
+        var viewBtn = e.target.closest('.btn-view-bill');
+        if (viewBtn) {
+          var row = viewBtn.closest('tr[data-bill-idx]');
+          if (row) {
+            var idx = parseInt(row.getAttribute('data-bill-idx'), 10);
+            if (!isNaN(idx)) _toggleBillDetail(row, idx);
+          }
+          return;
+        }
+        var dlBtn = e.target.closest('.btn-download-bill');
+        if (dlBtn) {
+          // Real PDF download endpoint is not exposed; the action stays
+          // safe and informative until the backend confirms one.
+          if (typeof showToast === 'function') {
+            showToast('Descarga de facturas próximamente disponible', 'info');
+          }
+          return;
+        }
+      });
 
       document.addEventListener('DOMContentLoaded', function () {
         if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
@@ -657,7 +799,7 @@
             if (headerEl) headerEl.textContent = 'Error';
             var tbody = document.getElementById('bills-tbody');
             if (tbody) {
-              tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-orange-500">' +
+              tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-orange-500">' +
                 '<i class="fas fa-exclamation-triangle mr-2"></i>No se pudo cargar la información de tu cuenta. Recarga la página.</td></tr>';
             }
           });
@@ -685,6 +827,11 @@
           buscarBtn.addEventListener('click', function () {
             _loadBills(email, _getStart(), _getEnd());
           });
+        }
+
+        var searchInput = document.getElementById('bills-search');
+        if (searchInput) {
+          searchInput.addEventListener('input', function () { _applyBillsSearch(); });
         }
 
         _loadBills(email, _getStart(), _getEnd());

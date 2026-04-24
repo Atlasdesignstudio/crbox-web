@@ -331,9 +331,12 @@
                 </button>
             </div>
             
-            <!-- Actividad reciente: no existe endpoint confirmado de feed de actividad,
-                 por lo que mostramos siempre el estado vacío honesto.
-                 (Antes había rows de actividad fabricados; eliminados por completo). -->
+            <!-- Actividad reciente: derivada de getuserpackages. Sólo se incluyen
+                 paquetes con timestamp + statusName + interpretación defendible
+                 (vía STATUS_ID_EVENT). Si nada califica, se muestra el estado
+                 vacío honesto que sigue. -->
+            <div class="p-6 recent-activity-content hidden" id="activity-feed"></div>
+
             <div class="p-6 recent-activity-content" id="activity-empty">
                 <div class="empty-state-container transform transition-all duration-500 hover:scale-105">
                     <div class="relative mb-6">
@@ -722,6 +725,81 @@
     }
   }
 
+  function _esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function _eventIconForStatus(statusId) {
+    switch (statusId) {
+      case 1: return { icon: 'fa-warehouse',     bg: 'bg-blue-100',   txt: 'text-blue-600'   };
+      case 2:
+      case 3:
+      case 4: return { icon: 'fa-plane-departure', bg: 'bg-indigo-100', txt: 'text-indigo-600' };
+      case 5: return { icon: 'fa-store',         bg: 'bg-orange-100', txt: 'text-orange-600' };
+      case 6: return { icon: 'fa-clock',         bg: 'bg-yellow-100', txt: 'text-yellow-600' };
+      case 7: return { icon: 'fa-check-circle',  bg: 'bg-green-100',  txt: 'text-green-600'  };
+      default: return { icon: 'fa-box',          bg: 'bg-gray-100',   txt: 'text-gray-600'   };
+    }
+  }
+
+  function _renderRecentActivity(mapped) {
+    var feedEl  = document.getElementById('activity-feed');
+    var emptyEl = document.getElementById('activity-empty');
+    if (!feedEl || !emptyEl) return;
+
+    var EVENT = (CRBOXPortalAPI && CRBOXPortalAPI.STATUS_ID_EVENT) || {};
+    // Eligibility: requires real timestamp + status label + a defensible
+    // event interpretation for that status (via STATUS_ID_EVENT).
+    var entries = mapped.filter(function (p) {
+      if (!p) return false;
+      if (!p.bestDate) return false;
+      if (!p.statusName) return false;
+      if (!EVENT[p.statusId]) return false;
+      // Guard against malformed timestamps so the row never renders as
+      // "NaN-NaN-NaN" — only show activity entries with a valid Date.
+      var t = new Date(p.bestDate).getTime();
+      if (isNaN(t)) return false;
+      return true;
+    });
+
+    if (entries.length === 0) {
+      feedEl.classList.add('hidden');
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    entries.sort(function (a, b) {
+      return new Date(b.bestDate).getTime() - new Date(a.bestDate).getTime();
+    });
+    var top = entries.slice(0, 6);
+
+    var rows = top.map(function (p) {
+      var look = _eventIconForStatus(p.statusId);
+      var label = EVENT[p.statusId];
+      var when  = CRBOXPortalAPI.formatDate(new Date(p.bestDate));
+      var titleParts = [];
+      if (p.descripcion) titleParts.push(p.descripcion);
+      if (p.trackingNumber) titleParts.push('Tracking ' + p.trackingNumber);
+      var titleStr = titleParts.join(' · ') || ('Recibo ' + (p.number || ''));
+      return '<div class="flex items-start py-3">' +
+        '<div class="w-10 h-10 rounded-full ' + look.bg + ' ' + look.txt + ' flex items-center justify-center mr-3 flex-shrink-0">' +
+          '<i class="fas ' + look.icon + '"></i>' +
+        '</div>' +
+        '<div class="flex-1 min-w-0">' +
+          '<p class="text-sm font-medium text-gray-800">' + _esc(label) + '</p>' +
+          '<p class="text-xs text-gray-500 truncate">' + _esc(titleStr) + '</p>' +
+        '</div>' +
+        '<span class="text-xs text-gray-400 ml-3 whitespace-nowrap">' + _esc(when) + '</span>' +
+      '</div>';
+    }).join('');
+
+    feedEl.innerHTML = '<div class="divide-y divide-gray-100">' + rows + '</div>';
+    feedEl.classList.remove('hidden');
+    emptyEl.classList.add('hidden');
+  }
+
   function _loadCaminoStat(idConsignee) {
     var statEl = document.getElementById('dash-stat-camino');
     if (!statEl || !idConsignee) return;
@@ -732,16 +810,17 @@
       '',
       '1000'
     ).then(function (data) {
-      var packages = Array.isArray(data) ? data : (data.packages || data.Packages || []);
+      var raw = Array.isArray(data) ? data : (data.packages || data.Packages || []);
+      // "En camino" = en cualquier estatus de tránsito real reportado
+      // por getuserpackages (MIAMI, SJO, CARGADO, EN TRÁNSITO, EN ESPERA).
+      // Excluye CRBOX (ya disponible para retirar) y ENTREGADO.
       var inCamino = 0;
-      packages.forEach(function (p) {
-        var s = ((p.Status || p.status || '')).toUpperCase();
-        // "En camino" = aún no entregado al cliente y no en CRBOX (listo para retirar)
-        if (s.indexOf('ENTREGADO') >= 0) return;
-        if (s.indexOf('CRBOX')     >= 0) return;
-        inCamino++;
+      var mapped = raw.map(function (p) { return CRBOXPortalAPI.mapPackage(p); });
+      mapped.forEach(function (pkg) {
+        if (CRBOXPortalAPI.IN_TRANSIT_STATUS_IDS.indexOf(pkg.statusId) >= 0) inCamino++;
       });
       statEl.textContent = String(inCamino);
+      _renderRecentActivity(mapped);
     }).catch(function (err) {
       console.warn('[CRBOX] getPackages (dashboard stat) failed:', err);
       statEl.textContent = '—';

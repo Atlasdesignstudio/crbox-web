@@ -436,18 +436,25 @@
                     <table class="data-table w-full">
                         <thead>
                             <tr>
-                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tracking #</th>
-                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso</th>
-                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</th>
-                                <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#MAWB</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#HAWB</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recibo</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carrier</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tracking #</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recibido</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Envía / Tienda</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pieza</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso volum.</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso Kg</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="packages-tbody">
                             <tr id="list-initial-loading-row">
-                                <td colspan="7" class="text-center py-12 text-gray-400">
+                                <td colspan="14" class="text-center py-12 text-gray-400">
                                     <i class="fas fa-spinner fa-spin text-2xl mb-3 block"></i>
                                     Cargando paquetes...
                                 </td>
@@ -707,45 +714,78 @@
                             <div class="flex items-start">
                                 <i class="fas fa-truck w-5 text-orange-500 mt-0.5"></i>
                                 <div class="ml-3">
-                                    <p class="text-xs text-gray-500">Courier</p>
+                                    <p class="text-xs text-gray-500">Carrier</p>
                                     <p class="text-sm font-medium text-gray-800" id="modal-courier">—</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-receipt w-5 text-orange-500 mt-0.5"></i>
+                                <div class="ml-3">
+                                    <p class="text-xs text-gray-500">Recibo</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-recibo">—</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-plane w-5 text-orange-500 mt-0.5"></i>
+                                <div class="ml-3">
+                                    <p class="text-xs text-gray-500">#MAWB</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-mawb">—</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-plane-departure w-5 text-orange-500 mt-0.5"></i>
+                                <div class="ml-3">
+                                    <p class="text-xs text-gray-500">#HAWB</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-hawb">—</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <div>
-                        <h5 class="text-sm font-medium text-gray-500 mb-2">Dimensiones y Precio</h5>
+                        <h5 class="text-sm font-medium text-gray-500 mb-2">Dimensiones y Peso</h5>
                         <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                            <div class="flex items-start">
+                                <i class="fas fa-cubes w-5 text-orange-500 mt-0.5"></i>
+                                <div class="ml-3">
+                                    <p class="text-xs text-gray-500">Piezas</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-pieces">—</p>
+                                </div>
+                            </div>
                             <div class="flex items-start">
                                 <i class="fas fa-weight w-5 text-orange-500 mt-0.5"></i>
                                 <div class="ml-3">
-                                    <p class="text-xs text-gray-500">Peso</p>
+                                    <p class="text-xs text-gray-500">Peso (Kg)</p>
                                     <p class="text-sm font-medium text-gray-800" id="modal-weight">—</p>
                                 </div>
                             </div>
                             <div class="flex items-start">
-                                <i class="fas fa-box-open w-5 text-orange-500 mt-0.5"></i>
+                                <i class="fas fa-cube w-5 text-orange-500 mt-0.5"></i>
                                 <div class="ml-3">
-                                    <p class="text-xs text-gray-500">Dimensiones</p>
-                                    <p class="text-sm font-medium text-gray-800" id="modal-dimensions">—</p>
+                                    <p class="text-xs text-gray-500">Volumen</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-volume">—</p>
                                 </div>
                             </div>
                             <div class="flex items-start">
-                                <i class="fas fa-dollar-sign w-5 text-orange-500 mt-0.5"></i>
+                                <i class="fas fa-balance-scale w-5 text-orange-500 mt-0.5"></i>
                                 <div class="ml-3">
-                                    <p class="text-xs text-gray-500">Costo Estimado</p>
-                                    <p class="text-sm font-medium text-gray-800" id="modal-cost">—</p>
+                                    <p class="text-xs text-gray-500">Peso volumétrico</p>
+                                    <p class="text-sm font-medium text-gray-800" id="modal-volumetric">—</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
+                <h5 class="text-sm font-medium text-gray-500 mb-2">Notas</h5>
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <p class="text-sm text-gray-800" id="modal-notes">—</p>
+                </div>
+
                 <h5 class="text-sm font-medium text-gray-500 mb-2">Historial de Rastreo</h5>
-                <div class="bg-gray-50 rounded-lg p-4 text-center text-gray-500">
+                <div id="modal-history" class="bg-gray-50 rounded-lg p-4 text-center text-gray-500">
                     <i class="fas fa-history text-2xl text-gray-300 mb-2 block"></i>
-                    <p class="text-sm">No hay historial de eventos de rastreo disponible.</p>
+                    <p class="text-sm">No hay eventos de rastreo disponibles.</p>
                 </div>
                 
                 <div class="mt-6 flex justify-between">
@@ -813,26 +853,43 @@
                         </div>
                     </div>
 
-                    <!-- Detalles reales del paquete (status / fecha de ingreso / tienda) -->
+                    <!-- Detalles reales del paquete (sólo lectura desde getuserpackages) -->
                     <div class="bg-gray-50 border border-gray-100 rounded-lg p-4 space-y-2 mb-4">
                         <div class="flex items-center text-sm">
-                            <span class="text-gray-500 w-32">Estado actual:</span>
+                            <span class="text-gray-500 w-40">Estado actual:</span>
                             <span class="font-medium text-gray-800" id="result-status-text">—</span>
                         </div>
                         <div class="flex items-center text-sm">
-                            <span class="text-gray-500 w-32">Fecha de ingreso:</span>
+                            <span class="text-gray-500 w-40">Fecha de ingreso:</span>
                             <span class="font-medium text-gray-800" id="result-arrival-date">—</span>
                         </div>
                         <div class="flex items-center text-sm">
-                            <span class="text-gray-500 w-32">Tienda:</span>
+                            <span class="text-gray-500 w-40">Tienda:</span>
                             <span class="font-medium text-gray-800" id="result-store">—</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <span class="text-gray-500 w-40">Carrier:</span>
+                            <span class="font-medium text-gray-800" id="result-carrier">—</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <span class="text-gray-500 w-40">Peso:</span>
+                            <span class="font-medium text-gray-800" id="result-weight">—</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <span class="text-gray-500 w-40">Peso volumétrico:</span>
+                            <span class="font-medium text-gray-800" id="result-volumetric">—</span>
+                        </div>
+                        <div class="flex items-start text-sm">
+                            <span class="text-gray-500 w-40">Notas:</span>
+                            <span class="font-medium text-gray-800 flex-1" id="result-notes">—</span>
                         </div>
                     </div>
 
-                    <!-- Historial detallado: no expuesto por el backend -->
-                    <div class="text-center py-4 text-gray-500 border border-dashed border-gray-200 rounded-lg">
+                    <!-- Historial real: si el paquete no trae eventos, mostramos un único
+                         estado vacío honesto. No fabricamos pasos de demo. -->
+                    <div id="result-history" class="text-center py-4 text-gray-500 border border-dashed border-gray-200 rounded-lg">
                         <i class="fas fa-history text-2xl text-gray-300 mb-2 block"></i>
-                        <p class="text-sm">No hay historial de eventos de rastreo disponible.</p>
+                        <p class="text-sm">No hay eventos de rastreo disponibles.</p>
                     </div>
                 </div>
                 
@@ -1006,6 +1063,11 @@
         .status-badge-yellow {
             background-color: #FFFBEB;
             color: #975A16;
+        }
+
+        .status-badge-teal {
+            background-color: #E6FFFA;
+            color: #2C7A7B;
         }
         
         /* Animaciones */
@@ -1785,31 +1847,69 @@
                                 : null;
 
                             if (pkg) {
-                                var pkgStatus  = pkg.Status || pkg.status || '';
-                                var pkgStore   = pkg.Store || pkg.store || pkg.Tienda || '—';
-                                var pkgDateRaw = pkg.ArrivalDate || pkg.arrivaldate || pkg.Date || pkg.date || '';
-                                var pkgDateStr = pkgDateRaw && typeof CRBOXPortalAPI !== 'undefined'
+                                var EM = '—';
+                                var pkgStatusName = pkg.statusName || '';
+                                var pkgStore      = pkg.shipperName || EM;
+                                var pkgDateRaw    = pkg.bestDate || '';
+                                var pkgDateStr    = pkgDateRaw && typeof CRBOXPortalAPI !== 'undefined'
                                     ? CRBOXPortalAPI.formatDate(new Date(pkgDateRaw))
-                                    : (pkgDateRaw || '—');
+                                    : (pkgDateRaw || EM);
+
+                                function _setText(id, val) {
+                                    var el = document.getElementById(id);
+                                    if (el) el.textContent = (val == null || val === '') ? EM : val;
+                                }
+                                function _fmtKg(v) {
+                                    if (v === null || v === undefined || v === '') return EM;
+                                    var n = Number(v); if (isNaN(n)) return EM;
+                                    return (Math.round(n * 100) / 100) + ' kg';
+                                }
 
                                 var statusEl = document.getElementById('result-status');
                                 if (statusEl) {
                                     var statusKey = typeof window._CRBOX_statusKey === 'function'
-                                        ? window._CRBOX_statusKey(pkgStatus) : (pkgStatus || '—');
+                                        ? window._CRBOX_statusKey(pkg) : (pkgStatusName || EM);
                                     var statusCls = typeof window._CRBOX_statusClass === 'function'
-                                        ? window._CRBOX_statusClass(pkgStatus) : 'status-badge-blue';
+                                        ? window._CRBOX_statusClass(pkg) : 'status-badge-blue';
                                     statusEl.textContent = statusKey;
                                     statusEl.className = 'status-badge ' + statusCls;
                                 }
 
-                                var statusTextEl = document.getElementById('result-status-text');
-                                if (statusTextEl) statusTextEl.textContent = pkgStatus || '—';
+                                _setText('result-status-text', pkgStatusName);
+                                _setText('result-arrival-date', pkgDateStr);
+                                _setText('result-store',       pkgStore);
+                                _setText('result-carrier',     pkg.carrierName);
+                                _setText('result-weight',      _fmtKg(pkg.totalweight));
+                                _setText('result-volumetric',  _fmtKg(pkg.totalvolumetricweight));
+                                _setText('result-notes',       pkg.consigneeNotes);
 
-                                var arrivalEl = document.getElementById('result-arrival-date');
-                                if (arrivalEl) arrivalEl.textContent = pkgDateStr;
-
-                                var storeEl = document.getElementById('result-store');
-                                if (storeEl) storeEl.textContent = pkgStore;
+                                // Historial: el payload de getuserpackages NO incluye un
+                                // arreglo de eventos de rastreo. Hasta que el backend exponga
+                                // uno, mostramos siempre el estado vacío honesto, sin
+                                // fabricar pasos a partir del estado actual.
+                                var historyEl = document.getElementById('result-history');
+                                var realEvents = Array.isArray(pkg.trackingEvents) ? pkg.trackingEvents : [];
+                                if (historyEl) {
+                                    if (realEvents.length > 0) {
+                                        historyEl.className = 'border border-gray-200 rounded-lg divide-y divide-gray-100 bg-white';
+                                        historyEl.innerHTML = realEvents.map(function (ev) {
+                                            var when = ev.date ? CRBOXPortalAPI.formatDate(new Date(ev.date)) : EM;
+                                            var lbl  = String(ev.label || '').replace(/[<>&"]/g, '');
+                                            return '<div class="flex items-start justify-between p-3">' +
+                                              '<div>' +
+                                                '<p class="text-sm font-medium text-gray-800">' + lbl + '</p>' +
+                                                '<p class="text-xs text-gray-500">' + when + '</p>' +
+                                              '</div>' +
+                                              '<i class="fas fa-check-circle text-green-500"></i>' +
+                                            '</div>';
+                                        }).join('');
+                                    } else {
+                                        historyEl.className = 'text-center py-4 text-gray-500 border border-dashed border-gray-200 rounded-lg';
+                                        historyEl.innerHTML =
+                                          '<i class="fas fa-history text-2xl text-gray-300 mb-2 block"></i>' +
+                                          '<p class="text-sm">No hay eventos de rastreo disponibles.</p>';
+                                    }
+                                }
                             }
 
                             if (trackingResults)   trackingResults.classList.remove('hidden');
@@ -1884,91 +1984,99 @@
 
       function _txt(id, val) { var el = document.getElementById(id); if (el) el.textContent = val || ''; }
 
-      var STATUS_BADGE = {
-        'MIAMI':       'status-badge-blue',
-        'EN TRÁNSITO': 'status-badge-green',
-        'CRBOX':       'status-badge-orange',
-        'ENTREGADO':   'status-badge-gray'
+      // Status id → badge css class.
+      var STATUS_BADGE_BY_ID = {
+        1: 'status-badge-blue',    // MIAMI
+        2: 'status-badge-teal',    // SJO
+        3: 'status-badge-purple',  // CARGADO
+        4: 'status-badge-green',   // EN TRÁNSITO
+        5: 'status-badge-orange',  // CRBOX
+        6: 'status-badge-yellow',  // EN ESPERA
+        7: 'status-badge-gray'     // ENTREGADO
       };
-      var STATUS_DATA = {
-        'MIAMI':       'MIAMI',
-        'EN TRÁNSITO': 'EN TRÁNSITO',
-        'CRBOX':       'CRBOX',
-        'ENTREGADO':   'ENTREGADO'
-      };
-      var STATUS_GRID_STYLE = {
-        'MIAMI':       { bar: 'bg-blue-500',   iconBg: 'bg-blue-100',   iconTxt: 'text-blue-600',   icon: 'fa-box-open' },
-        'EN TRÁNSITO': { bar: 'bg-green-500',  iconBg: 'bg-green-100',  iconTxt: 'text-green-600',  icon: 'fa-truck' },
-        'CRBOX':       { bar: 'bg-orange-500', iconBg: 'bg-orange-100', iconTxt: 'text-orange-600', icon: 'fa-warehouse' },
-        'ENTREGADO':   { bar: 'bg-gray-400',   iconBg: 'bg-gray-100',   iconTxt: 'text-gray-600',   icon: 'fa-check-circle' }
+      // Status id → grid card style.
+      var STATUS_GRID_STYLE_BY_ID = {
+        1: { bar: 'bg-blue-500',   iconBg: 'bg-blue-100',   iconTxt: 'text-blue-600',   icon: 'fa-box-open' },
+        2: { bar: 'bg-teal-500',   iconBg: 'bg-teal-100',   iconTxt: 'text-teal-600',   icon: 'fa-plane-arrival' },
+        3: { bar: 'bg-purple-500', iconBg: 'bg-purple-100', iconTxt: 'text-purple-600', icon: 'fa-dolly' },
+        4: { bar: 'bg-green-500',  iconBg: 'bg-green-100',  iconTxt: 'text-green-600',  icon: 'fa-truck' },
+        5: { bar: 'bg-orange-500', iconBg: 'bg-orange-100', iconTxt: 'text-orange-600', icon: 'fa-warehouse' },
+        6: { bar: 'bg-yellow-500', iconBg: 'bg-yellow-100', iconTxt: 'text-yellow-600', icon: 'fa-clock' },
+        7: { bar: 'bg-gray-400',   iconBg: 'bg-gray-100',   iconTxt: 'text-gray-600',   icon: 'fa-check-circle' }
       };
       var _STATUS_GRID_DEFAULT = { bar: 'bg-gray-300', iconBg: 'bg-gray-100', iconTxt: 'text-gray-500', icon: 'fa-box' };
+      var STATUS_ID_NAME = (CRBOXPortalAPI && CRBOXPortalAPI.STATUS_ID_NAME) || {};
 
-      var _cachedPackages = [];
-      var _renderedPackages = [];
+      var _cachedPackages = [];      // Mapped packages (via CRBOXPortalAPI.mapPackage)
+      var _renderedPackages = [];    // Mapped packages currently in render order
       var _currentModalPkg = null;
       var _currentPage = 1;
       var _allSortedPackages = [];
+      var EM_DASH = '—';
 
-      function _statusClass(s) {
-        s = (s || '').toUpperCase();
-        for (var k in STATUS_BADGE) {
-          if (s.indexOf(k) >= 0) return STATUS_BADGE[k];
-        }
-        return 'status-badge-gray';
+      function _statusClass(pkg) {
+        var id = pkg && pkg.statusId;
+        return STATUS_BADGE_BY_ID[id] || 'status-badge-gray';
       }
-      function _statusKey(s) {
-        s = (s || '').toUpperCase();
-        for (var k in STATUS_DATA) {
-          if (s.indexOf(k) >= 0) return k;
-        }
-        return s;
+      function _statusKey(pkg) {
+        var id = pkg && pkg.statusId;
+        if (id && STATUS_ID_NAME[id]) return STATUS_ID_NAME[id];
+        return (pkg && pkg.statusName ? pkg.statusName : '').toUpperCase() || EM_DASH;
       }
       function _esc(str) {
-        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        return String(str == null ? '' : str)
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+          .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+      function _orDash(v) {
+        if (v === null || v === undefined) return EM_DASH;
+        var s = String(v);
+        return s === '' ? EM_DASH : s;
+      }
+      function _fmtNum(v, suffix) {
+        if (v === null || v === undefined || v === '') return EM_DASH;
+        var n = Number(v);
+        if (isNaN(n)) return EM_DASH;
+        // Show up to 2 decimals, drop trailing zeroes.
+        var s = (Math.round(n * 100) / 100).toString();
+        return suffix ? (s + ' ' + suffix) : s;
+      }
+      function _fmtDate(raw) {
+        if (!raw) return EM_DASH;
+        var d = new Date(raw);
+        if (isNaN(d.getTime())) return EM_DASH;
+        return CRBOXPortalAPI.formatDate(d);
       }
 
       function _renderRow(pkg, idx) {
-        var status      = _esc(pkg.Status || pkg.status || '');
-        var statusKey   = _statusKey(status);
-        var tracking    = _esc(pkg.TrackingNumber || pkg.trackingnumber || pkg.tracking || '');
-        var store       = _esc(pkg.Store || pkg.store || pkg.Tienda || '');
-        var dateRaw     = pkg.ArrivalDate || pkg.arrivaldate || pkg.Date || pkg.date || '';
-        var dateStr     = dateRaw ? CRBOXPortalAPI.formatDate(new Date(dateRaw)) : '';
-        var weight      = _esc(pkg.Weight || pkg.weight || '');
-        var desc        = _esc(pkg.Description || pkg.description || '');
-        var notes       = _esc(pkg.Notes || pkg.notes || '');
-
+        var statusKey = _statusKey(pkg);
+        var dateStr   = _fmtDate(pkg.bestDate);
         return '<tr class="border-b border-gray-100 hover:bg-orange-50 transition-all"' +
-               ' data-status="' + statusKey + '" data-date="' + _esc(dateRaw) + '" data-pkg-idx="' + idx + '">' +
-          '<td class="px-6 py-4 whitespace-nowrap">' +
-            '<span class="status-badge ' + _statusClass(status) + '">' + statusKey + '</span>' +
+               ' data-status="' + _esc(statusKey) + '" data-date="' + _esc(pkg.bestDate || '') + '" data-pkg-idx="' + idx + '">' +
+          '<td class="px-4 py-4 whitespace-nowrap">' +
+            '<span class="status-badge ' + _statusClass(pkg) + '">' + _esc(statusKey) + '</span>' +
           '</td>' +
-          '<td class="px-6 py-4 whitespace-nowrap">' +
-            '<div class="font-medium text-gray-900">' + tracking + '</div>' +
-            '<div class="text-xs text-gray-500 mt-1">' + store + '</div>' +
-          '</td>' +
-          '<td class="px-6 py-4 whitespace-nowrap">' +
-            '<div class="text-sm text-gray-900">' + dateStr + '</div>' +
-          '</td>' +
-          '<td class="px-6 py-4 whitespace-nowrap">' +
-            '<div class="text-sm text-gray-900">' + weight + '</div>' +
-          '</td>' +
-          '<td class="px-6 py-4">' +
-            '<div class="text-sm text-gray-900">' + desc + '</div>' +
-          '</td>' +
-          '<td class="px-6 py-4">' +
-            '<div class="text-sm text-gray-500">' + notes + '</div>' +
-          '</td>' +
-          '<td class="px-6 py-4 text-right whitespace-nowrap">' +
+          '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">' + _esc(_orDash(pkg.masterAirShipmentNumber)) + '</td>' +
+          '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">' + _esc(_orDash(pkg.airShipmentNumber)) + '</td>' +
+          '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">' + _esc(_orDash(pkg.number)) + '</td>' +
+          '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">' + _esc(_orDash(pkg.carrierName)) + '</td>' +
+          '<td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">' + _esc(_orDash(pkg.trackingNumber)) + '</td>' +
+          '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">' + _esc(dateStr) + '</td>' +
+          '<td class="px-4 py-4 text-sm text-gray-700">' + _esc(_orDash(pkg.shipperName)) + '</td>' +
+          '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">' + _esc(_fmtNum(pkg.totalpieces)) + '</td>' +
+          '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">' + _esc(_fmtNum(pkg.totalvolumetricweight)) + '</td>' +
+          '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">' + _esc(_fmtNum(pkg.totalweight)) + '</td>' +
+          '<td class="px-4 py-4 text-sm text-gray-500 max-w-xs">' + _esc(_orDash(pkg.consigneeNotes)) + '</td>' +
+          '<td class="px-4 py-4 text-sm text-gray-700 max-w-xs">' + _esc(_orDash(pkg.descripcion)) + '</td>' +
+          '<td class="px-4 py-4 text-right whitespace-nowrap">' +
             '<div class="flex justify-end space-x-1">' +
-              '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles">' +
+              '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" aria-label="Ver detalles">' +
                 '<i class="fas fa-eye"></i>' +
               '</button>' +
-              '<button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar">' +
-                '<i class="fas fa-edit"></i>' +
+              '<button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar" aria-label="Editar">' +
+                '<i class="fas fa-pencil-alt"></i>' +
               '</button>' +
-              '<button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear">' +
+              '<button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear" aria-label="Rastrear">' +
                 '<i class="fas fa-search-location"></i>' +
               '</button>' +
             '</div>' +
@@ -1977,51 +2085,60 @@
       }
 
       function _renderGridCard(pkg, idx) {
-        var status      = _esc(pkg.Status || pkg.status || '');
-        var statusKey   = _statusKey(status);
-        var tracking    = _esc(pkg.TrackingNumber || pkg.trackingnumber || pkg.tracking || '');
-        var store       = _esc(pkg.Store || pkg.store || pkg.Tienda || '');
-        var dateRaw     = pkg.ArrivalDate || pkg.arrivaldate || pkg.Date || pkg.date || '';
-        var dateStr     = dateRaw ? CRBOXPortalAPI.formatDate(new Date(dateRaw)) : '';
-        var weight      = _esc(pkg.Weight || pkg.weight || '');
-        var desc        = _esc(pkg.Description || pkg.description || '');
-        var notes       = _esc(pkg.Notes || pkg.notes || '');
-        var style       = STATUS_GRID_STYLE[statusKey] || _STATUS_GRID_DEFAULT;
+        var statusKey = _statusKey(pkg);
+        var dateStr   = _fmtDate(pkg.bestDate);
+        var style     = STATUS_GRID_STYLE_BY_ID[pkg.statusId] || _STATUS_GRID_DEFAULT;
+        var title     = _orDash(pkg.descripcion);
+        var subtitle  = _orDash(pkg.shipperName);
+        var tracking  = _orDash(pkg.trackingNumber);
+        var carrier   = pkg.carrierName ? pkg.carrierName : '';
+        var recibo    = pkg.number ? pkg.number : '';
+        var pieces    = (pkg.totalpieces !== null && pkg.totalpieces !== undefined) ? String(pkg.totalpieces) : '';
+        var weight    = (pkg.totalweight !== null && pkg.totalweight !== undefined) ? _fmtNum(pkg.totalweight, 'kg') : '';
+        var volw      = (pkg.totalvolumetricweight !== null && pkg.totalvolumetricweight !== undefined) ? _fmtNum(pkg.totalvolumetricweight, 'kg vol.') : '';
+        var notes     = pkg.consigneeNotes;
+
+        var detailsLine = function(icon, text) {
+          if (!text) return '';
+          return '<div class="flex items-center text-xs text-gray-500 mb-1">' +
+                   '<i class="fas ' + icon + ' mr-1"></i>' +
+                   '<span>' + _esc(text) + '</span>' +
+                 '</div>';
+        };
 
         return '<div class="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden transition-all transform hover:-translate-y-1"' +
-               ' data-status="' + statusKey + '" data-date="' + _esc(dateRaw) + '" data-pkg-idx="' + idx + '">' +
+               ' data-status="' + _esc(statusKey) + '" data-date="' + _esc(pkg.bestDate || '') + '" data-pkg-idx="' + idx + '">' +
           '<div class="relative h-2 ' + style.bar + '"></div>' +
           '<div class="p-5">' +
-            '<div class="mb-4">' +
-              '<div class="flex justify-between items-start">' +
-                '<span class="status-badge ' + _statusClass(status) + '">' + statusKey + '</span>' +
-                '<p class="text-xs text-gray-500">' + (dateStr || '') + '</p>' +
-              '</div>' +
+            '<div class="mb-4 flex justify-between items-start">' +
+              '<span class="status-badge ' + _statusClass(pkg) + '">' + _esc(statusKey) + '</span>' +
+              '<p class="text-xs text-gray-500">' + _esc(dateStr) + '</p>' +
             '</div>' +
             '<div class="flex items-start">' +
               '<div class="w-12 h-12 rounded-lg ' + style.iconBg + ' flex items-center justify-center ' + style.iconTxt + ' mr-4 flex-shrink-0">' +
                 '<i class="fas ' + style.icon + '"></i>' +
               '</div>' +
-              '<div>' +
-                '<h4 class="font-medium text-gray-900 mb-1">' + (desc || '—') + '</h4>' +
-                '<p class="text-sm text-gray-600 mb-3">' + (store || '') + '</p>' +
-                '<div class="flex items-center text-xs text-gray-500 mb-1">' +
-                  '<i class="fas fa-hashtag mr-1"></i>' +
-                  '<span class="tracking-wide">' + (tracking || '') + '</span>' +
-                '</div>' +
-                (weight ? '<div class="flex items-center text-xs text-gray-500 mb-1"><i class="fas fa-weight mr-1"></i><span>' + weight + '</span></div>' : '') +
-                (notes  ? '<div class="flex items-center text-xs text-gray-500"><i class="fas fa-info-circle mr-1"></i><span>' + notes + '</span></div>' : '') +
+              '<div class="flex-1 min-w-0">' +
+                '<h4 class="font-medium text-gray-900 mb-1 truncate" title="' + _esc(title) + '">' + _esc(title) + '</h4>' +
+                '<p class="text-sm text-gray-600 mb-3 truncate" title="' + _esc(subtitle) + '">' + _esc(subtitle) + '</p>' +
+                detailsLine('fa-hashtag', tracking !== EM_DASH ? tracking : '') +
+                detailsLine('fa-receipt', recibo) +
+                detailsLine('fa-truck', carrier) +
+                detailsLine('fa-cubes', pieces ? (pieces + ' pieza' + (pieces === '1' ? '' : 's')) : '') +
+                detailsLine('fa-weight', weight) +
+                detailsLine('fa-balance-scale', volw) +
+                detailsLine('fa-info-circle', notes) +
               '</div>' +
             '</div>' +
             '<div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">' +
               '<div class="flex space-x-1">' +
-                '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles">' +
+                '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" aria-label="Ver detalles">' +
                   '<i class="fas fa-eye"></i>' +
                 '</button>' +
-                '<button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar">' +
-                  '<i class="fas fa-edit"></i>' +
+                '<button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar" aria-label="Editar">' +
+                  '<i class="fas fa-pencil-alt"></i>' +
                 '</button>' +
-                '<button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear">' +
+                '<button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear" aria-label="Rastrear">' +
                   '<i class="fas fa-search-location"></i>' +
                 '</button>' +
               '</div>' +
@@ -2034,26 +2151,22 @@
         var arr = packages.slice();
         if (sortVal === 'oldest') {
           arr.sort(function (a, b) {
-            var da = new Date(a.ArrivalDate || a.arrivaldate || a.Date || a.date || 0);
-            var db = new Date(b.ArrivalDate || b.arrivaldate || b.Date || b.date || 0);
-            return da - db;
+            return new Date(a.bestDate || 0) - new Date(b.bestDate || 0);
           });
         } else if (sortVal === 'recent') {
           arr.sort(function (a, b) {
-            var da = new Date(a.ArrivalDate || a.arrivaldate || a.Date || a.date || 0);
-            var db = new Date(b.ArrivalDate || b.arrivaldate || b.Date || b.date || 0);
-            return db - da;
+            return new Date(b.bestDate || 0) - new Date(a.bestDate || 0);
           });
         } else if (sortVal === 'status') {
           arr.sort(function (a, b) {
-            var sa = (a.Status || a.status || '').toUpperCase();
-            var sb = (b.Status || b.status || '').toUpperCase();
-            return sa < sb ? -1 : sa > sb ? 1 : 0;
+            var sa = a.statusId || 9999;
+            var sb = b.statusId || 9999;
+            return sa - sb;
           });
         } else if (sortVal === 'weight') {
           arr.sort(function (a, b) {
-            var wa = parseFloat(a.Weight || a.weight || 0) || 0;
-            var wb = parseFloat(b.Weight || b.weight || 0) || 0;
+            var wa = (a.totalweight !== null && a.totalweight !== undefined) ? a.totalweight : -1;
+            var wb = (b.totalweight !== null && b.totalweight !== undefined) ? b.totalweight : -1;
             return wb - wa;
           });
         }
@@ -2094,8 +2207,7 @@
 
         var filteredWithIdx = [];
         for (var fi = 0; fi < sorted.length; fi++) {
-          if (activeStatus === 'all' ||
-              _statusKey(sorted[fi].Status || sorted[fi].status || '') === activeStatus) {
+          if (activeStatus === 'all' || _statusKey(sorted[fi]) === activeStatus) {
             filteredWithIdx.push({ pkg: sorted[fi], idx: fi });
           }
         }
@@ -2112,7 +2224,7 @@
         var pagedWithIdx = filteredWithIdx.slice(start, start + itemsPerPage);
 
         var _emptyListHtml =
-          '<tr><td colspan="7">' +
+          '<tr><td colspan="14">' +
             '<div class="flex flex-col items-center justify-center py-16 text-gray-400">' +
               '<i class="fas fa-box-open text-5xl mb-4 text-gray-300"></i>' +
               '<p class="text-lg font-medium text-gray-500 mb-1">No tienes paquetes registrados</p>' +
@@ -2152,37 +2264,20 @@
       }
 
       function _renderStats(packages) {
-        var total = packages.length, miami = 0, transito = 0, crbox = 0;
+        var total = packages.length;
+        var counts = {};
         packages.forEach(function (p) {
-          var s = ((p.Status || p.status || '')).toUpperCase();
-          if (s.indexOf('MIAMI')        >= 0) miami++;
-          else if (s.indexOf('TRÁNSITO') >= 0 || s.indexOf('TRANSITO') >= 0) transito++;
-          else if (s.indexOf('CRBOX')    >= 0) crbox++;
+          var key = _statusKey(p);
+          counts[key] = (counts[key] || 0) + 1;
         });
         _txt('total-paquetes', String(total));
-        _txt('en-transito',    String(transito));
-        _txt('en-crbox',       String(crbox));
-        _txt('en-miami',       String(miami));
+        _txt('en-transito',    String(counts['EN TRÁNSITO'] || 0));
+        _txt('en-crbox',       String(counts['CRBOX']       || 0));
+        _txt('en-miami',       String(counts['MIAMI']       || 0));
 
-        var tabCounts = { 'all': total };
-        function _canonicalTabStatus(raw) {
-          var s = raw.toUpperCase();
-          if (s.indexOf('MIAMI')                              >= 0) return 'MIAMI';
-          if (s.indexOf('TRÁNSITO') >= 0 || s.indexOf('TRANSITO') >= 0) return 'EN TRÁNSITO';
-          if (s.indexOf('SJO')                               >= 0) return 'SJO';
-          if (s.indexOf('CARGADO')                           >= 0) return 'CARGADO';
-          if (s.indexOf('CRBOX')                             >= 0) return 'CRBOX';
-          if (s.indexOf('ESPERA')                            >= 0) return 'EN ESPERA';
-          if (s.indexOf('ENTREGADO')                         >= 0) return 'ENTREGADO';
-          return s.trim();
-        }
-        packages.forEach(function (p) {
-          var key = _canonicalTabStatus((p.Status || p.status || ''));
-          tabCounts[key] = (tabCounts[key] || 0) + 1;
-        });
         document.querySelectorAll('.status-tab').forEach(function (tab) {
           var ds = (tab.getAttribute('data-status') || '').trim();
-          var count = ds === 'all' ? total : (tabCounts[ds] || 0);
+          var count = ds === 'all' ? total : (counts[ds] || 0);
           var badge = tab.querySelector('span.text-xs');
           if (badge) badge.textContent = String(count);
         });
@@ -2244,7 +2339,7 @@
         var gridView = document.getElementById('grid-view');
         if (!tbody) return;
 
-        var loadingRow = '<tr><td colspan="7" class="text-center py-8 text-gray-400">' +
+        var loadingRow = '<tr><td colspan="14" class="text-center py-8 text-gray-400">' +
           '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando paquetes...</td></tr>';
         tbody.innerHTML = loadingRow;
         if (gridView) {
@@ -2258,7 +2353,8 @@
           tracking   || '',
           status     || '1000')
         .then(function (data) {
-          var packages = Array.isArray(data) ? data : (data.packages || data.Packages || []);
+          var raw = Array.isArray(data) ? data : (data.packages || data.Packages || []);
+          var packages = raw.map(function (r) { return CRBOXPortalAPI.mapPackage(r); });
           _cachedPackages = packages;
           _renderStats(packages);
           _renderAll(packages, true);
@@ -2266,7 +2362,7 @@
         .catch(function (err) {
           console.warn('[CRBOX] getPackages error:', err);
           var errMsg = 'No se pudieron cargar los paquetes. Recarga la página.';
-          tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-orange-500">' + errMsg + '</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="14" class="text-center py-8 text-orange-500">' + errMsg + '</td></tr>';
           if (gridView) {
             gridView.innerHTML = '<div class="col-span-3 text-center py-8 text-orange-500">' + errMsg + '</div>';
           }
@@ -2278,46 +2374,55 @@
         if (!detailsModal) return;
         _currentModalPkg = pkg;
 
-        var status   = pkg.Status || pkg.status || '';
-        var statusKey = _statusKey(status);
-        var tracking = pkg.TrackingNumber || pkg.trackingnumber || pkg.tracking || '—';
-        var store    = pkg.Store || pkg.store || pkg.Tienda || '—';
-        var dateRaw  = pkg.ArrivalDate || pkg.arrivaldate || pkg.Date || pkg.date || '';
-        var dateStr  = dateRaw ? CRBOXPortalAPI.formatDate(new Date(dateRaw)) : '—';
-        var weight   = pkg.Weight || pkg.weight || '—';
-        var desc     = pkg.Description || pkg.description || '—';
-
-        // Map optional fields when present in the real payload, otherwise '—'.
-        var dimensions = pkg.Dimensions || pkg.dimensions
-                       || pkg.Dimension  || pkg.dimension
-                       || pkg.Size       || pkg.size
-                       || '—';
-        var cost = pkg.Cost      || pkg.cost
-                 || pkg.Price     || pkg.price
-                 || pkg.Total     || pkg.total
-                 || pkg.EstimatedCost || pkg.estimatedcost
-                 || '—';
-        var courier = pkg.Courier || pkg.courier
-                    || pkg.Carrier || pkg.carrier
-                    || store;
-
         var setText = function(id, val) {
           var el = document.getElementById(id);
-          if (el) el.textContent = (val == null || val === '') ? '—' : val;
+          if (el) el.textContent = _orDash(val);
         };
-        setText('modal-product-name', desc);
-        setText('modal-store', store);
-        setText('modal-tracking', tracking);
-        setText('modal-date', dateStr);
-        setText('modal-courier', courier);
-        setText('modal-weight', weight);
-        setText('modal-dimensions', dimensions);
-        setText('modal-cost', cost);
+
+        setText('modal-product-name', pkg.descripcion);
+        setText('modal-store',        pkg.shipperName);
+        setText('modal-tracking',     pkg.trackingNumber);
+        setText('modal-date',         _fmtDate(pkg.bestDate));
+        setText('modal-courier',      pkg.carrierName);
+        setText('modal-recibo',       pkg.number);
+        setText('modal-mawb',         pkg.masterAirShipmentNumber);
+        setText('modal-hawb',         pkg.airShipmentNumber);
+        setText('modal-pieces',       (pkg.totalpieces !== null && pkg.totalpieces !== undefined) ? String(pkg.totalpieces) : '');
+        setText('modal-weight',       _fmtNum(pkg.totalweight, 'kg'));
+        setText('modal-volume',       _fmtNum(pkg.totalvolume));
+        setText('modal-volumetric',   _fmtNum(pkg.totalvolumetricweight, 'kg'));
+        setText('modal-notes',        pkg.consigneeNotes);
 
         var statusEl = document.getElementById('modal-status');
         if (statusEl) {
-          statusEl.textContent = statusKey;
-          statusEl.className = 'status-badge ' + _statusClass(status);
+          statusEl.textContent = _statusKey(pkg);
+          statusEl.className = 'status-badge ' + _statusClass(pkg);
+        }
+
+        // Historial de Rastreo: el payload no expone un arreglo de eventos.
+        // Si en el futuro lo expone (pkg.trackingEvents), los renderizamos;
+        // de lo contrario mantenemos el estado vacío honesto.
+        var historyEl = document.getElementById('modal-history');
+        if (historyEl) {
+          var realEvents = Array.isArray(pkg.trackingEvents) ? pkg.trackingEvents : [];
+          if (realEvents.length > 0) {
+            historyEl.className = 'border border-gray-200 rounded-lg divide-y divide-gray-100 bg-white';
+            historyEl.innerHTML = realEvents.map(function (ev) {
+              var when = ev.date ? CRBOXPortalAPI.formatDate(new Date(ev.date)) : EM_DASH;
+              return '<div class="flex items-start justify-between p-3">' +
+                '<div>' +
+                  '<p class="text-sm font-medium text-gray-800">' + _esc(ev.label || '') + '</p>' +
+                  '<p class="text-xs text-gray-500">' + _esc(when) + '</p>' +
+                '</div>' +
+                '<i class="fas fa-check-circle text-green-500"></i>' +
+              '</div>';
+            }).join('');
+          } else {
+            historyEl.className = 'bg-gray-50 rounded-lg p-4 text-center text-gray-500';
+            historyEl.innerHTML =
+              '<i class="fas fa-history text-2xl text-gray-300 mb-2 block"></i>' +
+              '<p class="text-sm">No hay eventos de rastreo disponibles.</p>';
+          }
         }
 
         detailsModal.classList.remove('hidden');
@@ -2349,14 +2454,15 @@
       // Expose a tracking lookup so the first-script tracking modal can check real packages
       window._CRBOX_isKnownTracking = function(tn) {
         return _cachedPackages.some(function(p) {
-          return (p.TrackingNumber || p.trackingnumber || p.tracking || '').trim() === tn;
+          return (p.trackingNumber || '').trim() === tn;
         });
       };
 
       window._CRBOX_findPackageByTracking = function(tn) {
-        return _cachedPackages.find(function(p) {
-          return (p.TrackingNumber || p.trackingnumber || p.tracking || '').trim() === tn;
-        }) || null;
+        for (var i = 0; i < _cachedPackages.length; i++) {
+          if ((_cachedPackages[i].trackingNumber || '').trim() === tn) return _cachedPackages[i];
+        }
+        return null;
       };
 
       window._CRBOX_statusClass = _statusClass;
@@ -2381,6 +2487,8 @@
 
         var editBtn = e.target.closest('.btn-edit');
         if (editBtn) {
+          // Edit endpoint is not exposed by the legacy backend yet, so the
+          // action stays safe and informative instead of being removed.
           showToast('Edición de paquetes próximamente disponible', 'info');
           return;
         }
@@ -2392,7 +2500,7 @@
           if (trow) {
             var tidx = parseInt(trow.getAttribute('data-pkg-idx'), 10);
             var tpkg = _renderedPackages[tidx];
-            if (tpkg) trackingNum = tpkg.TrackingNumber || tpkg.trackingnumber || tpkg.tracking || '';
+            if (tpkg) trackingNum = tpkg.trackingNumber || '';
           }
           _openTrackingModal(trackingNum);
           return;
@@ -2405,9 +2513,7 @@
             detailsModal.classList.add('hidden');
             document.body.style.overflow = '';
           }
-          var rtrackingNum = _currentModalPkg
-            ? (_currentModalPkg.TrackingNumber || _currentModalPkg.trackingnumber || _currentModalPkg.tracking || '')
-            : '';
+          var rtrackingNum = _currentModalPkg ? (_currentModalPkg.trackingNumber || '') : '';
           _openTrackingModal(rtrackingNum);
           return;
         }
@@ -2479,7 +2585,7 @@
             console.warn('[CRBOX] getUserInfo error:', err);
             var tbody = document.getElementById('packages-tbody');
             if (tbody) {
-              tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-orange-500">' +
+              tbody.innerHTML = '<tr><td colspan="14" class="text-center py-8 text-orange-500">' +
                 '<i class="fas fa-exclamation-triangle mr-2"></i>No se pudo cargar la información de tu cuenta. Recarga la página.</td></tr>';
             }
             var headerEl = document.getElementById('header-user-name');
