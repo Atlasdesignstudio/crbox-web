@@ -1,17 +1,8 @@
 // auth.js — CRBOX shared authentication module
 // Handles token storage, session management, header auth-state display,
-// login, registration, and update-profile scaffolding.
+// login, registration, and profile-payload scaffolding.
 //
-// API routing:
-// All auth requests go through same-origin proxy endpoints in server.py
-// (/api/auth/login, /api/auth/register, /api/auth/update) which forward
-// the request to the CRBOX backend. This avoids browser CORS policy issues
-// between the static file origin and clients.crbox.cr regardless of the
-// backend's Access-Control-Allow-Origin configuration.
-//
-// If the static server is ever replaced with a CDN or different origin,
-// either keep the proxy or confirm browser-origin CORS on the live crbox.cr
-// domain before switching to direct backend URLs.
+// API routing: direct fetch to clients.crbox.cr (CORS confirmed from browser).
 
 (function (global) {
   'use strict';
@@ -20,36 +11,18 @@
   var KEY_TOKEN      = 'crbox_access_token';
   var KEY_EXPIRES_AT = 'crbox_expires_at';
   var KEY_REMEMBER   = 'crbox_remember';
+  var KEY_EMAIL      = 'crbox_email';
 
-  // ─── API endpoints (same-origin proxy — see header comment) ──────────────
-  var LOGIN_URL    = '/api/auth/login';
-  var REGISTER_URL = '/api/auth/register';
-  var UPDATE_URL   = '/api/auth/update';
+  // ─── API endpoints (direct to CRBOX backend) ─────────────────────────────
+  var LOGIN_URL    = 'https://clients.crbox.cr/authtoken';
+  var REGISTER_URL = 'https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser';
 
-  // ─── PENDING_BACKEND_CONFIRMATION ─────────────────────────────────────────
-  // None of these values are confirmed backend truth. Each is either:
-  //   - an untested assumption that may be incorrect, or
-  //   - a known unknown that blocks safe implementation.
-  // Do NOT change these values without backend confirmation.
-  //
-  // newAddressId / newPhoneId:
-  //   Confirmed Postman samples show real backend-assigned DB IDs (42476, 80770).
-  //   Whether sending 0 is valid for a NEW registration is NOT confirmed.
-  //   These fields are included with value 0 because omitting them entirely
-  //   may also be invalid — this is untested. Must be validated with backend.
-  //
-  // sucursalIdMap:
-  //   The form collects "sabana_norte" / "guadalupe" / "domicilio" strings
-  //   but the API expects a numeric IdSucursal. All values below are UNKNOWN.
-  //   A guard at submit time blocks the request if the resolved value is null.
-  var PENDING_BACKEND_CONFIRMATION = {
-    newAddressId: 0,   // UNCONFIRMED — must be validated with backend before production
-    newPhoneId:   0,   // UNCONFIRMED — must be validated with backend before production
-    sucursalIdMap: {
-      sabana_norte: null,  // UNKNOWN — backend confirmation required
-      guadalupe:    null,  // UNKNOWN — backend confirmation required
-      domicilio:    null   // UNKNOWN — backend confirmation required
-    }
+  // ─── Sucursal ID map (confirmed values) ───────────────────────────────────
+  var SUCURSAL_ID_MAP = {
+    sabana_norte:       1,
+    guadalupe:         12,
+    domicilio:         13,
+    guachipelin_escazu: 14
   };
 
   // ─── Storage helpers ──────────────────────────────────────────────────────
@@ -63,20 +36,23 @@
 
   // ─── Token management ─────────────────────────────────────────────────────
 
-  // Persist a token received from the login endpoint.
-  // expiresIn is the server value in seconds (typically 86399).
   function saveToken(token, expiresIn, remember) {
     var store = _store(remember);
     var expiresAt = Date.now() + (expiresIn * 1000);
     store.setItem(KEY_TOKEN, token);
     store.setItem(KEY_EXPIRES_AT, String(expiresAt));
-    // Always record the remember preference in localStorage so other pages
-    // can find the token in the right store on reload.
     localStorage.setItem(KEY_REMEMBER, remember ? 'true' : 'false');
   }
 
-  // Return the stored token if it exists and has not expired.
-  // Returns null and clears storage on expiry.
+  function saveEmail(email, remember) {
+    _store(remember).setItem(KEY_EMAIL, email);
+  }
+
+  function getEmail() {
+    var remember = _getRemember();
+    return _store(remember).getItem(KEY_EMAIL) || localStorage.getItem(KEY_EMAIL) || sessionStorage.getItem(KEY_EMAIL) || '';
+  }
+
   function getToken() {
     var remember = _getRemember();
     var store = _store(remember);
@@ -90,21 +66,19 @@
     return token;
   }
 
-  // Clear all auth state from both storage locations (defensive).
   function clearToken() {
     [localStorage, sessionStorage].forEach(function (s) {
       s.removeItem(KEY_TOKEN);
       s.removeItem(KEY_EXPIRES_AT);
+      s.removeItem(KEY_EMAIL);
     });
     localStorage.removeItem(KEY_REMEMBER);
   }
 
-  // Returns true if a valid (non-expired) token is present.
   function isLoggedIn() {
     return getToken() !== null;
   }
 
-  // Returns the Authorization header value to attach to authenticated requests.
   function getAuthHeader() {
     var token = getToken();
     return token ? ('Bearer ' + token) : null;
@@ -117,12 +91,6 @@
   }
 
   // ─── Login ────────────────────────────────────────────────────────────────
-  // Returns a Promise that resolves with the access_token string on success,
-  // or rejects with an Error. The caller is responsible for UI state.
-  //
-  // Note: the failed-login response shape from the API is not yet confirmed
-  // (see task-53.md §Minimum remaining backend confirmations).
-  // The handler catches any non-2xx status and treats it as a generic error.
   function doLogin(email, password, remember) {
     var body = new URLSearchParams({
       grant_type: 'password',
@@ -136,7 +104,6 @@
       body:    body
     }).then(function (res) {
       if (!res.ok) {
-        // The exact error body shape is unconfirmed; try to parse JSON anyway.
         return res.json().catch(function () { return {}; }).then(function (err) {
           var msg = (err && err.error_description) || (err && err.error) || null;
           throw new Error(msg || 'Credenciales incorrectas. Verifique su correo y contraseña.');
@@ -148,22 +115,18 @@
         throw new Error('Respuesta inesperada del servidor. Intente de nuevo.');
       }
       saveToken(data.access_token, data.expires_in || 86399, remember);
+      saveEmail(email, remember);
       return data.access_token;
     });
   }
 
   // ─── Registration ─────────────────────────────────────────────────────────
-  // Accepts a pre-built URLSearchParams (or plain string) payload and POSTs
-  // to the register endpoint. Resolves with the parsed response body, or
-  // rejects on network error. The caller must check res.StatusResult.
   function doRegister(payloadString) {
     return fetch(REGISTER_URL, {
       method:  'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body:    payloadString
     }).then(function (res) {
-      // The register endpoint always returns HTTP 200; success is determined
-      // by StatusResult in the body, not the HTTP status code.
       return res.json();
     }).then(function (data) {
       if (!data || !data.StatusResult) {
@@ -173,48 +136,31 @@
     });
   }
 
-  // ─── Update Profile scaffold ───────────────────────────────────────────────
-  // ACTIVATION BLOCKED — cannot be wired to any UI until a "GET current user"
-  // endpoint returns IdConsignee, idaddress, idphone, and IdSucursal (all
-  // backend-assigned values unavailable at registration time).
-  // See task-53.md §Update Profile for the full field mapping and endpoint notes.
-  //
-  // This function DOES build and return the correct encoded payload string given
-  // a profileData object populated from the future GET-user response. It is
-  // intentionally not called from anywhere in the codebase until that endpoint
-  // is confirmed.
-  //
-  // Expected profileData shape (from a future GET-user endpoint):
-  //   { idConsignee, token, firstName, lastName1, lastName2?, email,
-  //     idNumber, idType, country, newsletter, companyCode?, alternativeEmail?,
-  //     contactName1?, contactName2?,
-  //     phones: [ { idphone, phonenumber, phoneextension, isactive, isprimary,
-  //                 phonetype: { idphonetype, type, ... }, consignees: null } ],
-  //     addresses: [ { idaddress, line1, line2, city, zipcode, isactive,
-  //                    isprimary, provincia, canton, distrito, barrio, direccion,
-  //                    state: {...}, addresstype: {...} } ],
-  //     sucursal: { idSucursal } }
+  // ─── Update Profile payload builder ───────────────────────────────────────
+  // Builds the URL-encoded body for the postedituser endpoint.
+  // profileData is populated from getuserinfo (with user edits merged in).
   function buildUpdateProfilePayload(profileData) {
     var params = new URLSearchParams();
-    params.set('Consignee.IdConsignee',          String(profileData.idConsignee));
-    params.set('Token',                          profileData.token || getToken() || '');
-    params.set('Consignee.ConsigneeName',         profileData.firstName);
-    params.set('Consignee.ConsigneeLastName1',    profileData.lastName1);
-    params.set('Consignee.ConsigneeLastName2',    profileData.lastName2  || '');
-    params.set('Consignee.Email',                 profileData.email);
-    params.set('ConfirmEmail',                    profileData.email);
-    params.set('Consignee.IdentificationNumber',  profileData.idNumber);
-    params.set('Consignee.IdentificationType',    profileData.idType);
+    params.set('Consignee.IdConsignee',          String(profileData.idConsignee || profileData.idconsignee || ''));
+    params.set('Token',                          getToken() || '');
+    params.set('Consignee.ConsigneeName',         profileData.firstName    || profileData.consigneename     || '');
+    params.set('Consignee.ConsigneeLastName1',    profileData.lastName1    || profileData.consigneelastname1 || '');
+    params.set('Consignee.ConsigneeLastName2',    profileData.lastName2    || profileData.consigneelastname2 || '');
+    params.set('Consignee.Email',                 profileData.email        || '');
+    params.set('ConfirmEmail',                    profileData.email        || '');
+    params.set('Consignee.IdentificationNumber',  profileData.idNumber     || profileData.identificationnumber || '');
+    params.set('Consignee.IdentificationType',    profileData.idType       || profileData.identificationtype   || '');
     params.set('Consignee.IsCompany',             '0');
-    params.set('Consignee.ResidenceCountry',      profileData.country      || 'CR');
+    params.set('Consignee.ResidenceCountry',      profileData.country      || profileData.residencecountry      || 'CR');
     params.set('Consignee.ReceivesNewsletter',    profileData.newsletter   ? 'true' : 'false');
     params.set('Consignee.Responsabilidad',       '0');
-    params.set('Consignee.AlternativeEmail',      profileData.alternativeEmail || '');
-    params.set('Consignee.ContactName1',          profileData.contactName1 || '');
-    params.set('Consignee.ContactName2',          profileData.contactName2 || '');
+    params.set('Consignee.AlternativeEmail',      profileData.alternativeEmail  || profileData.alternativeemail  || '');
+    params.set('Consignee.ContactName1',          profileData.contactName1      || profileData.contactname1      || '');
+    params.set('Consignee.ContactName2',          profileData.contactName2      || profileData.contactname2      || '');
     params.set('Consignee.IdResponsabilidad',     '');
     params.set('Consignee.BirthDate',             '');
-    params.set('Consignee.Sucursal.IdSucursal',   String(profileData.sucursal.idSucursal));
+    var sucursalId = (profileData.sucursal && (profileData.sucursal.idSucursal || profileData.sucursal._idsucursal)) || '';
+    params.set('Consignee.Sucursal.IdSucursal',   String(sucursalId));
     params.set('CompanyCode',                     profileData.companyCode  || '');
     params.set('Phones',                          JSON.stringify(profileData.phones    || []));
     params.set('Addresses',                       JSON.stringify(profileData.addresses || []));
@@ -222,17 +168,11 @@
   }
 
   // ─── Header auth-state ────────────────────────────────────────────────────
-  // Runs on DOMContentLoaded. If the user is logged in, replaces the
-  // "Iniciar Sesión / Crear Cuenta" links in the desktop user-dropdown
-  // with a logout button. The dropdown open/close animation and the mobile
-  // is-open pattern are left completely untouched — only inner HTML swaps.
   function updateHeaderAuthState() {
     var dropdownMenu = document.getElementById('user-dropdown-menu');
     if (!dropdownMenu) return;
 
     if (isLoggedIn()) {
-      // Replace link content with logout option — preserve all wrapper divs
-      // and the dropdown's toggle mechanics (handled by existing inline scripts).
       dropdownMenu.innerHTML =
         '<div class="py-2 px-4">' +
           '<a href="dashboard.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">' +
@@ -252,8 +192,6 @@
         logoutBtn.addEventListener('click', function () { logout(); });
       }
 
-      // Also update mobile menu auth section if it uses the login/register
-      // link pattern (public pages only; dashboard pages have their own layout).
       var mobileAuthSection = document.querySelector('#mobile-menu .border-t');
       if (mobileAuthSection) {
         var linkPair = mobileAuthSection.querySelector('.flex.space-x-2');
@@ -276,20 +214,17 @@
         }
       }
 
-      // Dashboard pages: wire logout buttons that already exist in the HTML.
       var dashLogout = document.getElementById('logout-button');
       var dashMobileLogout = document.getElementById('mobile-logout-button');
       if (dashLogout) {
-        dashLogout.addEventListener('click', function () { logout(); });
+        dashLogout.addEventListener('click', function (e) { e.preventDefault(); logout(); });
       }
       if (dashMobileLogout) {
-        dashMobileLogout.addEventListener('click', function () { logout(); });
+        dashMobileLogout.addEventListener('click', function (e) { e.preventDefault(); logout(); });
       }
     }
   }
 
-  // Protected dashboard pages — redirect to login if session is missing or expired.
-  // getToken() already clears an expired session before returning null.
   var PROTECTED_PAGES = ['dashboard.html', 'mis-paquetes.html', 'mi-cuenta.html', 'mis-facturas.html'];
 
   function enforceAuthGate() {
@@ -300,7 +235,6 @@
     }
   }
 
-  // Run header update and auth gate on every page load.
   document.addEventListener('DOMContentLoaded', function () {
     enforceAuthGate();
     updateHeaderAuthState();
@@ -308,17 +242,19 @@
 
   // ─── Public API ───────────────────────────────────────────────────────────
   global.CRBOXAuth = {
-    saveToken:              saveToken,
-    getToken:               getToken,
-    clearToken:             clearToken,
-    isLoggedIn:             isLoggedIn,
-    getAuthHeader:          getAuthHeader,
-    logout:                 logout,
-    doLogin:                doLogin,
-    doRegister:             doRegister,
+    saveToken:                 saveToken,
+    saveEmail:                 saveEmail,
+    getEmail:                  getEmail,
+    getToken:                  getToken,
+    clearToken:                clearToken,
+    isLoggedIn:                isLoggedIn,
+    getAuthHeader:             getAuthHeader,
+    logout:                    logout,
+    doLogin:                   doLogin,
+    doRegister:                doRegister,
     buildUpdateProfilePayload: buildUpdateProfilePayload,
-    updateHeaderAuthState:  updateHeaderAuthState,
-    PENDING:                PENDING_BACKEND_CONFIRMATION
+    updateHeaderAuthState:     updateHeaderAuthState,
+    SUCURSAL_ID_MAP:           SUCURSAL_ID_MAP
   };
 
 }(window));

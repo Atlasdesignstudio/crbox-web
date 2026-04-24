@@ -38,15 +38,33 @@ The script updates all six public HTML pages automatically. It must also be run 
 | `js/analytics.js` | Analytics event tracking |
 | `js/seo-config.js` | SEO/structured data configuration |
 
-### Auth integration (Task #53)
+### Auth integration
 
-- **Proxy**: all auth requests go through same-origin proxy endpoints in `server.py` (`POST /api/auth/login`, `/api/auth/register`, `/api/auth/update`), which forward to the CRBOX backend via Python's `urllib.request` — no direct cross-origin browser fetch.
-- **Login**: `CRBOXAuth.doLogin(email, password, remember)` POSTs to `/api/auth/login` (proxied to `https://clients.crbox.cr/authtoken`).
-- **Register**: `CRBOXAuth.doRegister(payload)` POSTs to `/api/auth/register` (proxied to `https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser`). Must inspect `StatusResult` — HTTP 200 alone is not success.
-- **Session**: `sessionStorage` by default; `localStorage` if "Mantener sesión iniciada" is checked. Keys: `crbox_access_token`, `crbox_expires_at`, `crbox_remember`.
-- **`PENDING_BACKEND_CONFIRMATION`** in `auth.js`: `newAddressId: 0` (unconfirmed), `newPhoneId: 0` (unconfirmed), `sucursalIdMap` all null (blocks submission until backend confirms IDs for Sabana Norte / Guadalupe / Domicilio).
-- **Update Profile scaffold**: `CRBOXAuth.buildUpdateProfilePayload()` is intentionally blocked until a GET-user endpoint is available.
-- **Script load order**: `cr-locations.js` → `auth.js` → `main.js` (all pages with shared header).
+- **Direct fetch**: all auth/API requests go directly to `https://clients.crbox.cr` from the browser (CORS enabled on backend). `server.py` is a plain static file server on port 5000.
+- **Login**: `CRBOXAuth.doLogin(email, password, remember)` POSTs to `https://clients.crbox.cr/authtoken`.
+- **Register**: `CRBOXAuth.doRegister(payload)` POSTs to `https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser`. Must inspect `StatusResult`.
+- **Session**: `sessionStorage` by default; `localStorage` if "Mantener sesión iniciada" is checked. Keys: `crbox_access_token`, `crbox_expires_at`, `crbox_remember`, `crbox_email`.
+- **Script load order**: `cr-locations.js` → `portal-api.js` → `auth.js` → `main.js` (all portal pages).
+
+### Portal API (Task #57)
+
+`js/portal-api.js` — exposes `window.CRBOXPortalAPI` with:
+
+| Method | Endpoint | Notes |
+|--------|----------|-------|
+| `getUserInfo(opts)` | `GET /getuserinfo/{email}` | Session-cached; `{ forceRefresh: true }` to bypass |
+| `updateProfile(payload)` | `POST /postedituser` | Clears cache, re-fetches fresh info |
+| `getPackages(idConsignee, start, end, track, status)` | `GET /getuserpackages/...` | Defaults to last 3 months |
+| `getBills(email, start, end)` | `GET /getfacturas/...` | Defaults to last 3 months |
+| `recoverPassword(email)` | `GET /getuserpasswordrecovery/{email}` | No auth; check `data.Message === 'OK'` |
+| `formatDate(date)` | — | Returns `DD-MM-YYYY` string |
+
+Portal pages wired (all four now call real API on DOMContentLoaded):
+- **dashboard.html** — header name, casillero, Miami address name, welcome h1
+- **mis-paquetes.html** — header, stat cards, packages table (`#packages-tbody`)
+- **mi-cuenta.html** — header, profile section, form pre-fill, save via `updateProfile`
+- **mis-facturas.html** — header, bills table (`#bills-tbody`), "Buscar Facturas" button
+- **login.html** — recovery modal uses real `recoverPassword` API
 
 ## Scripts
 

@@ -76,7 +76,7 @@
                             <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
                                 <i class="fas fa-user text-orange-600"></i>
                             </div>
-                            <span class="font-medium">Mathias</span>
+                            <span class="font-medium" id="header-user-name">Mathias</span>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
                         <!-- Dropdown elegante (inicialmente oculto) -->
@@ -131,8 +131,8 @@
                                 <i class="fas fa-user text-orange-600"></i>
                             </div>
                             <div>
-                                <span class="font-medium text-gray-800">Mathias Meneses</span>
-                                <p class="text-xs text-gray-500">Casillero #50628595</p>
+                                <span class="font-medium text-gray-800" id="mobile-user-name">Mathias Meneses</span>
+                                <p class="text-xs text-gray-500" id="mobile-casillero-badge">Casillero #50628595</p>
                             </div>
                         </div>
                         
@@ -218,7 +218,7 @@
                         20% Descuento Disponible
                     </span>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight">¡Bienvenido, Mathias!</h1>
+                <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight" id="welcome-name-span">¡Bienvenido, Mathias!</h1>
                 <p class="text-gray-300 mb-6 max-w-xl">Tu portal de envíos personalizado. Gestiona tus paquetes, facturas y cuenta desde un solo lugar, en cualquier momento y desde cualquier dispositivo.</p>
                 <div class="flex flex-wrap gap-3">
                     <a href="calculadora.html" class="button-3d primary-action bg-orange-500 text-white hover:bg-orange-600 py-3 px-5 rounded-xl font-medium flex items-center transition-all shadow-lg">
@@ -237,7 +237,7 @@
                         <i class="fas fa-truck-loading text-2xl"></i>
                     </div>
                     <div class="text-center">
-                        <span class="block text-white font-bold text-xl md:text-2xl tracking-wider">50628595</span>
+                        <span class="block text-white font-bold text-xl md:text-2xl tracking-wider" id="dashboard-casillero-num">50628595</span>
                         <span class="block card-label text-orange-200 text-sm">Número de casillero</span>
                         <div class="flex justify-center mt-3">
                             <button id="copy-casillero" class="text-xs copy-button text-orange-200 hover:text-white flex items-center transition-colors focus:outline-none">
@@ -522,7 +522,7 @@
                         <div class="space-y-3 text-gray-700 relative bg-white bg-opacity-70 rounded-lg p-4 backdrop-filter backdrop-blur-sm">
                             <p class="flex items-center border-b border-gray-100 pb-2">
                                 <span class="font-medium w-28 text-gray-600">Nombre:</span> 
-                                <span class="font-semibold text-gray-800">Mathias Meneses</span>
+                                <span class="font-semibold text-gray-800" id="miami-address-name">Mathias Meneses</span>
                             </p>
                             <p class="flex items-center border-b border-gray-100 pb-2">
                                 <span class="font-medium w-28 text-gray-600">Dirección:</span> 
@@ -575,7 +575,7 @@
             </div>
             <div>
                 <h3 class="font-semibold text-gray-800 mb-1">Utiliza siempre tu número de casillero:</h3>
-                <p class="text-lg font-bold text-orange-600">50628595</p>
+                <p class="text-lg font-bold text-orange-600" id="instruction-casillero-num">50628595</p>
             </div>
         </div>
         
@@ -755,8 +755,51 @@
 <!-- Scripts -->
 <script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
 <script src="js/cr-locations.js"></script>
+<script src="js/portal-api.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/main.js?v=6"></script>
 <script src="js/dashboard.js"></script>
+<script>
+(function () {
+  'use strict';
+  function _set(id, text) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+  function _applyUserInfo(info) {
+    if (!info) return;
+    var firstName = info.consigneename || info.ConsigneeName || '';
+    var lastName1 = info.consigneelastname1 || info.ConsigneeLastName1 || '';
+    var fullName  = (firstName + ' ' + lastName1).trim() || firstName;
+    var casillero = String(info.idconsignee || info.IdConsignee || '');
+
+    _set('header-user-name', firstName || fullName);
+    _set('mobile-user-name', fullName);
+    _set('mobile-casillero-badge', 'Casillero #' + casillero);
+    _set('welcome-name-span', '¡Bienvenido, ' + (firstName || fullName) + '!');
+    _set('dashboard-casillero-num', casillero);
+    _set('instruction-casillero-num', casillero);
+    _set('miami-address-name', fullName);
+
+    var copyBtn = document.getElementById('copy-casillero');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        navigator.clipboard.writeText(casillero).then(function () {
+          var orig = copyBtn.innerHTML;
+          copyBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Copiado';
+          setTimeout(function () { copyBtn.innerHTML = orig; }, 1800);
+        });
+      });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
+    CRBOXPortalAPI.getUserInfo()
+      .then(function (info) { _applyUserInfo(info); })
+      .catch(function (err) { console.warn('[CRBOX] getUserInfo failed:', err); });
+  });
+}());
+</script>
 </body>
 </html>

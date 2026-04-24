@@ -73,7 +73,7 @@
                         <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
                             <i class="fas fa-user text-orange-600"></i>
                         </div>
-                        <span class="font-medium">Mathias</span>
+                        <span class="font-medium" id="header-user-name">Mathias</span>
                         <i class="fas fa-chevron-down text-xs"></i>
                     </button>
                     <!-- Dropdown elegante (inicialmente oculto) -->
@@ -128,8 +128,8 @@
                             <i class="fas fa-user text-orange-600"></i>
                         </div>
                         <div>
-                            <span class="font-medium text-gray-800">Mathias Meneses</span>
-                            <p class="text-xs text-gray-500">Casillero #50628595</p>
+                            <span class="font-medium text-gray-800" id="mobile-user-name">Mathias Meneses</span>
+                            <p class="text-xs text-gray-500" id="mobile-casillero-badge">Casillero #50628595</p>
                         </div>
                     </div>
                     
@@ -459,7 +459,7 @@
                                 <th class="whitespace-nowrap bg-gray-50 px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="packages-tbody">
                             <!-- Fila 1: Miami -->
                             <tr class="border-b border-gray-100 hover:bg-orange-50 transition-all" data-status="MIAMI" data-date="2025-05-08">
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -1624,6 +1624,7 @@
     </style>
 
     <script src="js/cr-locations.js"></script>
+    <script src="js/portal-api.js"></script>
     <script src="js/auth.js"></script>
     <!-- JavaScript Mejorado -->
     <script>
@@ -2342,6 +2343,148 @@
                 localStorage.setItem('lastVisit', today);
             }
         }
+    </script>
+    <script>
+    (function () {
+      'use strict';
+
+      function _txt(id, val) { var el = document.getElementById(id); if (el) el.textContent = val || ''; }
+
+      var STATUS_BADGE = {
+        'MIAMI':       'status-badge-blue',
+        'EN TRÁNSITO': 'status-badge-green',
+        'EN CRBOX':    'status-badge-orange',
+        'ENTREGADO':   'status-badge-gray'
+      };
+      var STATUS_DATA = {
+        'MIAMI':       'MIAMI',
+        'EN TRÁNSITO': 'EN TRÁNSITO',
+        'EN CRBOX':    'EN CRBOX',
+        'ENTREGADO':   'ENTREGADO'
+      };
+
+      function _statusClass(s) {
+        s = (s || '').toUpperCase();
+        for (var k in STATUS_BADGE) {
+          if (s.indexOf(k) >= 0) return STATUS_BADGE[k];
+        }
+        return 'status-badge-gray';
+      }
+      function _statusKey(s) {
+        s = (s || '').toUpperCase();
+        for (var k in STATUS_DATA) {
+          if (s.indexOf(k) >= 0) return k;
+        }
+        return s;
+      }
+      function _esc(str) {
+        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      function _renderRow(pkg) {
+        var status      = _esc(pkg.Status || pkg.status || '');
+        var statusKey   = _statusKey(status);
+        var tracking    = _esc(pkg.TrackingNumber || pkg.trackingnumber || pkg.tracking || '');
+        var store       = _esc(pkg.Store || pkg.store || pkg.Tienda || '');
+        var dateRaw     = pkg.ArrivalDate || pkg.arrivaldate || pkg.Date || pkg.date || '';
+        var dateStr     = dateRaw ? CRBOXPortalAPI.formatDate(new Date(dateRaw)) : '';
+        var weight      = _esc(pkg.Weight || pkg.weight || '');
+        var desc        = _esc(pkg.Description || pkg.description || '');
+        var notes       = _esc(pkg.Notes || pkg.notes || '');
+
+        return '<tr class="border-b border-gray-100 hover:bg-orange-50 transition-all"' +
+               ' data-status="' + statusKey + '" data-date="' + _esc(dateRaw) + '">' +
+          '<td class="px-6 py-4 whitespace-nowrap">' +
+            '<span class="status-badge ' + _statusClass(status) + '">' + statusKey + '</span>' +
+          '</td>' +
+          '<td class="px-6 py-4 whitespace-nowrap">' +
+            '<div class="font-medium text-gray-900">' + tracking + '</div>' +
+            '<div class="text-xs text-gray-500 mt-1">' + store + '</div>' +
+          '</td>' +
+          '<td class="px-6 py-4 whitespace-nowrap">' +
+            '<div class="text-sm text-gray-900">' + dateStr + '</div>' +
+          '</td>' +
+          '<td class="px-6 py-4 whitespace-nowrap">' +
+            '<div class="text-sm text-gray-900">' + weight + '</div>' +
+          '</td>' +
+          '<td class="px-6 py-4">' +
+            '<div class="text-sm text-gray-900">' + desc + '</div>' +
+          '</td>' +
+          '<td class="px-6 py-4">' +
+            '<div class="text-sm text-gray-500">' + notes + '</div>' +
+          '</td>' +
+          '<td class="px-6 py-4 text-right whitespace-nowrap">' +
+            '<div class="flex justify-end space-x-1">' +
+              '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles">' +
+                '<i class="fas fa-eye"></i>' +
+              '</button>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      }
+
+      function _renderStats(packages) {
+        var total = packages.length, miami = 0, transito = 0, crbox = 0;
+        packages.forEach(function (p) {
+          var s = ((p.Status || p.status || '')).toUpperCase();
+          if (s.indexOf('MIAMI')        >= 0) miami++;
+          else if (s.indexOf('TRÁNSITO') >= 0 || s.indexOf('TRANSITO') >= 0) transito++;
+          else if (s.indexOf('CRBOX')    >= 0) crbox++;
+        });
+        _txt('total-paquetes', String(total));
+        _txt('en-transito',    String(transito));
+        _txt('en-crbox',       String(crbox));
+        _txt('en-miami',       String(miami));
+      }
+
+      function _loadPackages(idConsignee) {
+        var tbody = document.getElementById('packages-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">' +
+          '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando paquetes...</td></tr>';
+
+        CRBOXPortalAPI.getPackages(idConsignee,
+          CRBOXPortalAPI.defaultStartDate(3),
+          CRBOXPortalAPI.defaultEndDate())
+        .then(function (data) {
+          var packages = Array.isArray(data) ? data : (data.packages || data.Packages || []);
+          _renderStats(packages);
+          if (packages.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-400">' +
+              '<i class="fas fa-box-open text-4xl mb-3 block"></i>' +
+              'No tienes paquetes en los últimos 3 meses.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = packages.map(_renderRow).join('');
+        })
+        .catch(function (err) {
+          console.warn('[CRBOX] getPackages error:', err);
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-orange-500">' +
+            'No se pudieron cargar los paquetes. Recarga la página.</td></tr>';
+        });
+      }
+
+      function _applyHeader(info) {
+        var firstName = info.consigneename  || info.ConsigneeName  || '';
+        var lastName1 = info.consigneelastname1 || info.ConsigneeLastName1 || '';
+        var fullName  = (firstName + ' ' + lastName1).trim() || firstName;
+        var casillero = String(info.idconsignee || info.IdConsignee || '');
+        _txt('header-user-name',      firstName || fullName);
+        _txt('mobile-user-name',      fullName);
+        _txt('mobile-casillero-badge','Casillero #' + casillero);
+        return info.idconsignee || info.IdConsignee;
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
+        CRBOXPortalAPI.getUserInfo()
+          .then(function (info) {
+            var idConsignee = _applyHeader(info);
+            if (idConsignee) _loadPackages(idConsignee);
+          })
+          .catch(function (err) { console.warn('[CRBOX] getUserInfo error:', err); });
+      });
+    }());
     </script>
 </body>
 </html>

@@ -47,7 +47,7 @@
                             <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
                                 <i class="fas fa-user text-orange-600"></i>
                             </div>
-                            <span class="font-medium">Mathias</span>
+                            <span class="font-medium" id="header-user-name">Mathias</span>
                             <i class="fas fa-chevron-down text-xs transition-transform group-hover:rotate-180"></i>
                         </button>
                         <!-- Dropdown menu -->
@@ -100,7 +100,7 @@
                             <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center mr-2">
                                 <i class="fas fa-user text-orange-600"></i>
                             </div>
-                            <span class="font-medium">Mathias Meneses</span>
+                            <span class="font-medium" id="mobile-user-name">Mathias Meneses</span>
                         </div>
                         <div class="space-y-2">
                             <a href="dashboard.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
@@ -288,7 +288,7 @@
                                 <th class="whitespace-nowrap text-right">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="bills-tbody">
                             <tr class="empty-state">
                                 <td colspan="10" class="py-16">
                                     <div class="flex flex-col items-center justify-center">
@@ -488,6 +488,7 @@
 
     <!-- Scripts -->
     <script src="js/cr-locations.js"></script>
+    <script src="js/portal-api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/main.js?v=6"></script>
     <script src="js/dashboard.js"></script>
@@ -564,6 +565,110 @@
                 });
             }
         });
+    </script>
+    <script>
+    (function () {
+      'use strict';
+
+      function _txt(id, val) { var el = document.getElementById(id); if (el) el.textContent = val || ''; }
+      function _esc(str) {
+        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      function _renderBillRow(bill) {
+        var num     = _esc(bill.InvoiceNumber || bill.invoicenumber || bill.NumFactura || '');
+        var date    = _esc(bill.Date || bill.date || bill.Fecha || '');
+        var desc    = _esc(bill.Description || bill.description || bill.Descripcion || '');
+        var subtot  = _esc(bill.SubTotal  || bill.subtotal  || '');
+        var iva     = _esc(bill.IVA       || bill.iva       || '');
+        var disc    = _esc(bill.Discount  || bill.discount  || '');
+        var total   = _esc(bill.Total     || bill.total     || '');
+        var curr    = _esc(bill.Currency  || bill.currency  || '');
+        var state   = _esc(bill.State     || bill.state     || bill.Estado || '');
+
+        return '<tr class="hover:bg-orange-50 transition-colors">' +
+          '<td class="whitespace-nowrap">' + num + '</td>' +
+          '<td class="whitespace-nowrap">' + date + '</td>' +
+          '<td>' + desc + '</td>' +
+          '<td class="whitespace-nowrap text-right">' + subtot + '</td>' +
+          '<td class="whitespace-nowrap text-right">' + iva + '</td>' +
+          '<td class="whitespace-nowrap text-right">' + disc + '</td>' +
+          '<td class="whitespace-nowrap text-right font-semibold">' + total + '</td>' +
+          '<td class="whitespace-nowrap">' + curr + '</td>' +
+          '<td class="whitespace-nowrap">' +
+            '<span class="px-2 py-1 rounded-full text-xs font-medium ' +
+              (state.toUpperCase().indexOf('PAG') >= 0 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700') +
+            '">' + state + '</span>' +
+          '</td>' +
+          '<td></td>' +
+        '</tr>';
+      }
+
+      function _loadBills(email, startDate, endDate) {
+        var tbody = document.getElementById('bills-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-gray-400">' +
+          '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando facturas...</td></tr>';
+
+        CRBOXPortalAPI.getBills(email, startDate, endDate)
+          .then(function (data) {
+            var bills = Array.isArray(data) ? data : (data.bills || data.Bills || data.facturas || []);
+            if (bills.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="10" class="text-center py-12 text-gray-400">' +
+                '<i class="fas fa-receipt text-4xl mb-3 block"></i>' +
+                'No se encontraron facturas para el período seleccionado.</td></tr>';
+              return;
+            }
+            tbody.innerHTML = bills.map(_renderBillRow).join('');
+          })
+          .catch(function (err) {
+            console.warn('[CRBOX] getBills error:', err);
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-orange-500">' +
+              'No se pudieron cargar las facturas. Recarga la página.</td></tr>';
+          });
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
+
+        CRBOXPortalAPI.getUserInfo()
+          .then(function (info) {
+            var firstName = info.consigneename  || info.ConsigneeName  || '';
+            var lastName1 = info.consigneelastname1 || info.ConsigneeLastName1 || '';
+            var fullName  = (firstName + ' ' + lastName1).trim() || firstName;
+            _txt('header-user-name', firstName || fullName);
+            _txt('mobile-user-name', fullName);
+          })
+          .catch(function (err) { console.warn('[CRBOX] getUserInfo error (facturas):', err); });
+
+        var email = CRBOXAuth.getEmail();
+        if (!email) return;
+
+        var dateInputs = document.querySelectorAll('input[type="date"]');
+        var startInput = dateInputs[0] || null;
+        var endInput   = dateInputs[1] || null;
+
+        function _getStart() {
+          return startInput && startInput.value ? new Date(startInput.value) : CRBOXPortalAPI.defaultStartDate(3);
+        }
+        function _getEnd() {
+          return endInput && endInput.value ? new Date(endInput.value) : CRBOXPortalAPI.defaultEndDate();
+        }
+
+        var buscarBtn = null;
+        document.querySelectorAll('button').forEach(function (btn) {
+          if (btn.textContent && btn.textContent.trim().indexOf('Buscar') >= 0) buscarBtn = btn;
+        });
+
+        if (buscarBtn) {
+          buscarBtn.addEventListener('click', function () {
+            _loadBills(email, _getStart(), _getEnd());
+          });
+        }
+
+        _loadBills(email, _getStart(), _getEnd());
+      });
+    }());
     </script>
 </body>
 </html>

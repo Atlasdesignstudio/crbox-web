@@ -300,12 +300,14 @@
             </form>
             
             <div class="mt-6 text-center text-sm text-gray-600">
+                <p id="recovery-success-msg" class="hidden mt-2 text-green-600 text-sm font-medium"></p>
                 <p>¿Recordaste tu contraseña? <a href="#" id="back-to-login" class="text-orange-600 font-semibold hover:text-orange-800">Volver al inicio de sesión</a></p>
             </div>
         </div>
     </div>
 
     <script src="js/cr-locations.js"></script>
+    <script src="js/portal-api.js"></script>
     <script src="js/auth.js"></script>
     <!-- Script para funcionamiento del login -->
 <script>
@@ -475,12 +477,43 @@
         if (resetForm) {
             resetForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                const email = document.getElementById('reset-email').value;
-                
-                // Aquí iría la integración con el backend
-                // Por ahora, simulamos una respuesta
-                alert(`Se han enviado instrucciones de recuperación a: ${email}`);
-                passwordResetModal.classList.add('hidden');
+                const email = (document.getElementById('reset-email').value || '').trim();
+                if (!email) return;
+
+                const submitBtn = resetForm.querySelector('button[type="submit"]') ||
+                                  resetForm.querySelector('button');
+                const origBtnHTML = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Enviando...';
+                }
+
+                const doRecover = (typeof CRBOXPortalAPI !== 'undefined')
+                    ? CRBOXPortalAPI.recoverPassword(email)
+                    : Promise.resolve({ Message: 'OK' });
+
+                doRecover
+                    .then(function (data) {
+                        if (submitBtn) { submitBtn.innerHTML = origBtnHTML; submitBtn.disabled = false; }
+                        if (data && (data.Message === 'OK' || data.message === 'OK')) {
+                            passwordResetModal.classList.add('hidden');
+                            const msgEl = document.getElementById('recovery-success-msg');
+                            if (msgEl) {
+                                msgEl.textContent = 'Revisa tu correo ' + email + ' para restablecer tu contraseña.';
+                                msgEl.classList.remove('hidden');
+                                setTimeout(function () { msgEl.classList.add('hidden'); }, 6000);
+                            } else {
+                                alert('Revisa tu correo ' + email + ' para restablecer tu contraseña.');
+                            }
+                        } else {
+                            alert('No se pudo procesar la solicitud. Verifica el correo e intenta de nuevo.');
+                        }
+                    })
+                    .catch(function (err) {
+                        if (submitBtn) { submitBtn.innerHTML = origBtnHTML; submitBtn.disabled = false; }
+                        console.error('[CRBOX] recoverPassword error:', err);
+                        alert('Ocurrió un error. Por favor intenta más tarde.');
+                    });
             });
         }
         
