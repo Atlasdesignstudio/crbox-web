@@ -786,14 +786,12 @@
     _set('miami-address-name', fullName);
 
     // PendingDiscount badge
-    var pendingDiscount = info.PendingDiscount || info.pendingDiscount;
+    var _rawDiscount = info.PendingDiscount !== undefined ? info.PendingDiscount : info.pendingDiscount;
+    var pendingDiscount = (Number(_rawDiscount) > 0) ? Number(_rawDiscount) : null;
     var discountBadge = document.getElementById('discount-badge');
     if (discountBadge) {
       if (pendingDiscount) {
-        var pct = (typeof pendingDiscount === 'number')
-          ? pendingDiscount + '% Descuento Disponible'
-          : String(pendingDiscount);
-        _set('discount-badge-text', pct);
+        _set('discount-badge-text', pendingDiscount + '% Descuento Disponible');
         discountBadge.classList.remove('hidden');
       } else {
         discountBadge.classList.add('hidden');
