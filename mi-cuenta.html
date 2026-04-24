@@ -172,13 +172,13 @@
         <div class="container mx-auto px-4">
             
             <!-- Page Title & Actions -->
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-6 gap-4">
                 <div>
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Mi Cuenta</h1>
-                    <p class="text-gray-600">Información personal y preferencias</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1 tracking-tight">Mi Cuenta</h1>
+                    <p class="text-gray-600 text-sm md:text-base">Información personal, direcciones y preferencias de tu cuenta CRBOX.</p>
                 </div>
-                <div class="mt-4 md:mt-0">
-                    <button id="save-profile-btn" class="action-btn-primary flex items-center">
+                <div class="flex flex-col items-stretch md:items-end">
+                    <button id="save-profile-btn" class="action-btn-primary">
                         <i class="fas fa-save mr-2"></i>
                         Guardar Cambios
                     </button>
@@ -189,37 +189,42 @@
             <!-- Profile Section -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                 <div class="profile-header">
-                    <div class="profile-header-pattern"></div>
-                    <div class="relative z-10 flex flex-col items-center">
-                        <div class="profile-avatar mx-auto bg-white">
-                            <span class="text-orange-600 font-bold text-3xl" id="profile-avatar-initials">MM</span>
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 md:gap-6">
+                        <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-5 text-center md:text-left">
+                            <div class="profile-avatar bg-orange-50 mx-auto md:mx-0">
+                                <span class="text-orange-600 font-bold text-3xl" id="profile-avatar-initials">MM</span>
+                            </div>
+                            <div class="min-w-0">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-800 tracking-tight truncate" id="profile-header-name">Cargando...</h2>
+                                <p class="text-gray-600 text-sm md:text-base mt-0.5" id="profile-casillero">Casillero #—</p>
+                                <p class="text-gray-500 text-xs md:text-sm mt-1 hidden" id="account-sucursal-wrap">
+                                  <i class="fas fa-map-marker-alt mr-1.5"></i><span id="account-sucursal"></span>
+                                </p>
+                            </div>
                         </div>
-                        <h2 class="text-2xl font-bold text-white" id="profile-header-name">Cargando...</h2>
-                        <p class="text-white text-opacity-90" id="profile-casillero">Casillero #—</p>
-                        <p class="text-white text-opacity-75 text-sm mt-1 hidden" id="account-sucursal-wrap">
-                          <i class="fas fa-map-marker-alt mr-1"></i><span id="account-sucursal"></span>
-                        </p>
-                        <span class="hidden mt-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white bg-opacity-20 text-white border border-white border-opacity-30" id="account-discount-badge">
-                            <i class="fas fa-tag mr-1"></i><span id="account-discount-text">Descuento Disponible</span>
-                        </span>
+                        <div class="flex justify-center md:justify-end">
+                            <span class="hidden inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100" id="account-discount-badge">
+                                <i class="fas fa-tag mr-1.5"></i><span id="account-discount-text">Descuento Disponible</span>
+                            </span>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div class="border-b border-gray-100">
                     <div class="flex overflow-x-auto no-scrollbar">
-                        <button class="whitespace-nowrap px-6 py-4 font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none account-tab-btn" data-tab="personal-info">
+                        <button class="whitespace-nowrap px-5 md:px-6 py-3.5 text-sm md:text-[0.9375rem] font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none account-tab-btn" data-tab="personal-info">
                             <i class="fas fa-user mr-2"></i>
                             Información Personal
                         </button>
-                        <button class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none account-tab-btn" data-tab="address-info">
+                        <button class="whitespace-nowrap px-5 md:px-6 py-3.5 text-sm md:text-[0.9375rem] font-medium text-gray-600 border-b-2 border-transparent focus:outline-none account-tab-btn" data-tab="address-info">
                             <i class="fas fa-map-marker-alt mr-2"></i>
                             Direcciones
                         </button>
-                        <button class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none account-tab-btn" data-tab="security">
+                        <button class="whitespace-nowrap px-5 md:px-6 py-3.5 text-sm md:text-[0.9375rem] font-medium text-gray-600 border-b-2 border-transparent focus:outline-none account-tab-btn" data-tab="security">
                             <i class="fas fa-shield-alt mr-2"></i>
                             Seguridad
                         </button>
-                        <button class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none account-tab-btn" data-tab="notifications">
+                        <button class="whitespace-nowrap px-5 md:px-6 py-3.5 text-sm md:text-[0.9375rem] font-medium text-gray-600 border-b-2 border-transparent focus:outline-none account-tab-btn" data-tab="notifications">
                             <i class="fas fa-bell mr-2"></i>
                             Notificaciones
                         </button>
@@ -227,9 +232,10 @@
                 </div>
                 
                 <!-- Personal Info Tab -->
-                <div class="p-6 account-tab" id="personal-info-tab">
+                <div class="p-6 md:p-8 account-tab" id="personal-info-tab">
                     <form>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <h3 class="account-section-title">Datos personales</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-8">
                             <div class="form-group">
                                 <label for="first_name" class="form-label">Nombre</label>
                                 <input type="text" id="first_name" name="first_name" class="form-control" value="">
@@ -246,8 +252,12 @@
                                 <label for="phone" class="form-label">Teléfono</label>
                                 <input type="tel" id="phone" name="phone" class="form-control" value="">
                             </div>
-                            <div class="form-group md:col-span-2">
-                                <label for="id_type" class="form-label">Tipo de Identificación</label>
+                        </div>
+
+                        <h3 class="account-section-title">Identificación</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-5 mb-8">
+                            <div class="form-group">
+                                <label for="id_type" class="form-label">Tipo</label>
                                 <select id="id_type" name="id_type" class="form-control">
                                     <option value="cedula">Cédula Nacional</option>
                                     <option value="dimex">DIMEX</option>
@@ -259,44 +269,68 @@
                                 <input type="text" id="id_number" name="id_number" class="form-control" value="">
                             </div>
                         </div>
-                        
-                        <div class="mt-6 border-t border-gray-100 pt-6">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Preferencias</h3>
-                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500 flex items-start">
-                                <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2"></i>
-                                <span>Las preferencias de consolidación, inspección y seguro estarán disponibles próximamente. Por ahora, contáctanos para coordinarlas con tu envío.</span>
-                            </div>
+
+                        <h3 class="account-section-title">Preferencias</h3>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600 flex items-start">
+                            <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2.5 flex-shrink-0"></i>
+                            <span>Las preferencias de consolidación, inspección y seguro estarán disponibles próximamente. Por ahora, contáctanos para coordinarlas con tu envío.</span>
                         </div>
                     </form>
                 </div>
                 
                 <!-- Address Info Tab (Hidden by default) -->
-                <div class="p-6 account-tab hidden" id="address-info-tab">
-                    <div class="mb-6 border-b border-gray-100 pb-6">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Mi Dirección en Miami</h3>
-                        <div class="bg-gray-50 p-4 rounded-lg">
-                            <div class="space-y-3">
-                                <p><span class="font-medium">Nombre:</span> <span id="miami-addr-name">—</span></p>
-                                <p><span class="font-medium">Dirección:</span> 8155 NW 68TH ST</p>
-                                <p><span class="font-medium">Ciudad:</span> Miami</p>
-                                <p><span class="font-medium">Estado:</span> Florida</p>
-                                <p><span class="font-medium">Código Postal:</span> 33166</p>
-                                <p><span class="font-medium">País:</span> Estados Unidos</p>
-                                <p><span class="font-medium">Teléfono:</span> 305 882 1718</p>
-                                <p><span class="font-medium">Número de Casillero:</span> <span id="miami-addr-casillero">—</span></p>
-                            </div>
-                            <button class="mt-4 text-blue-500 hover:text-blue-700 font-medium flex items-center" id="copy-address-btn">
-                                <i class="fas fa-copy mr-2"></i>
+                <div class="p-6 md:p-8 account-tab hidden" id="address-info-tab">
+                    <div class="mb-8">
+                        <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+                            <h3 class="account-section-title mb-0 flex-1">Mi Dirección en Miami</h3>
+                            <button class="text-sm text-gray-600 hover:text-orange-600 font-medium inline-flex items-center transition-colors" id="copy-address-btn">
+                                <i class="fas fa-copy mr-1.5"></i>
                                 Copiar dirección
                             </button>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-5 md:p-6">
+                            <dl class="account-kv-list">
+                                <div class="account-kv-row">
+                                    <dt>Nombre</dt>
+                                    <dd id="miami-addr-name">—</dd>
+                                </div>
+                                <div class="account-kv-row is-highlight">
+                                    <dt>Casillero</dt>
+                                    <dd id="miami-addr-casillero">—</dd>
+                                </div>
+                                <div class="account-kv-row">
+                                    <dt>Dirección</dt>
+                                    <dd>8155 NW 68TH ST</dd>
+                                </div>
+                                <div class="account-kv-row">
+                                    <dt>Ciudad</dt>
+                                    <dd>Miami</dd>
+                                </div>
+                                <div class="account-kv-row">
+                                    <dt>Estado</dt>
+                                    <dd>Florida</dd>
+                                </div>
+                                <div class="account-kv-row">
+                                    <dt>Código Postal</dt>
+                                    <dd>33166</dd>
+                                </div>
+                                <div class="account-kv-row">
+                                    <dt>País</dt>
+                                    <dd>Estados Unidos</dd>
+                                </div>
+                                <div class="account-kv-row">
+                                    <dt>Teléfono</dt>
+                                    <dd>305 882 1718</dd>
+                                </div>
+                            </dl>
                         </div>
                     </div>
 
                     <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xl font-semibold text-gray-800">Direcciones en Costa Rica</h3>
-                            <button class="text-orange-600 hover:text-orange-700 font-medium flex items-center" id="add-address-btn">
-                                <i class="fas fa-plus mr-2"></i>
+                        <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+                            <h3 class="account-section-title mb-0 flex-1">Direcciones en Costa Rica</h3>
+                            <button class="text-sm text-orange-600 hover:text-orange-700 font-medium inline-flex items-center transition-colors" id="add-address-btn">
+                                <i class="fas fa-plus mr-1.5"></i>
                                 Agregar Dirección
                             </button>
                         </div>
@@ -308,16 +342,16 @@
                 </div>
                 
                 <!-- Security Tab (Hidden by default) -->
-                <div class="p-6 account-tab hidden" id="security-tab">
-                    <div class="mb-6 border-b border-gray-100 pb-6">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Cambiar Contraseña</h3>
+                <div class="p-6 md:p-8 account-tab hidden" id="security-tab">
+                    <div class="mb-8">
+                        <h3 class="account-section-title">Cambiar Contraseña</h3>
                         <form>
-                            <div class="space-y-4">
+                            <div class="space-y-4 max-w-xl">
                                 <div class="form-group">
                                     <label for="current_password" class="form-label">Contraseña Actual</label>
                                     <div class="relative">
                                         <input type="password" id="current_password" name="current_password" class="form-control pr-10">
-                                        <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 toggle-password">
+                                        <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 toggle-password" aria-label="Mostrar/ocultar contraseña">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
@@ -326,7 +360,7 @@
                                     <label for="new_password" class="form-label">Nueva Contraseña</label>
                                     <div class="relative">
                                         <input type="password" id="new_password" name="new_password" class="form-control pr-10">
-                                        <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 toggle-password">
+                                        <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 toggle-password" aria-label="Mostrar/ocultar contraseña">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
@@ -335,13 +369,14 @@
                                     <label for="confirm_password" class="form-label">Confirmar Nueva Contraseña</label>
                                     <div class="relative">
                                         <input type="password" id="confirm_password" name="confirm_password" class="form-control pr-10">
-                                        <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 toggle-password">
+                                        <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 toggle-password" aria-label="Mostrar/ocultar contraseña">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
                                 </div>
-                                <div>
+                                <div class="pt-1">
                                     <button type="button" id="update-password-btn" class="action-btn-primary">
+                                        <i class="fas fa-key mr-2"></i>
                                         Actualizar Contraseña
                                     </button>
                                     <p class="text-xs text-gray-500 mt-2">Esta acción usa el botón "Guardar Cambios" para enviar la nueva contraseña al servidor.</p>
@@ -349,61 +384,57 @@
                             </div>
                         </form>
                     </div>
-                    
+
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Seguridad de la Cuenta</h3>
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500 flex items-start">
-                            <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2"></i>
+                        <h3 class="account-section-title">Seguridad de la Cuenta</h3>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600 flex items-start">
+                            <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2.5 flex-shrink-0"></i>
                             <span>La autenticación de dos factores y las notificaciones de acceso estarán disponibles próximamente.</span>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Notifications Tab (Hidden by default) -->
-                <div class="p-6 account-tab hidden" id="notifications-tab">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Preferencias de Notificación</h3>
-
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-500 flex items-start mb-6">
-                        <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2"></i>
-                        <span>Los canales de email, SMS y push y las notificaciones de paquetes / facturas estarán disponibles próximamente. Por ahora solo puedes gestionar la suscripción a promociones.</span>
+                <div class="p-6 md:p-8 account-tab hidden" id="notifications-tab">
+                    <div class="mb-8">
+                        <h3 class="account-section-title">Canales de Notificación</h3>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600 flex items-start">
+                            <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2.5 flex-shrink-0"></i>
+                            <span>Los canales de email, SMS y push y las notificaciones de paquetes / facturas estarán disponibles próximamente. Por ahora solo puedes gestionar la suscripción a promociones.</span>
+                        </div>
                     </div>
 
-                    <div class="border-t border-gray-100 pt-6">
-                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Suscripciones</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-center">
-                                <input type="checkbox" id="notify_promotions" name="notify_promotions" class="h-5 w-5 text-orange-600 rounded">
-                                <label for="notify_promotions" class="ml-2 block text-gray-700">Promociones y ofertas especiales</label>
-                            </div>
-                            <p class="text-xs text-gray-500 ml-7">Esta preferencia se guarda al pulsar "Guardar Cambios" en la cabecera del perfil.</p>
+                    <div>
+                        <h3 class="account-section-title">Suscripciones</h3>
+                        <div class="bg-white border border-gray-100 rounded-xl p-4 md:p-5">
+                            <label for="notify_promotions" class="flex items-start cursor-pointer">
+                                <input type="checkbox" id="notify_promotions" name="notify_promotions" class="h-5 w-5 text-orange-600 rounded mt-0.5 flex-shrink-0">
+                                <span class="ml-3">
+                                    <span class="block text-gray-800 font-medium">Promociones y ofertas especiales</span>
+                                    <span class="block text-xs text-gray-500 mt-1">Esta preferencia se guarda al pulsar "Guardar Cambios" en la cabecera del perfil.</span>
+                                </span>
+                            </label>
                         </div>
                     </div>
                 </div>
             </div>
             
             <!-- Delete Account Section -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-6 border-b border-gray-100">
-                    <h2 class="text-xl font-bold text-gray-800">Eliminar Cuenta</h2>
-                </div>
-                <div class="p-6">
-                    <div class="bg-red-50 rounded-lg p-4 border border-red-100">
-                        <div class="flex items-start">
-                            <div class="text-red-500 mt-1 mr-3">
-                                <i class="fas fa-exclamation-triangle text-xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-red-800 mb-1">¿Deseas eliminar tu cuenta?</h3>
-                                <p class="text-red-600 mb-2">
-                                    La eliminación de cuenta debe coordinarse directamente con nuestro equipo de soporte. Escríbenos a <a href="mailto:ventas@crbox.cr?subject=Solicitud%20de%20eliminaci%C3%B3n%20de%20cuenta" class="underline font-medium">ventas@crbox.cr</a> o llámanos al +506-4000-1114.
-                                </p>
-                                <div class="mt-4">
-                                    <a href="mailto:ventas@crbox.cr?subject=Solicitud%20de%20eliminaci%C3%B3n%20de%20cuenta" class="inline-flex items-center bg-white border border-red-500 text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg font-medium transition-colors">
-                                        <i class="fas fa-envelope mr-2"></i>
-                                        Contactar Soporte
-                                    </a>
-                                </div>
-                            </div>
+            <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+                <div class="p-6 md:p-8">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-1">Eliminar Cuenta</h2>
+                            <p class="text-gray-600 text-sm md:text-[0.9375rem] mb-4">
+                                La eliminación de cuenta debe coordinarse directamente con nuestro equipo de soporte. Escríbenos a <a href="mailto:ventas@crbox.cr?subject=Solicitud%20de%20eliminaci%C3%B3n%20de%20cuenta" class="text-orange-600 hover:text-orange-700 font-medium underline">ventas@crbox.cr</a> o llámanos al <a href="tel:+50640001114" class="text-orange-600 hover:text-orange-700 font-medium underline">+506-4000-1114</a>.
+                            </p>
+                            <a href="mailto:ventas@crbox.cr?subject=Solicitud%20de%20eliminaci%C3%B3n%20de%20cuenta" class="action-btn-light inline-flex items-center text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300">
+                                <i class="fas fa-envelope mr-2"></i>
+                                Contactar Soporte
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -562,24 +593,29 @@
                 });
             });
             
-            // Copy address to clipboard
+            // Copy address to clipboard — reads the labeled key/value
+            // rows in the Miami address panel and emits "Label: Value"
+            // lines suitable for pasting into a checkout form.
             const copyAddressBtn = document.getElementById('copy-address-btn');
-            
+
             if (copyAddressBtn) {
                 copyAddressBtn.addEventListener('click', function() {
-                    const addressElements = document.querySelectorAll('#address-info-tab .bg-gray-50 p');
-                    let addressText = '';
-                    
-                    addressElements.forEach(element => {
-                        addressText += element.textContent + '\n';
+                    const rows = document.querySelectorAll('#address-info-tab .account-kv-row');
+                    const lines = [];
+                    rows.forEach(row => {
+                        const dt = row.querySelector('dt');
+                        const dd = row.querySelector('dd');
+                        if (!dt || !dd) return;
+                        const label = (dt.textContent || '').trim();
+                        const value = (dd.textContent || '').trim();
+                        if (!value || value === '—') return;
+                        lines.push(label + ': ' + value);
                     });
-                    
-                    // Copy to clipboard
+                    const addressText = lines.join('\n');
+
                     navigator.clipboard.writeText(addressText).then(() => {
-                        // Provide feedback
                         const originalHTML = this.innerHTML;
-                        this.innerHTML = '<i class="fas fa-check mr-2 text-green-500"></i> ¡Dirección copiada!';
-                        
+                        this.innerHTML = '<i class="fas fa-check mr-1.5 text-green-500"></i>¡Dirección copiada!';
                         setTimeout(() => {
                             this.innerHTML = originalHTML;
                         }, 2000);

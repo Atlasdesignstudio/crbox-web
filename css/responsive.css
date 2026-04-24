@@ -913,12 +913,24 @@
   #address-info-tab .grid {
     gap: 1rem !important;
   }
-  /* Address info paragraphs: keep label + value together */
-  #address-info-tab .bg-gray-50.p-4.rounded-lg .space-y-3 > p {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 0.5rem;
-    margin: 0;
+  /* Account tab content: tighter horizontal padding on phones */
+  #personal-info-tab,
+  #address-info-tab,
+  #security-tab,
+  #notifications-tab {
+    padding: 1.25rem !important;
+  }
+  /* Address kv rows: stack label above value so values don't get
+     cramped against the right edge on narrow screens */
+  #address-info-tab .account-kv-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125rem;
+    padding: 0.625rem 0;
+  }
+  #address-info-tab .account-kv-row dd {
+    text-align: left;
+    font-size: 0.9375rem;
   }
 
   /* ---- Modals: turn into bottom-sheets on mobile ----
