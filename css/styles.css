@@ -713,6 +713,86 @@ button.active {
 }
 
 /* =========================================
+   HERO TRUST BADGE  (+20 años)
+   ========================================= */
+.hero-trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);
+    border: 1.5px solid #fed7aa;
+    border-radius: 1.125rem;
+    padding: 0.9rem 1.25rem;
+    margin-top: 0.5rem;
+    box-shadow: 0 2px 12px rgba(249, 115, 22, 0.1);
+}
+
+.htb-years {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.htb-num {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: #f97316;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.htb-unit {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #c2410c;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-top: 0.1rem;
+}
+
+.htb-divider {
+    width: 1.5px;
+    height: 3rem;
+    background: linear-gradient(to bottom, transparent, #fdba74, transparent);
+    flex-shrink: 0;
+}
+
+.htb-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.htb-headline {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.htb-perks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+}
+
+.htb-perks span {
+    font-size: 0.75rem;
+    color: #6b7280;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.htb-perks i {
+    color: #f97316;
+    font-size: 0.7rem;
+}
+
+/* =========================================
    TESTIMONIALS CAROUSEL
    ========================================= */
 .testimonials-carousel {
