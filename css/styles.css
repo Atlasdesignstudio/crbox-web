@@ -93,6 +93,29 @@ body {
     font-weight: 600;
 }
 
+/* =========================================
+   STATS SECTION — desktop frosted cards
+   ========================================= */
+#stats {
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+}
+
+#stats .grid > div {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 1.125rem;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 1.375rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.25rem;
+}
+
 .gradient-bg {
     background: linear-gradient(135deg, #FF6B00 0%, #FF9A00 100%);
     color: white;
