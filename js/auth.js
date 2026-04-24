@@ -174,46 +174,13 @@
   // BLOCKED — cannot be safely activated without a "GET current user" endpoint
   // that returns IdConsignee, idaddress, idphone, and IdSucursal (all
   // backend-assigned values not available at registration time).
-  //
-  // This function builds the correct x-www-form-urlencoded body string given
-  // a full profileData object (retrieved from the missing endpoint).
-  // Do NOT call this until the GET-user endpoint is available and confirmed.
-  //
-  // Expected profileData shape (from a future GET endpoint):
-  //   { idConsignee, token, firstName, lastName1, lastName2, email,
-  //     idNumber, idType, country, newsletter, companyCode, alternativeEmail,
-  //     contactName1, contactName2, phones: [...], addresses: [...],
-  //     sucursal: { idSucursal } }
-  function buildUpdateProfilePayload(profileData) {
+  // See task-53.md §Update Profile for the full context and field mapping.
+  // Do NOT call this function until the GET-user endpoint exists and is confirmed.
+  function buildUpdateProfilePayload() {
     throw new Error(
       'buildUpdateProfilePayload: BLOCKED — cannot be activated without a ' +
-      'GET-user endpoint that returns IdConsignee, idaddress, idphone, and ' +
-      'IdSucursal. See task-53.md §Update Profile for details.'
+      'GET-user endpoint returning IdConsignee, idaddress, idphone, and IdSucursal.'
     );
-    // Unreachable — preserved as implementation template:
-    /* eslint-disable no-unreachable */
-    var params = new URLSearchParams();
-    params.set('Consignee.IdConsignee',          profileData.idConsignee);
-    params.set('Consignee.ConsigneeName',         profileData.firstName);
-    params.set('Consignee.ConsigneeLastName1',    profileData.lastName1);
-    params.set('Consignee.ConsigneeLastName2',    profileData.lastName2 || '');
-    params.set('Consignee.Email',                 profileData.email);
-    params.set('ConfirmEmail',                    profileData.email);
-    params.set('Consignee.IdentificationNumber',  profileData.idNumber);
-    params.set('Consignee.IdentificationType',    profileData.idType);
-    params.set('Consignee.IsCompany',             'false');
-    params.set('Consignee.ResidenceCountry',      profileData.country || 'CR');
-    params.set('Consignee.ReceivesNewsletter',    profileData.newsletter ? 'true' : 'false');
-    params.set('Consignee.Responsabilidad',       '0');
-    params.set('Consignee.AlternativeEmail',      profileData.alternativeEmail || '');
-    params.set('Consignee.ContactName1',          profileData.contactName1 || '');
-    params.set('Consignee.ContactName2',          profileData.contactName2 || '');
-    params.set('CompanyCode',                     profileData.companyCode || '');
-    params.set('Consignee.Sucursal.IdSucursal',   profileData.sucursal.idSucursal);
-    params.set('Phones',                          JSON.stringify(profileData.phones));
-    params.set('Addresses',                       JSON.stringify(profileData.addresses));
-    return params.toString();
-    /* eslint-enable no-unreachable */
   }
 
   // ─── Header auth-state ────────────────────────────────────────────────────
@@ -283,8 +250,21 @@
     }
   }
 
-  // Run header update on every page load.
+  // Protected dashboard pages — redirect to login if session is missing or expired.
+  // getToken() already clears an expired session before returning null.
+  var PROTECTED_PAGES = ['dashboard.html', 'mis-paquetes.html', 'mi-cuenta.html', 'mis-facturas.html'];
+
+  function enforceAuthGate() {
+    var path = window.location.pathname;
+    var page = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+    if (PROTECTED_PAGES.indexOf(page) !== -1 && !isLoggedIn()) {
+      window.location.replace('login.html');
+    }
+  }
+
+  // Run header update and auth gate on every page load.
   document.addEventListener('DOMContentLoaded', function () {
+    enforceAuthGate();
     updateHeaderAuthState();
   });
 

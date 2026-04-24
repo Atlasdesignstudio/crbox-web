@@ -2907,6 +2907,7 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
             var addresses = [];
             var firstAddr = true;
             var sucursalError = null;
+            var resolvedIdSucursal = null;  // capture the primary address sucursal ID
 
             for (var ai = 0; ai < addressEntries.length; ai++) {
                 var entry = addressEntries[ai];
@@ -2926,6 +2927,8 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
                         'Por favor contacte a soporte para completar su registro.';
                     break;
                 }
+                // Capture sucursal from first (primary) address for the consignee payload
+                if (firstAddr) resolvedIdSucursal = idSucursal;
 
                 var provCode = CRLocations.getProvinceCode(provinceVal) || '0';
                 var cantIdx  = CRLocations.getCantonIndex(provinceVal, cantonVal) || '0';
@@ -3020,7 +3023,7 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
             params.set('Consignee.ContactName2',          '');
             params.set('Consignee.IdResponsabilidad',     '');
             params.set('Consignee.BirthDate',             '');
-            params.set('Consignee.Sucursal.IdSucursal',   '');  // guarded above; never reached with null
+            params.set('Consignee.Sucursal.IdSucursal',   String(resolvedIdSucursal));
             params.set('CompanyCode',                     promoCode || '');
             params.set('Phones',                          JSON.stringify(phones));
             params.set('Addresses',                       JSON.stringify(addresses));
