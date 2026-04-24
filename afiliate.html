@@ -3043,15 +3043,14 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
                     if (res.StatusResult === 'OK') {
                         showRegSuccess(personalRegistrationForm);
                     } else {
-                        // Map known API error messages to friendly Spanish text
+                        // Map known API error messages to friendly Spanish text;
+                        // all other backend messages fall through to the generic fallback.
                         var msg = res.Message || '';
                         var friendly;
                         if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
                             friendly = 'El correo electrónico ya está registrado. ¿Ya tiene una cuenta?';
                         } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
                             friendly = 'El número de identificación ya está registrado en la base de datos.';
-                        } else if (msg) {
-                            friendly = msg;
                         } else {
                             friendly = 'Ocurrió un error al procesar el registro. Intente de nuevo.';
                         }

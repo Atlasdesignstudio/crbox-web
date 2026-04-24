@@ -2,19 +2,16 @@
 // Handles token storage, session management, header auth-state display,
 // login, registration, and update-profile scaffolding.
 //
-// CORS decision:
-// The Postman collection confirmed the backend returns:
-//   Access-Control-Allow-Origin: https://crbox.cr  (exact match)
-//   Access-Control-Allow-Credentials: true
-// on OPTIONS preflights from the crbox.cr origin.
-// Browser CORS policy allows direct fetch from https://crbox.cr to
-// https://clients.crbox.cr provided those headers are present at runtime.
+// API routing:
+// All auth requests go through same-origin proxy endpoints in server.py
+// (/api/auth/login, /api/auth/register, /api/auth/update) which forward
+// the request to the CRBOX backend. This avoids browser CORS policy issues
+// between the static file origin and clients.crbox.cr regardless of the
+// backend's Access-Control-Allow-Origin configuration.
 //
-// Architecture note: if live browser testing (from the deployed crbox.cr origin)
-// reveals a CORS error not visible in Postman, route the requests through
-// server.py proxy handlers (e.g. POST /api/proxy/login, /api/proxy/register)
-// rather than changing this file's fetch calls — only the base URLs would
-// need to change.
+// If the static server is ever replaced with a CDN or different origin,
+// either keep the proxy or confirm browser-origin CORS on the live crbox.cr
+// domain before switching to direct backend URLs.
 
 (function (global) {
   'use strict';
@@ -24,10 +21,10 @@
   var KEY_EXPIRES_AT = 'crbox_expires_at';
   var KEY_REMEMBER   = 'crbox_remember';
 
-  // ─── API endpoints ────────────────────────────────────────────────────────
-  var LOGIN_URL    = 'https://clients.crbox.cr/authtoken';
-  var REGISTER_URL = 'https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser';
-  var UPDATE_URL   = 'https://test.clients.crbox.cr/api/crboxwebapi/postedituser';
+  // ─── API endpoints (same-origin proxy — see header comment) ──────────────
+  var LOGIN_URL    = '/api/auth/login';
+  var REGISTER_URL = '/api/auth/register';
+  var UPDATE_URL   = '/api/auth/update';
 
   // ─── PENDING_BACKEND_CONFIRMATION ─────────────────────────────────────────
   // None of these values are confirmed backend truth. Each is either:
