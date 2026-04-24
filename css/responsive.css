@@ -94,21 +94,42 @@
       overflow-x: auto;
     }
 
-    /* Header: logo + hamburger on same row */
-    .sticky-header .container > div {
+    /* Header: logo + hamburger on same row (all pages) */
+    .sticky-header .container > div:first-child {
       flex-direction: row !important;
       align-items: center !important;
     }
 
-    .sticky-header .container > div > * + * {
+    .sticky-header .container > div:first-child > * + * {
       margin-top: 0 !important;
     }
 
     /* Hero sections */
     section.py-16,
     section.py-16.md\:py-24 {
-      padding-top: 2.5rem !important;
-      padding-bottom: 2.5rem !important;
+      padding-top: 3rem !important;
+      padding-bottom: 3rem !important;
+    }
+
+    /* Hero: more vertical gap between the two columns */
+    #main-content .flex.flex-wrap {
+      gap: 2rem;
+    }
+
+    /* Hero: trust card — more breathing room */
+    #main-content .text-center.mb-4 {
+      margin-top: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Hero: hero card — more internal padding on mobile */
+    #main-content .bg-white.p-6.rounded-lg.shadow-lg {
+      padding: 1.5rem !important;
+    }
+
+    /* Hero body paragraphs: left-align on mobile (not headings or buttons) */
+    #main-content .mobile-center > p {
+      text-align: left !important;
     }
 
     /* Servicios: service image blocks */
