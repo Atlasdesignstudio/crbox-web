@@ -1,0 +1,542 @@
+Refine and complete the new CRBOX client portal so that every visible module, metric, card, feed item, filter, tab count, action button, and detail view is either:
+
+1. connected to real backend data,
+2. truthfully derived from real backend data,
+or
+3. rendered in an honest neutral / unavailable / próximamente state.
+
+Do not leave any fake content in the portal.
+
+This is not a redesign task.
+Preserve the current portal UI, structure, hierarchy, spacing, and visual language as much as possible.
+Only change what is necessary to make the portal truthful, functional, and stable.
+
+# Core objective
+
+The new CRBOX client portal already exists visually and now has real auth/basic data wiring. Your job is to audit and complete it so the entire portal experience is coherent and truthful.
+
+The founder wants this principle respected across the whole portal:
+
+**If something is shown, it must be real, truthfully derived, or honestly unavailable.**
+
+No fake stats.
+No fake recent activity.
+No fake package cards.
+No fake bill rows.
+No fake editable actions.
+No fake preferences pretending to save.
+No fake operational notifications.
+No fake consolidation progress.
+
+# Important product rule
+
+Do not block progress waiting for missing backend features.
+
+Instead, for each visible portal element:
+- if backend support exists → connect it
+- if it can be derived honestly from existing backend data → derive it
+- if it cannot be supported with current backend contracts → keep the UI visually stable but show a truthful neutral state such as:
+  - “Sin datos disponibles”
+  - “Aún no disponible”
+  - “Próximamente”
+  - disabled state
+  - clean empty state
+
+# Confirmed backend/source-of-truth contracts
+
+Use these as the source of truth.
+
+## Auth — login
+POST `https://clients.crbox.cr/authtoken`
+
+Body:
+- `grant_type=password`
+- `username={email}`
+- `password={password}`
+
+Content-Type:
+`application/x-www-form-urlencoded`
+
+Confirmed success response:
+```json id="0s4y1a"
+{
+  "access_token": "...",
+  "token_type": "bearer",
+  "expires_in": 86399
+}
+```
+
+Protected requests use:
+`Authorization: Bearer {token}`
+
+## Canonical profile bootstrap
+GET `https://clients.crbox.cr/api/crboxwebapi/getuserinfo/{email}`
+
+Bearer required
+
+This is the canonical source of truth for the authenticated portal state.
+
+Confirmed real response includes:
+- `PendingDiscount`
+- `Consignee`
+- `CompanyCode`
+- and other related fields
+
+Confirmed real nested `Consignee` fields include:
+- `idconsignee`
+- `consigneename`
+- `consigneelastname1`
+- `consigneelastname2`
+- `email`
+- `alternativeEmail`
+- `identificationtype`
+- `identificationnumber`
+- `residenceCountry`
+- `birthDate`
+- `sucursal._idsucursal`
+- `sucursal._name`
+- `addresses[]`
+- `phones[]`
+- `receivesNewsletter`
+- `isCompany`
+- `responsabilidad`
+- `idResponsabilidad`
+- `omitirReceptor`
+
+Important:
+All profile-edit/update flows must preserve and use backend IDs returned by `getuserinfo`, including:
+- `Consignee.idconsignee`
+- `addresses[].idaddress`
+- `phones[].idphone`
+- `sucursal._idsucursal`
+
+Do not guess these.
+
+## Update profile
+POST `https://clients.crbox.cr/api/crboxwebapi/postedituser`
+
+Bearer required
+x-www-form-urlencoded
+
+Confirmed live success response:
+```json id="x2u9nk"
+{"StatusResult":"OK","Message":""}
+```
+
+Payload uses PascalCase keys, including:
+- `Consignee.IdConsignee`
+- `Consignee.ConsigneeName`
+- `Consignee.ConsigneeLastName1`
+- `Consignee.ConsigneeLastName2`
+- `Consignee.Email`
+- `Consignee.BirthDate`
+- `Consignee.IdentificationType`
+- `Consignee.IdentificationNumber`
+- `Consignee.AlternativeEmail`
+- `Consignee.ResidenceCountry`
+- `Consignee.Sucursal.IdSucursal`
+- `Consignee.ContactName1`
+- `Consignee.ContactName2`
+- `Consignee.IsCompany`
+- `Consignee.ReceivesNewsletter`
+- `Consignee.Responsabilidad`
+- `Consignee.IdResponsabilidad`
+- `Consignee.OmitirReceptor`
+- `ConfirmEmail`
+- `Password`
+- `ConfirmPassword`
+- `CompanyCode`
+- `Phones` (JSON-stringified)
+- `Addresses` (JSON-stringified)
+
+After successful save:
+- immediately clear profile cache
+- re-fetch `getuserinfo`
+- refresh visible UI with the real persisted backend state
+
+## Packages
+GET `https://clients.crbox.cr/api/crboxwebapi/getuserpackages/{idConsignee}/{fecha_inicial}/{fecha_final}/{tracking}/{status}`
+
+Bearer required
+Date format: `DD-MM-YYYY`
+
+Confirmed:
+- endpoint works
+- `[]` is valid empty success
+- status values:
+  - `1000` = Todos
+  - `1` = MIA
+  - `2` = SJO
+  - `3` = Loaded
+  - `4` = InTransit
+  - `5` = Crbox
+  - `6` = En espera de factura
+
+## Bills
+GET `https://clients.crbox.cr/api/crboxwebapi/getfacturas/{email}/{fecha_inicial}/{fecha_final}`
+
+Bearer required
+Date format: `DD-MM-YYYY`
+
+Confirmed:
+- endpoint works
+- `[]` is valid empty success
+
+## Password recovery
+GET `https://clients.crbox.cr/api/crboxwebapi/getuserpasswordrecovery/{email}`
+
+No auth
+
+Confirmed logic:
+- `Message === "OK"` = success
+- any other message = failure
+
+## Registration
+POST `https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser`
+
+No auth
+x-www-form-urlencoded
+
+Confirmed responses:
+Success:
+```json id="o2ce2u"
+{ "StatusResult": "OK", "Message": "" }
+```
+
+Duplicate email:
+```json id="mdm1hj"
+{ "StatusResult": "ERROR", "Message": "El correo ya existe en la base de datos" }
+```
+
+Duplicate ID:
+```json id="d6v4l9"
+{ "StatusResult": "ERROR", "Message": "El número de identificación ya está registrado en la base de datos" }
+```
+
+Confirmed branch/sucursal IDs:
+- `1` = Sabana Norte
+- `12` = Guadalupe/Calle Blancos
+- `13` = Entrega a domicilio
+- `14` = Guachipelín Escazú
+
+For new registrations:
+- `idphone = 0`
+- `idaddress = 0`
+Keep those isolated in one config constant.
+
+# CORS / architecture
+
+Direct browser calls are already confirmed working from `https://crbox.cr`.
+
+Do not use or keep unnecessary proxy logic in `server.py`.
+Revert `server.py` to plain static serving if proxy code was introduced only because CORS was previously uncertain.
+
+# Current portal screens/modules visible in UI
+
+Audit the whole current new portal UI and make every visible module truthful.
+
+The current portal includes at least:
+
+## Login
+- email/password
+- remember me
+- password recovery
+- social buttons
+
+## Dashboard
+- hero / welcome / active account
+- locker/casillero card
+- summary cards:
+  - Paquetes en camino
+  - Facturas pendientes
+  - Paquetes consolidados
+- Actividad reciente
+- Acciones rápidas
+- Información para envíos
+  - Miami shipping address block
+  - shipping instructions block
+
+## Mis Paquetes
+- stats cards
+- search + filter bar
+- date range
+- tracking search
+- status tabs with count badges
+- list/table view
+- grid/card view
+- tracking modal
+- detail modal
+- buttons like Ver detalles / Editar / Rastrear
+- consolidation module
+- notifications / tips blocks
+
+## Mis Facturas
+- date filters
+- summary cards
+- table
+- payment information block
+
+## Mi Cuenta
+- información personal
+- direcciones
+- seguridad
+- preferencias / notificaciones
+- eliminar cuenta
+
+Everything visible must be audited.
+
+# Non-redesign constraints
+
+- Do not redesign the desktop layout or visual hierarchy
+- Do not change copy unless needed for truthful functional states
+- Do not break mobile layouts
+- Do not touch public pages unnecessarily
+- Do not replace current UI components unless necessary to support real data flow
+- Do not leave placeholders pretending to be real
+- Do not flash hardcoded names or demo cards while real data loads
+
+# Implementation requirements by area
+
+## 1. Shared auth/session/state
+Refine auth/session so it is robust.
+
+Requirements:
+- store token
+- store expires_at
+- store authenticated email (`crbox_email`)
+- support remember-me persistence vs session-only
+- if token exists but email is missing/invalid, clear auth and redirect to login
+- shared header must support 3 states:
+  1. logged out
+  2. logged in but profile loading
+  3. logged in with real profile loaded
+- never show a hardcoded fake user name in the header
+
+## 2. Shared portal API layer
+Use or refine a centralized `js/portal-api.js`.
+
+It must include:
+- `getUserInfo(email, token, opts)`
+- `updateProfile(payloadString, token)`
+- `getPackages(idConsignee, startDate, endDate, tracking, status, token)`
+- `getBills(email, startDate, endDate, token)`
+- `recoverPassword(email)`
+- `clearUserInfoCache()`
+- shared `formatDate()` helper returning `DD-MM-YYYY`
+
+Add a light session-level in-memory cache for `getuserinfo`.
+Do not store this cache persistently beyond the current page/session memory.
+Invalidate it:
+- on logout
+- after successful profile save
+
+## 3. Login
+Keep the working real login.
+Make sure:
+- invalid login shows bounded Spanish error
+- success redirect is correct
+- remember me works
+- password recovery modal is real
+- social buttons do not produce JS errors if non-functional
+
+## 4. Registration on afiliate.html
+`afiliate.html` is the real personal registration entry point.
+
+Refine and complete it so that:
+- personal flow uses the confirmed payload
+- all form fields map correctly
+- `Phones` and `Addresses` are serialized correctly
+- sucursal IDs are resolved correctly
+- duplicate email and duplicate ID messages surface verbatim in Spanish
+- success shows a clear completion state plus prominent “Iniciar Sesión” CTA
+- business flow remains the current placeholder if not fully supported
+
+## 5. Dashboard — audit every visible block
+No mock data can remain here.
+
+### 5.1 Hero / identity
+Use real `getuserinfo` data for:
+- welcome name
+- locker number
+- sucursal
+- any account identity display
+
+### 5.2 Summary cards
+Current visible cards:
+- Paquetes en camino
+- Facturas pendientes
+- Paquetes consolidados
+
+Rules:
+- derive each card from real endpoints if truly possible
+- do not fake counts
+- do not fake progress bars
+- if a metric cannot be reliably computed from current backend data, replace with an honest neutral/unavailable/próximamente state while preserving layout quality
+
+Examples:
+- `Paquetes en camino`: derive from real package statuses
+- `Facturas pendientes`: only if bills response has a reliable pending/unpaid signal
+- `Paquetes consolidados`: only if package data truly supports it; otherwise neutralize
+
+### 5.3 Actividad reciente
+Remove all hardcoded feed items.
+Try to derive recent activity from real package/bill timestamps and states.
+If that is not supportable truthfully:
+- show clean empty state
+- do not fabricate events
+
+### 5.4 Acciones rápidas
+Keep only those that are:
+- real actions
+- or safe navigational shortcuts
+No fake backend actions.
+
+### 5.5 Información para envíos
+Use:
+- dynamic data where user-specific (`name`, `locker number`)
+- static business constants where that is truly intended (Miami address/contact/instructions)
+Do not pretend static business copy came from backend.
+
+## 6. Mis Paquetes — make the full screen truthful
+### 6.1 Stats cards
+Use real package data only.
+No hardcoded counts.
+
+### 6.2 Filters/search
+Use real API requests with current form values.
+Not just client-side filtering of stale DOM.
+
+### 6.3 Status tabs + badges
+Counts must reflect the current loaded dataset correctly.
+No stale static badge values.
+
+### 6.4 List/table + grid view
+Both must render from the same real data source.
+No placeholder cards left in HTML.
+No flash of mock content.
+
+### 6.5 Tracking modal
+If package data for the current user is already loaded:
+- the tracking modal must display real package data for matching packages
+- no random success/failure
+- no static demo rows
+If there is no matching package:
+- show honest not-found state
+Do not integrate external carrier APIs in this phase.
+
+### 6.6 Package detail modal
+Use real package row data.
+No hardcoded sample detail values.
+
+### 6.7 Edit package button
+Do not wire fake edit functionality.
+If no real package-edit endpoint exists:
+- keep the button visually stable
+- show “Próximamente” or safe no-op
+- no JS errors
+
+### 6.8 Consolidación de paquetes module
+Audit whether current backend supports this truthfully.
+If not:
+- do not show fake counts/progress/savings
+- convert the module into an honest informational/próximamente state
+
+### 6.9 Notifications / tips blocks
+If these are not backed by real system data:
+- convert them into static informational content or neutral blocks
+- do not present them as live operational notifications
+
+## 7. Mis Facturas — make the full screen truthful
+### 7.1 Filters
+Must drive real `getBills` calls.
+
+### 7.2 Summary cards
+Only show metrics that are truly computable from real bills.
+If paid/pending status is not reliably available:
+- keep total invoices real
+- neutralize unsupported cards
+
+### 7.3 Table
+Real rows from API.
+If `[]` → empty state, not error.
+
+### 7.4 Payment info block
+Keep as static informational block only if that is intended business content.
+Do not imply it is backend-driven if it is not.
+
+## 8. Mi Cuenta — truthful profile area
+### 8.1 Información personal
+Fully real from `getuserinfo`
+Editable via `postedituser`
+After save:
+- clear profile cache
+- re-fetch `getuserinfo`
+- refresh all visible UI and header
+
+### 8.2 Direcciones
+Render real addresses from backend.
+Allow editing only if already truly wired through the update payload with preserved IDs.
+No ID guessing.
+
+### 8.3 Seguridad
+If password changes are truly supported via `postedituser`, keep them.
+Otherwise do not fake a real secure password-change flow.
+
+### 8.4 Preferencias / notificaciones
+Only keep as persisted if backed by real backend fields.
+If a preference like:
+- consolidar automáticamente
+- inspeccionar paquetes
+- seguro adicional
+has no real backend support:
+- disable it
+- or mark as próximamente
+- or show as informational only
+Do not pretend it saves.
+
+### 8.5 Eliminar cuenta
+If no backend endpoint exists:
+- do not fake account deletion
+- convert to safe support CTA or próximamente state
+
+# Cross-cutting rules
+
+## A. Truthfulness first
+No fake data anywhere in the portal.
+
+## B. Partial rendering safety
+If one endpoint fails and another succeeds:
+- render what is real
+- isolate the failure to that module
+- do not break the whole page
+
+## C. Empty-state correctness
+`[]` means empty success, not error.
+
+## D. Loading-state quality
+Every API-driven module must have a visible, stable loading state.
+
+## E. No JS errors from later-phase actions
+Buttons or modules left for later must remain visually intact and non-breaking.
+
+# Final audit and implementation pass
+You must perform a codebase-wide audit of the portal and remove or replace any remaining:
+- hardcoded summary stats
+- demo package cards
+- demo bill rows
+- fake activity arrays
+- fake consolidation progress
+- fake notification feeds
+- fake preference persistence
+- stale hardcoded names in header or dashboard
+
+# Deliverable
+Do not just produce a plan.
+Implement the portal completion pass.
+
+At the end, report back with:
+1. which modules are now fully real
+2. which modules are derived from real data
+3. which modules could not be supported with current backend and how they were neutralized
+4. every file changed
+5. every remaining backend dependency still missing
