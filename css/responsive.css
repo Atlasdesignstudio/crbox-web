@@ -2,6 +2,16 @@
    PANTALLAS <= 768px
 ========================= */
 @media (max-width: 768px) {
+    /* Afiliate hero section (py-20 md:py-28 gradient-bg) */
+    section.py-20.gradient-bg {
+      padding-top: 3rem !important;
+      padding-bottom: 3rem !important;
+    }
+
+    /* Afiliate account-type cards: reduce deep left indent */
+    .account-type-card .pl-16 {
+      padding-left: 0.75rem !important;
+    }
     .mobile-center {
       text-align: center;
     }
@@ -204,6 +214,20 @@
    PANTALLAS <= 640px
 ========================= */
 @media (max-width: 640px) {
+    /* Afiliate registration form card padding */
+    #registro .p-8 {
+      padding: 1.25rem !important;
+    }
+
+    /* Afiliate account-type cards inner indent: tighten further */
+    .account-type-card .pl-16 {
+      padding-left: 0.5rem !important;
+    }
+
+    /* Afiliate form grids: neutralize col-span-2 in single-column context */
+    #registro .col-span-2 {
+      grid-column: span 1 / span 1;
+    }
     section {
       padding-top: 2rem;
       padding-bottom: 2rem;
@@ -269,6 +293,11 @@
    PANTALLAS <= 480px
 ========================= */
 @media (max-width: 480px) {
+    /* Afiliate hero section tighter at very narrow widths */
+    section.py-20.gradient-bg {
+      padding-top: 2rem !important;
+      padding-bottom: 2rem !important;
+    }
     .tab-content {
       margin: 0 -1rem;
       width: calc(100% + 2rem);
