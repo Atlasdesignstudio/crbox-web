@@ -62,10 +62,18 @@
       transition: max-height 0.35s ease-in-out, opacity 0.25s ease;
     }
 
+    /* Open state: cap to viewport so the drawer always fits, and let it scroll
+       internally when content (Cerrar Sesión, etc.) exceeds the visible space.
+       100dvh tracks the dynamic viewport (mobile browser chrome / on-screen
+       keyboard); 100vh fallback handles older mobile Safari/Chrome. */
     #mobile-menu.is-open {
-      max-height: 560px !important;
+      max-height: calc(100vh - 5rem) !important;
+      max-height: calc(100dvh - 5rem) !important;
       opacity: 1 !important;
       pointer-events: auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       border-top: 1px solid rgba(0, 0, 0, 0.07) !important;
       border-bottom-left-radius: 1.25rem !important;
       border-bottom-right-radius: 1.25rem !important;

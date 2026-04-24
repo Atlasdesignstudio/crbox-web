@@ -114,47 +114,63 @@
     
         <!-- Menú móvil -->
         <div class="md:hidden mt-4" id="mobile-menu">
-            <div class="py-3 space-y-3">
-                <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
-                <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
-                <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
-                <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
-                <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
-                
-                <!-- Sección usuario -->
-                <div class="border-t border-gray-200 mt-2 pt-2">
-                    <div class="flex items-center mb-4">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mr-3">
+            <div class="py-3">
+                <!-- Generic site links -->
+                <nav aria-label="Navegación general">
+                    <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Contacto</a>
+                </nav>
+
+                <!-- Mi Portal zone -->
+                <section class="mt-3 p-3 rounded-xl bg-orange-50/60 border border-orange-100" aria-label="Mi Portal">
+                    <p class="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-orange-700 mb-2 px-1">Mi Portal</p>
+
+                    <!-- Identity anchor -->
+                    <div class="flex items-center gap-3 mb-3 p-2.5 rounded-lg bg-white border border-orange-100 shadow-sm">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-user text-orange-600"></i>
                         </div>
-                        <div>
-                            <span class="font-medium text-gray-800" id="mobile-user-name">Cargando...</span>
+                        <div class="min-w-0">
+                            <span class="block font-semibold text-gray-800 truncate" id="mobile-user-name">Cargando...</span>
                             <p class="text-xs text-gray-500" id="mobile-casillero-badge">Casillero #—</p>
                         </div>
                     </div>
-                    
-                    <!-- Opciones de usuario -->
-                    <div class="space-y-2">
-                        <a href="dashboard.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors flex items-center">
-                            <i class="fas fa-tachometer-alt w-8 text-orange-500"></i> Dashboard
+
+                    <!-- Portal nav -->
+                    <nav class="space-y-0.5" aria-label="Mi cuenta">
+                        <a href="dashboard.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                            <i class="fas fa-tachometer-alt w-6 text-center text-orange-500 mr-3"></i>
+                            <span>Dashboard</span>
                         </a>
-                        <a href="mis-paquetes.html" class="block text-orange-600 font-medium py-2 flex items-center bg-orange-50 px-2 rounded-md">
-                            <i class="fas fa-box w-8 text-orange-500"></i> Mis Paquetes
+                        <a href="mis-paquetes.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors bg-white text-orange-600 font-semibold border border-orange-100 shadow-sm" aria-current="page">
+                            <i class="fas fa-box w-6 text-center text-orange-500 mr-3"></i>
+                            <span>Mis Paquetes</span>
                         </a>
-                        <a href="mis-facturas.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors flex items-center">
-                            <i class="fas fa-file-invoice-dollar w-8 text-orange-500"></i> Mis Facturas
+                        <a href="mis-facturas.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                            <i class="fas fa-file-invoice-dollar w-6 text-center text-orange-500 mr-3"></i>
+                            <span>Mis Facturas</span>
                         </a>
-                        <a href="mi-cuenta.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors flex items-center">
-                            <i class="fas fa-user-cog w-8 text-orange-500"></i> Mi Cuenta
+                        <a href="mi-cuenta.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                            <i class="fas fa-user-cog w-6 text-center text-orange-500 mr-3"></i>
+                            <span>Mi Cuenta</span>
                         </a>
-                        <button id="mobile-logout-button" class="block w-full text-left text-gray-700 hover:text-orange-600 py-2 transition-colors flex items-center">
-                            <i class="fas fa-sign-out-alt w-8 text-orange-500"></i> Cerrar Sesión
+                    </nav>
+
+                    <!-- Logout (always reachable via drawer scroll) -->
+                    <div class="mt-3 pt-3 border-t border-orange-100">
+                        <button id="mobile-logout-button" type="button" class="flex w-full items-center text-gray-700 hover:text-orange-600 hover:bg-white py-2.5 px-2 rounded-md transition-colors">
+                            <i class="fas fa-sign-out-alt w-6 text-center text-orange-500 mr-3"></i>
+                            <span>Cerrar Sesión</span>
                         </button>
                     </div>
-                </div>
-                
-                <div class="flex flex-col space-y-2 pt-2">
-                    <a href="calculadora.html" class="inline-block primary-btn text-center">Calcular Envío</a>
+                </section>
+
+                <!-- Calcular CTA -->
+                <div class="mt-3 pt-3 border-t border-gray-100">
+                    <a href="calculadora.html" class="inline-block primary-btn text-center w-full">Calcular Envío</a>
                 </div>
             </div>
         </div>
