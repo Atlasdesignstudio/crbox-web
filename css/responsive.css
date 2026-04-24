@@ -29,6 +29,27 @@
       min-height: 44px;
     }
 
+    /* Remove focus ring/highlight from the hamburger button */
+    #mobile-menu-button:focus,
+    #mobile-menu-button:focus-visible,
+    #mobile-menu-button:active {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Sticky header: rounded bottom corners when menu is closed */
+    .sticky-header {
+      border-bottom-left-radius: 1.25rem;
+      border-bottom-right-radius: 1.25rem;
+      transition: border-bottom-left-radius 0.3s ease, border-bottom-right-radius 0.3s ease;
+    }
+
+    /* When menu is open, header connects flush to the menu panel */
+    .sticky-header.menu-open {
+      border-bottom-left-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+    }
+
     /* ===== Mobile menu smooth slide-down animation =====
        Default: collapsed (max-height:0). Opens via .is-open class.
        No dependency on Tailwind's .hidden — zero class conflicts. */
@@ -46,7 +67,10 @@
       max-height: 520px !important;
       opacity: 1 !important;
       pointer-events: auto;
-      margin-top: 0.5rem !important;
+      margin-top: 0 !important;
+      border-bottom-left-radius: 1.25rem !important;
+      border-bottom-right-radius: 1.25rem !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.07) !important;
     }
 
     /* Afiliate hero section (py-20 md:py-28 gradient-bg) */
