@@ -30,6 +30,12 @@
     <meta name="twitter:description" content="Consulta las tarifas de CRBOX para envíos desde USA a Costa Rica. Precios por peso, costo de manejo y entrega a domicilio sin costos ocultos.">
     <meta name="twitter:image" content="https://crbox.cr/img/fotoindex.png">
 
+    <!-- GEO targeting -->
+    <meta name="geo.region" content="CR-SJ">
+    <meta name="geo.placename" content="San José, Costa Rica">
+    <meta name="geo.position" content="9.9281;-84.0907">
+    <meta name="ICBM" content="9.9281, -84.0907">
+
     <!-- Preconnect -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,7 +45,49 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css?v=4">
     <link rel="stylesheet" href="css/responsive.css?v=10">
-    
+
+    <!-- Structured Data: FAQ de Tarifas -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "¿Cuánto cuesta enviar un paquete desde USA a Costa Rica?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "La tarifa aérea estándar de CRBOX es de $7.50 por libra. El precio final depende del peso volumétrico o real, cobrando el mayor. Usa nuestra calculadora para obtener un precio exacto según tu paquete."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿CRBOX cobra cuota mensual o costo de inscripción?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. El casillero virtual de CRBOX es 100% gratuito. No hay cuota mensual ni costo de inscripción. Solo pagas por el peso de los paquetes que envíes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cómo se calcula el peso volumétrico?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "El peso volumétrico se calcula multiplicando largo × ancho × alto (en pulgadas) dividido entre 139. Se cobra el mayor entre el peso real y el volumétrico."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cuánto cuesta la entrega a domicilio en Costa Rica?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "La entrega a domicilio en el Gran Área Metropolitana tiene un costo adicional. También puedes recoger tu paquete gratis en nuestras sucursales en Sabana Norte y Calle Blancos, San José."
+          }
+        }
+      ]
+    }
+    </script>
+
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #FF6B00 0%, #FF9A00 100%);

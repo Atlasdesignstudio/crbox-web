@@ -30,6 +30,12 @@
     <meta name="twitter:description" content="Calcula el costo exacto de tu envío desde USA a Costa Rica. Ingresa el peso y obtén el precio de tu paquete de forma inmediata.">
     <meta name="twitter:image" content="https://crbox.cr/img/fotoindex.png">
 
+    <!-- GEO targeting -->
+    <meta name="geo.region" content="CR-SJ">
+    <meta name="geo.placename" content="San José, Costa Rica">
+    <meta name="geo.position" content="9.9281;-84.0907">
+    <meta name="ICBM" content="9.9281, -84.0907">
+
     <!-- Preconnect -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,7 +45,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css?v=4">
     <link rel="stylesheet" href="css/responsive.css?v=10">
-    
+
+    <!-- Structured Data: WebApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Calculadora de Envíos CRBOX",
+      "url": "https://crbox.cr/calculadora.html",
+      "description": "Calcula el costo exacto de tu envío desde USA a Costa Rica según el peso real o volumétrico de tu paquete.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "Calculadora de envíos gratuita"
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "CRBOX",
+        "url": "https://crbox.cr/"
+      }
+    }
+    </script>
+
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #FF6B00 0%, #FF9A00 100%);

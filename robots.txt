@@ -2,7 +2,6 @@ User-agent: *
 Allow: /
 
 Disallow: /login.html
-Disallow: /afiliate.html
 Disallow: /dashboard.html
 Disallow: /mis-paquetes.html
 Disallow: /mis-facturas.html

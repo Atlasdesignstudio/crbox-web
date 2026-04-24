@@ -30,6 +30,12 @@
     <meta name="twitter:description" content="Obtén tu dirección en Miami gratis, compra en USA y recibe en Costa Rica en 3-5 días hábiles. Proceso simple y seguro.">
     <meta name="twitter:image" content="https://crbox.cr/img/fotoindex.png">
 
+    <!-- GEO targeting -->
+    <meta name="geo.region" content="CR-SJ">
+    <meta name="geo.placename" content="San José, Costa Rica">
+    <meta name="geo.position" content="9.9281;-84.0907">
+    <meta name="ICBM" content="9.9281, -84.0907">
+
     <!-- Preconnect -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -81,6 +87,44 @@
       ]
     }
     </script>
+
+    <!-- Structured Data: HowTo -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "Cómo usar CRBOX para comprar en USA y recibir en Costa Rica",
+      "description": "Guía paso a paso para usar el casillero virtual CRBOX y recibir tus compras de USA en Costa Rica.",
+      "totalTime": "PT5M",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Obtén tu dirección en Miami",
+          "text": "Regístrate gratis en CRBOX y recibe de inmediato una dirección personal en Miami para usar como destino en tus compras."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Compra en tus tiendas favoritas de USA",
+          "text": "Usa tu dirección CRBOX en cualquier tienda de Estados Unidos: Amazon, Walmart, Best Buy, Target, Apple y más."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Te avisamos cuando llega a Miami",
+          "text": "Cuando tu paquete llega a nuestra bodega en Miami, recibirás una notificación por correo con los detalles del paquete."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Recibe en Costa Rica en 2-4 días",
+          "text": "Elige entrega a domicilio o recoge gratis en nuestras sucursales en San José. Tiempo promedio: 2 a 4 días hábiles tras la salida de Miami."
+        }
+      ]
+    }
+    </script>
+
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #FF6B00 0%, #FF9A00 100%);
