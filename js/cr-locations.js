@@ -54,7 +54,7 @@
     ],
     puntarenas: [
       'central', 'esparza', 'buenos_aires', 'montes_de_oro',
-      'osa', 'aguirre', 'golfito', 'coto_brus', 'parrita',
+      'osa', 'quepos', 'golfito', 'coto_brus', 'parrita',
       'corredores', 'garabito'
     ],
     limon: [

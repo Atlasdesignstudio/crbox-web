@@ -2944,6 +2944,17 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
                     }
                 }
 
+                // Fail-fast if province/canton could not be resolved to INEC codes —
+                // sending '0' would create a bad registration record in the backend.
+                if (provCode === '0') {
+                    sucursalError = 'No se pudo resolver el código de provincia para "' + provinceVal + '". Contacte soporte.';
+                    break;
+                }
+                if (cantIdx === '0') {
+                    sucursalError = 'No se pudo resolver el código de cantón para "' + cantonVal + '". Contacte soporte.';
+                    break;
+                }
+
                 // Build line1 following the pattern in the Postman sample:
                 // "{province_label} {PROVINCE_UPPER} {CANTON_UPPER} {DISTRICT_UPPER} {direccion}"
                 var line1 = [provinceVal, provinceVal.toUpperCase(), cantonVal.toUpperCase(),
