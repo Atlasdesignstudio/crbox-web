@@ -882,10 +882,15 @@ textarea:focus-visible {
 
 /* Estilos específicos para el card de casillero */
 .glass-card.orange-card {
-    background-color: rgba(154, 52, 18, 0.45) !important;
+    background: linear-gradient(135deg, rgba(234, 88, 12, 0.92) 0%, rgba(194, 65, 12, 0.95) 100%) !important;
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(251, 146, 60, 0.35) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(251, 146, 60, 0.55) !important;
+    box-shadow: 0 8px 32px rgba(234, 88, 12, 0.30), 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+
+.orange-card .card-number {
+    color: #ffffff !important;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
 .orange-card .card-label {
@@ -893,11 +898,12 @@ textarea:focus-visible {
 }
 
 .orange-card .copy-button {
-    color: rgba(255, 237, 213, 1) !important;
+    color: rgba(255, 237, 213, 0.9) !important;
 }
 
 .orange-card .copy-button:hover {
     color: white !important;
+    background: rgba(255, 255, 255, 0.12) !important;
 }
 
 /* ==============================================================

@@ -60,45 +60,11 @@ function initStickyHeader() {
 
 /**
  * Initialize mobile menu toggle
+ * NOTE: menu toggling is handled globally by main.js — this is intentionally a no-op
+ * to prevent duplicate event listeners that caused an invisible ghost overlay blocking taps.
  */
 function initMobileMenu() {
-    const menuButton = document.getElementById('mobile-menu-button');
-    const mobileMenu = document.getElementById('mobile-menu');
-    
-    if (!menuButton || !mobileMenu) return;
-    
-    menuButton.addEventListener('click', function() {
-        // Toggle menu visibility with animation
-        if (mobileMenu.classList.contains('hidden')) {
-            menuButton.innerHTML = '<i class="fas fa-times text-xl"></i>';
-            mobileMenu.classList.remove('hidden');
-            
-            // Animate menu appearance
-            setTimeout(() => {
-                mobileMenu.style.opacity = '1';
-                mobileMenu.style.transform = 'translateY(0)';
-            }, 10);
-        } else {
-            menuButton.innerHTML = '<i class="fas fa-bars text-xl"></i>';
-            
-            // Animate menu disappearance
-            mobileMenu.style.opacity = '0';
-            mobileMenu.style.transform = 'translateY(-10px)';
-            
-            setTimeout(() => {
-                mobileMenu.classList.add('hidden');
-            }, 300);
-        }
-    });
-    
-    // Close mobile menu on window resize if it becomes unnecessary
-    window.addEventListener('resize', function() {
-        if (window.innerWidth >= 768 && !mobileMenu.classList.contains('hidden')) {
-            menuButton.innerHTML = '<i class="fas fa-bars text-xl"></i>';
-            mobileMenu.classList.add('hidden');
-            mobileMenu.style.opacity = '0';
-        }
-    });
+    return;
 }
 
 /**
