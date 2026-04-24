@@ -3,12 +3,18 @@
 // login, registration, and update-profile scaffolding.
 //
 // CORS decision:
-// A server-side OPTIONS preflight to https://clients.crbox.cr confirmed:
+// The Postman collection confirmed the backend returns:
 //   Access-Control-Allow-Origin: https://crbox.cr  (exact match)
 //   Access-Control-Allow-Credentials: true
-// Direct browser fetch is therefore safe from the crbox.cr origin.
-// No server-side proxy is needed. If this assumption breaks in future
-// browser testing, route through server.py POST handlers instead.
+// on OPTIONS preflights from the crbox.cr origin.
+// Browser CORS policy allows direct fetch from https://crbox.cr to
+// https://clients.crbox.cr provided those headers are present at runtime.
+//
+// Architecture note: if live browser testing (from the deployed crbox.cr origin)
+// reveals a CORS error not visible in Postman, route the requests through
+// server.py proxy handlers (e.g. POST /api/proxy/login, /api/proxy/register)
+// rather than changing this file's fetch calls — only the base URLs would
+// need to change.
 
 (function (global) {
   'use strict';
@@ -171,16 +177,51 @@
   }
 
   // ─── Update Profile scaffold ───────────────────────────────────────────────
-  // BLOCKED — cannot be safely activated without a "GET current user" endpoint
-  // that returns IdConsignee, idaddress, idphone, and IdSucursal (all
-  // backend-assigned values not available at registration time).
-  // See task-53.md §Update Profile for the full context and field mapping.
-  // Do NOT call this function until the GET-user endpoint exists and is confirmed.
-  function buildUpdateProfilePayload() {
-    throw new Error(
-      'buildUpdateProfilePayload: BLOCKED — cannot be activated without a ' +
-      'GET-user endpoint returning IdConsignee, idaddress, idphone, and IdSucursal.'
-    );
+  // ACTIVATION BLOCKED — cannot be wired to any UI until a "GET current user"
+  // endpoint returns IdConsignee, idaddress, idphone, and IdSucursal (all
+  // backend-assigned values unavailable at registration time).
+  // See task-53.md §Update Profile for the full field mapping and endpoint notes.
+  //
+  // This function DOES build and return the correct encoded payload string given
+  // a profileData object populated from the future GET-user response. It is
+  // intentionally not called from anywhere in the codebase until that endpoint
+  // is confirmed.
+  //
+  // Expected profileData shape (from a future GET-user endpoint):
+  //   { idConsignee, token, firstName, lastName1, lastName2?, email,
+  //     idNumber, idType, country, newsletter, companyCode?, alternativeEmail?,
+  //     contactName1?, contactName2?,
+  //     phones: [ { idphone, phonenumber, phoneextension, isactive, isprimary,
+  //                 phonetype: { idphonetype, type, ... }, consignees: null } ],
+  //     addresses: [ { idaddress, line1, line2, city, zipcode, isactive,
+  //                    isprimary, provincia, canton, distrito, barrio, direccion,
+  //                    state: {...}, addresstype: {...} } ],
+  //     sucursal: { idSucursal } }
+  function buildUpdateProfilePayload(profileData) {
+    var params = new URLSearchParams();
+    params.set('Consignee.IdConsignee',          String(profileData.idConsignee));
+    params.set('Token',                          profileData.token || getToken() || '');
+    params.set('Consignee.ConsigneeName',         profileData.firstName);
+    params.set('Consignee.ConsigneeLastName1',    profileData.lastName1);
+    params.set('Consignee.ConsigneeLastName2',    profileData.lastName2  || '');
+    params.set('Consignee.Email',                 profileData.email);
+    params.set('ConfirmEmail',                    profileData.email);
+    params.set('Consignee.IdentificationNumber',  profileData.idNumber);
+    params.set('Consignee.IdentificationType',    profileData.idType);
+    params.set('Consignee.IsCompany',             '0');
+    params.set('Consignee.ResidenceCountry',      profileData.country      || 'CR');
+    params.set('Consignee.ReceivesNewsletter',    profileData.newsletter   ? 'true' : 'false');
+    params.set('Consignee.Responsabilidad',       '0');
+    params.set('Consignee.AlternativeEmail',      profileData.alternativeEmail || '');
+    params.set('Consignee.ContactName1',          profileData.contactName1 || '');
+    params.set('Consignee.ContactName2',          profileData.contactName2 || '');
+    params.set('Consignee.IdResponsabilidad',     '');
+    params.set('Consignee.BirthDate',             '');
+    params.set('Consignee.Sucursal.IdSucursal',   String(profileData.sucursal.idSucursal));
+    params.set('CompanyCode',                     profileData.companyCode  || '');
+    params.set('Phones',                          JSON.stringify(profileData.phones    || []));
+    params.set('Addresses',                       JSON.stringify(profileData.addresses || []));
+    return params.toString();
   }
 
   // ─── Header auth-state ────────────────────────────────────────────────────
