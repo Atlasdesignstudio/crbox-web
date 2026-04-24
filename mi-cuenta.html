@@ -100,7 +100,10 @@
                             <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center mr-2">
                                 <i class="fas fa-user text-orange-600"></i>
                             </div>
-                            <span class="font-medium" id="mobile-user-name">Cargando...</span>
+                            <div>
+                                <span class="font-medium" id="mobile-user-name">Cargando...</span>
+                                <p class="text-xs text-gray-500" id="mobile-casillero-badge">Casillero #—</p>
+                            </div>
                         </div>
                         <div class="space-y-2">
                             <a href="dashboard.html" class="block text-gray-700 hover:text-orange-600 py-2 transition-colors">
@@ -137,24 +140,28 @@
     </header>
 
     <!-- Dashboard Navigation Tabs -->
-    <div class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-16 z-30">
         <div class="container mx-auto px-4">
-            <div class="flex overflow-x-auto no-scrollbar">
-                <a href="dashboard.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+            <div class="flex overflow-x-auto no-scrollbar -mb-px">
+                <a href="dashboard.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
                     <i class="fas fa-tachometer-alt mr-2"></i>
                     Dashboard
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-0 origin-left transition-transform duration-200 group-hover:scale-x-100"></span>
                 </a>
-                <a href="mis-paquetes.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+                <a href="mis-paquetes.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
                     <i class="fas fa-box mr-2"></i>
                     Mis Paquetes
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-0 origin-left transition-transform duration-200 group-hover:scale-x-100"></span>
                 </a>
-                <a href="mis-facturas.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none">
+                <a href="mis-facturas.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
                     <i class="fas fa-file-invoice-dollar mr-2"></i>
                     Mis Facturas
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-0 origin-left transition-transform duration-200 group-hover:scale-x-100"></span>
                 </a>
-                <a href="mi-cuenta.html" class="whitespace-nowrap px-6 py-4 font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none">
+                <a href="mi-cuenta.html" class="whitespace-nowrap px-6 py-4 font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none flex items-center relative" aria-current="page">
                     <i class="fas fa-user-cog mr-2"></i>
                     Mi Cuenta
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-100 origin-left transition-transform duration-200"></span>
                 </a>
             </div>
         </div>
@@ -192,6 +199,9 @@
                         <p class="text-white text-opacity-75 text-sm mt-1 hidden" id="account-sucursal-wrap">
                           <i class="fas fa-map-marker-alt mr-1"></i><span id="account-sucursal"></span>
                         </p>
+                        <span class="hidden mt-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white bg-opacity-20 text-white border border-white border-opacity-30" id="account-discount-badge">
+                            <i class="fas fa-tag mr-1"></i><span id="account-discount-text">Descuento Disponible</span>
+                        </span>
                     </div>
                 </div>
                 
@@ -687,6 +697,7 @@
 
         _txt('header-user-name', firstName || fullName);
         _txt('mobile-user-name', fullName);
+        if (casillero) _txt('mobile-casillero-badge', 'Casillero #' + casillero);
         _txt('profile-header-name', fullName);
         _txt('profile-casillero', 'Casillero #' + casillero);
 
@@ -733,6 +744,20 @@
           sucEl.textContent = sucName;
           var sucWrap = document.getElementById('account-sucursal-wrap');
           if (sucWrap) sucWrap.classList.remove('hidden');
+        }
+
+        // PendingDiscount badge — surfaces the same real % already shown
+        // on the dashboard, kept consistent across the portal.
+        var _rawDiscount = (info.PendingDiscount !== undefined) ? info.PendingDiscount : info.pendingDiscount;
+        var pendingDiscount = (Number(_rawDiscount) > 0) ? Number(_rawDiscount) : null;
+        var discountBadge = document.getElementById('account-discount-badge');
+        if (discountBadge) {
+          if (pendingDiscount) {
+            _txt('account-discount-text', pendingDiscount + '% Descuento Disponible');
+            discountBadge.classList.remove('hidden');
+          } else {
+            discountBadge.classList.add('hidden');
+          }
         }
 
         // Costa Rica addresses — render each address
