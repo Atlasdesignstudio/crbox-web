@@ -964,9 +964,14 @@
                 <div id="tracking-results" class="hidden mt-6">
                     <div class="mb-4 border-b border-gray-200 pb-4">
                         <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-xs text-gray-500">Número de tracking:</p>
-                                <p class="font-medium" id="result-tracking-number">TBA386728261000</p>
+                            <div class="flex items-center gap-2">
+                                <div>
+                                    <p class="text-xs text-gray-500">Número de tracking:</p>
+                                    <p class="font-medium" id="result-tracking-number">TBA386728261000</p>
+                                </div>
+                                <button id="copy-tracking-number-btn" title="Copiar número de tracking" class="ml-1 text-gray-400 hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded transition-colors" aria-label="Copiar número de tracking">
+                                    <i class="far fa-copy text-base"></i>
+                                </button>
                             </div>
                             <div>
                                 <span class="status-badge status-badge-blue" id="result-status">MIAMI</span>
@@ -1957,6 +1962,35 @@
                     });
                 }
                 
+                // Botón copiar número de tracking
+                const copyTrackingBtn = document.getElementById('copy-tracking-number-btn');
+                if (copyTrackingBtn) {
+                    copyTrackingBtn.addEventListener('click', () => {
+                        const resultTrackingNumber = document.getElementById('result-tracking-number');
+                        const numberToCopy = resultTrackingNumber ? resultTrackingNumber.textContent.trim() : '';
+                        if (numberToCopy) {
+                            if (!navigator.clipboard || !navigator.clipboard.writeText) {
+                                showToast('No se pudo copiar el número', 'warning');
+                                return;
+                            }
+                            navigator.clipboard.writeText(numberToCopy).then(() => {
+                                showToast('Número de tracking copiado al portapapeles', 'success');
+                                const icon = copyTrackingBtn.querySelector('i');
+                                if (icon) {
+                                    icon.classList.remove('fa-copy');
+                                    icon.classList.add('fa-check');
+                                    setTimeout(() => {
+                                        icon.classList.remove('fa-check');
+                                        icon.classList.add('fa-copy');
+                                    }, 1500);
+                                }
+                            }).catch(() => {
+                                showToast('No se pudo copiar el número', 'warning');
+                            });
+                        }
+                    });
+                }
+
                 // Botón de rastrear
                 if (trackPackageBtn && trackingNumberInput) {
                     trackPackageBtn.addEventListener('click', () => {
