@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initCopyFunctions();
     initAnimations();
     initToggleActivityView(); // Nuevo: Toggle entre vistas con/sin actividad
-    initPackageConsolidation(); // Nuevo: Para la funcionalidad de consolidación
+    // initPackageConsolidation(); // removed — function not implemented
     initAccessibility();
     
     // Show welcome message with personalized greeting

@@ -37,13 +37,23 @@
       box-shadow: none !important;
     }
 
-    /* Sticky header: GPU layer prevents scroll-triggered repaint jumps.
-       backdrop-filter is disabled on mobile: on iOS/WebKit, position:sticky +
-       backdrop-filter creates an oversized compositing region that intercepts
-       all touch taps while allowing scroll — making the page feel unresponsive. */
+    /* Sticky header: on iOS/WebKit, position:sticky + will-change:transform
+       creates a compositing region that can grow/shrink when the mobile menu
+       opens/closes, leaving a stale hit-area over the content and making the
+       page feel unresponsive to taps.  Removing the compositing hints fixes
+       the phantom overlay. Backdrop-filter is also disabled for the same reason. */
     .sticky-header {
-      will-change: transform;
-      transform: translateZ(0);
+      will-change: auto;
+      transform: none;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+
+    /* Kill backdrop-filter on all content elements — same iOS compositing bug.
+       .backdrop-filter catches Tailwind utility classes on inline elements. */
+    .glass-card,
+    .orange-card,
+    .backdrop-filter {
       -webkit-backdrop-filter: none !important;
       backdrop-filter: none !important;
     }
@@ -626,6 +636,11 @@
     margin-right: 0 !important;
     font-size: 1rem;
     line-height: 1;
+  }
+  /* Decorative underline spans/divs inside tab links must never intercept taps */
+  .sticky.top-16.z-30 .flex.overflow-x-auto > a span,
+  .sticky.top-16.z-30 .flex.overflow-x-auto > a div {
+    pointer-events: none;
   }
   .tab-prefix {
     display: none;
