@@ -45,6 +45,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css?v=4">
     <link rel="stylesheet" href="css/responsive.css?v=10">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.min.css">
 
     <!-- Structured Data: WebApplication -->
     <script type="application/ld+json">
@@ -170,6 +171,59 @@
             border-radius: 50%;
             background-color: #FFF3E0;
             flex-shrink: 0;
+        }
+
+        /* Tom Select overrides to match form styling */
+        .ts-wrapper {
+            width: 100%;
+        }
+        .ts-wrapper .ts-control {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            color: #374151;
+            background-color: #fff;
+            box-shadow: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-height: auto;
+        }
+        .ts-wrapper.focus .ts-control {
+            border-color: #FF6B00;
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
+            outline: none;
+        }
+        .ts-wrapper .ts-control input {
+            font-size: 1rem;
+            color: #374151;
+        }
+        .ts-wrapper .ts-control input::placeholder {
+            color: #9ca3af;
+        }
+        .ts-dropdown {
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+            color: #374151;
+            margin-top: 2px;
+        }
+        .ts-dropdown .option {
+            padding: 0.6rem 1rem;
+        }
+        .ts-dropdown .option:hover,
+        .ts-dropdown .option.active {
+            background-color: #FFF3E0;
+            color: #FF6B00;
+        }
+        .ts-dropdown .option.selected {
+            background-color: #FF6B00;
+            color: #fff;
+        }
+        .ts-wrapper .ts-control .item {
+            color: #374151;
         }
     </style>
 </head>
@@ -300,7 +354,7 @@
                     <div>
                         <label for="aero-package-content" class="block text-gray-700 font-medium mb-2">Contenido del paquete</label>
                         <div class="relative">
-                            <select id="aero-package-content" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent form-input appearance-none pr-10">
+                            <select id="aero-package-content" class="w-full">
                                 <option value="accesorios_impresora">Accesorios de Impresora (13.00%)</option>
                                 <option value="adaptador">Adaptador (13.00%)</option>
                                 <option value="adornos">Adornos (29.95%)</option>
@@ -441,9 +495,6 @@
                                 <option value="video_monitor">Video Monitor (entrada HDMI) (49.27%)</option>
                                 <option value="zapatos">Zapatos (29.95%)</option>
                             </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <i class="fas fa-chevron-down text-gray-400"></i>
-                            </div>
                         </div>
                     </div>
                     
@@ -1584,5 +1635,18 @@ insurance = Math.ceil(purchaseValueNum / 100);
 </script>
 <script src="js/seo-config.js" defer></script>
 <script src="js/analytics.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        new TomSelect('#aero-package-content', {
+            maxItems: 1,
+            create: false,
+            sortField: { field: 'text', direction: 'asc' },
+            searchField: ['text'],
+            placeholder: 'Buscar contenido del paquete...',
+            diacritics: true
+        });
+    });
+</script>
 </body>
 </html>
