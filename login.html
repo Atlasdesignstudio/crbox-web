@@ -425,8 +425,13 @@
                         window.location.href = 'dashboard.html';
                     })
                     .catch(function (err) {
+                        console.error('[CRBOX] Login error:', err);
+                        var safeMsg = (err && err.message && (
+                            err.message.indexOf('Credenciales') !== -1 ||
+                            err.message.indexOf('Respuesta inesperada') !== -1
+                        )) ? err.message : 'Error al iniciar sesión. Intente de nuevo.';
                         if (errorBox) {
-                            errorBox.textContent = err.message || 'Error al iniciar sesión. Intente de nuevo.';
+                            errorBox.textContent = safeMsg;
                             errorBox.classList.remove('hidden');
                         }
                         if (submitBtn) {

@@ -2,12 +2,10 @@
 // Used by auth.js and afiliate.html to build the Addresses payload for the
 // CRBOX registration API, which requires INEC province/canton/district codes.
 //
-// CORS decision (documented here per task spec):
-// A server-side OPTIONS preflight to https://clients.crbox.cr/authtoken confirmed:
-//   Access-Control-Allow-Origin: https://crbox.cr
-//   Access-Control-Allow-Credentials: true
-// This means the browser at crbox.cr CAN make direct cross-origin calls to the
-// API without a server-side proxy. Direct fetch is used throughout auth.js.
+// API routing:
+// auth.js sends all login/register/update requests through same-origin proxy
+// endpoints defined in server.py (/api/auth/*) which forward to the CRBOX
+// backend — no direct cross-origin fetch from the browser.
 
 (function (global) {
   'use strict';

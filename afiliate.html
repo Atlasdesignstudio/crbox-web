@@ -3043,14 +3043,14 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
                     if (res.StatusResult === 'OK') {
                         showRegSuccess(personalRegistrationForm);
                     } else {
-                        // Map known API error messages to friendly Spanish text;
-                        // all other backend messages fall through to the generic fallback.
+                        // Known duplicate errors — show API Message verbatim (already in Spanish).
+                        // All unrecognised error messages fall through to a safe generic fallback.
                         var msg = res.Message || '';
                         var friendly;
                         if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
-                            friendly = 'El correo electrónico ya está registrado. ¿Ya tiene una cuenta?';
+                            friendly = msg;
                         } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
-                            friendly = 'El número de identificación ya está registrado en la base de datos.';
+                            friendly = msg;
                         } else {
                             friendly = 'Ocurrió un error al procesar el registro. Intente de nuevo.';
                         }
@@ -3062,7 +3062,8 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
                     }
                 })
                 .catch(function (err) {
-                    showRegError(personalRegistrationForm, err.message || 'Error de conexión. Intente de nuevo.');
+                    console.error('[CRBOX] Registration network error:', err);
+                    showRegError(personalRegistrationForm, 'Error de conexión. Intente de nuevo más tarde.');
                     if (submitBtn) {
                         submitBtn.innerHTML = origLabel;
                         submitBtn.disabled = false;
