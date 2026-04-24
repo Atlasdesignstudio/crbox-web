@@ -25,7 +25,7 @@
     
     <!-- CSS personalizado -->
     <link rel="stylesheet" href="css/styles.css?v=4">
-    <link rel="stylesheet" href="css/responsive.css?v=10">
+    <link rel="stylesheet" href="css/responsive.css?v=11">
     <link rel="stylesheet" href="css/dashboard.css">
     
     <!-- Prefetch para mejorar rendimiento -->
@@ -162,7 +162,7 @@
 </header>
 
     <!-- Dashboard Navigation Tabs -->
-    <div class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-16 z-30">
         <div class="container mx-auto px-4">
             <div class="flex overflow-x-auto no-scrollbar custom-scrollbar">
                 <a href="dashboard.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-colors focus:outline-none relative">
@@ -347,7 +347,7 @@
                             </div>
                             
                             <!-- Botón de alternar vista -->
-                            <div class="flex border border-gray-200 rounded-lg overflow-hidden">
+                            <div class="view-toggle-wrap flex border border-gray-200 rounded-lg overflow-hidden">
                                 <button id="list-view-btn" class="h-11 w-11 bg-orange-100 text-orange-600 flex items-center justify-center border-r border-gray-200" aria-label="Vista de lista" aria-pressed="true">
                                     <i class="fas fa-list"></i>
                                 </button>

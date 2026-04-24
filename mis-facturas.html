@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css?v=4">
-    <link rel="stylesheet" href="css/responsive.css?v=10">
+    <link rel="stylesheet" href="css/responsive.css?v=11">
     <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body class="bg-gray-50">
@@ -566,17 +566,17 @@
       }
 
       function _renderBillRow(bill, idx) {
-        return '<tr class="hover:bg-orange-50 transition-colors" data-bill-idx="' + idx + '">' +
-          '<td class="whitespace-nowrap font-medium text-gray-900">' + _esc(_orDash(bill.factura)) + '</td>' +
-          '<td class="whitespace-nowrap text-sm text-gray-700">' + _esc(_fmtDate(bill.bestDate)) + '</td>' +
-          '<td class="whitespace-nowrap text-sm text-gray-700">' + _esc(_orDash(bill.masterAirShipmentNumber)) + '</td>' +
-          '<td class="text-sm text-gray-700">' + _renderRecibosCell(bill.recibos) + '</td>' +
-          '<td class="whitespace-nowrap text-right text-sm text-gray-700">' + _esc(_fmtNum(bill.cantidadBultos, 0)) + '</td>' +
-          '<td class="whitespace-nowrap text-right text-sm text-gray-700">' + _esc(_fmtNum(bill.weigth)) + '</td>' +
-          '<td class="whitespace-nowrap text-right text-sm text-gray-700">' + _esc(_fmtNum(bill.volumentricWeigth)) + '</td>' +
-          '<td class="whitespace-nowrap text-sm text-gray-700">' + _esc(_orDash(bill.descuentoNombre)) + '</td>' +
-          '<td class="whitespace-nowrap text-right font-semibold text-gray-900">' + _esc(_fmtNum(bill.total)) + '</td>' +
-          '<td class="whitespace-nowrap text-right">' +
+        return '<tr class="bill-row hover:bg-orange-50 transition-colors" data-bill-idx="' + idx + '">' +
+          '<td data-label="Factura" class="whitespace-nowrap font-medium text-gray-900">' + _esc(_orDash(bill.factura)) + '</td>' +
+          '<td data-label="Fecha" class="whitespace-nowrap text-sm text-gray-700">' + _esc(_fmtDate(bill.bestDate)) + '</td>' +
+          '<td data-label="Guía Master" class="whitespace-nowrap text-sm text-gray-700">' + _esc(_orDash(bill.masterAirShipmentNumber)) + '</td>' +
+          '<td data-label="Recibos" class="text-sm text-gray-700">' + _renderRecibosCell(bill.recibos) + '</td>' +
+          '<td data-label="Bultos" class="whitespace-nowrap text-right text-sm text-gray-700">' + _esc(_fmtNum(bill.cantidadBultos, 0)) + '</td>' +
+          '<td data-label="Peso" class="whitespace-nowrap text-right text-sm text-gray-700">' + _esc(_fmtNum(bill.weigth)) + '</td>' +
+          '<td data-label="Peso Volumétrico" class="whitespace-nowrap text-right text-sm text-gray-700">' + _esc(_fmtNum(bill.volumentricWeigth)) + '</td>' +
+          '<td data-label="Descuento" class="whitespace-nowrap text-sm text-gray-700">' + _esc(_orDash(bill.descuentoNombre)) + '</td>' +
+          '<td data-label="Total" class="whitespace-nowrap text-right font-semibold text-gray-900">' + _esc(_fmtNum(bill.total)) + '</td>' +
+          '<td data-label="Acciones" class="bill-actions-cell whitespace-nowrap text-right">' +
             '<div class="flex justify-end space-x-1">' +
               '<button class="btn-view-bill p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver factura" aria-label="Ver factura">' +
                 '<i class="fas fa-eye"></i>' +
