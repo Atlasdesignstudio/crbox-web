@@ -104,16 +104,6 @@
       overflow-x: auto;
     }
 
-    /* Header: logo + hamburger on same row (all pages) */
-    .sticky-header .container > div:first-child {
-      flex-direction: row !important;
-      align-items: center !important;
-    }
-
-    .sticky-header .container > div:first-child > * + * {
-      margin-top: 0 !important;
-    }
-
     /* Hero sections */
     section.py-16,
     section.py-16.md\:py-24 {
