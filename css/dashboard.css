@@ -882,10 +882,10 @@ textarea:focus-visible {
 
 /* Estilos específicos para el card de casillero */
 .glass-card.orange-card {
-    background-color: rgba(154, 52, 18, 0.3) !important;
+    background-color: rgba(154, 52, 18, 0.45) !important;
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(251, 146, 60, 0.3) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(251, 146, 60, 0.35) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .orange-card .card-label {
