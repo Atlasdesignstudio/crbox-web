@@ -1,0 +1,319 @@
+# Refine #82 into a combined legacy-parity + truthfulness completion pass for Mis Paquetes, Mis Facturas, and dashboard derivations
+
+Use #82 - Mis Paquetes legacy parity from real getuserpackages response as the base, but expand/refine it into a single combined implementation pass that now also incorporates the newly confirmed real getfacturas response shape.
+
+This is not a redesign task. Preserve the current UI, layout, spacing, structure, visual hierarchy, cards, modals, badges, tabs, and interaction patterns as much as possible. Only change what is necessary to make the portal more complete, more truthful, and closer to legacy parity using the real backend responses we have now confirmed.
+
+Core principle:
+If something is shown, it must be real, truthfully derived, or honestly unavailable / neutral / próximamente.
+
+---
+
+## New confirmed source-of-truth evidence
+
+### A) Confirmed non-empty getuserpackages response shape
+Each package may include at least:
+- idwarehousereceipt
+- statusId
+- statusName
+- number
+- receiveddatetime
+- createdDate
+- trackingNumber
+- shipperName
+- totalpieces
+- totalweight
+- totalvolume
+- totalvolumetricweight
+- carrierName
+- consigneeNotes
+- consigneeSucursalName
+- masterAirShipmentNumber
+- airShipmentNumber
+- descripcion
+- invoicesCount
+- hasPackage
+- impresoFactura
+- consolidadoFactura
+- emision
+- and sometimes package-adjacent invoice-related fields such as:
+  - montofactura
+  - descripcionfactura
+
+### B) Confirmed non-empty getfacturas response shape
+The bills response is now confirmed to be an array where each bill row contains:
+- Factura.factura
+- Factura.masterAirShipment.masterairshipmentnumber
+- Factura.weigth
+- Factura.cantidadBultos
+- Factura.total
+- Factura.descuentoCorporativo._nombre
+- Factura.isInvoiced
+- Factura.createdDate
+- Factura.billedDate
+- Recibos[]
+
+Each Recibo may include:
+- number
+- receiveddatetime
+- totalweight
+- totalvolume
+- totalvolumetricweight
+- status.statusname
+- shipper.shippername
+- carrierinformation.carrier.carriername
+
+Use these confirmed shapes as the only truth for this refinement. Do not guess alternate shapes.
+
+---
+
+## Goal of this refinement
+Bring the new portal closer to real legacy parity wherever the confirmed backend responses support it, specifically for:
+
+1. Mis Paquetes
+2. Mis Facturas
+3. any dashboard metrics/blocks that can now be more accurately derived from those two confirmed real shapes
+
+This is a truthfulness + completeness refinement on top of the prior truthfulness audit, not a redesign.
+
+---
+
+## Done looks like
+
+### 1) Mis Paquetes — list/table view reaches real legacy parity where supported
+Expand the table/list rendering so the new portal does not silently regress against the legacy portal by throwing away real data already returned by the API.
+
+At minimum, render these real legacy-equivalent columns, in this order if the current table layout allows it:
+
+- Estado → statusName (with badge/style driven by statusId)
+- #MAWB → masterAirShipmentNumber
+- #HAWB → airShipmentNumber
+- Recibo → number
+- Carrier → carrierName
+- Tracking # → trackingNumber
+- Recibido → receiveddatetime (formatted; fall back to createdDate only if receiveddatetime is empty)
+- Envía / Tienda → shipperName
+- Pieza → totalpieces
+- Peso volumétrico → totalvolumetricweight
+- Peso Kg → totalweight
+- Notas → consigneeNotes
+- Descripción → descripcion
+- Acciones → keep exactly as today
+
+Constraints:
+- preserve the current Acciones column and existing handlers
+- preserve horizontal scroll behavior on smaller screens
+- no layout redesign
+- loading / empty / error states must behave exactly as they do after the truthfulness pass
+
+### 2) Mis Paquetes — grid view surfaces more real fields from the same array
+Keep the card/grid layout visually the same, but surface additional real metadata that the design can absorb without structural redesign:
+- carrierName
+- number (Recibo)
+- totalpieces
+- totalvolumetricweight
+
+Use:
+- descripcion as title
+- shipperName as the “store/sender” line
+
+Grid view must still render from the same in-memory package array as the list view. No separate mock path, no duplicated data pipeline.
+
+### 3) Mis Paquetes — detail modal fully real
+Populate the package detail modal entirely from the real selected-package fields.
+
+Expected mapping:
+- Header:
+  - title → descripcion
+  - subtitle → shipperName
+  - badge → statusName styled via statusId
+- Shipping information block:
+  - trackingNumber
+  - receiveddatetime
+  - carrierName
+  - number (Recibo)
+  - masterAirShipmentNumber
+  - airShipmentNumber
+- Dimensions / weight block:
+  - totalpieces
+  - totalweight
+  - totalvolume
+  - totalvolumetricweight
+
+Requirements:
+- the old fake “Costo Estimado” row must be removed if no real cost field exists
+- any missing value must render as a neutral em dash, never a fake placeholder
+- no hardcoded demo content
+
+### 4) Mis Paquetes — tracking modal fully real and no demo timeline
+When opened from a real package row, populate the tracking modal only from the selected real package:
+- trackingNumber
+- statusName
+- carrierName
+- receiveddatetime
+- shipperName
+- totalweight
+- totalvolumetricweight
+- consigneeNotes
+
+Remove the static fake timeline/demo steps.
+
+Rules:
+- if no real carrier event history is present in the package data, show exactly one honest empty state such as:
+  - No hay eventos de rastreo disponibles
+- do not fabricate steps like “Recibido en Miami / Enviado / etc.”
+- if tracking-number typed search does not match any loaded package, preserve the current no-results state
+
+### 5) Mis Paquetes — re-audit package-adjacent informational blocks using the real fields
+Evaluate these fields carefully:
+- consolidadoFactura
+- impresoFactura
+- invoicesCount
+- montofactura
+- descripcionfactura
+- hasPackage
+- emision
+
+For each one, decide:
+- either it can support a truthful user-facing label/indicator
+- or it must remain neutral / próximamente
+
+Examples:
+- a boolean-like “Factura impresa: Sí/No” may be defensible if semantics are clear
+- a fake consolidation savings percentage or fake progress bar is not defensible unless explicitly supported
+
+Do not introduce any fabricated money amount, fake savings label, fake invoice progress, or fake readiness metric.
+
+### 6) Mis Facturas — bring the table to real legacy parity where supported
+Refine Mis Facturas using the now-confirmed non-empty real response.
+
+At minimum, the bills table must render:
+- Factura → Factura.factura
+- Guía Master → Factura.masterAirShipment.masterairshipmentnumber
+- Recibo(s) → from Recibos[].number
+- Descuento aplicado → Factura.descuentoCorporativo._nombre
+- Bultos → Factura.cantidadBultos
+- Peso → Factura.weigth
+- Total → Factura.total
+
+If the current UI supports row expansion, modal detail, or secondary detail area, use the real Recibos[] data to show:
+- receipt number
+- received date
+- shipper
+- carrier
+- receipt status
+- weight / volumetric weight
+
+Do not invent invoice-line detail that is not present in the response.
+
+### 7) Mis Facturas — truthfulness audit of summary cards and payment state
+Re-audit the summary cards on Mis Facturas.
+
+Rules:
+- only keep metrics that are truthfully computable from the real bills response
+- do not label invoices as Pagada or Pendiente unless there is a reliable explicit backend signal
+- treat Factura.isInvoiced, createdDate, billedDate, PaymentDate, and PaymentRegistrationDate cautiously
+- do not infer payment lifecycle semantics unless they are clearly defensible
+
+If payment-state metrics are not defensible:
+- replace with neutral / unavailable states
+- do not fabricate any paid/unpaid counts
+
+The payment-info block may remain as static business content, but it must not be implied to come from the backend.
+
+### 8) Dashboard — re-evaluate derivations using both confirmed real shapes
+Refine the dashboard where the newly confirmed package and bills shapes allow better derivations.
+
+Rules:
+- Paquetes en camino remains a real/derived metric using explicit statusId / statusName mapping
+- Actividad reciente may be built from package data only if every displayed row has:
+  - a real timestamp
+  - a real status label
+  - a defensible event interpretation
+- skip rows that do not meet that standard
+- if the resulting activity feed is empty, show Sin actividad reciente
+
+For bills:
+- only derive dashboard invoice-related metrics if supported by the bills response
+- if not defensible, keep them neutral
+
+No fake progress bars, no fake event feed, no invented invoice statuses.
+
+### 9) Centralize field mapping
+Introduce a single helper/accessor layer for packages and another for bills so all renderers read through consistent mappings.
+
+For packages, every renderer (list row, grid card, detail modal, tracking modal, dashboard derivation) must read from one normalized mapping helper.
+
+For bills, the table and any detail/expansion renderer must read through one normalized mapping helper.
+
+This avoids duplicated field-name logic and silent inconsistencies.
+
+### 10) Final implementation note / report
+At the end of implementation, provide a short structured note covering:
+
+#### Mis Paquetes
+- which real response fields were surfaced in:
+  - list view
+  - grid view
+  - detail modal
+  - tracking modal
+- which legacy-visible columns/fields were successfully matched
+- which legacy-visible fields still are not rendered and why
+
+#### Mis Facturas
+- which real response fields were surfaced in:
+  - main table
+  - detail / expanded area if added
+- which legacy-visible invoice fields were successfully matched
+- which payment/billing states were intentionally neutralized and why
+
+#### Dashboard
+- which metrics/feeds are now:
+  - fully real
+  - truthfully derived
+  - intentionally neutralized
+
+---
+
+## Non-regression requirements
+- keep current design system and layout intact
+- keep current filtering, sorting, status-tab counts, pagination, and view switching working
+- no flash of stale static mock rows/cards before real data
+- [] is still treated as empty success
+- no JS errors from any button or block left for later phase
+- no regression against the truthfulness guarantees from #76
+
+---
+
+## Out of scope
+- external carrier API integration for live tracking events
+- any new backend endpoint not already confirmed
+- real package-edit endpoint if one does not exist
+- redesign of the page, cards, table, or modals
+- public pages
+- business registration flow
+
+---
+
+## Suggested implementation steps
+
+1. Refine #82 into a combined Mis Paquetes + Mis Facturas legacy parity pass.
+2. Centralize normalized field accessors for package rows and bill rows.
+3. Expand Mis Paquetes table to the confirmed legacy-equivalent field set.
+4. Enrich Mis Paquetes grid cards with real metadata that fits the current design.
+5. Rewrite Mis Paquetes detail and tracking modals to use only real fields.
+6. Re-audit package-adjacent informational blocks against the confirmed package shape.
+7. Expand Mis Facturas table and optional row detail using the confirmed bills shape.
+8. Re-audit bills summary cards and payment-state assumptions.
+9. Re-evaluate dashboard derivations using the stronger confirmed shapes from both endpoints.
+10. Produce the structured implementation note.
+
+Relevant files:
+- mis-paquetes.html
+- mis-facturas.html
+- dashboard.html
+- js/dashboard.js
+- js/portal-api.js
+
+Dependencies:
+- Portal truthfulness & completion audit
