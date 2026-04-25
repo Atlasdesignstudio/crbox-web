@@ -1,0 +1,206 @@
+Queremos reestructurar de forma importante el flujo de afiliación / creación de cuenta de CRBOX para que sea mucho más fácil, más rápido, más claro y con mejor conversión, sin perder los datos operativos que el negocio realmente necesita.
+
+Contexto del problema actual
+
+Ahora mismo, cuando una persona entra a Afíliate / Crear cuenta, se encuentra con un formulario muy largo desde el inicio. El usuario tiene que llenar demasiada información de una sola vez para poder crear su cuenta. Aunque varios de esos datos sí son necesarios para operar CRBOX, pedir todo upfront genera demasiada fricción.
+
+La sensación actual es:
+
+* el alta es pesada
+* hay demasiados campos demasiado pronto
+* no se prioriza capturar rápido al usuario
+* se mezclan en un mismo momento dos cosas distintas:
+    1. crear acceso / captar al usuario
+    2. completar el perfil operativo necesario para usar CRBOX de verdad
+
+Queremos separar mejor esos dos momentos.
+
+Objetivo de producto
+
+Queremos pasar de un flujo de:
+
+“formulario largo antes de entrar”
+
+a uno más cercano a:
+
+“creación de cuenta rápida + completar setup dentro del portal cuando haga falta o inmediatamente después de entrar”
+
+La idea es que el usuario pueda:
+
+* crear su cuenta de forma mucho más simple
+* entrar al client portal sin tanta fricción
+* y luego completar de manera guiada los datos necesarios para activar plenamente su cuenta / casillero / uso operativo
+
+Dirección deseada
+
+No te pegues literalmente a la UI actual ni al formulario actual. Piensa en lo mejor a nivel de:
+
+* UX
+* conversión
+* claridad
+* onboarding
+* retención
+* compatibilidad con el backend real
+* verdad del producto
+
+Quiero que propongas y ejecutes la mejor solución posible dentro de lo que hoy sí soporta el sistema real.
+
+Lo que queremos lograr
+
+1. Simplificar mucho la creación inicial de cuenta
+
+La página de afiliación debe volverse mucho más straightforward, friendly y ligera.
+
+La creación inicial debería capturar solo lo mínimo razonable para:
+
+* crear la cuenta
+* registrar al usuario en el backend
+* permitirle entrar
+* retener el lead/contacto
+
+No queremos obligar al usuario a completar de una vez toda la información larga si eso puede diferirse.
+
+2. Mover la parte pesada del perfil al interior del portal
+
+Queremos que la parte más larga / operativa / detallada del formulario viva dentro del client portal como una experiencia de:
+
+* setup
+* activación de cuenta
+* completar perfil
+* completar datos para empezar a usar CRBOX
+
+Eso puede pasar:
+
+* inmediatamente después de crear la cuenta
+* o como un onboarding in-app muy visible dentro del portal
+* o como un “completa tu cuenta para activar tu casillero / empezar a recibir paquetes”
+
+Tú decides la mejor versión, pero la intención es esa:
+menos fricción al entrar, más estructura y guía al completar el perfil.
+
+3. Mantener todos los datos necesarios del negocio
+
+Esto no significa eliminar datos necesarios.
+Los datos que CRBOX realmente ocupa deben seguir existiendo y seguir guardándose correctamente en el backend.
+
+La mejora está en:
+
+* cuándo se piden
+* cómo se agrupan
+* cómo se explican
+* cómo se completan
+* cómo se distribuyen en la experiencia
+
+No queremos perder completitud; queremos ganar UX.
+
+4. Hacer que el flujo completo se sirva de verdad
+
+Asegúrate de que el flujo real de afiliación / creación de cuenta:
+
+* sí esté creando la cuenta en el backend real
+* sí conecte con el contrato real existente
+* sí deje al usuario en un estado coherente después de registrarse
+* no sea solo una experiencia visual
+
+Lo que espero del trabajo
+
+Quiero que pienses esto como una mezcla de:
+
+* estrategia de onboarding
+* UX de signup
+* arquitectura de perfil progresivo
+* validación de compatibilidad con backend real
+
+No quiero solo una mejora cosmética del formulario actual.
+Quiero una reestructuración inteligente del flujo.
+
+Qué tienes que analizar y resolver
+
+A. Qué campos pueden pasar al alta rápida
+
+Audita el formulario actual y separa:
+
+* datos mínimos para crear cuenta
+* datos operativos que pueden completarse después
+* datos que deberían pedirse solo cuando haya intención real de usar el servicio
+
+B. Cómo debería verse el nuevo alta
+
+Rediseña el flujo de afiliación para que el primer paso sea mucho más simple y amigable.
+
+C. Cómo debería verse el setup dentro del portal
+
+Diseña e implementa la mejor experiencia posible dentro del client portal para completar los datos faltantes:
+
+* clara
+* guiada
+* progresiva
+* usable en mobile y desktop
+* bien integrada con la experiencia real del portal
+
+D. Qué estado debe tener una cuenta “incompleta”
+
+Define cómo se comporta una cuenta recién creada pero todavía no totalmente configurada.
+
+Por ejemplo:
+
+* el usuario puede entrar
+* pero se le muestra claramente que debe completar su perfil
+* o ciertas acciones quedan bloqueadas hasta completar datos
+* o se le guía con un onboarding / checklist / setup flow
+
+No inventes lógica de negocio extraña, pero sí resuelve este estado de forma elegante y útil.
+
+E. Cómo se conectan registro, login y portal
+
+Asegúrate de que el flujo completo tenga sentido:
+
+* crear cuenta
+* entrar
+* completar setup
+* activar uso real
+
+Importante sobre Google Sign-In
+
+Por ahora, no implementes Google Sign-In como parte de este cambio, salvo que descubras que ya existe backend real suficiente para soportarlo correctamente, cosa que hoy no parece confirmada.
+
+Sí quiero que tengas en mente que el futuro flujo debe quedar compatible con una lógica futura de:
+
+* alta rápida
+* login social
+* y luego completar perfil faltante dentro del portal
+
+Pero en esta fase, enfócate en resolver bien el flujo sin depender de Google.
+
+Criterios de éxito
+
+El resultado final debería lograr esto:
+
+* afiliarse ya no se siente largo ni pesado
+* crear cuenta es mucho más rápido
+* el portal absorbe de forma inteligente la parte operativa del perfil
+* el usuario entiende claramente qué le falta para activar/completar su cuenta
+* todo funciona con backend real
+* no se pierde ningún dato necesario del negocio
+* la experiencia se siente excepcionalmente mejor que la actual
+
+Lo que no quiero
+
+* No quiero solo esconder campos sin resolver el flujo
+* No quiero una solución fake
+* No quiero que se rompa el backend real
+* No quiero pedir demasiados datos demasiado pronto
+* No quiero una UX donde el usuario entra y queda perdido sin saber qué tiene que completar
+
+Entregable esperado
+
+Haz la propuesta y ejecución completa del mejor flujo posible, incluyendo:
+
+1. qué se queda en el alta inicial
+2. qué se mueve al setup dentro del portal
+3. cómo se comporta una cuenta incompleta
+4. cómo se asegura la creación real en backend
+5. qué decisiones tomaste y por qué
+6. cualquier limitación real que impida ir todavía más lejos
+
+Piensa esto como una mejora seria de conversión + onboarding + arquitectura UX del registro, no como una simple edición del formulario actual.
