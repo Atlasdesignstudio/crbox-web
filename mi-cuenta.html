@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css?v=5">
     <link rel="stylesheet" href="css/responsive.css?v=14">
-    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/dashboard.css?v=4">
 </head>
 <body class="bg-gray-50">
     <!-- Google Tag Manager (noscript) -->
@@ -206,13 +206,16 @@
 
             <!-- Profile Section -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <!-- Brand identity banner -->
+                <div class="profile-banner"></div>
+                <!-- Profile info row: avatar floats up into banner -->
                 <div class="profile-header">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 md:gap-6">
-                        <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-5 text-center md:text-left">
-                            <div class="profile-avatar bg-orange-50 mx-auto md:mx-0">
+                    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
+                        <div class="flex flex-col md:flex-row md:items-end gap-4 md:gap-5 text-center md:text-left">
+                            <div class="profile-avatar bg-white mx-auto md:mx-0">
                                 <span class="text-orange-600 font-bold text-3xl" id="profile-avatar-initials">MM</span>
                             </div>
-                            <div class="min-w-0">
+                            <div class="min-w-0 pt-2 md:pt-0 md:pb-1">
                                 <h2 class="text-xl md:text-2xl font-bold text-gray-800 tracking-tight truncate" id="profile-header-name">Cargando...</h2>
                                 <p class="text-gray-600 text-sm md:text-base mt-0.5" id="profile-casillero">Casillero #—</p>
                                 <p class="text-gray-500 text-xs md:text-sm mt-1 hidden" id="account-sucursal-wrap">
@@ -220,7 +223,7 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="flex justify-center md:justify-end">
+                        <div class="flex justify-center md:justify-end md:pb-1">
                             <span class="hidden inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-100" id="account-discount-badge">
                                 <i class="fas fa-tag mr-1.5"></i><span id="account-discount-text">Descuento Disponible</span>
                             </span>
@@ -228,7 +231,7 @@
                     </div>
                 </div>
 
-                <div class="border-b border-gray-100">
+                <div class="account-inner-tab-strip">
                     <div class="flex overflow-x-auto no-scrollbar">
                         <button class="whitespace-nowrap px-5 md:px-6 py-3.5 text-sm md:text-[0.9375rem] font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none account-tab-btn" data-tab="personal-info">
                             <i class="fas fa-user mr-2"></i>
@@ -289,8 +292,8 @@
                         </div>
 
                         <h3 class="account-section-title">Preferencias</h3>
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600 flex items-start">
-                            <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2.5 flex-shrink-0"></i>
+                        <div class="account-coming-soon">
+                            <i class="fas fa-clock"></i>
                             <span>Las preferencias de consolidación, inspección y seguro estarán disponibles próximamente. Por ahora, contáctanos para coordinarlas con tu envío.</span>
                         </div>
                     </form>
@@ -405,8 +408,8 @@
 
                     <div>
                         <h3 class="account-section-title">Seguridad de la Cuenta</h3>
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600 flex items-start">
-                            <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2.5 flex-shrink-0"></i>
+                        <div class="account-coming-soon">
+                            <i class="fas fa-clock"></i>
                             <span>La autenticación de dos factores y las notificaciones de acceso estarán disponibles próximamente.</span>
                         </div>
                     </div>
@@ -416,8 +419,8 @@
                 <div class="p-6 md:p-8 account-tab hidden" id="notifications-tab">
                     <div class="mb-8">
                         <h3 class="account-section-title">Canales de Notificación</h3>
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600 flex items-start">
-                            <i class="fas fa-info-circle text-gray-400 mt-0.5 mr-2.5 flex-shrink-0"></i>
+                        <div class="account-coming-soon">
+                            <i class="fas fa-clock"></i>
                             <span>Los canales de email, SMS y push y las notificaciones de paquetes / facturas estarán disponibles próximamente. Por ahora solo puedes gestionar la suscripción a promociones.</span>
                         </div>
                     </div>
@@ -438,7 +441,7 @@
             </div>
             
             <!-- Delete Account Section -->
-            <div class="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+            <div class="account-danger-zone bg-white overflow-hidden">
                 <div class="p-6 md:p-8">
                     <div class="flex items-start gap-4">
                         <div class="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center flex-shrink-0">

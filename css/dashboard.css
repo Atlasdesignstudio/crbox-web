@@ -1042,62 +1042,166 @@ textarea:focus-visible {
 }
 
 /* ==============================================================
-   Mi Cuenta — profile header (neutral surface, no banner / pattern;
-   visual identity comes from layout + the existing card primitive)
+   Mi Cuenta — profile banner + header
+   The banner gives the page a strong brand anchor; the avatar
+   floats at the boundary between the banner and the content area.
    ============================================================== */
+
+/* Orange identity band — replaces the old neutral white header */
+.profile-banner {
+    height: 5rem;
+    background: linear-gradient(135deg, #FF6B00 0%, #FF8C40 55%, #FFB060 100%);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+@media (min-width: 768px) {
+    .profile-banner {
+        height: 5.5rem;
+    }
+}
+/* Decorative circles for depth */
+.profile-banner::before {
+    content: '';
+    position: absolute;
+    right: -1rem;
+    top: -2rem;
+    width: 9rem;
+    height: 9rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.10);
+    pointer-events: none;
+}
+.profile-banner::after {
+    content: '';
+    position: absolute;
+    right: 5.5rem;
+    bottom: -3.5rem;
+    width: 7rem;
+    height: 7rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.07);
+    pointer-events: none;
+}
+
+/* Profile header sits directly below banner — no top padding */
 .profile-header {
     position: relative;
-    padding: 1.5rem;
+    padding: 0 1.5rem 1.5rem;
 }
 @media (min-width: 768px) {
     .profile-header {
-        padding: 2rem;
+        padding: 0 2rem 2rem;
     }
 }
-/* Empty hook kept harmless — older markup may still ship the element */
+/* Legacy hook — kept harmless */
 .profile-header-pattern {
     display: none;
 }
+
+/* Avatar floats up to overlap the banner bottom edge */
 .profile-avatar {
-    width: 5.5rem;
-    height: 5.5rem;
+    width: 5rem;
+    height: 5rem;
     border-radius: 9999px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    /* Overlap: pull avatar upward into the banner */
+    margin-top: -2rem;
+    position: relative;
+    z-index: 2;
+    /* White ring + shadow for depth against the orange band */
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 107, 0, 0.10);
 }
 @media (min-width: 768px) {
     .profile-avatar {
-        width: 6rem;
-        height: 6rem;
+        width: 5.5rem;
+        height: 5.5rem;
+        margin-top: -2.25rem;
     }
 }
 
 /* ==============================================================
-   Mi Cuenta — tab strip + section primitives
+   Mi Cuenta — inner tab strip
+   Uses a soft gray tray to visually distinguish from the orange
+   portal nav pills above. Active state kept as bottom border
+   (intentional difference from portal-level pill nav).
    ============================================================== */
+.account-inner-tab-strip {
+    background: #f9fafb;
+    border-bottom: 1px solid #F3F4F6;
+}
 .account-tab-btn {
     transition: color var(--transition-fast) ease,
                 background-color var(--transition-fast) ease,
                 border-color var(--transition-fast) ease;
 }
 .account-tab-btn:hover {
-    background-color: rgba(255, 107, 0, 0.04);
+    background-color: rgba(255, 107, 0, 0.05);
+    color: #ea580c;
 }
 /* Active state: JS toggles text-orange-600 / border-orange-600 */
 .account-tab-btn.text-orange-600 {
     background-color: rgba(255, 107, 0, 0.06);
 }
 
-/* Sub-section heading inside an account tab — neutral eyebrow label */
+/* ==============================================================
+   Mi Cuenta — section title
+   Elevated from a tiny uppercase eyebrow to a proper, readable
+   section heading with a bottom divider for rhythm.
+   ============================================================== */
 .account-section-title {
-    font-size: 0.6875rem;
-    font-weight: 700;
-    color: #6B7280;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 0.875rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 1.125rem;
+    padding-bottom: 0.625rem;
+    border-bottom: 1px solid #F3F4F6;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: -0.01em;
+}
+/* Specificity override — lets Tailwind mb-{x} classes work when combined */
+.account-section-title.mb-0 { margin-bottom: 0; }
+.account-section-title.mb-4 { margin-bottom: 1rem; }
+
+/* ==============================================================
+   Mi Cuenta — "coming soon" feature block
+   Replaces generic gray info boxes with a warmer, intentional
+   treatment that communicates "upcoming" rather than "error".
+   ============================================================== */
+.account-coming-soon {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    background: #FFF7ED;
+    border: 1px solid #FED7AA;
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    font-size: 0.875rem;
+    color: #7C3402;
+    line-height: 1.55;
+}
+.account-coming-soon i {
+    color: #F97316;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    font-size: 0.9375rem;
+}
+
+/* ==============================================================
+   Mi Cuenta — danger zone (delete account)
+   Warm red accent treatment: muted border + strong left bar.
+   ============================================================== */
+.account-danger-zone {
+    border: 1px solid #FEE2E2;
+    border-left: 4px solid #FCA5A5;
+    border-radius: 0.75rem;
+    box-shadow: none;
 }
 
 /* Key/value list — used for the Miami address and similar
@@ -1139,18 +1243,13 @@ textarea:focus-visible {
     margin: 0;
     word-break: break-word;
 }
-/* Mirrors the existing dashboard "instruction-casillero-num" treatment
-   (text-orange-600 + font-bold) — surfaces the casillero number, the
-   single most actionable value on the address panel. */
+/* Mirrors the dashboard casillero highlight treatment */
 .account-kv-row.is-highlight dd {
     color: var(--primary);
     font-weight: 700;
 }
 
-/* ===== Copy button: no persistent focus/active artifact =====
-   The copy-button gets -webkit-tap-highlight-color inline, but we also
-   kill the browser outline here so keyboard-only users still get the
-   global :focus-visible ring from styles.css.                          */
+/* ===== Copy button: no persistent focus/active artifact ===== */
 .copy-button:focus:not(:focus-visible) {
     outline: none !important;
     box-shadow: none !important;

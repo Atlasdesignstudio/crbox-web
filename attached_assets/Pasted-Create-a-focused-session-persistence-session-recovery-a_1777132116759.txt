@@ -1,0 +1,139 @@
+Create a focused session persistence, session recovery, and auth-state resilience pass for the CRBOX client portal, covering both mobile and desktop.
+
+## Context
+Right now, after a user logs into the client portal, the session behavior is inconsistent over time.
+
+What is happening in practice is something like this:
+- the user logs in successfully
+- closes Safari / browser naturally
+- comes back later
+- reopens the portal
+- after some time or after reopening the browser a few times, the portal does not clearly keep the session working nor clearly log the user out
+- instead, it can get stuck in a broken intermediate state where account/profile data stops loading properly
+- the UI may remain as if the user is still “inside”, but profile/account information no longer hydrates correctly
+- the portal can feel frozen, partially loaded, or trapped in a bad session state
+- the user may not be cleanly logged out and may not be able to recover naturally
+
+This is especially being observed on mobile, but the fix should be designed and verified for both mobile and desktop.
+
+## Goal
+The portal should behave in a clean, predictable, and secure way.
+
+There should be only two valid outcomes when a returning user opens the portal:
+
+### Valid outcome A
+If the saved session is still valid:
+- the portal should restore the session correctly
+- rehydrate profile/account data correctly
+- load the authenticated portal normally
+- do this without forcing the user to log in again unnecessarily
+
+### Valid outcome B
+If the session is no longer valid, corrupted, incomplete, expired, or unrecoverable:
+- the portal should detect that cleanly
+- clear the broken auth/session state
+- perform a safe logout/reset
+- send the user back to login in a controlled way
+
+## What must never happen
+The portal must not stay in a broken half-authenticated state where:
+- the user looks logged in but profile data does not load
+- the page remains stuck in loading forever
+- some account UI appears but the actual session is invalid
+- token/email/profile data are out of sync and the portal keeps trying to operate anyway
+- the user cannot recover naturally
+- the portal requires weird manual refreshes or browser restarts to work again
+
+## Scope of the audit/fix
+Please audit and harden the full authenticated bootstrap/session recovery flow, including at minimum:
+
+- token persistence
+- stored email / auth identity persistence
+- portal bootstrap sequence after reopening browser
+- profile bootstrap via getuserinfo
+- package/bills/profile loading dependency chain
+- handling of missing token
+- handling of token present but missing email
+- handling of email present but missing token
+- handling of token expired / invalid / rejected
+- handling of getuserinfo failure
+- handling of partially-corrupted storage/session state
+- handling of stale cached profile state
+- logout cleanup
+- route/page recovery when auth state is invalid
+- differences between mobile browser resume behavior and desktop reload behavior
+
+## Desired behavior
+### 1. Keep users signed in correctly
+If the session is still valid, users should stay signed in across natural browser close/reopen behavior.
+
+The portal should:
+- resume correctly
+- reload profile cleanly
+- avoid unnecessary friction
+- feel stable and reliable
+
+### 2. Recover cleanly when session is invalid
+If the stored session is no longer usable, the app should not get stuck.
+
+Instead it should:
+- clear invalid auth state
+- clear any bad cached profile/session data
+- stop partial portal rendering
+- redirect or reset cleanly
+
+### 3. Never render zombie auth states
+Do not let the portal remain in an in-between state where:
+- the navbar/account area thinks the user is logged in
+- but the real portal data cannot load
+- or only some modules load while core auth is broken
+
+### 4. Make this resilient on both mobile and desktop
+The implementation should not be a one-off mobile patch.
+It should be a robust auth/session-state fix that works on:
+- Safari/iPhone/mobile browsers
+- desktop browsers as well
+
+## Security expectations
+This pass should also include a practical security-minded review of the current frontend session handling.
+
+Without redesigning the whole auth architecture yet, make sure the current flow is as robust as possible within the current setup.
+
+At minimum:
+- do not trust inconsistent local state
+- do not continue using broken/partial auth state
+- protected data calls should fail safely
+- logout should fully clear the right session/auth data
+- stale profile cache should not survive invalid auth
+- session restoration should be explicit and validated, not assumed
+
+If the current architecture has limitations, document them clearly, but still make the current flow behave correctly and safely.
+
+## Implementation intention
+This is not asking for a full migration to a brand-new auth system.
+It is asking for a strong recovery and persistence layer around the current login/authenticated portal flow so the experience becomes:
+
+- reliable
+- recoverable
+- secure enough for the current architecture
+- consistent across sessions
+- clean for real users
+
+## Out of scope
+- Full redesign of the login/register product flow
+- Google Sign-In implementation
+- Rebuilding auth architecture from scratch
+- New backend endpoints unless strictly necessary
+- Visual redesign of portal pages
+- Changing what “logged in” means at the business level
+
+## Deliverable
+Implement a robust session persistence + recovery fix for the authenticated CRBOX portal.
+
+At the end, report:
+1. what was causing the broken half-logged-in / non-loading state
+2. how session restoration now works
+3. how invalid/expired/corrupted auth states are now handled
+4. what was done to make the flow safer and more resilient
+5. confirmation that the fix was checked for both mobile and desktop
+6. any remaining auth/security limitations caused by the current architecture rather than this recovery layer

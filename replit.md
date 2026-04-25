@@ -81,12 +81,12 @@ Portal pages share these versioned stylesheets (bump query param when editing):
 |------|----------------|-----------|
 | `css/styles.css` | v=5 | All pages |
 | `css/responsive.css` | v=14 | All pages (portal pages use higher version) |
-| `css/dashboard.css` | v=3 | dashboard.html only |
+| `css/dashboard.css` | v=4 | dashboard.html, mi-cuenta.html |
 
 Key CSS layers:
 - `styles.css` — global tap-highlight removal (`* { -webkit-tap-highlight-color: transparent }`), `:focus-visible` ring in CRBOX orange
 - `responsive.css` — portal tab bar pill style (desktop `min-width: 769px`), bill-row cardification, Mis Facturas expanded recibos stacked cards (mobile `max-width: 640px`)
-- `dashboard.css` — glass-card / orange-card, shimmer, stat-card animations, copy-button focus fix
+- `dashboard.css` — glass-card / orange-card, shimmer, stat-card animations, copy-button focus fix; Mi Cuenta components (profile-banner, profile-avatar, account-section-title, account-coming-soon, account-danger-zone, account-inner-tab-strip)
 
 ## Portal UI Notes
 
@@ -95,6 +95,11 @@ Key CSS layers:
 - **Copy button**: pill-shaped with `bg-white/15` frosted treatment; `active:scale-95` press feedback; no tap highlight
 - **Mis Facturas expanded view**: on mobile, the 7-column nested recibo table becomes stacked key-value mini-cards (CSS display:block technique + `data-label` attributes)
 - **Mis Paquetes**: edit button (`btn-edit`) removed from list view, grid view, and event handler
+- **Mi Cuenta profile header**: orange gradient `.profile-banner` band at top of card; `.profile-avatar` floats up with `margin-top: -2rem` to overlap banner; white `border + box-shadow` ring for depth
+- **Mi Cuenta account-section-title**: elevated from tiny uppercase eyebrow (0.6875rem gray) to 0.9375rem gray-800 heading with `border-bottom: 1px solid #F3F4F6` separator; specificity overrides for `mb-0` / `mb-4` Tailwind combinations
+- **Mi Cuenta coming-soon blocks**: replaced `bg-gray-50 border-gray-200` with `.account-coming-soon` (amber-50 tint, orange clock icon)
+- **Mi Cuenta inner tab strip**: `.account-inner-tab-strip` provides `bg-gray-50` tray; intentionally kept as bottom-border (distinct from portal-level pill nav)
+- **Mi Cuenta delete account**: `.account-danger-zone` with `border: 1px solid #FEE2E2` and `border-left: 4px solid #FCA5A5` red accent
 
 ## Docs
 
