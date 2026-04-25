@@ -8,10 +8,43 @@
     --gray: #7A869A;
 }
 
+/* ===== Global tap-highlight & focus-state polish =====
+   Removes the blue/gray flash iOS/Android shows on tap.
+   Preserves a branded orange ring for keyboard-only (focus-visible) users. */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--dark);
     scroll-behavior: smooth;
+}
+
+/* Remove default browser outline on tap/click but keep it for keyboard nav */
+:focus:not(:focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+:focus-visible {
+    outline: 2px solid #ea580c !important;
+    outline-offset: 2px !important;
+    border-radius: 3px;
+}
+
+/* Inputs/selects: no blue glow — use a subtle orange focus ring instead */
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(234,88,12,0.18) !important;
+}
+/* For keyboard users, override with full ring */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    box-shadow: 0 0 0 2px rgba(234,88,12,0.35) !important;
 }
 
 .primary-btn {

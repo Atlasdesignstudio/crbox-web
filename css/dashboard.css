@@ -1147,3 +1147,12 @@ textarea:focus-visible {
     font-weight: 700;
 }
 
+/* ===== Copy button: no persistent focus/active artifact =====
+   The copy-button gets -webkit-tap-highlight-color inline, but we also
+   kill the browser outline here so keyboard-only users still get the
+   global :focus-visible ring from styles.css.                          */
+.copy-button:focus:not(:focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
+}
+

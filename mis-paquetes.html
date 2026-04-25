@@ -24,8 +24,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- CSS personalizado -->
-    <link rel="stylesheet" href="css/styles.css?v=4">
-    <link rel="stylesheet" href="css/responsive.css?v=13">
+    <link rel="stylesheet" href="css/styles.css?v=5">
+    <link rel="stylesheet" href="css/responsive.css?v=14">
     <link rel="stylesheet" href="css/dashboard.css">
     
     <!-- Prefetch para mejorar rendimiento -->
@@ -2066,9 +2066,6 @@
               '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" aria-label="Ver detalles">' +
                 '<i class="fas fa-eye"></i>' +
               '</button>' +
-              '<button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar" aria-label="Editar">' +
-                '<i class="fas fa-pencil-alt"></i>' +
-              '</button>' +
               '<button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear" aria-label="Rastrear">' +
                 '<i class="fas fa-search-location"></i>' +
               '</button>' +
@@ -2127,9 +2124,6 @@
               '<div class="flex space-x-1">' +
                 '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" aria-label="Ver detalles">' +
                   '<i class="fas fa-eye"></i>' +
-                '</button>' +
-                '<button class="btn-edit p-1.5 rounded-full text-orange-600 hover:text-orange-800 hover:bg-orange-50" title="Editar" aria-label="Editar">' +
-                  '<i class="fas fa-pencil-alt"></i>' +
                 '</button>' +
                 '<button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear" aria-label="Rastrear">' +
                   '<i class="fas fa-search-location"></i>' +
@@ -2498,14 +2492,6 @@
               showToast('No se pudo cargar la información del paquete', 'warning');
             }
           }
-          return;
-        }
-
-        var editBtn = e.target.closest('.btn-edit');
-        if (editBtn) {
-          // Edit endpoint is not exposed by the legacy backend yet, so the
-          // action stays safe and informative instead of being removed.
-          showToast('Edición de paquetes próximamente disponible', 'info');
           return;
         }
 

@@ -16,8 +16,8 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css?v=4">
-    <link rel="stylesheet" href="css/responsive.css?v=13">
+    <link rel="stylesheet" href="css/styles.css?v=5">
+    <link rel="stylesheet" href="css/responsive.css?v=14">
     <link rel="stylesheet" href="css/dashboard.css">
 
     <!-- ==================================================================
@@ -1148,13 +1148,13 @@
         var rows = bill.recibos.map(function (r) {
           var dateStr = _fmtDate(r.receiveddatetime);
           return '<tr>' +
-            '<td class="px-3 py-2 text-sm font-medium text-gray-900">' + _esc(_orDash(r.number)) + '</td>' +
-            '<td class="px-3 py-2 text-sm text-gray-700">' + _esc(_orDash(r.statusname)) + '</td>' +
-            '<td class="px-3 py-2 text-sm text-gray-700">' + _esc(dateStr) + '</td>' +
-            '<td class="px-3 py-2 text-sm text-gray-700">' + _esc(_orDash(r.shippername)) + '</td>' +
-            '<td class="px-3 py-2 text-sm text-gray-700">' + _esc(_orDash(r.carriername)) + '</td>' +
-            '<td class="px-3 py-2 text-sm text-right text-gray-700">' + _esc(_fmtNum(r.totalweight)) + '</td>' +
-            '<td class="px-3 py-2 text-sm text-right text-gray-700">' + _esc(_fmtNum(r.totalvolumetricweight)) + '</td>' +
+            '<td data-label="Recibo" class="px-3 py-2 text-sm font-medium text-gray-900">' + _esc(_orDash(r.number)) + '</td>' +
+            '<td data-label="Estado" class="px-3 py-2 text-sm text-gray-700">' + _esc(_orDash(r.statusname)) + '</td>' +
+            '<td data-label="Recibido" class="px-3 py-2 text-sm text-gray-700">' + _esc(dateStr) + '</td>' +
+            '<td data-label="Tienda" class="px-3 py-2 text-sm text-gray-700">' + _esc(_orDash(r.shippername)) + '</td>' +
+            '<td data-label="Carrier" class="px-3 py-2 text-sm text-gray-700">' + _esc(_orDash(r.carriername)) + '</td>' +
+            '<td data-label="Peso" class="px-3 py-2 text-sm text-right text-gray-700">' + _esc(_fmtNum(r.totalweight)) + '</td>' +
+            '<td data-label="Peso vol." class="px-3 py-2 text-sm text-right text-gray-700">' + _esc(_fmtNum(r.totalvolumetricweight)) + '</td>' +
           '</tr>';
         }).join('');
         return '<div class="p-4">' +

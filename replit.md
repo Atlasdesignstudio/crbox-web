@@ -73,6 +73,29 @@ Portal pages wired (all four now call real API on DOMContentLoaded):
 | `scripts/inject-gtm.js` | Injects GTM container ID from config into all public pages |
 | `scripts/post-merge.sh` | Post-merge hook — runs inject-gtm.js automatically |
 
+## CSS Versioning
+
+Portal pages share these versioned stylesheets (bump query param when editing):
+
+| File | Current version | Loaded on |
+|------|----------------|-----------|
+| `css/styles.css` | v=5 | All pages |
+| `css/responsive.css` | v=14 | All pages (portal pages use higher version) |
+| `css/dashboard.css` | v=3 | dashboard.html only |
+
+Key CSS layers:
+- `styles.css` — global tap-highlight removal (`* { -webkit-tap-highlight-color: transparent }`), `:focus-visible` ring in CRBOX orange
+- `responsive.css` — portal tab bar pill style (desktop `min-width: 769px`), bill-row cardification, Mis Facturas expanded recibos stacked cards (mobile `max-width: 640px`)
+- `dashboard.css` — glass-card / orange-card, shimmer, stat-card animations, copy-button focus fix
+
+## Portal UI Notes
+
+- **Tab bar** (all 4 portal pages): flat bottom-border on mobile; segmented-control pill on desktop (white active pill + gray tray via responsive.css `@media (min-width: 769px)`)
+- **Casillero card icon**: `bg-white text-orange-600` (white bg, orange icon) for clear contrast against the orange glass card
+- **Copy button**: pill-shaped with `bg-white/15` frosted treatment; `active:scale-95` press feedback; no tap highlight
+- **Mis Facturas expanded view**: on mobile, the 7-column nested recibo table becomes stacked key-value mini-cards (CSS display:block technique + `data-label` attributes)
+- **Mis Paquetes**: edit button (`btn-edit`) removed from list view, grid view, and event handler
+
 ## Docs
 
 Additional documentation lives in the `docs/` directory.

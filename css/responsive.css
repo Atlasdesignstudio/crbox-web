@@ -1113,3 +1113,135 @@
     flex: 1 1 100% !important;
   }
 }
+
+/* =============================================================
+   PORTAL TAB BAR — Desktop segmented-control (pill) style
+   Applies to all 4 portal pages (responsive.css is the shared
+   stylesheet). Mobile flat-tab behaviour in the max-768px block
+   above remains unchanged.
+   ============================================================= */
+@media (min-width: 769px) {
+  .sticky.top-16.z-30 {
+    background: #f8fafc;
+  }
+  .sticky.top-16.z-30 .container {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  /* Pill tray */
+  .sticky.top-16.z-30 .no-scrollbar {
+    background: #eef0f3;
+    border-radius: 0.875rem;
+    padding: 0.25rem;
+    margin-bottom: 0 !important;
+    display: inline-flex !important;
+    width: auto;
+    gap: 2px;
+  }
+  /* Reset Tailwind border-b from every tab link */
+  .sticky.top-16.z-30 .no-scrollbar > a {
+    border-bottom: none !important;
+    border-radius: 0.625rem;
+    padding: 0.5rem 1.25rem !important;
+    color: #6b7280;
+    font-weight: 500;
+  }
+  /* Active tab: white pill with shadow + orange text */
+  .sticky.top-16.z-30 .no-scrollbar > a[aria-current="page"] {
+    background: #ffffff;
+    color: #ea580c !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+  }
+  /* Inactive hover: barely-there reveal */
+  .sticky.top-16.z-30 .no-scrollbar > a:not([aria-current="page"]):hover {
+    color: #374151;
+    background: rgba(255,255,255,0.55);
+  }
+  /* Underline spans are meaningless in pill mode — hide them */
+  .sticky.top-16.z-30 .no-scrollbar > a > span.absolute {
+    display: none !important;
+  }
+}
+
+/* =============================================================
+   MIS FACTURAS — Expanded recibos: mobile-native stacked cards
+   On mobile the nested 7-column table becomes a set of mini
+   key-value cards, one per recibo, with no horizontal scrolling.
+   Desktop keeps the original table layout unchanged.
+   ============================================================= */
+@media (max-width: 640px) {
+  /* Remove the overflow-x wrapper — no more sideways scroll */
+  #bills-tbody > tr.bill-detail-row .overflow-x-auto {
+    overflow-x: visible !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+  /* Table and tbody → block layout */
+  #bills-tbody > tr.bill-detail-row table,
+  #bills-tbody > tr.bill-detail-row tbody {
+    display: block !important;
+    width: 100%;
+  }
+  /* Hide the header row — data-label on each td replaces it */
+  #bills-tbody > tr.bill-detail-row thead {
+    display: none !important;
+  }
+  /* Each recibo row becomes a mini card */
+  #bills-tbody > tr.bill-detail-row tr {
+    display: block !important;
+    padding: 0.625rem 0.75rem;
+    background: #ffffff;
+    border: 1px solid #f0f2f5;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  #bills-tbody > tr.bill-detail-row tr:last-child {
+    margin-bottom: 0;
+  }
+  /* Each cell: horizontal label + value row */
+  #bills-tbody > tr.bill-detail-row td {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.25rem 0 !important;
+    font-size: 0.8125rem;
+    border: none !important;
+    text-align: right;
+  }
+  #bills-tbody > tr.bill-detail-row td:not(:last-child) {
+    border-bottom: 1px solid #f9fafb !important;
+  }
+  /* Label injected from data-label attribute */
+  #bills-tbody > tr.bill-detail-row td::before {
+    content: attr(data-label);
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: left;
+    flex-shrink: 0;
+    margin-right: 0.75rem;
+  }
+
+  /* ===== Portal interaction polish: remove stray focus artifacts =====
+     The global -webkit-tap-highlight-color:transparent in styles.css
+     covers the tap flash; these rules tighten portal-specific controls
+     that previously showed browser-default active/focus frames.        */
+  .btn-detail:focus,
+  .btn-track:focus,
+  .btn-detail:active,
+  .btn-track:active {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  /* Filter dropdowns in Mis Paquetes / Mis Facturas */
+  select:focus,
+  input[type="date"]:focus,
+  input[type="search"]:focus,
+  input[type="text"]:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(234,88,12,0.20) !important;
+  }
+}
