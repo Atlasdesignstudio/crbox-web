@@ -473,16 +473,6 @@ Dashboard-specific styles for CRBOX user portal with enhanced UI/UX
     }
 }
 
-/* Tab bar animation */
-.tab-hover-line {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 2px;
-    background-color: var(--primary);
-    transition: all 0.3s ease;
-}
-
 /* Custom switch toggle */
 .toggle-switch {
     position: relative;
