@@ -844,7 +844,27 @@
             window.__crboxUserInfo = info;
             _applyProfile(info);
           })
-          .catch(function (err) { console.warn('[CRBOX] getUserInfo failed:', err); });
+          .catch(function (err) {
+            if (err && err.isAuthError) return; // redirect already in flight from portal-api.js
+            console.warn('[CRBOX] getUserInfo failed (transient):', err);
+            var headerEl = document.getElementById('header-user-name');
+            if (headerEl) headerEl.textContent = '—';
+            var nameEl = document.getElementById('profile-header-name');
+            if (nameEl) {
+              nameEl.innerHTML = 'No se pudo cargar tu perfil. ' +
+                '<button onclick="CRBOXPortalAPI.clearUserInfoCache();location.reload();" ' +
+                'class="underline text-orange-600 font-normal text-lg">Reintentar</button>';
+            }
+          });
+      });
+
+      // Rehydrate profile on bfcache restore (Safari iOS back-navigation)
+      window.addEventListener('crbox:pageresume', function () {
+        if (!CRBOXAuth.isLoggedIn()) return;
+        CRBOXPortalAPI.getUserInfo().then(function (info) {
+          window.__crboxUserInfo = info;
+          _applyProfile(info);
+        }).catch(function () {});
       });
     }());
     </script>

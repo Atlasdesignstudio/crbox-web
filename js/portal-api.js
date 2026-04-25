@@ -2,6 +2,13 @@
 // Wraps all authenticated portal endpoints:
 //   getUserInfo, updateProfile, getPackages, getBills, recoverPassword
 // Requires auth.js to be loaded first (CRBOXAuth must be available).
+//
+// Error classification:
+//   401 / 403 responses → error.isAuthError = true
+//     The server actively rejected the token. Page code should clear session
+//     and redirect to login. auth.js / portal page catch handlers do this.
+//   All other failures (network, 5xx, timeouts) → error.isAuthError = false
+//     Treat as transient. Show a retry prompt; do NOT log the user out.
 
 (function (global) {
   'use strict';
@@ -13,6 +20,27 @@
 
   function clearUserInfoCache() {
     _userInfoCache = null;
+  }
+
+  // ─── Auth-error helper ────────────────────────────────────────────────────
+  // Called on any 401/403 response from an authenticated endpoint.
+  // Clears the session, redirects to login, and returns an error with
+  // isAuthError=true so callers know not to update the UI (redirect is
+  // already in flight). All authenticated calls use this helper so the
+  // behaviour is consistent regardless of which endpoint rejects the token.
+  function _handleAuthFailure(status) {
+    CRBOXAuth.clearToken();
+    if (window.location.pathname.indexOf('login') === -1) {
+      window.location.replace('login.html?msg=session-expired');
+    }
+    var err = new Error('Tu sesión expiró. Por favor inicia sesión de nuevo. (' + status + ')');
+    err.isAuthError = true;
+    err.status = status;
+    return err;
+  }
+
+  function _isAuthStatus(status) {
+    return status === 401 || status === 403;
   }
 
   // ─── Date helper → DD-MM-YYYY ─────────────────────────────────────────────
@@ -68,6 +96,10 @@
   // Signature: getUserInfo(email?, token?, opts?)
   //   All args optional — falls back to CRBOXAuth globals when omitted.
   // Uses a session-level cache; pass opts = { forceRefresh: true } to bypass.
+  //
+  // Error handling:
+  //   401/403 → clears session + redirects to login (definitive auth failure)
+  //   Other failures → rejects with a plain Error (transient; page shows retry)
   function getUserInfo(emailArg, tokenArg, optsArg) {
     // Support legacy single-arg call: getUserInfo(opts)
     var opts = (emailArg && typeof emailArg === 'object') ? emailArg : (optsArg || {});
@@ -84,10 +116,10 @@
     }
 
     if (!email) {
-      // Token present but email missing → half-authenticated session; clear and redirect.
+      // Token present but email missing → incoherent; clear and redirect.
       CRBOXAuth.clearToken();
       if (window.location.pathname.indexOf('login') === -1) {
-        window.location.replace('login.html');
+        window.location.replace('login.html?msg=session-expired');
       }
       return Promise.reject(new Error('No se encontró el correo de sesión. Por favor inicia sesión de nuevo.'));
     }
@@ -95,7 +127,11 @@
     return fetch(BASE + '/getuserinfo/' + encodeURIComponent(email), {
       headers: { 'Authorization': 'Bearer ' + token }
     }).then(function (res) {
-      if (!res.ok) throw new Error('No se pudo obtener la información de tu cuenta (' + res.status + ').');
+      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
+      if (!res.ok) {
+        // Transient failure (5xx, network, etc.) — do NOT redirect
+        throw new Error('No se pudo obtener la información de tu cuenta (' + res.status + '). Intenta de nuevo.');
+      }
       return res.json();
     }).then(function (data) {
       _userInfoCache = data;
@@ -120,6 +156,7 @@
       },
       body: payload
     }).then(function (res) {
+      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
       if (!res.ok) throw new Error('Error al guardar el perfil (' + res.status + ').');
       return res.json();
     }).then(function (data) {
@@ -159,7 +196,8 @@
     return fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     }).then(function (res) {
-      if (!res.ok) throw new Error('No se pudieron cargar los paquetes (' + res.status + ').');
+      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
+      if (!res.ok) throw new Error('No se pudieron cargar los paquetes (' + res.status + '). Intenta de nuevo.');
       return res.json();
     });
   }
@@ -193,7 +231,8 @@
     return fetch(url, {
       headers: { 'Authorization': 'Bearer ' + token }
     }).then(function (res) {
-      if (!res.ok) throw new Error('No se pudieron cargar las facturas (' + res.status + ').');
+      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
+      if (!res.ok) throw new Error('No se pudieron cargar las facturas (' + res.status + '). Intenta de nuevo.');
       return res.json();
     }).then(function (data) {
       var raw = _unwrapBillsEnvelope(data);

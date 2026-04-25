@@ -317,6 +317,22 @@
     <!-- Script para funcionamiento del login -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Show session-expired banner when redirected from a portal page
+        (function () {
+          try {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('msg') === 'session-expired') {
+              var box = document.getElementById('error-container');
+              if (box) {
+                box.textContent = 'Tu sesión expiró. Por favor inicia sesión de nuevo.';
+                box.classList.remove('hidden');
+                box.classList.remove('bg-red-100', 'text-red-700');
+                box.classList.add('bg-orange-100', 'text-orange-700');
+              }
+            }
+          } catch (_) {}
+        }());
+
         // Referencias generales
         const loginButton = document.getElementById('login-button');
         const loginMenu = document.getElementById('login-menu');

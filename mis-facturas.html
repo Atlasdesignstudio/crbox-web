@@ -1129,10 +1129,14 @@
             _applyBillsSearch();
           })
           .catch(function (err) {
+            if (err && err.isAuthError) return; // redirect already in flight
             console.warn('[CRBOX] getBills error:', err);
             _cachedBills = [];
             tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-orange-500">' +
-              'No se pudieron cargar las facturas. Recarga la página.</td></tr>';
+              '<i class="fas fa-exclamation-triangle mr-2"></i>' +
+              'No se pudieron cargar las facturas. ' +
+              '<button onclick="location.reload();" class="underline font-medium">Reintentar</button>' +
+              '</td></tr>';
             _setStat('bills-stat-total', EM_DASH, 'bills-stat-total-bar', 0);
             var amountEl = document.getElementById('bills-stat-amount');
             if (amountEl) amountEl.textContent = EM_DASH;
@@ -1213,28 +1217,34 @@
         }
       });
 
+      function _applyFacturasHeader(info) {
+        var c = info.Consignee || info;
+        var firstName = c.consigneename  || c.ConsigneeName  || '';
+        var lastName1 = c.consigneelastname1 || c.ConsigneeLastName1 || '';
+        var fullName  = (firstName + ' ' + lastName1).trim() || firstName;
+        _txt('header-user-name', firstName || fullName);
+        _txt('mobile-user-name', fullName);
+        var casillero = String(c.idconsignee || c.IdConsignee || '');
+        if (casillero) _txt('mobile-casillero-badge', 'Casillero #' + casillero);
+      }
+
       document.addEventListener('DOMContentLoaded', function () {
         if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
 
         CRBOXPortalAPI.getUserInfo()
-          .then(function (info) {
-            var c = info.Consignee || info;
-            var firstName = c.consigneename  || c.ConsigneeName  || '';
-            var lastName1 = c.consigneelastname1 || c.ConsigneeLastName1 || '';
-            var fullName  = (firstName + ' ' + lastName1).trim() || firstName;
-            _txt('header-user-name', firstName || fullName);
-            _txt('mobile-user-name', fullName);
-            var casillero = String(c.idconsignee || c.IdConsignee || '');
-            if (casillero) _txt('mobile-casillero-badge', 'Casillero #' + casillero);
-          })
+          .then(_applyFacturasHeader)
           .catch(function (err) {
-            console.warn('[CRBOX] getUserInfo error (facturas):', err);
+            if (err && err.isAuthError) return; // redirect already in flight from portal-api.js
+            console.warn('[CRBOX] getUserInfo error (facturas, transient):', err);
             var headerEl = document.getElementById('header-user-name');
-            if (headerEl) headerEl.textContent = 'Error';
+            if (headerEl) headerEl.textContent = '—';
             var tbody = document.getElementById('bills-tbody');
             if (tbody) {
               tbody.innerHTML = '<tr><td colspan="10" class="text-center py-8 text-orange-500">' +
-                '<i class="fas fa-exclamation-triangle mr-2"></i>No se pudo cargar la información de tu cuenta. Recarga la página.</td></tr>';
+                '<i class="fas fa-exclamation-triangle mr-2"></i>' +
+                'No se pudo cargar la información de tu cuenta. ' +
+                '<button onclick="CRBOXPortalAPI.clearUserInfoCache();location.reload();" ' +
+                'class="underline font-medium">Reintentar</button></td></tr>';
             }
           });
 
@@ -1327,6 +1337,12 @@
         }
 
         _loadBills(email, _getStart(), _getEnd());
+      });
+
+      // Rehydrate header on bfcache restore (Safari iOS back-navigation)
+      window.addEventListener('crbox:pageresume', function () {
+        if (!CRBOXAuth.isLoggedIn()) return;
+        CRBOXPortalAPI.getUserInfo().then(_applyFacturasHeader).catch(function () {});
       });
     }());
     </script>

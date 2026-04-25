@@ -844,7 +844,7 @@
     });
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  function _loadDashboard() {
     if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
     CRBOXPortalAPI.getUserInfo()
       .then(function (info) {
@@ -854,15 +854,31 @@
         if (idCons) _loadCaminoStat(idCons);
       })
       .catch(function (err) {
-        console.warn('[CRBOX] getUserInfo failed:', err);
+        if (err && err.isAuthError) return; // redirect already in flight from portal-api.js
+        console.warn('[CRBOX] getUserInfo failed (transient):', err);
         var nameEl = document.getElementById('welcome-name-span');
         if (nameEl) {
-          nameEl.textContent = 'No se pudo cargar tu información.';
-          nameEl.classList.add('text-orange-300');
+          nameEl.innerHTML =
+            '<span class="text-orange-300">No se pudo cargar tu información.</span>' +
+            ' <button onclick="CRBOXPortalAPI.clearUserInfoCache();location.reload();" ' +
+            'class="underline text-orange-300 text-base font-normal">Reintentar</button>';
         }
         var headerEl = document.getElementById('header-user-name');
-        if (headerEl) headerEl.textContent = 'Error';
+        if (headerEl) headerEl.textContent = '—';
       });
+  }
+
+  document.addEventListener('DOMContentLoaded', _loadDashboard);
+
+  // Rehydrate profile on bfcache restore (Safari iOS back-navigation)
+  window.addEventListener('crbox:pageresume', function () {
+    if (!CRBOXAuth.isLoggedIn()) return;
+    CRBOXPortalAPI.getUserInfo().then(function (info) {
+      _applyUserInfo(info);
+      var c = (info && info.Consignee) ? info.Consignee : info;
+      var idCons = c && (c.idconsignee || c.IdConsignee);
+      if (idCons) _loadCaminoStat(idCons);
+    }).catch(function () {});
   });
 }());
 </script>

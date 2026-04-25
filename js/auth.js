@@ -3,6 +3,19 @@
 // login, registration, and profile-payload scaffolding.
 //
 // API routing: direct fetch to clients.crbox.cr (CORS confirmed from browser).
+//
+// Session persistence notes (updated):
+// - Tokens are ALWAYS written to localStorage (never exclusively to
+//   sessionStorage). Mobile browsers (Safari iOS) wipe sessionStorage when
+//   the app is closed; writing there exclusively caused the most common
+//   "half-logged-in" breakage path.
+// - "Remember Me" controls expiry length only:
+//     remember = true  → 30 days
+//     remember = false → API-provided expiry (default ~24 h)
+// - pageshow (bfcache restore) and visibilitychange listeners re-validate
+//   the session so Safari iOS back-navigation never shows a stale state.
+// - clearToken() also wipes the getUserInfo cache (via CRBOXPortalAPI when
+//   available) so stale profile data cannot survive a genuine session reset.
 
 (function (global) {
   'use strict';
@@ -34,40 +47,43 @@
     sucursalIdMap: SUCURSAL_ID_MAP
   };
 
-  // ─── Storage helpers ──────────────────────────────────────────────────────
-  function _store(remember) {
-    return remember ? localStorage : sessionStorage;
-  }
-
-  function _getRemember() {
-    return localStorage.getItem(KEY_REMEMBER) === 'true';
-  }
-
   // ─── Token management ─────────────────────────────────────────────────────
+  // Tokens are ALWAYS stored in localStorage. sessionStorage is wiped by
+  // mobile browsers on app close, which was causing the half-login bug.
+  // "Remember Me" only changes how long the token lives:
+  //   remember = true  → 30 days
+  //   remember = false → API-provided expiry (typically ~24 h)
 
   function saveToken(token, expiresIn, remember) {
-    var store = _store(remember);
-    var expiresAt = Date.now() + (expiresIn * 1000);
-    store.setItem(KEY_TOKEN, token);
-    store.setItem(KEY_EXPIRES_AT, String(expiresAt));
+    var sessionSeconds = expiresIn || 86399;
+    var persistSeconds = remember ? (30 * 24 * 3600) : sessionSeconds;
+    var expiresAt = Date.now() + (persistSeconds * 1000);
+    localStorage.setItem(KEY_TOKEN, token);
+    localStorage.setItem(KEY_EXPIRES_AT, String(expiresAt));
     localStorage.setItem(KEY_REMEMBER, remember ? 'true' : 'false');
   }
 
-  function saveEmail(email, remember) {
-    _store(remember).setItem(KEY_EMAIL, email);
+  function saveEmail(email) {
+    localStorage.setItem(KEY_EMAIL, email);
   }
 
   function getEmail() {
-    var remember = _getRemember();
-    return _store(remember).getItem(KEY_EMAIL) || localStorage.getItem(KEY_EMAIL) || sessionStorage.getItem(KEY_EMAIL) || '';
+    return localStorage.getItem(KEY_EMAIL) ||
+           sessionStorage.getItem(KEY_EMAIL) || // migration: old sessions
+           '';
   }
 
   function getToken() {
-    var remember = _getRemember();
-    var store = _store(remember);
-    var token = store.getItem(KEY_TOKEN);
-    var expiresAt = parseInt(store.getItem(KEY_EXPIRES_AT) || '0', 10);
+    var token = localStorage.getItem(KEY_TOKEN) ||
+                sessionStorage.getItem(KEY_TOKEN); // migration: old sessions
     if (!token) return null;
+
+    // Prefer localStorage expiry; fall back to sessionStorage for old sessions
+    var expiresAt = parseInt(
+      localStorage.getItem(KEY_EXPIRES_AT) ||
+      sessionStorage.getItem(KEY_EXPIRES_AT) || '0',
+      10
+    );
     if (Date.now() > expiresAt) {
       clearToken();
       return null;
@@ -82,6 +98,11 @@
       s.removeItem(KEY_EMAIL);
     });
     localStorage.removeItem(KEY_REMEMBER);
+    // Wipe cached profile data so stale info cannot survive a session reset
+    if (typeof CRBOXPortalAPI !== 'undefined' &&
+        typeof CRBOXPortalAPI.clearUserInfoCache === 'function') {
+      CRBOXPortalAPI.clearUserInfoCache();
+    }
   }
 
   function isLoggedIn() {
@@ -124,7 +145,7 @@
         throw new Error('Respuesta inesperada del servidor. Intente de nuevo.');
       }
       saveToken(data.access_token, data.expires_in || 86399, remember);
-      saveEmail(email, remember);
+      saveEmail(email);
       return data.access_token;
     });
   }
@@ -287,19 +308,32 @@
 
   var PROTECTED_PAGES = ['dashboard.html', 'mis-paquetes.html', 'mi-cuenta.html', 'mis-facturas.html'];
 
+  // ─── Auth gate ────────────────────────────────────────────────────────────
+  // Validates all four token/email partial-state combinations:
+  //   token + email (not expired)  → proceed normally
+  //   token only, no email         → clear + redirect (incoherent)
+  //   email only, no token         → clear + redirect (expired/missing)
+  //   neither                      → redirect cleanly
   function enforceAuthGate() {
     var path = window.location.pathname;
     var page = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
     if (PROTECTED_PAGES.indexOf(page) === -1) return;
-    if (!isLoggedIn()) {
+
+    var token = getToken(); // null if expired or absent
+    var email = getEmail();
+
+    // Both absent → clean redirect
+    if (!token && !email) {
       window.location.replace('login.html');
       return;
     }
-    // Token present but email missing → half-authenticated session; clear + redirect.
-    if (!getEmail()) {
+    // Token without email, or email without token → incoherent state; clear + redirect
+    if (!token || !email) {
       clearToken();
-      window.location.replace('login.html');
+      window.location.replace('login.html?msg=session-expired');
+      return;
     }
+    // Both present and token not expired → proceed
   }
 
   // ─── Portal header dropdown toggle ───────────────────────────────────────
@@ -348,6 +382,53 @@
     enforceAuthGate();
     updateHeaderAuthState();
     initPortalDropdown();
+  });
+
+  // ─── Safari iOS bfcache restore ───────────────────────────────────────────
+  // Pages restored from bfcache do not fire DOMContentLoaded; enforceAuthGate
+  // must re-run to catch sessions that expired while the tab was in cache.
+  // If the session is still valid we dispatch 'crbox:pageresume' so portal
+  // pages can rehydrate profile data.
+  window.addEventListener('pageshow', function (e) {
+    if (!e.persisted) return; // not a bfcache restore
+    var path = window.location.pathname;
+    var page = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+    if (PROTECTED_PAGES.indexOf(page) === -1) return;
+    // Re-validate session
+    var token = getToken();
+    var email = getEmail();
+    if (!token || !email) {
+      clearToken();
+      window.location.replace('login.html?msg=session-expired');
+      return;
+    }
+    // Session still valid — notify page scripts so they can rehydrate
+    try {
+      window.dispatchEvent(new CustomEvent('crbox:pageresume', { detail: { reason: 'bfcache' } }));
+    } catch (_) {}
+  });
+
+  // ─── Tab visibility re-check ─────────────────────────────────────────────
+  // When the tab becomes visible after being hidden (e.g., user switches back
+  // from another app on mobile), re-validate the session.
+  // If invalid → clear + redirect. If valid → dispatch crbox:pageresume
+  // so portal pages can silently rehydrate profile data.
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible') return;
+    var path = window.location.pathname;
+    var page = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+    if (PROTECTED_PAGES.indexOf(page) === -1) return;
+    var token = getToken();
+    var email = getEmail();
+    if (!token || !email) {
+      clearToken();
+      window.location.replace('login.html?msg=session-expired');
+      return;
+    }
+    // Session still valid — notify page scripts so they can rehydrate
+    try {
+      window.dispatchEvent(new CustomEvent('crbox:pageresume', { detail: { reason: 'visibilitychange' } }));
+    } catch (_) {}
   });
 
   // ─── Public API ───────────────────────────────────────────────────────────

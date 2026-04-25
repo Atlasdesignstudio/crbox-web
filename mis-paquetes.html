@@ -2347,8 +2347,11 @@
           _renderAll(packages, true);
         })
         .catch(function (err) {
+          if (err && err.isAuthError) return; // redirect already in flight
           console.warn('[CRBOX] getPackages error:', err);
-          var errMsg = 'No se pudieron cargar los paquetes. Recarga la página.';
+          var errMsg = '<i class="fas fa-exclamation-triangle mr-2"></i>' +
+            'No se pudieron cargar los paquetes. ' +
+            '<button onclick="location.reload();" class="underline font-medium">Reintentar</button>';
           tbody.innerHTML = '<tr><td colspan="14" class="text-center py-8 text-orange-500">' + errMsg + '</td></tr>';
           if (gridView) {
             gridView.innerHTML = '<div class="col-span-3 text-center py-8 text-orange-500">' + errMsg + '</div>';
@@ -2521,7 +2524,7 @@
         }
       });
 
-      document.addEventListener('DOMContentLoaded', function () {
+      function _initPage() {
         if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
         CRBOXPortalAPI.getUserInfo()
           .then(function (info) {
@@ -2584,15 +2587,33 @@
             }
           })
           .catch(function (err) {
-            console.warn('[CRBOX] getUserInfo error:', err);
+            if (err && err.isAuthError) return; // redirect already in flight from portal-api.js
+            console.warn('[CRBOX] getUserInfo error (transient):', err);
             var tbody = document.getElementById('packages-tbody');
             if (tbody) {
               tbody.innerHTML = '<tr><td colspan="14" class="text-center py-8 text-orange-500">' +
-                '<i class="fas fa-exclamation-triangle mr-2"></i>No se pudo cargar la información de tu cuenta. Recarga la página.</td></tr>';
+                '<i class="fas fa-exclamation-triangle mr-2"></i>' +
+                'No se pudo cargar la información de tu cuenta. ' +
+                '<button onclick="CRBOXPortalAPI.clearUserInfoCache();location.reload();" ' +
+                'class="underline font-medium">Reintentar</button></td></tr>';
             }
             var headerEl = document.getElementById('header-user-name');
-            if (headerEl) headerEl.textContent = 'Error';
+            if (headerEl) headerEl.textContent = '—';
           });
+      }
+
+      document.addEventListener('DOMContentLoaded', _initPage);
+
+      // Rehydrate profile on bfcache restore (Safari iOS back-navigation)
+      window.addEventListener('crbox:pageresume', function () {
+        if (!CRBOXAuth.isLoggedIn()) return;
+        CRBOXPortalAPI.getUserInfo().then(function (info) {
+          var idConsignee = _applyHeader(info);
+          if (idConsignee && idConsignee !== _cachedConsigneeId) {
+            _cachedConsigneeId = idConsignee;
+            _loadPackages(idConsignee);
+          }
+        }).catch(function () {});
       });
 
       window._crbRerender = function(resetPage) {
