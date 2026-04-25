@@ -16,9 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initToggleActivityView(); // Nuevo: Toggle entre vistas con/sin actividad
     // initPackageConsolidation(); // removed — function not implemented
     initAccessibility();
-    
-    // Show welcome message with personalized greeting
-    showWelcomeMessage();
 });
 
 /**
@@ -618,50 +615,6 @@ function initAccessibility() {
 }
 
 /**
- * Show welcome message with personalized greeting
- */
-function showWelcomeMessage() {
-    // Check if this is user's first visit today
-    const lastVisit = localStorage.getItem('lastVisit');
-    const today = new Date().toDateString();
-    
-    if (lastVisit !== today) {
-        // Get current time
-        const now = new Date();
-        const hour = now.getHours();
-        
-        // Determine greeting based on time of day
-        let greeting = '';
-        if (hour < 12) {
-            greeting = '¡Buenos días';
-        } else if (hour < 18) {
-            greeting = '¡Buenas tardes';
-        } else {
-            greeting = '¡Buenas noches';
-        }
-        
-        // Get username if available
-        const usernameElement = document.querySelector('.font-medium:not(.whitespace-nowrap)');
-        let username = '';
-        
-        if (usernameElement && usernameElement.textContent) {
-            username = usernameElement.textContent.trim();
-        }
-        
-        // Show welcome toast — delay slightly so getuserinfo can populate the name
-        setTimeout(() => {
-            const resolvedNameEl = document.getElementById('header-user-name');
-            const resolvedName = (resolvedNameEl && resolvedNameEl.textContent && resolvedNameEl.textContent.trim() !== '...') ? resolvedNameEl.textContent.trim() : username;
-            const toastMsg = resolvedName ? `${greeting}, ${resolvedName}! Bienvenido a tu dashboard` : `${greeting}! Bienvenido a tu dashboard`;
-            showToast(toastMsg, 'success');
-        }, 1000);
-        
-        // Store last visit
-        localStorage.setItem('lastVisit', today);
-    }
-}
-
-/**
  * Display toast notification
  */
 function showToast(message, type = 'success') {
@@ -1097,9 +1050,6 @@ function initDashboard() {
     initToggleActivityView();
     initAccessibility();
     initPackageTracking();
-    
-    // Show welcome message with personalized greeting
-    showWelcomeMessage();
     
     // Iniciar promoción (opcional)
     initPromotionTimer();

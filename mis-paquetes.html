@@ -41,8 +41,8 @@
     <!-- Skip to content (accesibilidad) -->
     <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
     
-    <!-- Toast Container para notificaciones -->
-    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col items-end space-y-2"></div>
+    <!-- Toast Container para notificaciones (bottom-right, above WhatsApp button) -->
+    <div id="toast-container" class="fixed bottom-24 right-6 z-50 flex flex-col space-y-2"></div>
 
     <!-- Header -->
 <header class="bg-white shadow-sm sticky-header">
@@ -1324,7 +1324,7 @@
     <script src="js/main.js?v=6"></script>
     <!-- JavaScript Mejorado -->
     <script>
-        /* Page-level cached profile vars — read by initCopyFunctions/showWelcomeMessage, written by portal IIFE */
+        /* Page-level cached profile vars — read by initCopyFunctions, written by portal IIFE */
         var _cachedFullName     = '';
         var _cachedCasilleroNum = '';
 
@@ -1340,8 +1340,6 @@
             initModalHandlers();
             initSearchFilter();
             
-            // Mostrar mensaje de bienvenida
-            showWelcomeMessage();
         });
         
         // Header sticky con sombra al scroll
@@ -1504,7 +1502,7 @@
             if (!document.getElementById('toast-container')) {
                 const toastContainer = document.createElement('div');
                 toastContainer.id = 'toast-container';
-                toastContainer.className = 'fixed top-5 right-5 z-50 flex flex-col items-end space-y-2';
+                toastContainer.className = 'fixed bottom-24 right-6 z-50 flex flex-col space-y-2';
                 document.body.appendChild(toastContainer);
             }
         }
@@ -1972,34 +1970,6 @@
             });
         }
         
-        // Mensaje de bienvenida
-        function showWelcomeMessage() {
-            // Verificar si es primera visita del día
-            const lastVisit = localStorage.getItem('lastVisit');
-            const today = new Date().toDateString();
-            
-            if (lastVisit !== today) {
-                // Determinar saludo según hora
-                const hour = new Date().getHours();
-                let greeting = 'Bienvenido';
-                
-                if (hour < 12) {
-                    greeting = '¡Buenos días';
-                } else if (hour < 18) {
-                    greeting = '¡Buenas tardes';
-                } else {
-                    greeting = '¡Buenas noches';
-                }
-                
-                // Mostrar toast
-                setTimeout(() => {
-                    showToast(`${greeting}${_cachedFullName ? ', ' + _cachedFullName.split(' ')[0] : ''}! Has iniciado sesión en CRBOX`, 'success', 5000);
-                }, 1000);
-                
-                // Guardar visita
-                localStorage.setItem('lastVisit', today);
-            }
-        }
     </script>
     <script>
     (function () {
