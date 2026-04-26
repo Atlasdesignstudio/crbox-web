@@ -107,25 +107,39 @@ Key CSS layers:
 **Signup (`afiliate.html`)** — segmented tab strip switches between *Personal* and *Business*.
 - Personal: 3-step stepper (`.signup-stepper` + `.signup-step-panel` panels)
   1. **Cuenta** — single `full_name` (split client-side: token 1 → ConsigneeName, token 2 → ConsigneeLastName1, remainder → ConsigneeLastName2), `email`, `password`, `password_confirm`, optional `promo_code`
-  2. **Identidad** — `id_type`, `id_number`, single `phone_number[]` (hidden `phone_type[]=movil`)
+  2. **Identidad** — `id_type`, `id_number`, `birth_date` (→ `Consignee.BirthDate`, required by backend), single `phone_number[]` (hidden `phone_type[]=movil`)
   3. **Entrega + términos** — visual `.delivery-cards` radio group (4 cards) writes `delivery_service[]` to a hidden input. Picking a sucursal (`sabana_norte` / `guadalupe` / `guachipelin_escazu`) silently fills the single hidden `.address-entry` from the `BRANCH_ADDRESSES` constant (INEC-verified provincia/cantón/distrito); picking `domicilio` reveals `#domicilio-address-form` for `province[]`/`canton[]`/`district[]` + optional `postal_code[]`/`neighborhood[]` + required `address_details[]` (flagged via `data-domicilio-required`). Submit (`#signup-submit-btn`) is disabled until a card is chosen. `terms` required; `newsletter` optional.
 - Stepper navigation validates per step (passwords match on step 1; ID-number Luhn-style not enforced; on step 3 it requires a card and any visible domicilio fields).
 - On `OK` from registration, `showRegSuccess(form, email, password)` sets `localStorage.crbox_onboarding='1'` and attempts `CRBOXAuth.doLogin(email, password, true)`. Errors are routed through `classifyAuthError`: `TypeError` / "failed to fetch" / timeout → **network** → soft fallback panel with "Iniciar Sesión →"; everything else (HTTP errors, malformed token, lifecycle issues) → **lifecycle** → amber `showLifecycleFailure` panel with the raw error detail and a manual login link. Auto-login success redirects to `dashboard.html?onboarding=1`.
 - Business tab is now a contact card (WhatsApp `wa.me/50689794418` + `mailto:ventas@crbox.cr`); the empresa form, its submit handler, and the SweetAlert2 loader were removed.
 
-**Registration endpoint & lifecycle status (validated 2026-04-26):**
+**Registration baseline — confirmed working (2026-04-26):**
 
-- **Full lifecycle confirmed working end-to-end.** Direct API test using the new-site payload structure against the production endpoint (`POST https://clients.crbox.cr/api/crboxwebapi/postregisteruser`) returned `StatusResult: OK`. Subsequent auto-login (`POST /authtoken`) returned a valid `bearer` token (`expires_in: 86399`). `getuserinfo` returned a coherent account object with `idconsignee`, `identificationnumber`, `sucursal._idsucursal`, `Phones[1]`, `Addresses[1]`, `birthDate`. `postedituser` also returned `StatusResult: OK`. All four lifecycle stages pass.
+This is the authoritative baseline. All future work builds on a confirmed working lifecycle. Do not revert the endpoint or remove `Consignee.BirthDate`.
 
-- **Root cause of prior failures — throwaway email domain blocked.** All prior test runs used `@mailinator.com` addresses. The backend silently rejects known throwaway/spam email domains with the generic `"Hubo un error, por favor vuelva a llenar el formulario de registro"` — the same message regardless of any other field issue. Switching to a real-looking domain (`@proton.me`, `@gmail.com`) immediately produced `StatusResult: OK`. This was the primary blocker.
+**Validated lifecycle (direct API test against production):**
+1. **Registration** — `POST https://clients.crbox.cr/api/crboxwebapi/postregisteruser` → `StatusResult: OK`
+2. **Auto-login** — `POST https://clients.crbox.cr/authtoken` → `bearer` token, `expires_in: 86399`
+3. **getuserinfo** — `GET /getuserinfo/{email}` → coherent account object: `idconsignee`, `identificationnumber`, `sucursal._idsucursal`, `Phones[1]`, `Addresses[1]`, `birthDate` all present
+4. **postedituser** — `POST /postedituser` with `Consignee.IdConsignee` → `StatusResult: OK`
 
-- **Fix 1 applied — endpoint corrected.** `js/auth.js` `REGISTER_URL` changed from `https://test.clients.crbox.cr/...` (staging, possibly separately broken) to `https://clients.crbox.cr/...` (production, confirmed working).
+**Fixed invariants — do not change:**
+- `REGISTER_URL` in `js/auth.js` must stay on `https://clients.crbox.cr/...`. The staging `test.clients.crbox.cr` endpoint was separately broken and is no longer in use.
+- `Consignee.BirthDate` must remain in the payload. It is required by the backend. The form collects it via `<input type="date" name="birth_date">` in Step 2 (Identidad).
 
-- **Fix 2 applied — `BirthDate` field added.** `afiliate.html` Step 2 (Identidad) now includes a required `<input type="date" name="birth_date">`. `handlePersonalRegistration` reads it and sends it as `Consignee.BirthDate`. Previously sent as empty string.
+**Root cause of all prior failures:**
+The backend silently rejects throwaway/spam email domains (`@mailinator.com` and similar) using the same generic error `"Hubo un error, por favor vuelva a llenar el formulario de registro"` — indistinguishable from any other failure. All prior test runs used `@mailinator.com`. Real domains (`@gmail.com`, `@proton.me`) succeed. **When debugging future registration failures, check the email domain first before investigating payload structure.**
 
-- **Remaining UX validation needed.** The lifecycle was confirmed via direct API calls with a known-good payload. The new-site form itself (browser, full stepper flow, BRANCH_ADDRESSES prefill, sucursal card selection) has not been exercised by a real user end-to-end. That test should be performed in-browser before marking signup as fully validated.
+**Next step — browser-level UX validation (not yet done):**
+The lifecycle was confirmed via direct API calls. The actual stepper UI in-browser has not yet been exercised end-to-end. Before marking signup production-ready, run one full in-browser validation with a real email address covering:
+- step navigation (1 → 2 → 3 → submit)
+- delivery-card selection and sucursal address prefill
+- form submit → `StatusResult: OK`
+- auto-login redirect to `dashboard.html?onboarding=1`
+- dashboard bootstrap (activation checklist visible, casillero populated)
+- Mi Cuenta profile data loaded correctly
 
-- **Note on `postedituser`.** The endpoint accepts the same payload structure as registration (with `Consignee.IdConsignee` added) and returns `StatusResult: OK`. Mi Cuenta save-profile flow is therefore structurally correct.
+**Note on `postedituser`:** confirmed working with the same payload structure as registration plus `Consignee.IdConsignee`. Mi Cuenta save-profile flow is structurally correct.
 
 **Account state model (client-side)** — derived from `getUserInfo()` response:
 - `created` — barebones record: name + email only
@@ -136,7 +150,7 @@ Key CSS layers:
 
 **`hasAddress` heuristic** — both `_accountStateFrom` and `_maybeShowActivationCard` check for address completeness using `a.line1 || a.Line1 || a.direccion || a.Direccion` (the confirmed API field names from the Postman collection) as well as the legacy fallbacks `a.addressdetails || a.AddressDetails || a.address1 || a.Address1`. Prior to Task #115 only the legacy names were checked, which would have caused the address step to never clear for addresses submitted through the new signup form.
 
-**E2E test script** — `scripts/e2e-signup-test.js` is a browser-runnable script (paste into DevTools console on any page that loads `auth.js` + `portal-api.js`) that exercises the full T1–T6 flow against the live staging API and prints PASS/FAIL for each assertion. Must be run from a machine that can reach `test.clients.crbox.cr` and `clients.crbox.cr`.
+**E2E test script** — `scripts/e2e-signup-test.js` is a browser-runnable script (paste into DevTools console on any page that loads `auth.js` + `portal-api.js`) that exercises the full T1–T6 flow and prints PASS/FAIL for each assertion. Must be run against `clients.crbox.cr` (production). Use a real email domain — `@mailinator.com` and similar throwaway domains are blocked by the backend.
 
 **Mi Cuenta deep-link + setup mode** (`mi-cuenta.html`):
 - **Always-on** `?tab=<personal-info|address-info|security|notifications>` activates the matching tab and scrolls its button into view (works regardless of `setup`).

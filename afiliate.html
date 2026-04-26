@@ -1801,8 +1801,19 @@ const locationDatabase = {
                     return false;
                 }
             }
-            // Step 1: passwords must match
+            // Step 1: full name must have ≥2 tokens; passwords must match
             if (n === 1) {
+                var nameField = panel.querySelector('input[name="full_name"]');
+                if (nameField) {
+                    var tokens = nameField.value.trim().split(/\s+/).filter(Boolean);
+                    if (tokens.length < 2) {
+                        nameField.focus();
+                        nameField.setCustomValidity('Ingresa al menos nombre y apellido (ej: María Herrera).');
+                        if (typeof nameField.reportValidity === 'function') nameField.reportValidity();
+                        nameField.setCustomValidity('');
+                        return false;
+                    }
+                }
                 var pwd  = panel.querySelector('input[name="password"]');
                 var pwd2 = panel.querySelector('input[name="password_confirm"]');
                 var msg  = panel.querySelector('#password-mismatch-msg');
@@ -1972,6 +1983,7 @@ const locationDatabase = {
                 clearAddressInputs();
             } else {
                 domicilioForm.classList.add('hidden');
+                clearAddressInputs();
                 applyBranch(value);
             }
             setSubmitEnabled(true);
@@ -2711,6 +2723,10 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
             }
             if (cantIdx === '0') {
                 sucursalError = 'No se pudo resolver el código de cantón para "' + cantonVal + '". Contacte soporte.';
+                break;
+            }
+            if (distIdx === '0') {
+                sucursalError = 'No se pudo resolver el código de distrito para "' + districtVal + '". Contacte soporte.';
                 break;
             }
 
