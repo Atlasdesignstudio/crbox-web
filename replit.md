@@ -113,15 +113,19 @@ Key CSS layers:
 - On `OK` from registration, `showRegSuccess(form, email, password)` sets `localStorage.crbox_onboarding='1'` and attempts `CRBOXAuth.doLogin(email, password, true)`. Errors are routed through `classifyAuthError`: `TypeError` / "failed to fetch" / timeout → **network** → soft fallback panel with "Iniciar Sesión →"; everything else (HTTP errors, malformed token, lifecycle issues) → **lifecycle** → amber `showLifecycleFailure` panel with the raw error detail and a manual login link. Auto-login success redirects to `dashboard.html?onboarding=1`.
 - Business tab is now a contact card (WhatsApp `wa.me/50689794418` + `mailto:ventas@crbox.cr`); the empresa form, its submit handler, and the SweetAlert2 loader were removed.
 
-**Registration endpoint & lifecycle status (updated 2026-04-26):**
+**Registration endpoint & lifecycle status (validated 2026-04-26):**
 
-- **Backend lifecycle is confirmed capable.** The old/live registration flow (`POST https://clients.crbox.cr/api/crboxwebapi/postregisteruser`) was exercised externally and returned `StatusResult: OK`. The created account authenticated successfully (`POST /authtoken` → `access_token`) and `getuserinfo` returned a full coherent object including `idconsignee`, `identificationnumber`, `sucursal`, `addresses[]`, `phones[]`, `birthDate`. The problem is therefore not a broken backend — it is a payload or endpoint mismatch in the new-site flow.
+- **Full lifecycle confirmed working end-to-end.** Direct API test using the new-site payload structure against the production endpoint (`POST https://clients.crbox.cr/api/crboxwebapi/postregisteruser`) returned `StatusResult: OK`. Subsequent auto-login (`POST /authtoken`) returned a valid `bearer` token (`expires_in: 86399`). `getuserinfo` returned a coherent account object with `idconsignee`, `identificationnumber`, `sucursal._idsucursal`, `Phones[1]`, `Addresses[1]`, `birthDate`. `postedituser` also returned `StatusResult: OK`. All four lifecycle stages pass.
 
-- **Known gap 1 — wrong endpoint.** `js/auth.js` line 31 sets `REGISTER_URL = 'https://test.clients.crbox.cr/...'` (staging). The confirmed working registration hit `https://clients.crbox.cr/...` (production). The staging endpoint may be independently broken or misconfigured. Until the staging endpoint is confirmed stable, point to production.
+- **Root cause of prior failures — throwaway email domain blocked.** All prior test runs used `@mailinator.com` addresses. The backend silently rejects known throwaway/spam email domains with the generic `"Hubo un error, por favor vuelva a llenar el formulario de registro"` — the same message regardless of any other field issue. Switching to a real-looking domain (`@proton.me`, `@gmail.com`) immediately produced `StatusResult: OK`. This was the primary blocker.
 
-- **Known gap 2 — `BirthDate` sent as empty string.** The confirmed working payload included `Consignee.BirthDate`. `afiliate.html` currently sends `params.set('Consignee.BirthDate', '')`. If the backend validates this field, every submission from the new-site form will fail regardless of other fields. A date-of-birth input must be added to the stepper (Step 2 — Identidad), or the backend must be confirmed to accept an empty value.
+- **Fix 1 applied — endpoint corrected.** `js/auth.js` `REGISTER_URL` changed from `https://test.clients.crbox.cr/...` (staging, possibly separately broken) to `https://clients.crbox.cr/...` (production, confirmed working).
 
-- **Remaining task.** The new-site signup flow is **not yet end-to-end validated**. It must be tested directly (not inferred from the old flow) and must produce: register → `StatusResult: OK` → login → `getuserinfo` coherent account → portal bootstrap → `postedituser` round-trip. The old/live flow success is a backend reality reference only, not proof that the new-site flow is correct. See `.local/validation/COMPLETION_REPORT.md` and `.local/validation/lifecycle-result.log` for prior test runs.
+- **Fix 2 applied — `BirthDate` field added.** `afiliate.html` Step 2 (Identidad) now includes a required `<input type="date" name="birth_date">`. `handlePersonalRegistration` reads it and sends it as `Consignee.BirthDate`. Previously sent as empty string.
+
+- **Remaining UX validation needed.** The lifecycle was confirmed via direct API calls with a known-good payload. The new-site form itself (browser, full stepper flow, BRANCH_ADDRESSES prefill, sucursal card selection) has not been exercised by a real user end-to-end. That test should be performed in-browser before marking signup as fully validated.
+
+- **Note on `postedituser`.** The endpoint accepts the same payload structure as registration (with `Consignee.IdConsignee` added) and returns `StatusResult: OK`. Mi Cuenta save-profile flow is therefore structurally correct.
 
 **Account state model (client-side)** — derived from `getUserInfo()` response:
 - `created` — barebones record: name + email only

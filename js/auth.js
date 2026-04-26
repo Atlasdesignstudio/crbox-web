@@ -28,7 +28,7 @@
 
   // ─── API endpoints (direct to CRBOX backend) ─────────────────────────────
   var LOGIN_URL    = 'https://clients.crbox.cr/authtoken';
-  var REGISTER_URL = 'https://test.clients.crbox.cr/api/crboxwebapi/postregisteruser';
+  var REGISTER_URL = 'https://clients.crbox.cr/api/crboxwebapi/postregisteruser';
 
   // ─── Sucursal ID map (confirmed values) ───────────────────────────────────
   var SUCURSAL_ID_MAP = {

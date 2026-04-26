@@ -346,6 +346,14 @@
                                         <p class="text-xs text-gray-500 mt-1">Aparece en tu factura electrónica.</p>
                                     </div>
                                     <div class="form-group md:col-span-2">
+                                        <label class="block text-gray-700 font-medium mb-2">Fecha de nacimiento *</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-calendar"></i></div>
+                                            <input type="date" name="birth_date" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Requerida para emitir facturas electrónicas a tu nombre.</p>
+                                    </div>
+                                    <div class="form-group md:col-span-2">
                                         <label class="block text-gray-700 font-medium mb-2">Teléfono móvil *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-phone"></i></div>
@@ -2619,6 +2627,7 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
         var password   = getField(form, 'password');
         var idType     = getField(form, 'id_type');
         var idNumber   = getField(form, 'id_number');
+        var birthDate  = getField(form, 'birth_date');
         var country    = getField(form, 'country') || 'CR';
         var promoCode  = getField(form, 'promo_code');
         var newsletter = (form.querySelector('[name="newsletter"]') || {}).checked || false;
@@ -2770,7 +2779,7 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
         params.set('Consignee.ContactName1',          '');
         params.set('Consignee.ContactName2',          '');
         params.set('Consignee.IdResponsabilidad',     '');
-        params.set('Consignee.BirthDate',             '');
+        params.set('Consignee.BirthDate',             birthDate || '');
         params.set('Consignee.Sucursal.IdSucursal',   String(resolvedIdSucursal));
         params.set('CompanyCode',                     promoCode || '');
         params.set('Phones',                          JSON.stringify(phones));
