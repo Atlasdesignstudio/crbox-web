@@ -274,7 +274,7 @@
   // Status ids that count as "still in transit toward the customer"
   // — i.e. not yet sitting in CRBOX (5) and not yet delivered (7).
   // Used by the dashboard "Paquetes en camino" derivation.
-  var IN_TRANSIT_STATUS_IDS = [1, 2, 3, 4, 6];
+  var IN_TRANSIT_STATUS_IDS = [1, 2, 3, 4];
 
   // Defensible event-line per known statusId. Used by the dashboard
   // "Actividad reciente" feed. Anything outside this map is skipped.

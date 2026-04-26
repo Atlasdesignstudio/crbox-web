@@ -406,6 +406,12 @@
             </div>
         </div>
 
+        <!-- EN ESPERA notice — shown only when ≥1 package is in status 6 -->
+        <div id="dash-espera-notice" class="hidden mb-6 flex items-start gap-3 bg-yellow-50 border border-yellow-200 rounded-2xl px-5 py-4 text-yellow-800 text-sm shadow-sm">
+            <i class="fas fa-clock text-yellow-500 mt-0.5 flex-shrink-0"></i>
+            <span id="dash-espera-text"></span>
+        </div>
+
         <!-- Recent Activity -->
         <div class="lg:col-span-2 bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-lg mb-8">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center">
@@ -993,15 +999,28 @@
       '1000'
     ).then(function (data) {
       var raw = Array.isArray(data) ? data : (data.packages || data.Packages || []);
-      // "En camino" = en cualquier estatus de tránsito real reportado
-      // por getuserpackages (MIAMI, SJO, CARGADO, EN TRÁNSITO, EN ESPERA).
-      // Excluye CRBOX (ya disponible para retirar) y ENTREGADO.
+      // "En camino" = statuses 1–4 only (MIAMI, SJO, CARGADO, EN TRÁNSITO).
+      // EN ESPERA (6) is counted separately and shown in its own notice.
+      // Excludes CRBOX (5) and ENTREGADO (7).
       var inCamino = 0;
+      var inEspera = 0;
       var mapped = raw.map(function (p) { return CRBOXPortalAPI.mapPackage(p); });
       mapped.forEach(function (pkg) {
         if (CRBOXPortalAPI.IN_TRANSIT_STATUS_IDS.indexOf(pkg.statusId) >= 0) inCamino++;
+        if (pkg.statusId === 6) inEspera++;
       });
       statEl.textContent = String(inCamino);
+      var noticeEl = document.getElementById('dash-espera-notice');
+      var noticeTextEl = document.getElementById('dash-espera-text');
+      if (noticeEl && noticeTextEl) {
+        if (inEspera > 0) {
+          var label = inEspera === 1 ? '1 paquete en espera' : inEspera + ' paquetes en espera';
+          noticeTextEl.textContent = label + ' — comunícate con CRBOX si necesitas ayuda.';
+          noticeEl.classList.remove('hidden');
+        } else {
+          noticeEl.classList.add('hidden');
+        }
+      }
       _renderRecentActivity(mapped);
     }).catch(function (err) {
       console.warn('[CRBOX] getPackages (dashboard stat) failed:', err);
