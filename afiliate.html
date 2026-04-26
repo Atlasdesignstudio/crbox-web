@@ -263,19 +263,13 @@
                                 <p class="text-gray-600 text-sm mb-5">Crea tu acceso al portal CRBOX. Con esto inicias sesión y recibes notificaciones de tus paquetes.</p>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <div class="form-group">
-                                        <label class="block text-gray-700 font-medium mb-2">Nombre *</label>
+                                    <div class="form-group md:col-span-2">
+                                        <label class="block text-gray-700 font-medium mb-2">Nombre completo *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-user"></i></div>
-                                            <input type="text" name="first_name" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Tu nombre">
+                                            <input type="text" name="full_name" autocomplete="name" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: María Herrera López">
                                         </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="block text-gray-700 font-medium mb-2">Apellidos *</label>
-                                        <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-user"></i></div>
-                                            <input type="text" name="last_name" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Apellido(s)">
-                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">Tal como aparece en tu identificación.</p>
                                     </div>
                                     <div class="form-group md:col-span-2">
                                         <label class="block text-gray-700 font-medium mb-2">Correo electrónico *</label>
@@ -2624,8 +2618,11 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
             }
 
             // ── Collect top-level fields ──────────────────────────────────────
-            var firstName   = getField(personalRegistrationForm, 'first_name');
-            var lastNameRaw = getField(personalRegistrationForm, 'last_name');
+            // Step 1 collects "Nombre completo" as a single field per the task spec.
+            // Split client-side: first token → ConsigneeName, second → ConsigneeLastName1,
+            // remainder → ConsigneeLastName2. If the user typed only one word, last names
+            // remain empty (the backend has historically accepted this).
+            var fullName    = getField(personalRegistrationForm, 'full_name');
             var email       = getField(personalRegistrationForm, 'email');
             var password    = getField(personalRegistrationForm, 'password');
             var idType      = getField(personalRegistrationForm, 'id_type');
@@ -2634,10 +2631,10 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
             var promoCode   = getField(personalRegistrationForm, 'promo_code');
             var newsletter  = (personalRegistrationForm.querySelector('[name="newsletter"]') || {}).checked || false;
 
-            // Split last name on first space: "Herrera López" → "Herrera" + "López"
-            var nameParts  = lastNameRaw.trim().split(/\s+/);
-            var lastName1  = nameParts[0] || '';
-            var lastName2  = nameParts.slice(1).join(' ') || '';
+            var nameTokens = fullName.trim().split(/\s+/).filter(Boolean);
+            var firstName  = nameTokens[0] || '';
+            var lastName1  = nameTokens[1] || '';
+            var lastName2  = nameTokens.slice(2).join(' ') || '';
 
             // ── Collect Phones ────────────────────────────────────────────────
             var phoneNumbers = personalRegistrationForm.querySelectorAll('[name="phone_number[]"]');

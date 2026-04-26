@@ -105,12 +105,14 @@ Key CSS layers:
 
 **Signup (`afiliate.html`)** — segmented tab strip switches between *Personal* and *Business*.
 - Personal: 3-step stepper (`.signup-stepper` + `.signup-step-panel` panels)
-  1. **Cuenta** — `first_name`, `last_name`, `email`, `password`, `password_confirm`, optional `promo_code`
+  1. **Cuenta** — single `full_name` (split client-side: token 1 → ConsigneeName, token 2 → ConsigneeLastName1, remainder → ConsigneeLastName2), `email`, `password`, `password_confirm`, optional `promo_code`
   2. **Identidad** — `id_type`, `id_number`, single `phone_number[]` (hidden `phone_type[]=movil`)
   3. **Entrega + términos** — visual `.delivery-cards` radio group (4 cards) writes `delivery_service[]` to a hidden input. Picking a sucursal (`sabana_norte` / `guadalupe` / `guachipelin_escazu`) silently fills the single hidden `.address-entry` from the `BRANCH_ADDRESSES` constant (INEC-verified provincia/cantón/distrito); picking `domicilio` reveals `#domicilio-address-form` for `province[]`/`canton[]`/`district[]` + optional `postal_code[]`/`neighborhood[]` + required `address_details[]` (flagged via `data-domicilio-required`). Submit (`#signup-submit-btn`) is disabled until a card is chosen. `terms` required; `newsletter` optional.
 - Stepper navigation validates per step (passwords match on step 1; ID-number Luhn-style not enforced; on step 3 it requires a card and any visible domicilio fields).
 - On `OK` from registration, `showRegSuccess(form, email, password)` sets `localStorage.crbox_onboarding='1'` and attempts `CRBOXAuth.doLogin(email, password, true)`. Errors are routed through `classifyAuthError`: `TypeError` / "failed to fetch" / timeout → **network** → soft fallback panel with "Iniciar Sesión →"; everything else (HTTP errors, malformed token, lifecycle issues) → **lifecycle** → amber `showLifecycleFailure` panel with the raw error detail and a manual login link. Auto-login success redirects to `dashboard.html?onboarding=1`.
 - Business tab is now a contact card (WhatsApp `wa.me/50689794418` + `mailto:ventas@crbox.cr`); the empresa form, its submit handler, and the SweetAlert2 loader were removed.
+
+**⚠️ Lifecycle status (verified 2026-04-26):** The new-site registration endpoint (`test.clients.crbox.cr/api/crboxwebapi/postregisteruser`) is currently rejecting **every** payload variant with `StatusResult: ERROR / "Hubo un error, por favor vuelva a llenar el formulario de registro"`. Nine variants tested (sucursal/domicilio, with/without ID, with/without phones/addresses, business path) — all rejected. Steps 2–5 of the spec gate could not be reached. The UI is in place per spec, but the backend must be stabilized before signup can be fully validated end-to-end. See `.local/validation/COMPLETION_REPORT.md` and `.local/validation/lifecycle-result.log`.
 
 **Account state model (client-side)** — derived from `getUserInfo()` response:
 - `created` — barebones record: name + email only
