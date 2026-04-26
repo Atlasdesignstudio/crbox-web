@@ -2560,10 +2560,12 @@ const locationDatabase = {
         var newsletter = (form.querySelector('[name="newsletter"]') || {}).checked || false;
 
         // Split full name: first token → first name, second → last name 1, remainder → last name 2.
+        // Backend requires ConsigneeLastName2 to be non-empty; fall back to lastName1 if user
+        // only entered two words (single surname).
         var nameTokens = fullName.trim().split(/\s+/).filter(Boolean);
         var firstName  = nameTokens[0] || '';
         var lastName1  = nameTokens[1] || '';
-        var lastName2  = nameTokens.slice(2).join(' ') || '';
+        var lastName2  = nameTokens.slice(2).join(' ') || lastName1;
 
         var phoneNumbers = form.querySelectorAll('[name="phone_number[]"]');
         var phoneTypes   = form.querySelectorAll('[name="phone_type[]"]');
@@ -2688,6 +2690,7 @@ const locationDatabase = {
             firstAddr = false;
         }
 
+        if (!lastName1) { showRegError(form, 'Ingrese su nombre completo (nombre y al menos un apellido).'); return; }
         if (sucursalError) { showRegError(form, sucursalError); return; }
         if (phones.length === 0) { showRegError(form, 'Agregue al menos un número de teléfono.'); return; }
         if (addresses.length === 0) { showRegError(form, 'Agregue al menos una dirección.'); return; }
