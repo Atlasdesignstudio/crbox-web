@@ -128,16 +128,26 @@ This is the authoritative baseline. All future work builds on a confirmed workin
 - `Consignee.BirthDate` must remain in the payload. It is required by the backend. The form collects it via `<input type="date" name="birth_date">` in Step 2 (Identidad).
 
 **Root cause of all prior failures:**
-The backend silently rejects throwaway/spam email domains (`@mailinator.com` and similar) using the same generic error `"Hubo un error, por favor vuelva a llenar el formulario de registro"` — indistinguishable from any other failure. All prior test runs used `@mailinator.com`. Real domains (`@gmail.com`, `@proton.me`) succeed. **When debugging future registration failures, check the email domain first before investigating payload structure.**
+The backend silently rejects throwaway/spam email domains (`@mailinator.com` and similar) using the same generic error `"Hubo un error, por favor vuelva a llenar el formulario de registro"` — indistinguishable from any other failure. All prior test runs used `@mailinator.com`. Real domains (`@gmail.com`, `@proton.me`) both succeed. **When debugging future registration failures, check the email domain first before investigating payload structure.** The same generic error also fires for duplicate email or duplicate ID number — check for existing registrations if a real domain still produces this error.
 
-**Next step — browser-level UX validation (not yet done):**
-The lifecycle was confirmed via direct API calls. The actual stepper UI in-browser has not yet been exercised end-to-end. Before marking signup production-ready, run one full in-browser validation with a real email address covering:
-- step navigation (1 → 2 → 3 → submit)
-- delivery-card selection and sucursal address prefill
+**Next step — browser-level UI interaction validation (not yet done):**
+The complete API lifecycle has been validated via direct API calls with a real test account (see test credentials below). The actual stepper UI in-browser (clicking through steps, filling form fields) has not yet been exercised — requires a human running the form. Before marking signup fully production-ready, confirm in-browser:
+- step navigation (1 → 2 → 3 → submit) with real field input
+- delivery-card click → sucursal address prefill
 - form submit → `StatusResult: OK`
 - auto-login redirect to `dashboard.html?onboarding=1`
-- dashboard bootstrap (activation checklist visible, casillero populated)
+- dashboard bootstrap (activation toast fires, casillero shown as 50635142)
 - Mi Cuenta profile data loaded correctly
+
+**Test account credentials (real, confirmed created 2026-04-26):**
+- Email: `crboxqa.1777237329@proton.me`
+- Password: `CrboxQA2026!`
+- Full name: Ana Laura Rojas Campos
+- ID type: Cédula ó Residencia / ID number: `377237329`
+- Birth date: `1992-08-14` / Phone: `88112233`
+- Sucursal: Sabana Norte (idSucursal: 1)
+- idconsignee (casillero): `50635142`
+- Account state: **ACTIVATED** (name + ID + phone + address all present — activation checklist should be complete, toast fires once on first dashboard load)
 
 **Note on `postedituser`:** confirmed working with the same payload structure as registration plus `Consignee.IdConsignee`. Mi Cuenta save-profile flow is structurally correct.
 
