@@ -81,7 +81,7 @@ Portal pages share these versioned stylesheets (bump query param when editing):
 |------|----------------|-----------|
 | `css/styles.css` | v=5 | All pages |
 | `css/responsive.css` | v=14 | All pages (portal pages use higher version) |
-| `css/dashboard.css` | v=4 | dashboard.html, mi-cuenta.html |
+| `css/dashboard.css` | v=5 | dashboard.html, mi-cuenta.html |
 
 Key CSS layers:
 - `styles.css` — global tap-highlight removal (`* { -webkit-tap-highlight-color: transparent }`), `:focus-visible` ring in CRBOX orange
@@ -100,6 +100,33 @@ Key CSS layers:
 - **Mi Cuenta coming-soon blocks**: replaced `bg-gray-50 border-gray-200` with `.account-coming-soon` (amber-50 tint, orange clock icon)
 - **Mi Cuenta inner tab strip**: `.account-inner-tab-strip` provides `bg-gray-50` tray; intentionally kept as bottom-border (distinct from portal-level pill nav)
 - **Mi Cuenta delete account**: `.account-danger-zone` with `border: 1px solid #FEE2E2` and `border-left: 4px solid #FCA5A5` red accent
+
+## Signup & Activation Flow (Task #113)
+
+**Signup (`afiliate.html`)** — segmented tab strip switches between *Personal* and *Business*.
+- Personal: 3-step stepper (`.signup-stepper` + `.signup-step-panel` panels)
+  1. Personal info — `first_name`, `last_name`, `email`, `id_type`, `id_number`, `phone_number[]` (single, hidden `phone_type[]=movil`), `password`
+  2. Delivery in CR — `delivery_service[]` (sucursal or `domicilio`), single residential address (hidden `address_type[]=residencial`), `province[]/canton[]/district[]`, optional `postal_code[]`, `neighborhood[]`, required `address_details[]`
+  3. Confirm — auto-rendered summary, optional `promo_code`, required `terms`, optional `newsletter`
+- Submit handler is unchanged (still flattens via `paramsFromForm`); on `OK` it calls `showRegSuccess(form, email, password)` which sets `localStorage.crbox_onboarding='1'`, attempts `CRBOXAuth.doLogin(email, password, true)`, and on success redirects to `dashboard.html?onboarding=1`. On failure it falls back to a "Iniciar Sesión →" link with email pre-filled.
+- Business: contact-card CTA (WhatsApp `wa.me/50689794418` + `mailto:ventas@crbox.cr`); the old empresa form, its submit handler, and the SweetAlert2 loader were removed.
+
+**Account state model (client-side)** — derived from `getUserInfo()` response:
+- `incomplete` — missing any of: name, identification number, at least one phone, at least one address
+- `activated` — all of the above present
+
+**Dashboard activation card** (`#activation-card` in `dashboard.html`) — appears above the welcome banner when:
+- `?onboarding=1` is in the URL, **or**
+- `localStorage.crbox_onboarding === '1'`, **or**
+- `getUserInfo()` returns an `incomplete` profile
+
+  …**unless** `localStorage.crbox_onboarding_dismissed === '1'`. Three checklist items (profile, address, first shipment) link to `mi-cuenta.html?setup=1&tab=…` or `calculadora.html`. Per-step completion is computed from the same fields as the state model. Dismiss button sets `crbox_onboarding_dismissed=1` and clears `crbox_onboarding`.
+
+**Mi Cuenta setup mode** (`mi-cuenta.html`) — when arriving with `?setup=1`, the `.setup-banner` above the inner tab strip explains what to complete; with `&tab=personal-info|address-info|security|notifications` it auto-activates that tab and rewrites the banner copy. Dismissing the banner strips the query params via `history.replaceState`.
+
+**localStorage keys**
+- `crbox_onboarding` — set to `'1'` immediately after a successful signup; consumed by the dashboard activation card and cleared on dismiss
+- `crbox_onboarding_dismissed` — set to `'1'` when the user closes the activation card (sticky)
 
 ## Docs
 

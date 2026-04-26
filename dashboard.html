@@ -26,7 +26,7 @@
     <!-- CSS personalizado -->
     <link rel="stylesheet" href="css/styles.css?v=5">
     <link rel="stylesheet" href="css/responsive.css?v=14">
-    <link rel="stylesheet" href="css/dashboard.css?v=3">
+    <link rel="stylesheet" href="css/dashboard.css?v=5">
     
     <!-- Opcional: Añadir Swiper para carruseles -->
     <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css">
@@ -211,7 +211,69 @@
 <!-- Main Dashboard Content -->
 <main class="py-8">
     <div class="container mx-auto px-4">
-        
+
+        <!-- Activation Checklist (shown for new / incomplete accounts) -->
+        <section id="activation-card" class="activation-card hidden mb-6" aria-live="polite">
+            <div class="activation-card-inner">
+                <button type="button" id="activation-dismiss-btn" class="activation-dismiss" aria-label="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="activation-header">
+                    <div class="activation-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <span class="activation-eyebrow">Activa tu cuenta</span>
+                        <h2 class="activation-title">¡Bienvenida a CRBOX! Termina de configurar tu casillero</h2>
+                        <p class="activation-subtitle">Completa estos pasos para empezar a recibir paquetes desde Miami.</p>
+                    </div>
+                </div>
+
+                <ul class="activation-checklist" id="activation-checklist">
+                    <li class="activation-item" data-step="profile">
+                        <span class="activation-check"><i class="fas fa-circle"></i></span>
+                        <div class="activation-item-body">
+                            <span class="activation-item-title">Completa tu información de perfil</span>
+                            <span class="activation-item-desc">Verifica nombre, identificación y teléfono.</span>
+                        </div>
+                        <a href="mi-cuenta.html?setup=1&amp;tab=personal-info" class="activation-cta">
+                            Completar
+                            <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </li>
+                    <li class="activation-item" data-step="address">
+                        <span class="activation-check"><i class="fas fa-circle"></i></span>
+                        <div class="activation-item-body">
+                            <span class="activation-item-title">Confirma tu dirección de entrega en Costa Rica</span>
+                            <span class="activation-item-desc">Necesaria para entrega a domicilio o factura electrónica.</span>
+                        </div>
+                        <a href="mi-cuenta.html?setup=1&amp;tab=address-info" class="activation-cta">
+                            Revisar
+                            <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </li>
+                    <li class="activation-item" data-step="shipment">
+                        <span class="activation-check"><i class="fas fa-circle"></i></span>
+                        <div class="activation-item-body">
+                            <span class="activation-item-title">Programa tu primer envío</span>
+                            <span class="activation-item-desc">Calcula el costo y conoce tu dirección en Miami.</span>
+                        </div>
+                        <a href="calculadora.html" class="activation-cta">
+                            Calcular
+                            <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="activation-progress-wrap">
+                    <div class="activation-progress-track">
+                        <span class="activation-progress-bar" id="activation-progress-bar" style="width:0%"></span>
+                    </div>
+                    <span class="activation-progress-label" id="activation-progress-label">0 de 3 completados</span>
+                </div>
+            </div>
+        </section>
+
         <!-- Welcome Banner -->
 <div class="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl overflow-hidden mb-8">
     <div class="absolute inset-0 bg-pattern opacity-5 pointer-events-none"></div>
@@ -691,8 +753,91 @@
     var el = document.getElementById(id);
     if (el) el.textContent = text;
   }
+  // ── Activation card (shown for new / incomplete accounts) ──────────────
+  function _accountStateFrom(info) {
+    // Returns 'incomplete' | 'activated' based on whether profile has the
+    // minimum data required to receive packages.
+    if (!info) return 'incomplete';
+    var c = info.Consignee || info;
+    var hasName = !!(c.consigneename || c.ConsigneeName);
+    var hasIdNo = !!(c.identificationnumber || c.IdentificationNumber);
+    var phones  = info.Phones || c.phones || [];
+    var hasPhone = Array.isArray(phones) && phones.some(function (p) {
+      return p && (p.phonenumber || p.PhoneNumber);
+    });
+    var addrs = info.Addresses || c.addresses || [];
+    var hasAddress = Array.isArray(addrs) && addrs.some(function (a) {
+      return a && (a.addressdetails || a.AddressDetails || a.address1 || a.Address1);
+    });
+    var ready = hasName && hasIdNo && hasPhone && hasAddress;
+    return ready ? 'activated' : 'incomplete';
+  }
+  function _renderActivationProgress(stateMap) {
+    var card = document.getElementById('activation-card');
+    if (!card) return;
+    var items = card.querySelectorAll('.activation-item');
+    var done = 0;
+    items.forEach(function (li) {
+      var step = li.getAttribute('data-step');
+      var isDone = !!stateMap[step];
+      li.classList.toggle('is-complete', isDone);
+      var check = li.querySelector('.activation-check i');
+      if (check) {
+        check.className = isDone ? 'fas fa-check-circle' : 'fas fa-circle';
+      }
+      if (isDone) done++;
+    });
+    var total = items.length;
+    var pct = total ? Math.round((done / total) * 100) : 0;
+    var bar = document.getElementById('activation-progress-bar');
+    if (bar) bar.style.width = pct + '%';
+    var label = document.getElementById('activation-progress-label');
+    if (label) label.textContent = done + ' de ' + total + ' completados';
+  }
+  function _maybeShowActivationCard(info) {
+    var card = document.getElementById('activation-card');
+    if (!card) return;
+    var dismissed = false;
+    try { dismissed = localStorage.getItem('crbox_onboarding_dismissed') === '1'; } catch (e) {}
+    var flagged = false;
+    try { flagged = localStorage.getItem('crbox_onboarding') === '1'; } catch (e) {}
+    var fromQuery = /[?&]onboarding=1\b/.test(location.search);
+    var state = _accountStateFrom(info);
+    var shouldShow = !dismissed && (fromQuery || flagged || state === 'incomplete');
+
+    if (!shouldShow) {
+      card.classList.add('hidden');
+      return;
+    }
+    // Compute per-step completion using the same heuristics as account-state
+    var c = (info && info.Consignee) ? info.Consignee : (info || {});
+    var hasName  = !!(c.consigneename || c.ConsigneeName);
+    var hasIdNo  = !!(c.identificationnumber || c.IdentificationNumber);
+    var phones   = (info && (info.Phones || c.phones)) || [];
+    var hasPhone = Array.isArray(phones) && phones.some(function (p) { return p && (p.phonenumber || p.PhoneNumber); });
+    var addrs    = (info && (info.Addresses || c.addresses)) || [];
+    var hasAddress = Array.isArray(addrs) && addrs.some(function (a) { return a && (a.addressdetails || a.AddressDetails || a.address1 || a.Address1); });
+    _renderActivationProgress({
+      profile:  hasName && hasIdNo && hasPhone,
+      address:  hasAddress,
+      shipment: false  // we cannot reliably detect a first shipment here; treat as user-driven
+    });
+    card.classList.remove('hidden');
+
+    var dismissBtn = document.getElementById('activation-dismiss-btn');
+    if (dismissBtn && !dismissBtn._wired) {
+      dismissBtn._wired = true;
+      dismissBtn.addEventListener('click', function () {
+        try { localStorage.setItem('crbox_onboarding_dismissed', '1'); } catch (e) {}
+        try { localStorage.removeItem('crbox_onboarding'); } catch (e) {}
+        card.classList.add('hidden');
+      });
+    }
+  }
+
   function _applyUserInfo(info) {
     if (!info) return;
+    _maybeShowActivationCard(info);
     var c = info.Consignee || info;
     var firstName = c.consigneename || c.ConsigneeName || '';
     var lastName1 = c.consigneelastname1 || c.ConsigneeLastName1 || '';

@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css?v=5">
     <link rel="stylesheet" href="css/responsive.css?v=14">
-    <link rel="stylesheet" href="css/dashboard.css?v=4">
+    <link rel="stylesheet" href="css/dashboard.css?v=5">
 </head>
 <body class="bg-gray-50">
     <!-- Google Tag Manager (noscript) -->
@@ -229,6 +229,26 @@
                             </span>
                         </div>
                     </div>
+                </div>
+
+                <!-- Setup Mode Banner (shown when arriving from activation checklist) -->
+                <div id="setup-banner" class="setup-banner hidden" role="status" aria-live="polite">
+                    <div class="setup-banner-icon">
+                        <i class="fas fa-magic-wand-sparkles"></i>
+                    </div>
+                    <div class="setup-banner-body">
+                        <span class="setup-banner-eyebrow">Modo configuración</span>
+                        <h3 class="setup-banner-title" id="setup-banner-title">Termina de configurar tu cuenta</h3>
+                        <p class="setup-banner-text" id="setup-banner-text">Revisa y guarda los datos en esta sección para activar tu casillero.</p>
+                        <div class="setup-banner-links" id="setup-banner-links">
+                            <a href="?setup=1&amp;tab=personal-info" class="setup-banner-link" data-target="personal-info"><i class="fas fa-user mr-1.5"></i>Información personal</a>
+                            <a href="?setup=1&amp;tab=address-info" class="setup-banner-link" data-target="address-info"><i class="fas fa-map-marker-alt mr-1.5"></i>Dirección de entrega</a>
+                            <a href="?setup=1&amp;tab=security" class="setup-banner-link" data-target="security"><i class="fas fa-shield-alt mr-1.5"></i>Seguridad</a>
+                        </div>
+                    </div>
+                    <button type="button" id="setup-banner-dismiss" class="setup-banner-dismiss" aria-label="Cerrar">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
 
                 <div class="account-inner-tab-strip">
@@ -549,30 +569,83 @@
             // Tab navigation
             const tabButtons = document.querySelectorAll('.account-tab-btn');
             const tabContents = document.querySelectorAll('.account-tab');
-            
+
+            function activateTab(tabName) {
+                if (!tabName) return;
+                const target = document.getElementById(tabName + '-tab');
+                if (!target) return;
+                tabContents.forEach(tab => tab.classList.add('hidden'));
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('text-orange-600', 'border-orange-600');
+                    btn.classList.add('text-gray-600', 'border-transparent');
+                });
+                target.classList.remove('hidden');
+                const matchBtn = document.querySelector('.account-tab-btn[data-tab="' + tabName + '"]');
+                if (matchBtn) {
+                    matchBtn.classList.add('text-orange-600', 'border-orange-600');
+                    matchBtn.classList.remove('text-gray-600', 'border-transparent');
+                }
+            }
+
             tabButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    const tabName = this.getAttribute('data-tab');
-                    
-                    // Hide all tabs
-                    tabContents.forEach(tab => {
-                        tab.classList.add('hidden');
-                    });
-                    
-                    // Remove active class from all buttons
-                    tabButtons.forEach(btn => {
-                        btn.classList.remove('text-orange-600', 'border-orange-600');
-                        btn.classList.add('text-gray-600', 'border-transparent');
-                    });
-                    
-                    // Show selected tab
-                    document.getElementById(tabName + '-tab').classList.remove('hidden');
-                    
-                    // Add active class to clicked button
-                    this.classList.add('text-orange-600', 'border-orange-600');
-                    this.classList.remove('text-gray-600', 'border-transparent');
+                    activateTab(this.getAttribute('data-tab'));
                 });
             });
+
+            // ── Setup-mode banner: triggered by ?setup=1 (and optional &tab=) ──
+            (function initSetupMode() {
+                const params = new URLSearchParams(location.search);
+                const setupFlag = params.get('setup') === '1';
+                if (!setupFlag) return;
+
+                const banner = document.getElementById('setup-banner');
+                if (banner) banner.classList.remove('hidden');
+
+                const requestedTab = params.get('tab');
+                const tabCopy = {
+                    'personal-info': {
+                        title: 'Verifica tu información personal',
+                        text:  'Confirma tu nombre, correo, identificación y teléfono. Estos datos los necesitamos para entregarte y facturarte tus paquetes.'
+                    },
+                    'address-info': {
+                        title: 'Confirma tu dirección de entrega',
+                        text:  'Aunque retires en sucursal, necesitamos esta dirección para tu factura electrónica. También define aquí tu sucursal preferida.'
+                    },
+                    'security': {
+                        title: 'Asegura tu cuenta',
+                        text:  'Cambia tu contraseña inicial por una nueva si lo prefieres. Mantenla privada para proteger tu casillero.'
+                    },
+                    'notifications': {
+                        title: 'Configura tus notificaciones',
+                        text:  'Elige cómo quieres recibir avisos sobre el estado de tus paquetes.'
+                    }
+                };
+                if (requestedTab && tabCopy[requestedTab]) {
+                    activateTab(requestedTab);
+                    const titleEl = document.getElementById('setup-banner-title');
+                    const textEl  = document.getElementById('setup-banner-text');
+                    if (titleEl) titleEl.textContent = tabCopy[requestedTab].title;
+                    if (textEl)  textEl.textContent  = tabCopy[requestedTab].text;
+                    // Highlight the matching link inside the banner
+                    document.querySelectorAll('.setup-banner-link').forEach(function (a) {
+                        a.classList.toggle('is-current', a.getAttribute('data-target') === requestedTab);
+                    });
+                }
+
+                const dismissBtn = document.getElementById('setup-banner-dismiss');
+                if (dismissBtn && banner) {
+                    dismissBtn.addEventListener('click', function () {
+                        banner.classList.add('hidden');
+                        try {
+                            const url = new URL(location.href);
+                            url.searchParams.delete('setup');
+                            url.searchParams.delete('tab');
+                            history.replaceState(null, '', url.toString());
+                        } catch (e) { /* ignore */ }
+                    });
+                }
+            })();
             
             // Toggle password visibility
             const togglePasswordButtons = document.querySelectorAll('.toggle-password');
