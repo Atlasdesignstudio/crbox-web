@@ -862,15 +862,6 @@
                 });
             }
             
-            // Search functionality
-            const searchForm = document.querySelector('.bg-white.rounded-xl.p-6.shadow-sm form');
-            if (searchForm) {
-                searchForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    // Form submission logic would go here
-                });
-            }
-            
             // Table pagination (if there were actual data)
             const pageButtons = document.querySelectorAll('.h-8.w-8');
             if (pageButtons.length) {
@@ -1161,6 +1152,9 @@
           var rPhysGreater = (r.totalweight >= r.totalvolumetricweight);
           var rPhysLabel = rPhysGreater ? ' <span class="text-xs text-gray-400">(peso facturado)</span>' : '';
           var rVolLabel = !rPhysGreater ? ' <span class="text-xs text-gray-400">(peso facturado)</span>' : '';
+          var pkgLink = r.number
+            ? '<a href="mis-paquetes.html?receipt=' + encodeURIComponent(r.number) + '" class="text-blue-600 hover:text-blue-800 hover:underline whitespace-nowrap text-sm">Ver paquete &rarr;</a>'
+            : '<span class="text-gray-400 text-sm">&mdash;</span>';
           return '<tr>' +
             '<td data-label="Recibo" class="px-3 py-2 text-sm font-medium text-gray-900">' + _esc(_orDash(r.number)) + '</td>' +
             '<td data-label="Estado" class="px-3 py-2 text-sm text-gray-700">' + _esc(_orDash(r.statusname)) + '</td>' +
@@ -1169,6 +1163,7 @@
             '<td data-label="Carrier" class="px-3 py-2 text-sm text-gray-700">' + _esc(_orDash(r.carriername)) + '</td>' +
             '<td data-label="Peso" class="px-3 py-2 text-sm text-right text-gray-700">' + _esc(_fmtNum(r.totalweight)) + rPhysLabel + '</td>' +
             '<td data-label="Peso vol." class="px-3 py-2 text-sm text-right text-gray-700">' + _esc(_fmtNum(r.totalvolumetricweight)) + rVolLabel + '</td>' +
+            '<td data-label="Paquete" class="px-3 py-2 text-center">' + pkgLink + '</td>' +
           '</tr>';
         }).join('');
         var consolidationLine = '';
@@ -1194,6 +1189,7 @@
                   '<th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Carrier</th>' +
                   '<th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Peso</th>' +
                   '<th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Peso vol.</th>' +
+                  '<th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Paquete</th>' +
                 '</tr>' +
               '</thead>' +
               '<tbody class="divide-y divide-gray-100 bg-white">' + rows + '</tbody>' +
@@ -1314,6 +1310,15 @@
             _loadBills(email, _getStart(), _getEnd());
           });
         }
+
+        // Enter key on date inputs triggers the same reload as clicking Buscar Facturas.
+        [document.getElementById('bills-date-from'), document.getElementById('bills-date-to')]
+          .forEach(function (el) {
+            if (!el) return;
+            el.addEventListener('keydown', function (e) {
+              if (e.key === 'Enter') { e.preventDefault(); _loadBills(email, _getStart(), _getEnd()); }
+            });
+          });
 
         // Real refresh — reuses the same loader and ties the spinner /
         // disabled state to the actual request lifecycle (no fixed

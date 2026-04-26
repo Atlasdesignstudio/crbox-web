@@ -2010,6 +2010,9 @@
       var _currentModalPkg = null;
       var _currentPage = 1;
       var _allSortedPackages = [];
+      // Set on page-load when navigated here via ?receipt=<num> from Mis Facturas.
+      // Consumed once during the first _loadPackages response, then cleared.
+      var _receiptQueryParam = '';
       var EM_DASH = '—';
 
       function _statusClass(pkg) {
@@ -2289,12 +2292,38 @@
             '</div>' +
           '</div>';
 
+        // Split EN ESPERA (statusId 6) from others so they pin to the top.
+        // A section header is only injected when both groups are non-empty —
+        // if the active tab already filters to EN ESPERA only, no header is needed.
+        var _esperaItems = pagedWithIdx.filter(function(x) { return x.pkg.statusId === 6; });
+        var _otherItems  = pagedWithIdx.filter(function(x) { return x.pkg.statusId !== 6; });
+        var _showEsperaHeader = _esperaItems.length > 0 && _otherItems.length > 0;
+
+        function _buildRenderable(items) {
+          var combined = [];
+          if (_showEsperaHeader) {
+            combined.push({ isEsperaHeader: true });
+            for (var _ei = 0; _ei < _esperaItems.length; _ei++) combined.push(_esperaItems[_ei]);
+            var _mawbGrouped = _groupByMawb(_otherItems);
+            for (var _oi = 0; _oi < _mawbGrouped.length; _oi++) combined.push(_mawbGrouped[_oi]);
+          } else {
+            combined = _groupByMawb(items);
+          }
+          return combined;
+        }
+
         if (tbody) {
           if (filteredCount === 0) {
             tbody.innerHTML = _emptyListHtml;
           } else {
-            var groupedRows = _groupByMawb(pagedWithIdx);
+            var groupedRows = _buildRenderable(pagedWithIdx);
             tbody.innerHTML = groupedRows.map(function(x) {
+              if (x.isEsperaHeader) {
+                return '<tr class="bg-yellow-50 border-t-2 border-yellow-100">' +
+                  '<td colspan="14" class="px-4 py-1.5 text-xs font-semibold text-yellow-700 tracking-wide">' +
+                  '<i class="fas fa-clock mr-1.5"></i>Paquetes en espera' +
+                  '</td></tr>';
+              }
               if (x.isHeader) {
                 return '<tr class="bg-blue-50 border-t-2 border-blue-100">' +
                   '<td colspan="14" class="px-4 py-1.5 text-xs font-semibold text-blue-600 tracking-wide">' +
@@ -2309,8 +2338,14 @@
           if (filteredCount === 0) {
             gridView.innerHTML = _emptyGridHtml;
           } else {
-            var groupedCards = _groupByMawb(pagedWithIdx);
+            var groupedCards = _buildRenderable(pagedWithIdx);
             gridView.innerHTML = groupedCards.map(function(x) {
+              if (x.isEsperaHeader) {
+                return '<div class="col-span-full pt-2 pb-1 border-t-2 border-yellow-100">' +
+                  '<span class="text-xs font-semibold text-yellow-700 tracking-wide">' +
+                  '<i class="fas fa-clock mr-1"></i>Paquetes en espera' +
+                  '</span></div>';
+              }
               if (x.isHeader) {
                 return '<div class="col-span-full pt-2 pb-0 border-t-2 border-blue-100">' +
                   '<span class="text-xs font-semibold text-blue-600 tracking-wide">' +
@@ -2427,8 +2462,18 @@
           var raw = Array.isArray(data) ? data : (data.packages || data.Packages || []);
           var packages = raw.map(function (r) { return CRBOXPortalAPI.mapPackage(r); });
           _cachedPackages = packages;
-          _renderStats(packages);
-          _renderAll(packages, true);
+
+          // ?receipt= deep-link: client-side filter on warehouse receipt number.
+          // Consumed once; cleared so subsequent filter changes show all packages.
+          var _displayPackages = packages;
+          if (_receiptQueryParam) {
+            var _rMatched = packages.filter(function (p) { return p.number === _receiptQueryParam; });
+            if (_rMatched.length > 0) _displayPackages = _rMatched;
+            _receiptQueryParam = '';
+          }
+
+          _renderStats(_displayPackages);
+          _renderAll(_displayPackages, true);
         })
         .catch(function (err) {
           if (err && err.isAuthError) return; // redirect already in flight
@@ -2629,6 +2674,20 @@
 
       function _initPage() {
         if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
+
+        // ?receipt=<num> — navigated here from a Mis Facturas recibo row.
+        // Pre-fill the search input as a visual cue; then load all packages and
+        // client-side filter by pkg.number so the result is reliable regardless
+        // of whether the server-side `tracking` param accepts receipt numbers.
+        try {
+          var _rqp = new URLSearchParams(window.location.search).get('receipt') || '';
+          _receiptQueryParam = _rqp.trim();
+        } catch (e) { _receiptQueryParam = ''; }
+        if (_receiptQueryParam) {
+          var _siEl = document.getElementById('search-input');
+          if (_siEl) _siEl.value = _receiptQueryParam;
+        }
+
         CRBOXPortalAPI.getUserInfo()
           .then(function (info) {
             var idConsignee = _applyHeader(info);

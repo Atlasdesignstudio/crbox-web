@@ -95,6 +95,7 @@ Key CSS layers:
 - **Copy button**: pill-shaped with `bg-white/15` frosted treatment; `active:scale-95` press feedback; no tap highlight
 - **Mis Facturas expanded view**: on mobile, the 7-column nested recibo table becomes stacked key-value mini-cards (CSS display:block technique + `data-label` attributes)
 - **Mis Paquetes**: edit button (`btn-edit`) removed from list view, grid view, and event handler
+- **Factura → Paquete navigation (Task #126)**: each recibo row in the expanded factura detail table has a "Ver paquete →" link pointing to `mis-paquetes.html?receipt=<r.number>` (URI-encoded). Mis Paquetes reads the `?receipt=` URL param on init, pre-fills `#search-input`, and post-filters `_cachedPackages` client-side by `pkg.number === receiptParam` (Path B — API does not accept receipt numbers in the tracking search param). Link is omitted when `r.number` is null/empty.
 - **Mi Cuenta profile header**: orange gradient `.profile-banner` band at top of card; `.profile-avatar` floats up with `margin-top: -2rem` to overlap banner; white `border + box-shadow` ring for depth
 - **Mi Cuenta account-section-title**: elevated from tiny uppercase eyebrow (0.6875rem gray) to 0.9375rem gray-800 heading with `border-bottom: 1px solid #F3F4F6` separator; specificity overrides for `mb-0` / `mb-4` Tailwind combinations
 - **Mi Cuenta coming-soon blocks**: replaced `bg-gray-50 border-gray-200` with `.account-coming-soon` (amber-50 tint, orange clock icon)
