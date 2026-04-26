@@ -829,10 +829,9 @@
                     <p class="text-sm text-gray-800" id="modal-notes">—</p>
                 </div>
 
-                <h5 class="text-sm font-medium text-gray-500 mb-2">Historial de Rastreo</h5>
-                <div id="modal-history" class="bg-gray-50 rounded-lg p-4 text-center text-gray-500">
-                    <i class="fas fa-history text-2xl text-gray-300 mb-2 block"></i>
-                    <p class="text-sm">No hay eventos de rastreo disponibles.</p>
+                <h5 class="text-sm font-medium text-gray-500 mb-2">Estado actual</h5>
+                <div id="modal-stage-explanation" class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-700" id="modal-stage-text"></p>
                 </div>
                 
                 <div class="mt-6 flex justify-between">
@@ -2041,13 +2040,45 @@
         return CRBOXPortalAPI.formatDate(d);
       }
 
+      function _stageExplanation(statusId, consigneeSucursalName, isDomicilio) {
+        var id = Number(statusId);
+        if (id === 1) {
+          return 'Tu paquete está en nuestra bodega en Miami esperando el próximo envío a Costa Rica.';
+        }
+        if (id === 2 || id === 3 || id === 4) {
+          return 'Tu paquete está en camino a Costa Rica.';
+        }
+        if (id === 5) {
+          if (isDomicilio) {
+            return 'Tu paquete llegó a nuestra bodega. Nos coordinaremos contigo para la entrega a domicilio.';
+          }
+          var branchName = (consigneeSucursalName && String(consigneeSucursalName).trim())
+            ? String(consigneeSucursalName).trim()
+            : 'tu sucursal';
+          return 'Tu paquete ya llegó a ' + branchName + '. Contacta a CRBOX para coordinar el retiro.';
+        }
+        if (id === 6) {
+          return 'Tu paquete está en espera. Para más información, contacta a CRBOX.';
+        }
+        if (id === 7) {
+          return 'Tu paquete fue entregado. Si tienes preguntas sobre la factura, visita Mis Facturas.';
+        }
+        return '';
+      }
+
       function _renderRow(pkg, idx) {
         var statusKey = _statusKey(pkg);
         var dateStr   = _fmtDate(pkg.bestDate);
+        var showSucursal = (pkg.statusId === 5 || pkg.statusId === 6) &&
+                           pkg.consigneeSucursalName && String(pkg.consigneeSucursalName).trim();
+        var sucursalLabel = showSucursal
+          ? '<span class="block text-xs text-gray-500 mt-1">' + _esc(String(pkg.consigneeSucursalName).trim()) + '</span>'
+          : '';
         return '<tr class="border-b border-gray-100 hover:bg-orange-50 transition-all"' +
                ' data-status="' + _esc(statusKey) + '" data-date="' + _esc(pkg.bestDate || '') + '" data-pkg-idx="' + idx + '">' +
           '<td class="px-4 py-4 whitespace-nowrap">' +
             '<span class="status-badge ' + _statusClass(pkg) + '">' + _esc(statusKey) + '</span>' +
+            sucursalLabel +
           '</td>' +
           '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">' + _esc(_orDash(pkg.masterAirShipmentNumber)) + '</td>' +
           '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">' + _esc(_orDash(pkg.airShipmentNumber)) + '</td>' +
@@ -2087,6 +2118,9 @@
         var weight    = (pkg.totalweight !== null && pkg.totalweight !== undefined) ? _fmtNum(pkg.totalweight, 'kg') : '';
         var volw      = (pkg.totalvolumetricweight !== null && pkg.totalvolumetricweight !== undefined) ? _fmtNum(pkg.totalvolumetricweight, 'kg vol.') : '';
         var notes     = pkg.consigneeNotes;
+        var sucursal  = ((pkg.statusId === 5 || pkg.statusId === 6) &&
+                         pkg.consigneeSucursalName && String(pkg.consigneeSucursalName).trim())
+                        ? String(pkg.consigneeSucursalName).trim() : '';
 
         var detailsLine = function(icon, text) {
           if (!text) return '';
@@ -2118,6 +2152,7 @@
                 detailsLine('fa-weight', weight) +
                 detailsLine('fa-balance-scale', volw) +
                 detailsLine('fa-info-circle', notes) +
+                detailsLine('fa-store', sucursal) +
               '</div>' +
             '</div>' +
             '<div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">' +
@@ -2281,10 +2316,14 @@
         _txt('mobile-casillero-badge','Casillero #' + casillero);
         _cachedFullName     = fullName;
         _cachedCasilleroNum = casillero;
+        var suc = c.sucursal || c.Sucursal || {};
+        var sucId = Number(suc.idsucursal || suc.IdSucursal || 0);
+        _cachedIsDomicilio = (sucId === 13);
         return c.idconsignee || c.IdConsignee;
       }
 
       var _cachedConsigneeId  = null;
+      var _cachedIsDomicilio  = false;
       /* _cachedFullName and _cachedCasilleroNum are declared globally above the first <script> block */
 
       function _dateFilterToDate(val) {
@@ -2412,30 +2451,9 @@
           statusEl.className = 'status-badge ' + _statusClass(pkg);
         }
 
-        // Historial de Rastreo: el payload no expone un arreglo de eventos.
-        // Si en el futuro lo expone (pkg.trackingEvents), los renderizamos;
-        // de lo contrario mantenemos el estado vacío honesto.
-        var historyEl = document.getElementById('modal-history');
-        if (historyEl) {
-          var realEvents = Array.isArray(pkg.trackingEvents) ? pkg.trackingEvents : [];
-          if (realEvents.length > 0) {
-            historyEl.className = 'border border-gray-200 rounded-lg divide-y divide-gray-100 bg-white';
-            historyEl.innerHTML = realEvents.map(function (ev) {
-              var when = ev.date ? CRBOXPortalAPI.formatDate(new Date(ev.date)) : EM_DASH;
-              return '<div class="flex items-start justify-between p-3">' +
-                '<div>' +
-                  '<p class="text-sm font-medium text-gray-800">' + _esc(ev.label || '') + '</p>' +
-                  '<p class="text-xs text-gray-500">' + _esc(when) + '</p>' +
-                '</div>' +
-                '<i class="fas fa-check-circle text-green-500"></i>' +
-              '</div>';
-            }).join('');
-          } else {
-            historyEl.className = 'bg-gray-50 rounded-lg p-4 text-center text-gray-500';
-            historyEl.innerHTML =
-              '<i class="fas fa-history text-2xl text-gray-300 mb-2 block"></i>' +
-              '<p class="text-sm">No hay eventos de rastreo disponibles.</p>';
-          }
+        var stageTextEl = document.getElementById('modal-stage-text');
+        if (stageTextEl) {
+          stageTextEl.textContent = _stageExplanation(pkg.statusId, pkg.consigneeSucursalName, _cachedIsDomicilio);
         }
 
         detailsModal.classList.remove('hidden');
