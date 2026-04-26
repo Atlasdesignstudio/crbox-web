@@ -834,6 +834,11 @@
                 <div id="modal-stage-explanation" class="bg-gray-50 rounded-lg p-4">
                     <p class="text-sm text-gray-700" id="modal-stage-text"></p>
                 </div>
+
+                <div id="modal-mawb-note" class="hidden mt-3 flex items-center text-sm text-blue-700 bg-blue-50 rounded-lg px-4 py-2">
+                    <i class="fas fa-layer-group mr-2 text-blue-500 flex-shrink-0"></i>
+                    <span id="modal-mawb-note-text"></span>
+                </div>
                 
                 <div class="mt-6 flex justify-between">
                     <button class="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-lg transition-all flex items-center">
@@ -2213,6 +2218,27 @@
         if (nextBtn) { nextBtn.disabled = currentPage >= totalPages; }
       }
 
+      function _groupByMawb(items) {
+        var mawbCount = {};
+        for (var _gi = 0; _gi < items.length; _gi++) {
+          var _gm = items[_gi].pkg.masterAirShipmentNumber;
+          _gm = (_gm && String(_gm).trim()) || '';
+          if (_gm) mawbCount[_gm] = (mawbCount[_gm] || 0) + 1;
+        }
+        var result = [];
+        var seenMawb = {};
+        for (var _gj = 0; _gj < items.length; _gj++) {
+          var _gmawb = items[_gj].pkg.masterAirShipmentNumber;
+          _gmawb = (_gmawb && String(_gmawb).trim()) || '';
+          if (_gmawb && mawbCount[_gmawb] >= 2 && !seenMawb[_gmawb]) {
+            seenMawb[_gmawb] = true;
+            result.push({ isHeader: true, mawb: _gmawb });
+          }
+          result.push(items[_gj]);
+        }
+        return result;
+      }
+
       function _renderAll(packages, resetPage) {
         var sortEl   = document.getElementById('sort-by');
         var sortVal  = sortEl ? sortEl.value : 'recent';
@@ -2267,14 +2293,32 @@
           if (filteredCount === 0) {
             tbody.innerHTML = _emptyListHtml;
           } else {
-            tbody.innerHTML = pagedWithIdx.map(function(x) { return _renderRow(x.pkg, x.idx); }).join('');
+            var groupedRows = _groupByMawb(pagedWithIdx);
+            tbody.innerHTML = groupedRows.map(function(x) {
+              if (x.isHeader) {
+                return '<tr class="bg-blue-50 border-t-2 border-blue-100">' +
+                  '<td colspan="14" class="px-4 py-1.5 text-xs font-semibold text-blue-600 tracking-wide">' +
+                  '<i class="fas fa-layer-group mr-1.5"></i>Embarque ' + _esc(x.mawb) +
+                  '</td></tr>';
+              }
+              return _renderRow(x.pkg, x.idx);
+            }).join('');
           }
         }
         if (gridView) {
           if (filteredCount === 0) {
             gridView.innerHTML = _emptyGridHtml;
           } else {
-            gridView.innerHTML = pagedWithIdx.map(function(x) { return _renderGridCard(x.pkg, x.idx); }).join('');
+            var groupedCards = _groupByMawb(pagedWithIdx);
+            gridView.innerHTML = groupedCards.map(function(x) {
+              if (x.isHeader) {
+                return '<div class="col-span-full pt-2 pb-0 border-t-2 border-blue-100">' +
+                  '<span class="text-xs font-semibold text-blue-600 tracking-wide">' +
+                  '<i class="fas fa-layer-group mr-1"></i>Embarque ' + _esc(x.mawb) +
+                  '</span></div>';
+              }
+              return _renderGridCard(x.pkg, x.idx);
+            }).join('');
           }
         }
 
@@ -2468,6 +2512,33 @@
         var stageTextEl = document.getElementById('modal-stage-text');
         if (stageTextEl) {
           stageTextEl.textContent = _stageExplanation(pkg.statusId, pkg.consigneeSucursalName, _cachedIsDomicilio);
+        }
+
+        var mawbNoteEl     = document.getElementById('modal-mawb-note');
+        var mawbNoteTextEl = document.getElementById('modal-mawb-note-text');
+        if (mawbNoteEl) {
+          var _mawb = pkg.masterAirShipmentNumber && String(pkg.masterAirShipmentNumber).trim();
+          var _siblings = 0;
+          if (_mawb && _cachedPackages) {
+            for (var _mi = 0; _mi < _cachedPackages.length; _mi++) {
+              var _mp = _cachedPackages[_mi];
+              if (_mp !== pkg &&
+                  _mp.masterAirShipmentNumber &&
+                  String(_mp.masterAirShipmentNumber).trim() === _mawb) {
+                _siblings++;
+              }
+            }
+          }
+          if (_siblings > 0) {
+            if (mawbNoteTextEl) {
+              mawbNoteTextEl.textContent = _siblings === 1
+                ? 'Este paquete viaja en el mismo embarque que otro paquete tuyo.'
+                : 'Este paquete viaja en el mismo embarque que otros ' + _siblings + ' paquetes tuyos.';
+            }
+            mawbNoteEl.classList.remove('hidden');
+          } else {
+            mawbNoteEl.classList.add('hidden');
+          }
         }
 
         detailsModal.classList.remove('hidden');
