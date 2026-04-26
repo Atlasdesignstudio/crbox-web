@@ -102,6 +102,27 @@ Key CSS layers:
 - **Mi Cuenta inner tab strip**: `.account-inner-tab-strip` provides `bg-gray-50` tray; intentionally kept as bottom-border (distinct from portal-level pill nav)
 - **Mi Cuenta delete account**: `.account-danger-zone` with `border: 1px solid #FEE2E2` and `border-left: 4px solid #FCA5A5` red accent
 
+## Server (`server.py`)
+
+Static file server on port 5000 (`python3 server.py`). One custom POST endpoint:
+
+| Path | Method | Purpose |
+|------|--------|---------|
+| `/crbox-svc-token` | POST | Authenticates with the CRBOX service account (credentials from env vars) and returns `{ access_token }`. Browser never sees the raw credentials. |
+
+**Required env vars / secrets:**
+
+| Secret | Description |
+|--------|-------------|
+| `CRBOX_SVC_EMAIL` | Email of the CRBOX service account used to authorize new-user registration |
+| `CRBOX_SVC_PASSWORD` | Password for the service account above |
+
+**Why the proxy exists:** The CRBOX registration endpoint (`postregisteruser`) requires a valid Bearer token from an already-authenticated account. The browser calls `/crbox-svc-token`, receives only the time-limited token, then posts the registration payload with `Authorization: Bearer <token>`. Raw service-account credentials never appear in client-side code or logs.
+
+**Abuse controls on `/crbox-svc-token`:**
+- **Origin validation** — if the browser sends an `Origin` header, its host must match the `Host` header (same-origin). Mismatched origin → 403. Requests without `Origin` (e.g., server-side tools) pass through.
+- **IP rate limiting** — max 5 successful calls per IP per 60-second sliding window → 429 after limit. Implemented with an in-memory dict (`_rate_window`) guarded by a `threading.Lock`.
+
 ## Signup & Activation Flow (Task #113)
 
 **Signup (`afiliate.html`)** — segmented tab strip switches between *Personal* and *Business*.

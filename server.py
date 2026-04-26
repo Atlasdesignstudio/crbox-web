@@ -1,11 +1,31 @@
 #!/usr/bin/env python3
 import os
 import json
+import time
+import threading
 import urllib.request
 import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 CRBOX_AUTH_URL = 'https://clients.crbox.cr/authtoken'
+
+_rate_lock   = threading.Lock()
+_rate_window = {}
+
+_RATE_LIMIT   = 5
+_RATE_SECONDS = 60
+
+
+def _check_rate_limit(ip):
+    now = time.monotonic()
+    with _rate_lock:
+        timestamps = _rate_window.get(ip, [])
+        timestamps = [t for t in timestamps if now - t < _RATE_SECONDS]
+        if len(timestamps) >= _RATE_LIMIT:
+            return False
+        timestamps.append(now)
+        _rate_window[ip] = timestamps
+        return True
 
 
 class NoCacheHandler(SimpleHTTPRequestHandler):
@@ -25,17 +45,31 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
+    def _json_error(self, status, message):
+        self.send_response(status)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'error': message}).encode())
+
     def _handle_svc_token(self):
+        origin = self.headers.get('Origin', '')
+        host   = self.headers.get('Host', '')
+        if origin and host:
+            origin_host = origin.split('://', 1)[-1].rstrip('/')
+            if origin_host != host:
+                self._json_error(403, 'Forbidden')
+                return
+
+        client_ip = self.client_address[0]
+        if not _check_rate_limit(client_ip):
+            self._json_error(429, 'Too many requests. Please wait a moment and try again.')
+            return
+
         svc_email = os.environ.get('CRBOX_SVC_EMAIL', '')
         svc_pass  = os.environ.get('CRBOX_SVC_PASSWORD', '')
 
         if not svc_email or not svc_pass:
-            self.send_response(503)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                'error': 'Service account not configured. Set CRBOX_SVC_EMAIL and CRBOX_SVC_PASSWORD.'
-            }).encode())
+            self._json_error(503, 'Service account not configured.')
             return
 
         body = urllib.parse.urlencode({
@@ -61,10 +95,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'access_token': token}).encode())
         except Exception as e:
-            self.send_response(502)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({'error': str(e)}).encode())
+            self._json_error(502, 'Upstream authentication failed.')
 
 
 if __name__ == "__main__":
