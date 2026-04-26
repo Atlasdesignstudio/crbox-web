@@ -1528,3 +1528,184 @@ textarea:focus-visible {
     transition: background 0.15s ease;
 }
 .setup-banner-dismiss:hover { background: #fff; }
+
+/* ─── Delivery option cards (afiliate.html Step 3) ────────────────── */
+.delivery-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+@media (min-width: 640px) {
+    .delivery-cards { grid-template-columns: 1fr 1fr; }
+}
+.delivery-card {
+    position: relative;
+    text-align: left;
+    padding: 16px 18px 14px;
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 116px;
+    color: #1f2937;
+}
+.delivery-card:hover {
+    border-color: #fdba74;
+    background: #fff7ed;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px -8px rgba(234, 88, 12, 0.25);
+}
+.delivery-card:focus-visible {
+    outline: 2px solid #ea580c;
+    outline-offset: 2px;
+}
+.delivery-card.is-selected {
+    border-color: #ea580c;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    box-shadow: 0 8px 24px -10px rgba(234, 88, 12, 0.45);
+}
+.delivery-card.is-selected::after {
+    content: "\f00c";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: absolute;
+    top: 12px; right: 12px;
+    width: 22px; height: 22px;
+    background: #ea580c;
+    color: #fff;
+    border-radius: 9999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px;
+}
+.delivery-card-icon {
+    width: 38px; height: 38px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fff7ed;
+    color: #ea580c;
+    border-radius: 10px;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+.delivery-card.is-selected .delivery-card-icon { background: #fff; }
+.delivery-card-title {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: #111827;
+}
+.delivery-card-meta {
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+.delivery-card-tag {
+    display: inline-block;
+    margin-top: 6px;
+    align-self: flex-start;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    background: #dcfce7;
+    color: #166534;
+    padding: 3px 8px;
+    border-radius: 9999px;
+}
+.delivery-card-tag-alt { background: #fef3c7; color: #92400e; }
+.delivery-cards-help {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 16px;
+}
+
+/* ─── Activation toast (dashboard one-time congrats) ──────────────── */
+.activation-toast {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #fff;
+    border: 1.5px solid #fed7aa;
+    border-left: 4px solid #ea580c;
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 18px 40px -16px rgba(0,0,0,0.25);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    max-width: calc(100vw - 32px);
+    z-index: 60;
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.activation-toast.is-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.activation-toast-icon {
+    width: 32px; height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fff7ed;
+    color: #ea580c;
+    border-radius: 9999px;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.activation-toast-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1f2937;
+}
+.activation-toast-close {
+    width: 26px; height: 26px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.activation-toast-close:hover { background: #f3f4f6; color: #374151; }
+
+/* ─── Setup-mode field emphasis (Mi Cuenta ?setup=1) ─────────────── */
+.setup-emphasis-wrap {
+    position: relative;
+    padding: 10px;
+    margin: -10px -10px 6px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(254, 215, 170, 0.18) 0%, rgba(254, 215, 170, 0) 100%);
+    transition: background 0.2s ease;
+}
+.setup-emphasis-wrap::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 12px; bottom: 12px;
+    width: 3px;
+    background: #ea580c;
+    border-radius: 0 3px 3px 0;
+}
+.setup-emphasis {
+    border-color: #fdba74 !important;
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12) !important;
+}
+.setup-emphasis:focus,
+.setup-emphasis:focus-visible {
+    border-color: #ea580c !important;
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.25) !important;
+}
+
+.setup-active-tab {
+    /* Active tab in setup mode dominates focus; no other surfaces compete. */
+    animation: setupTabPop 0.35s ease both;
+}
+@keyframes setupTabPop {
+    0%   { opacity: 0.65; transform: translateY(4px); }
+    100% { opacity: 1;    transform: translateY(0);  }
+}
+
+.setup-cta {
+    box-shadow: 0 10px 22px -10px rgba(234, 88, 12, 0.55);
+}

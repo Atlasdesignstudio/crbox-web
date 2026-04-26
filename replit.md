@@ -105,28 +105,29 @@ Key CSS layers:
 
 **Signup (`afiliate.html`)** — segmented tab strip switches between *Personal* and *Business*.
 - Personal: 3-step stepper (`.signup-stepper` + `.signup-step-panel` panels)
-  1. Personal info — `first_name`, `last_name`, `email`, `id_type`, `id_number`, `phone_number[]` (single, hidden `phone_type[]=movil`), `password`
-  2. Delivery in CR — `delivery_service[]` (sucursal or `domicilio`), single residential address (hidden `address_type[]=residencial`), `province[]/canton[]/district[]`, optional `postal_code[]`, `neighborhood[]`, required `address_details[]`
-  3. Confirm — auto-rendered summary, optional `promo_code`, required `terms`, optional `newsletter`
-- Submit handler is unchanged (still flattens via `paramsFromForm`); on `OK` it calls `showRegSuccess(form, email, password)` which sets `localStorage.crbox_onboarding='1'`, attempts `CRBOXAuth.doLogin(email, password, true)`, and on success redirects to `dashboard.html?onboarding=1`. On failure it falls back to a "Iniciar Sesión →" link with email pre-filled.
-- Business: contact-card CTA (WhatsApp `wa.me/50689794418` + `mailto:ventas@crbox.cr`); the old empresa form, its submit handler, and the SweetAlert2 loader were removed.
+  1. **Cuenta** — `first_name`, `last_name`, `email`, `password`, `password_confirm`, optional `promo_code`
+  2. **Identidad** — `id_type`, `id_number`, single `phone_number[]` (hidden `phone_type[]=movil`)
+  3. **Entrega + términos** — visual `.delivery-cards` radio group (4 cards) writes `delivery_service[]` to a hidden input. Picking a sucursal (`sabana_norte` / `guadalupe` / `guachipelin_escazu`) silently fills the single hidden `.address-entry` from the `BRANCH_ADDRESSES` constant (INEC-verified provincia/cantón/distrito); picking `domicilio` reveals `#domicilio-address-form` for `province[]`/`canton[]`/`district[]` + optional `postal_code[]`/`neighborhood[]` + required `address_details[]` (flagged via `data-domicilio-required`). Submit (`#signup-submit-btn`) is disabled until a card is chosen. `terms` required; `newsletter` optional.
+- Stepper navigation validates per step (passwords match on step 1; ID-number Luhn-style not enforced; on step 3 it requires a card and any visible domicilio fields).
+- On `OK` from registration, `showRegSuccess(form, email, password)` sets `localStorage.crbox_onboarding='1'` and attempts `CRBOXAuth.doLogin(email, password, true)`. Errors are routed through `classifyAuthError`: `TypeError` / "failed to fetch" / timeout → **network** → soft fallback panel with "Iniciar Sesión →"; everything else (HTTP errors, malformed token, lifecycle issues) → **lifecycle** → amber `showLifecycleFailure` panel with the raw error detail and a manual login link. Auto-login success redirects to `dashboard.html?onboarding=1`.
+- Business tab is now a contact card (WhatsApp `wa.me/50689794418` + `mailto:ventas@crbox.cr`); the empresa form, its submit handler, and the SweetAlert2 loader were removed.
 
 **Account state model (client-side)** — derived from `getUserInfo()` response:
-- `incomplete` — missing any of: name, identification number, at least one phone, at least one address
-- `activated` — all of the above present
+- `created` — barebones record: name + email only
+- `incomplete` — has name + ID number but missing phone or address
+- `activated` — name + ID + ≥1 phone + ≥1 address all present
 
-**Dashboard activation card** (`#activation-card` in `dashboard.html`) — appears above the welcome banner when:
-- `?onboarding=1` is in the URL, **or**
-- `localStorage.crbox_onboarding === '1'`, **or**
-- `getUserInfo()` returns an `incomplete` profile
+**Dashboard activation checklist** (`#activation-card` in `dashboard.html`) — **non-dismissable**. Visible whenever `_accountStateFrom(info)` returns `created` or `incomplete`. Hides only when state is `activated`, at which point a one-time `#activation-toast` slides up from the bottom (gated by `localStorage.crbox_activation_toast_shown`). Three checklist items deep-link into `mi-cuenta.html?setup=1&tab=personal-info|address-info` or `calculadora.html`. The legacy `crbox_onboarding_dismissed` localStorage key and dismiss button were removed.
 
-  …**unless** `localStorage.crbox_onboarding_dismissed === '1'`. Three checklist items (profile, address, first shipment) link to `mi-cuenta.html?setup=1&tab=…` or `calculadora.html`. Per-step completion is computed from the same fields as the state model. Dismiss button sets `crbox_onboarding_dismissed=1` and clears `crbox_onboarding`.
-
-**Mi Cuenta setup mode** (`mi-cuenta.html`) — when arriving with `?setup=1`, the `.setup-banner` above the inner tab strip explains what to complete; with `&tab=personal-info|address-info|security|notifications` it auto-activates that tab and rewrites the banner copy. Dismissing the banner strips the query params via `history.replaceState`.
+**Mi Cuenta deep-link + setup mode** (`mi-cuenta.html`):
+- **Always-on** `?tab=<personal-info|address-info|security|notifications>` activates the matching tab and scrolls its button into view (works regardless of `setup`).
+- `?setup=1` additionally renders `.setup-banner` (contextual title + body per `tab`), highlights the active tab panel via `.setup-active-tab`, applies `.setup-emphasis` (orange ring) + `.setup-emphasis-wrap` (left-rail accent) to the fields that matter for the requested step, scrolls the first emphasized field into view on mobile, and rewrites the active tab's primary CTA (`#save-profile-btn` or `#save-address-btn`) to "Guardar y continuar". A `MutationObserver` watches the button's success state ("¡Guardado!") and redirects back to `dashboard.html?onboarding=1` on save. Dismissing the banner strips `setup` from the URL and clears emphasis classes.
 
 **localStorage keys**
-- `crbox_onboarding` — set to `'1'` immediately after a successful signup; consumed by the dashboard activation card and cleared on dismiss
-- `crbox_onboarding_dismissed` — set to `'1'` when the user closes the activation card (sticky)
+- `crbox_onboarding` — set to `'1'` immediately after a successful signup; signals the dashboard to keep the activation context fresh
+- `crbox_activation_toast_shown` — set to `'1'` the first time the activation toast is shown so it never reappears
+
+**CSS** — `dashboard.css` bumped to `?v=6` everywhere. New tokens: `.delivery-cards` / `.delivery-card` / `.delivery-card-icon|title|meta|tag|tag-alt` / `.is-selected`, `.activation-toast` / `.activation-toast-icon|text|close` / `.is-visible`, `.setup-emphasis` / `.setup-emphasis-wrap` / `.setup-active-tab` / `.setup-cta`. `afiliate.html` now also loads `dashboard.css` because the delivery cards live there.
 
 ## Docs
 

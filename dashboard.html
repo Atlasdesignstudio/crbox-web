@@ -26,7 +26,7 @@
     <!-- CSS personalizado -->
     <link rel="stylesheet" href="css/styles.css?v=5">
     <link rel="stylesheet" href="css/responsive.css?v=14">
-    <link rel="stylesheet" href="css/dashboard.css?v=5">
+    <link rel="stylesheet" href="css/dashboard.css?v=6">
     
     <!-- Opcional: Añadir Swiper para carruseles -->
     <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css">
@@ -212,12 +212,18 @@
 <main class="py-8">
     <div class="container mx-auto px-4">
 
-        <!-- Activation Checklist (shown for new / incomplete accounts) -->
+        <!-- Activation toast (shown once when the account becomes Activated) -->
+        <div id="activation-toast" class="activation-toast hidden" role="status" aria-live="polite">
+            <i class="fas fa-rocket activation-toast-icon"></i>
+            <span class="activation-toast-text">¡Tu casillero está listo! Ya puedes recibir paquetes desde Miami.</span>
+            <button type="button" id="activation-toast-close" class="activation-toast-close" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Activation Checklist (shown for new / incomplete accounts; non-dismissable) -->
         <section id="activation-card" class="activation-card hidden mb-6" aria-live="polite">
             <div class="activation-card-inner">
-                <button type="button" id="activation-dismiss-btn" class="activation-dismiss" aria-label="Cerrar">
-                    <i class="fas fa-times"></i>
-                </button>
                 <div class="activation-header">
                     <div class="activation-icon">
                         <i class="fas fa-rocket"></i>
@@ -794,22 +800,42 @@
     var label = document.getElementById('activation-progress-label');
     if (label) label.textContent = done + ' de ' + total + ' completados';
   }
+  function _maybeShowActivationToast() {
+    var toast = document.getElementById('activation-toast');
+    if (!toast) return;
+    var shown = false;
+    try { shown = localStorage.getItem('crbox_activation_toast_shown') === '1'; } catch (e) {}
+    if (shown) return;
+    toast.classList.remove('hidden');
+    setTimeout(function () { toast.classList.add('is-visible'); }, 50);
+    try { localStorage.setItem('crbox_activation_toast_shown', '1'); } catch (e) {}
+    var closeBtn = document.getElementById('activation-toast-close');
+    function hide() {
+      toast.classList.remove('is-visible');
+      setTimeout(function () { toast.classList.add('hidden'); }, 250);
+    }
+    if (closeBtn && !closeBtn._wired) {
+      closeBtn._wired = true;
+      closeBtn.addEventListener('click', hide);
+    }
+    setTimeout(hide, 6000);
+  }
+
   function _maybeShowActivationCard(info) {
     var card = document.getElementById('activation-card');
     if (!card) return;
-    var dismissed = false;
-    try { dismissed = localStorage.getItem('crbox_onboarding_dismissed') === '1'; } catch (e) {}
-    var flagged = false;
-    try { flagged = localStorage.getItem('crbox_onboarding') === '1'; } catch (e) {}
-    var fromQuery = /[?&]onboarding=1\b/.test(location.search);
     var state = _accountStateFrom(info);
-    var shouldShow = !dismissed && (fromQuery || flagged || state === 'incomplete');
 
-    if (!shouldShow) {
+    // Card is non-dismissable. It only disappears when the account is fully Activated.
+    // (Created and Incomplete states both display the checklist.)
+    if (state === 'activated') {
       card.classList.add('hidden');
+      // Show the one-time congratulatory toast.
+      _maybeShowActivationToast();
       return;
     }
-    // Compute per-step completion using the same heuristics as account-state
+
+    // Compute per-step completion using the same heuristics as account-state.
     var c = (info && info.Consignee) ? info.Consignee : (info || {});
     var hasName  = !!(c.consigneename || c.ConsigneeName);
     var hasIdNo  = !!(c.identificationnumber || c.IdentificationNumber);
@@ -823,16 +849,6 @@
       shipment: false  // we cannot reliably detect a first shipment here; treat as user-driven
     });
     card.classList.remove('hidden');
-
-    var dismissBtn = document.getElementById('activation-dismiss-btn');
-    if (dismissBtn && !dismissBtn._wired) {
-      dismissBtn._wired = true;
-      dismissBtn.addEventListener('click', function () {
-        try { localStorage.setItem('crbox_onboarding_dismissed', '1'); } catch (e) {}
-        try { localStorage.removeItem('crbox_onboarding'); } catch (e) {}
-        card.classList.add('hidden');
-      });
-    }
   }
 
   function _applyUserInfo(info) {

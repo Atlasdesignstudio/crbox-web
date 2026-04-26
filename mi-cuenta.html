@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css?v=5">
     <link rel="stylesheet" href="css/responsive.css?v=14">
-    <link rel="stylesheet" href="css/dashboard.css?v=5">
+    <link rel="stylesheet" href="css/dashboard.css?v=6">
 </head>
 <body class="bg-gray-50">
     <!-- Google Tag Manager (noscript) -->
@@ -593,7 +593,22 @@
                 });
             });
 
-            // ── Setup-mode banner: triggered by ?setup=1 (and optional &tab=) ──
+            // ── Always-on deep-link tab routing: ?tab=<name> activates that tab. ──
+            (function initTabDeepLink() {
+                const params = new URLSearchParams(location.search);
+                const requestedTab = params.get('tab');
+                if (!requestedTab) return;
+                if (!document.getElementById(requestedTab + '-tab')) return;
+                activateTab(requestedTab);
+                // Scroll the active tab button into view (mobile horizontal scroll strip).
+                const matchBtn = document.querySelector('.account-tab-btn[data-tab="' + requestedTab + '"]');
+                if (matchBtn && typeof matchBtn.scrollIntoView === 'function') {
+                    try { matchBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); } catch (e) {}
+                }
+            })();
+
+            // ── Setup mode (?setup=1): contextual banner + field emphasis +
+            //     "Guardar y continuar" CTA that returns to the dashboard on save.
             (function initSetupMode() {
                 const params = new URLSearchParams(location.search);
                 const setupFlag = params.get('setup') === '1';
@@ -602,45 +617,109 @@
                 const banner = document.getElementById('setup-banner');
                 if (banner) banner.classList.remove('hidden');
 
-                const requestedTab = params.get('tab');
+                const requestedTab = params.get('tab') || 'personal-info';
                 const tabCopy = {
                     'personal-info': {
-                        title: 'Verifica tu información personal',
-                        text:  'Confirma tu nombre, correo, identificación y teléfono. Estos datos los necesitamos para entregarte y facturarte tus paquetes.'
+                        title:    'Verifica tu información personal',
+                        text:     'Confirma tu nombre, correo, identificación y teléfono. Con esto activamos tu casillero y emitimos tu factura electrónica.',
+                        emphasis: ['first_name','last_name','id_type','id_number','phone']
                     },
                     'address-info': {
-                        title: 'Confirma tu dirección de entrega',
-                        text:  'Aunque retires en sucursal, necesitamos esta dirección para tu factura electrónica. También define aquí tu sucursal preferida.'
+                        title:    'Confirma tu dirección de entrega',
+                        text:     'Define dónde recibirás tus paquetes en Costa Rica. La necesitamos para entrega a domicilio y para tu factura electrónica.',
+                        emphasis: []
                     },
                     'security': {
-                        title: 'Asegura tu cuenta',
-                        text:  'Cambia tu contraseña inicial por una nueva si lo prefieres. Mantenla privada para proteger tu casillero.'
+                        title:    'Asegura tu cuenta',
+                        text:     'Cambia tu contraseña inicial por una propia. Tu cuenta se mantiene activa cuando solo tú la conoces.',
+                        emphasis: ['new_password','confirm_password']
                     },
                     'notifications': {
-                        title: 'Configura tus notificaciones',
-                        text:  'Elige cómo quieres recibir avisos sobre el estado de tus paquetes.'
+                        title:    'Configura tus notificaciones',
+                        text:     'Elige cómo quieres que te avisemos cuando tus paquetes lleguen.',
+                        emphasis: []
                     }
                 };
-                if (requestedTab && tabCopy[requestedTab]) {
-                    activateTab(requestedTab);
-                    const titleEl = document.getElementById('setup-banner-title');
-                    const textEl  = document.getElementById('setup-banner-text');
-                    if (titleEl) titleEl.textContent = tabCopy[requestedTab].title;
-                    if (textEl)  textEl.textContent  = tabCopy[requestedTab].text;
-                    // Highlight the matching link inside the banner
-                    document.querySelectorAll('.setup-banner-link').forEach(function (a) {
-                        a.classList.toggle('is-current', a.getAttribute('data-target') === requestedTab);
+                const copy = tabCopy[requestedTab] || tabCopy['personal-info'];
+                const titleEl = document.getElementById('setup-banner-title');
+                const textEl  = document.getElementById('setup-banner-text');
+                if (titleEl) titleEl.textContent = copy.title;
+                if (textEl)  textEl.textContent  = copy.text;
+                document.querySelectorAll('.setup-banner-link').forEach(function (a) {
+                    a.classList.toggle('is-current', a.getAttribute('data-target') === requestedTab);
+                });
+
+                // Apply field emphasis: subtle accent border on the inputs that
+                // matter for this setup step. Uses .setup-emphasis (defined in
+                // dashboard.css with the same orange token used elsewhere).
+                document.querySelectorAll('.setup-emphasis, .setup-emphasis-wrap').forEach(function (el) {
+                    el.classList.remove('setup-emphasis', 'setup-emphasis-wrap');
+                });
+                (copy.emphasis || []).forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (!el) return;
+                    el.classList.add('setup-emphasis');
+                    var wrap = el.closest('.form-group') || el.parentElement;
+                    if (wrap) wrap.classList.add('setup-emphasis-wrap');
+                });
+
+                // Dim non-active sections so the active tab is the dominant focus on desktop.
+                const tabPanel = document.getElementById(requestedTab + '-tab');
+                if (tabPanel) {
+                    tabPanel.classList.add('setup-active-tab');
+                }
+
+                // Mobile: scroll the page so the first emphasized input — or the
+                // tab heading if none — is near the top of the viewport.
+                setTimeout(function () {
+                    var firstEmphasized = (copy.emphasis || []).map(function (id) {
+                        return document.getElementById(id);
+                    }).filter(Boolean)[0];
+                    var anchor = firstEmphasized
+                        || (tabPanel && tabPanel.querySelector('h3, h4, .section-title'))
+                        || tabPanel;
+                    if (anchor && typeof anchor.scrollIntoView === 'function') {
+                        try { anchor.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+                    }
+                }, 250);
+
+                // "Guardar y continuar": relabel the relevant primary CTA in this
+                // tab and, when the save succeeds (button content briefly shows
+                // "¡Guardado!"), redirect back to the dashboard.
+                var saveBtnId = (requestedTab === 'address-info') ? 'save-address-btn' : 'save-profile-btn';
+                var saveBtn = document.getElementById(saveBtnId) || document.getElementById('save-profile-btn');
+                if (saveBtn) {
+                    saveBtn.classList.add('setup-cta');
+                    var labelText = saveBtn.querySelector('.btn-label') || saveBtn;
+                    var originalLabel = saveBtn.innerHTML;
+                    var iconMatch = originalLabel.match(/<i[^>]*><\/i>/);
+                    var icon = iconMatch ? iconMatch[0] + ' ' : '<i class="fas fa-arrow-right mr-2"></i> ';
+                    saveBtn.innerHTML = icon + 'Guardar y continuar';
+
+                    // Watch for the "¡Guardado!" success state the inline save handler
+                    // toggles, then redirect to the dashboard.
+                    var observer = new MutationObserver(function () {
+                        if (/¡Guardado!|Guardado/i.test(saveBtn.textContent || '')) {
+                            observer.disconnect();
+                            setTimeout(function () {
+                                window.location.href = 'dashboard.html?onboarding=1';
+                            }, 700);
+                        }
                     });
+                    observer.observe(saveBtn, { childList: true, subtree: true, characterData: true });
                 }
 
                 const dismissBtn = document.getElementById('setup-banner-dismiss');
                 if (dismissBtn && banner) {
                     dismissBtn.addEventListener('click', function () {
                         banner.classList.add('hidden');
+                        if (tabPanel) tabPanel.classList.remove('setup-active-tab');
+                        document.querySelectorAll('.setup-emphasis, .setup-emphasis-wrap').forEach(function (el) {
+                            el.classList.remove('setup-emphasis', 'setup-emphasis-wrap');
+                        });
                         try {
                             const url = new URL(location.href);
                             url.searchParams.delete('setup');
-                            url.searchParams.delete('tab');
                             history.replaceState(null, '', url.toString());
                         } catch (e) { /* ignore */ }
                     });
