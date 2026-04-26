@@ -283,7 +283,7 @@
                                         <label class="block text-gray-700 font-medium mb-2">Contraseña *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-lock"></i></div>
-                                            <input type="password" name="password" id="password-personal" required minlength="8" class="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Mínimo 8 caracteres">
+                                            <input type="password" name="password" id="password-personal" required minlength="8" autocomplete="new-password" class="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Mínimo 8 caracteres">
                                             <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"><i class="fas fa-eye"></i></button>
                                         </div>
                                         <p class="text-xs text-gray-500 mt-1">Mínimo 8 caracteres.</p>
@@ -292,7 +292,7 @@
                                         <label class="block text-gray-700 font-medium mb-2">Confirmar contraseña *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-lock"></i></div>
-                                            <input type="password" name="password_confirm" id="password-confirm-personal" required minlength="8" class="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Repite tu contraseña">
+                                            <input type="password" name="password_confirm" id="password-confirm-personal" required minlength="8" autocomplete="new-password" class="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Repite tu contraseña">
                                             <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"><i class="fas fa-eye"></i></button>
                                         </div>
                                         <p class="text-xs text-gray-500 mt-1 hidden text-red-500" id="password-mismatch-msg">Las contraseñas no coinciden.</p>
@@ -557,7 +557,7 @@
                                 <i class="fas fa-building text-blue-500 mr-2"></i>
                                 Tu empresa
                             </h4>
-                            <p class="text-gray-500 text-sm mb-6">Crea tu cuenta empresarial CRBOX en segundos.</p>
+                            <p class="text-gray-500 text-sm mb-6">Registra la razón social de la empresa. En el siguiente paso agregas el representante legal y la dirección de entrega.</p>
 
                             <!-- Company name -->
                             <div class="mb-5">
@@ -616,10 +616,11 @@
 
                         <!-- ─── Step 2: Representative + delivery ─── -->
                         <section class="signup-step-panel hidden" data-panel="2">
-                            <h4 class="text-lg font-semibold mb-5 flex items-center">
+                            <h4 class="text-lg font-semibold mb-2 flex items-center">
                                 <i class="fas fa-id-card text-blue-500 mr-2"></i>
                                 Contacto y entrega
                             </h4>
+                            <p class="text-gray-500 text-sm mb-5">Indica quién representa la empresa y cómo prefieren recibir sus paquetes en Costa Rica.</p>
 
                             <!-- ID number -->
                             <div class="mb-5">
@@ -2208,615 +2209,6 @@ const locationDatabase = {
         });
     });
 
-    // Add phone number (Personal)
-    const addPhoneBtn = document.getElementById('add-phone-btn');
-    const phoneContainer = document.getElementById('phone-container');
-    let phoneCount = 1;
-    
-    if (addPhoneBtn && phoneContainer) {
-        addPhoneBtn.addEventListener('click', function() {
-            phoneCount++;
-            const phoneHtml = `
-                <div class="phone-entry grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="form-group">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                <i class="fas fa-phone"></i>
-                            </div>
-                            <input type="tel" name="phone_number[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="+506 XXXX-XXXX">
-                        </div>
-                        <div class="mt-1 text-xs text-gray-500">
-                            Incluya el prefijo del país (ej: +506 para Costa Rica)
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                <i class="fas fa-tag"></i>
-                            </div>
-                            <select name="phone_type[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                <option value="" disabled selected>Tipo de teléfono</option>
-                                <option value="movil">Móvil</option>
-                                <option value="casa">Casa</option>
-                                <option value="oficina">Oficina</option>
-                                <option value="otro">Otro</option>
-                            </select>
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                <i class="fas fa-chevron-down"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <button type="button" class="remove-phone w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg transition-all flex items-center justify-center">
-                            <i class="fas fa-trash-alt mr-2"></i> Eliminar
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            phoneContainer.insertAdjacentHTML('beforeend', phoneHtml);
-            
-            // Add event listener to remove button
-            const removeButtons = document.querySelectorAll('.remove-phone');
-            removeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    this.closest('.phone-entry').remove();
-                });
-            });
-        });
-    }
-
-    // Add company phone number (Business)
-    const addCompanyPhoneBtn = document.getElementById('add-company-phone-btn');
-    const companyPhoneContainer = document.getElementById('company-phone-container');
-    let companyPhoneCount = 1;
-    
-    if (addCompanyPhoneBtn && companyPhoneContainer) {
-        addCompanyPhoneBtn.addEventListener('click', function() {
-            companyPhoneCount++;
-            const phoneHtml = `
-                <div class="phone-entry grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="form-group">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                <i class="fas fa-phone"></i>
-                            </div>
-                            <input type="tel" name="company_phone_number[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="+506 XXXX-XXXX">
-                        </div>
-                        <div class="mt-1 text-xs text-gray-500">
-                            Incluya el prefijo del país (ej: +506 para Costa Rica)
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                <i class="fas fa-tag"></i>
-                            </div>
-                            <select name="company_phone_type[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
-                                <option value="" disabled selected>Tipo de teléfono</option>
-                                <option value="principal">Principal</option>
-                                <option value="oficina">Oficina</option>
-                                <option value="ventas">Ventas</option>
-                                <option value="soporte">Soporte</option>
-                                <option value="otro">Otro</option>
-                            </select>
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                <i class="fas fa-chevron-down"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <button type="button" class="remove-company-phone w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg transition-all flex items-center justify-center">
-                            <i class="fas fa-trash-alt mr-2"></i> Eliminar
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            companyPhoneContainer.insertAdjacentHTML('beforeend', phoneHtml);
-            
-            // Add event listener to remove button
-            const removeButtons = document.querySelectorAll('.remove-company-phone');
-            removeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    this.closest('.phone-entry').remove();
-                });
-            });
-        });
-    }
-
-    // Add address (Personal)
-    const addAddressBtn = document.getElementById('add-address-btn');
-    const addressContainer = document.getElementById('address-container');
-    let addressCount = 1;
-    
-    if (addAddressBtn && addressContainer) {
-        addAddressBtn.addEventListener('click', function() {
-            addressCount++;
-            const addressHtml = `
-                <div class="address-entry p-4 border border-gray-200 rounded-lg bg-gray-50">
-                    <div class="flex justify-between mb-3">
-                        <h5 class="text-gray-700 font-medium">Dirección adicional #${addressCount}</h5>
-                        <button type="button" class="remove-address text-red-500 hover:text-red-700 text-sm font-medium">
-                            <i class="fas fa-times mr-1"></i> Eliminar
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Tipo de dirección -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Tipo de dirección *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-home"></i>
-                                </div>
-                                <select name="address_type[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                    <option value="" disabled selected>Seleccione tipo</option>
-                                    <option value="casa">Casa</option>
-                                    <option value="oficina">Oficina</option>
-                                    <option value="otro">Otro</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Servicio de entrega -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Sucursal o servicio de entrega *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-truck"></i>
-                                </div>
-                                <select name="delivery_service[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                    <option value="" disabled selected>Seleccione opción</option>
-                                    <option value="sabana_norte">Sabana Norte (Oficina Central)</option>
-                                    <option value="guadalupe">Guadalupe / Calle Blancos</option>
-                                    <option value="domicilio">Domicilio</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Código postal -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Código postal</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-mailbox"></i>
-                                </div>
-                                <input type="text" name="postal_code[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Código postal">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Provincia *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-map"></i>
-                                </div>
-                                <select name="province[]" required class="province-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                    <option value="" disabled selected>Seleccione provincia</option>
-                                    <option value="san_jose">San José</option>
-                                    <option value="alajuela">Alajuela</option>
-                                    <option value="cartago">Cartago</option>
-                                    <option value="heredia">Heredia</option>
-                                    <option value="guanacaste">Guanacaste</option>
-                                    <option value="puntarenas">Puntarenas</option>
-                                    <option value="limon">Limón</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Cantón *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-map-marker"></i>
-                                </div>
-                                <select name="canton[]" required class="canton-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                    <option value="" disabled selected>Seleccione cantón</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Distrito -->
-<div class="form-group">
-    <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
-    <div class="relative">
-        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-            <i class="fas fa-map-signs"></i>
-        </div>
-        <select name="district[]" required class="district-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-            <option value="" disabled selected>Seleccione distrito</option>
-            <!-- Los distritos se cargarán dinámicamente según el cantón -->
-        </select>
-        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-            <i class="fas fa-chevron-down"></i>
-        </div>
-    </div>
-</div>
-
-<!-- Barrio -->
-<div class="form-group">
-    <label class="block text-gray-700 font-medium mb-2">Barrio</label>
-    <div class="relative">
-        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-            <i class="fas fa-map-pin"></i>
-        </div>
-        <input type="text" name="neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ingrese el barrio">
-    </div>
-</div>
-                        
-                        <div class="col-span-2">
-                            <label class="block text-gray-700 font-medium mb-2">Dirección detallada *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                </div>
-                                <textarea name="address_details[]" required rows="3" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Detalles específicos de la dirección (calle, avenida, señas, etc.)"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            addressContainer.insertAdjacentHTML('beforeend', addressHtml);
-            
-            // Add event listener to province selectors in the new address
-const newProvinceSelectors = document.querySelectorAll('.province-select');
-setupProvinceSelectors(newProvinceSelectors);
-
-// Add event listener to canton selectors in the new address
-const newCantonSelectors = document.querySelectorAll('.canton-select');
-setupCantonSelectors(newCantonSelectors);
-
-// Add event listener to district selectors in the new address
-const newDistrictSelectors = document.querySelectorAll('.district-select');
-setupDistrictSelectors(newDistrictSelectors);
-            
-            // Add event listener to remove button
-            const removeButtons = document.querySelectorAll('.remove-address');
-            removeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    this.closest('.address-entry').remove();
-                });
-            });
-        });
-    }
-
-    // Add company address (Business)
-    const addCompanyAddressBtn = document.getElementById('add-company-address-btn');
-    const companyAddressContainer = document.getElementById('company-address-container');
-    let companyAddressCount = 1;
-    
-    if (addCompanyAddressBtn && companyAddressContainer) {
-        addCompanyAddressBtn.addEventListener('click', function() {
-            companyAddressCount++;
-            const addressHtml = `
-                <div class="address-entry p-4 border border-gray-200 rounded-lg bg-gray-50">
-                    <div class="flex justify-between mb-3">
-                        <h5 class="text-gray-700 font-medium">Dirección adicional #${companyAddressCount}</h5>
-                        <button type="button" class="remove-company-address text-red-500 hover:text-red-700 text-sm font-medium">
-                            <i class="fas fa-times mr-1"></i> Eliminar
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Tipo de dirección -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Tipo de dirección *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-building"></i>
-                                </div>
-                                <select name="company_address_type[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
-                                    <option value="" disabled selected>Seleccione tipo</option>
-                                    <option value="oficina_principal">Oficina Principal</option>
-                                    <option value="sucursal">Sucursal</option>
-                                    <option value="bodega">Bodega</option>
-                                    <option value="otro">Otro</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Servicio de entrega -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Sucursal o servicio de entrega *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-truck"></i>
-                                </div>
-                                <select name="company_delivery_service[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
-                                    <option value="" disabled selected>Seleccione opción</option>
-                                    <option value="sabana_norte">Sabana Norte (Oficina Central)</option>
-                                    <option value="guadalupe">Guadalupe / Calle Blancos</option>
-                                    <option value="domicilio">Domicilio</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Resto de campos de dirección (idénticos a la versión personal pero con prefijos "company_") -->
-                        <!-- Código postal -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Código postal</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-mailbox"></i>
-                                </div>
-                                <input type="text" name="company_postal_code[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Código postal">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Provincia *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-map"></i>
-                                </div>
-                                <select name="company_province[]" required class="company-province-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
-                                    <option value="" disabled selected>Seleccione provincia</option>
-                                    <option value="san_jose">San José</option>
-                                    <option value="alajuela">Alajuela</option>
-                                    <option value="cartago">Cartago</option>
-                                    <option value="heredia">Heredia</option>
-                                    <option value="guanacaste">Guanacaste</option>
-                                    <option value="puntarenas">Puntarenas</option>
-                                    <option value="limon">Limón</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="block text-gray-700 font-medium mb-2">Cantón *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-map-marker"></i>
-                                </div>
-                                <select name="company_canton[]" required class="company-canton-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
-                                    <option value="" disabled selected>Seleccione cantón</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Distrito -->
-<div class="form-group">
-    <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
-    <div class="relative">
-        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-            <i class="fas fa-map-signs"></i>
-        </div>
-        <select name="company_district[]" required class="company-district-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
-            <option value="" disabled selected>Seleccione distrito</option>
-            <!-- Los distritos se cargarán dinámicamente según el cantón -->
-        </select>
-        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-            <i class="fas fa-chevron-down"></i>
-        </div>
-    </div>
-</div>
-
-<!-- Barrio -->
-<div class="form-group">
-    <label class="block text-gray-700 font-medium mb-2">Barrio</label>
-    <div class="relative">
-        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-            <i class="fas fa-map-pin"></i>
-        </div>
-        <input type="text" name="company_neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ingrese el barrio">
-    </div>
-</div>
-                        
-                        <div class="col-span-2">
-                            <label class="block text-gray-700 font-medium mb-2">Dirección detallada *</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                </div>
-                                <textarea name="company_address_details[]" required rows="3" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Detalles específicos de la dirección (calle, avenida, señas, etc.)"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            companyAddressContainer.insertAdjacentHTML('beforeend', addressHtml);
-            
-            // Add event listener to province selectors in the new address
-const newProvinceSelectors = document.querySelectorAll('.company-province-select');
-setupCompanyProvinceSelectors(newProvinceSelectors);
-
-// Add event listener to canton selectors in the new address
-const newCompanyCantonSelectors = document.querySelectorAll('.company-canton-select');
-setupCompanyCantonSelectors(newCompanyCantonSelectors);
-
-// Add event listener to district selectors in the new address
-const newCompanyDistrictSelectors = document.querySelectorAll('.company-district-select');
-setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
-            
-            // Add event listener to remove button
-            const removeButtons = document.querySelectorAll('.remove-company-address');
-            removeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    this.closest('.address-entry').remove();
-                });
-            });
-        });
-    }
-
-    // Add additional person (Personal)
-    const addPersonBtn = document.getElementById('add-person-btn');
-    const additionalPeopleContainer = document.getElementById('additional-people');
-    let personCount = 0;
-    
-    if (addPersonBtn && additionalPeopleContainer) {
-        addPersonBtn.addEventListener('click', function() {
-            personCount++;
-            const personHtml = `
-                <div class="additional-person bg-gray-50 p-4 rounded-lg">
-                    <div class="flex justify-between mb-3">
-                        <h5 class="text-gray-700 font-medium">Persona adicional #${personCount}</h5>
-                        <button type="button" class="remove-person text-red-500 hover:text-red-700 text-sm font-medium">
-                            <i class="fas fa-times mr-1"></i> Eliminar
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <input type="text" name="additional_name_${personCount}" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Nombre completo">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-envelope"></i>
-                                </div>
-                                <input type="email" name="additional_email_${personCount}" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Correo electrónico">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-phone"></i>
-                                </div>
-                                <input type="tel" name="additional_phone_${personCount}" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Teléfono">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-bell"></i>
-                                </div>
-                                <select name="additional_notifications_${personCount}" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                    <option value="all">Todas las notificaciones</option>
-                                    <option value="arrival">Solo llegadas</option>
-                                    <option value="delivery">Solo entregas</option>
-                                    <option value="none">Sin notificaciones</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            additionalPeopleContainer.insertAdjacentHTML('beforeend', personHtml);
-            
-            // Add event listener to remove button
-            const removeButtons = document.querySelectorAll('.remove-person');
-            removeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    this.closest('.additional-person').remove();
-                });
-            });
-        });
-    }
-
-    // Add additional business contact (Business)
-    const addBusinessContactBtn = document.getElementById('add-business-contact-btn');
-    const additionalBusinessContactsContainer = document.getElementById('additional-business-contacts');
-    let contactCount = 0;
-    
-    if (addBusinessContactBtn && additionalBusinessContactsContainer) {
-        addBusinessContactBtn.addEventListener('click', function() {
-            contactCount++;
-            const contactHtml = `
-                <div class="additional-contact bg-gray-50 p-4 rounded-lg">
-                    <div class="flex justify-between mb-3">
-                        <h5 class="text-gray-700 font-medium">Contacto adicional #${contactCount}</h5>
-                        <button type="button" class="remove-contact text-red-500 hover:text-red-700 text-sm font-medium">
-                            <i class="fas fa-times mr-1"></i> Eliminar
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-group">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <input type="text" name="contact_name_${contactCount}" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Nombre completo">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-briefcase"></i>
-                                </div>
-                                <input type="text" name="contact_position_${contactCount}" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Cargo">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-envelope"></i>
-                                </div>
-                                <input type="email" name="contact_email_${contactCount}" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Correo electrónico">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-phone"></i>
-                                </div>
-                                <input type="tel" name="contact_phone_${contactCount}" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Teléfono">
-                            </div>
-                        </div>
-                        <div class="col-span-2">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-bell"></i>
-                                </div>
-                                <select name="contact_notifications_${contactCount}" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
-                                    <option value="all">Todas las notificaciones</option>
-                                    <option value="arrival">Solo llegadas</option>
-                                    <option value="delivery">Solo entregas</option>
-                                    <option value="billing">Solo facturación</option>
-                                    <option value="none">Sin notificaciones</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            additionalBusinessContactsContainer.insertAdjacentHTML('beforeend', contactHtml);
-            
-            // Add event listener to remove button
-            const removeButtons = document.querySelectorAll('.remove-contact');
-            removeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    this.closest('.additional-contact').remove();
-                });
-            });
-        });
-    }
 
     // ── Business stepper navigation ───────────────────────────────────────
     (function initBusinessStepper() {
@@ -3563,7 +2955,7 @@ function setupProvinceSelectors(provinceSelectors) {
                     
                     sanJoseCantons.forEach(canton => {
                         const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
+                        option.value = CRLocations.normalizeKey(canton);
                         option.textContent = canton;
                         cantonSelector.appendChild(option);
                     });
@@ -3572,7 +2964,7 @@ function setupProvinceSelectors(provinceSelectors) {
                     
                     alajuelaCantons.forEach(canton => {
                         const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
+                        option.value = CRLocations.normalizeKey(canton);
                         option.textContent = canton;
                         cantonSelector.appendChild(option);
                     });
@@ -3581,7 +2973,7 @@ function setupProvinceSelectors(provinceSelectors) {
                     
                     cartagoCantons.forEach(canton => {
                         const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
+                        option.value = CRLocations.normalizeKey(canton);
                         option.textContent = canton;
                         cantonSelector.appendChild(option);
                     });
@@ -3590,7 +2982,7 @@ function setupProvinceSelectors(provinceSelectors) {
                     
                     herediaCantons.forEach(canton => {
                         const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
+                        option.value = CRLocations.normalizeKey(canton);
                         option.textContent = canton;
                         cantonSelector.appendChild(option);
                     });
@@ -3599,7 +2991,7 @@ function setupProvinceSelectors(provinceSelectors) {
                     
                     guanacasteCantons.forEach(canton => {
                         const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
+                        option.value = CRLocations.normalizeKey(canton);
                         option.textContent = canton;
                         cantonSelector.appendChild(option);
                     });
@@ -3608,7 +3000,7 @@ function setupProvinceSelectors(provinceSelectors) {
                     
                     puntarenasCantons.forEach(canton => {
                         const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
+                        option.value = CRLocations.normalizeKey(canton);
                         option.textContent = canton;
                         cantonSelector.appendChild(option);
                     });
@@ -3617,7 +3009,7 @@ function setupProvinceSelectors(provinceSelectors) {
                     
                     limonCantons.forEach(canton => {
                         const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
+                        option.value = CRLocations.normalizeKey(canton);
                         option.textContent = canton;
                         cantonSelector.appendChild(option);
                     });
@@ -3626,214 +3018,6 @@ function setupProvinceSelectors(provinceSelectors) {
         });
     }
 
-    // Function to setup province and canton selectors for company addresses
-function setupCompanyProvinceSelectors(provinceSelectors) {
-    provinceSelectors.forEach(provinceSelector => {
-        provinceSelector.addEventListener('change', function() {
-            const province = this.value;
-            const cantonSelector = this.closest('.address-entry').querySelector('select[name="company_canton[]"]');
-            const districtSelector = this.closest('.address-entry').querySelector('select[name="company_district[]"]');
-            const neighborhoodSelector = this.closest('.address-entry').querySelector('select[name="company_neighborhood[]"]');
-            
-            // Clear current options
-            cantonSelector.innerHTML = '<option value="" disabled selected>Seleccione cantón</option>';
-            
-            // Reset district and neighborhood selectors
-            if (districtSelector) {
-                districtSelector.innerHTML = '<option value="" disabled selected>Seleccione distrito</option>';
-            }
-            
-            if (neighborhoodSelector) {
-                neighborhoodSelector.innerHTML = '<option value="" disabled selected>Seleccione barrio</option>';
-            }
-            
-            // Add options based on selected province
-                if (province === 'san_jose') {
-                    const sanJoseCantons = ['Central', 'Escazú', 'Desamparados', 'Puriscal', 'Tarrazú', 'Aserrí', 'Mora', 'Goicoechea', 'Santa Ana', 'Alajuelita', 'Vázquez de Coronado', 'Tibás', 'Moravia', 'Montes de Oca', 'Turrubares', 'Dota', 'Curridabat', 'Pérez Zeledón', 'León Cortés', 'Acosta'];
-                    
-                    sanJoseCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'alajuela') {
-                    const alajuelaCantons = ['Central', 'San Ramón', 'Grecia', 'San Mateo', 'Atenas', 'Naranjo', 'Palmares', 'Poás', 'Orotina', 'San Carlos', 'Zarcero', 'Sarchí', 'Upala', 'Los Chiles', 'Guatuso', 'Río Cuarto'];
-                    
-                    alajuelaCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'cartago') {
-                    const cartagoCantons = ['Central', 'Paraíso', 'La Unión', 'Jiménez', 'Turrialba', 'Alvarado', 'Oreamuno', 'El Guarco'];
-                    
-                    cartagoCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'heredia') {
-                    const herediaCantons = ['Central', 'Barva', 'Santo Domingo', 'Santa Bárbara', 'San Rafael', 'San Isidro', 'Belén', 'Flores', 'San Pablo', 'Sarapiquí'];
-                    
-                    herediaCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'guanacaste') {
-                    const guanacasteCantons = ['Liberia', 'Nicoya', 'Santa Cruz', 'Bagaces', 'Carrillo', 'Cañas', 'Abangares', 'Tilarán', 'Nandayure', 'La Cruz', 'Hojancha'];
-                    
-                    guanacasteCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'puntarenas') {
-                    const puntarenasCantons = ['Central', 'Esparza', 'Buenos Aires', 'Montes de Oro', 'Osa', 'Quepos', 'Golfito', 'Coto Brus', 'Parrita', 'Corredores', 'Garabito'];
-                    
-                    puntarenasCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'limon') {
-                    const limonCantons = ['Central', 'Pococí', 'Siquirres', 'Talamanca', 'Matina', 'Guácimo'];
-                    
-                    limonCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = canton.toLowerCase().replace(/\s+/g, '_');
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                }
-            });
-        });
-    }
-
-    // Initialize province selectors for personal addresses
-const provinceSelectors = document.querySelectorAll('.province-select');
-setupProvinceSelectors(provinceSelectors);
-
-// Initialize province selectors for company addresses
-const companyProvinceSelectors = document.querySelectorAll('.company-province-select');
-setupCompanyProvinceSelectors(companyProvinceSelectors);
-
-// Function to setup canton and district selectors for personal addresses
-function setupCantonSelectors(cantonSelectors) {
-    cantonSelectors.forEach(cantonSelector => {
-        cantonSelector.addEventListener('change', function() {
-            const canton = this.value;
-            const provinceSelector = this.closest('.address-entry').querySelector('select[name="province[]"]');
-            const province = provinceSelector ? provinceSelector.value : '';
-            const districtSelector = this.closest('.address-entry').querySelector('select[name="district[]"]');
-            const neighborhoodSelector = this.closest('.address-entry').querySelector('input[name="neighborhood[]"]');
-            
-            // Clear current options in district selector
-            if (districtSelector) {
-                districtSelector.innerHTML = '<option value="" disabled selected>Seleccione distrito</option>';
-            }
-            
-            // Add options based on selected canton
-            if (province && canton && locationDatabase[province] && locationDatabase[province][canton]) {
-                const districts = locationDatabase[province][canton].districts;
-                
-                districts.forEach(district => {
-                    const option = document.createElement('option');
-                    option.value = district.value;
-                    option.textContent = district.label;
-                    districtSelector.appendChild(option);
-                });
-            } else {
-                // Distritos genéricos para cantones no definidos
-                const genericDistricts = [
-                    {value: 'distrito_central', label: 'Distrito Central'},
-                    {value: 'distrito_norte', label: 'Distrito Norte'},
-                    {value: 'distrito_sur', label: 'Distrito Sur'},
-                    {value: 'distrito_este', label: 'Distrito Este'},
-                    {value: 'distrito_oeste', label: 'Distrito Oeste'}
-                ];
-                
-                genericDistricts.forEach(district => {
-                    const option = document.createElement('option');
-                    option.value = district.value;
-                    option.textContent = district.label;
-                    districtSelector.appendChild(option);
-                });
-            }
-        });
-    });
-}
-
-// Function to setup district selectors for personal addresses (without neighborhood logic)
-function setupDistrictSelectors(districtSelectors) {
-    districtSelectors.forEach(districtSelector => {
-        districtSelector.addEventListener('change', function() {
-            // Ya no necesitamos manipular los barrios porque ahora son campos de texto
-            // La función se mantiene por compatibilidad pero no hace nada con los barrios
-        });
-    });
-}
-
-// Function to setup canton and district selectors for company addresses
-function setupCompanyCantonSelectors(companyCantonSelectors) {
-    companyCantonSelectors.forEach(cantonSelector => {
-        cantonSelector.addEventListener('change', function() {
-            const canton = this.value;
-            const provinceSelector = this.closest('.address-entry').querySelector('select[name="company_province[]"]');
-            const province = provinceSelector ? provinceSelector.value : '';
-            const districtSelector = this.closest('.address-entry').querySelector('select[name="company_district[]"]');
-            
-            // Clear current options
-            if (districtSelector) {
-                districtSelector.innerHTML = '<option value="" disabled selected>Seleccione distrito</option>';
-            }
-            
-            // Add options based on selected canton and province
-            if (province && canton && locationDatabase[province] && locationDatabase[province][canton]) {
-                const districts = locationDatabase[province][canton].districts;
-                
-                districts.forEach(district => {
-                    const option = document.createElement('option');
-                    option.value = district.value;
-                    option.textContent = district.label;
-                    districtSelector.appendChild(option);
-                });
-            } else {
-                // Distritos genéricos para cantones no definidos
-                const genericDistricts = [
-                    {value: 'distrito_central', label: 'Distrito Central'},
-                    {value: 'distrito_norte', label: 'Distrito Norte'},
-                    {value: 'distrito_sur', label: 'Distrito Sur'},
-                    {value: 'distrito_este', label: 'Distrito Este'},
-                    {value: 'distrito_oeste', label: 'Distrito Oeste'}
-                ];
-                
-                genericDistricts.forEach(district => {
-                    const option = document.createElement('option');
-                    option.value = district.value;
-                    option.textContent = district.label;
-                    districtSelector.appendChild(option);
-                });
-            }
-        });
-    });
-}
-
-// Function to setup district selectors for company addresses (without neighborhood logic)
-function setupCompanyDistrictSelectors(companyDistrictSelectors) {
-    companyDistrictSelectors.forEach(districtSelector => {
-        districtSelector.addEventListener('change', function() {
-            // Ya no necesitamos manipular los barrios porque ahora son campos de texto
-            // La función se mantiene por compatibilidad pero no hace nada con los barrios
-        });
-    });
-}
 
 // Initialize canton selectors for personal addresses
 const cantonSelectors = document.querySelectorAll('.canton-select');
@@ -3842,14 +3026,6 @@ setupCantonSelectors(cantonSelectors);
 // Initialize district selectors for personal addresses
 const districtSelectors = document.querySelectorAll('.district-select');
 setupDistrictSelectors(districtSelectors);
-
-// Initialize canton selectors for company addresses
-const companyCantonSelectors = document.querySelectorAll('.company-canton-select');
-setupCompanyCantonSelectors(companyCantonSelectors);
-
-// Initialize district selectors for company addresses
-const companyDistrictSelectors = document.querySelectorAll('.company-district-select');
-setupCompanyDistrictSelectors(companyDistrictSelectors);
     
     // Custom function to validate form fields in real-time
     const inputFields = document.querySelectorAll('input, select, textarea');
