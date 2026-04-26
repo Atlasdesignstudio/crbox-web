@@ -2078,7 +2078,7 @@ const locationDatabase = {
     //   san_jose / escazu / san_rafael         → INEC 1 / 2 / 3   (Guachipelín-Escazú)
     // These are the values used by the visible select dropdowns; the existing
     // payload builder in this file resolves them to INEC codes via cr-locations.js.
-    const BRANCH_ADDRESSES = {
+    var BRANCH_ADDRESSES = window.BRANCH_ADDRESSES = {
         sabana_norte: {
             province: 'san_jose',
             canton:   'central',
