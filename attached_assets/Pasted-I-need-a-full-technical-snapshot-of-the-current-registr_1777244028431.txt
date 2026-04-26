@@ -1,0 +1,133 @@
+I need a full technical snapshot of the current registration implementation as it exists today for both Cuenta Personal and Cuenta Empresarial.
+
+Do not audit it, do not judge it, do not propose fixes yet.  
+I only want you to document the current implementation in enough detail so I can compare it externally against previously validated working behavior.
+
+## Output format
+Structure your response in clearly separated sections for:
+
+1. Cuenta Personal
+2. Cuenta Empresarial
+
+For each one, document the implementation exactly as it is today.
+
+## For each flow, include:
+
+### A. Files involved
+List every relevant file currently involved in the flow, including:
+- HTML / template files
+- JS / TS files
+- helper modules
+- auth-related files
+- API-related files
+- any constants or address-mapping files used
+
+### B. Entry points and functions
+List the exact functions currently used for:
+- step navigation
+- form validation
+- payload building
+- submit handling
+- success handling
+- failure handling
+- auto-login after registration, if present
+
+Include the exact function names.
+
+### C. Current UI fields collected
+List every field currently shown in the UI for that flow.
+
+For each field, specify:
+- label shown to user
+- internal name / selector / identifier if applicable
+- whether it is required in the UI
+- which step it appears in
+
+### D. Current payload sent to backend
+Show the exact payload shape currently sent for that flow.
+
+I want the real current payload keys, not a summary.
+
+For example, include whether the current implementation sends keys such as:
+- Consignee.ConsigneeName
+- Consignee.ConsigneeLastName1
+- Consignee.ConsigneeLastName2
+- Consignee.Email
+- Consignee.BirthDate
+- Consignee.IdentificationType
+- Consignee.IdentificationNumber
+- Consignee.AlternativeEmail
+- Consignee.ContactName1
+- Consignee.ContactName2
+- Consignee.IsCompany
+- Consignee.ResidenceCountry
+- Consignee.Sucursal.IdSucursal
+- Phones
+- Addresses
+- CompanyCode
+- Password
+- ConfirmPassword
+- ConfirmEmail
+
+For each payload key, state:
+- where its value currently comes from
+- whether it is hardcoded, derived, optional, blanked, defaulted, or user-entered
+
+### E. Endpoint and request behavior
+For each flow, specify:
+- exact registration endpoint used today
+- HTTP method
+- content type / encoding
+- whether auth is involved before registration
+- whether the flow triggers auto-login after successful registration
+- exact login endpoint used if auto-login exists
+
+### F. Address handling
+Explain exactly how address handling works today:
+- sucursal vs domicilio behavior
+- whether branch prefill is used
+- where branch address constants come from
+- how province / canton / district / barrio are resolved
+- what gets sent in Addresses
+- whether address type is defaulted
+- whether stale address values are cleared when switching modes
+
+### G. Personal-specific current behavior
+For personal flow, explicitly state:
+- whether birth date is currently collected and sent
+- how full name is split
+- whether single-word names are blocked
+- how ID type and ID number are handled
+- how phone type is handled
+- how company-related fields are blanked or omitted
+
+### H. Empresarial-specific current behavior
+For business flow, explicitly state:
+- how company name is collected and mapped
+- whether surname fields are collected, blanked, or synthesized
+- how IsCompany is set
+- how IdentificationType is set
+- whether birth date is sent, omitted, or blank
+- how AlternativeEmail, ContactName1, and ContactName2 are handled
+- whether CompanyCode is sent
+- whether business flow uses the same backend endpoint as personal
+- whether business flow currently auto-logs in after success
+
+### I. Success and failure branches
+Describe the exact current behavior after submit:
+- what happens on registration success
+- what happens on registration failure
+- what happens on auto-login success
+- what happens on auto-login network failure
+- what happens on non-network auth failure
+- what UI is shown in each case
+
+## Important constraints
+- Do not evaluate whether it is correct.
+- Do not compare against past behavior.
+- Do not recommend fixes.
+- Do not summarize vaguely.
+- Give the implementation as it exists today.
+- Be precise with file names, function names, payload keys, and behavioral branches.
+
+The goal is to obtain a complete current-state technical snapshot so that I can perform an external audit afterward.
