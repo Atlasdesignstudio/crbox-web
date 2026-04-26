@@ -1,0 +1,140 @@
+Refine these follow-up tasks based on the decisions below. Do not implement yet — refine the tasks so they are tighter, safer, and ready to activate.
+
+Context and decisions already made:
+- #127 should be activated first. It is a technical prerequisite, not a feature.
+- #86 should be activated, but only for real search/filter behavior that is already supported by the current API.
+- #126 should remain sequenced after #127, because reverse navigation depends on validating the package↔recibo join key.
+- #125 is directionally good but not yet precise enough to activate; it needs a single clear UX pattern chosen.
+- #85 remains blocked by backend data and should stay parked.
+
+Refinement goals:
+- tighten scope
+- remove unconfirmed assumptions
+- separate MVP from later-phase additions
+- avoid mixing “nice to have” with “safe to ship now”
+- preserve the portal’s current visual language
+- keep everything truthful and grounded in real current behavior/data
+
+Please refine the following tasks:
+
+1) #127 — validate package receipt number ↔ factura recibo number match
+What we want:
+- Keep this as a short, sharp validation task.
+- Frame it explicitly as a prerequisite to reverse navigation and as a verification of the assumption introduced in #122.
+- The task should validate whether pkg.number and recibo.number match reliably in real accounts with invoicesCount > 0.
+- If formats differ, the task should define where normalization belongs:
+  - ideally in one canonical comparison path
+  - not duplicated across multiple pages unless necessary
+- Completion should clearly state what was found:
+  - exact match
+  - match after normalization
+  - mismatch / unreliable join key
+- If normalization is needed, the task should say it must be minimal and transparent (e.g. trimming, removing spaces, normalizing leading zeros only if proven safe).
+- No speculative rewriting of data formats.
+
+What to improve in the task:
+- stronger title
+- tighter What & Why
+- sharper Done looks like
+- explicit risks / assumptions
+- explicit note that #126 depends on its outcome
+
+2) #86 — reconnect real search + date filtering in Mis Facturas
+Important constraint:
+This task should be narrowed to what is truly buildable today with confirmed backend support.
+
+What we want included now:
+- reconnect the search form / search action if the current API + current frontend logic can support it truthfully
+- reconnect date range filtering so the page re-queries correctly using selected dates
+- ensure URL/state behavior is sensible if the page is loaded from links like the package↔factura cross-link flow
+- improve usability for users with many facturas
+
+What we do NOT want bundled unless confirmed:
+- PDF download
+- fake download buttons
+- any assumption of a factura PDF endpoint if it has not been validated
+- any UI affordance that implies downloadable factura files unless the endpoint is real and working
+
+So please refine #86 as:
+- an MVP focused on search + date filtering only
+- optionally mention PDF/download as a separate future task or explicit blocked subtask, not part of this one unless validated
+
+Specific refinement requests:
+- validate whether current search is factura-number only, or if task wording should stay generic until inspected
+- make sure the task doesn’t promise behavior the API doesn’t support
+- if search currently works only on already-loaded rows, distinguish that from true API-backed filtering
+- ensure the task preserves current page layout and just wires existing controls properly
+
+3) #125 — EN ESPERA visibility in Mis Paquetes
+Do not implement yet. Refine the task so it becomes activation-ready.
+
+Decision:
+We do want to improve visibility of EN ESPERA inside Mis Paquetes, but the task currently lacks a precise UX choice.
+
+Please refine it around one primary recommended pattern and one fallback only.
+Default recommendation I want you to evaluate:
+- use a separate EN ESPERA section at the top of the current package view when one or more packages in status 6 are present
+- keep the existing yellow badge
+- do not invent reasons
+- do not add heavy UI
+- do not change backend behavior
+- do not remove the existing filters/tabs
+
+What the refined task should clarify:
+- whether this applies to table view, card/grid view, or both
+- whether EN ESPERA packages should appear both in the separate section and again in the main list, or only once
+- what happens when filters/search are active
+- what happens when there are no EN ESPERA packages
+- the exact neutral copy to use, if any
+- how to avoid clutter or duplication
+
+Important rule:
+This task should remain clearly downstream of #119. It is not about changing dashboard logic again. It is about improving visibility in Mis Paquetes only.
+
+4) #126 — reverse navigation from factura recibo → package
+Do not move this into current implementation yet, but refine it so it is clearly Phase 2 after #127.
+
+What we want:
+- explicitly state dependency on #127 outcome
+- if #127 confirms the join key is reliable, this task can proceed
+- if #127 reveals normalization is needed, this task must use the confirmed canonical comparison logic
+- keep the UX goal clear: users can move from a factura recibo to the corresponding package with minimal friction
+- avoid overpromising automatic modal-open behavior unless the package page can support it cleanly and truthfully
+- if the safest MVP is “navigate to Mis Paquetes pre-filtered by receipt number,” say that clearly
+- if auto-opening the modal is a second phase, split that out or mark it as enhancement
+
+Please refine this task so it has:
+- MVP path
+- optional enhancement path
+- explicit dependency note
+- no hidden assumptions about server-side search if not validated
+
+5) #85 — real package timeline
+Please do not change its blocked status.
+Refine it only if needed so it is clearly parked pending backend support.
+Make sure it says:
+- no timeline should be rebuilt unless real historical status events with timestamps are exposed
+- current package payload is insufficient
+- any future implementation must be grounded in real event history, not inferred stages
+
+Output format:
+For each of the 5 tasks above, provide:
+- refined title
+- refined What & Why
+- refined Done looks like
+- refined Out of scope
+- refined Steps
+- risks / assumptions
+- dependency note
+- MVP recommendation if relevant
+
+Then add a final short section:
+“Recommended activation order”
+and state clearly:
+- #127 first
+- #86 next (search/filter MVP only)
+- #126 after #127
+- #125 after UX pattern is locked
+- #85 blocked
+
+Be strict, practical, and honest. The goal is to turn these into a clean next-wave task set, not to expand scope.
