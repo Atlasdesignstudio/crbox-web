@@ -1,0 +1,142 @@
+This second pass is much stronger. It now gets to the real opportunity: the biggest gap in the CRBOX portal is not missing data, but missing interpretation of the data we already have.
+
+I agree most with these directions and want the next iteration to sharpen them further and prepare them for execution.
+
+What feels most right and should be treated as the strongest core of this work
+
+The ideas that feel most valuable, grounded, and worth pushing first are:
+
+* make EN ESPERA visually and functionally distinct from en camino
+* add a journey / stage explanation layer, not just raw status labels
+* show sucursal / branch visibility earlier, especially for status 5 and 6
+* make the domicilio vs sucursal next-step copy different and explicit
+* explain billing weight driver clearly in factura detail
+* use the factura as a grouped-shipment explanation object, not just a billing record
+* strengthen package ↔ factura linking
+* build toward internal stuck-flow detection
+
+That set feels like the real product opportunity.
+
+A few refinements I want you to make to this audit
+
+I want you to revise the second-pass audit with these improvements:
+
+1. Be a bit more careful with MAWB wording
+
+The MAWB grouping idea is very good, but the wording should be slightly safer.
+
+Instead of strongly phrasing it as:
+
+* “mismo vuelo”
+
+prefer wording closer to:
+
+* “mismo envío aéreo”
+* “mismo embarque”
+* or another equivalent that is operationally clear but slightly less overcommitted unless CRBOX explicitly uses “same flight” language internally
+
+The grouping logic is valid. I just want the product wording to stay conservative and truthful.
+
+2. Re-check status 5 copy before making it too absolute
+
+The branch-user next-step copy for status 5 is promising, but I want you to verify whether status 5 truly always means the package is ready for pickup, versus “already at CRBOX / branch but may still require an intermediate operational step.”
+
+If status 5 is fully confirmed as “ready,” then “ya puedes retirarlo” is good.
+If there is any ambiguity, prefer more conservative copy such as:
+
+* “Tu paquete ya llegó a [sucursal]. Revisa su estado para coordinar el retiro si corresponde.”
+
+Do not overstate readiness if the data only confirms arrival.
+
+3. Raise package → factura linking slightly in priority
+
+I think package-to-factura linking is one of the most valuable next-layer improvements because it directly connects two of the most confusing parts of the portal.
+
+Please treat this as slightly more important than before and explain:
+
+* what is the safest join key
+* whether it should be a direct link, filtered factura view, or package-detail CTA
+* what minimum viable version should ship first
+
+4. Add one more product lens: “why this package is different from my other package”
+
+A lot of the real user confusion is some version of:
+
+* why did two packages move and this one didn’t?
+* why are these in one factura and this one is separate?
+* why does one go to a branch and another follow a different delivery pattern?
+
+I want you to add this as a unifying product lens in the audit.
+
+A lot of the strongest ideas in your pass already support this:
+
+* MAWB grouping
+* stage explanation
+* factura grouping
+* branch/domicilio logic
+* billing explanation
+
+I want that made explicit, because it is probably one of the biggest support-deflection opportunities.
+
+5. Keep separating “safe now” from “promising but needs confirmation”
+
+This second pass is much better on that, but I want you to stay disciplined.
+
+Keep clearly separating:
+
+* safe to ship now
+* safe to derive now
+* promising but needs business semantics confirmation
+* promising but needs data consistency validation
+* do not productize yet
+
+Especially keep caution around:
+
+* PendingDiscount as a client-facing incentive statement
+* EN ESPERA meaning anything more specific than “paused / en espera / contact CRBOX”
+* isInvoiced until semantics are confirmed
+* raw descuentoNombre strings
+* carrier/shipper aggregations as anything client-facing
+
+Prioritization direction I want you to align with
+
+If we were sequencing this for implementation, the first practical sequence should roughly be:
+
+1. separate EN ESPERA from en camino
+2. add stage explanation in package detail
+3. show sucursal on package row/card for status 5–6
+4. add domicilio vs sucursal-specific next-step copy
+5. add billed-weight explanation in factura detail
+6. add “esta factura incluye X paquetes” explanation
+7. then do package ↔ factura linking
+8. then explore MAWB grouping / viajan juntos
+9. then internal stuck-flow / aging / billing-stall / delivery-deadlock operational views
+
+Please sanity-check your matrix against that order and adjust if needed.
+
+Important note on AI
+
+At this stage, I do not want this work to drift into “let’s solve it with AI on the client side.”
+
+AI may become useful later as an interpretation layer, but right now the highest-value work is still:
+
+* better information architecture
+* better state explanation
+* better linking between existing data objects
+* better support-deflecting UX
+* better operational/internal visibility
+
+So for now, do not add AI as a dependency or centerpiece of this work. If you want, you can mention at the very end where AI could later enhance interpretation, but it should not change the current recommended roadmap.
+
+What I want back
+
+Please refine the second-pass audit one more time with:
+
+* the wording caution around MAWB
+* the verification note around status 5 copy
+* package ↔ factura linking elevated slightly
+* an explicit “why this package is different from my other package” product lens
+* the implementation sequence aligned more tightly to the priority order above
+* no drift into speculative AI-first solutions
+
+The overall direction is now very good. I want the next version to feel like a senior product/system recommendation that is ready to turn into real build tasks.
