@@ -151,11 +151,31 @@
   }
 
   // ─── Registration ─────────────────────────────────────────────────────────
+  // The CRBOX registration endpoint requires a Bearer token from a service
+  // account. We fetch it from our own server-side proxy (/crbox-svc-token)
+  // so credentials never appear in client-side code. The proxy reads
+  // CRBOX_SVC_EMAIL / CRBOX_SVC_PASSWORD env vars and returns only the token.
+  function _getSvcToken() {
+    return fetch('/crbox-svc-token', { method: 'POST' })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || !data.access_token) {
+          throw new Error((data && data.error) || 'No se pudo obtener el token de servicio.');
+        }
+        return data.access_token;
+      });
+  }
+
   function doRegister(payloadString) {
-    return fetch(REGISTER_URL, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body:    payloadString
+    return _getSvcToken().then(function (svcToken) {
+      return fetch(REGISTER_URL, {
+        method:  'POST',
+        headers: {
+          'Content-Type':  'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer ' + svcToken
+        },
+        body: payloadString
+      });
     }).then(function (res) {
       return res.json();
     }).then(function (data) {

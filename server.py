@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
+import os
+import json
+import urllib.request
+import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+
+CRBOX_AUTH_URL = 'https://clients.crbox.cr/authtoken'
 
 
 class NoCacheHandler(SimpleHTTPRequestHandler):
@@ -11,6 +17,54 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
     def log_message(self, format, *args):
         super().log_message(format, *args)
+
+    def do_POST(self):
+        if self.path == '/crbox-svc-token':
+            self._handle_svc_token()
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def _handle_svc_token(self):
+        svc_email = os.environ.get('CRBOX_SVC_EMAIL', '')
+        svc_pass  = os.environ.get('CRBOX_SVC_PASSWORD', '')
+
+        if not svc_email or not svc_pass:
+            self.send_response(503)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                'error': 'Service account not configured. Set CRBOX_SVC_EMAIL and CRBOX_SVC_PASSWORD.'
+            }).encode())
+            return
+
+        body = urllib.parse.urlencode({
+            'grant_type': 'password',
+            'username':   svc_email,
+            'password':   svc_pass,
+        }).encode()
+
+        req = urllib.request.Request(
+            CRBOX_AUTH_URL,
+            data=body,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'}
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode())
+                token = data.get('access_token', '')
+                if not token:
+                    raise ValueError('No access_token in response')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'access_token': token}).encode())
+        except Exception as e:
+            self.send_response(502)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode())
 
 
 if __name__ == "__main__":
