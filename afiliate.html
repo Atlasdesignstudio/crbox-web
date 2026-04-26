@@ -2507,7 +2507,7 @@ const locationDatabase = {
         params.set('ConfirmPassword',                 password);
         params.set('Consignee.IdentificationType',    'Otro');
         params.set('Consignee.IdentificationNumber',  idNumber);
-        params.set('Consignee.IsCompany',             '1');
+        params.set('Consignee.IsCompany',             'true');
         params.set('Consignee.ResidenceCountry',      country);
         params.set('Consignee.ReceivesNewsletter',    newsletter ? 'true' : 'false');
         params.set('Consignee.Responsabilidad',       '0');
@@ -2715,7 +2715,7 @@ const locationDatabase = {
         params.set('ConfirmPassword',                 password);
         params.set('Consignee.IdentificationType',    CRLocations.getIdentificationType(idType));
         params.set('Consignee.IdentificationNumber',  idNumber);
-        params.set('Consignee.IsCompany',             '0');
+        params.set('Consignee.IsCompany',             'false');
         params.set('Consignee.ResidenceCountry',      country);
         params.set('Consignee.ReceivesNewsletter',    newsletter ? 'true' : 'false');
         params.set('Consignee.Responsabilidad',       '0');

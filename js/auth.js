@@ -244,7 +244,7 @@
     params.set('ConfirmEmail',                    email);
     params.set('Consignee.IdentificationNumber',  idNumber);
     params.set('Consignee.IdentificationType',    idType);
-    params.set('Consignee.IsCompany',             isCompany ? '1' : '0');
+    params.set('Consignee.IsCompany',             isCompany ? 'true' : 'false');
     params.set('Consignee.ResidenceCountry',      country);
     params.set('Consignee.ReceivesNewsletter',    newsletter ? 'true' : 'false');
     params.set('Consignee.Responsabilidad',       String(responsab));

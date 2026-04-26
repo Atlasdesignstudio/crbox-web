@@ -1,0 +1,35 @@
+Good — this is the answer I needed.
+
+The important conclusion is that the current implementation does not appear to have obvious backend-contract drift or over-creative payload remapping. The field-by-field audit looks aligned, and the address_type inconsistency was a valid cleanup to make.
+
+So the next step is no longer more static auditing. It is one real live end-to-end validation of the Cuenta Empresarial flow through the current new-site UI.
+
+Please do the following next:
+
+1. Run one full browser-level business registration test through the current new-site flow.
+2. Use a real accepted email domain, not a throwaway domain.
+3. Complete the full flow with valid data.
+4. Capture and report:
+   - registration response
+   - auto-login result
+   - getuserinfo
+   - dashboard bootstrap
+   - Mi Cuenta bootstrap
+   - postedituser if possible
+
+Also, I think the current implementation may have broken the previously correct Costa Rica address option logic / resolution flow. Please explicitly audit and validate that part during this test, not just the final submit.
+
+I want you to check all of the following in both personal and business flows wherever applicable:
+- province options
+- canton options
+- district options
+- whether the cascading selects still populate correctly
+- whether the old correct Costa Rica address paths are still available
+- whether branch prefill still resolves to the right province / canton / district combination
+- whether switching between sucursal and domicilio clears and repopulates fields correctly
+- whether any valid old address combinations are now missing, blocked, or incorrectly remapped
+- whether the final Addresses payload still reflects the correct Costa Rica location structure the backend expects
+
+At this point I do not want another theoretical snapshot. I want confirmation that the current business flow, as it exists now, actually works live end-to-end, and that the Costa Rica address logic has not been damaged in the process.
+
+If it passes, we can treat the current personal + business implementations as technically stable and move fully into UX/product polish. If it fails, then inspect the exact real failing payload/response and the exact address-resolution behavior rather than guessing.
