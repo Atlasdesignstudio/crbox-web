@@ -1018,9 +1018,23 @@
 
   function _loadDashboard() {
     if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
+
+    // If arriving from registration (?onboarding=1) or localStorage flag, mark intent
+    var urlParams = new URLSearchParams(location.search);
+    var isOnboarding = urlParams.get('onboarding') === '1';
+    try { if (localStorage.getItem('crbox_onboarding') === '1') isOnboarding = true; } catch (e) {}
+
     CRBOXPortalAPI.getUserInfo()
       .then(function (info) {
         _applyUserInfo(info);
+        // Scroll the activation checklist into view on first-login onboarding arrival
+        if (isOnboarding) {
+          var card = document.getElementById('activation-card');
+          if (card && !card.classList.contains('hidden')) {
+            setTimeout(function () { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 400);
+          }
+          try { localStorage.removeItem('crbox_onboarding'); } catch (e) {}
+        }
         var c = (info && info.Consignee) ? info.Consignee : info;
         var idCons = c && (c.idconsignee || c.IdConsignee);
         if (idCons) _loadCaminoStat(idCons);

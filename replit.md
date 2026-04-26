@@ -81,7 +81,7 @@ Portal pages share these versioned stylesheets (bump query param when editing):
 |------|----------------|-----------|
 | `css/styles.css` | v=6 | All pages |
 | `css/responsive.css` | v=15 | All pages (portal pages use higher version) |
-| `css/dashboard.css` | v=5 | dashboard.html, mi-cuenta.html |
+| `css/dashboard.css` | v=6 | dashboard.html, mi-cuenta.html, afiliate.html |
 
 Key CSS layers:
 - `styles.css` — global tap-highlight removal (`* { -webkit-tap-highlight-color: transparent }`), `:focus-visible` ring in CRBOX orange
@@ -111,7 +111,10 @@ Key CSS layers:
   3. **Entrega + términos** — visual `.delivery-cards` radio group (4 cards) writes `delivery_service[]` to a hidden input. Picking a sucursal (`sabana_norte` / `guadalupe` / `guachipelin_escazu`) silently fills the single hidden `.address-entry` from the `BRANCH_ADDRESSES` constant (INEC-verified provincia/cantón/distrito); picking `domicilio` reveals `#domicilio-address-form` for `province[]`/`canton[]`/`district[]` + optional `postal_code[]`/`neighborhood[]` + required `address_details[]` (flagged via `data-domicilio-required`). Submit (`#signup-submit-btn`) is disabled until a card is chosen. `terms` required; `newsletter` optional.
 - Stepper navigation validates per step (passwords match on step 1; ID-number Luhn-style not enforced; on step 3 it requires a card and any visible domicilio fields).
 - On `OK` from registration, `showRegSuccess(form, email, password)` sets `localStorage.crbox_onboarding='1'` and attempts `CRBOXAuth.doLogin(email, password, true)`. Errors are routed through `classifyAuthError`: `TypeError` / "failed to fetch" / timeout → **network** → soft fallback panel with "Iniciar Sesión →"; everything else (HTTP errors, malformed token, lifecycle issues) → **lifecycle** → amber `showLifecycleFailure` panel with the raw error detail and a manual login link. Auto-login success redirects to `dashboard.html?onboarding=1`.
-- Business tab is now a contact card (WhatsApp `wa.me/50689794418` + `mailto:ventas@crbox.cr`); the empresa form, its submit handler, and the SweetAlert2 loader were removed.
+- Business tab: **real 2-step self-serve registration form** (replaced the former WhatsApp/email contact card). Step 1 — **Tu empresa**: `company_name` (→ `ConsigneeName`; `LastName1/2` sent blank), `email`, `password`/`password_confirm`, optional `promo_code`. Step 2 — **Contacto y entrega**: `id_number` (hardcoded `IdentificationType='Otro'`), `contact_name_1` (→ `ContactName1`, required), `contact_name_2` (→ `ContactName2`, optional), `alt_email` (→ `AlternativeEmail`, optional), `phone_number[]` (hidden `phone_type[]=movil`), delivery card (`sabana_norte`/`guadalupe`/`guachipelin_escazu`/`domicilio`), terms.
+- Business payload differences from personal: `IsCompany='1'`, `IdentificationType='Otro'` (hardcoded), `BirthDate=''` (empty — backend tolerates null for business), blank `LastName1/2`, `ContactName1/2`, `AlternativeEmail`.
+- Business stepper: `initBusinessStepper()` IIFE scoped to `#business-registration-form`; delivery cards: `initBusinessDeliveryCards()` IIFE using `.biz-delivery-card` class + `#biz-delivery-service-input` + `#biz-domicilio-address-form`; submit: `handleBusinessRegistration(form)` called on form submit event; password toggle `.toggle-password` shared across both forms.
+- Province/canton/district selectors for business domicilio form use same `.province-select`/`.canton-select`/`.district-select` classes — picked up automatically by existing `setupProvinceSelectors`/`setupCantonSelectors` at page load.
 
 **Registration baseline — confirmed working (2026-04-26):**
 
@@ -166,7 +169,7 @@ Never assume a payload field error before ruling out all three.
 - `?setup=1` additionally renders `.setup-banner` (contextual title + body per `tab`), highlights the active tab panel via `.setup-active-tab`, applies `.setup-emphasis` (orange ring) + `.setup-emphasis-wrap` (left-rail accent) to the fields that matter for the requested step, scrolls the first emphasized field into view on mobile, and rewrites the active tab's primary CTA (`#save-profile-btn` or `#save-address-btn`) to "Guardar y continuar". A `MutationObserver` watches the button's success state ("¡Guardado!") and redirects back to `dashboard.html?onboarding=1` on save. Dismissing the banner strips `setup` from the URL and clears emphasis classes.
 
 **localStorage keys**
-- `crbox_onboarding` — set to `'1'` immediately after a successful signup; signals the dashboard to keep the activation context fresh
+- `crbox_onboarding` — set to `'1'` immediately after a successful signup; `_loadDashboard` reads this flag (and `?onboarding=1` URL param) on init: if either is set, once the activation card is revealed it is scrolled into view (`scrollIntoView` with 400 ms delay), then the flag is cleared from localStorage
 - `crbox_activation_toast_shown` — set to `'1'` the first time the activation toast is shown so it never reappears
 
 **CSS** — `dashboard.css` bumped to `?v=6` everywhere. New tokens: `.delivery-cards` / `.delivery-card` / `.delivery-card-icon|title|meta|tag|tag-alt` / `.is-selected`, `.activation-toast` / `.activation-toast-icon|text|close` / `.is-visible`, `.setup-emphasis` / `.setup-emphasis-wrap` / `.setup-active-tab` / `.setup-cta`. `afiliate.html` now also loads `dashboard.css` because the delivery cards live there.

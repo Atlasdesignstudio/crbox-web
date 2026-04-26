@@ -212,7 +212,7 @@
             </div>
             <p class="text-center text-sm text-gray-500 mt-3">
                 <i class="fas fa-info-circle mr-1 text-orange-500"></i>
-                Las cuentas personales se crean al instante. Las empresariales se coordinan con un ejecutivo CRBOX.
+                Ambos tipos de cuenta se crean al instante. Los precios y beneficios varían según el plan.
             </p>
         </div>
 
@@ -532,73 +532,268 @@
                 </div>
             </div>
 
-            <!-- Business Account Contact Card -->
+            <!-- Business Account Registration Form -->
             <div id="business-form" class="form-container hidden">
-                <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-bl-full opacity-50"></div>
-                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-blue-50 rounded-tr-full opacity-50"></div>
+                <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
 
-                    <div class="relative z-10">
-                        <div class="flex items-center mb-2">
-                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-4">
-                                <i class="fas fa-building text-xl"></i>
-                            </div>
-                            <h3 class="text-2xl font-bold">Cuenta Empresarial</h3>
+                    <!-- Stepper header (2 steps) -->
+                    <div class="signup-stepper mb-8" role="tablist" aria-label="Pasos de registro empresarial">
+                        <div class="signup-step is-active" data-step="1">
+                            <div class="signup-step-circle"><span>1</span></div>
+                            <div class="signup-step-label">Tu empresa</div>
                         </div>
-                        <p class="text-gray-600 mb-8">Contáctanos y un ejecutivo de cuenta CRBOX te acompañará en la activación de tu cuenta empresarial.</p>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                            <div class="flex items-start p-4 bg-blue-50 rounded-xl border border-blue-100">
-                                <i class="fas fa-handshake text-blue-500 text-xl mr-3 mt-1"></i>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800 mb-1">Ejecutivo dedicado</h4>
-                                    <p class="text-xs text-gray-600">Atención personalizada para tu negocio.</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start p-4 bg-blue-50 rounded-xl border border-blue-100">
-                                <i class="fas fa-percentage text-blue-500 text-xl mr-3 mt-1"></i>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800 mb-1">Tarifas preferenciales</h4>
-                                    <p class="text-xs text-gray-600">Volumen alto, mejores precios.</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start p-4 bg-blue-50 rounded-xl border border-blue-100">
-                                <i class="fas fa-file-invoice-dollar text-blue-500 text-xl mr-3 mt-1"></i>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800 mb-1">Factura electrónica</h4>
-                                    <p class="text-xs text-gray-600">Listo para tu contabilidad CR.</p>
-                                </div>
-                            </div>
+                        <div class="signup-step-line"><span class="signup-step-progress" data-progress="1"></span></div>
+                        <div class="signup-step" data-step="2">
+                            <div class="signup-step-circle"><span>2</span></div>
+                            <div class="signup-step-label">Contacto y entrega</div>
                         </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <a href="https://wa.me/50689794418?text=Hola%20CRBOX%2C%20me%20interesa%20una%20cuenta%20empresarial." target="_blank" rel="noopener" class="business-cta-btn group flex items-center p-5 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
-                                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mr-4 flex-shrink-0">
-                                    <i class="fab fa-whatsapp text-2xl"></i>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <h4 class="font-bold text-lg">WhatsApp</h4>
-                                    <p class="text-sm text-white/90">+506 8979-4418</p>
-                                </div>
-                                <i class="fas fa-arrow-right text-white/80 group-hover:translate-x-1 transition-transform"></i>
-                            </a>
-                            <a href="mailto:ventas@crbox.cr?subject=Solicitud%20de%20cuenta%20empresarial" class="business-cta-btn group flex items-center p-5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
-                                <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mr-4 flex-shrink-0">
-                                    <i class="fas fa-envelope text-2xl"></i>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <h4 class="font-bold text-lg">Correo</h4>
-                                    <p class="text-sm text-white/90 truncate">ventas@crbox.cr</p>
-                                </div>
-                                <i class="fas fa-arrow-right text-white/80 group-hover:translate-x-1 transition-transform"></i>
-                            </a>
-                        </div>
-
-                        <p class="text-center text-sm text-gray-500 mt-6">
-                            <i class="far fa-clock mr-1"></i>
-                            Atendemos lunes a viernes de 8:00 AM a 5:00 PM y sábados de 9:00 AM a 1:00 PM.
-                        </p>
                     </div>
+
+                    <form id="business-registration-form" class="registration-form" novalidate>
+
+                        <!-- ─── Step 1: Empresa account ─── -->
+                        <section class="signup-step-panel" data-panel="1">
+                            <h4 class="text-lg font-semibold mb-2 flex items-center">
+                                <i class="fas fa-building text-blue-500 mr-2"></i>
+                                Tu empresa
+                            </h4>
+                            <p class="text-gray-500 text-sm mb-6">Crea tu cuenta empresarial CRBOX en segundos.</p>
+
+                            <!-- Company name -->
+                            <div class="mb-5">
+                                <label class="block text-gray-700 font-medium mb-2">Nombre de la empresa *</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-building"></i></div>
+                                    <input type="text" name="company_name" required autocomplete="organization" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ej: Importaciones XYZ S.A.">
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="mb-5">
+                                <label class="block text-gray-700 font-medium mb-2">Correo electrónico *</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-envelope"></i></div>
+                                    <input type="email" name="email" required autocomplete="email" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="correo@empresa.com">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Será el correo principal de la cuenta.</p>
+                            </div>
+
+                            <!-- Password / Confirm -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Contraseña *</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-lock"></i></div>
+                                        <input type="password" name="password" required minlength="8" autocomplete="new-password" class="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Mínimo 8 caracteres">
+                                        <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" aria-label="Mostrar contraseña"><i class="fas fa-eye"></i></button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Confirmar contraseña *</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-lock"></i></div>
+                                        <input type="password" name="password_confirm" required autocomplete="new-password" class="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Repite tu contraseña">
+                                        <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" aria-label="Mostrar contraseña"><i class="fas fa-eye"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mb-5">Mínimo 8 caracteres.</p>
+                            <p id="biz-password-mismatch-msg" class="hidden text-red-500 text-sm mb-4"><i class="fas fa-exclamation-circle mr-1"></i>Las contraseñas no coinciden.</p>
+
+                            <!-- Promo code (optional) -->
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-medium mb-2">
+                                    <i class="fas fa-tag text-blue-400 mr-1"></i>
+                                    Código promocional <span class="text-gray-400 font-normal text-sm">(opcional)</span>
+                                </label>
+                                <input type="text" name="promo_code" autocomplete="off" class="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ingresa tu código si tienes uno">
+                            </div>
+
+                            <button type="button" class="signup-next-btn w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2" data-next="2">
+                                Siguiente <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </section>
+
+                        <!-- ─── Step 2: Representative + delivery ─── -->
+                        <section class="signup-step-panel hidden" data-panel="2">
+                            <h4 class="text-lg font-semibold mb-5 flex items-center">
+                                <i class="fas fa-id-card text-blue-500 mr-2"></i>
+                                Contacto y entrega
+                            </h4>
+
+                            <!-- ID number -->
+                            <div class="mb-5">
+                                <label class="block text-gray-700 font-medium mb-2">Cédula jurídica / número de identificación *</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-id-badge"></i></div>
+                                    <input type="text" name="id_number" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ej: 3101234567">
+                                </div>
+                            </div>
+
+                            <!-- Contact 1 (required) -->
+                            <div class="mb-5">
+                                <label class="block text-gray-700 font-medium mb-2">Nombre del contacto principal *</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-user-tie"></i></div>
+                                    <input type="text" name="contact_name_1" required autocomplete="name" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Nombre completo del representante">
+                                </div>
+                            </div>
+
+                            <!-- Contact 2 + Alt email (optional, side by side on desktop) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Contacto secundario <span class="text-gray-400 font-normal text-sm">(opcional)</span></label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-user"></i></div>
+                                        <input type="text" name="contact_name_2" autocomplete="off" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Nombre del segundo contacto">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Correo alternativo <span class="text-gray-400 font-normal text-sm">(opcional)</span></label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-at"></i></div>
+                                        <input type="email" name="alt_email" autocomplete="off" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="contacto@empresa.com">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Phone -->
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-medium mb-2">Teléfono de contacto *</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-phone"></i></div>
+                                    <input type="tel" name="phone_number[]" required autocomplete="tel" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Ej: 88001234">
+                                </div>
+                                <input type="hidden" name="phone_type[]" value="movil">
+                            </div>
+
+                            <!-- Delivery + address (single .address-entry scope) -->
+                            <div class="address-entry">
+                                <input type="hidden" name="address_type[]" value="residencial">
+                                <input type="hidden" name="delivery_service[]" id="biz-delivery-service-input" value="">
+
+                                <div class="mb-2">
+                                    <label class="block text-gray-700 font-medium mb-3">¿Dónde retiran sus paquetes? *</label>
+                                    <p class="text-gray-500 text-sm mb-4">Elijan una sucursal para retirar gratis, o soliciten entrega a domicilio.</p>
+                                    <div class="delivery-cards" role="radiogroup" aria-label="Opción de entrega empresarial">
+                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="sabana_norte" role="radio" aria-checked="false">
+                                            <span class="delivery-card-icon"><i class="fas fa-store"></i></span>
+                                            <span class="delivery-card-title">Sucursal Sabana Norte</span>
+                                            <span class="delivery-card-meta">San José · Mata Redonda</span>
+                                            <span class="delivery-card-tag">Retiro gratis</span>
+                                        </button>
+                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="guadalupe" role="radio" aria-checked="false">
+                                            <span class="delivery-card-icon"><i class="fas fa-store"></i></span>
+                                            <span class="delivery-card-title">Sucursal Guadalupe</span>
+                                            <span class="delivery-card-meta">San José · Goicoechea</span>
+                                            <span class="delivery-card-tag">Retiro gratis</span>
+                                        </button>
+                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="guachipelin_escazu" role="radio" aria-checked="false">
+                                            <span class="delivery-card-icon"><i class="fas fa-store"></i></span>
+                                            <span class="delivery-card-title">Sucursal Guachipelín-Escazú</span>
+                                            <span class="delivery-card-meta">Escazú · San Rafael</span>
+                                            <span class="delivery-card-tag">Retiro gratis</span>
+                                        </button>
+                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="domicilio" role="radio" aria-checked="false">
+                                            <span class="delivery-card-icon"><i class="fas fa-home"></i></span>
+                                            <span class="delivery-card-title">Entrega a domicilio</span>
+                                            <span class="delivery-card-meta">Te llevamos el paquete a tu dirección</span>
+                                            <span class="delivery-card-tag delivery-card-tag-alt">Tarifa según zona</span>
+                                        </button>
+                                    </div>
+                                    <p class="delivery-cards-help">Pueden cambiar la sucursal preferida en Mi Cuenta.</p>
+                                </div>
+
+                                <!-- Domicilio address form -->
+                                <div id="biz-domicilio-address-form" class="hidden mt-2">
+                                    <h5 class="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                                        <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>
+                                        Dirección de entrega
+                                    </h5>
+                                    <p class="text-xs text-gray-500 mb-4">Necesitamos la dirección para entregas y factura electrónica.</p>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div class="form-group">
+                                            <label class="block text-gray-700 font-medium mb-2">Provincia *</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map"></i></div>
+                                                <select name="province[]" data-domicilio-required class="province-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
+                                                    <option value="" disabled selected>Seleccione provincia</option>
+                                                    <option value="san_jose">San José</option>
+                                                    <option value="alajuela">Alajuela</option>
+                                                    <option value="cartago">Cartago</option>
+                                                    <option value="heredia">Heredia</option>
+                                                    <option value="guanacaste">Guanacaste</option>
+                                                    <option value="puntarenas">Puntarenas</option>
+                                                    <option value="limon">Limón</option>
+                                                </select>
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down"></i></div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="block text-gray-700 font-medium mb-2">Cantón *</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-marker"></i></div>
+                                                <select name="canton[]" data-domicilio-required class="canton-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
+                                                    <option value="" disabled selected>Seleccione cantón</option>
+                                                </select>
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down"></i></div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-signs"></i></div>
+                                                <select name="district[]" data-domicilio-required class="district-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none transition-all">
+                                                    <option value="" disabled selected>Seleccione distrito</option>
+                                                </select>
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down"></i></div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="block text-gray-700 font-medium mb-2">Código postal</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-mailbox"></i></div>
+                                                <input type="text" name="postal_code[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Opcional">
+                                            </div>
+                                        </div>
+                                        <div class="form-group md:col-span-2">
+                                            <label class="block text-gray-700 font-medium mb-2">Barrio o señas adicionales</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-pin"></i></div>
+                                                <input type="text" name="neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Opcional">
+                                            </div>
+                                        </div>
+                                        <div class="form-group md:col-span-2">
+                                            <label class="block text-gray-700 font-medium mb-2">Dirección detallada *</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-marker-alt"></i></div>
+                                                <textarea name="address_details[]" data-domicilio-required rows="3" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Calle, avenida, número, señas, etc."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Terms -->
+                            <div class="flex items-start gap-3 mb-6 mt-4">
+                                <input type="checkbox" name="terms" id="biz-terms" required class="mt-1 w-4 h-4 accent-blue-600 flex-shrink-0">
+                                <label for="biz-terms" class="text-sm text-gray-600">
+                                    Acepto los <a href="#" class="text-blue-600 underline hover:text-blue-700">Términos y condiciones</a> y la <a href="#" class="text-blue-600 underline hover:text-blue-700">Política de privacidad</a> de CRBOX.
+                                </label>
+                            </div>
+
+                            <!-- Navigation -->
+                            <div class="flex gap-3">
+                                <button type="button" class="signup-prev-btn flex-shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-5 rounded-xl transition-all flex items-center gap-2" data-prev="1">
+                                    <i class="fas fa-arrow-left"></i> Atrás
+                                </button>
+                                <button type="submit" id="biz-signup-submit-btn" disabled class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                                    <i class="fas fa-building mr-1"></i> Crear cuenta empresarial
+                                </button>
+                            </div>
+                        </section>
+
+                    </form>
                 </div>
             </div>
         </div>
@@ -2623,9 +2818,350 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
         });
     }
 
+    // ── Business stepper navigation ───────────────────────────────────────
+    (function initBusinessStepper() {
+        var form = document.getElementById('business-registration-form');
+        if (!form) return;
+        var bizContainer = form.closest('#business-form');
+        if (!bizContainer) return;
+        var stepperEl = bizContainer.querySelector('.signup-stepper');
+        if (!stepperEl) return;
+        var stepEls = Array.prototype.slice.call(stepperEl.querySelectorAll('.signup-step'));
+        var progressEls = Array.prototype.slice.call(stepperEl.querySelectorAll('.signup-step-progress'));
+        var panels = Array.prototype.slice.call(form.querySelectorAll('.signup-step-panel'));
+        var totalSteps = panels.length;
+        var currentStep = 1;
+
+        function bizSetStep(n) {
+            n = Math.max(1, Math.min(totalSteps, n));
+            currentStep = n;
+            panels.forEach(function (p) {
+                var idx = parseInt(p.getAttribute('data-panel'), 10);
+                p.classList.toggle('hidden', idx !== n);
+            });
+            stepEls.forEach(function (s) {
+                var idx = parseInt(s.getAttribute('data-step'), 10);
+                s.classList.toggle('is-active', idx === n);
+                s.classList.toggle('is-complete', idx < n);
+            });
+            progressEls.forEach(function (p) {
+                var idx = parseInt(p.getAttribute('data-progress'), 10);
+                p.style.width = idx < n ? '100%' : '0%';
+            });
+            var formRect = form.getBoundingClientRect();
+            if (formRect.top < 0 || formRect.top > window.innerHeight * 0.4) {
+                form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function validateBusinessStep(n) {
+            var panel = panels[n - 1];
+            if (!panel) return true;
+            var requiredFields = Array.prototype.slice.call(
+                panel.querySelectorAll('input[required], select[required], textarea[required]')
+            );
+            for (var i = 0; i < requiredFields.length; i++) {
+                var f = requiredFields[i];
+                if (f.type === 'hidden') continue;
+                if (!f.value || (f.type === 'checkbox' && !f.checked)) {
+                    f.focus();
+                    if (typeof f.reportValidity === 'function') f.reportValidity();
+                    return false;
+                }
+                if (f.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.value)) {
+                    f.focus();
+                    if (typeof f.reportValidity === 'function') f.reportValidity();
+                    return false;
+                }
+                if (f.minLength && f.value.length < f.minLength) {
+                    f.focus();
+                    if (typeof f.reportValidity === 'function') f.reportValidity();
+                    return false;
+                }
+            }
+            if (n === 1) {
+                var pwd  = panel.querySelector('input[name="password"]');
+                var pwd2 = panel.querySelector('input[name="password_confirm"]');
+                var msg  = panel.querySelector('#biz-password-mismatch-msg');
+                if (pwd && pwd2 && pwd.value !== pwd2.value) {
+                    if (msg) msg.classList.remove('hidden');
+                    pwd2.focus();
+                    pwd2.setCustomValidity('Las contraseñas no coinciden.');
+                    if (typeof pwd2.reportValidity === 'function') pwd2.reportValidity();
+                    pwd2.setCustomValidity('');
+                    return false;
+                } else if (msg) {
+                    msg.classList.add('hidden');
+                }
+            }
+            if (n === 2) {
+                var delivery = (panel.querySelector('input[name="delivery_service[]"]') || {}).value || '';
+                if (!delivery) {
+                    var firstCard = panel.querySelector('.biz-delivery-card');
+                    if (firstCard) firstCard.focus();
+                    alert('Por favor elige cómo prefieres recibir tus paquetes.');
+                    return false;
+                }
+                if (delivery === 'domicilio') {
+                    var domFields = Array.prototype.slice.call(panel.querySelectorAll('[data-domicilio-required]'));
+                    for (var j = 0; j < domFields.length; j++) {
+                        var df = domFields[j];
+                        if (!df.value) {
+                            df.focus();
+                            df.setCustomValidity('Este campo es obligatorio para entrega a domicilio.');
+                            if (typeof df.reportValidity === 'function') df.reportValidity();
+                            df.setCustomValidity('');
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        form.closest('#business-form').addEventListener('click', function (e) {
+            var nextBtn = e.target.closest('.signup-next-btn');
+            var prevBtn = e.target.closest('.signup-prev-btn');
+            if (nextBtn) {
+                e.preventDefault();
+                if (!validateBusinessStep(currentStep)) return;
+                var target = parseInt(nextBtn.getAttribute('data-next'), 10) || (currentStep + 1);
+                bizSetStep(target);
+            } else if (prevBtn) {
+                e.preventDefault();
+                var target2 = parseInt(prevBtn.getAttribute('data-prev'), 10) || (currentStep - 1);
+                bizSetStep(target2);
+            }
+        });
+    }());
+
+    // ── Business delivery card init ────────────────────────────────────────
+    (function initBusinessDeliveryCards() {
+        var form = document.getElementById('business-registration-form');
+        if (!form) return;
+        var cards       = Array.prototype.slice.call(form.querySelectorAll('.biz-delivery-card'));
+        var hiddenInput = form.querySelector('#biz-delivery-service-input');
+        var domicilioForm = form.querySelector('#biz-domicilio-address-form');
+        var submitBtn   = form.querySelector('#biz-signup-submit-btn');
+        if (!cards.length || !hiddenInput || !domicilioForm) return;
+
+        function bizSetSubmitEnabled(enabled) {
+            if (submitBtn) submitBtn.disabled = !enabled;
+        }
+
+        function bizClearAddressInputs() {
+            ['province[]','canton[]','district[]','postal_code[]','neighborhood[]','address_details[]'].forEach(function (n) {
+                var el = form.querySelector('[name="' + n + '"]');
+                if (!el) return;
+                if (el.tagName === 'SELECT') { el.value = ''; if (el.selectedIndex >= 0) el.selectedIndex = 0; }
+                else { el.value = ''; }
+            });
+        }
+
+        function bizSetSelectValue(selectEl, val) {
+            if (!selectEl) return;
+            var has = false;
+            for (var i = 0; i < selectEl.options.length; i++) {
+                if (selectEl.options[i].value === val) { has = true; break; }
+            }
+            if (!has) {
+                var opt = document.createElement('option');
+                opt.value = val; opt.textContent = val;
+                selectEl.appendChild(opt);
+            }
+            selectEl.value = val;
+        }
+
+        function bizApplyBranch(branchKey) {
+            var b = BRANCH_ADDRESSES[branchKey];
+            if (!b) return;
+            var prov = form.querySelector('select[name="province[]"]');
+            var cant = form.querySelector('select[name="canton[]"]');
+            var dist = form.querySelector('select[name="district[]"]');
+            var det  = form.querySelector('textarea[name="address_details[]"]');
+            if (prov) { prov.value = b.province; prov.dispatchEvent(new Event('change', { bubbles: true })); }
+            if (cant) { bizSetSelectValue(cant, b.canton); cant.dispatchEvent(new Event('change', { bubbles: true })); }
+            if (dist) bizSetSelectValue(dist, b.district);
+            if (det)  det.value = b.address_details;
+        }
+
+        function bizSelectCard(card) {
+            var value = card.getAttribute('data-delivery');
+            cards.forEach(function (c) {
+                var on = (c === card);
+                c.classList.toggle('is-selected', on);
+                c.setAttribute('aria-checked', on ? 'true' : 'false');
+            });
+            hiddenInput.value = value;
+            if (value === 'domicilio') {
+                domicilioForm.classList.remove('hidden');
+                bizClearAddressInputs();
+            } else {
+                domicilioForm.classList.add('hidden');
+                bizClearAddressInputs();
+                bizApplyBranch(value);
+            }
+            bizSetSubmitEnabled(true);
+        }
+
+        cards.forEach(function (card) {
+            card.addEventListener('click', function () { bizSelectCard(card); });
+        });
+    }());
+
+    // ── Business registration handler ──────────────────────────────────────
+    function handleBusinessRegistration(form) {
+        if (typeof CRBOXAuth === 'undefined' || typeof CRLocations === 'undefined') {
+            showRegError(form, 'Error interno: módulo de autenticación no cargado. Recargue la página.');
+            return;
+        }
+
+        var companyName = getField(form, 'company_name');
+        var email       = getField(form, 'email');
+        var password    = getField(form, 'password');
+        var idNumber    = getField(form, 'id_number');
+        var contact1    = getField(form, 'contact_name_1');
+        var contact2    = getField(form, 'contact_name_2');
+        var altEmail    = getField(form, 'alt_email');
+        var country     = 'CR';
+        var promoCode   = getField(form, 'promo_code');
+        var newsletter  = (form.querySelector('[name="newsletter"]') || {}).checked || false;
+
+        // Build phones array
+        var phoneNumbers = form.querySelectorAll('[name="phone_number[]"]');
+        var phoneTypes   = form.querySelectorAll('[name="phone_type[]"]');
+        var phones = [];
+        var firstPhone = true;
+        for (var pi = 0; pi < phoneNumbers.length; pi++) {
+            var pNum  = (phoneNumbers[pi].value || '').trim().replace(/\s+/g, '');
+            var pType = phoneTypes[pi] ? phoneTypes[pi].value : 'movil';
+            if (!pNum) continue;
+            var ptObj = CRLocations.getPhoneType(pType);
+            phones.push({
+                idphone: CRBOXAuth.PENDING.newPhoneId, phonenumber: pNum, phoneextension: '',
+                isactive: false, isprimary: firstPhone,
+                phonetype: { idphonetype: ptObj.idphonetype, type: ptObj.type, _bIsDeleted: false, _bIsChanged: true },
+                consignees: null, phonefreightforwarders: null, phoneshippers: null,
+                _bIsDeleted: false, _bIsChanged: true
+            });
+            firstPhone = false;
+        }
+
+        // Build addresses array (same logic as personal)
+        var addressEntries = form.querySelectorAll('.address-entry');
+        var addresses = [];
+        var firstAddr = true;
+        var sucursalError = null;
+        var resolvedIdSucursal = null;
+
+        for (var ai = 0; ai < addressEntries.length; ai++) {
+            var entry = addressEntries[ai];
+            var addrType    = getFieldInScope(entry, 'address_type[]');
+            var delivery    = getFieldInScope(entry, 'delivery_service[]');
+            var postalCode  = getFieldInScope(entry, 'postal_code[]');
+            var provinceVal = getFieldInScope(entry, 'province[]');
+            var cantonVal   = getFieldInScope(entry, 'canton[]');
+            var districtVal = getFieldInScope(entry, 'district[]');
+            var addrDetails = getFieldInScope(entry, 'address_details[]');
+
+            var idSucursal = CRBOXAuth.PENDING.sucursalIdMap[delivery];
+            if (idSucursal === null || idSucursal === undefined) {
+                sucursalError = 'No se puede determinar la sucursal seleccionada ("' + delivery + '"). Contacte soporte.';
+                break;
+            }
+            if (firstAddr) resolvedIdSucursal = idSucursal;
+
+            var provCode = CRLocations.getProvinceCode(provinceVal) || '0';
+            var cantIdx  = CRLocations.getCantonIndex(provinceVal, cantonVal) || '0';
+            var distIdx  = '0';
+            if (typeof locationDatabase !== 'undefined') {
+                var pKey = CRLocations.normalizeKey(provinceVal);
+                var cKey = CRLocations.normalizeKey(cantonVal);
+                var dbEntry = (locationDatabase[pKey] || {})[cKey];
+                if (dbEntry && dbEntry.districts) distIdx = CRLocations.getDistrictIndex(dbEntry.districts, districtVal);
+            }
+            if (provCode === '0') { sucursalError = 'No se pudo resolver el código de provincia para "' + provinceVal + '". Contacte soporte.'; break; }
+            if (cantIdx === '0')  { sucursalError = 'No se pudo resolver el código de cantón para "' + cantonVal + '". Contacte soporte.'; break; }
+            if (distIdx === '0')  { sucursalError = 'No se pudo resolver el código de distrito para "' + districtVal + '". Contacte soporte.'; break; }
+
+            var line1 = [provinceVal, provinceVal.toUpperCase(), cantonVal.toUpperCase(), districtVal.toUpperCase(), addrDetails].filter(Boolean).join(' ');
+            var atObj = CRLocations.getAddressType(addrType);
+
+            addresses.push({
+                idaddress: CRBOXAuth.PENDING.newAddressId, line1: line1, line2: addrDetails || '',
+                city: cantonVal.toUpperCase(), zipcode: postalCode || '',
+                isactive: false, isprimary: firstAddr,
+                provincia: provCode, canton: cantIdx, distrito: distIdx, barrio: '0', direccion: addrDetails || '',
+                state: { idstate: parseInt(provCode, 10) || 0, statename: provinceVal,
+                    country: { idcountry: 1, countryname: 'Costa Rica', statecountry: null, _bIsDeleted: false, _bIsChanged: true },
+                    _bIsDeleted: false, _bIsChanged: true },
+                addresstype: { idaddresstype: atObj.idaddresstype, type: atObj.type, _bIsDeleted: false, _bIsChanged: true },
+                _bIsDeleted: false, _bIsChanged: true
+            });
+            firstAddr = false;
+        }
+
+        if (sucursalError) { showRegError(form, sucursalError); return; }
+        if (phones.length === 0)    { showRegError(form, 'Agregue al menos un número de teléfono.'); return; }
+        if (addresses.length === 0) { showRegError(form, 'Agregue al menos una dirección.'); return; }
+
+        var params = new URLSearchParams();
+        params.set('Consignee.ConsigneeName',         companyName);
+        params.set('Consignee.ConsigneeLastName1',    '');
+        params.set('Consignee.ConsigneeLastName2',    '');
+        params.set('Consignee.Email',                 email);
+        params.set('ConfirmEmail',                    email);
+        params.set('Password',                        password);
+        params.set('ConfirmPassword',                 password);
+        params.set('Consignee.IdentificationType',    'Otro');
+        params.set('Consignee.IdentificationNumber',  idNumber);
+        params.set('Consignee.IsCompany',             '1');
+        params.set('Consignee.ResidenceCountry',      country);
+        params.set('Consignee.ReceivesNewsletter',    newsletter ? 'true' : 'false');
+        params.set('Consignee.Responsabilidad',       '0');
+        params.set('Consignee.AlternativeEmail',      altEmail);
+        params.set('Consignee.ContactName1',          contact1);
+        params.set('Consignee.ContactName2',          contact2);
+        params.set('Consignee.IdResponsabilidad',     '');
+        params.set('Consignee.BirthDate',             '');
+        params.set('Consignee.Sucursal.IdSucursal',   String(resolvedIdSucursal));
+        params.set('CompanyCode',                     promoCode || '');
+        params.set('Phones',                          JSON.stringify(phones));
+        params.set('Addresses',                       JSON.stringify(addresses));
+
+        var submitBtn = form.querySelector('button[type="submit"]');
+        var origLabel = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) { submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Procesando...'; submitBtn.disabled = true; }
+        hideRegError(form);
+
+        CRBOXAuth.doRegister(params.toString())
+            .then(function (res) {
+                if (res.StatusResult === 'OK') {
+                    showRegSuccess(form, email, password);
+                } else {
+                    var msg = res.Message || '';
+                    var friendly;
+                    if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
+                        friendly = msg;
+                    } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
+                        friendly = msg;
+                    } else {
+                        friendly = 'Ocurrió un error al procesar el registro. Intente de nuevo.';
+                    }
+                    showRegError(form, friendly);
+                    if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
+                }
+            })
+            .catch(function (err) {
+                console.error('[CRBOX] Business registration network error:', err);
+                showRegError(form, 'Error de conexión. Intente de nuevo más tarde.');
+                if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
+            });
+    }
+
     // Form validation
     const personalRegistrationForm = document.getElementById('personal-registration-form');
-    // Business registrations are now handled via WhatsApp/email contact CTA (no form submission).
+    const businessRegistrationForm = document.getElementById('business-registration-form');
     
     function handlePersonalRegistration(form) {
         // FUTURE: Google Sign-In hook — verify credentials.googleToken before entering registration flow.
@@ -2840,6 +3376,25 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
             handlePersonalRegistration(personalRegistrationForm);
         });
     }
+
+    if (businessRegistrationForm) {
+        businessRegistrationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleBusinessRegistration(businessRegistrationForm);
+        });
+    }
+
+    // ── Toggle password visibility (personal + business forms) ───────────
+    document.querySelectorAll('.toggle-password').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var input = btn.parentElement.querySelector('input');
+            if (!input) return;
+            var isText = input.type === 'text';
+            input.type = isText ? 'password' : 'text';
+            var icon = btn.querySelector('i');
+            if (icon) { icon.classList.toggle('fa-eye', isText); icon.classList.toggle('fa-eye-slash', !isText); }
+        });
+    });
 
     // ── Registration helper functions ─────────────────────────────────────────
     function getField(form, name) {

@@ -1,0 +1,57 @@
+Important validated update: cuenta empresarial is confirmed to be a real working self-serve registration flow in the current live/old site, not just a contact or sales-assisted path.
+
+This has now been validated end-to-end through the live old site:
+
+- business registration returned StatusResult: "OK"
+- login succeeded through authtoken
+- getuserinfo returned a coherent company account
+- dashboard loaded correctly after login
+
+Confirmed business account result:
+- isCompany: true
+- identificationtype: "Otro"
+- identificationnumber present
+- birthDate: null
+- alternativeEmail, contactName1, contactName2 present
+- sucursal, address, and phone all present
+- dashboard bootstrap succeeded
+
+This means cuenta empresarial should no longer be treated as a contact-only fallback in the new site. It should be implemented as a real registration mode using the same backend lifecycle as personal registration, but with a business-specific payload shape.
+
+What to do:
+- replace the current business contact-only experience in the new site with a real business signup flow
+- preserve the real backend contract proven by the successful old-site empresarial registration
+- modernize the UX completely; do not copy the old UI
+- keep the login flow untouched
+- use the same registration/auth lifecycle:
+  - register
+  - authtoken
+  - getuserinfo
+
+Important validated payload behavior from the old site:
+- business registration succeeds with Consignee.IsCompany = true
+- Consignee.IdentificationType = "Otro"
+- BirthDate can be null / empty for business accounts
+- business account still requires real phone, address, sucursal, ID number, email, password
+- company code appears optional
+- surname-style personal fields should not be forced as meaningful UX requirements for company mode, because the backend tolerated blank surname values in the successful business account
+
+Implementation direction for the new site:
+- create a dedicated modern business signup flow
+- collect only what the validated business lifecycle actually needs
+- likely fields:
+  - company/business name
+  - main email
+  - password
+  - confirm password
+  - business identification number
+  - phone
+  - sucursal / delivery option
+  - address
+  - primary contact
+  - secondary contact
+  - alternate email
+- do not require birth date in business mode unless a new-site validation contradicts this
+- do not reduce business mode to WhatsApp/email CTA unless a technical issue appears in the new-site lifecycle
+
+Please update the implementation assumptions and proceed with a real business registration flow for the new site based on these validated findings.
