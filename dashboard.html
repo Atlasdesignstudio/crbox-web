@@ -258,17 +258,6 @@
                             <i class="fas fa-arrow-right ml-1"></i>
                         </a>
                     </li>
-                    <li class="activation-item" data-step="shipment">
-                        <span class="activation-check"><i class="fas fa-circle"></i></span>
-                        <div class="activation-item-body">
-                            <span class="activation-item-title">Programa tu primer envío</span>
-                            <span class="activation-item-desc">Calcula el costo y conoce tu dirección en Miami.</span>
-                        </div>
-                        <a href="calculadora.html" class="activation-cta">
-                            Calcular
-                            <i class="fas fa-arrow-right ml-1"></i>
-                        </a>
-                    </li>
                 </ul>
 
                 <div class="activation-progress-wrap">
@@ -854,9 +843,8 @@
                    a.addressdetails || a.AddressDetails || a.address1 || a.Address1);
     });
     _renderActivationProgress({
-      profile:  hasName && hasIdNo && hasPhone,
-      address:  hasAddress,
-      shipment: false  // we cannot reliably detect a first shipment here; treat as user-driven
+      profile: hasName && hasIdNo && hasPhone,
+      address: hasAddress
     });
     card.classList.remove('hidden');
   }
