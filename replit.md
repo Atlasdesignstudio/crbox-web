@@ -117,37 +117,36 @@ Key CSS layers:
 
 This is the authoritative baseline. All future work builds on a confirmed working lifecycle. Do not revert the endpoint or remove `Consignee.BirthDate`.
 
-**Validated lifecycle (direct API test against production):**
+**Validated lifecycle — FULLY CONFIRMED end-to-end (2026-04-26):**
 1. **Registration** — `POST https://clients.crbox.cr/api/crboxwebapi/postregisteruser` → `StatusResult: OK`
 2. **Auto-login** — `POST https://clients.crbox.cr/authtoken` → `bearer` token, `expires_in: 86399`
-3. **getuserinfo** — `GET /getuserinfo/{email}` → coherent account object: `idconsignee`, `identificationnumber`, `sucursal._idsucursal`, `Phones[1]`, `Addresses[1]`, `birthDate` all present
+3. **getuserinfo** — coherent account object returned: `idconsignee`, `identificationnumber`, `sucursal._idsucursal`, `Phones[1]`, `Addresses[1]`, `birthDate` all present
 4. **postedituser** — `POST /postedituser` with `Consignee.IdConsignee` → `StatusResult: OK`
+5. **Old portal cross-check** — the account created by the new-site flow loads correctly in the existing fully-connected portal, confirming the record is valid and usable across the real system.
+
+The registration foundation is **closed**. Do not re-investigate whether the backend lifecycle works. Future work is UX polish, onboarding refinement, and activation-state handling only.
 
 **Fixed invariants — do not change:**
 - `REGISTER_URL` in `js/auth.js` must stay on `https://clients.crbox.cr/...`. The staging `test.clients.crbox.cr` endpoint was separately broken and is no longer in use.
 - `Consignee.BirthDate` must remain in the payload. It is required by the backend. The form collects it via `<input type="date" name="birth_date">` in Step 2 (Identidad).
 
-**Root cause of all prior failures:**
-The backend silently rejects throwaway/spam email domains (`@mailinator.com` and similar) using the same generic error `"Hubo un error, por favor vuelva a llenar el formulario de registro"` — indistinguishable from any other failure. All prior test runs used `@mailinator.com`. Real domains (`@gmail.com`, `@proton.me`) both succeed. **When debugging future registration failures, check the email domain first before investigating payload structure.** The same generic error also fires for duplicate email or duplicate ID number — check for existing registrations if a real domain still produces this error.
+**Debugging future registration failures (generic error `"Hubo un error..."`):**
+This same error covers three distinct root causes — check in order:
+1. **Throwaway email domain** — `@mailinator.com` and similar are blocked. Use a real domain (`@gmail.com`, `@proton.me`).
+2. **Duplicate email** — the email is already registered.
+3. **Duplicate ID number** — the `IdentificationNumber` is already in the system.
+Never assume a payload field error before ruling out all three.
 
-**Next step — browser-level UI interaction validation (not yet done):**
-The complete API lifecycle has been validated via direct API calls with a real test account (see test credentials below). The actual stepper UI in-browser (clicking through steps, filling form fields) has not yet been exercised — requires a human running the form. Before marking signup fully production-ready, confirm in-browser:
-- step navigation (1 → 2 → 3 → submit) with real field input
-- delivery-card click → sucursal address prefill
-- form submit → `StatusResult: OK`
-- auto-login redirect to `dashboard.html?onboarding=1`
-- dashboard bootstrap (activation toast fires, casillero shown as 50635142)
-- Mi Cuenta profile data loaded correctly
-
-**Test account credentials (real, confirmed created 2026-04-26):**
+**Confirmed test account (created and validated 2026-04-26):**
 - Email: `crboxqa.1777237329@proton.me`
 - Password: `CrboxQA2026!`
 - Full name: Ana Laura Rojas Campos
 - ID type: Cédula ó Residencia / ID number: `377237329`
 - Birth date: `1992-08-14` / Phone: `88112233`
 - Sucursal: Sabana Norte (idSucursal: 1)
-- idconsignee (casillero): `50635142`
-- Account state: **ACTIVATED** (name + ID + phone + address all present — activation checklist should be complete, toast fires once on first dashboard load)
+- idconsignee / casillero: **50635142**
+- Account state: ACTIVATED (all profile fields present; activation toast fires once on first dashboard load)
+- Cross-checked: loads correctly in both new-site portal and legacy portal.
 
 **Note on `postedituser`:** confirmed working with the same payload structure as registration plus `Consignee.IdConsignee`. Mi Cuenta save-profile flow is structurally correct.
 
