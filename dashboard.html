@@ -773,7 +773,8 @@
     });
     var addrs = info.Addresses || c.addresses || [];
     var hasAddress = Array.isArray(addrs) && addrs.some(function (a) {
-      return a && (a.addressdetails || a.AddressDetails || a.address1 || a.Address1);
+      return a && (a.line1 || a.Line1 || a.direccion || a.Direccion ||
+                   a.addressdetails || a.AddressDetails || a.address1 || a.Address1);
     });
     var ready = hasName && hasIdNo && hasPhone && hasAddress;
     return ready ? 'activated' : 'incomplete';
@@ -842,7 +843,10 @@
     var phones   = (info && (info.Phones || c.phones)) || [];
     var hasPhone = Array.isArray(phones) && phones.some(function (p) { return p && (p.phonenumber || p.PhoneNumber); });
     var addrs    = (info && (info.Addresses || c.addresses)) || [];
-    var hasAddress = Array.isArray(addrs) && addrs.some(function (a) { return a && (a.addressdetails || a.AddressDetails || a.address1 || a.Address1); });
+    var hasAddress = Array.isArray(addrs) && addrs.some(function (a) {
+      return a && (a.line1 || a.Line1 || a.direccion || a.Direccion ||
+                   a.addressdetails || a.AddressDetails || a.address1 || a.Address1);
+    });
     _renderActivationProgress({
       profile:  hasName && hasIdNo && hasPhone,
       address:  hasAddress,
