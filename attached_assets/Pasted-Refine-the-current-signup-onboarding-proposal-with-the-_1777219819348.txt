@@ -1,0 +1,166 @@
+Refine the current signup/onboarding proposal with the following corrections and validations before implementation.
+
+There is one critical point that must be clarified first:
+
+First question to answer before locking the solution
+
+Does the new website currently create accounts end-to-end successfully, or not?
+
+Not just “does it submit something,” but:
+
+* does registration succeed on the new website,
+* does login work right after,
+* does getuserinfo return a coherent account,
+* does the portal load correctly,
+* and can that new account later be completed/edited through Mi Cuenta?
+
+Right now, our strongest code-level findings about registration come from the old/legacy Vue flow, not from a fully validated end-to-end registration lifecycle on the new website.
+
+So before finalizing the redesign, explicitly determine and report:
+
+1. whether the new website currently creates accounts successfully end-to-end
+2. whether it is already wired to the real backend in a fully working way
+3. or whether the current reliable evidence is still mostly coming from the legacy implementation
+
+Do not assume those are the same thing.
+
+⸻
+
+Important refinement: legacy findings are clues, not automatically confirmed new-site truth
+
+We inspected the legacy Vue registration flow and learned a lot from it:
+
+* what fields the old frontend collects
+* how it structures payloads
+* that identification is actively processed by backend validation
+* that phones and addresses are treated as core structures
+* that domicilio placeholders are risky
+
+That evidence is extremely useful, but it should be treated as:
+
+implementation clues / historical constraints / starting assumptions
+
+—not automatically as—
+
+fully confirmed backend contract of the new website flow
+
+So refine the current plan to make this distinction explicit.
+
+Any statement that currently sounds like:
+
+* “confirmed backend contract”
+* “required by backend”
+* “safe to defer”
+* “this is how the new flow works”
+
+must only remain that strong if it is validated against the new real flow lifecycle, not just inferred from the old code.
+
+⸻
+
+Refine the plan around this validation rule
+
+Before locking the new signup experience, validate the real lifecycle on the new website:
+
+* registration
+* login
+* getuserinfo
+* portal load
+* later completion in Mi Cuenta
+
+If the new simplified flow works cleanly through that entire chain, proceed with the lighter UX.
+
+If it does not, do not keep implementing the reduced-flow assumptions as if they were valid.
+Instead, re-baseline the signup UX around the real minimum data the new flow actually needs.
+
+In other words:
+
+* a slightly heavier but truthful signup is better than
+* a lighter signup that creates unstable, partial, or misleading account records
+
+⸻
+
+Refine the wording of the current plan
+
+Please revise the current plan so that:
+
+1. It explicitly asks whether the new website currently creates the account successfully
+
+This should be one of the first things the work answers.
+
+2. It clearly separates:
+
+* what is known from old code inspection
+* what is validated on the new real flow
+* what is still a hypothesis pending validation
+
+3. It avoids overstating “confirmed backend requirements”
+
+Unless those requirements are proven through the new flow lifecycle.
+
+4. It keeps the overall product direction
+
+The overall direction is still good and should remain:
+
+* lower-friction signup
+* better grouping and presentation
+* guided activation-aware onboarding
+* better in-portal completion experience
+* future compatibility with Google Sign-In
+* no fake data
+* no fake simplification
+* no unsafe domicilio placeholders
+
+5. It preserves the activation-aware UX/product layer
+
+Do not lose the good parts of the current proposal:
+
+* stepper / better presentation
+* onboarding checklist
+* account state model
+* deep-linking into Mi Cuenta
+* user-friendly setup/activation language
+
+Those should stay — but grounded in validated backend truth.
+
+⸻
+
+Specific refinements to apply
+
+Add these refinements into the current proposal:
+
+* Ask explicitly whether the new website currently creates accounts fully end-to-end.
+* Re-label legacy-flow findings as starting assumptions / implementation clues unless validated through the new flow.
+* Re-label any “confirmed backend contract” claims that came only from old code inspection.
+* State clearly that the final Created / Incomplete / Activated model may need adjustment after lifecycle validation.
+* State clearly that the simplified signup payload must only be adopted if the new lifecycle remains coherent after registration.
+* If validation fails, redesign the signup around the real minimum required dataset instead of forcing the lightweight model.
+* Keep the product/UX goal the same: a much better signup + setup experience, but truthful and stable.
+
+⸻
+
+Keep this key product principle
+
+We still want the best possible real experience:
+
+* easier signup
+* cleaner grouping
+* less overwhelming UI
+* better mobile experience
+* setup guidance inside the portal
+* clear activation state
+* no fake assumptions
+* no broken account creation underneath
+
+The redesign should feel smarter and more modern, but it must be based on what the new real flow can actually support.
+
+⸻
+
+What I want back from you
+
+Please update the plan and implementation direction so it answers:
+
+1. Is the new website currently capable of creating accounts fully end-to-end?
+2. Which findings are legacy-only clues versus new-flow validated truth?
+3. What minimum dataset is truly safe on the new flow?
+4. Can the lighter signup model be implemented safely now, or does the current backend/new-flow reality still require a heavier first step?
+5. What is the best UX/product solution under the real current constraints?

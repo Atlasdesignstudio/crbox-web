@@ -1,0 +1,326 @@
+We want to rethink and redesign the signup + account setup experience for CRBOX in a much smarter way, based on what we have now discovered from the real current implementation.
+
+This is not just a visual cleanup of afiliate.html and not just a backend payload reduction. We want you to think about this as a full product / UX / onboarding / activation flow problem.
+
+What we want
+
+We want account creation to feel much easier, faster, cleaner, and more user-friendly than it does today.
+
+Right now the user is forced to go through a long, operationally-heavy registration flow before they can even enter the client portal. That feels wrong from a UX and conversion perspective.
+
+What we want instead is closer to this model:
+
+* fast and low-friction initial signup
+* real account creation in the backend
+* immediate access to the client portal
+* then a guided in-portal setup / activation experience to complete what is still needed
+
+But we do not want fake simplification.
+We do not want to just hide fields and break the backend.
+We do not want to relocate the same dense form into the portal with no product thinking.
+
+We want the best real solution possible with what the backend and current architecture actually allow today.
+
+⸻
+
+What we discovered from the current real frontend code
+
+We inspected the real legacy Vue registration flow and these are the important findings:
+
+A. The current registration flow is split into 3 Vue steps
+
+* registerStep1.vue
+* registerStep2.vue
+* registerStep3.vue
+
+So the current product already separates things into:
+
+* account basics
+* personal/identity/phone
+* shipping info in Costa Rica
+
+That means there is already some structure, even if the experience is still too heavy.
+
+B. The submit ultimately calls CrboxApi.postRegisterUser(...)
+
+The real frontend sends a large payload through:
+
+CrboxApi.postRegisterUser(this, this.Consignee, confirmEmail, password, ConfirmPassword, companyCode, phones, addresses)
+
+And the service serializes and sends:
+
+* ConsigneeName
+* ConsigneeLastName1
+* ConsigneeLastName2
+* Email
+* BirthDate
+* IdentificationType
+* IdentificationNumber
+* AlternativeEmail
+* ResidenceCountry
+* Sucursal.IdSucursal
+* ContactName1 / ContactName2
+* IsCompany
+* ReceivesNewsletter
+* Responsabilidad / IdResponsabilidad
+* ConfirmEmail
+* Password / ConfirmPassword
+* CompanyCode
+* Phones
+* Addresses
+
+So today the current frontend is definitely designed to create a nearly complete operational profile, not just a lightweight account.
+
+C. The current frontend definitely forces key fields upfront
+
+From the inspected Vue steps:
+
+Step 1
+
+Collects:
+
+* account type
+* company/special code
+* name
+* surnames
+* birth date
+* email
+* password
+
+Important nuance:
+some fields are visually marked as required but not all of them have strict v-validate='required' rules, so the UI and the actual validation are not perfectly aligned.
+
+Step 2
+
+Forces much more strongly:
+
+* identification type
+* identification number
+* at least one phone number
+* phone type through modal logic
+
+This step has much more real validation.
+
+Step 3
+
+Forces:
+
+* residence country
+* sucursal / delivery service selection
+* at least one address
+* and inside the address modal, detailed Costa Rica address structure:
+    * state/provincia
+    * canton
+    * distrito
+    * barrio
+    * otras señas
+    * etc.
+
+This means the current frontend absolutely treats address as required upfront.
+
+D. The backend definitely processes identification
+
+From the real network request/response we saw:
+
+* the current real registration request includes IdentificationNumber
+* the backend returned:
+    "El número de identificación ya está registrado en la base de datos"
+
+That means identification is not just frontend decoration — the backend is actively validating it.
+
+E. Domicilio / address placeholders are risky
+
+We already know that fake or weak address values like provincia='0' can create corrupt or low-quality backend records.
+
+So we should be very careful not to simplify domicilio in a way that creates broken data just to make the signup shorter.
+
+F. The current registration flow does NOT auto-login
+
+Today, after successful registration, the user gets a success state and then manually clicks “Ingresar”.
+
+So if we move to auto-login after registration, that is a new UX behavior to implement deliberately.
+
+⸻
+
+What is still NOT proven and should not be assumed
+
+Even with all the discoveries above, we still do not know for sure that the backend can safely create a valid account with only a minimal payload.
+
+Do not assume that because the endpoint accepts a request format, we can suddenly drop:
+
+* identification
+* phones
+* addresses
+* etc.
+
+What is still unproven is whether the backend supports a reduced payload stably across the whole lifecycle, meaning:
+
+* registration succeeds
+* login succeeds
+* getuserinfo returns a coherent usable account
+* the portal loads correctly
+* later postedituser completion still works
+* the user record does not become weird, partial, corrupt, or low-quality operationally
+
+This is a key point:
+A field is not safely deferrable just because the registration endpoint technically accepts an empty value once.
+It is only safely deferrable if the whole lifecycle remains healthy afterward.
+
+So you must not design this solution around assumptions that are not validated.
+
+⸻
+
+What we want you to solve
+
+We want you to use all the findings above and determine the best possible real product flow, which may end up being one of two directions:
+
+Possible direction 1 — truly simplified signup is viable
+
+If you validate that the real backend can safely create accounts with a lighter payload, then:
+
+* redesign afiliate to be much shorter and easier
+* create the account quickly
+* auto-login
+* move the rest into guided in-portal setup
+
+Possible direction 2 — true lightweight signup is not fully viable today
+
+If you determine that the real backend still effectively requires identity/phone/address upfront for a stable account, then do not fake simplicity.
+
+In that case, we still want a major UX redesign, but of a different kind:
+
+* make the registration dramatically more understandable
+* make it more progressive
+* improve the grouping and explanation of required data
+* reduce the feeling of density and friction
+* maybe still shorten some parts if safely possible
+* but respect the real backend constraints
+
+In other words:
+if backend truth blocks a minimal signup, the solution is not to force broken placeholder data.
+The solution is to make the real required flow much more usable.
+
+⸻
+
+Product/UX expectations
+
+We want you to think deeply about all of this, not just technically.
+
+1. Initial signup page
+
+The initial afiliate experience should become:
+
+* much more straightforward
+* much less intimidating
+* more conversion-friendly
+* more mobile-friendly
+* clearer about what is needed now vs later
+
+If the current full data set must stay, then redesign that experience so it feels much lighter and more guided.
+If the data set can be reduced safely, then redesign around that lower-friction version.
+
+2. In-portal setup / activation
+
+If any data can be deferred, the portal completion experience must be intentionally designed.
+
+We do not want:
+
+* a generic dense “fill this form later”
+* a random banner with no product logic
+* users entering and feeling lost
+
+We do want:
+
+* a clear account setup / activation state
+* clear explanation of what is missing
+* clear explanation of why it is needed
+* clear deep-links to the right place
+* good UX for both mobile and desktop
+* a setup flow that feels lighter than the current registration form
+
+3. State model
+
+We want the final solution to define account states clearly, for example:
+
+* account created
+* profile incomplete
+* operationally activated
+
+And the product should clearly communicate:
+
+* what each state means
+* what remains accessible
+* what still needs completion
+* what is required before real operational use
+
+4. If the user postpones setup
+
+Think about the behavior if the user signs up and does not complete the remaining setup right away.
+
+The system should not:
+
+* confuse them
+* lose them
+* leave them in an undefined limbo
+
+It should:
+
+* keep guiding them clearly
+* preserve as much portal usefulness as makes sense
+* explain activation requirements in a non-annoying but clear way
+
+5. Navigation / deep-linking
+
+If setup is deferred to the portal, the navigation should be excellent:
+
+* right tab opens directly
+* the relevant section is emphasized
+* the user knows what to do next
+* it should feel like onboarding, not like being dropped into a random account page
+
+⸻
+
+Important constraints
+
+* Do not implement Google Sign-In now
+* But keep the architecture future-friendly for a world where signup could start with Google later
+* Do not invent fake backend behavior
+* Do not assume placeholder values are safe unless validated
+* Do not simplify the form by creating broken data underneath
+* Do not only think visually — think in product, lifecycle, activation, and backend-truth terms
+
+⸻
+
+What we want from you
+
+We want you to take all of the above and determine the best real implementation direction, then execute it.
+
+That means:
+
+* audit what is truly required today
+* separate what is frontend-only friction vs real backend necessity
+* decide what can safely move out of initial signup
+* decide what must remain upfront if the backend requires it
+* redesign the signup experience accordingly
+* redesign the in-portal setup/activation experience accordingly
+* make the whole thing feel much more thoughtful, human, and product-quality
+
+In short:
+
+We do not want a superficial form reduction.
+We want the best real signup-to-activation experience possible, grounded in the actual codebase and backend behavior we now understand.
+
+⸻
+
+Please report back with
+
+When you finish planning/implementing, explain clearly:
+
+1. what the real current constraints are
+2. what you determined can safely be simplified vs not
+3. whether true lightweight signup is viable today or not
+4. what account state model you used
+5. how onboarding/activation is handled
+6. how navigation into setup is handled
+7. what backend risks or limitations still remain
+8. why your final direction is the best product choice given the current reality
