@@ -822,6 +822,7 @@
                             </div>
                         </div>
                     </div>
+                    <a id="modal-factura-link" href="mis-facturas.html" class="hidden mt-3 inline-block text-sm font-medium text-orange-600 hover:text-orange-700">Ver factura completa →</a>
                 </div>
 
                 <h5 class="text-sm font-medium text-gray-500 mb-2">Notas</h5>
@@ -2440,8 +2441,21 @@
             if (hasDesc && facturaDescEl) facturaDescEl.textContent = pkg.descripcionfactura;
             if (facturaCountLine) facturaCountLine.classList.toggle('hidden', !hasCount);
             if (hasCount && facturaCountEl) facturaCountEl.textContent = String(pkg.invoicesCount);
+            var facturaLink = document.getElementById('modal-factura-link');
+            if (facturaLink) {
+              if (hasCount) {
+                var receiptNum = pkg.number ? String(pkg.number).trim() : '';
+                facturaLink.href = receiptNum ? 'mis-facturas.html?receipt=' + encodeURIComponent(receiptNum) : 'mis-facturas.html';
+                facturaLink.textContent = (Number(pkg.invoicesCount) > 1) ? 'Ver facturas relacionadas →' : 'Ver factura completa →';
+                facturaLink.classList.remove('hidden');
+              } else {
+                facturaLink.classList.add('hidden');
+              }
+            }
           } else {
             facturaSection.classList.add('hidden');
+            var facturaLinkHide = document.getElementById('modal-factura-link');
+            if (facturaLinkHide) facturaLinkHide.classList.add('hidden');
           }
         }
 

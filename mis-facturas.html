@@ -564,7 +564,7 @@
                         <div class="md:col-span-5">
                             <label for="bills-search" class="filter-section-label">Búsqueda</label>
                             <div class="relative">
-                                <input type="text" id="bills-search" placeholder="Buscar por número de factura" class="form-control pl-10">
+                                <input type="text" id="bills-search" placeholder="Buscar por número de factura o recibo" class="form-control pl-10">
                                 <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                             </div>
                         </div>
@@ -1101,7 +1101,11 @@
           return;
         }
         var filtered = _cachedBills.filter(function (b) {
-          return String(b.factura || '').toLowerCase().indexOf(q) !== -1;
+          if (String(b.factura || '').toLowerCase().indexOf(q) !== -1) return true;
+          var recibos = Array.isArray(b.recibos) ? b.recibos : [];
+          return recibos.some(function (r) {
+            return String(r.number || '').toLowerCase().indexOf(q) !== -1;
+          });
         });
         _renderBillsTable(filtered, { emptyMsg: 'Ninguna factura coincide con la búsqueda.' });
       }
@@ -1350,6 +1354,12 @@
         var searchInput = document.getElementById('bills-search');
         if (searchInput) {
           searchInput.addEventListener('input', function () { _applyBillsSearch(); });
+        }
+
+        var _receiptParam = new URLSearchParams(window.location.search).get('receipt');
+        if (_receiptParam) {
+          var _searchEl = document.getElementById('bills-search');
+          if (_searchEl) _searchEl.value = _receiptParam;
         }
 
         _loadBills(email, _getStart(), _getEnd());
