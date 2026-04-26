@@ -79,8 +79,8 @@ Portal pages share these versioned stylesheets (bump query param when editing):
 
 | File | Current version | Loaded on |
 |------|----------------|-----------|
-| `css/styles.css` | v=5 | All pages |
-| `css/responsive.css` | v=14 | All pages (portal pages use higher version) |
+| `css/styles.css` | v=6 | All pages |
+| `css/responsive.css` | v=15 | All pages (portal pages use higher version) |
 | `css/dashboard.css` | v=5 | dashboard.html, mi-cuenta.html |
 
 Key CSS layers:

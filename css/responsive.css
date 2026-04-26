@@ -111,10 +111,6 @@
       padding-bottom: 3rem !important;
     }
 
-    /* Afiliate account-type cards: reduce deep left indent */
-    .account-type-card .pl-16 {
-      padding-left: 0.75rem !important;
-    }
     .mobile-center {
       text-align: center;
     }
@@ -365,11 +361,6 @@
     /* Afiliate registration form card padding */
     #registro .p-8 {
       padding: 1.25rem !important;
-    }
-
-    /* Afiliate account-type cards inner indent: tighten further */
-    .account-type-card .pl-16 {
-      padding-left: 0.5rem !important;
     }
 
     /* Afiliate form grids: neutralize col-span-2 in single-column context */

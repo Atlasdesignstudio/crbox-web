@@ -206,54 +206,6 @@ select:focus-visible {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Estilos específicos para el formulario de registro */
-.account-type-card {
-    border-radius: 1rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    background: white;
-    border: 2px solid transparent;
-}
-
-.account-type-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.account-type-card.active {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.account-type-card#personal-card {
-    background-color: white;
-}
-
-.account-type-card#personal-card.active {
-    border-color: var(--primary);
-    background-color: white;
-}
-
-.account-type-card#business-card {
-    background-color: white;
-}
-
-.account-type-card#business-card.active {
-    border-color: var(--secondary);
-    background-color: white;
-}
-
-.account-type-card#personal-card .w-12.h-12.rounded-full {
-    background-color: rgba(255, 107, 0, 0.1);
-}
-
-.account-type-card#business-card .w-12.h-12.rounded-full {
-    background-color: rgba(0, 82, 204, 0.1);
-}
-
 .form-container {
     display: none;
     opacity: 0;
@@ -628,10 +580,6 @@ button.active {
 
 /* Pantallas pequeñas */
 @media (max-width: 768px) {
-    .account-type-card {
-        margin-bottom: 1rem;
-    }
-    
     .grid.grid-cols-1.md\:grid-cols-2.gap-6 {
         grid-template-columns: 1fr;
     }
@@ -659,31 +607,6 @@ button.active {
         background-color: #1f2937;
         border-color: #374151;
     }
-}
-
-/* Estilos adicionales para arreglar los indicadores circulares */
-#personal-dot {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-#business-dot {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.account-type-card.active #personal-dot,
-.account-type-card.active #business-dot {
-    opacity: 1;
-    visibility: visible;
-}
-
-.account-type-card:not(.active) #personal-dot,
-.account-type-card:not(.active) #business-dot {
-    opacity: 0;
-    visibility: hidden;
 }
 
     /* Estilos para el dropdown de usuario */
