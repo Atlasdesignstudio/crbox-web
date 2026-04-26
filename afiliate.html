@@ -2607,244 +2607,212 @@ setupCompanyDistrictSelectors(newCompanyDistrictSelectors);
     const personalRegistrationForm = document.getElementById('personal-registration-form');
     // Business registrations are now handled via WhatsApp/email contact CTA (no form submission).
     
-    if (personalRegistrationForm) {
-        personalRegistrationForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+    function handlePersonalRegistration(form) {
+        // FUTURE: Google Sign-In hook — verify credentials.googleToken before entering registration flow.
+        if (typeof CRBOXAuth === 'undefined' || typeof CRLocations === 'undefined') {
+            showRegError(form, 'Error interno: módulo de autenticación no cargado. Recargue la página.');
+            return;
+        }
 
-            // ── Guard: CRBOXAuth and CRLocations must be loaded ───────────────
-            if (typeof CRBOXAuth === 'undefined' || typeof CRLocations === 'undefined') {
-                showRegError(personalRegistrationForm, 'Error interno: módulo de autenticación no cargado. Recargue la página.');
-                return;
+        var fullName   = getField(form, 'full_name');
+        var email      = getField(form, 'email');
+        var password   = getField(form, 'password');
+        var idType     = getField(form, 'id_type');
+        var idNumber   = getField(form, 'id_number');
+        var country    = getField(form, 'country') || 'CR';
+        var promoCode  = getField(form, 'promo_code');
+        var newsletter = (form.querySelector('[name="newsletter"]') || {}).checked || false;
+
+        // Split full name: first token → first name, second → last name 1, remainder → last name 2.
+        var nameTokens = fullName.trim().split(/\s+/).filter(Boolean);
+        var firstName  = nameTokens[0] || '';
+        var lastName1  = nameTokens[1] || '';
+        var lastName2  = nameTokens.slice(2).join(' ') || '';
+
+        var phoneNumbers = form.querySelectorAll('[name="phone_number[]"]');
+        var phoneTypes   = form.querySelectorAll('[name="phone_type[]"]');
+        var phones = [];
+        var firstPhone = true;
+        for (var pi = 0; pi < phoneNumbers.length; pi++) {
+            var pNum  = (phoneNumbers[pi].value || '').trim().replace(/\s+/g, '');
+            var pType = phoneTypes[pi] ? phoneTypes[pi].value : 'movil';
+            if (!pNum) continue;
+            var ptObj = CRLocations.getPhoneType(pType);
+            phones.push({
+                idphone:          CRBOXAuth.PENDING.newPhoneId,
+                phonenumber:      pNum,
+                phoneextension:   '',
+                isactive:         false,
+                isprimary:        firstPhone,
+                phonetype: {
+                    idphonetype:  ptObj.idphonetype,
+                    type:         ptObj.type,
+                    _bIsDeleted:  false,
+                    _bIsChanged:  true
+                },
+                consignees:              null,
+                phonefreightforwarders:  null,
+                phoneshippers:           null,
+                _bIsDeleted: false,
+                _bIsChanged: true
+            });
+            firstPhone = false;
+        }
+
+        var addressEntries = form.querySelectorAll('.address-entry');
+        var addresses = [];
+        var firstAddr = true;
+        var sucursalError = null;
+        var resolvedIdSucursal = null;
+
+        for (var ai = 0; ai < addressEntries.length; ai++) {
+            var entry = addressEntries[ai];
+            var addrType    = getFieldInScope(entry, 'address_type[]');
+            var delivery    = getFieldInScope(entry, 'delivery_service[]');
+            var postalCode  = getFieldInScope(entry, 'postal_code[]');
+            var provinceVal = getFieldInScope(entry, 'province[]');
+            var cantonVal   = getFieldInScope(entry, 'canton[]');
+            var districtVal = getFieldInScope(entry, 'district[]');
+            var addrDetails = getFieldInScope(entry, 'address_details[]');
+
+            var idSucursal = CRBOXAuth.PENDING.sucursalIdMap[delivery];
+            if (idSucursal === null || idSucursal === undefined) {
+                sucursalError = 'No se puede determinar la sucursal seleccionada ("' + delivery + '"). ' +
+                    'Por favor contacte a soporte para completar su registro.';
+                break;
+            }
+            if (firstAddr) resolvedIdSucursal = idSucursal;
+
+            var provCode = CRLocations.getProvinceCode(provinceVal) || '0';
+            var cantIdx  = CRLocations.getCantonIndex(provinceVal, cantonVal) || '0';
+
+            var distIdx = '0';
+            if (typeof locationDatabase !== 'undefined') {
+                var pKey = CRLocations.normalizeKey(provinceVal);
+                var cKey = CRLocations.normalizeKey(cantonVal);
+                var dbEntry = (locationDatabase[pKey] || {})[cKey];
+                if (dbEntry && dbEntry.districts) {
+                    distIdx = CRLocations.getDistrictIndex(dbEntry.districts, districtVal);
+                }
             }
 
-            // ── Collect top-level fields ──────────────────────────────────────
-            // Step 1 collects "Nombre completo" as a single field per the task spec.
-            // Split client-side: first token → ConsigneeName, second → ConsigneeLastName1,
-            // remainder → ConsigneeLastName2. If the user typed only one word, last names
-            // remain empty (the backend has historically accepted this).
-            var fullName    = getField(personalRegistrationForm, 'full_name');
-            var email       = getField(personalRegistrationForm, 'email');
-            var password    = getField(personalRegistrationForm, 'password');
-            var idType      = getField(personalRegistrationForm, 'id_type');
-            var idNumber    = getField(personalRegistrationForm, 'id_number');
-            var country     = getField(personalRegistrationForm, 'country') || 'CR';
-            var promoCode   = getField(personalRegistrationForm, 'promo_code');
-            var newsletter  = (personalRegistrationForm.querySelector('[name="newsletter"]') || {}).checked || false;
+            if (provCode === '0') {
+                sucursalError = 'No se pudo resolver el código de provincia para "' + provinceVal + '". Contacte soporte.';
+                break;
+            }
+            if (cantIdx === '0') {
+                sucursalError = 'No se pudo resolver el código de cantón para "' + cantonVal + '". Contacte soporte.';
+                break;
+            }
 
-            var nameTokens = fullName.trim().split(/\s+/).filter(Boolean);
-            var firstName  = nameTokens[0] || '';
-            var lastName1  = nameTokens[1] || '';
-            var lastName2  = nameTokens.slice(2).join(' ') || '';
+            var line1 = [provinceVal, provinceVal.toUpperCase(), cantonVal.toUpperCase(),
+                         districtVal.toUpperCase(), addrDetails].filter(Boolean).join(' ');
 
-            // ── Collect Phones ────────────────────────────────────────────────
-            var phoneNumbers = personalRegistrationForm.querySelectorAll('[name="phone_number[]"]');
-            var phoneTypes   = personalRegistrationForm.querySelectorAll('[name="phone_type[]"]');
-            var phones = [];
-            var firstPhone = true;
-            for (var pi = 0; pi < phoneNumbers.length; pi++) {
-                var pNum  = (phoneNumbers[pi].value || '').trim().replace(/\s+/g, '');
-                var pType = phoneTypes[pi] ? phoneTypes[pi].value : 'movil';
-                if (!pNum) continue;
-                var ptObj = CRLocations.getPhoneType(pType);
-                phones.push({
-                    idphone:          CRBOXAuth.PENDING.newPhoneId,  // UNCONFIRMED
-                    phonenumber:      pNum,
-                    phoneextension:   '',
-                    isactive:         false,
-                    isprimary:        firstPhone,
-                    phonetype: {
-                        idphonetype:  ptObj.idphonetype,
-                        type:         ptObj.type,
+            var atObj = CRLocations.getAddressType(addrType);
+
+            addresses.push({
+                idaddress:  CRBOXAuth.PENDING.newAddressId,
+                line1:      line1,
+                line2:      addrDetails || '',
+                city:       cantonVal.toUpperCase(),
+                zipcode:    postalCode || '',
+                isactive:   false,
+                isprimary:  firstAddr,
+                provincia:  provCode,
+                canton:     cantIdx,
+                distrito:   distIdx,
+                barrio:     '0',
+                direccion:  addrDetails || '',
+                state: {
+                    idstate:    parseInt(provCode, 10) || 0,
+                    statename:  provinceVal,
+                    country: {
+                        idcountry:    1,
+                        countryname:  'Costa Rica',
+                        statecountry: null,
                         _bIsDeleted:  false,
                         _bIsChanged:  true
                     },
-                    consignees:              null,
-                    phonefreightforwarders:  null,
-                    phoneshippers:           null,
                     _bIsDeleted: false,
                     _bIsChanged: true
-                });
-                firstPhone = false;
-            }
+                },
+                addresstype: {
+                    idaddresstype: atObj.idaddresstype,
+                    type:          atObj.type,
+                    _bIsDeleted:   false,
+                    _bIsChanged:   true
+                },
+                _bIsDeleted: false,
+                _bIsChanged: true
+            });
+            firstAddr = false;
+        }
 
-            // ── Collect Addresses ─────────────────────────────────────────────
-            var addressEntries = personalRegistrationForm.querySelectorAll('.address-entry');
-            var addresses = [];
-            var firstAddr = true;
-            var sucursalError = null;
-            var resolvedIdSucursal = null;  // capture the primary address sucursal ID
+        if (sucursalError) { showRegError(form, sucursalError); return; }
+        if (phones.length === 0) { showRegError(form, 'Agregue al menos un número de teléfono.'); return; }
+        if (addresses.length === 0) { showRegError(form, 'Agregue al menos una dirección.'); return; }
 
-            for (var ai = 0; ai < addressEntries.length; ai++) {
-                var entry = addressEntries[ai];
-                var addrType    = getFieldInScope(entry, 'address_type[]');
-                var delivery    = getFieldInScope(entry, 'delivery_service[]');
-                var postalCode  = getFieldInScope(entry, 'postal_code[]');
-                var provinceVal = getFieldInScope(entry, 'province[]');
-                var cantonVal   = getFieldInScope(entry, 'canton[]');
-                var districtVal = getFieldInScope(entry, 'district[]');
-                var neighborVal = getFieldInScope(entry, 'neighborhood[]');
-                var addrDetails = getFieldInScope(entry, 'address_details[]');
+        var params = new URLSearchParams();
+        params.set('Consignee.ConsigneeName',         firstName);
+        params.set('Consignee.ConsigneeLastName1',    lastName1);
+        params.set('Consignee.ConsigneeLastName2',    lastName2);
+        params.set('Consignee.Email',                 email);
+        params.set('ConfirmEmail',                    email);
+        params.set('Password',                        password);
+        params.set('ConfirmPassword',                 password);
+        params.set('Consignee.IdentificationType',    CRLocations.getIdentificationType(idType));
+        params.set('Consignee.IdentificationNumber',  idNumber);
+        params.set('Consignee.IsCompany',             '0');
+        params.set('Consignee.ResidenceCountry',      country);
+        params.set('Consignee.ReceivesNewsletter',    newsletter ? 'true' : 'false');
+        params.set('Consignee.Responsabilidad',       '0');
+        params.set('Consignee.AlternativeEmail',      '');
+        params.set('Consignee.ContactName1',          '');
+        params.set('Consignee.ContactName2',          '');
+        params.set('Consignee.IdResponsabilidad',     '');
+        params.set('Consignee.BirthDate',             '');
+        params.set('Consignee.Sucursal.IdSucursal',   String(resolvedIdSucursal));
+        params.set('CompanyCode',                     promoCode || '');
+        params.set('Phones',                          JSON.stringify(phones));
+        params.set('Addresses',                       JSON.stringify(addresses));
 
-                // Sucursal guard — block if IdSucursal cannot be resolved
-                var idSucursal = CRBOXAuth.PENDING.sucursalIdMap[delivery];
-                if (idSucursal === null || idSucursal === undefined) {
-                    sucursalError = 'No se puede determinar la sucursal seleccionada ("' + delivery + '"). ' +
-                        'Por favor contacte a soporte para completar su registro.';
-                    break;
-                }
-                // Capture sucursal from first (primary) address for the consignee payload
-                if (firstAddr) resolvedIdSucursal = idSucursal;
+        var submitBtn = form.querySelector('button[type="submit"]');
+        var origLabel = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Procesando...';
+            submitBtn.disabled = true;
+        }
+        hideRegError(form);
 
-                var provCode = CRLocations.getProvinceCode(provinceVal) || '0';
-                var cantIdx  = CRLocations.getCantonIndex(provinceVal, cantonVal) || '0';
-
-                // Get district index from the page's locationDatabase if available
-                var distIdx = '0';
-                if (typeof locationDatabase !== 'undefined') {
-                    var pKey = CRLocations.normalizeKey(provinceVal);
-                    var cKey = CRLocations.normalizeKey(cantonVal);
-                    var dbEntry = (locationDatabase[pKey] || {})[cKey];
-                    if (dbEntry && dbEntry.districts) {
-                        distIdx = CRLocations.getDistrictIndex(dbEntry.districts, districtVal);
-                    }
-                }
-
-                // Fail-fast if province/canton could not be resolved to INEC codes —
-                // sending '0' would create a bad registration record in the backend.
-                if (provCode === '0') {
-                    sucursalError = 'No se pudo resolver el código de provincia para "' + provinceVal + '". Contacte soporte.';
-                    break;
-                }
-                if (cantIdx === '0') {
-                    sucursalError = 'No se pudo resolver el código de cantón para "' + cantonVal + '". Contacte soporte.';
-                    break;
-                }
-
-                // Build line1 following the pattern in the Postman sample:
-                // "{province_label} {PROVINCE_UPPER} {CANTON_UPPER} {DISTRICT_UPPER} {direccion}"
-                var line1 = [provinceVal, provinceVal.toUpperCase(), cantonVal.toUpperCase(),
-                             districtVal.toUpperCase(), addrDetails].filter(Boolean).join(' ');
-
-                var atObj = CRLocations.getAddressType(addrType);
-
-                addresses.push({
-                    idaddress:  CRBOXAuth.PENDING.newAddressId,  // UNCONFIRMED
-                    line1:      line1,
-                    line2:      addrDetails || '',
-                    city:       cantonVal.toUpperCase(),
-                    zipcode:    postalCode || '',
-                    isactive:   false,
-                    isprimary:  firstAddr,
-                    provincia:  provCode,
-                    canton:     cantIdx,
-                    distrito:   distIdx,
-                    barrio:     '0',
-                    direccion:  addrDetails || '',
-                    state: {
-                        idstate:    parseInt(provCode, 10) || 0,
-                        statename:  provinceVal,
-                        country: {
-                            idcountry:    1,
-                            countryname:  'Costa Rica',
-                            statecountry: null,
-                            _bIsDeleted:  false,
-                            _bIsChanged:  true
-                        },
-                        _bIsDeleted: false,
-                        _bIsChanged: true
-                    },
-                    addresstype: {
-                        idaddresstype: atObj.idaddresstype,
-                        type:          atObj.type,
-                        _bIsDeleted:   false,
-                        _bIsChanged:   true
-                    },
-                    _bIsDeleted: false,
-                    _bIsChanged: true
-                });
-                firstAddr = false;
-            }
-
-            if (sucursalError) {
-                showRegError(personalRegistrationForm, sucursalError);
-                return;
-            }
-
-            if (phones.length === 0) {
-                showRegError(personalRegistrationForm, 'Agregue al menos un número de teléfono.');
-                return;
-            }
-            if (addresses.length === 0) {
-                showRegError(personalRegistrationForm, 'Agregue al menos una dirección.');
-                return;
-            }
-
-            // ── Build URL-encoded payload ─────────────────────────────────────
-            var params = new URLSearchParams();
-            params.set('Consignee.ConsigneeName',         firstName);
-            params.set('Consignee.ConsigneeLastName1',    lastName1);
-            params.set('Consignee.ConsigneeLastName2',    lastName2);
-            params.set('Consignee.Email',                 email);
-            params.set('ConfirmEmail',                    email);
-            params.set('Password',                        password);
-            params.set('ConfirmPassword',                 password);
-            params.set('Consignee.IdentificationType',    CRLocations.getIdentificationType(idType));
-            params.set('Consignee.IdentificationNumber',  idNumber);
-            params.set('Consignee.IsCompany',             '0');
-            params.set('Consignee.ResidenceCountry',      country);
-            params.set('Consignee.ReceivesNewsletter',    newsletter ? 'true' : 'false');
-            params.set('Consignee.Responsabilidad',       '0');
-            params.set('Consignee.AlternativeEmail',      '');
-            params.set('Consignee.ContactName1',          '');
-            params.set('Consignee.ContactName2',          '');
-            params.set('Consignee.IdResponsabilidad',     '');
-            params.set('Consignee.BirthDate',             '');
-            params.set('Consignee.Sucursal.IdSucursal',   String(resolvedIdSucursal));
-            params.set('CompanyCode',                     promoCode || '');
-            params.set('Phones',                          JSON.stringify(phones));
-            params.set('Addresses',                       JSON.stringify(addresses));
-
-            // ── Loading state ─────────────────────────────────────────────────
-            var submitBtn = personalRegistrationForm.querySelector('button[type="submit"]');
-            var origLabel = submitBtn ? submitBtn.innerHTML : '';
-            if (submitBtn) {
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Procesando...';
-                submitBtn.disabled = true;
-            }
-            hideRegError(personalRegistrationForm);
-
-            // ── POST to API ───────────────────────────────────────────────────
-            CRBOXAuth.doRegister(params.toString())
-                .then(function (res) {
-                    if (res.StatusResult === 'OK') {
-                        showRegSuccess(personalRegistrationForm, email, password);
+        CRBOXAuth.doRegister(params.toString())
+            .then(function (res) {
+                if (res.StatusResult === 'OK') {
+                    showRegSuccess(form, email, password);
+                } else {
+                    var msg = res.Message || '';
+                    var friendly;
+                    if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
+                        friendly = msg;
+                    } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
+                        friendly = msg;
                     } else {
-                        // Known duplicate errors — show API Message verbatim (already in Spanish).
-                        // All unrecognised error messages fall through to a safe generic fallback.
-                        var msg = res.Message || '';
-                        var friendly;
-                        if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
-                            friendly = msg;
-                        } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
-                            friendly = msg;
-                        } else {
-                            friendly = 'Ocurrió un error al procesar el registro. Intente de nuevo.';
-                        }
-                        showRegError(personalRegistrationForm, friendly);
-                        if (submitBtn) {
-                            submitBtn.innerHTML = origLabel;
-                            submitBtn.disabled = false;
-                        }
+                        friendly = 'Ocurrió un error al procesar el registro. Intente de nuevo.';
                     }
-                })
-                .catch(function (err) {
-                    console.error('[CRBOX] Registration network error:', err);
-                    showRegError(personalRegistrationForm, 'Error de conexión. Intente de nuevo más tarde.');
-                    if (submitBtn) {
-                        submitBtn.innerHTML = origLabel;
-                        submitBtn.disabled = false;
-                    }
-                });
+                    showRegError(form, friendly);
+                    if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
+                }
+            })
+            .catch(function (err) {
+                console.error('[CRBOX] Registration network error:', err);
+                showRegError(form, 'Error de conexión. Intente de nuevo más tarde.');
+                if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
+            });
+    }
+
+    if (personalRegistrationForm) {
+        personalRegistrationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handlePersonalRegistration(personalRegistrationForm);
         });
     }
 
