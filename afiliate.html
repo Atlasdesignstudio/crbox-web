@@ -978,8 +978,7 @@
                                     </div>
 
                                     <button type="submit" id="signup-submit-btn" disabled class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-3.5 px-6 rounded-xl text-base flex items-center justify-center shadow-md hover:shadow-lg transition-all disabled:cursor-not-allowed">
-                                        Crear mi casillero
-                                        <i class="fas fa-arrow-right ml-2"></i>
+                                        Crear mi casillero →
                                     </button>
 
                                     <button type="button" class="signup-back-link signup-prev-btn" data-prev="2">
@@ -2677,8 +2676,7 @@ const locationDatabase = {
             var cant = form.querySelector('select[name="canton[]"]');
             var dist = form.querySelector('select[name="district[]"]');
             var det  = form.querySelector('textarea[name="address_details[]"]');
-            // 1. Set province and trigger change so existing setupProvinceSelectors
-            //    populates cantons.
+            // 1. Set province and trigger change so initAddressCascade populates cantons.
             if (prov) {
                 prov.value = b.province;
                 prov.dispatchEvent(new Event('change', { bubbles: true }));
