@@ -412,7 +412,6 @@
             padding: 3px 9px; border-radius: 9999px;
             background: #dcfce7; color: #15803d;
             flex-shrink: 0; white-space: nowrap;
-            align-self: center;
         }
         .delivery-card-badge-alt { background: #fef9c3; color: #854d0e; }
         .delivery-card-check {
@@ -420,7 +419,6 @@
             border: 2px solid #d1d5db; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.15s ease;
-            align-self: center;
         }
         .delivery-card.is-selected .delivery-card-check { border-color: #ea580c; background: #ea580c; }
         .delivery-card.is-selected .delivery-card-check::after {
@@ -1156,8 +1154,9 @@
                                         <label class="block text-gray-700 font-medium mb-1.5">Cédula jurídica *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-id-badge"></i></div>
-                                            <input type="text" name="id_number" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: 3101234567">
+                                            <input type="text" id="biz-cedula-input" name="id_number" required maxlength="12" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: 3101234567">
                                         </div>
+                                        <p id="biz-cedula-error" class="hidden text-xs text-red-500 mt-1">Ingresa una cédula jurídica válida de 10 dígitos numéricos.</p>
                                         <p class="text-xs text-gray-400 mt-1">10 dígitos numéricos · sin guiones. Ej: 3101234567</p>
                                     </div>
                                     <div class="form-group md:col-span-2">
@@ -2981,6 +2980,48 @@ const locationDatabase = {
         });
     }());
 
+    // ── Business cédula jurídica inline validation ─────────────────────────
+    (function () {
+        var cedulaInput = document.getElementById('biz-cedula-input');
+        var cedulaError = document.getElementById('biz-cedula-error');
+        if (!cedulaInput || !cedulaError) return;
+
+        function showCedulaError() {
+            cedulaError.classList.remove('hidden');
+            cedulaInput.classList.add('border-red-300');
+            cedulaInput.classList.remove('border-green-300');
+        }
+        function clearCedulaError() {
+            cedulaError.classList.add('hidden');
+            cedulaInput.classList.remove('border-red-300');
+            cedulaInput.classList.remove('border-green-300');
+        }
+
+        cedulaInput.addEventListener('input', function () {
+            var stripped = this.value.replace(/[-\s]/g, '');
+            if (stripped !== this.value) {
+                var pos = this.selectionStart - (this.value.length - stripped.length);
+                this.value = stripped;
+                try { this.setSelectionRange(pos, pos); } catch (e) {}
+            }
+        });
+
+        cedulaInput.addEventListener('blur', function () {
+            var norm = this.value.replace(/[-\s]/g, '');
+            if (/^\d{10}$/.test(norm)) {
+                cedulaError.classList.add('hidden');
+                cedulaInput.classList.remove('border-red-300');
+                cedulaInput.classList.add('border-green-300');
+            } else {
+                showCedulaError();
+            }
+        });
+
+        cedulaInput.addEventListener('focus', function () {
+            clearCedulaError();
+        });
+    }());
+
     // ── Business registration handler ──────────────────────────────────────
     function handleBusinessRegistration(form) {
         if (typeof CRBOXAuth === 'undefined' || typeof CRLocations === 'undefined') {
@@ -3005,7 +3046,14 @@ const locationDatabase = {
         if (!companyName.trim()) { showRegError(form, 'Ingrese el nombre de la empresa.'); return; }
         if (!email.trim())       { showRegError(form, 'Ingrese el correo electrónico.'); return; }
         if (!password || password.length < 8) { showRegError(form, 'La contraseña debe tener al menos 8 caracteres.'); return; }
-        if (!/^\d{10}$/.test(idNumberNorm)) { showRegError(form, 'Ingresa una cédula jurídica válida de 10 dígitos.'); return; }
+        if (!/^\d{10}$/.test(idNumberNorm)) {
+            var _cErr = document.getElementById('biz-cedula-error');
+            var _cInp = document.getElementById('biz-cedula-input');
+            if (_cErr) _cErr.classList.remove('hidden');
+            if (_cInp) { _cInp.classList.add('border-red-300'); _cInp.classList.remove('border-green-300'); _cInp.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            showRegError(form, 'Ingresa una cédula jurídica válida de 10 dígitos numéricos.');
+            return;
+        }
         if (!contact1.trim())    { showRegError(form, 'Ingrese el nombre del contacto principal.'); return; }
         if (!termsChecked)       { showRegError(form, 'Debe aceptar los Términos y Condiciones para continuar.'); return; }
 
