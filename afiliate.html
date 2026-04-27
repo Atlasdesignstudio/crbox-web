@@ -1045,7 +1045,7 @@
 
                     <!-- ── Right panel ── -->
                     <div class="signup-panel">
-                        <form id="business-registration-form" class="registration-form" novalidate>
+                        <form id="business-registration-form" class="registration-form">
 
                             <!-- ─── Step 1: Empresa ─── -->
                             <section class="signup-step-panel" data-panel="1">
@@ -2950,6 +2950,15 @@ const locationDatabase = {
         var country     = 'CR';
         var promoCode   = getField(form, 'promo_code');
         var newsletter  = (form.querySelector('[name="newsletter"]') || {}).checked || false;
+        var termsChecked = (form.querySelector('[name="terms"]') || {}).checked || false;
+
+        // ── Client-side validation (belt-and-suspenders; novalidate removed) ──
+        if (!companyName.trim()) { showRegError(form, 'Ingrese el nombre de la empresa.'); return; }
+        if (!email.trim())       { showRegError(form, 'Ingrese el correo electrónico.'); return; }
+        if (!password || password.length < 8) { showRegError(form, 'La contraseña debe tener al menos 8 caracteres.'); return; }
+        if (!idNumber.trim())    { showRegError(form, 'Ingrese la cédula jurídica o número de identificación.'); return; }
+        if (!contact1.trim())    { showRegError(form, 'Ingrese el nombre del contacto principal.'); return; }
+        if (!termsChecked)       { showRegError(form, 'Debe aceptar los Términos y Condiciones para continuar.'); return; }
 
         // Build phones array
         var phoneNumbers = form.querySelectorAll('[name="phone_number[]"]');
@@ -3037,7 +3046,7 @@ const locationDatabase = {
         params.set('ConfirmEmail',                    email);
         params.set('Password',                        password);
         params.set('ConfirmPassword',                 password);
-        params.set('Consignee.IdentificationType',    'Otro');
+        params.set('Consignee.IdentificationType',    CRLocations.getIdentificationType('juridica'));
         params.set('Consignee.IdentificationNumber',  idNumber);
         params.set('Consignee.IsCompany',             'true');
         params.set('Consignee.ResidenceCountry',      country);
@@ -3066,11 +3075,11 @@ const locationDatabase = {
                     var msg = res.Message || '';
                     var friendly;
                     if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
-                        friendly = msg;
+                        friendly = 'Este correo ya está registrado. ¿Ya tiene una cuenta?';
                     } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
-                        friendly = msg;
+                        friendly = 'Esta cédula jurídica ya está registrada. Contacte soporte si necesita acceso.';
                     } else {
-                        friendly = 'Ocurrió un error al procesar el registro. Intente de nuevo.';
+                        friendly = msg || 'Ocurrió un error al procesar el registro. Intente de nuevo.';
                     }
                     showRegError(form, friendly);
                     if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }

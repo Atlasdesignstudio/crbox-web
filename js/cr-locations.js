@@ -83,11 +83,13 @@
 
   // ─── Identification type mapping ─────────────────────────────────────────────
   // Confirmed from Postman: "Cedula ó Residencia" is the backend string for cedula.
+  // "Juridica" is the backend string for Costa Rican company cédula jurídica.
   // DIMEX and Pasaporte values are educated guesses — validate with backend.
   var ID_TYPES = {
     nacional:  'Cedula ó Residencia',
     dimex:     'DIMEX',
-    pasaporte: 'Pasaporte'
+    pasaporte: 'Pasaporte',
+    juridica:  'Juridica'
   };
 
   // ─── Helpers ─────────────────────────────────────────────────────────────────
