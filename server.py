@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import re
 import json
 import time
 import threading
@@ -187,6 +188,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         if not user_email or not body_text:
             self._json_response(400, {'ok': False, 'error': 'Faltan campos requeridos (correo o cuerpo del mensaje).'})
+            return
+
+        # Basic email format guard (frontend validates too, but defense in depth)
+        if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', user_email):
+            self._json_response(400, {'ok': False, 'error': 'Correo electrónico inválido.'})
             return
 
         # Build MIME message
