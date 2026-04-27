@@ -18,6 +18,9 @@ QUOTE_RECIPIENT = 'ventas@crbox.cr'
 _rate_lock   = threading.Lock()
 _rate_window = {}
 
+_QUOTE_LOG_PATH = 'quote_submissions.log'
+_quote_log_lock = threading.Lock()
+
 _RATE_LIMIT   = 5
 _RATE_SECONDS = 60
 
@@ -212,6 +215,30 @@ def _check_rate_limit(ip):
         return True
 
 
+def _log_quote_submission(name: str, email_addr: str, subject: str, status: str,
+                          error: str = '', ip: str = ''):
+    """Append a single JSON record to the quote submission audit log.
+
+    Failures to write the log are printed but never propagated — logging must
+    never affect the HTTP response sent to the caller.
+    """
+    try:
+        record = json.dumps({
+            'ts': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+            'ip': ip,
+            'name': name,
+            'email': email_addr,
+            'subject': subject,
+            'status': status,
+            'error': error,
+        }, ensure_ascii=False)
+        with _quote_log_lock:
+            with open(_QUOTE_LOG_PATH, 'a', encoding='utf-8') as f:
+                f.write(record + '\n')
+    except Exception as exc:
+        print(f'[QUOTE LOG] Failed to write audit record: {exc}')
+
+
 def _quote_text_to_html(body_text):
     """Convert the pre-built plain-text quote body to a clean HTML email."""
     lines = body_text.split('\n')
@@ -360,6 +387,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def _handle_send_quote(self):
         client_ip = self.client_address[0]
         if not _check_rate_limit(client_ip):
+            _log_quote_submission('', '', '', 'failed', 'rate_limit_exceeded', ip=client_ip)
             self._json_response(429, {'ok': False, 'error': 'Demasiadas solicitudes. Espera un momento e intenta de nuevo.'})
             return
 
@@ -369,6 +397,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         smtp_pass = os.environ.get('SMTP_PASS', '').strip()
 
         if not all([smtp_host, smtp_user, smtp_pass]):
+            _log_quote_submission('', '', '', 'failed', 'smtp_not_configured', ip=client_ip)
             self._json_response(503, {'ok': False, 'error': 'El servicio de email no está configurado en el servidor.'})
             return
 
@@ -377,6 +406,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             raw = self.rfile.read(length).decode('utf-8')
             data = json.loads(raw)
         except Exception:
+            _log_quote_submission('', '', '', 'failed', 'invalid_request_body', ip=client_ip)
             self._json_response(400, {'ok': False, 'error': 'Solicitud inválida.'})
             return
 
@@ -386,11 +416,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         body_text  = data.get('bodyText', '').strip()
 
         if not user_email or not body_text:
+            _log_quote_submission(user_name, user_email, subject, 'failed', 'missing_required_fields', ip=client_ip)
             self._json_response(400, {'ok': False, 'error': 'Faltan campos requeridos (correo o cuerpo del mensaje).'})
             return
 
         # Basic email format guard (frontend validates too, but defense in depth)
         if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', user_email):
+            _log_quote_submission(user_name, user_email, subject, 'failed', 'invalid_email_format', ip=client_ip)
             self._json_response(400, {'ok': False, 'error': 'Correo electrónico inválido.'})
             return
 
@@ -424,13 +456,17 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                     server.login(smtp_user, smtp_pass)
                     server.sendmail(smtp_user, recipients, msg.as_string())
 
+            _log_quote_submission(user_name, user_email, subject, 'sent', ip=client_ip)
             self._json_response(200, {'ok': True})
 
         except smtplib.SMTPAuthenticationError:
+            _log_quote_submission(user_name, user_email, subject, 'failed', 'SMTPAuthenticationError', ip=client_ip)
             self._json_response(502, {'ok': False, 'error': 'Error de autenticación SMTP. Verifica las credenciales del servidor.'})
         except smtplib.SMTPException as e:
+            _log_quote_submission(user_name, user_email, subject, 'failed', f'SMTPException: {e}', ip=client_ip)
             self._json_response(502, {'ok': False, 'error': 'No se pudo enviar el email. Intenta de nuevo.'})
-        except Exception:
+        except Exception as e:
+            _log_quote_submission(user_name, user_email, subject, 'failed', f'Exception: {e}', ip=client_ip)
             self._json_response(500, {'ok': False, 'error': 'Error interno del servidor al enviar el email.'})
 
     # ── /crbox-svc-token ───────────────────────────────────────────────────

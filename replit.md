@@ -132,7 +132,7 @@ Static file server on port 5000 (`python3 server.py`). Custom endpoints:
 |------|--------|---------|
 | `/health` | GET | Probes SMTP (connect + authenticate, no email sent). Returns `{"ok":true,"smtp":"ok"}` (200) or `{"ok":false,"smtp":"error","error":"..."}` (503). Use this URL with any external uptime monitor (UptimeRobot, Better Uptime, etc.). |
 | `/crbox-svc-token` | POST | Authenticates with the CRBOX service account (credentials from env vars) and returns `{ access_token }`. Browser never sees the raw credentials. |
-| `/send-quote` | POST | Sends the calculator quote form email via Google Workspace SMTP to `ventas@crbox.cr`, with the user CC'd. Returns `{"ok": true}` on success. |
+| `/send-quote` | POST | Sends the calculator quote form email via Google Workspace SMTP to `ventas@crbox.cr`, with the user CC'd. Returns `{"ok": true}` on success. Every call (success or failure) is appended to `quote_submissions.log` (JSONL). |
 
 ### SMTP Health Monitoring (Task #154)
 
