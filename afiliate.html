@@ -85,6 +85,71 @@
         .signup-summary dl { display: grid; grid-template-columns: minmax(120px, auto) 1fr; gap: 6px 14px; font-size: 0.875rem; }
         .signup-summary dt { color: #6b7280; font-weight: 500; }
         .signup-summary dd { color: #1f2937; font-weight: 600; word-break: break-word; }
+
+        /* ── ID type pill selector ─────────────────────────────────────── */
+        .id-type-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .id-pill {
+            flex: 1; min-width: 0; padding: 10px 14px; border-radius: 10px;
+            border: 1.5px solid #e5e7eb; background: #fff; color: #374151;
+            font-size: 0.875rem; font-weight: 500; cursor: pointer;
+            transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+            text-align: center;
+        }
+        .id-pill:hover { border-color: #fdba74; background: #fff7ed; color: #c2410c; }
+        .id-pill.is-active {
+            border-color: #ea580c; background: #fff7ed; color: #c2410c;
+            font-weight: 600; box-shadow: 0 0 0 3px rgba(234,88,12,0.12);
+        }
+        .id-pill .pill-icon { font-size: 0.9rem; margin-right: 6px; color: #ea580c; }
+        .id-pill.is-active .pill-icon { color: #c2410c; }
+
+        /* ── Date input polish ─────────────────────────────────────────── */
+        input[type="date"].modern-date { color-scheme: light; font-family: inherit; }
+        input[type="date"].modern-date::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }
+
+        /* ── Section separator inside form grid ────────────────────────── */
+        .form-section-sep {
+            display: flex; align-items: center; gap: 12px;
+            margin: 4px 0 4px; grid-column: 1 / -1;
+        }
+        .form-section-sep::before, .form-section-sep::after { content: ''; flex: 1; height: 1px; background: #f3f4f6; }
+        .form-section-sep span {
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; color: #d1d5db; white-space: nowrap;
+        }
+
+        /* ── CTA action tray (final step) ──────────────────────────────── */
+        .signup-cta-tray {
+            background: linear-gradient(180deg, #fff 0%, #fafafa 60%);
+            border-top: 2px solid #f3f4f6;
+            padding-top: 24px; margin-top: 32px;
+            border-radius: 12px;
+        }
+
+        /* ── Submit button guarantee (in addition to signup-next-btn) ──── */
+        #signup-submit-btn, #biz-signup-submit-btn {
+            background-color: #ea580c !important; color: #fff !important;
+        }
+        #signup-submit-btn:not(:disabled):hover, #biz-signup-submit-btn:not(:disabled):hover {
+            background-color: #c2410c !important;
+        }
+        #signup-submit-btn:disabled, #biz-signup-submit-btn:disabled {
+            background-color: #e5e7eb !important; color: #9ca3af !important; cursor: not-allowed;
+        }
+
+        /* ── Navigation join button (orange outline) ───────────────────── */
+        .nav-join-btn {
+            background: transparent; color: #ea580c; border: 2px solid #ea580c;
+            padding: 0.625rem 1.25rem; border-radius: 0.5rem; font-weight: 600;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            display: inline-block; text-align: center; font-size: 0.9375rem;
+            white-space: nowrap;
+        }
+        .nav-join-btn:hover { background: #fff7ed; color: #c2410c; border-color: #c2410c; }
+
+        /* ── Business form card accent ─────────────────────────────────── */
+        .biz-card-accent-tr { background: #fff7ed; border-radius: 0 0 0 9999px; }
+        .biz-card-accent-bl { background: #fff7ed; border-radius: 0 9999px 0 0; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -114,7 +179,7 @@
                 <!-- Botones acción (escritorio) -->
 <div class="hidden md:flex items-center space-x-4">
     <a href="calculadora.html" class="primary-btn">Calcular Envío</a>
-    <a href="afiliate.html" class="secondary-btn">Afíliate Gratis</a>
+    <a href="afiliate.html" class="nav-join-btn">Afíliate Gratis</a>
     <!-- Nuevo dropdown de usuario con más margen -->
     <div class="relative ml-3" id="user-dropdown">
         <button class="flex items-center justify-center w-11 h-11 rounded-full bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-orange-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-sm" id="user-menu-button" aria-expanded="false">
@@ -154,7 +219,7 @@
                     <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
                     <div class="flex flex-col space-y-2 pt-2">
                         <a href="calculadora.html" class="inline-block primary-btn text-center">Calcular Envío</a>
-                        <a href="afiliate.html" class="inline-block secondary-btn text-center">Afíliate Gratis</a>
+                        <a href="afiliate.html" class="inline-block nav-join-btn text-center">Afíliate Gratis</a>
                     </div>
                 </div>
             </div>
@@ -329,6 +394,9 @@
                                         </div>
                                         <p class="text-xs text-gray-500 mt-1 hidden text-red-500" id="password-mismatch-msg">Las contraseñas no coinciden.</p>
                                     </div>
+                                    <div class="form-section-sep">
+                                        <span>Código de referido</span>
+                                    </div>
                                     <div class="form-group md:col-span-2">
                                         <label class="block text-gray-700 font-medium mb-2 flex items-center">
                                             <i class="fas fa-tag text-orange-500 mr-2"></i>
@@ -356,19 +424,30 @@
                                 <p class="text-gray-600 text-sm mb-5">Necesitamos tu identificación para emitir tu factura electrónica y tu teléfono para avisarte cuando tus paquetes lleguen.</p>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <div class="form-group">
-                                        <label class="block text-gray-700 font-medium mb-2">Tipo de identificación *</label>
-                                        <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-id-card"></i></div>
-                                            <select name="id_type" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                                <option value="" disabled selected>Seleccione tipo</option>
-                                                <option value="nacional">Cédula Nacional</option>
-                                                <option value="dimex">DIMEX</option>
-                                                <option value="pasaporte">Pasaporte</option>
-                                            </select>
-                                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down"></i></div>
+                                    <!-- ID type — pill toggle (value written to hidden select for submission) -->
+                                    <div class="form-group md:col-span-2">
+                                        <label class="block text-gray-700 font-medium mb-3">Tipo de identificación *</label>
+                                        <div class="id-type-pills" role="radiogroup" aria-label="Tipo de identificación" id="personal-id-type-pills">
+                                            <button type="button" class="id-pill" data-idtype="nacional" aria-checked="false">
+                                                <i class="fas fa-id-card pill-icon"></i>Cédula Nacional
+                                            </button>
+                                            <button type="button" class="id-pill" data-idtype="dimex" aria-checked="false">
+                                                <i class="fas fa-passport pill-icon"></i>DIMEX
+                                            </button>
+                                            <button type="button" class="id-pill" data-idtype="pasaporte" aria-checked="false">
+                                                <i class="fas fa-globe pill-icon"></i>Pasaporte
+                                            </button>
                                         </div>
+                                        <!-- hidden select keeps the value and is serialised on submit; no required so we validate manually -->
+                                        <select name="id_type" class="sr-only id-type-select" aria-hidden="true" tabindex="-1" id="personal-id-type-select">
+                                            <option value="" selected></option>
+                                            <option value="nacional">Cédula Nacional</option>
+                                            <option value="dimex">DIMEX</option>
+                                            <option value="pasaporte">Pasaporte</option>
+                                        </select>
+                                        <p id="personal-id-type-error" class="hidden text-red-500 text-xs mt-2"><i class="fas fa-exclamation-circle mr-1"></i>Por favor selecciona el tipo de identificación.</p>
                                     </div>
+                                    <!-- ID number + birth date side by side -->
                                     <div class="form-group">
                                         <label class="block text-gray-700 font-medium mb-2">Número de identificación *</label>
                                         <div class="relative">
@@ -377,13 +456,13 @@
                                         </div>
                                         <p class="text-xs text-gray-500 mt-1">Aparece en tu factura electrónica.</p>
                                     </div>
-                                    <div class="form-group md:col-span-2">
+                                    <div class="form-group">
                                         <label class="block text-gray-700 font-medium mb-2">Fecha de nacimiento *</label>
                                         <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-calendar"></i></div>
-                                            <input type="date" name="birth_date" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-calendar-alt"></i></div>
+                                            <input type="date" name="birth_date" required class="modern-date w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
                                         </div>
-                                        <p class="text-xs text-gray-500 mt-1">Requerida para emitir facturas electrónicas a tu nombre.</p>
+                                        <p class="text-xs text-gray-500 mt-1">Para tu factura electrónica.</p>
                                     </div>
                                     <div class="form-group md:col-span-2">
                                         <label class="block text-gray-700 font-medium mb-2">Teléfono móvil *</label>
@@ -520,20 +599,20 @@
                                     </div>
                                 </div>
 
-                                <div class="border-t border-gray-100 pt-5 mt-6">
-                                    <div class="space-y-3 mb-5" id="step3-confirm-block">
-                                        <label class="flex items-start cursor-pointer">
-                                            <input type="checkbox" name="terms" id="terms-personal" required class="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300 rounded mt-1 flex-shrink-0">
-                                            <span class="ml-3 text-sm text-gray-600">Acepto los <a href="#" class="text-orange-600 hover:text-orange-700 font-medium">Términos y Condiciones</a> y la <a href="#" class="text-orange-600 hover:text-orange-700 font-medium">Política de Privacidad</a> *</span>
+                                <div class="signup-cta-tray">
+                                    <div class="space-y-3 mb-6" id="step3-confirm-block">
+                                        <label class="flex items-start cursor-pointer group">
+                                            <input type="checkbox" name="terms" id="terms-personal" required class="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300 rounded mt-0.5 flex-shrink-0 accent-orange-600">
+                                            <span class="ml-3 text-sm text-gray-600 leading-snug">Acepto los <a href="#" class="text-orange-600 hover:text-orange-700 font-semibold underline underline-offset-2">Términos y Condiciones</a> y la <a href="#" class="text-orange-600 hover:text-orange-700 font-semibold underline underline-offset-2">Política de Privacidad</a> *</span>
                                         </label>
-                                        <label class="flex items-start cursor-pointer">
-                                            <input type="checkbox" name="newsletter" id="newsletter-personal" class="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300 rounded mt-1 flex-shrink-0">
-                                            <span class="ml-3 text-sm text-gray-500">Quiero recibir promociones y novedades de CRBOX por correo.</span>
+                                        <label class="flex items-start cursor-pointer group">
+                                            <input type="checkbox" name="newsletter" id="newsletter-personal" class="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300 rounded mt-0.5 flex-shrink-0 accent-orange-600">
+                                            <span class="ml-3 text-sm text-gray-400 leading-snug">Quiero recibir promociones y novedades de CRBOX por correo.</span>
                                         </label>
                                     </div>
 
-                                    <button type="submit" id="signup-submit-btn" class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-4 px-6 rounded-xl text-lg flex items-center justify-center shadow-md hover:shadow-lg transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed" disabled>
-                                        <i class="fas fa-user-plus mr-2.5"></i>
+                                    <button type="submit" id="signup-submit-btn" class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-4 px-6 rounded-xl text-lg flex items-center justify-center shadow-lg hover:shadow-xl transition-all disabled:cursor-not-allowed" disabled>
+                                        <i class="fas fa-user-plus mr-2.5 text-xl"></i>
                                         Crear Mi Casillero Gratis
                                     </button>
 
@@ -542,7 +621,13 @@
                                         Volver al paso anterior
                                     </button>
 
-                                    <p class="mt-4 text-xs text-center text-gray-400"><i class="fas fa-gift mr-1 text-orange-400"></i>Nuevos usuarios: 20% de descuento en tu primer envío.</p>
+                                    <div class="mt-5 flex items-center justify-center gap-4 text-xs text-gray-400">
+                                        <span><i class="fas fa-lock mr-1 text-gray-300"></i>Registro seguro</span>
+                                        <span class="text-gray-200">|</span>
+                                        <span><i class="fas fa-gift mr-1 text-orange-300"></i>20% en tu primer envío</span>
+                                        <span class="text-gray-200">|</span>
+                                        <span><i class="fas fa-bolt mr-1 text-gray-300"></i>Activación al instante</span>
+                                    </div>
                                 </div>
                             </section>
                         </form>
@@ -552,7 +637,18 @@
 
             <!-- Business Account Registration Form -->
             <div id="business-form" class="form-container hidden">
-                <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+                <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 relative">
+                    <div class="absolute top-0 right-0 w-32 h-32 opacity-30 pointer-events-none biz-card-accent-tr" aria-hidden="true"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 opacity-30 pointer-events-none biz-card-accent-bl" aria-hidden="true"></div>
+
+                    <div class="relative z-10">
+                    <div class="flex items-center mb-2">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                            <i class="fas fa-building text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">Crear Cuenta Empresarial</h3>
+                    </div>
+                    <p class="text-gray-600 mb-6">Activa el casillero virtual de tu empresa. Completa estos dos pasos y empieza a importar.</p>
 
                     <!-- Stepper header (2 steps) -->
                     <div class="signup-stepper mb-8" role="tablist" aria-label="Pasos de registro empresarial">
@@ -621,7 +717,7 @@
                             <!-- Promo code (optional) -->
                             <div class="mb-6">
                                 <label class="block text-gray-700 font-medium mb-2">
-                                    <i class="fas fa-tag text-blue-400 mr-1"></i>
+                                    <i class="fas fa-tag text-orange-500 mr-1"></i>
                                     Código promocional <span class="text-gray-400 font-normal text-sm">(opcional)</span>
                                 </label>
                                 <input type="text" name="promo_code" autocomplete="off" class="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ingresa tu código si tienes uno">
@@ -794,26 +890,33 @@
                             </div>
 
                             <!-- Terms + Action zone -->
-                            <div class="border-t border-gray-100 pt-5 mt-2">
-                                <div class="flex items-start gap-3 mb-5">
-                                    <input type="checkbox" name="terms" id="biz-terms" required class="mt-1 w-4 h-4 accent-orange-600 flex-shrink-0">
-                                    <label for="biz-terms" class="text-sm text-gray-600">
-                                        Acepto los <a href="#" class="text-orange-600 underline hover:text-orange-700">Términos y condiciones</a> y la <a href="#" class="text-orange-600 underline hover:text-orange-700">Política de privacidad</a> de CRBOX.
-                                    </label>
-                                </div>
+                            <div class="signup-cta-tray">
+                                <label class="flex items-start cursor-pointer mb-6">
+                                    <input type="checkbox" name="terms" id="biz-terms" required class="mt-0.5 w-4 h-4 accent-orange-600 flex-shrink-0">
+                                    <span class="ml-3 text-sm text-gray-600 leading-snug">
+                                        Acepto los <a href="#" class="text-orange-600 underline underline-offset-2 hover:text-orange-700 font-semibold">Términos y condiciones</a> y la <a href="#" class="text-orange-600 underline underline-offset-2 hover:text-orange-700 font-semibold">Política de privacidad</a> de CRBOX. *
+                                    </span>
+                                </label>
 
-                                <button type="submit" id="biz-signup-submit-btn" disabled class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-4 px-6 rounded-xl text-lg flex items-center justify-center shadow-md hover:shadow-lg transition-all disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed">
-                                    <i class="fas fa-building mr-2.5"></i> Crear cuenta empresarial
+                                <button type="submit" id="biz-signup-submit-btn" disabled class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-4 px-6 rounded-xl text-lg flex items-center justify-center shadow-lg hover:shadow-xl transition-all disabled:cursor-not-allowed">
+                                    <i class="fas fa-building mr-2.5 text-xl"></i> Crear cuenta empresarial
                                 </button>
 
                                 <button type="button" class="signup-prev-btn mt-3 w-full bg-white border border-gray-200 hover:border-gray-300 text-gray-500 hover:text-gray-700 font-medium py-2.5 px-6 rounded-xl transition-all flex items-center justify-center text-sm" data-prev="1">
                                     <i class="fas fa-arrow-left mr-2"></i>
                                     Volver al paso anterior
                                 </button>
+
+                                <div class="mt-5 flex items-center justify-center gap-4 text-xs text-gray-400">
+                                    <span><i class="fas fa-lock mr-1 text-gray-300"></i>Registro seguro</span>
+                                    <span class="text-gray-200">|</span>
+                                    <span><i class="fas fa-bolt mr-1 text-gray-300"></i>Activación al instante</span>
+                                </div>
                             </div>
                         </section>
 
                     </form>
+                    </div><!-- /relative z-10 -->
                 </div>
             </div>
         </div>
@@ -2048,6 +2151,19 @@ const locationDatabase = {
                     msg.classList.add('hidden');
                 }
             }
+            // Step 2: id_type pill selection is required (hidden select, no browser required attr)
+            if (n === 2) {
+                var idTypeSel = panel.querySelector('select.id-type-select');
+                var idTypeErr = panel.querySelector('#personal-id-type-error');
+                if (idTypeSel && !idTypeSel.value) {
+                    if (idTypeErr) {
+                        idTypeErr.classList.remove('hidden');
+                        idTypeErr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                    return false;
+                }
+                if (idTypeErr) idTypeErr.classList.add('hidden');
+            }
             // Step 3: a delivery option must be selected; if domicilio, address fields are required
             if (n === 3) {
                 var delivery = (panel.querySelector('input[name="delivery_service[]"]') || {}).value || '';
@@ -2094,6 +2210,27 @@ const locationDatabase = {
         // expose for use after registration error to scroll user back
         form._signupStepperGoTo = setStep;
         setStep(1);
+    })();
+
+    // ── ID type pill selector (personal form step 2) ─────────────────────
+    (function initIdTypePills() {
+        var pillsContainer = document.getElementById('personal-id-type-pills');
+        var hiddenSelect   = document.getElementById('personal-id-type-select');
+        var errEl          = document.getElementById('personal-id-type-error');
+        if (!pillsContainer || !hiddenSelect) return;
+        var pills = Array.prototype.slice.call(pillsContainer.querySelectorAll('.id-pill'));
+        pills.forEach(function (pill) {
+            pill.addEventListener('click', function () {
+                pills.forEach(function (p) {
+                    p.classList.remove('is-active');
+                    p.setAttribute('aria-checked', 'false');
+                });
+                pill.classList.add('is-active');
+                pill.setAttribute('aria-checked', 'true');
+                hiddenSelect.value = pill.getAttribute('data-idtype');
+                if (errEl) errEl.classList.add('hidden');
+            });
+        });
     })();
 
     // ── Delivery cards (Step 3) ───────────────────────────────────────────
