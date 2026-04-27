@@ -400,12 +400,18 @@
         .delivery-card-sublabel {
             font-size: 0.75rem; color: #9ca3af; display: block; margin-top: 2px;
         }
+        .delivery-card-right {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
         .delivery-card-badge {
             font-size: 0.68rem; font-weight: 700;
             padding: 3px 9px; border-radius: 9999px;
             background: #dcfce7; color: #15803d;
             flex-shrink: 0; white-space: nowrap;
-            align-self: center;
         }
         .delivery-card-badge-alt { background: #fef9c3; color: #854d0e; }
         .delivery-card-check {
@@ -413,7 +419,6 @@
             border: 2px solid #d1d5db; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.15s ease;
-            align-self: center;
         }
         .delivery-card.is-selected .delivery-card-check { border-color: #ea580c; background: #ea580c; }
         .delivery-card.is-selected .delivery-card-check::after {
@@ -891,8 +896,10 @@
                                                 <span class="delivery-card-label">Sucursal Sabana Norte</span>
                                                 <span class="delivery-card-sublabel">San José · Mata Redonda</span>
                                             </div>
-                                            <span class="delivery-card-badge">Retiro gratis</span>
-                                            <div class="delivery-card-check"></div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Retiro gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
                                         </button>
                                         <button type="button" class="delivery-card" data-delivery="guadalupe" role="radio" aria-checked="false">
                                             <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
@@ -900,8 +907,10 @@
                                                 <span class="delivery-card-label">Sucursal Guadalupe</span>
                                                 <span class="delivery-card-sublabel">San José · Goicoechea</span>
                                             </div>
-                                            <span class="delivery-card-badge">Retiro gratis</span>
-                                            <div class="delivery-card-check"></div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Retiro gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
                                         </button>
                                         <button type="button" class="delivery-card" data-delivery="guachipelin_escazu" role="radio" aria-checked="false">
                                             <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
@@ -909,8 +918,10 @@
                                                 <span class="delivery-card-label">Sucursal Guachipelín-Escazú</span>
                                                 <span class="delivery-card-sublabel">Escazú · San Rafael</span>
                                             </div>
-                                            <span class="delivery-card-badge">Retiro gratis</span>
-                                            <div class="delivery-card-check"></div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Retiro gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
                                         </button>
                                         <button type="button" class="delivery-card" data-delivery="domicilio" role="radio" aria-checked="false">
                                             <div class="delivery-card-icon"><i class="fas fa-home"></i></div>
@@ -918,8 +929,10 @@
                                                 <span class="delivery-card-label">Entrega a domicilio</span>
                                                 <span class="delivery-card-sublabel">Te llevamos el paquete a tu dirección</span>
                                             </div>
-                                            <span class="delivery-card-badge delivery-card-badge-alt">Tarifa según zona</span>
-                                            <div class="delivery-card-check"></div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge delivery-card-badge-alt">Tarifa según zona</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
                                         </button>
                                     </div>
                                     <p class="text-xs text-gray-400 mt-2 mb-0">Puedes cambiar tu sucursal preferida más adelante en Mi Cuenta.</p>
@@ -1183,8 +1196,10 @@
                                                 <span class="delivery-card-label">Sucursal Sabana Norte</span>
                                                 <span class="delivery-card-sublabel">San José · Mata Redonda</span>
                                             </div>
-                                            <span class="delivery-card-badge">Retiro gratis</span>
-                                            <div class="delivery-card-check"></div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Retiro gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
                                         </button>
                                         <button type="button" class="delivery-card biz-delivery-card" data-delivery="guadalupe" role="radio" aria-checked="false">
                                             <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
@@ -1192,8 +1207,10 @@
                                                 <span class="delivery-card-label">Sucursal Guadalupe</span>
                                                 <span class="delivery-card-sublabel">San José · Goicoechea</span>
                                             </div>
-                                            <span class="delivery-card-badge">Retiro gratis</span>
-                                            <div class="delivery-card-check"></div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Retiro gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
                                         </button>
                                         <button type="button" class="delivery-card biz-delivery-card" data-delivery="guachipelin_escazu" role="radio" aria-checked="false">
                                             <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
@@ -1201,8 +1218,10 @@
                                                 <span class="delivery-card-label">Sucursal Guachipelín-Escazú</span>
                                                 <span class="delivery-card-sublabel">Escazú · San Rafael</span>
                                             </div>
-                                            <span class="delivery-card-badge">Retiro gratis</span>
-                                            <div class="delivery-card-check"></div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Retiro gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
                                         </button>
                                         <button type="button" class="delivery-card biz-delivery-card" data-delivery="domicilio" role="radio" aria-checked="false">
                                             <div class="delivery-card-icon"><i class="fas fa-home"></i></div>
@@ -1210,8 +1229,10 @@
                                                 <span class="delivery-card-label">Entrega a domicilio</span>
                                                 <span class="delivery-card-sublabel">Llevamos el paquete a su dirección</span>
                                             </div>
-                                            <span class="delivery-card-badge delivery-card-badge-alt">Tarifa según zona</span>
-                                            <div class="delivery-card-check"></div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge delivery-card-badge-alt">Tarifa según zona</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
                                         </button>
                                     </div>
                                     <p class="text-xs text-gray-400 mt-2">Pueden cambiar la sucursal preferida en Mi Cuenta.</p>
@@ -2969,6 +2990,7 @@ const locationDatabase = {
         var email       = getField(form, 'email');
         var password    = getField(form, 'password');
         var idNumber    = getField(form, 'id_number');
+        var idNumberNorm = idNumber.replace(/[-\s]/g, ''); // strip hyphens/spaces before validate + send
         var contact1    = getField(form, 'contact_name_1');
         var contact2    = getField(form, 'contact_name_2');
         var altEmail    = getField(form, 'alt_email');
@@ -2981,7 +3003,7 @@ const locationDatabase = {
         if (!companyName.trim()) { showRegError(form, 'Ingrese el nombre de la empresa.'); return; }
         if (!email.trim())       { showRegError(form, 'Ingrese el correo electrónico.'); return; }
         if (!password || password.length < 8) { showRegError(form, 'La contraseña debe tener al menos 8 caracteres.'); return; }
-        if (!idNumber.trim())    { showRegError(form, 'Ingrese la cédula jurídica o número de identificación.'); return; }
+        if (!/^\d{10}$/.test(idNumberNorm)) { showRegError(form, 'Ingresa una cédula jurídica válida de 10 dígitos.'); return; }
         if (!contact1.trim())    { showRegError(form, 'Ingrese el nombre del contacto principal.'); return; }
         if (!termsChecked)       { showRegError(form, 'Debe aceptar los Términos y Condiciones para continuar.'); return; }
 
@@ -3072,7 +3094,7 @@ const locationDatabase = {
         params.set('Password',                        password);
         params.set('ConfirmPassword',                 password);
         params.set('Consignee.IdentificationType',    CRLocations.getIdentificationType('juridica'));
-        params.set('Consignee.IdentificationNumber',  idNumber);
+        params.set('Consignee.IdentificationNumber',  idNumberNorm);
         params.set('Consignee.IsCompany',             'true');
         params.set('Consignee.ResidenceCountry',      country);
         params.set('Consignee.ReceivesNewsletter',    newsletter ? 'true' : 'false');
