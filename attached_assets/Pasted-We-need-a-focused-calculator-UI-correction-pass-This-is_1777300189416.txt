@@ -1,0 +1,194 @@
+We need a focused calculator UI correction pass.  
+This is not another logic pass. The calculation logic, quote handoff direction, and overall product structure are good. The remaining problems are UI execution issues that are still visibly broken in the current implementation.
+
+Please use the attached screenshots as the source of truth for what is still wrong.
+
+## Scope
+This pass is only for:
+- visual fixes
+- layout fixes
+- spacing / composition fixes
+- CTA visibility fixes
+- single-item comparison hero refinement
+- better visual treatment of the estimate disclaimer
+
+Do not change:
+- calculation formulas
+- consolidated vs separate logic
+- quote payload logic
+- email / WhatsApp handoff logic
+- product architecture unless needed for visual correctness
+
+The “Solicitar cotización a CRBOX” module is already in a good place overall. Do not redesign it unnecessarily.
+
+---
+
+## 1. “Tus artículos” top-right CTA is still broken
+The CTA/button in the top-right corner of the “Tus artículos” module is still rendering visually white / invisible / empty.
+
+It is there and clickable, but it looks broken.
+
+### Fix required
+- make that CTA fully visible
+- give it a proper primary or secondary visual treatment
+- ensure text/icon contrast is correct
+- make sure the empty-state instruction (“Haz clic en Agregar artículo…”) visually corresponds to the actual visible button
+
+This should no longer look like a ghost / broken element.
+
+---
+
+## 2. “Agregar artículo” modal is still visually wrong
+The add-item modal still has multiple execution problems.
+
+### Problems visible now
+- the modal sits too high and feels partially hidden behind the navbar instead of floating properly
+- it does not feel centered / layered correctly
+- “Inferido — confirmar” / “Pre-llenado — confirmar” is still awkwardly placed
+- the chip inside the product-name input is wrong — it should not live inside the field in that way
+- the declared value field still has the amount visually colliding with the dollar symbol
+- the primary CTA at the bottom of the modal is still visually white / invisible / broken
+
+### Fix required
+#### Modal positioning
+- the modal must float correctly in the viewport
+- it must sit clearly above the page and below the navbar, without looking clipped or tucked behind it
+- the overlay + modal composition should feel intentional and premium
+
+#### Product name inferred state
+- remove the current awkward badge treatment inside the input
+- “Inferido / confirmar” should become a cleaner supporting status element, not something that visually fights with the typed field value
+- it should be obvious what was inferred and what the user should verify, but elegant and unobtrusive
+
+#### Declared value field
+- fix the currency prefix composition completely
+- the dollar symbol and numeric value should not overlap or visually collide
+- the input should feel like a polished currency field
+
+#### Modal CTA row
+- the primary CTA must be clearly visible
+- active, disabled, and empty states must all look intentional
+- no blank white button if it is clickable
+- keep the hierarchy between Cancel and the primary action clear
+
+### General requirement
+This modal should feel product-grade and polished, not half-broken or visually improvised.
+
+---
+
+## 3. “Calcular y comparar envíos” CTA is still broken
+The CTA below “Destino de entrega” is still rendering as a blank / white / visually broken button.
+
+### Fix required
+- make the button fully visible and readable
+- ensure it looks enabled only when it should be enabled
+- if disabled, it should look intentionally disabled, not broken
+- if enabled, it should look clearly actionable
+
+This is one of the key actions in the page and must not look broken.
+
+---
+
+## 4. Single-item “Tu ahorro con consolidación CRBOX” state looks bad
+The single-item state is directionally better than showing “ahorras $0.00”, but the current visual result is still not good.
+
+### Current issue
+When there is only one article:
+- the module looks visually awkward
+- the orange hero area does not feel well composed
+- the message sits in the space in a way that feels unresolved / empty / poorly balanced
+
+### Fix required
+Create a proper single-item hero state for the comparison module.
+
+It should:
+- still feel premium
+- still occupy the comparison hero area
+- but visually acknowledge that comparison is not yet meaningful with only one article
+
+### Desired direction
+This state should communicate:
+- with one item, there is not yet a consolidation comparison
+- consolidation becomes more meaningful when multiple items are added
+- add more items to see potential savings
+
+But it must do this in a visually strong, intentional, elegant way.
+
+It should not feel like:
+- leftover empty space
+- fallback copy pasted into the savings hero
+- a weak placeholder
+
+Please rebalance:
+- layout
+- text block width
+- spacing
+- visual hierarchy
+- icon use
+- vertical composition
+
+so that the single-item hero feels purposefully designed.
+
+---
+
+## 5. “Estimación basada en tus datos” disclaimer should look more premium
+The disclaimer is correct in principle, but visually it still feels a bit too plain / raw.
+
+### Fix required
+Keep the content honest, but improve the aesthetic treatment.
+
+It should feel:
+- trustworthy
+- refined
+- clearly supportive
+- visually integrated with the calculator
+
+It should not feel like:
+- a warning banner dropped in
+- a raw bordered box
+- a generic alert component
+
+### Desired direction
+Make it feel more premium and intentional:
+- better spacing
+- better icon treatment
+- cleaner typographic hierarchy
+- more elegant background / border treatment
+- integrated into the calculator flow rather than pasted between sections
+
+This is an important trust element and should look designed, not improvised.
+
+---
+
+## 6. Keep “Solicitar cotización a CRBOX” mostly as-is
+This section is already in a good place overall.
+
+### Important
+Do not redesign it heavily.
+
+Only make adjustments if needed for visual consistency with the rest of the fixes.
+
+The priority is to fix the broken UI issues above, not to reopen the quote-request section.
+
+---
+
+## 7. Execution standard
+This pass is about actual polish, not just “good enough”.
+
+Please do not respond with generic “fixed spacing / fixed styling” language.  
+I want the implementation to clearly solve the exact issues visible in the screenshots.
+
+### When you report back, explain specifically:
+1. how the “Tus artículos” CTA was fixed
+2. how the add-item modal positioning was corrected
+3. how the inferred/pre-filled state was redesigned
+4. how the declared-value field currency collision was fixed
+5. how the modal primary CTA was fixed
+6. how the “Calcular y comparar envíos” CTA was fixed
+7. how the single-item comparison hero was redesigned so it no longer looks unresolved
+8. how the estimate disclaimer was visually elevated
+9. confirmation that no calculation logic or quote handoff logic was changed
+
+This is a visual correction and refinement pass.  
+The product direction is right.  
+Now the execution needs to actually look right too.
