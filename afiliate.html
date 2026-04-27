@@ -465,6 +465,59 @@
         @media (max-width: 767px) {
             .rail-wordmark { display: none; }
         }
+
+        /* ── Mobile dot bar: numbered dots + connector ── */
+        .rail-dot {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            border: 2px solid rgba(255,255,255,0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.6);
+            flex-shrink: 0; transition: all 0.2s;
+        }
+        .rail-dot.rd-active {
+            width: 28px;
+            background: white;
+            border-color: white;
+            color: #c2410c;
+        }
+        .rail-dot.rd-complete {
+            background: #fdba74;
+            border-color: #fdba74;
+            color: #7c2d12;
+        }
+        .rail-dot-connector {
+            flex: 1; height: 2px;
+            background: rgba(255,255,255,0.25);
+            max-width: 40px;
+        }
+
+        /* ── ID choice card: descriptor line + check indicator ── */
+        .id-choice-card { position: relative; }
+        .id-choice-card-desc {
+            font-size: 0.68rem; color: #9ca3af;
+            margin-top: 4px; line-height: 1.3; text-align: center;
+        }
+        .id-choice-card.is-active .id-choice-card-desc { color: #c2410c; }
+        .id-choice-card-check {
+            position: absolute; top: 8px; right: 8px;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: #ea580c; color: white;
+            display: none; align-items: center; justify-content: center;
+            font-size: 9px;
+        }
+        .id-choice-card.is-active .id-choice-card-check { display: flex; }
+
+        /* ── Full-width action zone CTA ── */
+        .signup-next-btn.w-full { width: 100%; justify-content: center; }
+        .signup-back-link {
+            display: block; text-align: center; width: 100%;
+            margin-top: 0.75rem; font-size: 0.8rem; color: #6b7280;
+            background: none; border: none; cursor: pointer;
+            padding: 0.25rem 0;
+        }
+        .signup-back-link:hover { color: #374151; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -632,24 +685,26 @@
                         <!-- Trust anchors -->
                         <div class="rail-trust">
                             <div class="rail-trust-item">
-                                <i class="fas fa-lock"></i>
-                                <span>Conexión cifrada TLS 256-bit</span>
+                                <i class="fas fa-box"></i>
+                                <span>Casillero Miami gratuito</span>
                             </div>
                             <div class="rail-trust-item">
                                 <i class="fas fa-tag"></i>
-                                <span>Sin cuotas ni costos de afiliación</span>
+                                <span>Sin cuotas mensuales</span>
                             </div>
                             <div class="rail-trust-item">
-                                <i class="fas fa-headset"></i>
-                                <span>Soporte local en Costa Rica</span>
+                                <i class="fas fa-lock"></i>
+                                <span>Conexión cifrada</span>
                             </div>
                         </div>
 
-                        <!-- Mobile dot bar -->
+                        <!-- Mobile dot bar (numbered + connector) -->
                         <div class="rail-dot-bar" id="personal-rail-dots">
-                            <div class="rail-dot rd-active" data-rdot="1"></div>
-                            <div class="rail-dot" data-rdot="2"></div>
-                            <div class="rail-dot" data-rdot="3"></div>
+                            <div class="rail-dot rd-active" data-rdot="1"><span>1</span></div>
+                            <div class="rail-dot-connector"></div>
+                            <div class="rail-dot" data-rdot="2"><span>2</span></div>
+                            <div class="rail-dot-connector"></div>
+                            <div class="rail-dot" data-rdot="3"><span>3</span></div>
                         </div>
                     </div>
 
@@ -721,8 +776,8 @@
                                     </div>
                                 </div>
 
-                                <div class="flex justify-end mt-6">
-                                    <button type="button" class="signup-next-btn flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm" data-next="2">
+                                <div class="signup-action-zone">
+                                    <button type="button" class="signup-next-btn w-full flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-base" data-next="2">
                                         Continuar <i class="fas fa-arrow-right"></i>
                                     </button>
                                 </div>
@@ -739,16 +794,22 @@
                                     <label class="block text-gray-700 font-semibold text-sm mb-2">Tipo de identificación *</label>
                                     <div class="id-choice-cards" id="personal-id-type-pills" role="radiogroup" aria-label="Tipo de identificación">
                                         <button type="button" class="id-choice-card" data-idtype="nacional" aria-checked="false">
+                                            <div class="id-choice-card-check"><i class="fas fa-check"></i></div>
                                             <div class="id-choice-card-icon"><i class="fas fa-id-card"></i></div>
                                             <span class="id-choice-card-label">Cédula Nacional</span>
+                                            <span class="id-choice-card-desc">Para residentes</span>
                                         </button>
                                         <button type="button" class="id-choice-card" data-idtype="dimex" aria-checked="false">
+                                            <div class="id-choice-card-check"><i class="fas fa-check"></i></div>
                                             <div class="id-choice-card-icon"><i class="fas fa-passport"></i></div>
                                             <span class="id-choice-card-label">DIMEX</span>
+                                            <span class="id-choice-card-desc">Para extranjeros</span>
                                         </button>
                                         <button type="button" class="id-choice-card" data-idtype="pasaporte" aria-checked="false">
+                                            <div class="id-choice-card-check"><i class="fas fa-check"></i></div>
                                             <div class="id-choice-card-icon"><i class="fas fa-globe"></i></div>
                                             <span class="id-choice-card-label">Pasaporte</span>
+                                            <span class="id-choice-card-desc">Para turistas</span>
                                         </button>
                                     </div>
                                     <select name="id_type" class="sr-only id-type-select" aria-hidden="true" tabindex="-1" id="personal-id-type-select">
@@ -787,12 +848,12 @@
                                     </div>
                                 </div>
 
-                                <div class="flex justify-between mt-6 gap-3">
-                                    <button type="button" class="signup-prev-btn flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium" data-prev="1">
-                                        <i class="fas fa-arrow-left"></i> Anterior
-                                    </button>
-                                    <button type="button" class="signup-next-btn flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm" data-next="3">
+                                <div class="signup-action-zone">
+                                    <button type="button" class="signup-next-btn w-full flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-base" data-next="3">
                                         Continuar <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                    <button type="button" class="signup-back-link signup-prev-btn" data-prev="1">
+                                        ← Volver al paso anterior
                                     </button>
                                 </div>
                             </section>
@@ -930,8 +991,8 @@
                                         <i class="fas fa-arrow-right ml-2"></i>
                                     </button>
 
-                                    <button type="button" class="signup-prev-btn mt-3 w-full flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-sm font-medium" data-prev="2">
-                                        <i class="fas fa-arrow-left"></i> Volver al paso anterior
+                                    <button type="button" class="signup-back-link signup-prev-btn" data-prev="2">
+                                        ← Volver al paso anterior
                                     </button>
                                 </div>
                             </section>
@@ -971,23 +1032,24 @@
                         <!-- Trust anchors -->
                         <div class="rail-trust">
                             <div class="rail-trust-item">
+                                <i class="fas fa-box"></i>
+                                <span>Casillero Miami gratuito</span>
+                            </div>
+                            <div class="rail-trust-item">
+                                <i class="fas fa-tag"></i>
+                                <span>Sin cuotas mensuales</span>
+                            </div>
+                            <div class="rail-trust-item">
                                 <i class="fas fa-lock"></i>
-                                <span>Conexión cifrada TLS 256-bit</span>
-                            </div>
-                            <div class="rail-trust-item">
-                                <i class="fas fa-file-invoice"></i>
-                                <span>Factura electrónica incluida</span>
-                            </div>
-                            <div class="rail-trust-item">
-                                <i class="fas fa-users"></i>
-                                <span>Múltiples contactos por cuenta</span>
+                                <span>Conexión cifrada</span>
                             </div>
                         </div>
 
-                        <!-- Mobile dot bar -->
+                        <!-- Mobile dot bar (numbered + connector) -->
                         <div class="rail-dot-bar" id="biz-rail-dots">
-                            <div class="rail-dot rd-active" data-rdot="1"></div>
-                            <div class="rail-dot" data-rdot="2"></div>
+                            <div class="rail-dot rd-active" data-rdot="1"><span>1</span></div>
+                            <div class="rail-dot-connector"></div>
+                            <div class="rail-dot" data-rdot="2"><span>2</span></div>
                         </div>
                     </div>
 
@@ -1046,9 +1108,9 @@
                                     </div>
                                 </div>
 
-                                <div class="flex justify-end mt-6">
-                                    <button type="button" class="signup-next-btn flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm" data-next="2">
-                                        Siguiente <i class="fas fa-arrow-right"></i>
+                                <div class="signup-action-zone">
+                                    <button type="button" class="signup-next-btn w-full flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-base" data-next="2">
+                                        Continuar <i class="fas fa-arrow-right"></i>
                                     </button>
                                 </div>
                             </section>
@@ -1221,8 +1283,8 @@
                                         <i class="fas fa-building mr-2"></i> Crear cuenta empresarial
                                     </button>
 
-                                    <button type="button" class="signup-prev-btn mt-3 w-full flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-sm font-medium" data-prev="1">
-                                        <i class="fas fa-arrow-left"></i> Volver al paso anterior
+                                    <button type="button" class="signup-back-link signup-prev-btn" data-prev="1">
+                                        ← Volver al paso anterior
                                     </button>
                                 </div>
                             </section>
