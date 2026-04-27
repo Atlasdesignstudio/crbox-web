@@ -1,0 +1,180 @@
+We need a real quote-send implementation correction for the calculator.
+
+The current UI direction is good, but the current “Enviar por Email” behavior is still opening the user’s mail client with a raw/plain breakdown, and that is not the desired final behavior.
+
+Also, the post-send state must reflect what actually happened.
+
+## Core requirement
+I do not want a mailto:-style handoff for the email flow anymore.
+
+I want the quote to be sent automatically to:
+
+- ventas@crbox.cr
+
+The user should not have to review or manually send the email themselves.
+
+For WhatsApp, I also want the best possible real send flow.  
+But do not fake it.
+
+---
+
+## Scope
+This is a quote-delivery implementation pass, not a calculator formula pass.
+
+Do not change:
+- shipping formulas
+- consolidated vs separate calculation logic
+- tariff logic
+- quote structure
+- item list logic
+- general calculator architecture unless needed for the send flow
+
+You may improve:
+- delivery mechanism
+- template formatting
+- success/error states
+- the quote handoff UX
+
+---
+
+## What needs to change
+
+### 1. Email must be sent automatically
+The current email flow is not acceptable because it opens the user’s email client and exposes a raw/plain text message that feels messy and low-quality.
+
+### New requirement
+Implement a real automatic email send to ventas@crbox.cr.
+
+That means:
+- no mailto:
+- no manual user send step
+- user clicks the CTA
+- the system sends the email directly
+- the UI then truthfully confirms the quote was sent
+
+### Email content requirements
+The email must use a clean, readable template, not a raw code-like dump.
+
+It does not need to be overdesigned HTML-heavy if that adds risk, but it must feel structured and professional.
+
+Include:
+- user email
+- optional user name
+- destination selected
+- selected view (consolidated / separate)
+- estimated total
+- savings, if applicable
+- article list with:
+  - product name
+  - product URL if provided
+  - declared value
+  - real weight
+  - dimensions
+  - volumetric weight
+  - category
+- estimate disclaimer
+- request for CRBOX confirmation
+
+The email should be easy for the CRBOX team to read and act on.
+
+---
+
+### 2. WhatsApp should be real if technically possible
+I want the strongest possible implementation here.
+
+#### If a real automatic WhatsApp send is already technically possible in this project:
+Implement it properly.
+
+#### If it is not currently possible because the project does not yet have:
+- WhatsApp Business / Cloud API credentials
+- approved sender setup
+- required backend integration
+- required template / messaging configuration
+
+then do not fake it.
+
+Instead:
+- keep the best honest fallback possible
+- and report exactly what is missing to make automatic WhatsApp delivery real
+
+### Important
+Do not pretend that opening WhatsApp with a prefilled message is the same as sending automatically.
+
+If WhatsApp still depends on the user pressing send, the UI must say so honestly.
+
+---
+
+### 3. Success state must match reality
+Right now I want the post-send state to change based on what actually happened.
+
+#### For email
+If the email was sent automatically from the system:
+show a true success message, such as:
+- “Tu cotización fue enviada a CRBOX.”
+- “CRBOX recibió tu solicitud y te contactará pronto.”
+
+#### For WhatsApp
+If WhatsApp is still user-send dependent:
+do not show the same success state as email.
+Instead show an honest state such as:
+- “Tu mensaje está listo en WhatsApp. Envíalo para completar tu solicitud.”
+
+#### If WhatsApp also becomes fully automatic
+then it can use the real sent-success state too.
+
+---
+
+### 4. Keep the quote request module visually strong
+The current “Solicitar cotización a CRBOX” module is in a good place visually.
+
+Do not redesign it unnecessarily.
+
+Only adjust what is needed so the delivery states feel coherent with the new real-send behavior.
+
+---
+
+## Delivery strategy expected from you
+I want you to implement the strongest real solution possible, not the easiest illusion.
+
+### Preferred priority
+1. Real automatic email send to ventas@crbox.cr
+2. Real automatic WhatsApp send only if actual API/integration support is already available
+3. If WhatsApp cannot be fully automated yet, keep an honest fallback and explicitly report the missing technical requirements
+
+---
+
+## Technical implementation expectation
+For email, use a proper backend/server-side mechanism suitable for this project.
+
+Use whichever is most appropriate and reliable in the current stack, for example:
+- SMTP
+- transactional email provider
+- server-side mail library
+- or the cleanest equivalent already available in the project
+
+But the result must be:
+- dependable
+- actually sent
+- not dependent on the user’s email app
+
+Add proper success/error handling in the UI.
+
+If the automatic email send fails:
+- show a clear user-facing error state
+- do not claim it was sent
+
+---
+
+## Deliverables
+When you report back, I want:
+
+1. how the automatic email send was implemented
+2. confirmation that the email is now sent directly to ventas@crbox.cr
+3. what template/format the email uses
+4. what exact success state the user sees after a real successful send
+5. whether automatic WhatsApp send was truly implemented or not
+6. if not, what exact credentials/integration are missing
+7. confirmation that no calculator formula logic was changed
+
+This task is about making the quote-request delivery feel real, polished, and truthful.
+Do not leave it in a half-manual state while presenting it like a full send.
