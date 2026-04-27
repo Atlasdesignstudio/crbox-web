@@ -199,6 +199,28 @@
             }
         }
 
+        /* ── Business rail: blue-toned override ── */
+        .signup-rail.biz-rail {
+            background: linear-gradient(155deg, #1d4ed8 0%, #1e3a8a 100%);
+        }
+        .signup-rail.biz-rail::before {
+            background: rgba(255,255,255,0.05);
+        }
+        .signup-rail.biz-rail::after {
+            background: rgba(255,255,255,0.04);
+        }
+        .signup-rail.biz-rail .rail-step.rs-active .rail-step-dot {
+            color: #1d4ed8;
+        }
+        .signup-rail.biz-rail .rail-dot.rd-active {
+            color: #1d4ed8;
+        }
+        .signup-rail.biz-rail .rail-dot.rd-complete {
+            background: #93c5fd;
+            border-color: #93c5fd;
+            color: #1e3a8a;
+        }
+
         /* Rail wordmark */
         .rail-wordmark { position: relative; z-index: 1; }
         .rail-wordmark-title {
@@ -383,6 +405,7 @@
             padding: 3px 9px; border-radius: 9999px;
             background: #dcfce7; color: #15803d;
             flex-shrink: 0; white-space: nowrap;
+            align-self: center;
         }
         .delivery-card-badge-alt { background: #fef9c3; color: #854d0e; }
         .delivery-card-check {
@@ -390,6 +413,7 @@
             border: 2px solid #d1d5db; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.15s ease;
+            align-self: center;
         }
         .delivery-card.is-selected .delivery-card-check { border-color: #ea580c; background: #ea580c; }
         .delivery-card.is-selected .delivery-card-check::after {
@@ -995,7 +1019,7 @@
             <div id="business-form" class="form-container hidden">
                 <div class="signup-split">
                     <!-- ── Left rail ── -->
-                    <div class="signup-rail">
+                    <div class="signup-rail biz-rail">
                         <div class="rail-wordmark">
                             <div class="rail-wordmark-title">CRBOX</div>
                             <div class="rail-wordmark-sub">Empresas · CR</div>
@@ -1114,11 +1138,12 @@
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                                     <div class="form-group md:col-span-2">
-                                        <label class="block text-gray-700 font-medium mb-1.5">Cédula jurídica / número de identificación *</label>
+                                        <label class="block text-gray-700 font-medium mb-1.5">Cédula jurídica *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-id-badge"></i></div>
-                                            <input type="text" name="id_number" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: 3101234567">
+                                            <input type="text" name="id_number" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: 3-101-234567">
                                         </div>
+                                        <p class="text-xs text-gray-400 mt-1">10 dígitos numéricos · sin guiones. Ej: 3101234567</p>
                                     </div>
                                     <div class="form-group md:col-span-2">
                                         <label class="block text-gray-700 font-medium mb-1.5">Nombre del contacto principal *</label>

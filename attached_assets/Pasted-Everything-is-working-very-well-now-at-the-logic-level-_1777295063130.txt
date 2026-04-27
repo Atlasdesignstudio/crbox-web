@@ -1,0 +1,122 @@
+Everything is working very well now at the logic level, and I do not want any more backend, payload, validation, or flow changes unless a verification step proves that a business-account input constraint is currently wrong.
+
+This is a surface-level refinement + targeted verification pass only.
+
+## Scope
+Only make small visual/UI polish adjustments to the signup / casillero creation experience, plus one business-account identification verification check.
+
+Do not touch:
+- backend logic
+- payload mapping
+- validation rules
+- step logic
+- business vs personal registration behavior
+- desktop layout structure
+- any working registration flow
+
+The current logic is working and should remain untouched unless the verification below proves a necessary business-input correction.
+
+---
+
+## What I want adjusted
+
+### 1. Fix the misaligned radio/check control in the delivery selection
+In the “Tu dirección” step, the right-side radio/check control on the delivery cards is visually overlapping / misaligned.
+
+Please:
+- fix the alignment cleanly
+- make sure the right-side selection control is vertically centered
+- make sure it does not overlap with the orange selected-state check
+- keep the current desktop layout and interaction exactly as-is
+- this is only a polish fix
+
+### 2. Make the business flow visually differentiated in a more coherent way
+Right now the business tab uses blue, but the left column / progress rail still feels too close to the personal version.
+
+Please:
+- keep the current business visual direction
+- make the left rail / left column of the business card use the corresponding blue-toned treatment as well
+- the goal is subtle visual differentiation between:
+  - personal account flow
+  - business account flow
+- it should feel intentional and elegant, not loud or like a different product
+
+Important:
+- do not redesign the structure
+- do not change spacing system or form composition
+- do not touch desktop layout
+- only adjust the visual styling so the business flow feels coherently blue-accented
+
+### 3. Confirm mobile is fully working without changing desktop
+Besides these superficial desktop polish changes, I want confirmation that the current signup flow is also fully usable on mobile.
+
+So please verify that:
+- personal signup works on mobile
+- business signup works on mobile
+- the current UI is responsive and usable
+- no desktop design changes are introduced as part of that verification
+
+Important:
+- do not redesign mobile
+- do not redesign desktop
+- do not refactor the flow
+- just verify that the current implementation works correctly on mobile too
+
+---
+
+## Additional verification — business cédula jurídica format
+There is one important thing I want verified carefully for the business account flow.
+
+Right now the field is effectively for the cédula jurídica, and it should not behave like a generic identification field.
+
+I need you to verify the current real backend acceptance, not assume it.
+
+### Check and report:
+1. Whether the backend currently accepts the business identification number as:
+- 10 numeric digits
+- 9 numeric digits
+- any other numeric length
+
+2. Whether the backend currently accepts:
+- letters / alphanumeric values
+- or numbers only
+
+3. Whether the current browser UI should explicitly treat this field as:
+- cédula jurídica only
+- not a generic “identification number”
+
+4. Whether the current field label / helper text in the business flow should be clarified accordingly, without changing the working backend contract
+
+### Important
+I am aware there may be a future transition toward alphanumeric legal IDs in Costa Rica.
+
+But I do not want speculative changes.
+
+So:
+- do not proactively change the field to alphanumeric unless you confirm the backend currently accepts it
+- do not invent support for future formats
+- do not break the current working business registration flow
+
+What I want is:
+- verify what the backend accepts today
+- confirm whether it is currently expecting 10 digits
+- confirm whether letters are rejected
+- and then recommend the safest UI wording / constraint for the current moment
+
+If the backend today still only supports numeric input, keep the flow aligned to that reality and just report the future-format risk as a note.
+
+---
+
+## Deliverables
+When you report back, I want:
+
+1. what exact superficial UI changes were made
+2. confirmation that no logic / backend / payload / validation behavior was touched
+3. confirmation that desktop flow remains unchanged structurally
+4. confirmation that mobile is fully usable for both personal and business signup
+5. confirmation of the current backend acceptance rules for the business cédula jurídica field:
+   - 10 digits vs 9 digits
+   - numeric-only vs alphanumeric
+   - safest current UI wording / constraint
+
+This is a polish + verification pass only, not a redesign pass.
