@@ -199,7 +199,14 @@
             }
         }
 
-        /* ── Business rail: blue-toned override ── */
+        /* ── Business rail: blue-toned override ──────────────────────────────
+           Verified Task #140 (2025-04): biz-rail class is applied to the
+           business signup-split left rail at runtime (see line ~1037).
+           Overrides the default orange-brown gradient with blue for all rail
+           states: background, active step dot number, mobile progress dot
+           (active + complete). No change to trust anchors or connector lines
+           — those use rgba(white) that works equally on both backgrounds.
+           ──────────────────────────────────────────────────────────────── */
         .signup-rail.biz-rail {
             background: linear-gradient(155deg, #1d4ed8 0%, #1e3a8a 100%);
         }
