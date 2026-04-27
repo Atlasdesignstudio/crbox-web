@@ -37,6 +37,23 @@ The script updates all six public HTML pages automatically. It must also be run 
 | `js/dashboard.js` | Dashboard-specific logic (packages, invoices, account) |
 | `js/analytics.js` | Analytics event tracking |
 | `js/seo-config.js` | SEO/structured data configuration |
+| `js/tariff-adapter.js` | **[Task 131]** Tariff data-adapter layer. All duty/tax lookups go through `TARIFF_ADAPTER.getTariffRate(categoryCode)`. Returns `{ rate, source, pct }` where source is `local_estimated`, `official_tica`, or `user_override`. To wire in official TICA data, populate `OFFICIAL_RATES`. |
+| `js/calculator-engine.js` | **[Task 131]** Pure calculation engine. Exposes `CALCULATOR_ENGINE.calcSinglePackage(item)`, `calcSeparate(items, dest)`, `calcConsolidated(items, dest)`. No formula changes — structural refactor and extension of original inline logic. |
+
+### Calculator page (calculadora.html) — Task 131 upgrade
+
+The calculator is now a **premium multi-item shipment planner** with 4 features:
+
+1. **Multi-item list** — users add named item cards with real weight, dimensions (auto-calculates volumetric weight inline), declared value, and category. Items can be edited or removed.
+2. **URL-assisted entry** — users can paste a product URL; the system uses allorigins.win CORS proxy to read Open Graph/meta tags and pre-fills title + price. All inferred fields are badged "Inferido — confirmar" in amber and remain fully editable. Weight and dimensions are never inferred.
+3. **Comparison hero** — after calculating, a dark premium panel reveals the total cost of shipping each item separately vs. consolidated, with the dollar savings and percentage as the dominant visual element. Includes a plain-Spanish explanation of the mechanism.
+4. **Results dossier** — a polished quote document with all line items (freight, fuel surcharge 19%, handling, CIF, taxes with provenance badge, insurance, delivery, total), weight-mode indicator, and an expandable "¿Cómo se calcula esto?" accordion.
+
+All tariff lookups use `TARIFF_ADAPTER`. Tax figures carry provenance badges (amber = `local_estimated`, green = `official_tica`, blue = `user_override`).
+
+### Tariff integration research
+
+`docs/tariff-integration.md` — documents the Costa Rica DGA/TICA system, publicly accessible endpoints at hacienda.go.cr, recommended sync architecture (periodic import vs. live API), rate-change handling, and fallback behavior. No live API integration is wired (out of scope).
 
 ### Auth integration
 
