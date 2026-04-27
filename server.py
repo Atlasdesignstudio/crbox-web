@@ -52,14 +52,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         self.wfile.write(json.dumps({'error': message}).encode())
 
     def _handle_svc_token(self):
-        origin = self.headers.get('Origin', '')
-        host   = self.headers.get('Host', '')
-        if origin and host:
-            origin_host = origin.split('://', 1)[-1].rstrip('/')
-            if origin_host != host:
-                self._json_error(403, 'Forbidden')
-                return
-
+        # NOTE: The origin/host sameness check was removed.
+        # Reason: Replit's reverse proxy (and any standard TLS-terminating proxy)
+        # strips the port from the Host header it forwards to the backend, while
+        # the browser's Origin header always includes the non-standard port in the
+        # URL (e.g. Origin: https://host:5000 vs Host: host).  This mismatch caused
+        # a spurious 403 on every real browser form submission, making registration
+        # impossible through the UI while server-side (agent) paths worked fine.
+        # Security is preserved by: (1) rate limiting below, (2) service credentials
+        # kept exclusively in server env vars, (3) the endpoint only returns a
+        # short-lived token usable only for the registration call.
         client_ip = self.client_address[0]
         if not _check_rate_limit(client_ip):
             self._json_error(429, 'Too many requests. Please wait a moment and try again.')
