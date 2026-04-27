@@ -231,6 +231,12 @@
         .quote-confirm-notice.visible { display: flex; align-items: flex-start; gap: .75rem; }
         .quote-confirm-notice .qc-icon { color: #16a34a; font-size: 1.1rem; flex-shrink: 0; margin-top: .05rem; }
         .quote-confirm-notice p { color: #166534; font-size: .875rem; line-height: 1.5; margin: 0; }
+        .quote-confirm-notice--error { background: #fef2f2 !important; border-color: #fecaca !important; }
+        .quote-confirm-notice--error .qc-icon { color: #dc2626 !important; }
+        .quote-confirm-notice--error p { color: #7f1d1d !important; }
+        .quote-confirm-notice--wa { background: #fffbeb !important; border-color: #fde68a !important; }
+        .quote-confirm-notice--wa .qc-icon { color: #d97706 !important; font-size: 1.2rem !important; }
+        .quote-confirm-notice--wa p { color: #78350f !important; }
 
         /* ── CTA explicit overrides (ensure visibility regardless of Tailwind resets) ── */
         #btn-open-item-modal { background-color: #FF6B00; color: #fff; border: none; }
@@ -639,13 +645,7 @@
                                 <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
                             </button>
                         </div>
-                        <div id="quote-confirm-notice" class="quote-confirm-notice">
-                            <i class="fas fa-check-circle qc-icon"></i>
-                            <div>
-                                <p class="font-semibold mb-0.5">Tu cotización está lista para enviarse a CRBOX.</p>
-                                <p>Revisa y envía el mensaje para completar tu solicitud. CRBOX no recibirá nada hasta que lo envíes desde tu app.</p>
-                            </div>
-                        </div>
+                        <div id="quote-confirm-notice" class="quote-confirm-notice"></div>
                     </div>
                 </div>
             </div>
@@ -1871,29 +1871,81 @@
             return true;
         }
 
-        $('btn-send-email').addEventListener('click', function () {
+        function _setQuoteNotice(type, headline, detail) {
+            const notice = $('quote-confirm-notice');
+            notice.classList.remove('visible', 'quote-confirm-notice--error', 'quote-confirm-notice--wa');
+            const icons = {
+                success:  'fas fa-check-circle',
+                error:    'fas fa-exclamation-circle',
+                whatsapp: 'fab fa-whatsapp',
+            };
+            const detailHtml = type === 'error'
+                ? `${detail} <a href="mailto:ventas@crbox.cr" style="color:#991b1b;text-decoration:underline;">ventas@crbox.cr</a>.`
+                : detail;
+            notice.innerHTML =
+                `<i class="${icons[type] || icons.success} qc-icon" style="flex-shrink:0;margin-top:.1rem;"></i>` +
+                `<div><p class="font-semibold mb-0.5">${headline}</p><p>${detailHtml}</p></div>`;
+            if (type === 'error')    notice.classList.add('quote-confirm-notice--error');
+            if (type === 'whatsapp') notice.classList.add('quote-confirm-notice--wa');
+            notice.classList.add('visible');
+            notice.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        $('btn-send-email').addEventListener('click', async function () {
             if (!validateQuoteEmail()) return;
             const emailVal = ($('quote-email').value || '').trim();
             const nameVal  = ($('quote-name').value  || '').trim();
-            const body     = buildQuotePayload();
-            const subject  = `Solicitud de cotización${nameVal ? ' — ' + nameVal : ''} | CRBOX`;
-            const mailto   = `mailto:ventas@crbox.cr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}&cc=${encodeURIComponent(emailVal)}`;
-            window.location.href = mailto;
-            setTimeout(() => {
-                $('quote-confirm-notice').classList.add('visible');
-                $('quote-confirm-notice').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 400);
+            const btn = this;
+            const origHTML = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Enviando\u2026';
+            $('quote-confirm-notice').classList.remove('visible');
+
+            try {
+                const res = await fetch('/send-quote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        subject:   `Solicitud de cotización${nameVal ? ' \u2014 ' + nameVal : ''} | CRBOX`,
+                        userEmail: emailVal,
+                        userName:  nameVal,
+                        bodyText:  buildQuotePayload(),
+                    }),
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    _setQuoteNotice(
+                        'success',
+                        'Cotización enviada a CRBOX.',
+                        'Tu cotización fue enviada a CRBOX. El equipo la revisará y te contactará pronto.'
+                    );
+                } else {
+                    throw new Error(data.error || 'Error desconocido');
+                }
+            } catch (err) {
+                _setQuoteNotice(
+                    'error',
+                    'No se pudo enviar la cotización.',
+                    'Ocurrió un error al enviar. Intenta de nuevo o escríbenos directamente a\u00a0'
+                );
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHTML;
+            }
         });
 
         $('btn-send-whatsapp').addEventListener('click', function () {
             if (!validateQuoteEmail()) return;
             const body = buildQuotePayload();
-            // WhatsApp has a practical URL length limit; keep it concise
             const wa = `https://wa.me/50689794418?text=${encodeURIComponent(body)}`;
             window.open(wa, '_blank');
             setTimeout(() => {
-                $('quote-confirm-notice').classList.add('visible');
-                $('quote-confirm-notice').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                _setQuoteNotice(
+                    'whatsapp',
+                    'Tu mensaje está listo en WhatsApp.',
+                    'Presiona <strong>Enviar</strong> en WhatsApp para completar tu solicitud. CRBOX no recibirá nada hasta que lo envíes.'
+                );
             }, 400);
         });
 
