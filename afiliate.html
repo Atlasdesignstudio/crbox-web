@@ -1157,6 +1157,7 @@
                                             <input type="text" id="biz-cedula-input" name="id_number" required maxlength="12" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: 3101234567">
                                         </div>
                                         <p id="biz-cedula-error" class="hidden text-xs text-red-500 mt-1">Ingresa una cédula jurídica válida de 10 dígitos numéricos.</p>
+                                        <p id="biz-cedula-counter" class="hidden text-xs mt-1 text-gray-400">0/10 dígitos</p>
                                         <p class="text-xs text-gray-400 mt-1">10 dígitos numéricos · sin guiones. Ej: 3101234567</p>
                                     </div>
                                     <div class="form-group md:col-span-2">
@@ -2984,6 +2985,7 @@ const locationDatabase = {
     (function () {
         var cedulaInput = document.getElementById('biz-cedula-input');
         var cedulaError = document.getElementById('biz-cedula-error');
+        var cedulaCounter = document.getElementById('biz-cedula-counter');
         if (!cedulaInput || !cedulaError) return;
 
         function showCedulaError() {
@@ -2997,6 +2999,23 @@ const locationDatabase = {
             cedulaInput.classList.remove('border-green-300');
         }
 
+        function updateCounter(digits) {
+            if (!cedulaCounter) return;
+            if (digits === 0) {
+                cedulaCounter.classList.add('hidden');
+                return;
+            }
+            cedulaCounter.classList.remove('hidden');
+            cedulaCounter.textContent = digits + '/10 dígitos';
+            if (digits === 10) {
+                cedulaCounter.classList.remove('text-gray-400');
+                cedulaCounter.classList.add('text-green-600');
+            } else {
+                cedulaCounter.classList.remove('text-green-600');
+                cedulaCounter.classList.add('text-gray-400');
+            }
+        }
+
         cedulaInput.addEventListener('input', function () {
             var stripped = this.value.replace(/[-\s]/g, '');
             if (stripped !== this.value) {
@@ -3004,6 +3023,8 @@ const locationDatabase = {
                 this.value = stripped;
                 try { this.setSelectionRange(pos, pos); } catch (e) {}
             }
+            var digitCount = (stripped.match(/\d/g) || []).length;
+            updateCounter(digitCount);
         });
 
         cedulaInput.addEventListener('blur', function () {
