@@ -150,6 +150,303 @@
         /* ── Business form card accent ─────────────────────────────────── */
         .biz-card-accent-tr { background: #fff7ed; border-radius: 0 0 0 9999px; }
         .biz-card-accent-bl { background: #fff7ed; border-radius: 0 9999px 0 0; }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           SPLIT-PANEL SIGNUP LAYOUT
+        ═══════════════════════════════════════════════════════════════════ */
+        .signup-split {
+            display: grid;
+            grid-template-columns: 248px 1fr;
+            border-radius: 1.25rem;
+            overflow: hidden;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.13), 0 4px 16px rgba(0,0,0,0.07);
+        }
+        @media (max-width: 767px) {
+            .signup-split { grid-template-columns: 1fr; }
+        }
+
+        /* ── Rail ── */
+        .signup-rail {
+            background: linear-gradient(155deg, #c2410c 0%, #7c2d12 100%);
+            padding: 2rem 1.75rem;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .signup-rail::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 200px; height: 200px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        .signup-rail::after {
+            content: '';
+            position: absolute;
+            bottom: -40px; left: -40px;
+            width: 150px; height: 150px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+        @media (max-width: 767px) {
+            .signup-rail {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                padding: 1.25rem 1.5rem;
+            }
+        }
+
+        /* Rail wordmark */
+        .rail-wordmark { position: relative; z-index: 1; }
+        .rail-wordmark-title {
+            font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;
+            color: #fff; line-height: 1;
+        }
+        .rail-wordmark-sub {
+            font-size: 0.7rem; font-weight: 500; color: rgba(255,255,255,0.55);
+            margin-top: 3px; letter-spacing: 0.04em; text-transform: uppercase;
+        }
+        @media (max-width: 767px) {
+            .rail-wordmark-title { font-size: 1.05rem; }
+        }
+
+        /* Vertical step list */
+        .rail-steps {
+            display: flex;
+            flex-direction: column;
+            margin-top: 2.25rem;
+            position: relative; z-index: 1;
+        }
+        @media (max-width: 767px) { .rail-steps { display: none; } }
+
+        .rail-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding-bottom: 28px;
+            position: relative;
+        }
+        .rail-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 17px; top: 38px; bottom: 0;
+            width: 2px;
+            background: rgba(255,255,255,0.15);
+        }
+        .rail-step.rs-complete:not(:last-child)::after { background: rgba(255,255,255,0.4); }
+
+        .rail-step-dot {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.25);
+            color: rgba(255,255,255,0.45);
+            background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem;
+            flex-shrink: 0;
+            transition: all 0.25s ease;
+        }
+        .rail-step.rs-active .rail-step-dot {
+            background: #fff;
+            border-color: #fff;
+            color: #c2410c;
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.18);
+        }
+        .rail-step.rs-complete .rail-step-dot {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+            color: #fff;
+        }
+        .rail-step.rs-complete .rail-step-dot > span { display: none; }
+        .rail-step.rs-complete .rail-step-dot::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free'; font-weight: 900;
+            font-size: 0.75rem;
+        }
+
+        .rail-step-info { padding-top: 7px; }
+        .rail-step-title {
+            font-size: 0.85rem; font-weight: 600;
+            color: rgba(255,255,255,0.45);
+            display: block; line-height: 1.2;
+            transition: color 0.25s ease;
+        }
+        .rail-step-desc {
+            font-size: 0.72rem; color: rgba(255,255,255,0.3);
+            display: block; margin-top: 2px;
+            transition: color 0.25s ease;
+        }
+        .rail-step.rs-active .rail-step-title { color: #fff; }
+        .rail-step.rs-active .rail-step-desc  { color: rgba(255,255,255,0.65); }
+        .rail-step.rs-complete .rail-step-title { color: rgba(255,255,255,0.65); }
+        .rail-step.rs-complete .rail-step-desc  { color: rgba(255,255,255,0.4); }
+
+        /* Mobile dot bar */
+        .rail-dot-bar { display: none; align-items: center; gap: 6px; }
+        @media (max-width: 767px) { .rail-dot-bar { display: flex; } }
+        .rail-dot {
+            width: 8px; height: 8px; border-radius: 4px;
+            background: rgba(255,255,255,0.3);
+            transition: all 0.25s ease;
+        }
+        .rail-dot.rd-active { width: 22px; background: #fff; }
+        .rail-dot.rd-complete { background: rgba(255,255,255,0.6); }
+
+        /* Trust anchors */
+        .rail-trust {
+            margin-top: auto; padding-top: 2rem;
+            display: flex; flex-direction: column; gap: 11px;
+            position: relative; z-index: 1;
+        }
+        @media (max-width: 767px) { .rail-trust { display: none; } }
+        .rail-trust-item {
+            display: flex; align-items: flex-start; gap: 9px;
+        }
+        .rail-trust-item i {
+            color: rgba(255,255,255,0.4); font-size: 0.78rem;
+            width: 14px; flex-shrink: 0; margin-top: 2px;
+        }
+        .rail-trust-item span {
+            color: rgba(255,255,255,0.45); font-size: 0.72rem; line-height: 1.4;
+        }
+
+        /* ── Right panel ── */
+        .signup-panel {
+            background: #fff;
+            padding: 2.25rem 2.5rem;
+        }
+        @media (max-width: 767px) {
+            .signup-panel { padding: 1.5rem 1.25rem; }
+        }
+
+        /* ── Panel step header ── */
+        .panel-step-header { margin-bottom: 1.5rem; }
+        .panel-step-header h4 { font-size: 1.1rem; font-weight: 700; color: #111827; }
+        .panel-step-header p { font-size: 0.83rem; color: #6b7280; margin-top: 4px; line-height: 1.45; }
+
+        /* ── Delivery rows (override card visual to horizontal row) ── */
+        .delivery-rows { display: flex; flex-direction: column; }
+        .delivery-card {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 12px !important;
+            padding: 13px 14px !important;
+            border: 1.5px solid #e5e7eb !important;
+            border-left: 4px solid transparent !important;
+            border-radius: 10px !important;
+            background: #fff !important;
+            cursor: pointer !important;
+            text-align: left !important;
+            width: 100% !important;
+            margin-bottom: 8px !important;
+            transition: all 0.15s ease !important;
+            box-shadow: none !important;
+            min-height: 0 !important;
+        }
+        .delivery-card:last-child { margin-bottom: 0 !important; }
+        .delivery-card:hover {
+            border-color: #fed7aa !important;
+            border-left-color: #f97316 !important;
+            background: #fff7ed !important;
+        }
+        .delivery-card.is-selected {
+            border-color: #fdba74 !important;
+            border-left-color: #ea580c !important;
+            background: #fff7ed !important;
+            box-shadow: none !important;
+        }
+        .delivery-card-icon {
+            width: 38px !important; height: 38px !important;
+            border-radius: 8px !important;
+            background: #f3f4f6 !important;
+            display: flex !important; align-items: center !important;
+            justify-content: center !important;
+            color: #9ca3af !important; font-size: 0.95rem !important;
+            flex-shrink: 0 !important;
+            transition: all 0.15s ease !important;
+        }
+        .delivery-card.is-selected .delivery-card-icon { background: #ffedd5 !important; color: #ea580c !important; }
+        .delivery-card-body { flex: 1; min-width: 0; }
+        .delivery-card-label {
+            font-size: 0.875rem; font-weight: 600; color: #1f2937;
+            display: block; line-height: 1.2;
+        }
+        .delivery-card-sublabel {
+            font-size: 0.75rem; color: #9ca3af; display: block; margin-top: 2px;
+        }
+        .delivery-card-badge {
+            font-size: 0.68rem; font-weight: 700;
+            padding: 3px 9px; border-radius: 9999px;
+            background: #dcfce7; color: #15803d;
+            flex-shrink: 0; white-space: nowrap;
+        }
+        .delivery-card-badge-alt { background: #fef9c3; color: #854d0e; }
+        .delivery-card-check {
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 2px solid #d1d5db; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s ease;
+        }
+        .delivery-card.is-selected .delivery-card-check { border-color: #ea580c; background: #ea580c; }
+        .delivery-card.is-selected .delivery-card-check::after {
+            content: ''; width: 6px; height: 6px;
+            border-radius: 50%; background: #fff;
+        }
+        /* Hide old span-based children */
+        .delivery-card > .delivery-card-title,
+        .delivery-card > .delivery-card-meta,
+        .delivery-card > .delivery-card-tag { display: none !important; }
+
+        /* ── Domicilio inner panel ── */
+        .domicilio-panel {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.25rem 1.25rem 1rem;
+            margin-top: 0.75rem;
+        }
+
+        /* ── ID type choice cards ── */
+        .id-choice-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        @media (max-width: 480px) { .id-choice-cards { grid-template-columns: 1fr; } }
+        .id-choice-card {
+            padding: 14px 8px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s ease;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .id-choice-card:hover { border-color: #fdba74; background: #fff7ed; }
+        .id-choice-card.is-active {
+            border-color: #ea580c; background: #fff7ed;
+            box-shadow: 0 0 0 3px rgba(234,88,12,0.12);
+        }
+        .id-choice-card-icon {
+            width: 38px; height: 38px; border-radius: 8px;
+            background: #f3f4f6;
+            display: flex; align-items: center; justify-content: center;
+            color: #9ca3af; font-size: 1rem;
+            transition: all 0.15s ease;
+        }
+        .id-choice-card.is-active .id-choice-card-icon { background: #ffedd5; color: #c2410c; }
+        .id-choice-card-label {
+            font-size: 0.78rem; font-weight: 600; color: #374151; line-height: 1.25;
+        }
+        .id-choice-card.is-active .id-choice-card-label { color: #c2410c; }
+
+        /* ── Action zone ── */
+        .signup-action-zone {
+            margin-top: 1.75rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid #f3f4f6;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -303,331 +600,343 @@
         <div class="max-w-4xl mx-auto">
             <!-- Personal Account Form -->
             <div id="personal-form" class="form-container active">
-                <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 relative">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-bl-full opacity-30 pointer-events-none" aria-hidden="true"></div>
-                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-orange-50 rounded-tr-full opacity-30 pointer-events-none" aria-hidden="true"></div>
-
-                    <div class="relative z-10">
-                        <div class="flex items-center mb-2">
-                            <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4">
-                                <i class="fas fa-user-plus text-xl"></i>
-                            </div>
-                            <h3 class="text-2xl font-bold">Crear Cuenta Personal</h3>
-                        </div>
-                        <p class="text-gray-600 mb-6">Completa estos pasos para activar tu casillero virtual gratis en Miami.</p>
-
-                        <!-- Stepper indicator -->
-                        <div class="signup-stepper mb-8" role="tablist" aria-label="Pasos de registro">
-                            <div class="signup-step is-active" data-step="1">
-                                <div class="signup-step-circle"><span>1</span></div>
-                                <div class="signup-step-label">Tus datos</div>
-                            </div>
-                            <div class="signup-step-line"><span class="signup-step-progress" data-progress="1"></span></div>
-                            <div class="signup-step" data-step="2">
-                                <div class="signup-step-circle"><span>2</span></div>
-                                <div class="signup-step-label">Entrega CR</div>
-                            </div>
-                            <div class="signup-step-line"><span class="signup-step-progress" data-progress="2"></span></div>
-                            <div class="signup-step" data-step="3">
-                                <div class="signup-step-circle"><span>3</span></div>
-                                <div class="signup-step-label">Confirmar</div>
-                            </div>
+                <div class="signup-split">
+                    <!-- ── Left rail ── -->
+                    <div class="signup-rail">
+                        <div class="rail-wordmark">
+                            <div class="rail-wordmark-title">CRBOX</div>
+                            <div class="rail-wordmark-sub">Casillero virtual · CR</div>
                         </div>
 
+                        <!-- Desktop vertical steps -->
+                        <div class="rail-steps" id="personal-rail-steps">
+                            <div class="rail-step rs-active" data-rail="1">
+                                <div class="rail-step-dot"><span>1</span></div>
+                                <div class="rail-step-info">
+                                    <strong class="rail-step-title">Tu cuenta</strong>
+                                    <span class="rail-step-desc">Nombre, correo y contraseña</span>
+                                </div>
+                            </div>
+                            <div class="rail-step" data-rail="2">
+                                <div class="rail-step-dot"><span>2</span></div>
+                                <div class="rail-step-info">
+                                    <strong class="rail-step-title">Identidad</strong>
+                                    <span class="rail-step-desc">ID y teléfono</span>
+                                </div>
+                            </div>
+                            <div class="rail-step" data-rail="3">
+                                <div class="rail-step-dot"><span>3</span></div>
+                                <div class="rail-step-info">
+                                    <strong class="rail-step-title">Entrega</strong>
+                                    <span class="rail-step-desc">Sucursal o domicilio</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trust anchors -->
+                        <div class="rail-trust">
+                            <div class="rail-trust-item">
+                                <i class="fas fa-lock"></i>
+                                <span>Conexión cifrada TLS 256-bit</span>
+                            </div>
+                            <div class="rail-trust-item">
+                                <i class="fas fa-tag"></i>
+                                <span>Sin cuotas ni costos de afiliación</span>
+                            </div>
+                            <div class="rail-trust-item">
+                                <i class="fas fa-headset"></i>
+                                <span>Soporte local en Costa Rica</span>
+                            </div>
+                        </div>
+
+                        <!-- Mobile dot bar -->
+                        <div class="rail-dot-bar" id="personal-rail-dots">
+                            <div class="rail-dot rd-active" data-rdot="1"></div>
+                            <div class="rail-dot" data-rdot="2"></div>
+                            <div class="rail-dot" data-rdot="3"></div>
+                        </div>
+                    </div>
+
+                    <!-- ── Right panel ── -->
+                    <div class="signup-panel">
                         <form id="personal-registration-form" class="registration-form">
                             <input type="hidden" name="country" value="CR">
 
-                            <!-- ─── Step 1: Personal info ─── -->
+                            <!-- ─── Step 1: Tu cuenta ─── -->
                             <section class="signup-step-panel" data-panel="1">
-                                <h4 class="text-lg font-semibold mb-2 flex items-center">
-                                    <i class="fas fa-user-circle text-orange-500 mr-2"></i>
-                                    Tu cuenta
-                                </h4>
-                                <p class="text-gray-600 text-sm mb-5">Crea tu acceso al portal CRBOX. Con esto inicias sesión y recibes notificaciones de tus paquetes.</p>
+                                <div class="panel-step-header">
+                                    <h4>Tu cuenta</h4>
+                                    <p>Crea tu acceso al portal CRBOX. Con esto iniciarás sesión y recibirás avisos de tus paquetes.</p>
+                                </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="form-group">
-                                        <label class="block text-gray-700 font-medium mb-2">Nombre(s) *</label>
+                                        <label class="block text-gray-700 font-medium mb-1.5">Nombre(s) *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-user"></i></div>
-                                            <input type="text" name="first_name" autocomplete="given-name" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: María">
+                                            <input type="text" name="first_name" autocomplete="given-name" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: María">
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="block text-gray-700 font-medium mb-2">Primer apellido *</label>
+                                        <label class="block text-gray-700 font-medium mb-1.5">Primer apellido *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-user"></i></div>
-                                            <input type="text" name="last_name_1" autocomplete="family-name" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: Herrera">
+                                            <input type="text" name="last_name_1" autocomplete="family-name" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: Herrera">
                                         </div>
                                     </div>
                                     <div class="form-group md:col-span-2">
-                                        <label class="block text-gray-700 font-medium mb-2">Segundo apellido <span class="text-gray-400 font-normal text-sm">(opcional)</span></label>
+                                        <label class="block text-gray-700 font-medium mb-1.5">Segundo apellido <span class="text-gray-400 font-normal text-xs">(opcional)</span></label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-user"></i></div>
-                                            <input type="text" name="last_name_2" autocomplete="additional-name" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: López">
+                                            <input type="text" name="last_name_2" autocomplete="additional-name" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: López">
                                         </div>
-                                        <p class="text-xs text-gray-500 mt-1">Tal como aparece en tu identificación. Si no tienes segundo apellido, déjalo en blanco.</p>
                                     </div>
                                     <div class="form-group md:col-span-2">
-                                        <label class="block text-gray-700 font-medium mb-2">Correo electrónico *</label>
+                                        <label class="block text-gray-700 font-medium mb-1.5">Correo electrónico *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-envelope"></i></div>
-                                            <input type="email" name="email" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="ejemplo@correo.com">
+                                            <input type="email" name="email" required autocomplete="email" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="ejemplo@correo.com">
                                         </div>
-                                        <p class="text-xs text-gray-500 mt-1">Lo usarás para iniciar sesión y recibir avisos de tus paquetes.</p>
+                                        <p class="text-xs text-gray-400 mt-1">Lo usarás para iniciar sesión y recibir avisos de tus paquetes.</p>
                                     </div>
                                     <div class="form-group">
-                                        <label class="block text-gray-700 font-medium mb-2">Contraseña *</label>
+                                        <label class="block text-gray-700 font-medium mb-1.5">Contraseña *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-lock"></i></div>
-                                            <input type="password" name="password" id="password-personal" required minlength="8" autocomplete="new-password" class="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Mínimo 8 caracteres">
-                                            <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"><i class="fas fa-eye"></i></button>
+                                            <input type="password" name="password" id="password-personal" required minlength="8" autocomplete="new-password" class="w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Mínimo 8 caracteres">
+                                            <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" aria-label="Mostrar contraseña"><i class="fas fa-eye"></i></button>
                                         </div>
-                                        <p class="text-xs text-gray-500 mt-1">Mínimo 8 caracteres.</p>
                                     </div>
                                     <div class="form-group">
-                                        <label class="block text-gray-700 font-medium mb-2">Confirmar contraseña *</label>
+                                        <label class="block text-gray-700 font-medium mb-1.5">Confirmar contraseña *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-lock"></i></div>
-                                            <input type="password" name="password_confirm" id="password-confirm-personal" required minlength="8" autocomplete="new-password" class="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Repite tu contraseña">
-                                            <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"><i class="fas fa-eye"></i></button>
+                                            <input type="password" name="password_confirm" id="password-confirm-personal" required minlength="8" autocomplete="new-password" class="w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Repite tu contraseña">
+                                            <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" aria-label="Mostrar contraseña"><i class="fas fa-eye"></i></button>
                                         </div>
-                                        <p class="text-xs text-gray-500 mt-1 hidden text-red-500" id="password-mismatch-msg">Las contraseñas no coinciden.</p>
-                                    </div>
-                                    <div class="form-section-sep">
-                                        <span>Código de referido</span>
+                                        <p class="text-xs text-red-500 mt-1 hidden" id="password-mismatch-msg">Las contraseñas no coinciden.</p>
                                     </div>
                                     <div class="form-group md:col-span-2">
-                                        <label class="block text-gray-700 font-medium mb-2 flex items-center">
-                                            <i class="fas fa-tag text-orange-500 mr-2"></i>
-                                            Código promocional
-                                            <span class="text-xs font-normal text-gray-500 ml-2">(opcional)</span>
+                                        <label class="block text-gray-700 font-medium mb-1.5">
+                                            <i class="fas fa-tag text-orange-400 mr-1"></i>
+                                            Código promocional <span class="text-gray-400 font-normal text-xs">(opcional)</span>
                                         </label>
-                                        <input type="text" name="promo_code" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ingresa tu código si tienes uno">
+                                        <input type="text" name="promo_code" autocomplete="off" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ingresa tu código si tienes uno">
                                     </div>
                                 </div>
 
-                                <div class="flex justify-end mt-8">
-                                    <button type="button" class="signup-next-btn bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-6 rounded-lg transition-all flex items-center" data-next="2">
-                                        Continuar
-                                        <i class="fas fa-arrow-right ml-2"></i>
+                                <div class="flex justify-end mt-6">
+                                    <button type="button" class="signup-next-btn flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm" data-next="2">
+                                        Continuar <i class="fas fa-arrow-right"></i>
                                     </button>
                                 </div>
                             </section>
 
-                            <!-- ─── Step 2: Identity & contact ─── -->
+                            <!-- ─── Step 2: Identidad y contacto ─── -->
                             <section class="signup-step-panel hidden" data-panel="2">
-                                <h4 class="text-lg font-semibold mb-2 flex items-center">
-                                    <i class="fas fa-id-badge text-orange-500 mr-2"></i>
-                                    Tu identidad y contacto
-                                </h4>
-                                <p class="text-gray-600 text-sm mb-5">Necesitamos tu identificación para emitir tu factura electrónica y tu teléfono para avisarte cuando tus paquetes lleguen.</p>
+                                <div class="panel-step-header">
+                                    <h4>Identidad y contacto</h4>
+                                    <p>Tu cédula aparece en tu factura electrónica. Tu teléfono te sirve para avisos de paquetes.</p>
+                                </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <!-- ID type — pill toggle (value written to hidden select for submission) -->
-                                    <div class="form-group md:col-span-2">
-                                        <label class="block text-gray-700 font-medium mb-3">Tipo de identificación *</label>
-                                        <div class="id-type-pills" role="radiogroup" aria-label="Tipo de identificación" id="personal-id-type-pills">
-                                            <button type="button" class="id-pill" data-idtype="nacional" aria-checked="false">
-                                                <i class="fas fa-id-card pill-icon"></i>Cédula Nacional
-                                            </button>
-                                            <button type="button" class="id-pill" data-idtype="dimex" aria-checked="false">
-                                                <i class="fas fa-passport pill-icon"></i>DIMEX
-                                            </button>
-                                            <button type="button" class="id-pill" data-idtype="pasaporte" aria-checked="false">
-                                                <i class="fas fa-globe pill-icon"></i>Pasaporte
-                                            </button>
-                                        </div>
-                                        <!-- hidden select keeps the value and is serialised on submit; no required so we validate manually -->
-                                        <select name="id_type" class="sr-only id-type-select" aria-hidden="true" tabindex="-1" id="personal-id-type-select">
-                                            <option value="" selected></option>
-                                            <option value="nacional">Cédula Nacional</option>
-                                            <option value="dimex">DIMEX</option>
-                                            <option value="pasaporte">Pasaporte</option>
-                                        </select>
-                                        <p id="personal-id-type-error" class="hidden text-red-500 text-xs mt-2"><i class="fas fa-exclamation-circle mr-1"></i>Por favor selecciona el tipo de identificación.</p>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 font-semibold text-sm mb-2">Tipo de identificación *</label>
+                                    <div class="id-choice-cards" id="personal-id-type-pills" role="radiogroup" aria-label="Tipo de identificación">
+                                        <button type="button" class="id-choice-card" data-idtype="nacional" aria-checked="false">
+                                            <div class="id-choice-card-icon"><i class="fas fa-id-card"></i></div>
+                                            <span class="id-choice-card-label">Cédula Nacional</span>
+                                        </button>
+                                        <button type="button" class="id-choice-card" data-idtype="dimex" aria-checked="false">
+                                            <div class="id-choice-card-icon"><i class="fas fa-passport"></i></div>
+                                            <span class="id-choice-card-label">DIMEX</span>
+                                        </button>
+                                        <button type="button" class="id-choice-card" data-idtype="pasaporte" aria-checked="false">
+                                            <div class="id-choice-card-icon"><i class="fas fa-globe"></i></div>
+                                            <span class="id-choice-card-label">Pasaporte</span>
+                                        </button>
                                     </div>
-                                    <!-- ID number + birth date side by side -->
+                                    <select name="id_type" class="sr-only id-type-select" aria-hidden="true" tabindex="-1" id="personal-id-type-select">
+                                        <option value="" selected></option>
+                                        <option value="nacional">Cédula Nacional</option>
+                                        <option value="dimex">DIMEX</option>
+                                        <option value="pasaporte">Pasaporte</option>
+                                    </select>
+                                    <p id="personal-id-type-error" class="hidden text-red-500 text-xs mt-2"><i class="fas fa-exclamation-circle mr-1"></i>Por favor selecciona el tipo de identificación.</p>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="form-group">
-                                        <label class="block text-gray-700 font-medium mb-2">Número de identificación *</label>
+                                        <label class="block text-gray-700 font-medium mb-1.5">Número de identificación *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-id-card"></i></div>
-                                            <input type="text" name="id_number" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Sin guiones">
+                                            <input type="text" name="id_number" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Sin guiones">
                                         </div>
-                                        <p class="text-xs text-gray-500 mt-1">Aparece en tu factura electrónica.</p>
+                                        <p class="text-xs text-gray-400 mt-1">Aparece en tu factura electrónica.</p>
                                     </div>
                                     <div class="form-group">
-                                        <label class="block text-gray-700 font-medium mb-2">Fecha de nacimiento *</label>
+                                        <label class="block text-gray-700 font-medium mb-1.5">Fecha de nacimiento *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-calendar-alt"></i></div>
-                                            <input type="date" name="birth_date" required class="modern-date w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+                                            <input type="date" name="birth_date" required class="modern-date w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
                                         </div>
-                                        <p class="text-xs text-gray-500 mt-1">Para tu factura electrónica.</p>
                                     </div>
                                     <div class="form-group md:col-span-2">
-                                        <label class="block text-gray-700 font-medium mb-2">Teléfono móvil *</label>
+                                        <label class="block text-gray-700 font-medium mb-1.5">Teléfono móvil *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-phone"></i></div>
-                                            <input type="tel" name="phone_number[]" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="+506 XXXX-XXXX">
+                                            <input type="tel" name="phone_number[]" required autocomplete="tel" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="+506 8800-0000">
                                         </div>
                                         <input type="hidden" name="phone_type[]" value="movil">
-                                        <p class="text-xs text-gray-500 mt-1">Te avisamos por WhatsApp y SMS cuando tu paquete llegue. Incluye el código de país (ej: +506).</p>
+                                        <p class="text-xs text-gray-400 mt-1">Incluye código de país (+506 para Costa Rica).</p>
                                     </div>
                                 </div>
 
-                                <div class="flex justify-between mt-8 gap-3">
-                                    <button type="button" class="signup-prev-btn bg-white border border-gray-300 hover:border-orange-400 text-gray-700 font-medium py-3 px-6 rounded-lg transition-all flex items-center" data-prev="1">
-                                        <i class="fas fa-arrow-left mr-2"></i>
-                                        Anterior
+                                <div class="flex justify-between mt-6 gap-3">
+                                    <button type="button" class="signup-prev-btn flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium" data-prev="1">
+                                        <i class="fas fa-arrow-left"></i> Anterior
                                     </button>
-                                    <button type="button" class="signup-next-btn bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-6 rounded-lg transition-all flex items-center" data-next="3">
-                                        Continuar
-                                        <i class="fas fa-arrow-right ml-2"></i>
+                                    <button type="button" class="signup-next-btn flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm" data-next="3">
+                                        Continuar <i class="fas fa-arrow-right"></i>
                                     </button>
                                 </div>
                             </section>
 
-                            <!-- ─── Step 3: Where do you want to receive packages ─── -->
+                            <!-- ─── Step 3: Entrega ─── -->
                             <section class="signup-step-panel hidden" data-panel="3">
-                                <h4 class="text-lg font-semibold mb-2 flex items-center">
-                                    <i class="fas fa-truck text-orange-500 mr-2"></i>
-                                    ¿Dónde recibes tus paquetes?
-                                </h4>
-                                <p class="text-gray-600 text-sm mb-5">Elige una sucursal cercana para retirar gratis, o pide entrega a domicilio.</p>
+                                <div class="panel-step-header">
+                                    <h4>¿Dónde recibes tus paquetes?</h4>
+                                    <p>Elige una sucursal para retiro gratis, o entrega a domicilio con tarifa según zona.</p>
+                                </div>
 
                                 <div class="address-entry">
                                     <input type="hidden" name="address_type[]" value="casa">
-                                    <input type="hidden" name="delivery_service[]" id="delivery-service-input" required>
+                                    <input type="hidden" name="delivery_service[]" id="delivery-service-input">
 
-                                    <!-- Visual delivery option cards -->
-                                    <div class="delivery-cards" role="radiogroup" aria-label="Opción de entrega">
+                                    <div class="delivery-rows" role="radiogroup" aria-label="Opción de entrega">
                                         <button type="button" class="delivery-card" data-delivery="sabana_norte" role="radio" aria-checked="false">
-                                            <span class="delivery-card-icon"><i class="fas fa-store"></i></span>
-                                            <span class="delivery-card-title">Sucursal Sabana Norte</span>
-                                            <span class="delivery-card-meta">San José · Mata Redonda</span>
-                                            <span class="delivery-card-tag">Retiro gratis</span>
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Sucursal Sabana Norte</span>
+                                                <span class="delivery-card-sublabel">San José · Mata Redonda</span>
+                                            </div>
+                                            <span class="delivery-card-badge">Retiro gratis</span>
+                                            <div class="delivery-card-check"></div>
                                         </button>
                                         <button type="button" class="delivery-card" data-delivery="guadalupe" role="radio" aria-checked="false">
-                                            <span class="delivery-card-icon"><i class="fas fa-store"></i></span>
-                                            <span class="delivery-card-title">Sucursal Guadalupe</span>
-                                            <span class="delivery-card-meta">San José · Goicoechea</span>
-                                            <span class="delivery-card-tag">Retiro gratis</span>
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Sucursal Guadalupe</span>
+                                                <span class="delivery-card-sublabel">San José · Goicoechea</span>
+                                            </div>
+                                            <span class="delivery-card-badge">Retiro gratis</span>
+                                            <div class="delivery-card-check"></div>
                                         </button>
                                         <button type="button" class="delivery-card" data-delivery="guachipelin_escazu" role="radio" aria-checked="false">
-                                            <span class="delivery-card-icon"><i class="fas fa-store"></i></span>
-                                            <span class="delivery-card-title">Sucursal Guachipelín-Escazú</span>
-                                            <span class="delivery-card-meta">Escazú · San Rafael</span>
-                                            <span class="delivery-card-tag">Retiro gratis</span>
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Sucursal Guachipelín-Escazú</span>
+                                                <span class="delivery-card-sublabel">Escazú · San Rafael</span>
+                                            </div>
+                                            <span class="delivery-card-badge">Retiro gratis</span>
+                                            <div class="delivery-card-check"></div>
                                         </button>
                                         <button type="button" class="delivery-card" data-delivery="domicilio" role="radio" aria-checked="false">
-                                            <span class="delivery-card-icon"><i class="fas fa-home"></i></span>
-                                            <span class="delivery-card-title">Entrega a domicilio</span>
-                                            <span class="delivery-card-meta">Te llevamos el paquete a tu dirección</span>
-                                            <span class="delivery-card-tag delivery-card-tag-alt">Tarifa según zona</span>
+                                            <div class="delivery-card-icon"><i class="fas fa-home"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Entrega a domicilio</span>
+                                                <span class="delivery-card-sublabel">Te llevamos el paquete a tu dirección</span>
+                                            </div>
+                                            <span class="delivery-card-badge delivery-card-badge-alt">Tarifa según zona</span>
+                                            <div class="delivery-card-check"></div>
                                         </button>
                                     </div>
-                                    <p class="delivery-cards-help">Puedes cambiar tu sucursal preferida más adelante en Mi Cuenta.</p>
+                                    <p class="text-xs text-gray-400 mt-2 mb-0">Puedes cambiar tu sucursal preferida más adelante en Mi Cuenta.</p>
 
-                                    <!-- Domicilio address form (revealed only when "Entrega a domicilio" is chosen) -->
-                                    <div id="domicilio-address-form" class="hidden mt-2">
-                                        <h5 class="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                                            <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
-                                            Dirección de entrega
-                                        </h5>
-                                        <p class="text-xs text-gray-500 mb-4">Necesitamos esta dirección para llevarte el paquete y para tu factura electrónica.</p>
-
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                            <div class="form-group">
-                                                <label class="block text-gray-700 font-medium mb-2">Provincia *</label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map"></i></div>
-                                                    <select name="province[]" data-domicilio-required class="province-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                                        <option value="" disabled selected>Seleccione provincia</option>
-                                                        <option value="san_jose">San José</option>
-                                                        <option value="alajuela">Alajuela</option>
-                                                        <option value="cartago">Cartago</option>
-                                                        <option value="heredia">Heredia</option>
-                                                        <option value="guanacaste">Guanacaste</option>
-                                                        <option value="puntarenas">Puntarenas</option>
-                                                        <option value="limon">Limón</option>
-                                                    </select>
-                                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down"></i></div>
+                                    <!-- Domicilio address form -->
+                                    <div id="domicilio-address-form" class="hidden">
+                                        <div class="domicilio-panel">
+                                            <h5 class="text-sm font-semibold text-gray-700 mb-1 flex items-center">
+                                                <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
+                                                Dirección de entrega
+                                            </h5>
+                                            <p class="text-xs text-gray-400 mb-3">Necesitamos esta dirección para entregas y factura electrónica.</p>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div class="form-group">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Provincia *</label>
+                                                    <div class="relative">
+                                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map text-xs"></i></div>
+                                                        <select name="province[]" data-domicilio-required class="province-select w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all text-sm">
+                                                            <option value="" disabled selected>Seleccione provincia</option>
+                                                            <option value="san_jose">San José</option>
+                                                            <option value="alajuela">Alajuela</option>
+                                                            <option value="cartago">Cartago</option>
+                                                            <option value="heredia">Heredia</option>
+                                                            <option value="guanacaste">Guanacaste</option>
+                                                            <option value="puntarenas">Puntarenas</option>
+                                                            <option value="limon">Limón</option>
+                                                        </select>
+                                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down text-xs"></i></div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="block text-gray-700 font-medium mb-2">Cantón *</label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-marker"></i></div>
-                                                    <select name="canton[]" data-domicilio-required class="canton-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                                        <option value="" disabled selected>Seleccione cantón</option>
-                                                    </select>
-                                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down"></i></div>
+                                                <div class="form-group">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Cantón *</label>
+                                                    <div class="relative">
+                                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-marker text-xs"></i></div>
+                                                        <select name="canton[]" data-domicilio-required class="canton-select w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all text-sm">
+                                                            <option value="" disabled selected>Seleccione cantón</option>
+                                                        </select>
+                                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down text-xs"></i></div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-signs"></i></div>
-                                                    <select name="district[]" data-domicilio-required class="district-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                                        <option value="" disabled selected>Seleccione distrito</option>
-                                                    </select>
-                                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down"></i></div>
+                                                <div class="form-group">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Distrito *</label>
+                                                    <div class="relative">
+                                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-signs text-xs"></i></div>
+                                                        <select name="district[]" data-domicilio-required class="district-select w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all text-sm">
+                                                            <option value="" disabled selected>Seleccione distrito</option>
+                                                        </select>
+                                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down text-xs"></i></div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="block text-gray-700 font-medium mb-2">Código postal</label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-mailbox"></i></div>
-                                                    <input type="text" name="postal_code[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Opcional">
+                                                <div class="form-group">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Código postal</label>
+                                                    <input type="text" name="postal_code[]" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Opcional">
                                                 </div>
-                                            </div>
-                                            <div class="form-group md:col-span-2">
-                                                <label class="block text-gray-700 font-medium mb-2">Barrio o señas adicionales</label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-pin"></i></div>
-                                                    <input type="text" name="neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Opcional">
+                                                <div class="form-group md:col-span-2">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Barrio o señas adicionales</label>
+                                                    <input type="text" name="neighborhood[]" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Opcional">
                                                 </div>
-                                            </div>
-                                            <div class="form-group md:col-span-2">
-                                                <label class="block text-gray-700 font-medium mb-2">Dirección detallada *</label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-marker-alt"></i></div>
-                                                    <textarea name="address_details[]" data-domicilio-required rows="3" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Calle, avenida, número de casa, señas, etc."></textarea>
+                                                <div class="form-group md:col-span-2">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Dirección detallada *</label>
+                                                    <div class="relative">
+                                                        <textarea name="address_details[]" data-domicilio-required rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Calle, avenida, número de casa, señas, etc."></textarea>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="signup-cta-tray">
-                                    <div class="space-y-3 mb-6" id="step3-confirm-block">
-                                        <label class="flex items-start cursor-pointer group">
-                                            <input type="checkbox" name="terms" id="terms-personal" required class="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300 rounded mt-0.5 flex-shrink-0 accent-orange-600">
-                                            <span class="ml-3 text-sm text-gray-600 leading-snug">Acepto los <a href="#" class="text-orange-600 hover:text-orange-700 font-semibold underline underline-offset-2">Términos y Condiciones</a> y la <a href="#" class="text-orange-600 hover:text-orange-700 font-semibold underline underline-offset-2">Política de Privacidad</a> *</span>
+                                <div class="signup-action-zone">
+                                    <div class="space-y-2.5 mb-5">
+                                        <label class="flex items-start cursor-pointer">
+                                            <input type="checkbox" name="terms" id="terms-personal" required class="mt-0.5 w-4 h-4 accent-orange-600 flex-shrink-0">
+                                            <span class="ml-3 text-sm text-gray-600 leading-snug">Acepto los <a href="#" class="text-orange-600 underline underline-offset-2 hover:text-orange-700 font-semibold">Términos y condiciones</a> y la <a href="#" class="text-orange-600 underline underline-offset-2 hover:text-orange-700 font-semibold">Política de privacidad</a> *</span>
                                         </label>
-                                        <label class="flex items-start cursor-pointer group">
-                                            <input type="checkbox" name="newsletter" id="newsletter-personal" class="focus:ring-orange-500 h-4 w-4 text-orange-600 border-gray-300 rounded mt-0.5 flex-shrink-0 accent-orange-600">
+                                        <label class="flex items-start cursor-pointer">
+                                            <input type="checkbox" name="newsletter" id="newsletter-personal" class="mt-0.5 w-4 h-4 accent-orange-600 flex-shrink-0">
                                             <span class="ml-3 text-sm text-gray-400 leading-snug">Quiero recibir promociones y novedades de CRBOX por correo.</span>
                                         </label>
                                     </div>
 
-                                    <button type="submit" id="signup-submit-btn" class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-4 px-6 rounded-xl text-lg flex items-center justify-center shadow-lg hover:shadow-xl transition-all disabled:cursor-not-allowed" disabled>
-                                        <i class="fas fa-user-plus mr-2.5 text-xl"></i>
+                                    <button type="submit" id="signup-submit-btn" disabled class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-3.5 px-6 rounded-xl text-base flex items-center justify-center shadow-md hover:shadow-lg transition-all disabled:cursor-not-allowed">
+                                        <i class="fas fa-user-plus mr-2"></i>
                                         Crear Mi Casillero Gratis
                                     </button>
 
-                                    <button type="button" class="signup-prev-btn mt-3 w-full bg-white border border-gray-200 hover:border-gray-300 text-gray-500 hover:text-gray-700 font-medium py-2.5 px-6 rounded-xl transition-all flex items-center justify-center text-sm" data-prev="2">
-                                        <i class="fas fa-arrow-left mr-2"></i>
-                                        Volver al paso anterior
+                                    <button type="button" class="signup-prev-btn mt-3 w-full flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-sm font-medium" data-prev="2">
+                                        <i class="fas fa-arrow-left"></i> Volver al paso anterior
                                     </button>
-
-                                    <div class="mt-5 flex items-center justify-center gap-4 text-xs text-gray-400">
-                                        <span><i class="fas fa-lock mr-1 text-gray-300"></i>Registro seguro</span>
-                                        <span class="text-gray-200">|</span>
-                                        <span><i class="fas fa-gift mr-1 text-orange-300"></i>20% en tu primer envío</span>
-                                        <span class="text-gray-200">|</span>
-                                        <span><i class="fas fa-bolt mr-1 text-gray-300"></i>Activación al instante</span>
-                                    </div>
                                 </div>
                             </section>
                         </form>
@@ -637,286 +946,293 @@
 
             <!-- Business Account Registration Form -->
             <div id="business-form" class="form-container hidden">
-                <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 relative">
-                    <div class="absolute top-0 right-0 w-32 h-32 opacity-30 pointer-events-none biz-card-accent-tr" aria-hidden="true"></div>
-                    <div class="absolute bottom-0 left-0 w-24 h-24 opacity-30 pointer-events-none biz-card-accent-bl" aria-hidden="true"></div>
-
-                    <div class="relative z-10">
-                    <div class="flex items-center mb-2">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
-                            <i class="fas fa-building text-xl"></i>
+                <div class="signup-split">
+                    <!-- ── Left rail ── -->
+                    <div class="signup-rail">
+                        <div class="rail-wordmark">
+                            <div class="rail-wordmark-title">CRBOX</div>
+                            <div class="rail-wordmark-sub">Empresas · CR</div>
                         </div>
-                        <h3 class="text-2xl font-bold">Crear Cuenta Empresarial</h3>
+
+                        <!-- Desktop vertical steps -->
+                        <div class="rail-steps" id="biz-rail-steps">
+                            <div class="rail-step rs-active" data-rail="1">
+                                <div class="rail-step-dot"><span>1</span></div>
+                                <div class="rail-step-info">
+                                    <strong class="rail-step-title">Tu empresa</strong>
+                                    <span class="rail-step-desc">Razón social y acceso</span>
+                                </div>
+                            </div>
+                            <div class="rail-step" data-rail="2">
+                                <div class="rail-step-dot"><span>2</span></div>
+                                <div class="rail-step-info">
+                                    <strong class="rail-step-title">Contacto y entrega</strong>
+                                    <span class="rail-step-desc">Representante y sucursal</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trust anchors -->
+                        <div class="rail-trust">
+                            <div class="rail-trust-item">
+                                <i class="fas fa-lock"></i>
+                                <span>Conexión cifrada TLS 256-bit</span>
+                            </div>
+                            <div class="rail-trust-item">
+                                <i class="fas fa-file-invoice"></i>
+                                <span>Factura electrónica incluida</span>
+                            </div>
+                            <div class="rail-trust-item">
+                                <i class="fas fa-users"></i>
+                                <span>Múltiples contactos por cuenta</span>
+                            </div>
+                        </div>
+
+                        <!-- Mobile dot bar -->
+                        <div class="rail-dot-bar" id="biz-rail-dots">
+                            <div class="rail-dot rd-active" data-rdot="1"></div>
+                            <div class="rail-dot" data-rdot="2"></div>
+                        </div>
                     </div>
-                    <p class="text-gray-600 mb-6">Activa el casillero virtual de tu empresa. Completa estos dos pasos y empieza a importar.</p>
 
-                    <!-- Stepper header (2 steps) -->
-                    <div class="signup-stepper mb-8" role="tablist" aria-label="Pasos de registro empresarial">
-                        <div class="signup-step is-active" data-step="1">
-                            <div class="signup-step-circle"><span>1</span></div>
-                            <div class="signup-step-label">Tu empresa</div>
-                        </div>
-                        <div class="signup-step-line"><span class="signup-step-progress" data-progress="1"></span></div>
-                        <div class="signup-step" data-step="2">
-                            <div class="signup-step-circle"><span>2</span></div>
-                            <div class="signup-step-label">Contacto y entrega</div>
-                        </div>
-                    </div>
+                    <!-- ── Right panel ── -->
+                    <div class="signup-panel">
+                        <form id="business-registration-form" class="registration-form" novalidate>
 
-                    <form id="business-registration-form" class="registration-form" novalidate>
-
-                        <!-- ─── Step 1: Empresa account ─── -->
-                        <section class="signup-step-panel" data-panel="1">
-                            <h4 class="text-lg font-semibold mb-2 flex items-center">
-                                <i class="fas fa-building text-orange-500 mr-2"></i>
-                                Tu empresa
-                            </h4>
-                            <p class="text-gray-500 text-sm mb-6">Registra la razón social de la empresa. En el siguiente paso agregas el representante legal y la dirección de entrega.</p>
-
-                            <!-- Company name -->
-                            <div class="mb-5">
-                                <label class="block text-gray-700 font-medium mb-2">Nombre de la empresa *</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-building"></i></div>
-                                    <input type="text" name="company_name" required autocomplete="organization" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: Importaciones XYZ S.A.">
+                            <!-- ─── Step 1: Empresa ─── -->
+                            <section class="signup-step-panel" data-panel="1">
+                                <div class="panel-step-header">
+                                    <h4>Tu empresa</h4>
+                                    <p>Registra la razón social. En el siguiente paso agregas el representante legal y la entrega.</p>
                                 </div>
-                            </div>
 
-                            <!-- Email -->
-                            <div class="mb-5">
-                                <label class="block text-gray-700 font-medium mb-2">Correo electrónico *</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-envelope"></i></div>
-                                    <input type="email" name="email" required autocomplete="email" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="correo@empresa.com">
-                                </div>
-                                <p class="text-xs text-gray-500 mt-1">Será el correo principal de la cuenta.</p>
-                            </div>
-
-                            <!-- Password / Confirm -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">Contraseña *</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-lock"></i></div>
-                                        <input type="password" name="password" required minlength="8" autocomplete="new-password" class="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Mínimo 8 caracteres">
-                                        <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" aria-label="Mostrar contraseña"><i class="fas fa-eye"></i></button>
+                                <div class="grid grid-cols-1 gap-4">
+                                    <div class="form-group">
+                                        <label class="block text-gray-700 font-medium mb-1.5">Nombre de la empresa *</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-building"></i></div>
+                                            <input type="text" name="company_name" required autocomplete="organization" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: Importaciones XYZ S.A.">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="block text-gray-700 font-medium mb-1.5">Correo electrónico *</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-envelope"></i></div>
+                                            <input type="email" name="email" required autocomplete="email" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="correo@empresa.com">
+                                        </div>
+                                        <p class="text-xs text-gray-400 mt-1">Será el correo principal de la cuenta.</p>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="form-group">
+                                            <label class="block text-gray-700 font-medium mb-1.5">Contraseña *</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-lock"></i></div>
+                                                <input type="password" name="password" required minlength="8" autocomplete="new-password" class="w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Mínimo 8 caracteres">
+                                                <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" aria-label="Mostrar contraseña"><i class="fas fa-eye"></i></button>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="block text-gray-700 font-medium mb-1.5">Confirmar contraseña *</label>
+                                            <div class="relative">
+                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-lock"></i></div>
+                                                <input type="password" name="password_confirm" required autocomplete="new-password" class="w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Repite tu contraseña">
+                                                <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" aria-label="Mostrar contraseña"><i class="fas fa-eye"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-red-500 hidden" id="biz-password-mismatch-msg"><i class="fas fa-exclamation-circle mr-1"></i>Las contraseñas no coinciden.</p>
+                                    <div class="form-group">
+                                        <label class="block text-gray-700 font-medium mb-1.5">
+                                            <i class="fas fa-tag text-orange-400 mr-1"></i>
+                                            Código promocional <span class="text-gray-400 font-normal text-xs">(opcional)</span>
+                                        </label>
+                                        <input type="text" name="promo_code" autocomplete="off" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ingresa tu código si tienes uno">
                                     </div>
                                 </div>
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">Confirmar contraseña *</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-lock"></i></div>
-                                        <input type="password" name="password_confirm" required autocomplete="new-password" class="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Repite tu contraseña">
-                                        <button type="button" class="toggle-password absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600" aria-label="Mostrar contraseña"><i class="fas fa-eye"></i></button>
+
+                                <div class="flex justify-end mt-6">
+                                    <button type="button" class="signup-next-btn flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm" data-next="2">
+                                        Siguiente <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </section>
+
+                            <!-- ─── Step 2: Contacto y entrega ─── -->
+                            <section class="signup-step-panel hidden" data-panel="2">
+                                <div class="panel-step-header">
+                                    <h4>Contacto y entrega</h4>
+                                    <p>Indica quién representa la empresa y cómo prefieren recibir sus paquetes en Costa Rica.</p>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                                    <div class="form-group md:col-span-2">
+                                        <label class="block text-gray-700 font-medium mb-1.5">Cédula jurídica / número de identificación *</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-id-badge"></i></div>
+                                            <input type="text" name="id_number" required class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: 3101234567">
+                                        </div>
+                                    </div>
+                                    <div class="form-group md:col-span-2">
+                                        <label class="block text-gray-700 font-medium mb-1.5">Nombre del contacto principal *</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-user-tie"></i></div>
+                                            <input type="text" name="contact_name_1" required autocomplete="name" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Nombre completo del representante">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="block text-gray-700 font-medium mb-1.5">Contacto secundario <span class="text-gray-400 font-normal text-xs">(opcional)</span></label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-user"></i></div>
+                                            <input type="text" name="contact_name_2" autocomplete="off" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Segundo contacto">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="block text-gray-700 font-medium mb-1.5">Correo alternativo <span class="text-gray-400 font-normal text-xs">(opcional)</span></label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-at"></i></div>
+                                            <input type="email" name="alt_email" autocomplete="off" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="contacto@empresa.com">
+                                        </div>
+                                    </div>
+                                    <div class="form-group md:col-span-2">
+                                        <label class="block text-gray-700 font-medium mb-1.5">Teléfono de contacto *</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-phone"></i></div>
+                                            <input type="tel" name="phone_number[]" required autocomplete="tel" class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: +506 8800-0000">
+                                        </div>
+                                        <input type="hidden" name="phone_type[]" value="movil">
                                     </div>
                                 </div>
-                            </div>
-                            <p class="text-xs text-gray-500 mb-5">Mínimo 8 caracteres.</p>
-                            <p id="biz-password-mismatch-msg" class="hidden text-red-500 text-sm mb-4"><i class="fas fa-exclamation-circle mr-1"></i>Las contraseñas no coinciden.</p>
 
-                            <!-- Promo code (optional) -->
-                            <div class="mb-6">
-                                <label class="block text-gray-700 font-medium mb-2">
-                                    <i class="fas fa-tag text-orange-500 mr-1"></i>
-                                    Código promocional <span class="text-gray-400 font-normal text-sm">(opcional)</span>
-                                </label>
-                                <input type="text" name="promo_code" autocomplete="off" class="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ingresa tu código si tienes uno">
-                            </div>
+                                <!-- Delivery + address -->
+                                <div class="address-entry">
+                                    <input type="hidden" name="address_type[]" value="casa">
+                                    <input type="hidden" name="delivery_service[]" id="biz-delivery-service-input" value="">
 
-                            <button type="button" class="signup-next-btn w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2" data-next="2">
-                                Siguiente <i class="fas fa-arrow-right"></i>
-                            </button>
-                        </section>
-
-                        <!-- ─── Step 2: Representative + delivery ─── -->
-                        <section class="signup-step-panel hidden" data-panel="2">
-                            <h4 class="text-lg font-semibold mb-2 flex items-center">
-                                <i class="fas fa-id-card text-orange-500 mr-2"></i>
-                                Contacto y entrega
-                            </h4>
-                            <p class="text-gray-500 text-sm mb-5">Indica quién representa la empresa y cómo prefieren recibir sus paquetes en Costa Rica.</p>
-
-                            <!-- ID number -->
-                            <div class="mb-5">
-                                <label class="block text-gray-700 font-medium mb-2">Cédula jurídica / número de identificación *</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-id-badge"></i></div>
-                                    <input type="text" name="id_number" required class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: 3101234567">
-                                </div>
-                            </div>
-
-                            <!-- Contact 1 (required) -->
-                            <div class="mb-5">
-                                <label class="block text-gray-700 font-medium mb-2">Nombre del contacto principal *</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-user-tie"></i></div>
-                                    <input type="text" name="contact_name_1" required autocomplete="name" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Nombre completo del representante">
-                                </div>
-                            </div>
-
-                            <!-- Contact 2 + Alt email (optional, side by side on desktop) -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">Contacto secundario <span class="text-gray-400 font-normal text-sm">(opcional)</span></label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-user"></i></div>
-                                        <input type="text" name="contact_name_2" autocomplete="off" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Nombre del segundo contacto">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-gray-700 font-medium mb-2">Correo alternativo <span class="text-gray-400 font-normal text-sm">(opcional)</span></label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-at"></i></div>
-                                        <input type="email" name="alt_email" autocomplete="off" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="contacto@empresa.com">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Phone -->
-                            <div class="mb-6">
-                                <label class="block text-gray-700 font-medium mb-2">Teléfono de contacto *</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-phone"></i></div>
-                                    <input type="tel" name="phone_number[]" required autocomplete="tel" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Ej: 88001234">
-                                </div>
-                                <input type="hidden" name="phone_type[]" value="movil">
-                            </div>
-
-                            <!-- Delivery + address (single .address-entry scope) -->
-                            <div class="address-entry">
-                                <input type="hidden" name="address_type[]" value="casa">
-                                <input type="hidden" name="delivery_service[]" id="biz-delivery-service-input" value="">
-
-                                <div class="mb-2">
-                                    <label class="block text-gray-700 font-medium mb-3">¿Dónde retiran sus paquetes? *</label>
-                                    <p class="text-gray-500 text-sm mb-4">Elijan una sucursal para retirar gratis, o soliciten entrega a domicilio.</p>
-                                    <div class="delivery-cards" role="radiogroup" aria-label="Opción de entrega empresarial">
+                                    <label class="block text-gray-700 font-semibold text-sm mb-2">¿Dónde retiran sus paquetes? *</label>
+                                    <div class="delivery-rows" role="radiogroup" aria-label="Opción de entrega empresarial">
                                         <button type="button" class="delivery-card biz-delivery-card" data-delivery="sabana_norte" role="radio" aria-checked="false">
-                                            <span class="delivery-card-icon"><i class="fas fa-store"></i></span>
-                                            <span class="delivery-card-title">Sucursal Sabana Norte</span>
-                                            <span class="delivery-card-meta">San José · Mata Redonda</span>
-                                            <span class="delivery-card-tag">Retiro gratis</span>
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Sucursal Sabana Norte</span>
+                                                <span class="delivery-card-sublabel">San José · Mata Redonda</span>
+                                            </div>
+                                            <span class="delivery-card-badge">Retiro gratis</span>
+                                            <div class="delivery-card-check"></div>
                                         </button>
                                         <button type="button" class="delivery-card biz-delivery-card" data-delivery="guadalupe" role="radio" aria-checked="false">
-                                            <span class="delivery-card-icon"><i class="fas fa-store"></i></span>
-                                            <span class="delivery-card-title">Sucursal Guadalupe</span>
-                                            <span class="delivery-card-meta">San José · Goicoechea</span>
-                                            <span class="delivery-card-tag">Retiro gratis</span>
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Sucursal Guadalupe</span>
+                                                <span class="delivery-card-sublabel">San José · Goicoechea</span>
+                                            </div>
+                                            <span class="delivery-card-badge">Retiro gratis</span>
+                                            <div class="delivery-card-check"></div>
                                         </button>
                                         <button type="button" class="delivery-card biz-delivery-card" data-delivery="guachipelin_escazu" role="radio" aria-checked="false">
-                                            <span class="delivery-card-icon"><i class="fas fa-store"></i></span>
-                                            <span class="delivery-card-title">Sucursal Guachipelín-Escazú</span>
-                                            <span class="delivery-card-meta">Escazú · San Rafael</span>
-                                            <span class="delivery-card-tag">Retiro gratis</span>
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Sucursal Guachipelín-Escazú</span>
+                                                <span class="delivery-card-sublabel">Escazú · San Rafael</span>
+                                            </div>
+                                            <span class="delivery-card-badge">Retiro gratis</span>
+                                            <div class="delivery-card-check"></div>
                                         </button>
                                         <button type="button" class="delivery-card biz-delivery-card" data-delivery="domicilio" role="radio" aria-checked="false">
-                                            <span class="delivery-card-icon"><i class="fas fa-home"></i></span>
-                                            <span class="delivery-card-title">Entrega a domicilio</span>
-                                            <span class="delivery-card-meta">Te llevamos el paquete a tu dirección</span>
-                                            <span class="delivery-card-tag delivery-card-tag-alt">Tarifa según zona</span>
+                                            <div class="delivery-card-icon"><i class="fas fa-home"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Entrega a domicilio</span>
+                                                <span class="delivery-card-sublabel">Llevamos el paquete a su dirección</span>
+                                            </div>
+                                            <span class="delivery-card-badge delivery-card-badge-alt">Tarifa según zona</span>
+                                            <div class="delivery-card-check"></div>
                                         </button>
                                     </div>
-                                    <p class="delivery-cards-help">Pueden cambiar la sucursal preferida en Mi Cuenta.</p>
-                                </div>
+                                    <p class="text-xs text-gray-400 mt-2">Pueden cambiar la sucursal preferida en Mi Cuenta.</p>
 
-                                <!-- Domicilio address form -->
-                                <div id="biz-domicilio-address-form" class="hidden mt-2">
-                                    <h5 class="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                                        <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
-                                        Dirección de entrega
-                                    </h5>
-                                    <p class="text-xs text-gray-500 mb-4">Necesitamos la dirección para entregas y factura electrónica.</p>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <div class="form-group">
-                                            <label class="block text-gray-700 font-medium mb-2">Provincia *</label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map"></i></div>
-                                                <select name="province[]" data-domicilio-required class="province-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                                    <option value="" disabled selected>Seleccione provincia</option>
-                                                    <option value="san_jose">San José</option>
-                                                    <option value="alajuela">Alajuela</option>
-                                                    <option value="cartago">Cartago</option>
-                                                    <option value="heredia">Heredia</option>
-                                                    <option value="guanacaste">Guanacaste</option>
-                                                    <option value="puntarenas">Puntarenas</option>
-                                                    <option value="limon">Limón</option>
-                                                </select>
-                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down"></i></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="block text-gray-700 font-medium mb-2">Cantón *</label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-marker"></i></div>
-                                                <select name="canton[]" data-domicilio-required class="canton-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                                    <option value="" disabled selected>Seleccione cantón</option>
-                                                </select>
-                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down"></i></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="block text-gray-700 font-medium mb-2">Distrito *</label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-signs"></i></div>
-                                                <select name="district[]" data-domicilio-required class="district-select w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all">
-                                                    <option value="" disabled selected>Seleccione distrito</option>
-                                                </select>
-                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down"></i></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="block text-gray-700 font-medium mb-2">Código postal</label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-mailbox"></i></div>
-                                                <input type="text" name="postal_code[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Opcional">
-                                            </div>
-                                        </div>
-                                        <div class="form-group md:col-span-2">
-                                            <label class="block text-gray-700 font-medium mb-2">Barrio o señas adicionales</label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-pin"></i></div>
-                                                <input type="text" name="neighborhood[]" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Opcional">
-                                            </div>
-                                        </div>
-                                        <div class="form-group md:col-span-2">
-                                            <label class="block text-gray-700 font-medium mb-2">Dirección detallada *</label>
-                                            <div class="relative">
-                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-marker-alt"></i></div>
-                                                <textarea name="address_details[]" data-domicilio-required rows="3" class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all" placeholder="Calle, avenida, número, señas, etc."></textarea>
+                                    <!-- Domicilio address form -->
+                                    <div id="biz-domicilio-address-form" class="hidden">
+                                        <div class="domicilio-panel">
+                                            <h5 class="text-sm font-semibold text-gray-700 mb-1 flex items-center">
+                                                <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
+                                                Dirección de entrega
+                                            </h5>
+                                            <p class="text-xs text-gray-400 mb-3">Necesitamos la dirección para entregas y factura electrónica.</p>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div class="form-group">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Provincia *</label>
+                                                    <div class="relative">
+                                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map text-xs"></i></div>
+                                                        <select name="province[]" data-domicilio-required class="province-select w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all text-sm">
+                                                            <option value="" disabled selected>Seleccione provincia</option>
+                                                            <option value="san_jose">San José</option>
+                                                            <option value="alajuela">Alajuela</option>
+                                                            <option value="cartago">Cartago</option>
+                                                            <option value="heredia">Heredia</option>
+                                                            <option value="guanacaste">Guanacaste</option>
+                                                            <option value="puntarenas">Puntarenas</option>
+                                                            <option value="limon">Limón</option>
+                                                        </select>
+                                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down text-xs"></i></div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Cantón *</label>
+                                                    <div class="relative">
+                                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-marker text-xs"></i></div>
+                                                        <select name="canton[]" data-domicilio-required class="canton-select w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all text-sm">
+                                                            <option value="" disabled selected>Seleccione cantón</option>
+                                                        </select>
+                                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down text-xs"></i></div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Distrito *</label>
+                                                    <div class="relative">
+                                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-map-signs text-xs"></i></div>
+                                                        <select name="district[]" data-domicilio-required class="district-select w-full pl-9 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none transition-all text-sm">
+                                                            <option value="" disabled selected>Seleccione distrito</option>
+                                                        </select>
+                                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-chevron-down text-xs"></i></div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Código postal</label>
+                                                    <input type="text" name="postal_code[]" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Opcional">
+                                                </div>
+                                                <div class="form-group md:col-span-2">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Barrio o señas adicionales</label>
+                                                    <input type="text" name="neighborhood[]" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Opcional">
+                                                </div>
+                                                <div class="form-group md:col-span-2">
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Dirección detallada *</label>
+                                                    <textarea name="address_details[]" data-domicilio-required rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Calle, avenida, número, señas, etc."></textarea>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Terms + Action zone -->
-                            <div class="signup-cta-tray">
-                                <label class="flex items-start cursor-pointer mb-6">
-                                    <input type="checkbox" name="terms" id="biz-terms" required class="mt-0.5 w-4 h-4 accent-orange-600 flex-shrink-0">
-                                    <span class="ml-3 text-sm text-gray-600 leading-snug">
-                                        Acepto los <a href="#" class="text-orange-600 underline underline-offset-2 hover:text-orange-700 font-semibold">Términos y condiciones</a> y la <a href="#" class="text-orange-600 underline underline-offset-2 hover:text-orange-700 font-semibold">Política de privacidad</a> de CRBOX. *
-                                    </span>
-                                </label>
+                                <!-- Action zone -->
+                                <div class="signup-action-zone">
+                                    <label class="flex items-start cursor-pointer mb-5">
+                                        <input type="checkbox" name="terms" id="biz-terms" required class="mt-0.5 w-4 h-4 accent-orange-600 flex-shrink-0">
+                                        <span class="ml-3 text-sm text-gray-600 leading-snug">
+                                            Acepto los <a href="#" class="text-orange-600 underline underline-offset-2 hover:text-orange-700 font-semibold">Términos y condiciones</a> y la <a href="#" class="text-orange-600 underline underline-offset-2 hover:text-orange-700 font-semibold">Política de privacidad</a> de CRBOX. *
+                                        </span>
+                                    </label>
 
-                                <button type="submit" id="biz-signup-submit-btn" disabled class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-4 px-6 rounded-xl text-lg flex items-center justify-center shadow-lg hover:shadow-xl transition-all disabled:cursor-not-allowed">
-                                    <i class="fas fa-building mr-2.5 text-xl"></i> Crear cuenta empresarial
-                                </button>
+                                    <button type="submit" id="biz-signup-submit-btn" disabled class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-3.5 px-6 rounded-xl text-base flex items-center justify-center shadow-md hover:shadow-lg transition-all disabled:cursor-not-allowed">
+                                        <i class="fas fa-building mr-2"></i> Crear cuenta empresarial
+                                    </button>
 
-                                <button type="button" class="signup-prev-btn mt-3 w-full bg-white border border-gray-200 hover:border-gray-300 text-gray-500 hover:text-gray-700 font-medium py-2.5 px-6 rounded-xl transition-all flex items-center justify-center text-sm" data-prev="1">
-                                    <i class="fas fa-arrow-left mr-2"></i>
-                                    Volver al paso anterior
-                                </button>
-
-                                <div class="mt-5 flex items-center justify-center gap-4 text-xs text-gray-400">
-                                    <span><i class="fas fa-lock mr-1 text-gray-300"></i>Registro seguro</span>
-                                    <span class="text-gray-200">|</span>
-                                    <span><i class="fas fa-bolt mr-1 text-gray-300"></i>Activación al instante</span>
+                                    <button type="button" class="signup-prev-btn mt-3 w-full flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-sm font-medium" data-prev="1">
+                                        <i class="fas fa-arrow-left"></i> Volver al paso anterior
+                                    </button>
                                 </div>
-                            </div>
-                        </section>
+                            </section>
 
-                    </form>
-                    </div><!-- /relative z-10 -->
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2062,13 +2378,28 @@ const locationDatabase = {
     (function initSignupStepper() {
         const form = document.getElementById('personal-registration-form');
         if (!form) return;
-        const stepperEl = form.parentElement.querySelector('.signup-stepper');
-        if (!stepperEl) return;
-        const stepEls   = Array.prototype.slice.call(stepperEl.querySelectorAll('.signup-step'));
-        const progressEls = Array.prototype.slice.call(stepperEl.querySelectorAll('.signup-step-progress'));
-        const panels    = Array.prototype.slice.call(form.querySelectorAll('.signup-step-panel'));
+        const container  = form.closest('#personal-form');
+        const panels     = Array.prototype.slice.call(form.querySelectorAll('.signup-step-panel'));
         const totalSteps = panels.length;
-        let currentStep = 1;
+        let currentStep  = 1;
+
+        function syncRail(n) {
+            if (!container) return;
+            var railSteps = Array.prototype.slice.call(container.querySelectorAll('.rail-step[data-rail]'));
+            railSteps.forEach(function (rs) {
+                var idx = parseInt(rs.getAttribute('data-rail'), 10);
+                rs.classList.remove('rs-active', 'rs-complete');
+                if (idx === n) rs.classList.add('rs-active');
+                else if (idx < n) rs.classList.add('rs-complete');
+            });
+            var railDots = Array.prototype.slice.call(container.querySelectorAll('.rail-dot[data-rdot]'));
+            railDots.forEach(function (rd) {
+                var idx = parseInt(rd.getAttribute('data-rdot'), 10);
+                rd.classList.remove('rd-active', 'rd-complete');
+                if (idx === n) rd.classList.add('rd-active');
+                else if (idx < n) rd.classList.add('rd-complete');
+            });
+        }
 
         function setStep(n) {
             n = Math.max(1, Math.min(totalSteps, n));
@@ -2077,15 +2408,7 @@ const locationDatabase = {
                 const idx = parseInt(p.getAttribute('data-panel'), 10);
                 p.classList.toggle('hidden', idx !== n);
             });
-            stepEls.forEach(function (s) {
-                const idx = parseInt(s.getAttribute('data-step'), 10);
-                s.classList.toggle('is-active', idx === n);
-                s.classList.toggle('is-complete', idx < n);
-            });
-            progressEls.forEach(function (p) {
-                const idx = parseInt(p.getAttribute('data-progress'), 10);
-                p.style.width = idx < n ? '100%' : '0%';
-            });
+            syncRail(n);
             // Scroll back to the top of the form so the user always sees the new step
             const formRect = form.getBoundingClientRect();
             if (formRect.top < 0 || formRect.top > window.innerHeight * 0.4) {
@@ -2218,7 +2541,7 @@ const locationDatabase = {
         var hiddenSelect   = document.getElementById('personal-id-type-select');
         var errEl          = document.getElementById('personal-id-type-error');
         if (!pillsContainer || !hiddenSelect) return;
-        var pills = Array.prototype.slice.call(pillsContainer.querySelectorAll('.id-pill'));
+        var pills = Array.prototype.slice.call(pillsContainer.querySelectorAll('[data-idtype]'));
         pills.forEach(function (pill) {
             pill.addEventListener('click', function () {
                 pills.forEach(function (p) {
@@ -2378,13 +2701,26 @@ const locationDatabase = {
         if (!form) return;
         var bizContainer = form.closest('#business-form');
         if (!bizContainer) return;
-        var stepperEl = bizContainer.querySelector('.signup-stepper');
-        if (!stepperEl) return;
-        var stepEls = Array.prototype.slice.call(stepperEl.querySelectorAll('.signup-step'));
-        var progressEls = Array.prototype.slice.call(stepperEl.querySelectorAll('.signup-step-progress'));
         var panels = Array.prototype.slice.call(form.querySelectorAll('.signup-step-panel'));
         var totalSteps = panels.length;
         var currentStep = 1;
+
+        function syncBizRail(n) {
+            var railSteps = Array.prototype.slice.call(bizContainer.querySelectorAll('.rail-step[data-rail]'));
+            railSteps.forEach(function (rs) {
+                var idx = parseInt(rs.getAttribute('data-rail'), 10);
+                rs.classList.remove('rs-active', 'rs-complete');
+                if (idx === n) rs.classList.add('rs-active');
+                else if (idx < n) rs.classList.add('rs-complete');
+            });
+            var railDots = Array.prototype.slice.call(bizContainer.querySelectorAll('.rail-dot[data-rdot]'));
+            railDots.forEach(function (rd) {
+                var idx = parseInt(rd.getAttribute('data-rdot'), 10);
+                rd.classList.remove('rd-active', 'rd-complete');
+                if (idx === n) rd.classList.add('rd-active');
+                else if (idx < n) rd.classList.add('rd-complete');
+            });
+        }
 
         function bizSetStep(n) {
             n = Math.max(1, Math.min(totalSteps, n));
@@ -2393,15 +2729,7 @@ const locationDatabase = {
                 var idx = parseInt(p.getAttribute('data-panel'), 10);
                 p.classList.toggle('hidden', idx !== n);
             });
-            stepEls.forEach(function (s) {
-                var idx = parseInt(s.getAttribute('data-step'), 10);
-                s.classList.toggle('is-active', idx === n);
-                s.classList.toggle('is-complete', idx < n);
-            });
-            progressEls.forEach(function (p) {
-                var idx = parseInt(p.getAttribute('data-progress'), 10);
-                p.style.width = idx < n ? '100%' : '0%';
-            });
+            syncBizRail(n);
             var formRect = form.getBoundingClientRect();
             if (formRect.top < 0 || formRect.top > window.innerHeight * 0.4) {
                 form.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3090,104 +3418,55 @@ const locationDatabase = {
             });
     }
 
-    // Function to setup province and canton selectors for personal addresses
-function setupProvinceSelectors(provinceSelectors) {
-    provinceSelectors.forEach(provinceSelector => {
-        provinceSelector.addEventListener('change', function() {
-            const province = this.value;
-            const cantonSelector = this.closest('.address-entry').querySelector('select[name="canton[]"]');
-            const districtSelector = this.closest('.address-entry').querySelector('select[name="district[]"]');
-            const neighborhoodSelector = this.closest('.address-entry').querySelector('select[name="neighborhood[]"]');
-            
-            // Clear current options
-            cantonSelector.innerHTML = '<option value="" disabled selected>Seleccione cantón</option>';
-            
-            // Reset district and neighborhood selectors
-            if (districtSelector) {
-                districtSelector.innerHTML = '<option value="" disabled selected>Seleccione distrito</option>';
-            }
-            
-            if (neighborhoodSelector) {
-                neighborhoodSelector.innerHTML = '<option value="" disabled selected>Seleccione barrio</option>';
-            }
-            
-            // Add options based on selected province
-                if (province === 'san_jose') {
-                    const sanJoseCantons = ['Central', 'Escazú', 'Desamparados', 'Puriscal', 'Tarrazú', 'Aserrí', 'Mora', 'Goicoechea', 'Santa Ana', 'Alajuelita', 'Vázquez de Coronado', 'Tibás', 'Moravia', 'Montes de Oca', 'Turrubares', 'Dota', 'Curridabat', 'Pérez Zeledón', 'León Cortés', 'Acosta'];
-                    
-                    sanJoseCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = CRLocations.normalizeKey(canton);
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'alajuela') {
-                    const alajuelaCantons = ['Central', 'San Ramón', 'Grecia', 'San Mateo', 'Atenas', 'Naranjo', 'Palmares', 'Poás', 'Orotina', 'San Carlos', 'Zarcero', 'Sarchí', 'Upala', 'Los Chiles', 'Guatuso', 'Río Cuarto'];
-                    
-                    alajuelaCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = CRLocations.normalizeKey(canton);
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'cartago') {
-                    const cartagoCantons = ['Central', 'Paraíso', 'La Unión', 'Jiménez', 'Turrialba', 'Alvarado', 'Oreamuno', 'El Guarco'];
-                    
-                    cartagoCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = CRLocations.normalizeKey(canton);
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'heredia') {
-                    const herediaCantons = ['Central', 'Barva', 'Santo Domingo', 'Santa Bárbara', 'San Rafael', 'San Isidro', 'Belén', 'Flores', 'San Pablo', 'Sarapiquí'];
-                    
-                    herediaCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = CRLocations.normalizeKey(canton);
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'guanacaste') {
-                    const guanacasteCantons = ['Liberia', 'Nicoya', 'Santa Cruz', 'Bagaces', 'Carrillo', 'Cañas', 'Abangares', 'Tilarán', 'Nandayure', 'La Cruz', 'Hojancha'];
-                    
-                    guanacasteCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = CRLocations.normalizeKey(canton);
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'puntarenas') {
-                    const puntarenasCantons = ['Central', 'Esparza', 'Buenos Aires', 'Montes de Oro', 'Osa', 'Quepos', 'Golfito', 'Coto Brus', 'Parrita', 'Corredores', 'Garabito'];
-                    
-                    puntarenasCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = CRLocations.normalizeKey(canton);
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                } else if (province === 'limon') {
-                    const limonCantons = ['Central', 'Pococí', 'Siquirres', 'Talamanca', 'Matina', 'Guácimo'];
-                    
-                    limonCantons.forEach(canton => {
-                        const option = document.createElement('option');
-                        option.value = CRLocations.normalizeKey(canton);
-                        option.textContent = canton;
-                        cantonSelector.appendChild(option);
-                    });
-                }
+// ── Province → Canton → District cascade ────────────────────────────────
+(function initAddressCascade() {
+    var CANTON_LABELS = {
+        san_jose:   ['Central','Escazú','Desamparados','Puriscal','Tarrazú','Aserrí','Mora','Goicoechea','Santa Ana','Alajuelita','Vázquez de Coronado','Tibás','Moravia','Montes de Oca','Turrubares','Dota','Curridabat','Pérez Zeledón','León Cortés','Acosta'],
+        alajuela:   ['Central','San Ramón','Grecia','San Mateo','Atenas','Naranjo','Palmares','Poás','Orotina','San Carlos','Zarcero','Sarchí','Upala','Los Chiles','Guatuso','Río Cuarto'],
+        cartago:    ['Central','Paraíso','La Unión','Jiménez','Turrialba','Alvarado','Oreamuno','El Guarco'],
+        heredia:    ['Central','Barva','Santo Domingo','Santa Bárbara','San Rafael','San Isidro','Belén','Flores','San Pablo','Sarapiquí'],
+        guanacaste: ['Liberia','Nicoya','Santa Cruz','Bagaces','Carrillo','Cañas','Abangares','Tilarán','Nandayure','La Cruz','Hojancha'],
+        puntarenas: ['Central','Esparza','Buenos Aires','Montes de Oro','Osa','Quepos','Golfito','Coto Brus','Parrita','Corredores','Garabito'],
+        limon:      ['Central','Pococí','Siquirres','Talamanca','Matina','Guácimo']
+    };
+
+    document.querySelectorAll('.address-entry').forEach(function(entry) {
+        var provSel = entry.querySelector('.province-select');
+        var cantSel = entry.querySelector('.canton-select');
+        var distSel = entry.querySelector('.district-select');
+        if (!provSel || !cantSel) return;
+
+        provSel.addEventListener('change', function() {
+            var prov = this.value;
+            cantSel.innerHTML = '<option value="" disabled selected>Seleccione cantón</option>';
+            if (distSel) distSel.innerHTML = '<option value="" disabled selected>Seleccione distrito</option>';
+            var labels = CANTON_LABELS[prov] || [];
+            labels.forEach(function(label) {
+                var opt = document.createElement('option');
+                opt.value = CRLocations.normalizeKey(label);
+                opt.textContent = label;
+                cantSel.appendChild(opt);
             });
         });
-    }
 
-
-// Initialize canton selectors for personal addresses
-const cantonSelectors = document.querySelectorAll('.canton-select');
-setupCantonSelectors(cantonSelectors);
-
-// Initialize district selectors for personal addresses
-const districtSelectors = document.querySelectorAll('.district-select');
-setupDistrictSelectors(districtSelectors);
+        cantSel.addEventListener('change', function() {
+            if (!distSel) return;
+            var prov = provSel.value;
+            var cant = this.value;
+            distSel.innerHTML = '<option value="" disabled selected>Seleccione distrito</option>';
+            var provData = locationDatabase[prov];
+            if (!provData) return;
+            var cantData = provData[cant];
+            if (!cantData) return;
+            (cantData.districts || []).forEach(function(d) {
+                var opt = document.createElement('option');
+                opt.value = d.value;
+                opt.textContent = d.label;
+                distSel.appendChild(opt);
+            });
+        });
+    });
+}());
     
     // Custom function to validate form fields in real-time
     const inputFields = document.querySelectorAll('input, select, textarea');
