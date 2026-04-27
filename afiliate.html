@@ -3075,9 +3075,9 @@ const locationDatabase = {
                     var msg = res.Message || '';
                     var friendly;
                     if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
-                        friendly = 'Este correo ya está registrado. ¿Ya tiene una cuenta?';
+                        friendly = msg;
                     } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
-                        friendly = 'Esta cédula jurídica ya está registrada. Contacte soporte si necesita acceso.';
+                        friendly = msg;
                     } else {
                         friendly = msg || 'Ocurrió un error al procesar el registro. Intente de nuevo.';
                     }
