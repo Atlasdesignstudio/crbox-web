@@ -412,6 +412,7 @@
             padding: 3px 9px; border-radius: 9999px;
             background: #dcfce7; color: #15803d;
             flex-shrink: 0; white-space: nowrap;
+            align-self: center;
         }
         .delivery-card-badge-alt { background: #fef9c3; color: #854d0e; }
         .delivery-card-check {
@@ -419,6 +420,7 @@
             border: 2px solid #d1d5db; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.15s ease;
+            align-self: center;
         }
         .delivery-card.is-selected .delivery-card-check { border-color: #ea580c; background: #ea580c; }
         .delivery-card.is-selected .delivery-card-check::after {
@@ -1151,6 +1153,18 @@
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                                     <div class="form-group md:col-span-2">
+                                        <!-- CÉDULA JURÍDICA FORMAT NOTE (verified 2025-04)
+                                             Backend test: submitted 10-digit numeric ("3101234567"),
+                                             9-digit numeric ("310123456"), and alphanumeric ("ABC1234567")
+                                             to POST /api/crboxwebapi/postregisteruser with IdentificationType=Juridica.
+                                             All three returned the same generic "Hubo un error" response — the
+                                             backend does NOT expose distinct field-level errors for ID format.
+                                             Server-side format validation remains AMBIGUOUS from this test.
+                                             Current constraint (client-side /^\d{10}$/) follows the official
+                                             Costa Rican cédula jurídica standard (10 numeric digits) and is
+                                             kept as-is. If the backend ever needs 9-digit or alphanumeric
+                                             support, update the regex in handleBusinessRegistration AND this
+                                             label/helper text. -->
                                         <label class="block text-gray-700 font-medium mb-1.5">Cédula jurídica *</label>
                                         <div class="relative">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-id-badge"></i></div>
