@@ -126,12 +126,39 @@ Key CSS layers:
 
 ## Server (`server.py`)
 
-Static file server on port 5000 (`python3 server.py`). Two custom POST endpoints:
+Static file server on port 5000 (`python3 server.py`). Custom endpoints:
 
 | Path | Method | Purpose |
 |------|--------|---------|
+| `/health` | GET | Probes SMTP (connect + authenticate, no email sent). Returns `{"ok":true,"smtp":"ok"}` (200) or `{"ok":false,"smtp":"error","error":"..."}` (503). Use this URL with any external uptime monitor (UptimeRobot, Better Uptime, etc.). |
 | `/crbox-svc-token` | POST | Authenticates with the CRBOX service account (credentials from env vars) and returns `{ access_token }`. Browser never sees the raw credentials. |
 | `/send-quote` | POST | Sends the calculator quote form email via Google Workspace SMTP to `ventas@crbox.cr`, with the user CC'd. Returns `{"ok": true}` on success. |
+
+### SMTP Health Monitoring (Task #154)
+
+`server.py` starts a **background daemon thread** on boot that checks SMTP connectivity every 5 minutes. If a check fails, an alert email is sent immediately to the team (at most once per hour to avoid flooding). The alert includes the exact error and remediation steps.
+
+`healthcheck.py` — standalone script for manual checks or external cron jobs:
+```
+python3 healthcheck.py    # exits 0 if SMTP OK, 1 if failed; sends alert email on failure
+```
+
+**Cron example (check every 5 min, log to file):**
+```
+*/5 * * * * /usr/bin/python3 /path/to/healthcheck.py >> /var/log/crbox-health.log 2>&1
+```
+
+**External uptime monitor (recommended for immediate alerting independent of the server process):**
+- Point any uptime monitor (UptimeRobot free tier, Better Uptime, etc.) at `GET /health`
+- Alert threshold: 1 failure → notify immediately
+- The endpoint returns HTTP 200 when SMTP is healthy, 503 when it is not
+
+**Optional env vars:**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ALERT_EMAIL` | `ventas@crbox.cr` | Who receives failure alert emails |
+| `SMTP_HEALTH_INTERVAL` | `300` | Seconds between background SMTP probes |
 
 **Required env vars / secrets:**
 
