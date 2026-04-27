@@ -45,3 +45,10 @@ waitForPort = 5000
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 30000
+
+[userenv]
+
+[userenv.shared]
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = "587"
+SMTP_USER = "ventas@crbox.cr"

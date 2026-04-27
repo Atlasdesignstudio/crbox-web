@@ -126,23 +126,27 @@ Key CSS layers:
 
 ## Server (`server.py`)
 
-Static file server on port 5000 (`python3 server.py`). One custom POST endpoint:
+Static file server on port 5000 (`python3 server.py`). Two custom POST endpoints:
 
 | Path | Method | Purpose |
 |------|--------|---------|
 | `/crbox-svc-token` | POST | Authenticates with the CRBOX service account (credentials from env vars) and returns `{ access_token }`. Browser never sees the raw credentials. |
+| `/send-quote` | POST | Sends the calculator quote form email via Google Workspace SMTP to `ventas@crbox.cr`, with the user CC'd. Returns `{"ok": true}` on success. |
 
 **Required env vars / secrets:**
 
-| Secret | Description |
-|--------|-------------|
-| `CRBOX_SVC_EMAIL` | Email of the CRBOX service account used to authorize new-user registration |
-| `CRBOX_SVC_PASSWORD` | Password for the service account above |
+| Variable | Type | Value | Description |
+|----------|------|-------|-------------|
+| `CRBOX_SVC_EMAIL` | secret | — | Email of the CRBOX service account used to authorize new-user registration |
+| `CRBOX_SVC_PASSWORD` | secret | — | Password for the service account above |
+| `SMTP_HOST` | env var (shared) | `smtp.gmail.com` | Google Workspace SMTP host |
+| `SMTP_PORT` | env var (shared) | `587` | SMTP port (STARTTLS) |
+| `SMTP_USER` | env var (shared) | `ventas@crbox.cr` | SMTP sender address |
+| `SMTP_PASS` | secret | — | 16-character Google Workspace App Password for `ventas@crbox.cr`. Generate at myaccount.google.com → Security → 2-Step Verification → App passwords. If missing, `/send-quote` returns 503. |
 
 **Why the proxy exists:** The CRBOX registration endpoint (`postregisteruser`) requires a valid Bearer token from an already-authenticated account. The browser calls `/crbox-svc-token`, receives only the time-limited token, then posts the registration payload with `Authorization: Bearer <token>`. Raw service-account credentials never appear in client-side code or logs.
 
-**Abuse controls on `/crbox-svc-token`:**
-- **Origin validation** — if the browser sends an `Origin` header, its host must match the `Host` header (same-origin). Mismatched origin → 403. Requests without `Origin` (e.g., server-side tools) pass through.
+**Abuse controls on `/crbox-svc-token` and `/send-quote`:**
 - **IP rate limiting** — max 5 successful calls per IP per 60-second sliding window → 429 after limit. Implemented with an in-memory dict (`_rate_window`) guarded by a `threading.Lock`.
 
 ## Signup & Activation Flow (Task #113)
