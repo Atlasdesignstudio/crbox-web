@@ -64,6 +64,24 @@
         .signup-step-progress { display: block; height: 100%; width: 0; background: #ea580c; transition: width .35s ease; }
         .signup-step-panel { animation: stepFadeIn .35s ease both; }
         @keyframes stepFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        /* Guarantee next/prev button colours regardless of Tailwind cascade */
+        .signup-next-btn {
+            background-color: #ea580c !important;
+            color: #ffffff !important;
+            border: none;
+        }
+        .signup-next-btn:hover {
+            background-color: #c2410c !important;
+        }
+        .signup-prev-btn {
+            background-color: #ffffff !important;
+            color: #6b7280 !important;
+            border: 1px solid #e5e7eb !important;
+        }
+        .signup-prev-btn:hover {
+            color: #374151 !important;
+            border-color: #d1d5db !important;
+        }
         .signup-summary dl { display: grid; grid-template-columns: minmax(120px, auto) 1fr; gap: 6px 14px; font-size: 0.875rem; }
         .signup-summary dt { color: #6b7280; font-weight: 500; }
         .signup-summary dd { color: #1f2937; font-weight: 600; word-break: break-word; }
@@ -221,10 +239,8 @@
             <!-- Personal Account Form -->
             <div id="personal-form" class="form-container active">
                 <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 relative">
-                    <div class="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none" aria-hidden="true">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-bl-full opacity-50"></div>
-                        <div class="absolute bottom-0 left-0 w-24 h-24 bg-orange-50 rounded-tr-full opacity-50"></div>
-                    </div>
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-orange-100 rounded-bl-full opacity-30 pointer-events-none" aria-hidden="true"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-orange-50 rounded-tr-full opacity-30 pointer-events-none" aria-hidden="true"></div>
 
                     <div class="relative z-10">
                         <div class="flex items-center mb-2">
