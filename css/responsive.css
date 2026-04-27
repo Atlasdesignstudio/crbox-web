@@ -568,13 +568,7 @@
       justify-content: center;
     }
 
-    /* Delivery card badge: slightly tighter at very narrow widths (≤480px)
-       so the badge+check right side stays within bounds even on the
-       "Sucursal Guachipelín-Escazú" card where the body text is long.
-       Verified: at 375px the inner card width is ~275px, badge width
-       "Tarifa según zona" ≈125px; reducing font/padding keeps total
-       right-side at ~110px, leaving ≥115px for label/sublabel.
-       Task #140 mobile usability verification (2025-04). */
+    /* Delivery card badge: tighter on very narrow screens to prevent overflow */
     .delivery-card-badge {
       font-size: 0.6rem;
       padding: 2px 6px;
