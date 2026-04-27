@@ -447,6 +447,24 @@
             padding-top: 1.25rem;
             border-top: 1px solid #f3f4f6;
         }
+
+        /* ── Panel step heading: ≥24px as required ── */
+        .panel-step-header h4 { font-size: 1.5rem !important; font-weight: 700; color: #111827; line-height: 1.25; }
+        .panel-step-header p  { font-size: 0.875rem; color: #6b7280; margin-top: 6px; line-height: 1.5; }
+
+        /* ── Focus state: 2px solid orange border, no ring blur ── */
+        .signup-panel input:focus,
+        .signup-panel select:focus,
+        .signup-panel textarea:focus {
+            border-color: #ea580c !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        /* ── Mobile rail: hide brand copy, show dot bar only ── */
+        @media (max-width: 767px) {
+            .rail-wordmark { display: none; }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -535,41 +553,19 @@
     </div>
 
     <!-- Page Title -->
-    <section class="py-20 md:py-28 gradient-bg relative overflow-hidden">
-        <div class="absolute inset-0 opacity-10 bg-pattern"></div>
-        <div class="container mx-auto px-4 relative z-10">
-            <div class="flex flex-col items-center text-center">
-                <div class="max-w-4xl mx-auto">
-                    <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-                        Crea tu <span class="text-orange-300">Casillero Virtual</span> Gratis
-                    </h1>
-                    <p class="text-xl md:text-2xl text-gray-100 mb-8 max-w-3xl mx-auto">
-                        Regístrate ahora y obtén tu dirección en Miami al instante. Sin costos de inscripción ni cuotas mensuales.
-                    </p>
-                </div>
-            </div>
-        </div>
-        <!-- Decorative Wave -->
-        <div class="absolute bottom-0 left-0 w-full overflow-hidden">
-            <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fill="#f9fafb" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,100L1360,100C1280,100,1120,100,960,100C800,100,640,100,480,100C320,100,160,100,80,100L0,100Z"></path>
-            </svg>
-        </div>
-        <!-- Decorative Elements -->
-        <div class="absolute top-10 left-10 opacity-20 hidden md:block">
-            <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="40" stroke="white" stroke-width="4" fill="none"/>
-            </svg>
-        </div>
-        <div class="absolute bottom-20 right-20 opacity-20 hidden md:block">
-            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="10" y="10" width="60" height="60" rx="10" stroke="white" stroke-width="4" fill="none"/>
-            </svg>
+    <section class="py-7 gradient-bg relative overflow-hidden">
+        <div class="container mx-auto px-4 relative z-10 text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-white leading-tight">
+                Crea tu <span class="text-orange-300">Casillero Virtual</span> Gratis
+            </h1>
+            <p class="text-sm md:text-base text-gray-200 mt-2 max-w-xl mx-auto">
+                Obtén tu dirección en Miami al instante. Sin costos de inscripción ni cuotas mensuales.
+            </p>
         </div>
     </section>
 
     <!-- Registration Form Section -->
-<section id="registro" class="py-16 md:py-24 bg-gray-50">
+<section id="registro" class="py-10 md:py-14 bg-gray-50">
     <div class="container mx-auto px-4">
         <!-- Intro Header -->
         <div class="text-center mb-12">
@@ -613,21 +609,21 @@
                             <div class="rail-step rs-active" data-rail="1">
                                 <div class="rail-step-dot"><span>1</span></div>
                                 <div class="rail-step-info">
-                                    <strong class="rail-step-title">Tu cuenta</strong>
+                                    <strong class="rail-step-title">Tu acceso</strong>
                                     <span class="rail-step-desc">Nombre, correo y contraseña</span>
                                 </div>
                             </div>
                             <div class="rail-step" data-rail="2">
                                 <div class="rail-step-dot"><span>2</span></div>
                                 <div class="rail-step-info">
-                                    <strong class="rail-step-title">Identidad</strong>
+                                    <strong class="rail-step-title">Tu identidad</strong>
                                     <span class="rail-step-desc">ID y teléfono</span>
                                 </div>
                             </div>
                             <div class="rail-step" data-rail="3">
                                 <div class="rail-step-dot"><span>3</span></div>
                                 <div class="rail-step-info">
-                                    <strong class="rail-step-title">Entrega</strong>
+                                    <strong class="rail-step-title">Tu dirección</strong>
                                     <span class="rail-step-desc">Sucursal o domicilio</span>
                                 </div>
                             </div>
@@ -662,11 +658,11 @@
                         <form id="personal-registration-form" class="registration-form">
                             <input type="hidden" name="country" value="CR">
 
-                            <!-- ─── Step 1: Tu cuenta ─── -->
+                            <!-- ─── Step 1: Tu acceso ─── -->
                             <section class="signup-step-panel" data-panel="1">
                                 <div class="panel-step-header">
-                                    <h4>Tu cuenta</h4>
-                                    <p>Crea tu acceso al portal CRBOX. Con esto iniciarás sesión y recibirás avisos de tus paquetes.</p>
+                                    <h4>Tu acceso</h4>
+                                    <p>Crea las credenciales para iniciar sesión en el portal y recibir avisos de tus paquetes.</p>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -732,10 +728,10 @@
                                 </div>
                             </section>
 
-                            <!-- ─── Step 2: Identidad y contacto ─── -->
+                            <!-- ─── Step 2: Tu identidad ─── -->
                             <section class="signup-step-panel hidden" data-panel="2">
                                 <div class="panel-step-header">
-                                    <h4>Identidad y contacto</h4>
+                                    <h4>Tu identidad</h4>
                                     <p>Tu cédula aparece en tu factura electrónica. Tu teléfono te sirve para avisos de paquetes.</p>
                                 </div>
 
@@ -801,10 +797,10 @@
                                 </div>
                             </section>
 
-                            <!-- ─── Step 3: Entrega ─── -->
+                            <!-- ─── Step 3: Tu dirección ─── -->
                             <section class="signup-step-panel hidden" data-panel="3">
                                 <div class="panel-step-header">
-                                    <h4>¿Dónde recibes tus paquetes?</h4>
+                                    <h4>Tu dirección</h4>
                                     <p>Elige una sucursal para retiro gratis, o entrega a domicilio con tarifa según zona.</p>
                                 </div>
 
@@ -930,8 +926,8 @@
                                     </div>
 
                                     <button type="submit" id="signup-submit-btn" disabled class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-3.5 px-6 rounded-xl text-base flex items-center justify-center shadow-md hover:shadow-lg transition-all disabled:cursor-not-allowed">
-                                        <i class="fas fa-user-plus mr-2"></i>
-                                        Crear Mi Casillero Gratis
+                                        Crear mi casillero
+                                        <i class="fas fa-arrow-right ml-2"></i>
                                     </button>
 
                                     <button type="button" class="signup-prev-btn mt-3 w-full flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-sm font-medium" data-prev="2">
@@ -3420,7 +3416,11 @@ const locationDatabase = {
 
 // ── Province → Canton → District cascade ────────────────────────────────
 (function initAddressCascade() {
-    var CANTON_LABELS = {
+    // Build a normalizedKey → displayLabel lookup for each province from the
+    // canonical display names. This is only used as a label fallback; canton
+    // iteration is always driven by Object.keys(locationDatabase[prov]) so
+    // the list stays in sync with the data automatically.
+    var CANTON_DISPLAY = {
         san_jose:   ['Central','Escazú','Desamparados','Puriscal','Tarrazú','Aserrí','Mora','Goicoechea','Santa Ana','Alajuelita','Vázquez de Coronado','Tibás','Moravia','Montes de Oca','Turrubares','Dota','Curridabat','Pérez Zeledón','León Cortés','Acosta'],
         alajuela:   ['Central','San Ramón','Grecia','San Mateo','Atenas','Naranjo','Palmares','Poás','Orotina','San Carlos','Zarcero','Sarchí','Upala','Los Chiles','Guatuso','Río Cuarto'],
         cartago:    ['Central','Paraíso','La Unión','Jiménez','Turrialba','Alvarado','Oreamuno','El Guarco'],
@@ -3429,6 +3429,16 @@ const locationDatabase = {
         puntarenas: ['Central','Esparza','Buenos Aires','Montes de Oro','Osa','Quepos','Golfito','Coto Brus','Parrita','Corredores','Garabito'],
         limon:      ['Central','Pococí','Siquirres','Talamanca','Matina','Guácimo']
     };
+
+    // Pre-build normalizedKey → label maps for O(1) lookup
+    var CANTON_LABEL_MAP = {};
+    Object.keys(CANTON_DISPLAY).forEach(function(prov) {
+        CANTON_LABEL_MAP[prov] = {};
+        CANTON_DISPLAY[prov].forEach(function(label) {
+            var key = CRLocations.normalizeKey(label);
+            CANTON_LABEL_MAP[prov][key] = label;
+        });
+    });
 
     document.querySelectorAll('.address-entry').forEach(function(entry) {
         var provSel = entry.querySelector('.province-select');
@@ -3440,11 +3450,14 @@ const locationDatabase = {
             var prov = this.value;
             cantSel.innerHTML = '<option value="" disabled selected>Seleccione cantón</option>';
             if (distSel) distSel.innerHTML = '<option value="" disabled selected>Seleccione distrito</option>';
-            var labels = CANTON_LABELS[prov] || [];
-            labels.forEach(function(label) {
+            var provData = locationDatabase[prov];
+            if (!provData) return;
+            var labelMap = CANTON_LABEL_MAP[prov] || {};
+            // Iterate from locationDatabase keys — stays in sync with data
+            Object.keys(provData).forEach(function(cantKey) {
                 var opt = document.createElement('option');
-                opt.value = CRLocations.normalizeKey(label);
-                opt.textContent = label;
+                opt.value = cantKey;
+                opt.textContent = labelMap[cantKey] || cantKey;
                 cantSel.appendChild(opt);
             });
         });
