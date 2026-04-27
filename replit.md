@@ -40,14 +40,19 @@ The script updates all six public HTML pages automatically. It must also be run 
 | `js/tariff-adapter.js` | **[Task 131]** Tariff data-adapter layer. All duty/tax lookups go through `TARIFF_ADAPTER.getTariffRate(categoryCode)`. Returns `{ rate, source, pct }` where source is `local_estimated`, `official_tica`, or `user_override`. To wire in official TICA data, populate `OFFICIAL_RATES`. |
 | `js/calculator-engine.js` | **[Task 131]** Pure calculation engine. Exposes `CALCULATOR_ENGINE.calcSinglePackage(item)`, `calcSeparate(items, dest)`, `calcConsolidated(items, dest)`. No formula changes — structural refactor and extension of original inline logic. |
 
-### Calculator page (calculadora.html) — Task 131 upgrade
+### Calculator page (calculadora.html) — Task 131 + Task 142 upgrade
 
-The calculator is now a **premium multi-item shipment planner** with 4 features:
+The calculator is now a **premium multi-item shipment planner** with 6 features:
 
-1. **Multi-item list** — users add named item cards with real weight, dimensions (auto-calculates volumetric weight inline), declared value, and category. Items can be edited or removed.
-2. **URL-assisted entry** — users can paste a product URL; the system uses allorigins.win CORS proxy to read Open Graph/meta tags and pre-fills title + price. All inferred fields are badged "Inferido — confirmar" in amber and remain fully editable. Weight and dimensions are never inferred.
-3. **Comparison hero** — after calculating, a dark premium panel reveals the total cost of shipping each item separately vs. consolidated, with the dollar savings and percentage as the dominant visual element. Includes a plain-Spanish explanation of the mechanism.
-4. **Results dossier** — a polished quote document with all line items (freight, fuel surcharge 19%, handling, CIF, taxes with provenance badge, insurance, delivery, total), weight-mode indicator, and an expandable "¿Cómo se calcula esto?" accordion.
+1. **Multi-item list** — users add named item cards with real weight, dimensions (auto-calculates volumetric weight inline), declared value, category, and optional product URL. Items can be edited or removed.
+2. **URL-assisted entry** — users can paste a product URL; the system uses allorigins.win CORS proxy to read Open Graph/meta tags and pre-fills title + price. All inferred fields are badged "Pre-llenado — confirmar" in amber. The URL is stored in the item data model and flows into the quote payload.
+3. **Comparison hero** — after calculating, a dark premium panel reveals the total cost of shipping each item separately vs. consolidated. When only one item exists, an educational state appears instead of "Ahorras $0.00".
+4. **Results dossier** — a polished quote document with all line items, a pill-style toggle for Consolidated/Separate views, and a simplified "¿Cómo se calcula esto?" accordion focused on trust-building rather than mechanics.
+5. **Estimate framing** — an amber notice bar explains that all values are estimates based on user-entered data and that CRBOX will confirm the final cost.
+6. **Quote handoff to CRBOX** — a "Solicitar cotización a CRBOX" panel appears after calculating. Accepts email (required) and name (optional). Two channels:
+   - **Email**: opens `mailto:ventas@crbox.cr` with subject + full body auto-generated from quote state (includes all per-article details + URL + estimated totals). User's email is CC'd.
+   - **WhatsApp**: opens `https://wa.me/50689794418?text=<encoded>` with the same content formatted for chat.
+   - After triggering, an honest confirmation state is shown: "Tu cotización está lista para enviarse a CRBOX. Revisa y envía el mensaje para completar tu solicitud."
 
 All tariff lookups use `TARIFF_ADAPTER`. Tax figures carry provenance badges (amber = `local_estimated`, green = `official_tica`, blue = `user_override`).
 
