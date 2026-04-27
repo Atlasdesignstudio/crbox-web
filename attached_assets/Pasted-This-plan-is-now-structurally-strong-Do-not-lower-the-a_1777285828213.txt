@@ -1,0 +1,185 @@
+This plan is now structurally strong.  
+Do not lower the ambition in execution.
+
+I want you to implement it with a top-tier product design standard, not just as a better-organized calculator.
+
+## Critical design direction
+The calculator must feel like a premium shipment planning product, not:
+- a cleaned-up form
+- a quote table
+- a logistics admin tool
+- or a basic calculator with extra sections
+
+The user experience should feel:
+- modern
+- visually refined
+- persuasive
+- trustworthy
+- easy to understand
+- clearly centered around savings and decision-making
+
+## The biggest visual/product risk
+The current plan is good on structure, but the execution could still end up too flat or too utilitarian.
+
+I do not want:
+- generic cards
+- generic step sections
+- weak hierarchy
+- simple side-by-side comparison blocks
+- or “nice enough” UI
+
+I want the final experience to feel like a serious consumer-facing product.
+
+---
+
+## What the visual execution must achieve
+
+### 1. The comparison must be the hero
+The “separate vs consolidated” comparison is the core value proposition and should be treated as the visual centerpiece of the experience.
+
+It should not feel like:
+- two result columns
+- a table comparison
+- a utility panel
+
+It should feel like:
+- a decision moment
+- a before/after story
+- a clear and persuasive savings reveal
+
+The savings should be visually dramatic and immediately understandable:
+- total if shipped separately
+- total if consolidated
+- how much the user saves
+- why the saving happens
+
+A user should understand the CRBOX advantage in seconds.
+
+### 2. Strong product hierarchy
+The page should have a clear visual order:
+
+1. what the user is planning
+2. what they are comparing
+3. what they save
+4. how the cost is built
+5. how reliable the tax source is
+
+At no point should the page feel like “fill fields, get box.”
+
+### 3. Premium results dossier
+The results area needs to feel like a real quote dossier / shipment summary, not just a list of fees.
+
+It should feel:
+- polished
+- trustworthy
+- structured
+- high-clarity
+- visually premium
+
+The line items must be easy to scan, but the overall presentation should have presence and confidence.
+
+### 4. Better than a normal calculator
+This should feel closer to:
+- a premium quote builder
+- a shipment planner
+- a cost scenario explorer
+
+And less like:
+- a standard ecommerce fee calculator
+- a static logistics form
+- a government-style utility page
+
+### 5. High-quality visual storytelling
+Use layout, typography, contrast, spacing, grouping, and emphasis to tell the story.
+
+Especially:
+- the comparison
+- the savings amount
+- the applied weight rule
+- the estimated vs official source distinction
+
+These should not just exist — they should be communicated beautifully.
+
+---
+
+## Specific design expectations
+
+### Savings storytelling
+The savings block must be visually memorable.
+It should feel like the user has discovered a better option, not just read a number.
+
+### Item list
+The multi-item experience should feel modular and intelligent:
+- easy to add/edit/remove
+- easy to scan
+- easy to compare
+- not cluttered
+
+### Progressive flow
+The guided flow should feel smooth and product-led, not like a rigid wizard.
+
+### Tooltips and education
+Explanations should feel elegant and helpful, not overbearing.
+Users should feel guided, not lectured.
+
+### Source labels
+The provenance of tariff/tax data must be radically clear, but still elegant.
+Do not let these labels turn the UI into a warning-heavy interface.
+They should be honest, visually clear, and well integrated.
+
+---
+
+## Visual benchmark
+I want you to aim closer to:
+- premium fintech onboarding/results experiences
+- high-end SaaS planning tools
+- polished consumer quote builders
+- editorial product interfaces with strong clarity
+
+Not generic Tailwind blocks.
+Not ordinary dashboard cards.
+Not “functional but plain.”
+
+---
+
+## Constraints
+- Do not change the actual calculation formulas or constants
+- Do not invent official tariff precision where it does not exist
+- Do not let visual sophistication reduce clarity
+- Do not overcomplicate the interaction model
+- Keep the orange CRBOX brand world recognizable
+- But do expand the visual language enough to reach a much higher quality level
+
+---
+
+## What I want in the implementation
+When you build this, I want you to actively push for:
+- stronger visual composition
+- better storytelling
+- clearer emotional impact around savings
+- more premium result presentation
+- more intentional hierarchy throughout
+- a more productized feel overall
+
+The experience should make people think:
+
+“This is a smart, trustworthy tool that helps me understand my shipment and clearly shows me why consolidating is better.”
+
+Not:
+
+“This is a calculator with more sections.”
+
+---
+
+## What I want back from you
+When you report back, do not only explain the functionality.
+
+Also explain:
+1. how you made the comparison the hero
+2. how you increased the visual/product quality
+3. how you made the savings feel tangible and persuasive
+4. how you avoided a generic calculator UI
+5. what visual decisions make this feel premium rather than utilitarian
+
+The product direction is now correct.  
+The execution quality needs to be excellent.

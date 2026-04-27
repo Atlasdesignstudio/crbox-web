@@ -1,0 +1,61 @@
+This is now much closer to the right level.
+
+The functional cascade fix is correct, and the visual direction is finally strong enough to move forward.
+
+Please implement this with a high design bar in the actual execution:
+
+- the orange left rail should feel elegant and premium, not heavy or corporate
+- the split-panel composition should feel product-grade, not like a dashboard sidebar pasted into a form
+- trust anchors should stay minimal and refined, not promotional filler
+- the new ID cards, delivery cards, domicilio panel, and action zones should feel polished and high-end in the final UI, not just structurally different
+
+The plan is now strong.  
+The remaining risk is under-executing the visual quality.
+
+So go ahead, but make sure the final result feels genuinely:
+- premium
+- modern
+- intentional
+- product-led
+
+—not just “better organized.”
+
+Also, very important: we still need to make sure both modes actually work end-to-end in the final browser UI after this redesign:
+
+- Cuenta Personal
+- Cuenta Empresarial
+
+We already have strong backend validation for both flows, but because this redesign touches:
+- step structure
+- field composition
+- delivery cards
+- domicilio cascade
+- hidden inputs
+- action zones
+- submit flow
+
+I need final confirmation that the redesigned browser version still works for both modes.
+
+So after implementation, please do a final real browser-level validation for:
+
+### Personal Account
+- complete the full flow through the new UI
+- confirm registration succeeds
+- confirm login / continuation succeeds
+- confirm dashboard bootstrap
+- confirm Mi Cuenta bootstrap
+
+### Business Account
+- complete the full flow through the new UI
+- confirm registration succeeds
+- confirm login / continuation succeeds
+- confirm dashboard bootstrap
+- confirm Mi Cuenta bootstrap
+
+I want the final result to be:
+1. visually much more premium
+2. functionally fixed for the domicilio cascade
+3. still fully correct for backend mapping
+4. and confirmed working end-to-end for both personal and business account modes
+
+So yes, move forward — but execute it at a high visual standard and validate both flows fully in the browser once done.
