@@ -1,0 +1,696 @@
+We need a full product, UX, systems, and implementation architecture proposal for the future of the CRBOX quote / assisted-purchase experience, both:
+
+1. outside the client portal (public-facing)
+2. inside the client portal (logged-in customer experience)
+
+This must be treated as a serious product-design, systems-thinking, workflow-design, and implementation-planning task — not a UI brainstorm.
+
+I want the proposal to be:
+- deeply detailed
+- grounded in the current CRBOX reality
+- realistic with today’s technology
+- realistic with today’s CRBOX system
+- explicit about what is feasible now vs later
+- explicit about what AI can truly do today vs what is still speculative
+- opinionated and concrete
+- useful for actual implementation planning, not just strategy slides
+
+If something is not feasible today, do not hand-wave it.  
+Say clearly:
+- why it is not feasible
+- what dependency is missing
+- what the honest fallback should be
+- what would be needed later to unlock it
+
+This should not be fantasy.  
+It must be operationally usable.
+
+--------------------------------------------------
+CORE CONTEXT
+--------------------------------------------------
+
+We are evolving CRBOX from:
+- a shipping calculator
+- a quote handoff by email / WhatsApp
+- and a client portal for package/account management
+
+into a smarter system where users can:
+- request quotes
+- request assisted purchases
+- paste product links
+- get AI-assisted extraction and prefill
+- send quote requests to CRBOX
+- and, over time, manage those quote requests more fully inside the portal
+
+Important current reality:
+- there is not yet a new internal CRBOX back-office tool for managing quote workflows
+- today, CRBOX sales can still receive requests by email and respond manually
+- later, this may evolve into a richer internal + portal workflow
+- the proposal must work now, not only in a future ideal state
+
+Also important:
+- the public quote experience and the portal quote experience should not be identical
+- they should share logic where appropriate, but they have different jobs and different UX goals
+
+--------------------------------------------------
+HIGH-LEVEL PRODUCT GOAL
+--------------------------------------------------
+
+The user should no longer feel like they are just “using a calculator.”
+
+The experience should feel like:
+- I want to buy or bring this product
+- I paste a link
+- the system helps me structure the request
+- I understand an estimate
+- I send it to CRBOX
+- CRBOX reviews it
+- and, over time, I can track it inside my portal
+
+So this is not just a calculator redesign.
+It is the design of a quote intake / assisted purchase request system.
+
+--------------------------------------------------
+NON-NEGOTIABLE PRINCIPLES
+--------------------------------------------------
+
+1. Grounded AI only
+AI should help:
+- extract
+- prefill
+- guide
+- classify
+- ask for missing fields
+- reduce friction
+
+AI should not:
+- invent exact costs
+- invent guaranteed weights or dimensions
+- invent official tariff truth
+- silently confirm uncertain data as fact
+- make the user think the system knows more than it really does
+
+2. Public and portal must be intentionally different
+Public = lightweight, conversion-oriented, easier first-touch quote flow  
+Portal = recurring, trackable, richer, more native, more stateful
+
+3. Design for now and later
+The proposal must support:
+- what CRBOX can actually operate today
+- while preparing cleanly for future workflow expansion
+
+4. No fake automation
+If a flow still depends on email/manual review, say so.
+If a flow can be partially automated, define the boundary clearly.
+
+5. Respect real operational friction
+Today CRBOX may still quote manually, review manually, and answer outside the portal.
+The system should reduce friction without pretending the whole pipeline is already automated.
+
+6. Do not confuse estimate with commitment
+A quote request, a suggested estimate, an assisted purchase request, and a confirmed purchase may be related, but they are not automatically the same thing. Define those boundaries clearly.
+
+--------------------------------------------------
+PART 1 — PUBLIC QUOTE EXPERIENCE (OUTSIDE THE CLIENT PORTAL)
+--------------------------------------------------
+
+Design the ideal public-facing quote experience.
+
+This experience is for:
+- any visitor
+- non-logged-in users
+- people exploring CRBOX for the first time
+- people who want a quick estimate
+- people who may later convert into account creation
+
+The public flow should preserve the current value of the quote tool, but make it much smarter and easier.
+
+### What I want for the public flow
+The user should be able to:
+- quote manually
+- or paste a product link
+- trigger AI-assisted extraction / prefill
+- review and correct extracted values
+- calculate a quote
+- send it to CRBOX
+- and then be invited to create an account while momentum is high
+
+### Public AI behavior
+If a user pastes a URL:
+- the system should be able to use Gemini (or equivalent AI layer) to try to extract:
+  - product title
+  - merchant/domain
+  - visible price
+  - category suggestion
+  - possible dimensions if explicitly shown
+  - possible weight if explicitly shown
+  - model/spec info if clearly present
+- the system should mark fields as:
+  - extracted
+  - inferred
+  - missing
+  - needs user confirmation
+- the system should clearly ask for whatever is still missing
+- the user must remain able to edit all relevant fields before calculating
+
+### Public conversion requirement
+After a quote is valuable enough, the experience should invite the user to create an account.
+
+I want you to design:
+- where that invitation appears
+- how it should be framed
+- how to preserve momentum
+- how to pass along already-entered user information (name/email if available)
+- how to route them into signup without making them feel like they are starting over
+
+### Public-to-portal continuity
+I want you to explicitly define:
+- whether a public quote can later become associated to a newly created account
+- how that linking would work safely
+- whether draft/public quote data can survive signup
+- whether public quotes should be imported into portal history after signup
+- what identity matching strategy is safest
+
+### Public experience output needed
+Describe:
+- the ideal page structure
+- the entry points
+- the AI-assisted flow
+- the manual fallback flow
+- the send-to-CRBOX handoff
+- the signup conversion moment
+- the mobile experience
+- the empty states
+- the failure states
+- and the best UX copy direction
+
+--------------------------------------------------
+PART 2 — PORTAL QUOTE EXPERIENCE (INSIDE THE CLIENT PORTAL)
+--------------------------------------------------
+
+Design the ideal logged-in quote / assisted purchase experience inside the portal.
+
+This is for:
+- existing customers
+- recurring users
+- customers with a casillero already created
+- users who should not have to leave the portal to quote
+
+The portal quote experience must feel:
+- native
+- easy to access
+- recurring
+- trackable
+- future-proof
+
+### What I want for the portal flow
+Inside the portal, quoting should be possible from:
+- the dashboard
+- and a dedicated Quotes / Requests section
+
+I want your recommendation on:
+- whether the dashboard should contain a light entry point only
+- whether there should be a dedicated page
+- whether there should be a detail page
+- what the ideal information architecture is
+
+### Dashboard requirement
+The dashboard should make quoting easy to start:
+- e.g. a card/module/button like:
+  - Request a Quote
+  - Buy with CRBOX
+  - Assisted Purchase
+- but you should recommend the best naming and positioning
+
+### Dedicated page requirement
+I strongly suspect there should be a dedicated page/tab inside the portal.
+Design the best structure for:
+- list view
+- active quotes
+- history/archive
+- new request
+- detail view
+- future response/approval model
+
+### Portal AI requirement
+Inside the portal, AI should be even more useful because:
+- we already know who the user is
+- we can prefill customer context
+- we can reduce friction further
+
+Design:
+- how AI-assisted quote entry works inside the portal
+- whether it should be conversational
+- whether it should be form-first, chat-first, or hybrid
+- how it should use known customer context
+- how it should preserve drafts and request state
+
+### Business vs personal account differences
+Explicitly define:
+- whether business and personal accounts should see the same quote experience
+- if not, what differs
+- what should be prefilled from account data
+- what should remain editable
+- and whether any quote logic differs by account type
+
+--------------------------------------------------
+PART 3 — CONVERSATIONAL / CHAT-ASSISTED QUOTE INTAKE
+--------------------------------------------------
+
+I want you to evaluate the best possible role for a chat-assisted quote flow inside the portal.
+
+### Important
+Do not propose a generic “chatbot.”
+It must be a task-oriented assistant specifically for quoting / assisted purchase requests.
+
+### Best practice requirement
+You should assess whether the best UX is:
+- full chat
+- form with AI suggestions
+- split view (chat + structured request panel)
+- quick assistant drawer
+- or another pattern
+
+Give your best recommendation and explain why.
+
+### If you recommend chat
+Design:
+- what the chat says first
+- how it asks for the product link
+- how it handles missing info
+- how it shows uncertainty
+- how it builds the request in real time
+- how the user reviews before submitting
+
+### Strong preference
+I suspect the best pattern may be:
+- left side = guided conversation
+- right side = structured request being built
+
+But do not blindly agree — recommend the best pattern based on real UX reasoning.
+
+### Chat-assisted flow must also cover
+- abandonment / resume later
+- unsupported URLs
+- partial extraction
+- user correction
+- switching from chat to structured review
+- mobile behavior
+
+--------------------------------------------------
+PART 4 — AI / GEMINI INTEGRATION MODEL
+--------------------------------------------------
+
+This section must be very realistic.
+
+Do not say “just add the API key and it works.”
+
+I want a real proposal for how Gemini (or equivalent) should be integrated.
+
+### What the AI layer should do
+The AI layer should be able to:
+- accept product URLs
+- read or infer useful product information
+- return structured data
+- distinguish extracted vs inferred vs missing fields
+- guide users toward completion
+- support both public and portal quote intake
+- support future conversational flows
+
+### What the AI layer should not do
+It should not:
+- invent precise official tariff rules
+- invent exact package dimensions or weights when not available
+- behave as if it guarantees correctness
+- silently overwrite user-entered values in a confusing way
+
+### I want you to define:
+- the ideal data contract returned by the AI layer
+- the ideal confidence / provenance model
+- how unsupported or failed extraction should degrade gracefully
+- how the manual fallback works
+- how AI-assisted prefill and manual editing coexist
+- how you would structure the prompts / JSON outputs conceptually
+- what is feasible today with Gemini and what is not
+- which types of sites/pages are likely to work better or worse
+- what additional infrastructure is needed beyond “an API key”
+
+### Human review boundary
+This is critical. Define explicitly:
+- what fields can be safely extracted and used as provisional values
+- what fields should always be user-confirmed
+- what fields should always remain human-reviewed by CRBOX before any final quote/purchase action
+- what should never be auto-confirmed by AI
+
+### Important
+You must clearly state:
+- what today’s AI can realistically do well
+- what it can do only partially
+- and what should remain manual
+
+--------------------------------------------------
+PART 5 — CURRENT OPERATIONAL REALITY AND TEMPORARY SALES WORKFLOW
+--------------------------------------------------
+
+There is not yet a full new internal CRBOX back-office tool for this.
+
+That means the proposal must work in a transitional way.
+
+### Current reality to design around
+Today, the likely near-term flow is:
+- customer submits quote/request
+- CRBOX sales receives it by email
+- CRBOX reviews it manually
+- CRBOX may respond outside the portal for now
+- the portal may still record and display the request and its state
+
+### I want you to define:
+- what the temporary operational workflow should be
+- what exactly sales receives
+- how sales should reply in the temporary phase
+- whether Reply-To should be the customer email
+- what should still be shown inside the portal even if the actual response happens by email
+- what temporary user-facing states make sense while sales still works outside the portal
+
+### Temporary sales SOP
+Please make this concrete. Define:
+- recommended email subject line format
+- recommended email body structure
+- what fields are mandatory vs optional for sales to act
+- what CRBOX sales should do manually in the temporary phase
+- how status should be updated before the internal tool exists
+- how to avoid “lost” requests in the temporary workflow
+
+### Important
+This transitional workflow should feel intentional, not half-broken.
+Design it cleanly.
+
+--------------------------------------------------
+PART 6 — QUOTE / REQUEST STATE MODEL
+--------------------------------------------------
+
+Design the full recommended quote/request lifecycle.
+
+This is critical.
+
+I want a state model that:
+- is useful to the customer
+- is not overcomplicated
+- can work today
+- can grow later
+- avoids chaos after months of use
+
+### Think through states such as:
+- Draft
+- Ready to send
+- Sent
+- Received by CRBOX
+- Under review
+- Quote prepared
+- Responded by email
+- Waiting for your approval
+- Approved
+- Rejected
+- Cancelled
+- Expired
+- Closed
+- Completed
+
+But do not just repeat these mechanically.
+Recommend the best state model.
+
+### I want you to define:
+- which states are customer-facing
+- which states are internal-only
+- which states belong in dashboard summaries
+- which belong only in detail/history
+- when a request becomes archived
+- when it becomes expired
+- whether old requests can be duplicated / reopened
+- how to keep the list clean over time
+
+### Also define:
+- what triggers state transitions
+- what can be automated
+- what stays manual for now
+- what future portal-native responses could trigger later
+
+### Retention / cleanup rules
+Be explicit about:
+- active retention window
+- archive strategy
+- expiry rules
+- whether completed requests disappear from the main list after X time
+- whether users can duplicate an old request rather than reopening it
+
+--------------------------------------------------
+PART 7 — DATA MODEL / SOURCE OF TRUTH
+--------------------------------------------------
+
+I want the proposal to define the actual data model needed.
+
+Be concrete.
+
+### Define:
+- quote request object
+- quote item object
+- extracted AI data object
+- quote status history object
+- fields needed now
+- fields needed later
+- source-of-truth assumptions
+
+### Also think through:
+- ownership
+- deduplication
+- request IDs
+- duplicate links
+- repeat submissions
+- merging public quote data into a new user account after signup
+- whether guest quotes can become account-linked later
+
+### Also define:
+- whether “quote”, “assisted purchase request”, and “purchase” should be the same object or separate but linked objects
+- when one becomes another
+- and what the cleanest model is for today vs later
+
+This should not just be UX — it should be product + systems thinking.
+
+--------------------------------------------------
+PART 8 — RELATIONSHIP BETWEEN QUOTES, PURCHASES, AND PACKAGES
+--------------------------------------------------
+
+Think ahead, but stay grounded.
+
+I do not want false promises that quotes automatically become packages today if that is not possible.
+
+But I do want the architecture to anticipate:
+- a quote becoming a purchase request
+- a purchase leading to a real bought item
+- that item eventually linking to a package
+- the portal one day showing that relationship
+
+### I want you to propose:
+- how these relationships should be modeled conceptually
+- what identifiers or references would make future linking easier
+- what the portal could show later
+- what should not be promised now
+
+--------------------------------------------------
+PART 9 — NOTIFICATIONS AND USER COMMUNICATION
+--------------------------------------------------
+
+Design how the user should be informed across both public and portal flows.
+
+I want you to cover:
+- email notifications
+- portal notifications
+- dashboard badges
+- quote-state updates
+- what happens if CRBOX responds outside the portal
+- whether the portal should still show a state like “Responded by email”
+- what the user should see if action is needed from them
+
+This should include both:
+- current-phase notification design
+- future-phase notification design
+
+--------------------------------------------------
+PART 10 — FAILURE STATES, EDGE CASES, AND CORNER CASES
+--------------------------------------------------
+
+This is very important.
+
+Do not leave this vague.
+
+I want you to explicitly cover:
+- URL cannot be read
+- AI extraction fails completely
+- AI extraction succeeds partially
+- unsupported merchant/site
+- missing dimensions/weight
+- duplicate quote request for the same link
+- customer submits the same request multiple times
+- email handoff succeeds / fails
+- no response yet from sales
+- sales responds outside portal
+- user abandons a draft
+- quote becomes stale
+- quote expires
+- customer has many old requests
+- business vs personal account differences
+- mobile-only users
+- chat-assisted flow on mobile
+- public quote then signup conversion
+- portal quote linked to customer account
+- what happens if AI and manual values conflict
+- what happens if sales corrects a quote materially
+
+For each important edge case, define:
+- the best user-facing behavior
+- the operational fallback
+- and whether it can be solved now or later
+
+--------------------------------------------------
+PART 11 — MOBILE EXPERIENCE
+--------------------------------------------------
+
+This must explicitly cover mobile.
+
+Do not assume desktop-first only.
+
+I want you to define:
+- public quote experience on mobile
+- AI-assisted public quote on mobile
+- portal quote experience on mobile
+- chat-assisted quote intake on mobile
+- list/detail behavior on mobile
+- where split-layout patterns collapse
+- how to keep friction low on small screens
+
+--------------------------------------------------
+PART 12 — METRICS / SUCCESS CRITERIA
+--------------------------------------------------
+
+I want the proposal to define how success should be measured.
+
+Recommend:
+- quote start rate
+- quote completion rate
+- AI-assisted prefill usage rate
+- quote-to-send rate
+- quote-to-signup conversion rate
+- portal quote recurrence
+- quote-to-approval rate (future)
+- sales handling efficiency (future)
+- user friction indicators
+- top failure reasons
+
+This does not need to become an analytics implementation spec, but I do want strong product thinking here.
+
+--------------------------------------------------
+PART 13 — TECHNICAL ARCHITECTURE EXPECTATION
+--------------------------------------------------
+
+Because this is not just a product brainstorm, I want the proposal to include a realistic technical architecture recommendation.
+
+Define at a high but concrete level:
+- frontend surfaces/pages/components
+- backend endpoints/services needed
+- storage/data persistence needs
+- AI service layer
+- notification layer
+- temporary email-based workflow layer
+- future internal-tool integration points
+
+Be specific enough that the proposal is useful for implementation planning.
+
+--------------------------------------------------
+PART 14 — WHAT CAN BE BUILT NOW VS LATER
+--------------------------------------------------
+
+This is one of the most important sections.
+
+I want a clean phased recommendation that distinguishes:
+
+### Build now
+What is fully realistic with today’s CRBOX setup
+
+### Build next
+What becomes realistic once a few specific dependencies exist
+
+### Build later
+What depends on a richer internal tool / deeper automation / additional integrations
+
+Be specific.
+
+If something depends on:
+- Gemini integration
+- backend endpoints
+- new data storage
+- notifications
+- internal tool
+- WhatsApp API
+- portal messaging
+say so explicitly.
+
+--------------------------------------------------
+PART 15 — WHAT I WANT YOU TO PRODUCE
+--------------------------------------------------
+
+I want a very complete proposal covering both the public experience and the portal experience.
+
+Please deliver your response in this exact order:
+
+1. Executive summary
+2. Recommended overall product model
+3. Public quote experience
+4. Portal quote experience
+5. Chat-assisted / conversational intake model
+6. Gemini / AI integration model
+7. Quote/request state model
+8. Operational workflow for today’s CRBOX reality
+9. Data model / source-of-truth model
+10. Relationship between quotes, purchases, and packages
+11. Notifications and communication model
+12. Failure states, edge cases, and constraints
+13. Mobile experience
+14. Technical architecture recommendation
+15. Phased rollout plan
+16. Success metrics
+17. Best-practice recommendations beyond the brief
+
+--------------------------------------------------
+ADDITIONAL REQUIRED OUTPUTS
+--------------------------------------------------
+
+In addition to the strategic proposal, I want:
+- page-by-page information architecture
+- module-by-module UI structure
+- user-flow breakdowns
+- recommended copy directions where useful
+- state tables where useful
+- now / next / later implementation recommendations per major module
+
+--------------------------------------------------
+QUALITY BAR
+--------------------------------------------------
+
+I do not want:
+- a shallow brainstorm
+- generic product platitudes
+- speculative AI magic
+- a hand-wavy “this could work” answer
+
+I want:
+- a serious, detailed, product-quality proposal
+- concrete structures
+- concrete page/module recommendations
+- concrete state and lifecycle thinking
+- realistic AI boundaries
+- explicit feasibility judgment
+- clear now vs later thinking
+
+Be concrete, opinionated, and specific.
+
+If there is a better structure than what I described, propose it — but stay grounded in the real CRBOX context and today’s feasible technology.
