@@ -30,6 +30,17 @@ _LEGAL_TRANSITIONS = {
     'expirada':    set(),
 }
 
+# Admin panel enforces stricter progression: enviada must go through en_revision
+# before being marked respondida (no skip allowed).
+_ADMIN_LEGAL_TRANSITIONS = {
+    'enviada':     {'en_revision', 'cancelada'},
+    'en_revision': {'respondida', 'cancelada'},
+    'respondida':  {'completada', 'cancelada'},
+    'completada':  set(),
+    'cancelada':   set(),
+    'expirada':    set(),
+}
+
 _DEV_SALES_TOKEN = 'crbox-dev-sales-token-2026'
 
 
@@ -1139,7 +1150,7 @@ def _admin_status_options_html(current_status):
         'cancelada':   'Cancelada',
         'expirada':    'Expirada',
     }
-    transitions = _LEGAL_TRANSITIONS.get(current_status, set())
+    transitions = _ADMIN_LEGAL_TRANSITIONS.get(current_status, set())
     order = ['en_revision', 'respondida', 'completada', 'cancelada']
     opts = [
         f'<option value="" disabled selected>— Cambiar a —</option>'
@@ -1249,7 +1260,7 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
         date_str = _admin_format_date(r['submitted_at'])
         elapsed  = _admin_elapsed(r['submitted_at'])
         status   = r['status']
-        transitions = _LEGAL_TRANSITIONS.get(status, set())
+        transitions = _ADMIN_LEGAL_TRANSITIONS.get(status, set())
         has_transitions = bool(transitions)
 
         # Status badge
@@ -2479,7 +2490,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception:
             self.send_response(400); self.end_headers(); return
         redirect_url = f'/admin/solicitudes?filter={filter_val}'
-        if new_status not in _LEGAL_TRANSITIONS:
+        if new_status not in _ADMIN_LEGAL_TRANSITIONS:
             self._admin_redirect(redirect_url)
             return
         try:
@@ -2493,7 +2504,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                     self._admin_redirect(redirect_url)
                     return
                 current_status = row['status']
-                if new_status not in _LEGAL_TRANSITIONS.get(current_status, set()):
+                if new_status not in _ADMIN_LEGAL_TRANSITIONS.get(current_status, set()):
                     conn.close()
                     self._admin_redirect(redirect_url)
                     return
