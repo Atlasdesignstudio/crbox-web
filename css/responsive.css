@@ -1241,4 +1241,54 @@
     outline: none !important;
     box-shadow: 0 0 0 2px rgba(234,88,12,0.20) !important;
   }
+
+  /* ── Solicitudes: cancel confirm row stacks on small screens ── */
+  #cancel-confirm-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  #cancel-confirm-row .flex.gap-2 {
+    width: 100%;
+  }
+  #btn-cancel-confirm-yes,
+  #btn-cancel-confirm-no {
+    flex: 1;
+    min-height: 48px;
+  }
+
+  /* ── Portal side panel: ensure minimum tap targets ── */
+  #form-submit-btn,
+  #btn-portal-dup-dismiss,
+  #btn-dup-dismiss-cotizar,
+  #btn-cancel-solicitud,
+  #btn-guest-link-yes,
+  #btn-guest-link-no {
+    min-height: 48px;
+  }
+}
+
+/* ── Cotizar: sticky CTA safe-area bottom padding (iOS notch) ── */
+@media (max-width: 767px) {
+  #sticky-cta-bar {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Duplicate warning on cotizar: stack dismiss button below text */
+  #dup-warning-cotizar .flex.items-start {
+    flex-wrap: wrap;
+  }
+  #btn-dup-dismiss-cotizar {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  /* Portal panel: ensure new-request-panel is full-screen friendly */
+  #new-request-panel {
+    max-height: 100dvh;
+  }
+
+  /* Solicitud detail: header buttons wrap cleanly */
+  #sol-content .flex.flex-wrap.gap-2.flex-shrink-0 {
+    width: 100%;
+  }
 }

@@ -203,6 +203,21 @@
       }
     }
 
+    // Cancel button (only for enviada)
+    var cancelBtn = document.getElementById('btn-cancel-solicitud');
+    if (cancelBtn) {
+      if (status === 'enviada') {
+        cancelBtn.classList.remove('hidden');
+        cancelBtn.classList.add('inline-flex');
+      } else {
+        cancelBtn.classList.add('hidden');
+        cancelBtn.classList.remove('inline-flex');
+      }
+    }
+    // Always hide confirm row on render
+    var cancelConfirmRow = document.getElementById('cancel-confirm-row');
+    if (cancelConfirmRow) cancelConfirmRow.classList.add('hidden');
+
     // Duplicate button and archived-panel link
     var dupBtn = document.getElementById('btn-duplicate');
     if (dupBtn) {
@@ -294,6 +309,74 @@
       if (errorEl)   errorEl.classList.remove('hidden');
       console.warn('[Solicitud] init error:', err);
     });
+
+    // Cancel solicitud flow
+    var cancelBtn       = document.getElementById('btn-cancel-solicitud');
+    var cancelConfirm   = document.getElementById('cancel-confirm-row');
+    var cancelConfirmYes = document.getElementById('btn-cancel-confirm-yes');
+    var cancelConfirmNo  = document.getElementById('btn-cancel-confirm-no');
+
+    if (cancelBtn && cancelConfirm) {
+      cancelBtn.addEventListener('click', function () {
+        cancelConfirm.classList.remove('hidden');
+        cancelBtn.classList.add('hidden');
+        cancelBtn.classList.remove('inline-flex');
+      });
+    }
+    if (cancelConfirmNo && cancelConfirm && cancelBtn) {
+      cancelConfirmNo.addEventListener('click', function () {
+        cancelConfirm.classList.add('hidden');
+        cancelBtn.classList.remove('hidden');
+        cancelBtn.classList.add('inline-flex');
+      });
+    }
+    if (cancelConfirmYes) {
+      cancelConfirmYes.addEventListener('click', function () {
+        var scbIdForCancel = scbId;
+        cancelConfirmYes.disabled = true;
+        cancelConfirmYes.textContent = 'Cancelando...';
+        var token = CRBOXAuth.getToken();
+        fetch('/api/solicitudes/' + encodeURIComponent(scbIdForCancel) + '/cancel', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'X-Casillero-Email': _userEmail
+          }
+        }).then(function (res) {
+          return res.json().then(function (d) { return { status: res.status, data: d }; });
+        }).then(function (result) {
+          if (result.data && result.data.ok) {
+            // Reload the solicitud from the API and re-render
+            return fetchSolicitud(scbIdForCancel).then(function (freshSol) {
+              var sol = freshSol;
+              if (cancelConfirm) cancelConfirm.classList.add('hidden');
+              if (sol) renderSolicitud(sol);
+              // Show a brief toast
+              var toastC = document.getElementById('toast-container');
+              if (toastC) {
+                var t = document.createElement('div');
+                t.className = 'flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium bg-gray-900 text-white';
+                t.innerHTML = '<i class="fas fa-check-circle text-green-400"></i> Solicitud cancelada correctamente.';
+                toastC.appendChild(t);
+                setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 4000);
+              }
+            });
+          } else {
+            var errMsg = (result.data && result.data.error) || 'No se pudo cancelar. Intenta de nuevo.';
+            cancelConfirmYes.disabled = false;
+            cancelConfirmYes.textContent = 'Sí, cancelar';
+            var errEl = document.createElement('p');
+            errEl.className = 'text-xs text-red-700 mt-1 w-full';
+            errEl.textContent = errMsg;
+            cancelConfirm.appendChild(errEl);
+            setTimeout(function () { if (errEl.parentNode) errEl.parentNode.removeChild(errEl); }, 5000);
+          }
+        }).catch(function () {
+          cancelConfirmYes.disabled = false;
+          cancelConfirmYes.textContent = 'Sí, cancelar';
+        });
+      });
+    }
 
     // Mobile menu
     var mobileMenuBtn = document.getElementById('mobile-menu-button');

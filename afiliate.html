@@ -3566,9 +3566,100 @@ const locationDatabase = {
         }
         try { localStorage.setItem('crbox_onboarding', '1'); } catch (e) { /* ignore */ }
 
+        function showGuestLinkingPrompt(count, email, token, ids) {
+            var iconWrap = document.getElementById('reg-icon-wrap');
+            if (iconWrap) {
+                iconWrap.classList.remove('bg-green-100');
+                iconWrap.classList.add('bg-orange-100');
+                iconWrap.innerHTML = '<i class="fas fa-link text-orange-500 text-3xl"></i>';
+            }
+            var t = document.getElementById('reg-title');
+            if (t) t.textContent = 'Solicitudes anteriores encontradas';
+            var m1 = document.getElementById('reg-msg-1');
+            var idList = (ids && ids.length) ? ids.join(', ') : '';
+            if (m1) m1.innerHTML = 'Encontramos <strong>' + count + '</strong> solicitud' + (count === 1 ? '' : 'es') + ' enviada' + (count === 1 ? '' : 's') + ' con este correo sin vincularse a ninguna cuenta.' +
+                (idList ? ' <span style="color:#6b7280;font-size:.875rem;">(' + idList + ')</span>' : '');
+            var m2 = document.getElementById('reg-msg-2');
+            if (m2) m2.textContent = '¿Quieres agregar' + (count === 1 ? 'la' : 'las') + ' a tu cuenta nueva para verla' + (count === 1 ? '' : 's') + ' en el portal?';
+
+            var promptWrap = document.createElement('div');
+            promptWrap.className = 'mt-5 flex flex-col sm:flex-row gap-3 justify-center';
+            promptWrap.innerHTML =
+                '<button id="btn-guest-link-yes" style="min-height:48px;" class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-colors">' +
+                    '<i class="fas fa-link mr-2"></i>Sí, agregar a mi cuenta' +
+                '</button>' +
+                '<button id="btn-guest-link-no" style="min-height:48px;" class="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors">' +
+                    'No, continuar sin agregar' +
+                '</button>';
+
+            var m2El = document.getElementById('reg-msg-2');
+            if (m2El && m2El.parentNode) {
+                m2El.parentNode.insertBefore(promptWrap, m2El.nextSibling);
+            }
+
+            function proceedToDashboard() {
+                window.location.href = 'dashboard.html?onboarding=1';
+            }
+
+            var btnYes = document.getElementById('btn-guest-link-yes');
+            var btnNo  = document.getElementById('btn-guest-link-no');
+            if (btnYes) {
+                btnYes.addEventListener('click', function () {
+                    btnYes.disabled = true;
+                    btnYes.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Vinculando...';
+                    if (btnNo) btnNo.disabled = true;
+                    fetch('/api/solicitudes/link-guest', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'X-Casillero-Email': email
+                        }
+                    }).then(function (res) {
+                        if (!res.ok) {
+                            btnYes.disabled = false;
+                            btnYes.innerHTML = '<i class="fas fa-link mr-2"></i>Reintentar';
+                            if (btnNo) btnNo.disabled = false;
+                            var errEl = document.getElementById('reg-msg-2');
+                            if (errEl) errEl.textContent = 'No se pudo vincular. Intenta de nuevo o continúa sin agregar.';
+                            return;
+                        }
+                        proceedToDashboard();
+                    }).catch(function () {
+                        btnYes.disabled = false;
+                        btnYes.innerHTML = '<i class="fas fa-link mr-2"></i>Reintentar';
+                        if (btnNo) btnNo.disabled = false;
+                    });
+                });
+            }
+            if (btnNo) {
+                btnNo.addEventListener('click', proceedToDashboard);
+            }
+        }
+
         CRBOXAuth.doLogin(email, password, true)
             .then(function () {
-                window.location.href = 'dashboard.html?onboarding=1';
+                var token = (typeof CRBOXAuth.getToken === 'function') ? CRBOXAuth.getToken() : null;
+                if (!token) {
+                    window.location.href = 'dashboard.html?onboarding=1';
+                    return;
+                }
+                return fetch('/api/solicitudes/check-orphaned', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'X-Casillero-Email': email
+                    }
+                }).then(function (res) {
+                    if (!res.ok) return { count: 0 };
+                    return res.json();
+                }).then(function (result) {
+                    if (result && result.count > 0) {
+                        showGuestLinkingPrompt(result.count, email, token, result.ids);
+                    } else {
+                        window.location.href = 'dashboard.html?onboarding=1';
+                    }
+                }).catch(function () {
+                    window.location.href = 'dashboard.html?onboarding=1';
+                });
             })
             .catch(function (err) {
                 var kind = classifyAuthError(err);

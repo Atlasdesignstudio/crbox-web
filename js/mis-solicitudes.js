@@ -9,6 +9,40 @@
   var _isCompany = false;
   var _allSolicitudes = [];
 
+  // ─── Portal form state ──────────────────────────────────────────────────────
+  var _panelHasData = false;
+  var _panelSubmitted = false;
+  var _dupWarningDismissedPortal = false;
+
+  // ── beforeunload: warn if panel has data and user navigates away ───────────
+  window.addEventListener('beforeunload', function (e) {
+    if (_panelHasData && !_panelSubmitted) {
+      e.preventDefault();
+      e.returnValue = 'Tu solicitud no ha sido enviada.';
+    }
+  });
+
+  // ── Duplicate check helper ──────────────────────────────────────────────────
+  function _checkDuplicatePortal(productName, productUrl) {
+    var token = (typeof CRBOXAuth !== 'undefined' && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
+    var reqHeaders = { 'Content-Type': 'application/json' };
+    if (token) {
+      reqHeaders['Authorization'] = 'Bearer ' + token;
+      if (_userEmail) reqHeaders['X-Casillero-Email'] = _userEmail;
+    }
+    return fetch('/api/solicitudes/check-duplicate', {
+      method: 'POST',
+      headers: reqHeaders,
+      body: JSON.stringify({
+        product_name: productName,
+        product_url: productUrl || ''
+      })
+    }).then(function (res) {
+      if (!res.ok) return null;
+      return res.json();
+    }).catch(function () { return null; });
+  }
+
   // ─── Status label maps ─────────────────────────────────────────────────────
   var STATUS_LABELS = {
     enviada:     'Enviada',
@@ -257,6 +291,13 @@
       if (form) form.reset();
     }
 
+    // Reset dup + data state when opening fresh panel
+    _panelSubmitted = false;
+    _dupWarningDismissedPortal = false;
+    _panelHasData = !!prefill;
+    var portalDupWarn = document.getElementById('portal-dup-warning');
+    if (portalDupWarn) portalDupWarn.classList.add('hidden');
+
     panel.classList.remove('translate-x-full');
     if (overlay) overlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -280,6 +321,7 @@
     var submitBtn = document.getElementById('form-submit-btn');
     var dupBanner = document.getElementById('form-dup-banner');
     var errorMsg  = document.getElementById('form-error');
+    var portalDupWarn = document.getElementById('portal-dup-warning');
     if (formEl)    { formEl.reset(); formEl.classList.remove('hidden'); }
     if (successEl) successEl.classList.add('hidden');
     if (submitBtn) {
@@ -288,6 +330,10 @@
     }
     if (dupBanner) dupBanner.classList.add('hidden');
     if (errorMsg)  errorMsg.classList.add('hidden');
+    if (portalDupWarn) portalDupWarn.classList.add('hidden');
+    _panelHasData = false;
+    _panelSubmitted = false;
+    _dupWarningDismissedPortal = false;
   }
 
   function _setFormField(id, value) {
@@ -459,6 +505,25 @@
       });
     }
 
+    // Track data changes in panel for beforeunload guard
+    var formForTracking = document.getElementById('new-request-form');
+    if (formForTracking) {
+      formForTracking.addEventListener('input', function () { _panelHasData = true; });
+    }
+
+    // Portal duplicate warning dismiss button
+    var btnPortalDupDismiss = document.getElementById('btn-portal-dup-dismiss');
+    if (btnPortalDupDismiss) {
+      btnPortalDupDismiss.addEventListener('click', function () {
+        _dupWarningDismissedPortal = true;
+        var dw = document.getElementById('portal-dup-warning');
+        if (dw) dw.classList.add('hidden');
+        // Re-trigger submit
+        var frm = document.getElementById('new-request-form');
+        if (frm) frm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      });
+    }
+
     // Form submission
     var form = document.getElementById('new-request-form');
     if (form) {
@@ -468,10 +533,6 @@
         var errorMsg  = document.getElementById('form-error');
 
         if (errorMsg) errorMsg.classList.add('hidden');
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...';
-        }
 
         var formData = {
           product_name:      form.querySelector('#form-product-name').value.trim(),
@@ -483,9 +544,58 @@
           service_type:      form.querySelector('#form-service-type').value
         };
 
+        // Duplicate check (skip if user already dismissed)
+        if (!_dupWarningDismissedPortal && formData.product_name) {
+          // Lock the button during the async check to prevent double-submit
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Verificando...';
+          }
+          _checkDuplicatePortal(formData.product_name, formData.product_url)
+            .then(function (dupResult) {
+              if (dupResult && dupResult.duplicate) {
+                // Unlock button so user can still proceed after dismissing warning
+                if (submitBtn) {
+                  submitBtn.disabled = false;
+                  submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar solicitud';
+                }
+                var dw = document.getElementById('portal-dup-warning');
+                var dl = document.getElementById('portal-dup-link');
+                var di = document.getElementById('portal-dup-id');
+                var dh = document.getElementById('portal-dup-hours');
+                if (di) di.textContent = dupResult.existing_id || '';
+                if (dl) {
+                  dl.href = dupResult.existing_id
+                    ? 'solicitud.html?id=' + encodeURIComponent(dupResult.existing_id)
+                    : 'mis-solicitudes.html';
+                }
+                if (dh) dh.textContent = dupResult.hours_ago;
+                if (dw) {
+                  dw.classList.remove('hidden');
+                  dw.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+              } else {
+                // No duplicate — proceed with actual submit
+                _doPortalSubmit(formData, submitBtn, errorMsg);
+              }
+            });
+          return;
+        }
+
+        _doPortalSubmit(formData, submitBtn, errorMsg);
+      });
+    }
+
+    function _doPortalSubmit(formData, submitBtn, errorMsg) {
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...';
+        }
+
         submitNewRequest(formData).then(function (result) {
           if (result.data && result.data.ok) {
             var scbId = result.data.id;
+            _panelSubmitted = true;
             showSubmitSuccess(scbId);
             // Refresh the list in background
             fetchSolicitudes().then(function (list) { renderList(list); }).catch(function(){});
@@ -513,7 +623,6 @@
           }
           console.warn('[Mis Solicitudes] submit error:', err);
         });
-      });
     }
 
     // "Ver mis solicitudes" after success

@@ -474,6 +474,25 @@
                     </p>
                 </div>
 
+                <!-- Duplicate warning -->
+                <div id="portal-dup-warning" class="hidden mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-copy text-amber-500 mt-0.5 flex-shrink-0"></i>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-amber-900 mb-0.5">Solicitud similar encontrada</p>
+                            <p class="text-sm text-amber-800">
+                                Ya tienes una solicitud similar (<span id="portal-dup-id" class="font-bold"></span>) enviada hace <span id="portal-dup-hours"></span> hora(s).
+                                <a id="portal-dup-link" href="#" class="font-semibold underline hover:text-amber-900 whitespace-nowrap" target="_blank" rel="noopener">Ver solicitud →</a>
+                            </p>
+                        </div>
+                        <button id="btn-portal-dup-dismiss" type="button"
+                                class="flex-shrink-0 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-semibold transition-colors"
+                                style="min-height:36px;">
+                            Enviar de todas formas
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Error message -->
                 <div id="form-error" class="hidden mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 font-medium"></div>
 

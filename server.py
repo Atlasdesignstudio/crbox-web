@@ -4,6 +4,7 @@ import re
 import json
 import time
 import sqlite3
+import calendar
 import threading
 import smtplib
 import html as _html
@@ -425,6 +426,56 @@ def _send_sales_submission(scb_id, customer_email, customer_name,
         _plain_to_sales_html(body_text, scb_id, account_type), 'html', 'utf-8'
     ))
     _send_smtp(msg, [QUOTE_RECIPIENT])
+
+
+def _send_cancellation_email(scb_id, customer_email, customer_name, product_name, smtp_user):
+    esc = _html.escape
+    greeting = f'Hola {customer_name},' if customer_name else 'Hola,'
+    subject = f'[{scb_id}] Tu solicitud fue cancelada'
+    plain = (
+        f'{greeting}\n\n'
+        f'Tu solicitud de compra {scb_id} ha sido cancelada.\n\n'
+        f'Producto: {product_name}\n\n'
+        f'Si crees que fue un error o deseas hacer un nuevo pedido, '
+        f'puedes crear una nueva solicitud en crbox.cr/cotizar.html '
+        f'o contactarnos directamente.\n\n'
+        f'Equipo CRBOX\nventas@crbox.cr'
+    )
+    html_body = (
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1a1a1a;max-width:600px;margin:0 auto;">'
+        '<div style="background:linear-gradient(135deg,#6b7280,#9ca3af);padding:24px;border-radius:8px 8px 0 0;">'
+        '<p style="color:#fff;font-size:22px;font-weight:700;margin:0;">&#215; Solicitud cancelada</p>'
+        f'<p style="color:rgba(255,255,255,.85);font-size:13px;margin:6px 0 0;">ID: <strong>{esc(scb_id)}</strong></p>'
+        '</div>'
+        '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:28px;border-radius:0 0 8px 8px;">'
+        f'<p style="font-size:15px;color:#111;margin:0 0 20px;">{esc(greeting)}<br><br>'
+        f'Tu solicitud <strong>{esc(scb_id)}</strong> ha sido cancelada.</p>'
+        '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:16px 20px;margin-bottom:20px;">'
+        '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+        f'<tr><td style="padding:5px 0;color:#666;width:40%;">ID</td>'
+        f'<td style="padding:5px 0;font-weight:700;color:#111;">{esc(scb_id)}</td></tr>'
+        f'<tr><td style="padding:5px 0;color:#666;">Producto</td>'
+        f'<td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
+        '<tr><td style="padding:5px 0;color:#666;">Estado</td>'
+        '<td style="padding:5px 0;color:#ef4444;font-weight:600;">Cancelada</td></tr>'
+        '</table></div>'
+        '<p style="font-size:14px;color:#374151;margin:0 0 16px;">'
+        'Si deseas hacer un nuevo pedido puedes crear una nueva solicitud en cualquier momento.</p>'
+        f'<a href="https://crbox.cr/cotizar.html" style="display:inline-block;background:#FF6B00;color:#fff;'
+        'font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;margin-bottom:20px;">'
+        'Nueva solicitud</a>'
+        f'<p style="font-size:12px;color:#9ca3af;margin:0;">¿Tienes preguntas? Responde a este correo '
+        f'incluyendo el ID <strong>{esc(scb_id)}</strong>.</p>'
+        '</div></div>'
+    )
+    msg = email.mime.multipart.MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = f'CRBOX <{smtp_user}>'
+    msg['To'] = customer_email
+    msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
+    msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
+    _send_smtp(msg, [customer_email])
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 _rate_lock   = threading.Lock()
@@ -761,6 +812,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/api/solicitudes':
                 self._handle_solicitudes_list()
+            elif path_no_qs == '/api/solicitudes/check-orphaned':
+                self._handle_check_orphaned()
             else:
                 m = re.match(r'^/api/solicitudes/(SCB-\d+)$', path_no_qs)
                 if m:
@@ -778,11 +831,17 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_send_quote()
         elif self.path == '/api/solicitudes':
             self._handle_solicitudes_post()
+        elif self.path == '/api/solicitudes/link-guest':
+            self._handle_link_guest()
+        elif self.path == '/api/solicitudes/check-duplicate':
+            self._handle_check_duplicate()
         else:
-            # Check for /api/solicitudes/:id/status
-            m = re.match(r'^/api/solicitudes/(SCB-\d+)/status$', self.path)
-            if m:
-                self._handle_solicitudes_status(m.group(1))
+            m_status = re.match(r'^/api/solicitudes/(SCB-\d+)/status$', self.path)
+            m_cancel = re.match(r'^/api/solicitudes/(SCB-\d+)/cancel$', self.path)
+            if m_status:
+                self._handle_solicitudes_status(m_status.group(1))
+            elif m_cancel:
+                self._handle_cancel_solicitud(m_cancel.group(1))
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -1183,6 +1242,59 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return None
         return str(cas_id).strip()
 
+    def _portal_auth_full(self):
+        """Like _portal_auth() but returns (casillero_id, verified_email).
+
+        The email is derived from the CRBOX API response when available, falling
+        back to the X-Casillero-Email header (which is still implicitly validated
+        because CRBOX /getuserinfo/<email> is called with the Bearer token, so a
+        token-email mismatch causes a 401 from CRBOX).
+        """
+        auth_header = self.headers.get('Authorization', '').strip()
+        header_email = self.headers.get('X-Casillero-Email', '').strip()
+
+        if not auth_header.startswith('Bearer ') or len(auth_header) < 10:
+            return None, None
+        if not header_email or '@' not in header_email:
+            return None, None
+
+        api_url = (
+            self._CRBOX_API_BASE + '/getuserinfo/' +
+            urllib.parse.quote(header_email, safe='')
+        )
+        req = urllib.request.Request(api_url, headers={'Authorization': auth_header})
+        try:
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                if resp.status not in (200,):
+                    return None, None
+                data = json.loads(resp.read().decode())
+        except urllib.error.HTTPError as exc:
+            if exc.code in (401, 403):
+                return None, None
+            print(f'[PORTAL_AUTH] CRBOX API error {exc.code}')
+            return None, None
+        except Exception as exc:
+            print(f'[PORTAL_AUTH] Unexpected error: {exc}')
+            return None, None
+
+        consignee = data.get('Consignee') or data
+        cas_id = (
+            consignee.get('idconsignee') or
+            consignee.get('IdConsignee') or
+            consignee.get('idConsignee')
+        )
+        if not cas_id:
+            return None, None
+
+        # Prefer server-verified email from API response; fall back to header
+        api_email = (
+            consignee.get('email') or consignee.get('Email') or
+            consignee.get('correo') or consignee.get('Correo') or
+            header_email
+        ).strip().lower()
+
+        return str(cas_id).strip(), api_email
+
     # ── GET /api/solicitudes ───────────────────────────────────────────────
     def _handle_solicitudes_list(self):
         casillero_id = self._portal_auth()
@@ -1262,6 +1374,209 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(200, {'ok': True, 'solicitud': row_dict})
         except Exception as exc:
             print(f'[SOLICITUDES] Detail error: {exc}')
+            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+
+    # ── GET /api/solicitudes/check-orphaned ───────────────────────────────
+    def _handle_check_orphaned(self):
+        casillero_id, email = self._portal_auth_full()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            return
+        if not email or '@' not in email:
+            self._json_response(400, {'ok': False, 'error': 'Email requerido.'})
+            return
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                rows = conn.execute(
+                    '''SELECT id, product_name, submitted_at FROM quote_requests
+                       WHERE casillero_id IS NULL AND LOWER(customer_email) = LOWER(?)
+                       ORDER BY submitted_at DESC''',
+                    (email,)
+                ).fetchall()
+                conn.close()
+            results = [dict(r) for r in rows]
+            self._json_response(200, {
+                'ok': True,
+                'count': len(results),
+                'ids': [r['id'] for r in results],
+                'requests': results
+            })
+        except Exception as exc:
+            print(f'[SOLICITUDES] check-orphaned error: {exc}')
+            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+
+    # ── POST /api/solicitudes/link-guest ──────────────────────────────────
+    def _handle_link_guest(self):
+        casillero_id, email = self._portal_auth_full()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            return
+        if not email or '@' not in email:
+            self._json_response(400, {'ok': False, 'error': 'Email requerido.'})
+            return
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                result = conn.execute(
+                    '''UPDATE quote_requests SET casillero_id = ?
+                       WHERE casillero_id IS NULL AND LOWER(customer_email) = LOWER(?)''',
+                    (casillero_id, email)
+                )
+                linked = result.rowcount
+                conn.commit()
+                conn.close()
+            print(f'[SOLICITUDES] Linked {linked} orphaned records to casillero {casillero_id}')
+            self._json_response(200, {'ok': True, 'linked': linked})
+        except Exception as exc:
+            print(f'[SOLICITUDES] link-guest error: {exc}')
+            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+
+    # ── POST /api/solicitudes/check-duplicate ─────────────────────────────
+    def _handle_check_duplicate(self):
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            raw = self.rfile.read(length).decode('utf-8')
+            data = json.loads(raw)
+        except Exception:
+            self._json_response(400, {'ok': False, 'error': 'Solicitud inválida.'})
+            return
+
+        product_name   = (data.get('product_name') or '').strip()
+        # Accept both 'url' and 'product_url' for API compatibility
+        product_url    = (data.get('product_url') or data.get('url') or '').strip()
+        customer_email = (data.get('email') or '').strip()
+
+        # Derive casillero_id from auth token (server-side) rather than
+        # trusting the client-supplied value.  If no valid token is present,
+        # fall back to an email-only check so unauthenticated public requests
+        # cannot enumerate records by casillero_id.
+        auth_header = self.headers.get('Authorization', '').strip()
+        casillero_id = ''
+        if auth_header.startswith('Bearer ') and len(auth_header) >= 10:
+            verified_id = self._portal_auth()
+            if verified_id:
+                casillero_id = verified_id
+
+        if not product_name and not product_url:
+            self._json_response(200, {'ok': True, 'duplicate': False, 'existing_id': None})
+            return
+
+        cutoff = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(time.time() - 24 * 3600))
+
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                conditions = ['submitted_at >= ?', "status NOT IN ('cancelada', 'expirada')"]
+                params = [cutoff]
+
+                if casillero_id:
+                    conditions.append('casillero_id = ?')
+                    params.append(casillero_id)
+                elif customer_email:
+                    conditions.append('LOWER(customer_email) = LOWER(?)')
+                    params.append(customer_email)
+                else:
+                    conn.close()
+                    self._json_response(200, {'ok': True, 'duplicate': False, 'existing_id': None})
+                    return
+
+                match_parts = []
+                match_params = []
+                if product_url:
+                    match_parts.append('product_url = ?')
+                    match_params.append(product_url)
+                if product_name:
+                    match_parts.append('LOWER(product_name) = LOWER(?)')
+                    match_params.append(product_name)
+                if match_parts:
+                    conditions.append('(' + ' OR '.join(match_parts) + ')')
+                    params.extend(match_params)
+
+                query = ('SELECT id, submitted_at FROM quote_requests WHERE '
+                         + ' AND '.join(conditions)
+                         + ' ORDER BY submitted_at DESC LIMIT 1')
+                row = conn.execute(query, params).fetchone()
+                conn.close()
+
+            if row:
+                try:
+                    submitted_ts = calendar.timegm(
+                        time.strptime(row['submitted_at'], '%Y-%m-%dT%H:%M:%SZ')
+                    )
+                    hours_ago = max(0, int((time.time() - submitted_ts) / 3600))
+                except Exception:
+                    hours_ago = 0
+                self._json_response(200, {
+                    'ok': True, 'duplicate': True,
+                    'existing_id': row['id'], 'hours_ago': hours_ago
+                })
+            else:
+                self._json_response(200, {'ok': True, 'duplicate': False, 'existing_id': None})
+        except Exception as exc:
+            print(f'[SOLICITUDES] check-duplicate error: {exc}')
+            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+
+    # ── POST /api/solicitudes/:id/cancel ──────────────────────────────────
+    def _handle_cancel_solicitud(self, scb_id):
+        casillero_id = self._portal_auth()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            return
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row = conn.execute(
+                    'SELECT * FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+                if row is None:
+                    conn.close()
+                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    return
+                row_dict = dict(row)
+                row_cas = (row_dict.get('casillero_id') or '').strip()
+                if not row_cas or row_cas != casillero_id:
+                    conn.close()
+                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    return
+                if row_dict.get('status') != 'enviada':
+                    conn.close()
+                    self._json_response(400, {
+                        'ok': False,
+                        'error': 'Solo se pueden cancelar solicitudes en estado "Enviada".'
+                    })
+                    return
+                now_iso  = _now_iso()
+                hist_id  = _uuid4_hex()
+                conn.execute(
+                    'UPDATE quote_requests SET status = ?, cancelled_at = ? WHERE id = ?',
+                    ('cancelada', now_iso, scb_id)
+                )
+                conn.execute(
+                    '''INSERT INTO quote_status_history
+                       (id, quote_request_id, from_status, to_status, changed_at, changed_by, note)
+                       VALUES (?,?,?,?,?,?,?)''',
+                    (hist_id, scb_id, 'enviada', 'cancelada', now_iso, 'user',
+                     'Cancelada por el cliente')
+                )
+                conn.commit()
+                conn.close()
+            print(f'[SOLICITUDES] {scb_id} cancelled by casillero {casillero_id}')
+            settings  = _smtp_settings()
+            smtp_user = settings[2] if settings else 'noreply@crbox.cr'
+            try:
+                _send_cancellation_email(
+                    scb_id,
+                    row_dict['customer_email'],
+                    row_dict.get('customer_name'),
+                    row_dict['product_name'],
+                    smtp_user
+                )
+            except Exception as exc:
+                print(f'[SOLICITUDES] Cancellation email failed: {exc}')
+            self._json_response(200, {'ok': True, 'id': scb_id, 'status': 'cancelada'})
+        except Exception as exc:
+            print(f'[SOLICITUDES] Cancel error: {exc}')
             self._json_response(500, {'ok': False, 'error': 'Error interno.'})
 
     # ── /crbox-svc-token ───────────────────────────────────────────────────

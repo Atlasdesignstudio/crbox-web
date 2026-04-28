@@ -898,6 +898,26 @@
                         </div>
                     </div>
 
+                    <!-- ── Duplicate warning (inline, non-blocking) ── -->
+                    <div id="dup-warning-cotizar" class="hidden mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl anim-fadeslide">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-copy text-amber-500 mt-0.5 flex-shrink-0"></i>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-amber-900 mb-0.5">Solicitud similar encontrada</p>
+                                <p class="text-sm text-amber-800">
+                                    Ya enviaste una solicitud similar (<span id="dup-id-cotizar" class="font-bold"></span>) hace <span id="dup-hours-cotizar"></span> hora(s).
+                                    <a id="dup-link-cotizar" href="#" class="font-semibold underline hover:text-amber-900 whitespace-nowrap">Ver solicitud →</a>
+                                    <span class="text-xs text-amber-700">(inicia sesión para ver los detalles)</span>
+                                </p>
+                            </div>
+                            <button id="btn-dup-dismiss-cotizar" type="button"
+                                    class="flex-shrink-0 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-semibold transition-colors"
+                                    style="min-height:36px;">
+                                Enviar de todas formas
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- ── Desktop submit button ── -->
                     <div class="hidden md:block anim-fadeslide" style="animation-delay:.25s;">
                         <button type="submit" id="btn-submit-quote" disabled>
@@ -1139,9 +1159,81 @@
         const serviceHintText = document.getElementById('service-hint-text');
 
         // ── State ──────────────────────────────────────────────
-        let emailConfirmed   = false;
-        let hasRequiredField = false; // has user filled any required field?
-        let lastSubmitPayload = null; // keep for WA fallback
+        let emailConfirmed    = false;
+        let hasRequiredField  = false; // has user filled any required field?
+        let lastSubmitPayload = null;  // keep for WA fallback
+        let _dupWarningDismissed = false;
+        let _formSubmitted    = false;
+
+        // ── beforeunload draft warning ─────────────────────────
+        window.addEventListener('beforeunload', function (e) {
+            if (_formSubmitted) return;
+            // Check any non-empty field in the entire form (inputs, selects, textareas)
+            var anyFilled = false;
+            var elements = form ? form.elements : [];
+            for (var i = 0; i < elements.length; i++) {
+                var el = elements[i];
+                if (!el || el.disabled) continue;
+                var tag = el.tagName;
+                if (tag === 'INPUT' || tag === 'TEXTAREA') {
+                    if ((el.value || '').trim() !== '' && el.type !== 'hidden') {
+                        anyFilled = true;
+                        break;
+                    }
+                } else if (tag === 'SELECT' && el.value) {
+                    anyFilled = true;
+                    break;
+                }
+            }
+            if (anyFilled) {
+                e.preventDefault();
+                e.returnValue = 'Tu solicitud no ha sido enviada.';
+            }
+        });
+
+        // ── Duplicate check helpers ────────────────────────────
+        async function _checkDuplicateCotizar(email, productUrl, productName) {
+            try {
+                const res = await fetch('/api/solicitudes/check-duplicate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, product_url: productUrl, product_name: productName })
+                });
+                if (!res.ok) return null;
+                return await res.json();
+            } catch (e) {
+                return null;
+            }
+        }
+
+        const dupWarningCotizar  = document.getElementById('dup-warning-cotizar');
+        const dupLinkCotizar     = document.getElementById('dup-link-cotizar');
+        const dupHoursCotizar    = document.getElementById('dup-hours-cotizar');
+        const btnDupDismiss      = document.getElementById('btn-dup-dismiss-cotizar');
+
+        function _showDupWarningCotizar(existingId, hoursAgo) {
+            var dupIdSpan = document.getElementById('dup-id-cotizar');
+            if (dupIdSpan) dupIdSpan.textContent = existingId || '';
+            if (dupLinkCotizar) {
+                dupLinkCotizar.href = existingId ? 'solicitud.html?id=' + encodeURIComponent(existingId) : 'mis-solicitudes.html';
+                dupLinkCotizar.target = '_blank';
+                dupLinkCotizar.rel = 'noopener';
+                dupLinkCotizar.title = 'Inicia sesión para ver los detalles de esta solicitud';
+            }
+            if (dupHoursCotizar) dupHoursCotizar.textContent = hoursAgo;
+            if (dupWarningCotizar) dupWarningCotizar.classList.remove('hidden');
+            // Scroll into view
+            if (dupWarningCotizar) dupWarningCotizar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        if (btnDupDismiss) {
+            btnDupDismiss.addEventListener('click', function () {
+                _dupWarningDismissed = true;
+                if (dupWarningCotizar) dupWarningCotizar.classList.add('hidden');
+                // Immediately submit
+                submitQuote();
+            });
+        }
 
         // ── Service toggle ─────────────────────────────────────
         document.getElementById('btn-aereo').addEventListener('click', function () {
@@ -1400,6 +1492,15 @@
 
             lastSubmitPayload = payload;
 
+            // Duplicate check (skipped if user already dismissed the warning)
+            if (!_dupWarningDismissed) {
+                const dupResult = await _checkDuplicateCotizar(email, productUrl, productName);
+                if (dupResult && dupResult.duplicate) {
+                    _showDupWarningCotizar(dupResult.existing_id, dupResult.hours_ago);
+                    return;
+                }
+            }
+
             // Set loading state
             setLoading(true);
 
@@ -1412,6 +1513,7 @@
                 const data = await res.json();
 
                 if (res.ok && data.ok && data.id) {
+                    _formSubmitted = true;
                     // GTM event — fire regardless of email delivery status
                     if (window.dataLayer) {
                         window.dataLayer.push({
@@ -1591,6 +1693,9 @@
             emailConfirmed = false;
             hasRequiredField = false;
             lastSubmitPayload = null;
+            _formSubmitted = false;
+            _dupWarningDismissed = false;
+            if (dupWarningCotizar) dupWarningCotizar.classList.add('hidden');
             emailConfirmBar.classList.remove('visible');
             emailConfirmedBar.style.display = 'none';
             notesCharCount.textContent = '0';

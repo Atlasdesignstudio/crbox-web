@@ -238,11 +238,26 @@
                                 <i class="fab fa-whatsapp"></i>
                                 Preguntar por WhatsApp
                             </a>
+                            <button id="btn-cancel-solicitud"
+                               class="hidden items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 active:scale-95 transition-all"
+                               style="min-height:40px;">
+                                <i class="fas fa-times-circle text-xs"></i>
+                                Cancelar solicitud
+                            </button>
                             <a id="btn-duplicate" href="mis-solicitudes.html"
                                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 transition-colors">
                                 <i class="fas fa-copy text-xs"></i>
                                 Duplicar
                             </a>
+                        </div>
+                        <!-- Cancel confirm inline prompt -->
+                        <div id="cancel-confirm-row" class="hidden w-full mt-3 p-3 bg-red-50 border border-red-200 rounded-xl flex flex-wrap items-center gap-3 text-sm">
+                            <i class="fas fa-exclamation-triangle text-red-500 flex-shrink-0"></i>
+                            <span class="text-red-800 font-medium flex-1">¿Confirmas cancelar esta solicitud? No se puede deshacer.</span>
+                            <div class="flex gap-2">
+                                <button id="btn-cancel-confirm-yes" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors active:scale-95" style="min-height:36px;">Sí, cancelar</button>
+                                <button id="btn-cancel-confirm-no"  class="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors active:scale-95" style="min-height:36px;">No</button>
+                            </div>
                         </div>
                     </div>
                 </div>
