@@ -111,6 +111,9 @@
     // Module-level tracker shared across extractions
     var _confirmTracker = _makeConfirmTracker();
 
+    // ── Last extraction result (for submission snapshot) ─────────────────
+    var _lastExtractionResult = null;
+
     // ── Public: clearExtractionBadges ─────────────────────────────────────
 
     function clearExtractionBadges(formFields) {
@@ -268,6 +271,7 @@
 
             // Unreadable page
             if (!result || result.page_readable === false) {
+                _lastExtractionResult = null;
                 _showBanner(bannerTarget, 'neutral',
                     'No pudimos leer esta página automáticamente. Ingresa los datos del producto manualmente.');
                 document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
@@ -284,6 +288,7 @@
             filledCount += _applyCategory(fCategory,  fields.category, categoryMap) ? 1 : 0;
 
             if (filledCount === 0) {
+                _lastExtractionResult = null;
                 _showBanner(bannerTarget, 'neutral',
                     'No pudimos leer esta página automáticamente. Ingresa los datos del producto manualmente.');
                 document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
@@ -292,6 +297,7 @@
                 return result;
             }
 
+            _lastExtractionResult = result;
             var partial    = result.partial || filledCount < 3;
             var dataSource = partial ? 'ai_partial' : 'ai_extracted';
 
@@ -311,6 +317,7 @@
             return result;
 
         }).catch(function () {
+            _lastExtractionResult = null;
             _showBanner(bannerTarget, 'neutral',
                 'No pudimos leer esta página automáticamente. Ingresa los datos del producto manualmente.');
             document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
@@ -333,9 +340,18 @@
     // ── Public: resetExtraction ───────────────────────────────────────────
 
     function resetExtraction(formFields) {
+        _lastExtractionResult = null;
         _removeBanner(formFields.bannerTarget);
         clearExtractionBadges(formFields);
         _hideConfirmCheckbox(formFields.confirmWrapper);
+    }
+
+    // ── Public: getLastResult ─────────────────────────────────────────────
+    // Returns the full AIExtractionResult from the most recent successful
+    // extraction, or null. Used by submission handlers to persist the snapshot.
+
+    function getLastResult() {
+        return _lastExtractionResult;
     }
 
     global.CRBOXAIExtractor = {
@@ -343,6 +359,7 @@
         clearExtractionBadges: clearExtractionBadges,
         resetExtraction:       resetExtraction,
         allFieldsConfirmed:    allFieldsConfirmed,
+        getLastResult:         getLastResult,
         run:                   runExtraction,
         reset:                 resetExtraction,
     };

@@ -386,6 +386,11 @@
       service_type: formData.service_type || 'aereo',
       data_source: formData.data_source || 'manual'
     };
+    // Attach AI extraction snapshot for admin visibility
+    if (_portalAiActive && typeof CRBOXAIExtractor !== 'undefined') {
+      var lastResult = CRBOXAIExtractor.getLastResult();
+      if (lastResult) payload.ai_extraction_result = lastResult;
+    }
 
     return fetch('/api/solicitudes', {
       method: 'POST',

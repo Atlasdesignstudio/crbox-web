@@ -1633,6 +1633,11 @@
                 account_type:       'anonymous',
                 data_source:        _aiActive ? _aiDataSource : 'manual',
             };
+            // Attach AI extraction snapshot for admin visibility
+            if (_aiActive && typeof CRBOXAIExtractor !== 'undefined') {
+                const lastResult = CRBOXAIExtractor.getLastResult();
+                if (lastResult) payload.ai_extraction_result = lastResult;
+            }
 
             const customerName = (fCustomerName.value || '').trim();
             if (customerName) payload.customer_name = customerName;

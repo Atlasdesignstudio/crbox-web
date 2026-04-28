@@ -403,7 +403,8 @@ def _init_db():
                 completed_at        TEXT,
                 cancelled_at        TEXT,
                 expires_at          TEXT,
-                linked_package_id   TEXT
+                linked_package_id   TEXT,
+                ai_extraction_json  TEXT
             );
 
             CREATE TABLE IF NOT EXISTS quote_status_history (
@@ -426,6 +427,10 @@ def _init_db():
             conn.execute('ALTER TABLE quote_requests ADD COLUMN reminder_sent_at TEXT')
             conn.commit()
             print('[SOLICITUDES] Added reminder_sent_at column to quote_requests')
+        if 'ai_extraction_json' not in existing_cols:
+            conn.execute('ALTER TABLE quote_requests ADD COLUMN ai_extraction_json TEXT')
+            conn.commit()
+            print('[SOLICITUDES] Added ai_extraction_json column to quote_requests')
         conn.close()
     print('[SOLICITUDES] SQLite schema initialised OK')
 
@@ -1479,6 +1484,412 @@ def _admin_status_options_html(current_status):
     return '\n'.join(opts)
 
 
+def _build_admin_detail_html(row, history, filter_val='all'):
+    esc = _html.escape
+    rid       = esc(row['id'])
+    back_url  = f'/admin/solicitudes?filter={esc(filter_val)}'
+    status    = row['status']
+    badge_html = _admin_badge_html(status, rid)
+    date_str  = _admin_format_date(row.get('submitted_at', ''))
+    elapsed   = _admin_elapsed(row.get('submitted_at', ''))
+
+    # ── Customer block ──────────────────────────────────────────────────────
+    acct_type = row.get('account_type') or 'anonymous'
+    acct_labels = {'personal': 'Personal', 'business': 'Empresa', 'anonymous': 'Anónimo'}
+    acct_label  = acct_labels.get(acct_type, 'Anónimo')
+    empresa_badge = ('<span class="adm-empresa" style="margin-left:6px;">EMPRESA</span>'
+                     if acct_type == 'business' else '')
+    casillero_str = esc(row.get('casillero_id') or '—')
+
+    customer_html = f'''<div class="adm-detail-section">
+  <div class="adm-detail-section-title">&#128100; Cliente</div>
+  <div class="adm-detail-rows">
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Nombre</span>
+      <span class="adm-detail-val">{esc(row.get('customer_name') or '—')}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Email</span>
+      <span class="adm-detail-val"><a href="mailto:{esc(row.get('customer_email',''))}" class="adm-link">{esc(row.get('customer_email') or '—')}</a></span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Casillero</span>
+      <span class="adm-detail-val">{casillero_str}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Tipo de cuenta</span>
+      <span class="adm-detail-val">{esc(acct_label)}{empresa_badge}</span>
+    </div>
+  </div>
+</div>'''
+
+    # ── Product block ───────────────────────────────────────────────────────
+    cat_labels = {
+        'ropa': 'Ropa y calzado', 'electronico': 'Electrónico',
+        'computadora': 'Computadoras', 'celular': 'Celulares',
+        'auricular_telefono': 'Auriculares', 'electrodomestico': 'Electrodoméstico',
+        'cosmetico': 'Cosméticos', 'suplemento': 'Suplementos',
+        'libro': 'Libros', 'juguete': 'Juguetes', 'herramienta': 'Herramientas',
+        'equipo_medico': 'Equipo médico', 'deportivo': 'Deportivo', 'otros': 'Otros',
+    }
+    cat_code  = row.get('category') or 'otros'
+    cat_label = cat_labels.get(cat_code, cat_code)
+    val_usd   = row.get('declared_value_usd')
+    val_str   = f'${val_usd:,.2f}' if val_usd is not None else '—'
+    prod_url  = row.get('product_url') or ''
+    url_html  = (
+        f'<a href="{esc(prod_url)}" target="_blank" rel="noopener" class="adm-link">'
+        f'{esc(prod_url[:80])}{"&hellip;" if len(prod_url) > 80 else ""}</a>'
+    ) if prod_url else '—'
+    l_cm, w_cm, h_cm = row.get('length_cm'), row.get('width_cm'), row.get('height_cm')
+    dims_str  = (f'{l_cm} &times; {w_cm} &times; {h_cm} cm'
+                 if l_cm and w_cm and h_cm else '—')
+    wt_str    = f"{row['weight_kg']} kg" if row.get('weight_kg') is not None else '—'
+    notes_str = esc(row.get('customer_notes') or '—')
+    svc_labels = {'aereo': 'Aéreo', 'maritimo': 'Marítimo'}
+    svc_str   = svc_labels.get(row.get('service_type') or 'aereo', 'Aéreo')
+
+    product_html = f'''<div class="adm-detail-section">
+  <div class="adm-detail-section-title">&#128230; Producto</div>
+  <div class="adm-detail-rows">
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Nombre</span>
+      <span class="adm-detail-val" style="font-weight:600;">{esc(row.get('product_name') or '—')}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Valor declarado</span>
+      <span class="adm-detail-val" style="font-weight:600;">{esc(val_str)}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Categor&iacute;a</span>
+      <span class="adm-detail-val">{esc(cat_label)}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">URL del producto</span>
+      <span class="adm-detail-val" style="word-break:break-all;">{url_html}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Peso</span>
+      <span class="adm-detail-val">{esc(wt_str)}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Dimensiones</span>
+      <span class="adm-detail-val">{dims_str}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Servicio</span>
+      <span class="adm-detail-val">{esc(svc_str)}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Notas del cliente</span>
+      <span class="adm-detail-val">{notes_str}</span>
+    </div>
+  </div>
+</div>'''
+
+    # ── AI extraction snapshot block ────────────────────────────────────────
+    data_source = row.get('data_source') or 'manual'
+    ai_section_html = ''
+    if data_source in ('ai_extracted', 'ai_partial'):
+        ai_json_raw = row.get('ai_extraction_json') or None
+        ai_fields   = {}
+        if ai_json_raw:
+            try:
+                ai_data   = json.loads(ai_json_raw)
+                ai_fields = ai_data.get('fields') or {}
+            except Exception:
+                pass
+        field_order = [
+            ('product_name',       'Nombre del producto'),
+            ('declared_value_usd', 'Valor declarado (USD)'),
+            ('category',           'Categor&iacute;a'),
+            ('weight_kg',          'Peso (kg)'),
+            ('dimensions_cm',      'Dimensiones (cm)'),
+        ]
+        prov_labels = {
+            'extracted':          'Extra&iacute;do',
+            'inferred':           'Inferido',
+            'needs_confirmation': 'Requiere confirmaci&oacute;n',
+            'missing':            'No encontrado',
+        }
+        rows_html = ''
+        for fkey, flabel in field_order:
+            fdata = ai_fields.get(fkey)
+            if not fdata:
+                rows_html += (
+                    f'<tr><td class="ai-fn">{flabel}</td>'
+                    f'<td class="ai-fv" style="color:#9ca3af;">—</td>'
+                    f'<td class="ai-fp" style="color:#9ca3af;">—</td>'
+                    f'<td class="ai-fc" style="color:#9ca3af;">—</td></tr>\n'
+                )
+                continue
+            conf     = fdata.get('confidence', 0) or 0
+            prov     = fdata.get('provenance') or 'missing'
+            val      = fdata.get('value')
+            conf_pct = f'{conf:.0%}'
+            prov_str = prov_labels.get(prov, esc(prov))
+            val_str2 = esc(str(val)) if val is not None else '—'
+            low_conf = (conf < 0.80) or (prov == 'needs_confirmation')
+            row_style  = ' style="background:#fffbeb;"' if low_conf else ''
+            conf_style = (' style="color:#d97706;font-weight:700;"'
+                          if low_conf else ' style="color:#16a34a;font-weight:700;"')
+            rows_html += (
+                f'<tr{row_style}>'
+                f'<td class="ai-fn">{flabel}</td>'
+                f'<td class="ai-fv">{val_str2}</td>'
+                f'<td class="ai-fp">{prov_str}</td>'
+                f'<td class="ai-fc"{conf_style}>{conf_pct}</td>'
+                f'</tr>\n'
+            )
+        src_lbl    = 'AI &mdash; completo' if data_source == 'ai_extracted' else 'AI &mdash; parcial'
+        no_data_note = (
+            '<p style="color:#9ca3af;font-size:12px;margin-bottom:10px;">'
+            'Los datos de extracci&oacute;n no fueron almacenados para esta solicitud.</p>'
+        ) if not ai_json_raw else ''
+        ai_section_html = f'''<div class="adm-detail-section">
+  <div class="adm-detail-section-title" style="justify-content:space-between;">
+    <span>&#129302; Extracci&oacute;n AI</span>
+    <span class="adm-src-badge adm-src-ai">{src_lbl}</span>
+  </div>
+  <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">Instant&aacute;nea de los datos extra&iacute;dos autom&aacute;ticamente al momento del env&iacute;o. Solo lectura.</p>
+  {no_data_note}<div class="adm-table-wrap" style="margin-bottom:0;">
+  <table class="adm-ai-table">
+    <thead>
+      <tr>
+        <th class="ai-fn">Campo</th>
+        <th class="ai-fv">Valor extra&iacute;do</th>
+        <th class="ai-fp">Proveniencia</th>
+        <th class="ai-fc">Confianza</th>
+      </tr>
+    </thead>
+    <tbody>{rows_html}</tbody>
+  </table>
+  </div>
+</div>'''
+
+    # ── Estimado del sistema block ──────────────────────────────────────────
+    estimado_html   = ''
+    estimate_usd    = row.get('estimate_usd')
+    est_bd_raw      = row.get('estimate_breakdown')
+    dest_zone       = row.get('destination_zone') or '—'
+    if estimate_usd is not None or est_bd_raw:
+        bd_rows_html = ''
+        if est_bd_raw:
+            try:
+                bd = json.loads(est_bd_raw)
+                if isinstance(bd, dict):
+                    for k, v in bd.items():
+                        bd_rows_html += (
+                            f'<div class="adm-detail-row">'
+                            f'<span class="adm-detail-label">{esc(str(k))}</span>'
+                            f'<span class="adm-detail-val">{esc(str(v))}</span>'
+                            f'</div>'
+                        )
+            except Exception:
+                pass
+        total_str = f'${estimate_usd:,.2f}' if estimate_usd is not None else '—'
+        estimado_html = f'''<div class="adm-detail-section" style="border-color:#bfdbfe;background:#eff6ff;">
+  <div class="adm-detail-section-title" style="justify-content:space-between;">
+    <span>&#129518; Estimado del sistema</span>
+    <span class="adm-src-badge" style="background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">Estimado autom&aacute;tico</span>
+  </div>
+  <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">Este valor fue generado autom&aacute;ticamente usando la l&oacute;gica actual de estimaci&oacute;n de CRBOX. Es solo referencia interna y no sustituye la revisi&oacute;n comercial.</p>
+  <div class="adm-detail-rows">
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Total estimado</span>
+      <span class="adm-detail-val" style="font-size:18px;font-weight:800;color:#FF6B00;">{esc(total_str)}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Servicio</span>
+      <span class="adm-detail-val">{esc(svc_str)}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Destino</span>
+      <span class="adm-detail-val">{esc(dest_zone)}</span>
+    </div>
+    {bd_rows_html}
+  </div>
+</div>'''
+
+    # ── Status history timeline ─────────────────────────────────────────────
+    status_label_map = {
+        'enviada': 'Enviada', 'en_revision': 'En revisi&oacute;n',
+        'respondida': 'Respondida', 'completada': 'Completada',
+        'cancelada': 'Cancelada', 'expirada': 'Expirada',
+    }
+    timeline_items = ''
+    for h in history:
+        from_s   = h.get('from_status') or ''
+        to_s     = h.get('to_status') or ''
+        note_h   = h.get('note') or ''
+        by       = h.get('changed_by') or 'system'
+        ts       = _admin_format_date(h.get('changed_at', ''))
+        from_lbl = status_label_map.get(from_s, esc(from_s))
+        to_lbl   = status_label_map.get(to_s, esc(to_s))
+        transition_html = (
+            f'<span style="color:#6b7280;">{from_lbl}</span> &rarr; <strong>{to_lbl}</strong>'
+            if from_s else f'<strong>{to_lbl}</strong>'
+        )
+        note_item = f'<div class="tl-note">&ldquo;{esc(note_h)}&rdquo;</div>' if note_h else ''
+        _, fg, bdr, _ = _ADMIN_BADGE_CFG.get(to_s, ('#F9FAFB', '#374151', '#D1D5DB', ''))
+        timeline_items += f'''<div class="tl-item">
+  <div class="tl-dot" style="background:{fg};border-color:{bdr};"></div>
+  <div class="tl-body">
+    <div class="tl-transition">{transition_html}</div>
+    <div class="tl-meta">{esc(ts)} &middot; por {esc(by)}</div>
+    {note_item}
+  </div>
+</div>'''
+
+    tl_inner = timeline_items or '<p style="color:#9ca3af;font-size:13px;">Sin eventos registrados.</p>'
+    history_html = f'''<div class="adm-detail-section">
+  <div class="adm-detail-section-title">&#128336; Historial de estado</div>
+  <div class="tl-wrap">{tl_inner}</div>
+</div>'''
+
+    # ── Status update form ──────────────────────────────────────────────────
+    transitions = _ADMIN_LEGAL_TRANSITIONS.get(status, set())
+    if transitions:
+        sel_opts   = _admin_status_options_html(status)
+        update_html = f'''<div class="adm-detail-section">
+  <div class="adm-detail-section-title">&#9998; Actualizar estado</div>
+  <form method="POST" action="/admin/solicitudes/{rid}/status">
+    <input type="hidden" name="filter" value="{esc(filter_val)}">
+    <input type="hidden" name="from_detail" value="1">
+    <div style="margin-bottom:8px;">
+      <select class="adm-select" name="status" style="max-width:260px;">{sel_opts}</select>
+    </div>
+    <div style="margin-bottom:8px;">
+      <textarea class="adm-note" name="note" placeholder="Nota interna (opcional)" rows="3" style="max-width:440px;"></textarea>
+    </div>
+    <button class="adm-upd-btn" type="submit" style="max-width:180px;">Actualizar estado</button>
+  </form>
+</div>'''
+    else:
+        update_html = f'''<div class="adm-detail-section">
+  <div class="adm-detail-section-title">&#9998; Actualizar estado</div>
+  <p style="color:#9ca3af;font-size:13px;">Este estado no permite m&aacute;s transiciones.</p>
+</div>'''
+
+    # ── Source badge for header ─────────────────────────────────────────────
+    src_map = {
+        'manual':       ('Manual',        'adm-src-manual'),
+        'ai_extracted': ('AI &mdash; completo', 'adm-src-ai'),
+        'ai_partial':   ('AI &mdash; parcial',  'adm-src-ai-partial'),
+    }
+    src_text, src_cls = src_map.get(data_source, ('Manual', 'adm-src-manual'))
+
+    return f'''<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>{rid} &mdash; Panel de ventas CRBOX</title>
+<style>
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
+  background:#f3f4f6;color:#111;min-height:100vh}}
+a{{color:inherit;text-decoration:none}}
+.adm-header{{background:#1f2937;padding:12px 20px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.18)}}
+.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:18px;letter-spacing:-.5px}}
+.adm-header-title{{color:#fff;font-size:14px;font-weight:600}}
+.adm-header-sep{{color:#4b5563;font-size:16px}}
+.adm-logout{{margin-left:auto;color:#9ca3af;font-size:13px;padding:6px 12px;
+  border-radius:6px;border:1px solid #374151;transition:all .2s}}
+.adm-logout:hover{{color:#fff;border-color:#6b7280}}
+.adm-detail-wrap{{max-width:760px;margin:0 auto;padding:24px 20px 48px}}
+.adm-back{{display:inline-flex;align-items:center;gap:6px;color:#6b7280;
+  font-size:13px;font-weight:600;margin-bottom:20px;padding:6px 12px;
+  border:1px solid #e5e7eb;border-radius:8px;background:#fff;transition:all .2s}}
+.adm-back:hover{{color:#374151;border-color:#d1d5db;background:#f9fafb}}
+.adm-page-title{{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:6px}}
+.adm-scb-id{{font-size:22px;font-weight:900;color:#FF6B00;letter-spacing:-.02em}}
+.adm-page-meta{{font-size:12px;color:#9ca3af;margin-bottom:16px}}
+.adm-detail-section{{background:#fff;border-radius:12px;border:1px solid #e5e7eb;
+  padding:20px;margin-bottom:14px}}
+.adm-detail-section-title{{font-size:14px;font-weight:700;color:#374151;
+  margin-bottom:14px;display:flex;align-items:center;gap:8px}}
+.adm-detail-row{{display:flex;justify-content:space-between;align-items:flex-start;
+  gap:12px;padding:9px 0;border-bottom:1px solid #f3f4f6;font-size:13px}}
+.adm-detail-row:last-child{{border-bottom:none}}
+.adm-detail-label{{color:#9ca3af;font-size:12px;min-width:120px;flex-shrink:0;padding-top:1px}}
+.adm-detail-val{{color:#111;font-weight:500;text-align:right;word-break:break-word;
+  max-width:calc(100% - 140px)}}
+.adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
+  font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
+.adm-empresa{{display:inline-block;background:#fff7ed;color:#c2410c;
+  font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;
+  border:1px solid #fdba74;vertical-align:middle}}
+.adm-src-badge{{display:inline-block;padding:3px 9px;border-radius:999px;
+  font-size:11px;font-weight:700;border:1px solid;white-space:nowrap}}
+.adm-src-manual{{background:#f3f4f6;color:#374151;border-color:#e5e7eb}}
+.adm-src-ai{{background:#fffbeb;color:#92400e;border-color:#fde68a}}
+.adm-src-ai-partial{{background:#fff7ed;color:#c2410c;border-color:#fdba74}}
+.adm-link{{color:#FF6B00;text-decoration:underline;text-underline-offset:2px}}
+.adm-link:hover{{color:#E05A00}}
+.adm-table-wrap{{overflow-x:auto}}
+.adm-ai-table{{width:100%;border-collapse:collapse}}
+.adm-ai-table th{{background:#f9fafb;padding:8px 10px;text-align:left;font-size:11px;
+  font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;
+  border-bottom:1px solid #e5e7eb}}
+.adm-ai-table td{{padding:10px;border-bottom:1px solid #f3f4f6;font-size:12px;vertical-align:top}}
+.adm-ai-table tr:last-child td{{border-bottom:none}}
+.ai-fn{{font-weight:600;color:#374151;min-width:140px}}
+.ai-fv{{color:#111;max-width:180px;word-break:break-word}}
+.ai-fp{{color:#6b7280;min-width:130px}}
+.ai-fc{{white-space:nowrap}}
+.tl-wrap{{padding:4px 0}}
+.tl-item{{display:flex;gap:12px;padding:8px 0;position:relative}}
+.tl-item:not(:last-child)::after{{content:"";position:absolute;left:7px;top:28px;
+  bottom:-8px;width:2px;background:#e5e7eb}}
+.tl-dot{{width:16px;height:16px;border-radius:50%;border:2px solid;flex-shrink:0;margin-top:2px}}
+.tl-body{{flex:1}}
+.tl-transition{{font-size:13px;color:#374151;margin-bottom:2px}}
+.tl-meta{{font-size:11px;color:#9ca3af}}
+.tl-note{{font-size:12px;color:#6b7280;margin-top:4px;font-style:italic}}
+.adm-select{{display:block;border:1.5px solid #e5e7eb;border-radius:6px;padding:8px 12px;
+  font-size:13px;background:#fff;cursor:pointer;font-family:inherit;color:#374151;width:100%}}
+.adm-note{{display:block;border:1.5px solid #e5e7eb;border-radius:6px;padding:8px 12px;
+  font-size:13px;resize:vertical;font-family:inherit;color:#374151;width:100%}}
+.adm-upd-btn{{display:block;background:#FF6B00;color:#fff;border:none;border-radius:6px;
+  padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s;
+  font-family:inherit;width:100%}}
+.adm-upd-btn:hover{{background:#E05A00}}
+@media(max-width:600px){{
+  .adm-detail-wrap{{padding:16px 12px 48px}}
+  .adm-detail-label{{min-width:90px}}
+  .adm-detail-val{{max-width:calc(100% - 100px)}}
+}}
+</style>
+</head>
+<body>
+<header class="adm-header">
+  <span class="adm-header-logo">CRBOX</span>
+  <span class="adm-header-sep">|</span>
+  <span class="adm-header-title">Panel de ventas</span>
+  <a href="/admin/logout" class="adm-logout">Salir</a>
+</header>
+<div class="adm-detail-wrap">
+  <a href="{back_url}" class="adm-back">&#8592; Volver a solicitudes</a>
+  <div class="adm-page-title">
+    <span class="adm-scb-id">{rid}</span>
+    {badge_html}
+    <span class="adm-src-badge {src_cls}">{src_text}</span>
+  </div>
+  <div class="adm-page-meta">{esc(date_str)} &middot; {esc(elapsed)}</div>
+  {customer_html}
+  {product_html}
+  {ai_section_html}
+  {estimado_html}
+  {history_html}
+  {update_html}
+</div>
+</body>
+</html>'''
+
+
 def _build_admin_login_html(error='', blocked_secs=0):
     esc = _html.escape
     if blocked_secs > 0:
@@ -1584,6 +1995,15 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
         # Status badge
         badge_html = _admin_badge_html(status, rid)
 
+        # Data-source badge
+        src_badges = {
+            'manual':       ('<span class="adm-src-badge adm-src-manual">Manual</span>'),
+            'ai_extracted': ('<span class="adm-src-badge adm-src-ai">AI — completo</span>'),
+            'ai_partial':   ('<span class="adm-src-badge adm-src-ai-partial">AI — parcial</span>'),
+        }
+        data_source = r.get('data_source') or 'manual'
+        src_badge_html = src_badges.get(data_source, src_badges['manual'])
+
         # Update controls
         if has_transitions:
             sel_opts = _admin_status_options_html(status)
@@ -1598,9 +2018,12 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
         else:
             update_html = '<span style="color:#9ca3af;font-size:12px;">—</span>'
 
+        # Ver → link
+        ver_link = f'<a href="/admin/solicitudes/{rid}?filter={filter_val}" class="adm-ver-link">Ver&nbsp;&#8594;</a>'
+
         # Table row
         table_rows += f'''<tr data-id="{rid}">
-<td class="td-id"><span style="color:#FF6B00;font-weight:700;font-size:13px;">{rid}</span></td>
+<td class="td-id"><span style="color:#FF6B00;font-weight:700;font-size:13px;">{rid}</span><br>{src_badge_html}</td>
 <td><div style="font-weight:600;font-size:13px;">{name}{empresa}</div>
     <div style="color:#6b7280;font-size:12px;margin-top:2px;">{email_v}</div></td>
 <td><div style="font-size:13px;font-weight:500;">{prod}</div>
@@ -1610,6 +2033,7 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
     <div style="color:#9ca3af;font-size:11px;margin-top:2px;">{elapsed}</div></td>
 <td>{badge_html}</td>
 <td class="td-upd">{update_html}</td>
+<td class="td-ver">{ver_link}</td>
 </tr>\n'''
 
         # Card (mobile)
@@ -1628,8 +2052,9 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
 <div class="adm-card-top">
   <div>
     <span class="adm-card-id">{rid}</span>{empresa}
+    <div style="margin-top:4px;">{src_badge_html}</div>
   </div>
-  <div>{badge_html}</div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">{badge_html}{ver_link}</div>
 </div>
 <div class="adm-card-fields">
   <div class="adm-card-row"><span class="adm-card-lbl">Cliente</span><span class="adm-card-val">{name}</span></div>
@@ -1648,7 +2073,7 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
 <h3>Sin solicitudes en esta vista</h3>
 <p>No hay solicitudes que coincidan con el filtro seleccionado.</p>
 </div>'''
-        table_body_html = f'<tr><td colspan="7">{empty_html}</td></tr>'
+        table_body_html = f'<tr><td colspan="8">{empty_html}</td></tr>'
         cards_html      = empty_html
     else:
         table_body_html = table_rows
@@ -1703,6 +2128,15 @@ a{{color:inherit;text-decoration:none}}
 .adm-table tr:hover td{{background:#fafafa}}
 .td-id{{white-space:nowrap}}
 .td-upd{{min-width:160px}}
+.td-ver{{white-space:nowrap;text-align:center;vertical-align:middle}}
+/* Source badges */
+.adm-src-badge{{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid;margin-top:4px}}
+.adm-src-manual{{background:#f3f4f6;color:#374151;border-color:#e5e7eb}}
+.adm-src-ai{{background:#fffbeb;color:#92400e;border-color:#fde68a}}
+.adm-src-ai-partial{{background:#fff7ed;color:#c2410c;border-color:#fdba74}}
+/* Ver link */
+.adm-ver-link{{display:inline-block;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;color:#FF6B00;border:1px solid #fdba74;background:#fff7ed;transition:all .2s;white-space:nowrap}}
+.adm-ver-link:hover{{background:#FF6B00;color:#fff;border-color:#FF6B00}}
 /* Badges */
 .adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
   font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
@@ -1781,8 +2215,8 @@ a{{color:inherit;text-decoration:none}}
   <table class="adm-table">
     <thead>
       <tr>
-        <th>ID</th><th>Cliente</th><th>Producto</th>
-        <th>Valor</th><th>Fecha</th><th>Estado</th><th>Actualizar</th>
+        <th>ID / Fuente</th><th>Cliente</th><th>Producto</th>
+        <th>Valor</th><th>Fecha</th><th>Estado</th><th>Actualizar</th><th></th>
       </tr>
     </thead>
     <tbody>{table_body_html}</tbody>
@@ -1819,8 +2253,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             elif path_no_qs == '/admin/logout':
                 self._handle_admin_logout()
             else:
-                self.send_response(404)
-                self.end_headers()
+                m_detail = re.match(r'^/admin/solicitudes/(SCB-\d+)$', path_no_qs)
+                if m_detail:
+                    self._handle_admin_solicitudes_detail(m_detail.group(1))
+                else:
+                    self.send_response(404)
+                    self.end_headers()
         elif self.path.startswith('/api/solicitudes'):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/api/solicitudes':
@@ -2050,6 +2488,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         data_source = data.get('data_source', 'manual')
         if data_source not in ('manual', 'ai_extracted', 'ai_partial'):
             data_source = 'manual'
+        ai_extraction_result = data.get('ai_extraction_result')
+        ai_extraction_json = json.dumps(ai_extraction_result) if ai_extraction_result else None
 
         try:
             weight_kg = float(weight_kg) if weight_kg is not None else None
@@ -2072,13 +2512,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                         product_name, product_url, declared_value_usd, category,
                         weight_kg, length_cm, width_cm, height_cm, customer_notes,
                         service_type, destination_zone, estimate_usd, estimate_breakdown,
-                        data_source, status, submitted_at, expires_at)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
+                        data_source, ai_extraction_json, status, submitted_at, expires_at)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
                     (scb_id, casillero_id, customer_email, customer_name, account_type,
                      product_name, product_url, declared_value_usd, category,
                      weight_kg, length_cm, width_cm, height_cm, customer_notes,
                      service_type, destination_zone, estimate_usd, estimate_breakdown_json,
-                     data_source, 'enviada', now_iso, expires_iso)
+                     data_source, ai_extraction_json, 'enviada', now_iso, expires_iso)
                 )
                 conn.execute(
                     '''INSERT INTO quote_status_history
@@ -2791,6 +3231,41 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         html = _build_admin_solicitudes_html(rows, filter_val, counts)
         self._admin_html_response(html)
 
+    # ── GET /admin/solicitudes/:id ─────────────────────────────────────────
+    def _handle_admin_solicitudes_detail(self, scb_id):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._admin_redirect('/admin/login')
+            return
+        qs = urllib.parse.parse_qs(self.path.partition('?')[2])
+        filter_val = (qs.get('filter', ['all'])[0] or 'all').strip()
+        if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
+            filter_val = 'all'
+        try:
+            with _DB_LOCK:
+                conn  = _get_db()
+                row   = conn.execute(
+                    'SELECT * FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+                if row is None:
+                    conn.close()
+                    self._admin_redirect(f'/admin/solicitudes?filter={filter_val}')
+                    return
+                row     = dict(row)
+                history = [dict(h) for h in conn.execute(
+                    'SELECT * FROM quote_status_history WHERE quote_request_id = ? ORDER BY changed_at ASC',
+                    (scb_id,)
+                ).fetchall()]
+                conn.close()
+        except Exception as exc:
+            print(f'[ADMIN] Detail DB error: {exc}')
+            self._admin_html_response('<h1>Error interno</h1>', status=500)
+            return
+        html = _build_admin_detail_html(row, history, filter_val)
+        self._admin_html_response(html)
+
     # ── POST /admin/solicitudes/:id/status ────────────────────────────────
     def _handle_admin_solicitudes_status(self, scb_id):
         if _admin_password() is None:
@@ -2802,14 +3277,18 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             length = int(self.headers.get('Content-Length', 0))
             raw    = self.rfile.read(length).decode('utf-8')
             params = urllib.parse.parse_qs(raw)
-            new_status = (params.get('status', [''])[0] or '').strip()
-            note       = (params.get('note', [''])[0] or '').strip()[:1000] or None
-            filter_val = (params.get('filter', ['all'])[0] or 'all').strip()
+            new_status  = (params.get('status', [''])[0] or '').strip()
+            note        = (params.get('note', [''])[0] or '').strip()[:1000] or None
+            filter_val  = (params.get('filter', ['all'])[0] or 'all').strip()
+            from_detail = (params.get('from_detail', [''])[0] or '').strip()
             if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
                 filter_val = 'all'
         except Exception:
             self.send_response(400); self.end_headers(); return
-        redirect_url = f'/admin/solicitudes?filter={filter_val}'
+        if from_detail == '1':
+            redirect_url = f'/admin/solicitudes/{scb_id}?filter={filter_val}'
+        else:
+            redirect_url = f'/admin/solicitudes?filter={filter_val}'
         if new_status not in _ADMIN_LEGAL_TRANSITIONS:
             self._admin_redirect(redirect_url)
             return

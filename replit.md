@@ -39,7 +39,7 @@ The script updates all six public HTML pages automatically. It must also be run 
 | `js/seo-config.js` | SEO/structured data configuration |
 | `js/tariff-adapter.js` | **[Task 131]** Tariff data-adapter layer. All duty/tax lookups go through `TARIFF_ADAPTER.getTariffRate(categoryCode)`. Returns `{ rate, source, pct }` where source is `local_estimated`, `official_tica`, or `user_override`. To wire in official TICA data, populate `OFFICIAL_RATES`. |
 | `js/calculator-engine.js` | **[Task 131]** Pure calculation engine. Exposes `CALCULATOR_ENGINE.calcSinglePackage(item)`, `calcSeparate(items, dest)`, `calcConsolidated(items, dest)`. No formula changes — structural refactor and extension of original inline logic. |
-| `js/ai-extractor.js` | **[Task 181]** AI product extraction module. Exposes `window.CRBOXAIExtractor` with `run(config)` and `reset(config)`. Calls `POST /api/ai/extract`, applies fields with confidence-appropriate badges, shows status banners, and manages the AI confirm checkbox. Used in both `cotizar.html` and `mis-solicitudes.html`. |
+| `js/ai-extractor.js` | **[Task 181/185]** AI product extraction module. Exposes `window.CRBOXAIExtractor` with `run(config)`, `reset(config)`, `allFieldsConfirmed()`, and `getLastResult()`. Calls `POST /api/ai/extract`, applies fields with confidence-appropriate badges, shows status banners, and manages the AI confirm checkbox. `getLastResult()` returns the full AIExtractionResult snapshot for submission payloads. Used in both `cotizar.html` and `mis-solicitudes.html`. |
 
 ### Calculator page (calculadora.html) — Task 131 + Task 142 upgrade
 
@@ -134,6 +134,9 @@ Static file server on port 5000 (`python3 server.py`). Custom endpoints:
 | `/health` | GET | Probes SMTP (connect + authenticate, no email sent). Returns `{"ok":true,"smtp":"ok"}` (200) or `{"ok":false,"smtp":"error","error":"..."}` (503). Use this URL with any external uptime monitor (UptimeRobot, Better Uptime, etc.). |
 | `/crbox-svc-token` | POST | Authenticates with the CRBOX service account (credentials from env vars) and returns `{ access_token }`. Browser never sees the raw credentials. |
 | `/send-quote` | POST | Sends the calculator quote form email via Google Workspace SMTP to `ventas@crbox.cr`, with the user CC'd. Returns `{"ok": true}` on success. Every call (success or failure) is appended to `quote_submissions.log` (JSONL). |
+| `/api/solicitudes` | POST | Stores quote request in SQLite. Accepts `ai_extraction_result` (object) in the JSON body; serialized as `ai_extraction_json TEXT` in the DB for admin display. |
+| `/admin/solicitudes` | GET | Admin list view with filter tabs, data-source badges (Manual / AI — completo / AI — parcial), and "Ver →" links per row. |
+| `/admin/solicitudes/:id` | GET | **[Task 185]** Admin detail page. Shows customer block, product block, AI extraction snapshot with per-field confidence (amber highlight if < 0.80 or `needs_confirmation`), Estimado del sistema block, status history timeline, and inline status update form. |
 
 ### SMTP Health Monitoring (Task #154)
 
