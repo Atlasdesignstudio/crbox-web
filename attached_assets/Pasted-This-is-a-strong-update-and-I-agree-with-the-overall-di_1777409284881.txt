@@ -1,0 +1,94 @@
+This is a strong update and I agree with the overall direction of #188.
+
+The response composer now looks much closer to the right next step. I want a few final refinements before execution so it stays aligned with the broader architecture we defined.
+
+## What I agree with
+- full detail context remains visible above the composer
+- stable response_json schema
+- positive numeric validation for confirmed price
+- no_disponible does not auto-cancel
+- email send must succeed before DB state is committed
+- read-only “Respuesta enviada” block replacing the form after send
+
+## Refinements required
+
+### 1. Keep the pricing architecture explicit
+I want this task to preserve the architecture we already defined:
+
+- Gemini is for extraction / interpretation / drafting assistance
+- the existing CRBOX calculator/business logic is the source of truth for the preliminary estimate
+- Gemini must not calculate the quote
+
+Please make this explicit in the task and implementation assumptions.
+
+If a request already includes:
+- AI extraction snapshot
+- system preliminary estimate generated from the current calculator logic
+
+then the admin response workflow should use those as context for review, not replace them with any Gemini-generated price logic.
+
+### 2. Add optional internal-only Gemini drafting assistance
+I do want Gemini to be used more here, but safely.
+
+Please evaluate adding a tightly scoped, optional, internal-only assistance block inside the response composer that can:
+
+- suggest polished draft copy for the “Mensaje al cliente” field
+- suggest a short explanation when the reviewed response differs from the system preliminary estimate
+- suggest wording for:
+  - disponible
+  - no disponible
+  - disponible con condiciones
+  - estimate uncertainty caused by missing weight/dimensions or ambiguous page price
+
+Important constraints:
+- this must be optional
+- this must be editable by sales
+- this must never auto-send
+- this must never decide the price
+- this must be framed clearly as internal assistance only
+
+If you think it is safer to keep this out of #188 itself, then define it as the immediate follow-up task after #188.
+
+### 3. Add an internal “difference explanation” concept
+One of the biggest risks in the workflow is when:
+- the customer saw a preliminary estimate
+- sales responds with a reviewed value
+- but the reason for the difference is not clearly explained
+
+Please account for this.
+
+The response workflow should support either:
+- an optional internal-only helper that suggests why the reviewed response differs from the system estimate
+- or an optional customer-facing explanation block that sales can include when relevant
+
+Examples:
+- missing or uncertain weight/dimensions changed the estimate confidence
+- declared value differed from visible page price
+- selected category required review
+- merchant page had ambiguous or incomplete pricing
+- availability conditions affect the reviewed response
+
+This should improve consistency and reduce confusion, but remain human-reviewed.
+
+### 4. Preserve the estimate context visually
+Since the system estimate block is already visible above the composer, keep it clearly visible and unchanged while sales is responding.
+
+The purpose is:
+- sales sees the automatic estimate
+- sales reviews it
+- sales sends the official response
+
+That distinction should remain explicit in the UI and in the data model:
+- Estimado automático
+- Respuesta revisada por CRBOX
+
+## What I want back
+Please revise #188 accordingly.
+
+Best outcome:
+- keep the current core task
+- make the calculator-vs-Gemini boundary explicit
+- add optional Gemini-assisted message drafting/explanation support if it can be done safely
+- otherwise break that Gemini assistance into the immediate next task after #188
+
+Directionally this is the correct next step.

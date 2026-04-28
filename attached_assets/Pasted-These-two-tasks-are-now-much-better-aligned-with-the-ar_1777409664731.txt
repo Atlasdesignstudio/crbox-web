@@ -1,0 +1,118 @@
+These two tasks are now much better aligned with the architecture we defined and I agree with the overall direction.
+
+I especially agree with the following boundaries now being explicit:
+- the existing CRBOX calculator / estimate logic remains the sole source of truth for preliminary pricing
+- Gemini is used for extraction, interpretation, and drafting assistance only
+- sales remains the final human reviewer before anything is sent to the customer
+
+That is the correct model.
+
+I want a few final refinements before execution so #188 and #189 become as strong and operationally useful as possible.
+
+## General agreement
+I agree that:
+
+- #188 should be the response composer that closes the sales loop from the admin detail page
+- #189 should be the immediate follow-up for optional Gemini drafting assistance
+- Gemini should help with wording and explanation, but never with price generation or validation
+- the distinction between Estimado automático del sistema and Respuesta revisada por CRBOX should remain explicit everywhere
+
+## Refinements for #188
+
+### 1. Make the estimate-to-response comparison more explicit for sales
+Since the admin detail page already shows the system preliminary estimate, I want the response composer to make the relationship between:
+- automatic system estimate
+- reviewed response price
+
+more operationally visible.
+
+This does not need to become a new business rule or automated decision layer.
+
+But I do want the UI to clearly surface, near the response composer, something like:
+- Estimado automático del sistema: $X
+- Precio confirmado por ventas: $Y
+
+This can be a simple comparison row or summary line. The goal is to make the manual “Explicación de diferencia con el estimado automático” more grounded and easier for sales to complete consistently.
+
+### 2. Keep the difference explanation field strategically important
+The “Explicación de diferencia con el estimado automático” field is the right addition and should remain.
+It is important because one of the biggest customer-experience risks is when the preliminary estimate and the reviewed response differ without explanation.
+
+Please keep this field clearly positioned as:
+- optional
+- human-reviewed
+- intended to explain meaningful deviations when relevant
+
+### 3. Preserve full context while composing
+The composer must remain embedded in the full admin detail view with all context still visible:
+- customer block
+- product block
+- AI snapshot
+- system estimate
+- status history
+
+Do not collapse or hide those while the sales agent is composing the response.
+
+## Refinements for #189
+
+### 4. Pass structured estimate-difference context into Gemini
+For Gemini drafting assistance, I want the prompt to receive the estimate context in a structured way.
+
+Not for calculation, but for wording quality.
+
+Please include read-only context such as:
+- selected availability
+- system preliminary estimate
+- reviewed response price
+- numeric difference between them if both values exist
+- whether the difference is material or minimal
+
+This should help Gemini draft a better explanation without turning Gemini into the pricing engine.
+
+### 5. Only suggest difference explanation when it is actually needed
+The Gemini-drafted difference_explanation should not be forced every time.
+
+If there is:
+- no system estimate
+- or no meaningful difference between estimate and reviewed response
+
+then the suggested difference_explanation should be blank.
+
+I do not want Gemini inventing unnecessary justification text when the reviewed response is essentially aligned with the system estimate.
+
+### 6. Add a stronger tone rule for Gemini drafting
+The Gemini drafting prompt should explicitly enforce tone:
+
+- professional
+- clear
+- human
+- concise
+- commercially appropriate
+- not robotic
+- not overly legalistic
+- not overly promotional
+- never implying certainty when conditions are present
+- never implying that Gemini itself determined the price
+
+The output should feel like polished CRBOX communication, not generic AI copy.
+
+### 7. Keep Gemini assistance strictly optional and internal
+Please preserve the current boundary:
+- Gemini suggestions are optional
+- Gemini suggestions are editable
+- Gemini suggestions are never auto-sent
+- Gemini suggestions never decide price, availability, or state transitions
+
+That boundary is correct and should not blur.
+
+## Final direction
+So my direction is:
+
+- proceed with #188 with the estimate-vs-reviewed-response comparison made more explicit
+- proceed with #189 as the immediate next task, with:
+  - structured estimate-difference context
+  - blank difference explanation when not materially needed
+  - stronger tone rules
+
+This is now very close to the right model:
+Gemini extracts and helps explain, the calculator estimates, sales reviews and responds, the customer receives a clear CRBOX-reviewed answer.
