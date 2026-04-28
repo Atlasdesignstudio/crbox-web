@@ -1199,10 +1199,12 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,s
   </div>
   <div class="adl-body">
     {alert_html}
-    <form method="POST" action="/admin/login" autocomplete="off">
+    <form method="POST" action="/admin/login">
+      <input type="text" name="username" value="admin" autocomplete="username" style="display:none" aria-hidden="true">
       <label class="adl-label" for="pwd">Contraseña</label>
       <input class="adl-input" type="password" id="pwd" name="password"
-             autofocus required placeholder="Ingresa la contraseña" maxlength="200">
+             autofocus required placeholder="Ingresa la contraseña" maxlength="200"
+             autocomplete="current-password">
       <button class="adl-btn" type="submit">Ingresar</button>
     </form>
   </div>
