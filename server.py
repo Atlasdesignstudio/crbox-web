@@ -4126,16 +4126,21 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return
 
         # ── Build context for prompt ─────────────────────────────────────
-        # System estimate — parse from estimate_breakdown if available
+        # system_estimate_usd: canonical value stored by the calculator engine
+        # at solicitud submission time. estimate_breakdown is metadata only.
         system_estimate_usd = row.get('estimate_usd')
         estimate_is_complete = False
         if system_estimate_usd is not None:
-            # Complete only if weight and at least one dimension were provided
+            # Complete only if weight AND all three dimensions were provided
+            # (missing any one of them means the calculator used volumetric estimates)
             estimate_is_complete = bool(
-                row.get('weight_kg') and (row.get('length_cm') or row.get('height_cm'))
+                row.get('weight_kg') is not None
+                and row.get('length_cm') is not None
+                and row.get('width_cm') is not None
+                and row.get('height_cm') is not None
             )
 
-        # AI extraction weak fields
+        # AI extraction weak fields — strictly confidence < 0.80 per spec
         ai_weak_fields = []
         ai_has_weak = False
         ai_json_raw = row.get('ai_extraction_json') or None
@@ -4144,11 +4149,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 ai_data = json.loads(ai_json_raw)
                 for fname, fdata in (ai_data.get('fields') or {}).items():
                     conf = float(fdata.get('confidence', 0.0) or 0.0)
-                    prov = fdata.get('provenance', 'missing')
-                    if conf < 0.80 or prov in ('needs_confirmation', 'missing'):
-                        if fdata.get('value') is not None:
-                            ai_weak_fields.append(fname)
-                            ai_has_weak = True
+                    if conf < 0.80:
+                        ai_weak_fields.append(fname)
+                        ai_has_weak = True
             except Exception:
                 pass
 
