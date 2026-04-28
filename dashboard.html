@@ -1055,6 +1055,34 @@
     });
   }
 
+  var _SOL_ACTIVE_STATUSES = ['enviada', 'en_revision', 'respondida', 'pendiente_compra_crbox', 'pendiente_compra_cliente'];
+
+  function _loadSolicitudesBadge() {
+    var token = CRBOXAuth.getToken();
+    var email = CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '';
+    if (!token || !email) return;
+    fetch('/api/solicitudes', {
+      headers: { 'Authorization': 'Bearer ' + token, 'X-Casillero-Email': email }
+    }).then(function (res) {
+      if (!res.ok) return null;
+      return res.json();
+    }).then(function (data) {
+      if (!data || !data.solicitudes) return;
+      var count = data.solicitudes.filter(function (s) {
+        return _SOL_ACTIVE_STATUSES.indexOf(s.status) !== -1;
+      }).length;
+      var badge = document.getElementById('dash-sol-badge');
+      if (badge) {
+        if (count > 0) {
+          badge.textContent = count;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+    }).catch(function () {});
+  }
+
   function _loadDashboard() {
     if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
 
@@ -1077,6 +1105,7 @@
         var c = (info && info.Consignee) ? info.Consignee : info;
         var idCons = c && (c.idconsignee || c.IdConsignee);
         if (idCons) _loadCaminoStat(idCons);
+        _loadSolicitudesBadge();
       })
       .catch(function (err) {
         if (err && err.isAuthError) return; // redirect already in flight from portal-api.js

@@ -276,7 +276,92 @@
 
                 <!-- Respondida -->
                 <div id="panel-responded" class="hidden mb-5">
-                    <div class="flex items-start gap-3 bg-green-50 border border-green-200 rounded-2xl px-5 py-4">
+                    <!-- Rich response display (when response_json exists) -->
+                    <div id="resp-block" class="hidden">
+                        <div class="bg-green-50 border border-green-200 rounded-2xl overflow-hidden">
+                            <div class="flex items-center gap-2.5 px-5 py-4 border-b border-green-100">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                                <p class="text-sm font-semibold text-green-900">CRBOX revisó tu solicitud</p>
+                            </div>
+                            <div class="px-5 py-4 space-y-2.5">
+                                <div id="resp-price-row" class="hidden flex items-start gap-2">
+                                    <span class="text-xs text-green-700 font-medium min-w-[8rem] flex-shrink-0 pt-0.5">Precio de envío</span>
+                                    <span id="resp-price" class="text-sm font-bold text-green-900"></span>
+                                </div>
+                                <div id="resp-avail-row" class="hidden flex items-start gap-2">
+                                    <span class="text-xs text-green-700 font-medium min-w-[8rem] flex-shrink-0 pt-0.5">Disponibilidad</span>
+                                    <span id="resp-avail" class="text-sm text-green-900"></span>
+                                </div>
+                                <div id="resp-timeline-row" class="hidden flex items-start gap-2">
+                                    <span class="text-xs text-green-700 font-medium min-w-[8rem] flex-shrink-0 pt-0.5">Tiempo estimado</span>
+                                    <span id="resp-timeline" class="text-sm text-green-900"></span>
+                                </div>
+                                <div id="resp-conditions-row" class="hidden flex items-start gap-2">
+                                    <span class="text-xs text-green-700 font-medium min-w-[8rem] flex-shrink-0 pt-0.5">Condiciones</span>
+                                    <span id="resp-conditions" class="text-sm text-green-900"></span>
+                                </div>
+                                <div id="resp-message-row" class="hidden pt-1">
+                                    <p class="text-xs text-green-700 font-medium mb-1.5">Mensaje de CRBOX</p>
+                                    <p id="resp-message" class="text-sm text-green-800 bg-white rounded-xl px-4 py-3 border border-green-100 leading-relaxed"></p>
+                                </div>
+                            </div>
+                            <div class="px-5 pb-4">
+                                <p class="text-xs text-green-600 flex items-center gap-1.5">
+                                    <i class="fas fa-envelope text-xs"></i>
+                                    También enviamos esta respuesta a tu correo (<span id="resp-email" class="font-medium"></span>).
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- ¿Cómo deseas proceder? -->
+                        <div id="resp-intent-section" class="mt-5">
+                            <p class="text-sm font-semibold text-gray-700 mb-3">¿Cómo deseas proceder?</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <!-- Comprar con CRBOX -->
+                                <div class="bg-white border-2 border-orange-200 rounded-2xl p-4 flex flex-col gap-3 hover:border-orange-400 hover:shadow-sm transition-all">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-shopping-cart text-orange-500 text-sm"></i>
+                                        </div>
+                                        <p class="font-semibold text-gray-900 text-sm">Comprar con CRBOX</p>
+                                    </div>
+                                    <p class="text-xs text-gray-600 leading-relaxed">CRBOX puede encargarse de todo el proceso de compra por ti. Solo necesitarás realizar por adelantado el pago correspondiente al producto cotizado, para que podamos gestionarlo en tu nombre.</p>
+                                    <button id="btn-intent-crbox"
+                                        class="w-full mt-auto py-2.5 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold transition-colors active:scale-95"
+                                        style="min-height:40px;">
+                                        Quiero que CRBOX compre por mí
+                                    </button>
+                                </div>
+
+                                <!-- Lo compraré por mi cuenta -->
+                                <div class="bg-white border-2 border-gray-200 rounded-2xl p-4 flex flex-col gap-3 hover:border-gray-400 hover:shadow-sm transition-all">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-user text-gray-500 text-sm"></i>
+                                        </div>
+                                        <p class="font-semibold text-gray-900 text-sm">Lo compraré por mi cuenta</p>
+                                    </div>
+                                    <p class="text-xs text-gray-600 leading-relaxed">Tú realizas la compra directamente. El portal mantendrá el registro de este paquete esperado para que CRBOX pueda darle seguimiento cuando llegue a Miami.</p>
+                                    <button id="btn-intent-cliente"
+                                        class="w-full mt-auto py-2.5 px-4 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-semibold transition-colors active:scale-95"
+                                        style="min-height:40px;">
+                                        Yo realizaré la compra
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- No continuar: low emphasis -->
+                            <div class="mt-3 text-center">
+                                <button id="btn-intent-cancel"
+                                    class="text-xs text-gray-400 hover:text-red-500 transition-colors hover:underline underline-offset-2">
+                                    No deseo continuar con esta solicitud
+                                </button>
+                            </div>
+                            <p id="intent-error" class="hidden text-xs text-red-600 mt-2 text-center"></p>
+                        </div>
+                    </div>
+
+                    <!-- Fallback when no response_json (legacy / pre-#188 records) -->
+                    <div id="resp-fallback" class="flex items-start gap-3 bg-green-50 border border-green-200 rounded-2xl px-5 py-4">
                         <i class="fas fa-envelope text-green-500 mt-0.5 flex-shrink-0"></i>
                         <div>
                             <p class="text-sm text-green-900 font-semibold mb-0.5">CRBOX respondió a esta solicitud</p>
@@ -284,6 +369,53 @@
                                 Revisa tu correo (<strong id="panel-responded-email" class="font-medium"></strong>) para ver los detalles del precio final.
                             </p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- pendiente_compra_crbox -->
+                <div id="panel-pending-crbox" class="hidden mb-5">
+                    <div class="flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-2xl px-5 py-4">
+                        <i class="fas fa-shopping-cart text-orange-500 mt-0.5 flex-shrink-0"></i>
+                        <div>
+                            <p class="text-sm font-semibold text-orange-900 mb-0.5">CRBOX gestionará tu compra</p>
+                            <p class="text-sm text-orange-800">CRBOX comprará este producto en tu nombre y te contactará con los próximos pasos cuando corresponda.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- pendiente_compra_cliente -->
+                <div id="panel-pending-cliente" class="hidden mb-5">
+                    <div class="bg-blue-50 border border-blue-200 rounded-2xl overflow-hidden">
+                        <div class="flex items-start gap-3 px-5 pt-4 pb-3">
+                            <i class="fas fa-box-open text-blue-500 mt-0.5 flex-shrink-0"></i>
+                            <div>
+                                <p class="text-sm font-semibold text-blue-900 mb-0.5">Paquete esperado</p>
+                                <p class="text-sm text-blue-800">Cuando CRBOX registre el paquete en Miami, intentaremos relacionarlo automáticamente con esta solicitud.</p>
+                            </div>
+                        </div>
+                        <div class="px-5 pb-4 border-t border-blue-100 pt-3">
+                            <p class="text-xs text-blue-700 mb-2">Si ya tienes el número de seguimiento, agrégalo aquí para ayudarnos a relacionar el paquete más fácilmente cuando llegue.</p>
+                            <div class="flex gap-2">
+                                <input id="tracking-input" type="text" placeholder="ej. 1Z999AA10123456784"
+                                    class="flex-1 px-3 py-2 text-sm border border-blue-200 rounded-xl bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 min-w-0">
+                                <button id="btn-save-tracking"
+                                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-colors active:scale-95 whitespace-nowrap flex-shrink-0"
+                                    style="min-height:40px;">Guardar</button>
+                            </div>
+                            <p id="tracking-saved-notice" class="hidden text-xs text-green-600 mt-1.5 flex items-center gap-1"><i class="fas fa-check-circle"></i> Número guardado correctamente.</p>
+                            <p id="tracking-error" class="hidden text-xs text-red-600 mt-1.5"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- linked_package_id — shown in any state when a package is linked -->
+                <div id="panel-linked-package" class="hidden mb-5">
+                    <div class="flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-2xl px-5 py-3">
+                        <i class="fas fa-link text-purple-400 flex-shrink-0 text-sm"></i>
+                        <p class="text-sm text-purple-800">
+                            Paquete relacionado:
+                            <a id="linked-package-link" href="mis-paquetes.html" class="font-semibold text-purple-900 hover:underline ml-1"></a>
+                        </p>
                     </div>
                 </div>
 

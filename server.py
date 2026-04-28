@@ -440,23 +440,27 @@ _DB_PATH = 'solicitudes.db'
 _DB_LOCK = threading.Lock()
 
 _LEGAL_TRANSITIONS = {
-    'enviada':     {'en_revision', 'respondida', 'cancelada', 'expirada'},
-    'en_revision': {'respondida', 'cancelada', 'expirada'},
-    'respondida':  {'completada', 'cancelada'},
-    'completada':  set(),
-    'cancelada':   set(),
-    'expirada':    set(),
+    'enviada':                {'en_revision', 'respondida', 'cancelada', 'expirada'},
+    'en_revision':            {'respondida', 'cancelada', 'expirada'},
+    'respondida':             {'completada', 'cancelada', 'pendiente_compra_crbox', 'pendiente_compra_cliente'},
+    'pendiente_compra_crbox': {'completada', 'cancelada'},
+    'pendiente_compra_cliente': {'completada', 'cancelada'},
+    'completada':             set(),
+    'cancelada':              set(),
+    'expirada':               set(),
 }
 
 # Admin panel enforces stricter progression: enviada must go through en_revision
 # before being marked respondida (no skip allowed).
 _ADMIN_LEGAL_TRANSITIONS = {
-    'enviada':     {'en_revision', 'cancelada'},
-    'en_revision': {'respondida', 'cancelada'},
-    'respondida':  {'completada', 'cancelada'},
-    'completada':  set(),
-    'cancelada':   set(),
-    'expirada':    set(),
+    'enviada':                {'en_revision', 'cancelada'},
+    'en_revision':            {'respondida', 'cancelada'},
+    'respondida':             {'completada', 'cancelada', 'pendiente_compra_crbox', 'pendiente_compra_cliente'},
+    'pendiente_compra_crbox': {'completada', 'cancelada'},
+    'pendiente_compra_cliente': {'completada', 'cancelada'},
+    'completada':             set(),
+    'cancelada':              set(),
+    'expirada':               set(),
 }
 
 _DEV_SALES_TOKEN = 'crbox-dev-sales-token-2026'
@@ -536,6 +540,10 @@ def _init_db():
             conn.execute('ALTER TABLE quote_requests ADD COLUMN response_json TEXT')
             conn.commit()
             print('[SOLICITUDES] Added response_json column to quote_requests')
+        if 'expected_tracking_number' not in existing_cols:
+            conn.execute('ALTER TABLE quote_requests ADD COLUMN expected_tracking_number TEXT')
+            conn.commit()
+            print('[SOLICITUDES] Added expected_tracking_number column to quote_requests')
         conn.close()
     print('[SOLICITUDES] SQLite schema initialised OK')
 
@@ -1726,12 +1734,14 @@ def _admin_format_date(iso_str):
 
 
 _ADMIN_BADGE_CFG = {
-    'enviada':     ('#FFF7ED', '#C2410C', '#FDBA74', 'Enviada'),
-    'en_revision': ('#EFF6FF', '#1D4ED8', '#BFDBFE', 'En revisión'),
-    'respondida':  ('#F0FDF4', '#15803D', '#BBF7D0', 'Respondida'),
-    'completada':  ('#F9FAFB', '#374151', '#D1D5DB', 'Completada'),
-    'cancelada':   ('#FEF2F2', '#991B1B', '#FECACA', 'Cancelada'),
-    'expirada':    ('#F9FAFB', '#6B7280', '#E5E7EB', 'Expirada'),
+    'enviada':                  ('#FFF7ED', '#C2410C', '#FDBA74', 'Enviada'),
+    'en_revision':              ('#EFF6FF', '#1D4ED8', '#BFDBFE', 'En revisión'),
+    'respondida':               ('#F0FDF4', '#15803D', '#BBF7D0', 'Respondida'),
+    'pendiente_compra_crbox':   ('#FFF7ED', '#9A3412', '#FED7AA', 'Compra CRBOX'),
+    'pendiente_compra_cliente': ('#EFF6FF', '#1E40AF', '#BFDBFE', 'Compra propia'),
+    'completada':               ('#F9FAFB', '#374151', '#D1D5DB', 'Completada'),
+    'cancelada':                ('#FEF2F2', '#991B1B', '#FECACA', 'Cancelada'),
+    'expirada':                 ('#F9FAFB', '#6B7280', '#E5E7EB', 'Expirada'),
 }
 
 def _admin_badge_html(status, rid):
@@ -1744,15 +1754,17 @@ def _admin_badge_html(status, rid):
 
 def _admin_status_options_html(current_status):
     labels = {
-        'enviada':     'Enviada',
-        'en_revision': 'En revisión',
-        'respondida':  'Respondida',
-        'completada':  'Completada',
-        'cancelada':   'Cancelada',
-        'expirada':    'Expirada',
+        'enviada':                 'Enviada',
+        'en_revision':             'En revisión',
+        'respondida':              'Respondida',
+        'pendiente_compra_crbox':  'Compra por CRBOX',
+        'pendiente_compra_cliente':'Compra propia',
+        'completada':              'Completada',
+        'cancelada':               'Cancelada',
+        'expirada':                'Expirada',
     }
     transitions = _ADMIN_LEGAL_TRANSITIONS.get(current_status, set())
-    order = ['en_revision', 'respondida', 'completada', 'cancelada']
+    order = ['en_revision', 'respondida', 'pendiente_compra_crbox', 'pendiente_compra_cliente', 'completada', 'cancelada']
     opts = [
         f'<option value="" disabled selected>— Cambiar a —</option>'
     ]
@@ -2837,6 +2849,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         else:
             m_status       = re.match(r'^/api/solicitudes/(SCB-\d+)/status$', self.path)
             m_cancel       = re.match(r'^/api/solicitudes/(SCB-\d+)/cancel$', self.path)
+            m_intent       = re.match(r'^/api/solicitudes/(SCB-\d+)/intent$', self.path)
+            m_tracking     = re.match(r'^/api/solicitudes/(SCB-\d+)/tracking$', self.path)
             m_admin_status   = re.match(r'^/admin/solicitudes/(SCB-\d+)/status$', self.path)
             m_admin_respond  = re.match(r'^/admin/solicitudes/(SCB-\d+)/respond$', self.path)
             m_admin_suggest  = re.match(r'^/admin/solicitudes/(SCB-\d+)/suggest-draft$', self.path)
@@ -2844,6 +2858,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_solicitudes_status(m_status.group(1))
             elif m_cancel:
                 self._handle_cancel_solicitud(m_cancel.group(1))
+            elif m_intent:
+                self._handle_solicitudes_intent(m_intent.group(1))
+            elif m_tracking:
+                self._handle_solicitudes_tracking(m_tracking.group(1))
             elif m_admin_status:
                 self._handle_admin_solicitudes_status(m_admin_status.group(1))
             elif m_admin_respond:
@@ -3593,6 +3611,154 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             print(f'[SOLICITUDES] Cancel error: {exc}')
             self._json_response(500, {'ok': False, 'error': 'Error interno.'})
 
+    # ── POST /api/solicitudes/:id/intent ───────────────────────────────────
+    def _handle_solicitudes_intent(self, scb_id):
+        """Portal-auth endpoint. Customer confirms their intent after seeing a response.
+
+        Body: {"intent": "crbox" | "cliente" | "cancel"}
+        - crbox    → pendiente_compra_crbox
+        - cliente  → pendiente_compra_cliente
+        - cancel   → cancelada
+        Only valid when current status is "respondida".
+        """
+        casillero_id = self._portal_auth()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            return
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            raw = self.rfile.read(length).decode('utf-8')
+            data = json.loads(raw)
+        except Exception:
+            self._json_response(400, {'ok': False, 'error': 'Solicitud inválida.'})
+            return
+
+        intent = (data.get('intent') or '').strip()
+        _INTENT_MAP = {
+            'crbox':   'pendiente_compra_crbox',
+            'cliente': 'pendiente_compra_cliente',
+            'cancel':  'cancelada',
+        }
+        if intent not in _INTENT_MAP:
+            self._json_response(400, {'ok': False, 'error': f'Intent inválido: {intent}'})
+            return
+
+        new_status = _INTENT_MAP[intent]
+        _INTENT_NOTES = {
+            'pendiente_compra_crbox':   'Cliente confirmó: CRBOX comprará el producto en su nombre',
+            'pendiente_compra_cliente': 'Cliente confirmó: comprará por su cuenta',
+            'cancelada':                'Cliente decidió no continuar',
+        }
+
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row = conn.execute(
+                    'SELECT * FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+                if row is None:
+                    conn.close()
+                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    return
+                row_dict = dict(row)
+                row_cas = (row_dict.get('casillero_id') or '').strip()
+                if not row_cas or row_cas != casillero_id:
+                    conn.close()
+                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    return
+                if row_dict.get('status') != 'respondida':
+                    conn.close()
+                    self._json_response(400, {
+                        'ok': False,
+                        'error': 'Solo se puede confirmar una intención en solicitudes respondidas.'
+                    })
+                    return
+
+                now_iso = _now_iso()
+                hist_id = _uuid4_hex()
+                extra_col = ', cancelled_at = ?' if new_status == 'cancelada' else ''
+                extra_val = (now_iso,)             if new_status == 'cancelada' else ()
+
+                conn.execute(
+                    f'UPDATE quote_requests SET status = ?{extra_col} WHERE id = ?',
+                    (new_status,) + extra_val + (scb_id,)
+                )
+                conn.execute(
+                    '''INSERT INTO quote_status_history
+                       (id, quote_request_id, from_status, to_status, changed_at, changed_by, note)
+                       VALUES (?,?,?,?,?,?,?)''',
+                    (hist_id, scb_id, 'respondida', new_status, now_iso, 'user',
+                     _INTENT_NOTES.get(new_status, ''))
+                )
+                conn.commit()
+                conn.close()
+
+            print(f'[SOLICITUDES] Intent: {scb_id} respondida → {new_status} (casillero {casillero_id})')
+            self._json_response(200, {'ok': True, 'id': scb_id, 'new_status': new_status})
+        except Exception as exc:
+            print(f'[SOLICITUDES] Intent error: {exc}')
+            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+
+    # ── POST /api/solicitudes/:id/tracking ─────────────────────────────────
+    def _handle_solicitudes_tracking(self, scb_id):
+        """Portal-auth endpoint. Customer saves (or updates) the expected tracking number.
+
+        Body: {"tracking_number": "..."}
+        Only valid when current status is "pendiente_compra_cliente".
+        """
+        casillero_id = self._portal_auth()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            return
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            raw = self.rfile.read(length).decode('utf-8')
+            data = json.loads(raw)
+        except Exception:
+            self._json_response(400, {'ok': False, 'error': 'Solicitud inválida.'})
+            return
+
+        tracking = (data.get('tracking_number') or '').strip()
+        if not tracking:
+            self._json_response(400, {'ok': False, 'error': 'Número de seguimiento requerido.'})
+            return
+
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row = conn.execute(
+                    'SELECT status, casillero_id FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+                if row is None:
+                    conn.close()
+                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    return
+                row_dict = dict(row)
+                row_cas = (row_dict.get('casillero_id') or '').strip()
+                if not row_cas or row_cas != casillero_id:
+                    conn.close()
+                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    return
+                if row_dict.get('status') != 'pendiente_compra_cliente':
+                    conn.close()
+                    self._json_response(400, {
+                        'ok': False,
+                        'error': 'Esta acción solo aplica a solicitudes con compra propia pendiente.'
+                    })
+                    return
+                conn.execute(
+                    'UPDATE quote_requests SET expected_tracking_number = ? WHERE id = ?',
+                    (tracking, scb_id)
+                )
+                conn.commit()
+                conn.close()
+
+            print(f'[SOLICITUDES] Tracking saved: {scb_id} → {tracking}')
+            self._json_response(200, {'ok': True, 'id': scb_id, 'tracking_number': tracking})
+        except Exception as exc:
+            print(f'[SOLICITUDES] Tracking error: {exc}')
+            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+
     # ── /crbox-svc-token ───────────────────────────────────────────────────
     def _handle_svc_token(self):
         # NOTE: The origin/host sameness check was removed.
@@ -3745,7 +3911,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
             filter_val = 'all'
 
-        active_statuses   = ('enviada', 'en_revision')
+        active_statuses   = ('enviada', 'en_revision', 'pendiente_compra_crbox', 'pendiente_compra_cliente')
         responded_statuses= ('respondida',)
         archived_statuses = ('completada', 'cancelada', 'expirada')
 
