@@ -1015,6 +1015,522 @@ def _quote_text_to_html(body_text):
     return '\n'.join(out)
 
 
+# ─── Admin panel ─────────────────────────────────────────────────────────────
+_admin_sessions      = {}           # token → expiry_ts
+_admin_sessions_lock = threading.Lock()
+_admin_brute_state   = {}           # ip → [fail_monotonic_ts, ...]
+_admin_brute_lock    = threading.Lock()
+
+_ADMIN_SESSION_TTL  = 8 * 3600     # 8 hours
+_ADMIN_BRUTE_MAX    = 5
+_ADMIN_BRUTE_WINDOW = 600           # 10-minute failure window
+_ADMIN_BRUTE_BLOCK  = 600           # 10-minute block
+
+
+def _admin_password():
+    return os.environ.get('ADMIN_PASSWORD', '').strip() or None
+
+
+def _admin_create_session():
+    token = _uuid4_hex() + _uuid4_hex()   # 64-char hex
+    expiry = time.time() + _ADMIN_SESSION_TTL
+    with _admin_sessions_lock:
+        _admin_sessions[token] = expiry
+    return token
+
+
+def _admin_validate_session(token):
+    if not token:
+        return False
+    with _admin_sessions_lock:
+        expiry = _admin_sessions.get(token)
+        if expiry is None:
+            return False
+        if time.time() > expiry:
+            del _admin_sessions[token]
+            return False
+        return True
+
+
+def _admin_clear_session(token):
+    with _admin_sessions_lock:
+        _admin_sessions.pop(token, None)
+
+
+def _admin_brute_blocked(ip):
+    """Return (blocked, remaining_seconds)."""
+    now = time.monotonic()
+    with _admin_brute_lock:
+        timestamps = [t for t in _admin_brute_state.get(ip, [])
+                      if now - t < _ADMIN_BRUTE_WINDOW]
+        _admin_brute_state[ip] = timestamps
+        if len(timestamps) >= _ADMIN_BRUTE_MAX:
+            oldest = timestamps[0]
+            remaining = max(0, int(oldest + _ADMIN_BRUTE_BLOCK - now))
+            if remaining > 0:
+                return True, remaining
+            _admin_brute_state[ip] = []
+    return False, 0
+
+
+def _admin_brute_record_fail(ip):
+    now = time.monotonic()
+    with _admin_brute_lock:
+        ts_list = _admin_brute_state.get(ip, [])
+        ts_list = [t for t in ts_list if now - t < _ADMIN_BRUTE_WINDOW]
+        ts_list.append(now)
+        _admin_brute_state[ip] = ts_list
+
+
+def _admin_elapsed(iso_str):
+    """Return Spanish relative time string from a UTC ISO timestamp."""
+    try:
+        struct = time.strptime(iso_str[:19], '%Y-%m-%dT%H:%M:%S')
+        ts    = calendar.timegm(struct)
+        diff  = int(time.time() - ts)
+    except Exception:
+        return ''
+    if diff < 120:
+        return 'hace un momento'
+    if diff < 3600:
+        m = diff // 60
+        return f'hace {m} min'
+    if diff < 86400:
+        h = diff // 3600
+        return f'hace {h}h'
+    d = diff // 86400
+    return f'hace {d} día{"s" if d != 1 else ""}'
+
+
+def _admin_format_date(iso_str):
+    try:
+        struct = time.strptime(iso_str[:19], '%Y-%m-%dT%H:%M:%S')
+        return time.strftime('%d/%m/%Y %H:%M', struct)
+    except Exception:
+        return iso_str or ''
+
+
+def _admin_status_badge_html(status):
+    cfg = {
+        'enviada':     ('#FFF7ED', '#C2410C', '#FDBA74', 'Enviada'),
+        'en_revision': ('#EFF6FF', '#1D4ED8', '#BFDBFE', 'En revisión'),
+        'respondida':  ('#F0FDF4', '#15803D', '#BBF7D0', 'Respondida'),
+        'completada':  ('#F9FAFB', '#374151', '#D1D5DB', 'Completada'),
+        'cancelada':   ('#FEF2F2', '#991B1B', '#FECACA', 'Cancelada'),
+        'expirada':    ('#F9FAFB', '#6B7280', '#E5E7EB', 'Expirada'),
+    }
+    bg, fg, border, label = cfg.get(status, ('#F9FAFB', '#374151', '#D1D5DB', status))
+    return (
+        f'<span class="adm-badge" id="badge-{{}}" '
+        f'style="background:{bg};color:{fg};border-color:{border};">{label}</span>'
+    )
+
+
+def _admin_status_options_html(current_status):
+    labels = {
+        'enviada':     'Enviada',
+        'en_revision': 'En revisión',
+        'respondida':  'Respondida',
+        'completada':  'Completada',
+        'cancelada':   'Cancelada',
+        'expirada':    'Expirada',
+    }
+    transitions = _LEGAL_TRANSITIONS.get(current_status, set())
+    order = ['en_revision', 'respondida', 'completada', 'cancelada']
+    opts = [
+        f'<option value="" disabled selected>— Cambiar a —</option>'
+    ]
+    for nxt in order:
+        if nxt in transitions:
+            opts.append(f'<option value="{nxt}">{labels.get(nxt, nxt)}</option>')
+    return '\n'.join(opts)
+
+
+def _build_admin_login_html(error='', blocked_secs=0):
+    esc = _html.escape
+    if blocked_secs > 0:
+        mins = (blocked_secs + 59) // 60
+        alert_html = (
+            f'<div class="adl-alert adl-alert-block">Demasiados intentos fallidos. '
+            f'Espera {mins} minuto{"s" if mins != 1 else ""} e intenta de nuevo.</div>'
+        )
+    elif error:
+        alert_html = f'<div class="adl-alert">{esc(error)}</div>'
+    else:
+        alert_html = ''
+
+    return f'''<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Panel de ventas — CRBOX</title>
+<style>
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
+  background:#f3f4f6;min-height:100vh;display:flex;align-items:center;
+  justify-content:center;padding:16px}}
+.adl-card{{background:#fff;border-radius:14px;
+  box-shadow:0 4px 24px rgba(0,0,0,.10);width:100%;max-width:380px;overflow:hidden}}
+.adl-header{{background:linear-gradient(135deg,#FF6B00,#FF9A00);padding:28px 24px}}
+.adl-header-logo{{color:#fff;font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}}
+.adl-header-sub{{color:rgba(255,255,255,.85);font-size:13px}}
+.adl-body{{padding:28px 24px}}
+.adl-label{{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px}}
+.adl-input{{width:100%;border:1.5px solid #D1D5DB;border-radius:8px;padding:11px 14px;
+  font-size:15px;outline:none;transition:border-color .2s,box-shadow .2s;
+  font-family:inherit}}
+.adl-input:focus{{border-color:#FF6B00;box-shadow:0 0 0 3px rgba(255,107,0,.12)}}
+.adl-btn{{display:block;width:100%;background:#FF6B00;color:#fff;border:none;
+  border-radius:8px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;
+  margin-top:20px;transition:background .2s;font-family:inherit}}
+.adl-btn:hover{{background:#E05A00}}
+.adl-alert{{margin-bottom:16px;padding:11px 14px;border-radius:8px;font-size:13px;
+  background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}}
+.adl-alert-block{{background:#FFF7ED;color:#C2410C;border-color:#FDBA74}}
+</style>
+</head>
+<body>
+<div class="adl-card">
+  <div class="adl-header">
+    <div class="adl-header-logo">CRBOX</div>
+    <div class="adl-header-sub">Panel de ventas &mdash; acceso interno</div>
+  </div>
+  <div class="adl-body">
+    {alert_html}
+    <form method="POST" action="/admin/login" autocomplete="off">
+      <label class="adl-label" for="pwd">Contraseña</label>
+      <input class="adl-input" type="password" id="pwd" name="password"
+             autofocus required placeholder="Ingresa la contraseña" maxlength="200">
+      <button class="adl-btn" type="submit">Ingresar</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>'''
+
+
+def _build_admin_solicitudes_html(rows, filter_val, counts):
+    esc = _html.escape
+    # ── Filter tabs ────────────────────────────────────────────────────────
+    tab_defs = [
+        ('all',        f'Todas ({counts["all"]})'),
+        ('activas',    f'Activas ({counts["activas"]})'),
+        ('respondidas',f'Respondidas ({counts["respondidas"]})'),
+        ('archivadas', f'Archivadas ({counts["archivadas"]})'),
+    ]
+    tabs_html = ''
+    for key, label in tab_defs:
+        active = 'adm-tab-active' if key == filter_val else ''
+        tabs_html += (
+            f'<a href="/admin/solicitudes?filter={key}" '
+            f'class="adm-tab {active}">{label}</a>\n'
+        )
+
+    # ── Table rows + card rows ─────────────────────────────────────────────
+    table_rows = ''
+    card_rows  = ''
+    for r in rows:
+        rid      = esc(r['id'])
+        name     = esc(r['customer_name'] or '—')
+        email_v  = esc(r['customer_email'])
+        acct     = r['account_type'] or 'anonymous'
+        empresa  = '<span class="adm-empresa">EMPRESA</span>' if acct == 'business' else ''
+        prod     = esc((r['product_name'] or '')[:50])
+        cat      = esc(r['category'] or '')
+        val      = f"${r['declared_value_usd']:,.2f}" if r['declared_value_usd'] else '—'
+        date_str = _admin_format_date(r['submitted_at'])
+        elapsed  = _admin_elapsed(r['submitted_at'])
+        status   = r['status']
+        transitions = _LEGAL_TRANSITIONS.get(status, set())
+        has_transitions = bool(transitions)
+
+        # Status badge
+        cfg = {
+            'enviada':     ('#FFF7ED', '#C2410C', '#FDBA74', 'Enviada'),
+            'en_revision': ('#EFF6FF', '#1D4ED8', '#BFDBFE', 'En revisión'),
+            'respondida':  ('#F0FDF4', '#15803D', '#BBF7D0', 'Respondida'),
+            'completada':  ('#F9FAFB', '#374151', '#D1D5DB', 'Completada'),
+            'cancelada':   ('#FEF2F2', '#991B1B', '#FECACA', 'Cancelada'),
+            'expirada':    ('#F9FAFB', '#6B7280', '#E5E7EB', 'Expirada'),
+        }
+        bg, fg, bdr, slabel = cfg.get(status, ('#F9FAFB', '#374151', '#D1D5DB', status))
+        badge_html = (
+            f'<span class="adm-badge" id="badge-{rid}" '
+            f'style="background:{bg};color:{fg};border-color:{bdr};">{slabel}</span>'
+        )
+
+        # Update controls
+        if has_transitions:
+            sel_opts = _admin_status_options_html(status)
+            update_html = f'''<select class="adm-select" id="sel-{rid}">{sel_opts}</select>
+<textarea class="adm-note" id="note-{rid}" placeholder="Nota interna (opcional)" rows="2"></textarea>
+<button class="adm-upd-btn" onclick="doUpdate('{rid}',this)" type="button">Actualizar</button>'''
+        else:
+            update_html = '<span style="color:#9ca3af;font-size:12px;">—</span>'
+
+        # Table row
+        table_rows += f'''<tr data-id="{rid}">
+<td class="td-id"><a href="https://clients.crbox.cr" style="color:#FF6B00;font-weight:700;font-size:13px;text-decoration:none;">{rid}</a></td>
+<td><div style="font-weight:600;font-size:13px;">{name}{empresa}</div>
+    <div style="color:#6b7280;font-size:12px;margin-top:2px;">{email_v}</div></td>
+<td><div style="font-size:13px;font-weight:500;">{prod}</div>
+    <div style="color:#9ca3af;font-size:11px;margin-top:2px;">{cat}</div></td>
+<td style="font-size:13px;white-space:nowrap;">{val}</td>
+<td><div style="font-size:13px;white-space:nowrap;">{date_str}</div>
+    <div style="color:#9ca3af;font-size:11px;margin-top:2px;">{elapsed}</div></td>
+<td id="badge-cell-{rid}">{badge_html}</td>
+<td class="td-upd">{update_html}</td>
+</tr>\n'''
+
+        # Card (mobile)
+        card_rows += f'''<div class="adm-card" data-id="{rid}">
+<div class="adm-card-top">
+  <div>
+    <span class="adm-card-id">{rid}</span>{empresa}
+  </div>
+  <div id="badge-cell-{rid}-m">{badge_html}</div>
+</div>
+<div class="adm-card-fields">
+  <div class="adm-card-row"><span class="adm-card-lbl">Cliente</span><span class="adm-card-val">{name}</span></div>
+  <div class="adm-card-row"><span class="adm-card-lbl">Email</span><span class="adm-card-val" style="font-size:11px;">{email_v}</span></div>
+  <div class="adm-card-row"><span class="adm-card-lbl">Producto</span><span class="adm-card-val">{prod}</span></div>
+  <div class="adm-card-row"><span class="adm-card-lbl">Valor</span><span class="adm-card-val">{val}</span></div>
+  <div class="adm-card-row"><span class="adm-card-lbl">Fecha</span><span class="adm-card-val">{date_str} &middot; {elapsed}</span></div>
+</div>
+{(f"""<div class="adm-card-actions">
+  <select class="adm-select" id="sel-{rid}-m">{_admin_status_options_html(status)}</select>
+  <textarea class="adm-note" id="note-{rid}-m" placeholder="Nota interna (opcional)" rows="2"></textarea>
+  <button class="adm-upd-btn" onclick="doUpdateM('{rid}',this)" type="button">Actualizar</button>
+</div>""") if has_transitions else ''}
+</div>\n'''
+
+    # ── Empty state ────────────────────────────────────────────────────────
+    if not rows:
+        empty_html = '''<div class="adm-empty">
+<div style="font-size:36px;margin-bottom:12px;">📭</div>
+<h3>Sin solicitudes en esta vista</h3>
+<p>No hay solicitudes que coincidan con el filtro seleccionado.</p>
+</div>'''
+        table_body_html = f'<tr><td colspan="7">{empty_html}</td></tr>'
+        cards_html      = empty_html
+    else:
+        table_body_html = table_rows
+        cards_html      = card_rows
+
+    n = len(rows)
+    count_label = f'{n} solicitud{"es" if n != 1 else ""}'
+
+    return f'''<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Panel de ventas — CRBOX</title>
+<style>
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
+  background:#f3f4f6;color:#111;min-height:100vh}}
+a{{color:inherit;text-decoration:none}}
+/* Header */
+.adm-header{{background:#1f2937;padding:12px 20px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.18)}}
+.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:18px;letter-spacing:-.5px}}
+.adm-header-title{{color:#fff;font-size:14px;font-weight:600}}
+.adm-header-sep{{color:#4b5563;font-size:16px}}
+.adm-logout{{margin-left:auto;color:#9ca3af;font-size:13px;padding:6px 12px;
+  border-radius:6px;border:1px solid #374151;transition:all .2s}}
+.adm-logout:hover{{color:#fff;border-color:#6b7280}}
+/* Filter tabs */
+.adm-tabs{{display:flex;gap:4px;padding:14px 20px 0;flex-wrap:wrap;background:#f3f4f6}}
+.adm-tab{{padding:7px 16px;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;
+  color:#6b7280;border:1px solid transparent;border-bottom:none;
+  transition:all .15s;cursor:pointer}}
+.adm-tab:hover{{color:#374151;background:#e5e7eb}}
+.adm-tab-active{{background:#fff;color:#FF6B00;border-color:#e5e7eb;
+  box-shadow:0 -1px 4px rgba(0,0,0,.04)}}
+/* Main */
+.adm-main{{padding:0 20px 40px}}
+.adm-panel{{background:#fff;border-radius:0 0 12px 12px;
+  box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}}
+.adm-count{{padding:12px 16px;font-size:13px;color:#6b7280;
+  border-bottom:1px solid #f3f4f6;background:#fafafa}}
+/* Table */
+.adm-table{{width:100%;border-collapse:collapse}}
+.adm-table th{{background:#f9fafb;padding:10px 14px;text-align:left;
+  font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;
+  letter-spacing:.06em;border-bottom:1px solid #e5e7eb;white-space:nowrap}}
+.adm-table td{{padding:13px 14px;border-bottom:1px solid #f3f4f6;
+  vertical-align:top;font-size:13px}}
+.adm-table tr:last-child td{{border-bottom:none}}
+.adm-table tr:hover td{{background:#fafafa}}
+.td-id{{white-space:nowrap}}
+.td-upd{{min-width:160px}}
+/* Badges */
+.adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
+  font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
+.adm-empresa{{display:inline-block;background:#fff7ed;color:#c2410c;
+  font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;
+  border:1px solid #fdba74;vertical-align:middle;margin-left:4px}}
+/* Update controls */
+.adm-select{{display:block;width:100%;border:1.5px solid #e5e7eb;border-radius:6px;
+  padding:6px 10px;font-size:12px;background:#fff;margin-bottom:6px;cursor:pointer;
+  font-family:inherit;color:#374151}}
+.adm-note{{display:block;width:100%;border:1.5px solid #e5e7eb;border-radius:6px;
+  padding:6px 10px;font-size:12px;resize:vertical;font-family:inherit;
+  color:#374151;margin-bottom:6px}}
+.adm-upd-btn{{display:block;width:100%;background:#FF6B00;color:#fff;border:none;
+  border-radius:6px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;
+  transition:background .2s;font-family:inherit}}
+.adm-upd-btn:hover{{background:#E05A00}}
+.adm-upd-btn:disabled{{background:#9ca3af;cursor:not-allowed}}
+/* Cards (mobile) */
+.adm-cards{{display:none;flex-direction:column;gap:10px;padding:12px}}
+.adm-card{{background:#fff;border-radius:10px;padding:16px;
+  box-shadow:0 1px 6px rgba(0,0,0,.06)}}
+.adm-card-top{{display:flex;justify-content:space-between;align-items:flex-start;
+  margin-bottom:10px}}
+.adm-card-id{{font-size:14px;font-weight:700;color:#111}}
+.adm-card-fields{{margin-bottom:10px}}
+.adm-card-row{{display:flex;justify-content:space-between;align-items:baseline;
+  padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:13px}}
+.adm-card-row:last-child{{border-bottom:none}}
+.adm-card-lbl{{color:#9ca3af;font-size:12px;min-width:60px}}
+.adm-card-val{{color:#111;font-size:12px;text-align:right;word-break:break-all;max-width:60%}}
+.adm-card-actions{{margin-top:10px;padding-top:10px;border-top:1px solid #f3f4f6}}
+/* Empty state */
+.adm-empty{{text-align:center;padding:48px 20px;color:#9ca3af}}
+.adm-empty h3{{font-size:16px;font-weight:600;color:#6b7280;margin-bottom:6px}}
+.adm-empty p{{font-size:13px}}
+/* Toast */
+#adm-toast{{position:fixed;bottom:24px;right:24px;padding:12px 20px;
+  border-radius:8px;font-size:13px;font-weight:600;color:#fff;
+  background:#16a34a;box-shadow:0 4px 16px rgba(0,0,0,.15);
+  transform:translateY(80px);opacity:0;transition:all .3s;z-index:100;
+  pointer-events:none}}
+#adm-toast.show{{transform:translateY(0);opacity:1}}
+#adm-toast.error{{background:#dc2626}}
+/* Responsive */
+@media(max-width:720px){{
+  .adm-header{{padding:10px 14px}}
+  .adm-tabs{{padding:10px 12px 0}}
+  .adm-main{{padding:0 0 40px}}
+  .adm-panel{{border-radius:0}}
+  .adm-table-wrap{{display:none}}
+  .adm-cards{{display:flex}}
+}}
+@media(min-width:721px){{
+  .adm-table-wrap{{overflow-x:auto}}
+}}
+</style>
+</head>
+<body>
+<header class="adm-header">
+  <span class="adm-header-logo">CRBOX</span>
+  <span class="adm-header-sep">|</span>
+  <span class="adm-header-title">Panel de ventas</span>
+  <a href="/admin/logout" class="adm-logout">Salir</a>
+</header>
+
+<div class="adm-tabs">
+{tabs_html}
+</div>
+
+<main class="adm-main">
+<div class="adm-panel">
+  <div class="adm-count">{count_label}</div>
+  <!-- Desktop table -->
+  <div class="adm-table-wrap">
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>ID</th><th>Cliente</th><th>Producto</th>
+        <th>Valor</th><th>Fecha</th><th>Estado</th><th>Actualizar</th>
+      </tr>
+    </thead>
+    <tbody>{table_body_html}</tbody>
+  </table>
+  </div>
+  <!-- Mobile cards -->
+  <div class="adm-cards">{cards_html}</div>
+</div>
+</main>
+
+<div id="adm-toast"></div>
+
+<script>
+function showToast(msg, isErr) {{
+  var t = document.getElementById('adm-toast');
+  t.textContent = msg;
+  t.className = isErr ? 'error' : '';
+  t.classList.add('show');
+  setTimeout(function(){{ t.classList.remove('show'); }}, 3000);
+}}
+
+function applyBadge(rid, status) {{
+  var labels = {{enviada:'Enviada',en_revision:'En revision',respondida:'Respondida',
+    completada:'Completada',cancelada:'Cancelada',expirada:'Expirada'}};
+  var colors = {{
+    enviada:    ['#FFF7ED','#C2410C','#FDBA74'],
+    en_revision:['#EFF6FF','#1D4ED8','#BFDBFE'],
+    respondida: ['#F0FDF4','#15803D','#BBF7D0'],
+    completada: ['#F9FAFB','#374151','#D1D5DB'],
+    cancelada:  ['#FEF2F2','#991B1B','#FECACA'],
+    expirada:   ['#F9FAFB','#6B7280','#E5E7EB'],
+  }};
+  var c = colors[status] || ['#F9FAFB','#374151','#D1D5DB'];
+  var label = labels[status] || status;
+  var html = '<span class="adm-badge" style="background:'+c[0]+';color:'+c[1]+';border-color:'+c[2]+';">'+label+'</span>';
+  var cell = document.getElementById('badge-cell-'+rid);
+  if (cell) cell.innerHTML = html;
+  var cellM = document.getElementById('badge-cell-'+rid+'-m');
+  if (cellM) cellM.innerHTML = html;
+}}
+
+function doUpdate(rid, btn) {{
+  var sel  = document.getElementById('sel-' + rid);
+  var note = document.getElementById('note-' + rid);
+  _doUpdate(rid, sel, note, btn);
+}}
+function doUpdateM(rid, btn) {{
+  var sel  = document.getElementById('sel-' + rid + '-m');
+  var note = document.getElementById('note-' + rid + '-m');
+  _doUpdate(rid, sel, note, btn);
+}}
+function _doUpdate(rid, sel, note, btn) {{
+  var status = sel.value;
+  if (!status) {{ showToast('Selecciona un estado', true); return; }}
+  btn.disabled = true;
+  var orig = btn.textContent;
+  btn.textContent = 'Actualizando\u2026';
+  fetch('/admin/solicitudes/' + rid + '/status', {{
+    method: 'POST',
+    headers: {{'Content-Type': 'application/json'}},
+    body: JSON.stringify({{status: status, note: note ? note.value.trim() : ''}})
+  }}).then(function(r){{ return r.json(); }}).then(function(data) {{
+    if (data.ok) {{
+      applyBadge(rid, data.to);
+      showToast('\u2713 ' + rid + ' actualizado a ' + data.to, false);
+      sel.value = '';
+      if (note) note.value = '';
+    }} else {{
+      showToast(data.error || 'Error al actualizar', true);
+    }}
+    btn.disabled = false;
+    btn.textContent = orig;
+  }}).catch(function() {{
+    showToast('Error de red', true);
+    btn.disabled = false;
+    btn.textContent = orig;
+  }});
+}}
+</script>
+</body>
+</html>'''
+
+
 class NoCacheHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
@@ -1028,6 +1544,17 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/health':
             self._handle_health()
+        elif self.path.startswith('/admin'):
+            path_no_qs = self.path.split('?')[0]
+            if path_no_qs == '/admin/login':
+                self._handle_admin_login_get()
+            elif path_no_qs == '/admin/solicitudes':
+                self._handle_admin_solicitudes_get()
+            elif path_no_qs == '/admin/logout':
+                self._handle_admin_logout()
+            else:
+                self.send_response(404)
+                self.end_headers()
         elif self.path.startswith('/api/solicitudes'):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/api/solicitudes':
@@ -1045,7 +1572,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             super().do_GET()
 
     def do_POST(self):
-        if self.path == '/crbox-svc-token':
+        if self.path == '/admin/login':
+            self._handle_admin_login_post()
+        elif self.path == '/crbox-svc-token':
             self._handle_svc_token()
         elif self.path == '/send-quote':
             self._handle_send_quote()
@@ -1056,12 +1585,15 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         elif self.path == '/api/solicitudes/check-duplicate':
             self._handle_check_duplicate()
         else:
-            m_status = re.match(r'^/api/solicitudes/(SCB-\d+)/status$', self.path)
-            m_cancel = re.match(r'^/api/solicitudes/(SCB-\d+)/cancel$', self.path)
+            m_status       = re.match(r'^/api/solicitudes/(SCB-\d+)/status$', self.path)
+            m_cancel       = re.match(r'^/api/solicitudes/(SCB-\d+)/cancel$', self.path)
+            m_admin_status = re.match(r'^/admin/solicitudes/(SCB-\d+)/status$', self.path)
             if m_status:
                 self._handle_solicitudes_status(m_status.group(1))
             elif m_cancel:
                 self._handle_cancel_solicitud(m_cancel.group(1))
+            elif m_admin_status:
+                self._handle_admin_solicitudes_status(m_admin_status.group(1))
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -1844,6 +2376,212 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._json_response(200, {'access_token': token})
         except Exception:
             self._json_error(502, 'Upstream authentication failed.')
+
+
+    # ── Admin: cookie / session helpers ───────────────────────────────────
+    def _admin_get_session_token(self):
+        """Parse Cookie header and return the admin_session token, or ''."""
+        cookie_header = self.headers.get('Cookie', '')
+        for part in cookie_header.split(';'):
+            part = part.strip()
+            if part.startswith('admin_session='):
+                return part[len('admin_session='):].strip()
+        return ''
+
+    def _admin_html_response(self, html_str, status=200, extra_headers=None):
+        body = html_str.encode('utf-8')
+        self.send_response(status)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Content-Length', str(len(body)))
+        if extra_headers:
+            for k, v in extra_headers:
+                self.send_header(k, v)
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _admin_redirect(self, location, extra_headers=None):
+        self.send_response(302)
+        self.send_header('Location', location)
+        if extra_headers:
+            for k, v in extra_headers:
+                self.send_header(k, v)
+        self.end_headers()
+
+    # ── GET /admin/login ───────────────────────────────────────────────────
+    def _handle_admin_login_get(self):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if _admin_validate_session(token):
+            self._admin_redirect('/admin/solicitudes')
+            return
+        self._admin_html_response(_build_admin_login_html())
+
+    # ── POST /admin/login ──────────────────────────────────────────────────
+    def _handle_admin_login_post(self):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        client_ip = self.client_address[0]
+        blocked, remaining = _admin_brute_blocked(client_ip)
+        if blocked:
+            self._admin_html_response(
+                _build_admin_login_html(blocked_secs=remaining), status=429
+            )
+            return
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            raw    = self.rfile.read(length).decode('utf-8')
+            params = urllib.parse.parse_qs(raw)
+            pwd    = (params.get('password', [''])[0] or '').strip()
+        except Exception:
+            self._admin_html_response(
+                _build_admin_login_html(error='Solicitud inválida.'), status=400
+            )
+            return
+        if pwd == _admin_password():
+            token = _admin_create_session()
+            cookie = (
+                f'admin_session={token}; HttpOnly; SameSite=Strict; '
+                f'Path=/; Max-Age={_ADMIN_SESSION_TTL}'
+            )
+            self._admin_redirect(
+                '/admin/solicitudes',
+                extra_headers=[('Set-Cookie', cookie)]
+            )
+        else:
+            _admin_brute_record_fail(client_ip)
+            self._admin_html_response(
+                _build_admin_login_html(error='Contraseña incorrecta.'), status=401
+            )
+
+    # ── GET /admin/logout ──────────────────────────────────────────────────
+    def _handle_admin_logout(self):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        _admin_clear_session(token)
+        clear_cookie = 'admin_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'
+        self._admin_redirect(
+            '/admin/login',
+            extra_headers=[('Set-Cookie', clear_cookie)]
+        )
+
+    # ── GET /admin/solicitudes ─────────────────────────────────────────────
+    def _handle_admin_solicitudes_get(self):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._admin_redirect('/admin/login')
+            return
+        qs = urllib.parse.parse_qs(self.path.partition('?')[2])
+        filter_val = (qs.get('filter', ['all'])[0] or 'all').strip()
+        if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
+            filter_val = 'all'
+
+        active_statuses   = ('enviada', 'en_revision')
+        responded_statuses= ('respondida',)
+        archived_statuses = ('completada', 'cancelada', 'expirada')
+
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                all_rows  = conn.execute(
+                    'SELECT * FROM quote_requests ORDER BY submitted_at DESC'
+                ).fetchall()
+                conn.close()
+        except Exception as exc:
+            print(f'[ADMIN] DB error: {exc}')
+            self._admin_html_response('<h1>Error interno</h1>', status=500)
+            return
+
+        all_rows = [dict(r) for r in all_rows]
+        active    = [r for r in all_rows if r['status'] in active_statuses]
+        responded = [r for r in all_rows if r['status'] in responded_statuses]
+        archived  = [r for r in all_rows if r['status'] in archived_statuses]
+
+        counts = {
+            'all':         len(all_rows),
+            'activas':     len(active),
+            'respondidas': len(responded),
+            'archivadas':  len(archived),
+        }
+
+        if filter_val == 'activas':
+            rows = active
+        elif filter_val == 'respondidas':
+            rows = responded
+        elif filter_val == 'archivadas':
+            rows = archived
+        else:
+            rows = all_rows
+
+        html = _build_admin_solicitudes_html(rows, filter_val, counts)
+        self._admin_html_response(html)
+
+    # ── POST /admin/solicitudes/:id/status ────────────────────────────────
+    def _handle_admin_solicitudes_status(self, scb_id):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._json_response(401, {'ok': False, 'error': 'Sesión expirada.'})
+            return
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            raw    = self.rfile.read(length).decode('utf-8')
+            data   = json.loads(raw)
+        except Exception:
+            self._json_error(400, 'Solicitud inválida.')
+            return
+        new_status = (data.get('status') or '').strip()
+        note       = (data.get('note') or '').strip()[:1000] or None
+        if new_status not in _LEGAL_TRANSITIONS:
+            self._json_response(400, {'ok': False, 'error': f'Estado desconocido: {new_status}'})
+            return
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row = conn.execute(
+                    'SELECT status FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+                if row is None:
+                    conn.close()
+                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    return
+                current_status = row['status']
+                if new_status not in _LEGAL_TRANSITIONS.get(current_status, set()):
+                    conn.close()
+                    self._json_response(400, {'ok': False, 'error':
+                        f'Transición inválida: {current_status} → {new_status}'})
+                    return
+                now_iso  = _now_iso()
+                hist_id  = _uuid4_hex()
+                extra_col, extra_val = '', ()
+                if new_status == 'respondida':
+                    extra_col, extra_val = ', responded_at = ?', (now_iso,)
+                elif new_status == 'completada':
+                    extra_col, extra_val = ', completed_at = ?', (now_iso,)
+                elif new_status == 'cancelada':
+                    extra_col, extra_val = ', cancelled_at = ?', (now_iso,)
+                conn.execute(
+                    f'UPDATE quote_requests SET status = ?{extra_col} WHERE id = ?',
+                    (new_status,) + extra_val + (scb_id,)
+                )
+                conn.execute(
+                    '''INSERT INTO quote_status_history
+                       (id, quote_request_id, from_status, to_status, changed_at, changed_by, note)
+                       VALUES (?,?,?,?,?,?,?)''',
+                    (hist_id, scb_id, current_status, new_status, now_iso, 'sales', note)
+                )
+                conn.commit()
+                conn.close()
+            print(f'[ADMIN] Status updated: {scb_id} {current_status} → {new_status}')
+            self._json_response(200, {'ok': True, 'id': scb_id,
+                                       'from': current_status, 'to': new_status})
+        except Exception as exc:
+            print(f'[ADMIN] Status update error: {exc}')
+            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
 
 
 if __name__ == "__main__":
