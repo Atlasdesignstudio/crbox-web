@@ -222,6 +222,106 @@ def _call_gemini(content):
         return None, str(ex)
 
 
+_DRAFT_PROMPT_TEMPLATE = """\
+You are an internal drafting assistant for CRBOX, a Costa Rica courier service. \
+Your job is to help sales staff draft professional customer response emails for shipping quote requests.
+
+You receive structured context about a quote request and MUST return EXACTLY this JSON structure \
+(no markdown, no code fences, no text outside the JSON):
+{{
+  "customer_message": "...",
+  "conditions": "...",
+  "difference_explanation": "..."
+}}
+
+STRICT RULES — follow every rule without exception:
+1. PRICE RULE: You must NEVER suggest, evaluate, justify, or comment on any price or cost figure. \
+Price determination is exclusively CRBOX staff's responsibility. Do not reference the confirmed_price_usd \
+or any specific monetary amount in any of your output fields.
+2. customer_message: Write a professional, warm, concise message to the customer appropriate for the \
+availability status. It must read as coming from CRBOX staff, not from any AI or automated system. \
+Do not recap product details the customer already knows.
+3. conditions: Write conditions ONLY when availability is "disponible_con_condiciones" and there \
+are meaningful conditions to communicate based on the context. Return "" (empty string) when: \
+availability is "disponible"; availability is "no_disponible"; or you would only produce generic filler. \
+Never invent conditions.
+4. difference_explanation: Return "" (empty string) ALWAYS when: confirmed_price_usd is null; OR \
+difference_is_material is false or null; OR system_estimate_usd is null. When non-empty, explain WHY \
+the price may differ from the system estimate using context (e.g., estimate was incomplete due to \
+missing weight/dimensions, AI extraction had uncertain fields). Never invent explanations.
+5. TONE — mandatory for every field:
+   - Professional and clear: suitable for business communication with CRBOX customers
+   - Human and concise: not robotic, not padded, not bureaucratic
+   - Commercially appropriate: acknowledges the customer's intent and respects their time
+   - Not overly legalistic: state conditions clearly, not buried in hedged language
+   - Not overly promotional: this is a transactional response, not marketing copy
+   - Never implies certainty when conditions are present
+   - Never implies that Gemini, any AI, or any automated system determined the price or availability
+   - Never mechanically restates product metadata the customer already knows
+   - Leave conditions and difference_explanation as "" when nothing meaningful applies
+6. Return ONLY valid JSON — no markdown, no code fences, no explanation.
+
+CONTEXT:
+availability: {availability}
+product_name: {product_name}
+product_url: {product_url}
+product_category: {product_category}
+declared_value_usd: {declared_value_usd}
+system_estimate_usd: {system_estimate_usd}
+estimate_is_complete: {estimate_is_complete}
+confirmed_price_usd: {confirmed_price_usd}
+numeric_difference_usd: {numeric_difference_usd}
+difference_is_material: {difference_is_material}
+ai_extraction_has_weak_fields: {ai_extraction_has_weak_fields}
+weak_extraction_fields: {weak_extraction_fields}
+"""
+
+
+def _call_gemini_draft(context):
+    """Call Gemini to generate draft suggestions for the response composer.
+
+    Args:
+        context: dict with keys matching _DRAFT_PROMPT_TEMPLATE placeholders
+    Returns:
+        (result_dict, error_str) — result_dict has keys customer_message, conditions,
+        difference_explanation; error_str is None on success.
+    """
+    if not _GEMINI_API_KEY:
+        return None, 'No API key configured'
+    try:
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            import google.generativeai as genai
+        genai.configure(api_key=_GEMINI_API_KEY)
+        model = genai.GenerativeModel(
+            model_name='gemini-2.0-flash',
+            generation_config=genai.GenerationConfig(
+                temperature=0.4,
+                max_output_tokens=1500,
+            ),
+        )
+        prompt = _DRAFT_PROMPT_TEMPLATE.format(**context)
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        if text.startswith('```'):
+            text = text.split('\n', 1)[-1] if '\n' in text else text[3:]
+        if text.endswith('```'):
+            text = text[:-3].rstrip()
+        result = json.loads(text)
+        # Normalise: ensure exactly the three expected keys as strings
+        out = {
+            'customer_message':      str(result.get('customer_message', '') or ''),
+            'conditions':            str(result.get('conditions', '') or ''),
+            'difference_explanation': str(result.get('difference_explanation', '') or ''),
+        }
+        return out, None
+    except json.JSONDecodeError as ex:
+        return None, f'JSON parse error: {ex}'
+    except Exception as ex:
+        return None, str(ex)
+
+
 _FIELD_DEFAULTS = {
     'product_name':       {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
     'declared_value_usd': {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
@@ -2049,7 +2149,7 @@ def _build_admin_detail_html(row, history, filter_val='all'):
     </div>
     <div class="adm-resp-field">
       <label class="adm-resp-label">Disponibilidad <span style="color:#ef4444;">*</span></label>
-      <select class="adm-select" name="availability" required>
+      <select class="adm-select" name="availability" id="resp-availability" required>
         <option value="">Seleccionar&hellip;</option>
         <option value="disponible">Disponible</option>
         <option value="no_disponible">No disponible</option>
@@ -2061,21 +2161,38 @@ def _build_admin_detail_html(row, history, filter_val='all'):
       <input class="adm-resp-input" type="text" name="delivery_timeline"
              placeholder="Ej. 5&ndash;8 d&iacute;as h&aacute;biles" maxlength="200" required>
     </div>
+    <div style="margin:4px 0 16px;">
+      <button type="button" id="resp-ai-btn"
+              disabled
+              style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;
+                     border:1px solid #c7d2fe;border-radius:6px;background:#eef2ff;
+                     color:#4338ca;font-size:13px;font-weight:600;cursor:pointer;
+                     opacity:.45;transition:opacity .15s;">
+        &#10024;&nbsp;Sugerir borrador con IA
+      </button>
+      <span id="resp-ai-status" style="margin-left:10px;font-size:12px;color:#6b7280;display:none;"></span>
+    </div>
     <div class="adm-resp-field">
       <label class="adm-resp-label">Condiciones <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>
-      <textarea class="adm-note" name="conditions" rows="3" maxlength="2000"
+      <textarea class="adm-note" name="conditions" id="resp-conditions" rows="3" maxlength="2000"
                 placeholder="Condiciones adicionales que el cliente debe conocer&hellip;"></textarea>
+      <div id="resp-ai-label-conditions" style="display:none;margin-top:4px;font-size:11px;
+           color:#7c3aed;font-weight:600;">&#10024; Sugerido por IA &mdash; revise antes de enviar</div>
     </div>
     <div class="adm-resp-field">
       <label class="adm-resp-label">Explicaci&oacute;n de diferencia con el estimado <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>
       <p style="font-size:11px;color:#9ca3af;margin:0 0 6px;">Usa este campo si el precio revisado difiere del estimado autom&aacute;tico y el cliente se beneficiar&iacute;a de una explicaci&oacute;n.</p>
-      <textarea class="adm-note" name="difference_explanation" rows="2" maxlength="2000"
+      <textarea class="adm-note" name="difference_explanation" id="resp-diff-expl" rows="2" maxlength="2000"
                 placeholder="Ej. El peso real del producto es mayor al estimado por el sistema."></textarea>
+      <div id="resp-ai-label-diff" style="display:none;margin-top:4px;font-size:11px;
+           color:#7c3aed;font-weight:600;">&#10024; Sugerido por IA &mdash; revise antes de enviar</div>
     </div>
     <div class="adm-resp-field">
       <label class="adm-resp-label">Mensaje al cliente <span style="color:#ef4444;">*</span></label>
-      <textarea class="adm-note" name="customer_message" rows="5" maxlength="5000" required
+      <textarea class="adm-note" name="customer_message" id="resp-message" rows="5" maxlength="5000" required
                 placeholder="Escribe el mensaje que el cliente recibir&aacute; en el correo&hellip;"></textarea>
+      <div id="resp-ai-label-msg" style="display:none;margin-top:4px;font-size:11px;
+           color:#7c3aed;font-weight:600;">&#10024; Sugerido por IA &mdash; revise antes de enviar</div>
     </div>
     <div style="margin-top:4px;">
       <button class="adm-upd-btn" type="submit"
@@ -2088,12 +2205,96 @@ def _build_admin_detail_html(row, history, filter_val='all'):
   </form>
   <script>
     (function() {{
-      var inp = document.getElementById('resp-price-input');
-      var disp = document.getElementById('resp-price-display');
-      if (inp && disp) {{
-        inp.addEventListener('input', function() {{
+      var priceInp = document.getElementById('resp-price-input');
+      var priceDisp = document.getElementById('resp-price-display');
+      if (priceInp && priceDisp) {{
+        priceInp.addEventListener('input', function() {{
           var n = parseFloat(this.value);
-          disp.textContent = isNaN(n) || n <= 0 ? '\u2014' : '$' + n.toFixed(2) + ' USD';
+          priceDisp.textContent = isNaN(n) || n <= 0 ? '\u2014' : '$' + n.toFixed(2) + ' USD';
+        }});
+      }}
+
+      var availSel = document.getElementById('resp-availability');
+      var aiBtn    = document.getElementById('resp-ai-btn');
+      var aiStatus = document.getElementById('resp-ai-status');
+
+      function syncAiBtn() {{
+        var ok = availSel && availSel.value;
+        if (aiBtn) {{
+          aiBtn.disabled = !ok;
+          aiBtn.style.opacity = ok ? '1' : '.45';
+          aiBtn.style.cursor  = ok ? 'pointer' : 'default';
+        }}
+      }}
+      if (availSel) availSel.addEventListener('change', syncAiBtn);
+      syncAiBtn();
+
+      function aiLabelFor(fieldId, labelId) {{
+        var field = document.getElementById(fieldId);
+        var label = document.getElementById(labelId);
+        if (!field || !label) return;
+        field.addEventListener('input', function() {{
+          label.style.display = 'none';
+        }});
+      }}
+      aiLabelFor('resp-conditions', 'resp-ai-label-conditions');
+      aiLabelFor('resp-diff-expl',  'resp-ai-label-diff');
+      aiLabelFor('resp-message',    'resp-ai-label-msg');
+
+      if (aiBtn) {{
+        aiBtn.addEventListener('click', function() {{
+          var avail       = availSel ? availSel.value : '';
+          var priceVal    = priceInp ? priceInp.value : '';
+          if (!avail) return;
+
+          aiBtn.disabled = true;
+          aiBtn.textContent = '\u23f3\u00a0Generando borrador\u2026';
+          if (aiStatus) {{ aiStatus.textContent = ''; aiStatus.style.display = 'none'; }}
+
+          fetch('/admin/solicitudes/{rid}/suggest-draft', {{
+            method: 'POST',
+            headers: {{'Content-Type': 'application/json'}},
+            body: JSON.stringify({{availability: avail, confirmed_price: priceVal}})
+          }})
+          .then(function(r) {{ return r.json(); }})
+          .then(function(data) {{
+            aiBtn.disabled = false;
+            aiBtn.innerHTML = '&#10024;&nbsp;Sugerir borrador con IA';
+            syncAiBtn();
+            if (data.error) {{
+              if (aiStatus) {{
+                aiStatus.textContent = 'Error: ' + data.error;
+                aiStatus.style.color = '#dc2626';
+                aiStatus.style.display = 'inline';
+              }}
+              return;
+            }}
+            function fillField(fieldId, labelId, value) {{
+              var f = document.getElementById(fieldId);
+              var l = document.getElementById(labelId);
+              if (!f) return;
+              f.value = value || '';
+              if (l) l.style.display = value ? 'block' : 'none';
+            }}
+            fillField('resp-conditions', 'resp-ai-label-conditions', data.conditions);
+            fillField('resp-diff-expl',  'resp-ai-label-diff',       data.difference_explanation);
+            fillField('resp-message',    'resp-ai-label-msg',        data.customer_message);
+            if (aiStatus) {{
+              aiStatus.textContent = 'Borrador listo. Revise y edite antes de enviar.';
+              aiStatus.style.color = '#059669';
+              aiStatus.style.display = 'inline';
+            }}
+          }})
+          .catch(function(err) {{
+            aiBtn.disabled = false;
+            aiBtn.innerHTML = '&#10024;&nbsp;Sugerir borrador con IA';
+            syncAiBtn();
+            if (aiStatus) {{
+              aiStatus.textContent = 'Error de conexi\u00f3n. Intente de nuevo.';
+              aiStatus.style.color = '#dc2626';
+              aiStatus.style.display = 'inline';
+            }}
+          }});
         }});
       }}
     }})();
@@ -2636,8 +2837,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         else:
             m_status       = re.match(r'^/api/solicitudes/(SCB-\d+)/status$', self.path)
             m_cancel       = re.match(r'^/api/solicitudes/(SCB-\d+)/cancel$', self.path)
-            m_admin_status  = re.match(r'^/admin/solicitudes/(SCB-\d+)/status$', self.path)
-            m_admin_respond = re.match(r'^/admin/solicitudes/(SCB-\d+)/respond$', self.path)
+            m_admin_status   = re.match(r'^/admin/solicitudes/(SCB-\d+)/status$', self.path)
+            m_admin_respond  = re.match(r'^/admin/solicitudes/(SCB-\d+)/respond$', self.path)
+            m_admin_suggest  = re.match(r'^/admin/solicitudes/(SCB-\d+)/suggest-draft$', self.path)
             if m_status:
                 self._handle_solicitudes_status(m_status.group(1))
             elif m_cancel:
@@ -2646,6 +2848,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_admin_solicitudes_status(m_admin_status.group(1))
             elif m_admin_respond:
                 self._handle_admin_solicitudes_respond(m_admin_respond.group(1))
+            elif m_admin_suggest:
+                self._handle_admin_solicitudes_suggest_draft(m_admin_suggest.group(1))
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -3855,6 +4059,144 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return
 
         self._admin_redirect(redirect_url)
+
+
+    # ── POST /admin/solicitudes/:id/suggest-draft ─────────────────────────
+    def _handle_admin_solicitudes_suggest_draft(self, scb_id):
+        """Return Gemini-suggested draft for the three response composer text fields.
+
+        Requires admin_session. Never writes to the database.
+        Returns JSON: {customer_message, conditions, difference_explanation} on success,
+        or {error: "..."} on failure.
+        """
+        if _admin_password() is None:
+            self._json_response(404, {'error': 'not_found'})
+            return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._json_response(401, {'error': 'auth_required'})
+            return
+
+        # Parse JSON body
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            body   = json.loads(self.rfile.read(length)) if length else {}
+        except Exception:
+            self._json_response(400, {'error': 'invalid_request'})
+            return
+
+        _VALID_AVAIL = {'disponible', 'no_disponible', 'disponible_con_condiciones'}
+        availability = str(body.get('availability') or '').strip()
+        if availability not in _VALID_AVAIL:
+            self._json_response(400, {'error': 'availability es obligatorio y debe ser un valor válido.'})
+            return
+
+        # confirmed_price is optional; only used if a valid positive number
+        confirmed_price = None
+        raw_price = body.get('confirmed_price', '')
+        try:
+            p = float(raw_price)
+            if p > 0:
+                confirmed_price = p
+        except (TypeError, ValueError):
+            pass
+
+        # Fetch solicitud from DB (read-only)
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row  = conn.execute(
+                    'SELECT * FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+                conn.close()
+        except Exception as exc:
+            print(f'[ADMIN] suggest-draft DB read error: {exc}')
+            self._json_response(500, {'error': 'Error interno al leer la solicitud.'})
+            return
+
+        if row is None:
+            self._json_response(404, {'error': 'Solicitud no encontrada.'})
+            return
+
+        row = dict(row)
+
+        # Guard: only for active solicitudes without existing response
+        if row.get('status') not in ('enviada', 'en_revision') or row.get('response_json'):
+            self._json_response(409, {'error': 'Esta solicitud ya tiene una respuesta enviada.'})
+            return
+
+        # ── Build context for prompt ─────────────────────────────────────
+        # System estimate — parse from estimate_breakdown if available
+        system_estimate_usd = row.get('estimate_usd')
+        estimate_is_complete = False
+        if system_estimate_usd is not None:
+            # Complete only if weight and at least one dimension were provided
+            estimate_is_complete = bool(
+                row.get('weight_kg') and (row.get('length_cm') or row.get('height_cm'))
+            )
+
+        # AI extraction weak fields
+        ai_weak_fields = []
+        ai_has_weak = False
+        ai_json_raw = row.get('ai_extraction_json') or None
+        if ai_json_raw:
+            try:
+                ai_data = json.loads(ai_json_raw)
+                for fname, fdata in (ai_data.get('fields') or {}).items():
+                    conf = float(fdata.get('confidence', 0.0) or 0.0)
+                    prov = fdata.get('provenance', 'missing')
+                    if conf < 0.80 or prov in ('needs_confirmation', 'missing'):
+                        if fdata.get('value') is not None:
+                            ai_weak_fields.append(fname)
+                            ai_has_weak = True
+            except Exception:
+                pass
+
+        # Difference computation
+        numeric_diff = None
+        difference_is_material = None
+        if confirmed_price is not None and system_estimate_usd is not None and system_estimate_usd > 0:
+            numeric_diff = round(confirmed_price - system_estimate_usd, 2)
+            difference_is_material = abs(numeric_diff) / system_estimate_usd > 0.10
+
+        # Force difference_explanation blank when price missing or diff not material
+        force_blank_diff = (
+            confirmed_price is None
+            or system_estimate_usd is None
+            or difference_is_material is not True
+        )
+
+        context = {
+            'availability':               availability,
+            'product_name':               row.get('product_name') or 'producto',
+            'product_url':                row.get('product_url') or 'null',
+            'product_category':           row.get('category') or 'otros',
+            'declared_value_usd':         row.get('declared_value_usd'),
+            'system_estimate_usd':        system_estimate_usd,
+            'estimate_is_complete':       estimate_is_complete,
+            'confirmed_price_usd':        confirmed_price,
+            'numeric_difference_usd':     numeric_diff,
+            'difference_is_material':     difference_is_material,
+            'ai_extraction_has_weak_fields': ai_has_weak,
+            'weak_extraction_fields':     ai_weak_fields if ai_weak_fields else [],
+        }
+
+        # ── Call Gemini ──────────────────────────────────────────────────
+        if not _GEMINI_API_KEY:
+            self._json_response(503, {'error': 'Gemini no está configurado en este entorno.'})
+            return
+
+        draft, err = _call_gemini_draft(context)
+        if err or draft is None:
+            print(f'[ADMIN] suggest-draft Gemini error for {scb_id}: {err}')
+            self._json_response(502, {'error': f'No se pudo generar el borrador: {err}'})
+            return
+
+        # Enforce blank difference_explanation when conditions require it
+        if force_blank_diff:
+            draft['difference_explanation'] = ''
+
+        self._json_response(200, draft)
 
 
 if __name__ == "__main__":
