@@ -301,6 +301,9 @@
     panel.classList.remove('translate-x-full');
     if (overlay) overlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+
+    // Draft: check for saved draft and offer restore (skip when duplicating)
+    _checkPortalDraftOnOpen(prefill || null);
   }
 
   function hideNewRequestPanel() {
@@ -331,6 +334,8 @@
     if (dupBanner) dupBanner.classList.add('hidden');
     if (errorMsg)  errorMsg.classList.add('hidden');
     if (portalDupWarn) portalDupWarn.classList.add('hidden');
+    var draftBar = document.getElementById('portal-draft-bar');
+    if (draftBar) draftBar.classList.add('hidden');
     _panelHasData = false;
     _panelSubmitted = false;
     _dupWarningDismissedPortal = false;
@@ -378,6 +383,7 @@
 
   // ─── Show inline success ───────────────────────────────────────────────────
   function showSubmitSuccess(scbId) {
+    _clearPortalDraft();
     var form = document.getElementById('new-request-form');
     var successEl = document.getElementById('form-success');
 
@@ -409,6 +415,105 @@
     el.innerHTML = msg;
     container.appendChild(el);
     setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 4000);
+  }
+
+  // ─── Portal draft save helpers ─────────────────────────────────────────────
+  var _PORTAL_DRAFT_FIELD_IDS = [
+    'form-product-name', 'form-product-url', 'form-declared-value',
+    'form-category', 'form-service-type', 'form-weight', 'form-notes',
+  ];
+  var _portalDraftTimer = null;
+
+  function _portalDraftKey() {
+    return _casilleroId ? 'crbox-draft-' + _casilleroId : null;
+  }
+
+  function _savePortalDraft() {
+    var key = _portalDraftKey();
+    if (!key) return;
+    var data = {};
+    _PORTAL_DRAFT_FIELD_IDS.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) data[id] = el.value;
+    });
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) {}
+  }
+
+  function _clearPortalDraft() {
+    var key = _portalDraftKey();
+    if (!key) return;
+    try { localStorage.removeItem(key); } catch (e) {}
+  }
+
+  function _loadPortalDraft() {
+    var key = _portalDraftKey();
+    if (!key) return null;
+    try {
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  function _restorePortalDraft(data) {
+    _PORTAL_DRAFT_FIELD_IDS.forEach(function (id) {
+      if (data[id] == null) return;
+      var el = document.getElementById(id);
+      if (el) el.value = data[id];
+    });
+  }
+
+  function _scheduleDraftSavePortal() {
+    clearTimeout(_portalDraftTimer);
+    _portalDraftTimer = setTimeout(_savePortalDraft, 500);
+  }
+
+  function _initPortalDraftSave(formEl) {
+    _PORTAL_DRAFT_FIELD_IDS.forEach(function (id) {
+      var el = formEl ? formEl.querySelector('#' + id) : document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', _scheduleDraftSavePortal);
+        el.addEventListener('change', _scheduleDraftSavePortal);
+      }
+    });
+  }
+
+  function _checkPortalDraftOnOpen(prefill) {
+    if (prefill) {
+      // Prefill from duplicate — do not show restore banner
+      _clearPortalDraft();
+      return;
+    }
+    var draft = _loadPortalDraft();
+    var bar   = document.getElementById('portal-draft-bar');
+    if (!draft || !bar) return;
+
+    var hasData = _PORTAL_DRAFT_FIELD_IDS.some(function (id) {
+      return (draft[id] || '').toString().trim() !== '';
+    });
+    if (!hasData) { _clearPortalDraft(); return; }
+
+    bar.classList.remove('hidden');
+
+    // One-shot handlers so they don't stack on multiple panel opens
+    var restoreBtn  = document.getElementById('portal-draft-restore-btn');
+    var discardBtn  = document.getElementById('portal-draft-discard-btn');
+
+    var _onRestore = function () {
+      _restorePortalDraft(draft);
+      bar.classList.add('hidden');
+      restoreBtn.removeEventListener('click', _onRestore);
+      discardBtn.removeEventListener('click', _onDiscard);
+      _panelHasData = true;
+    };
+    var _onDiscard = function () {
+      _clearPortalDraft();
+      bar.classList.add('hidden');
+      restoreBtn.removeEventListener('click', _onRestore);
+      discardBtn.removeEventListener('click', _onDiscard);
+    };
+
+    restoreBtn.addEventListener('click', _onRestore);
+    discardBtn.addEventListener('click', _onDiscard);
   }
 
   // ─── Init ──────────────────────────────────────────────────────────────────
@@ -505,10 +610,11 @@
       });
     }
 
-    // Track data changes in panel for beforeunload guard
+    // Track data changes in panel for beforeunload guard + draft save
     var formForTracking = document.getElementById('new-request-form');
     if (formForTracking) {
       formForTracking.addEventListener('input', function () { _panelHasData = true; });
+      _initPortalDraftSave(formForTracking);
     }
 
     // Portal duplicate warning dismiss button

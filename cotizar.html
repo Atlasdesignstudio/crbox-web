@@ -600,6 +600,27 @@
                     </div>
                 </div>
 
+                <!-- ── Draft restore banner ─────────────────────────────────── -->
+                <div id="draft-restore-bar" class="hidden mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3" role="alert">
+                    <div class="flex flex-wrap items-start gap-3">
+                        <i class="fas fa-bookmark text-amber-500 mt-0.5 flex-shrink-0 text-sm"></i>
+                        <div class="flex-1 min-w-0" style="min-width:160px">
+                            <p class="text-sm font-semibold text-amber-900">Tienes una solicitud en progreso</p>
+                            <p class="text-sm text-amber-700">¿Continuar donde la dejaste o empezar de nuevo?</p>
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button id="draft-restore-btn" type="button"
+                                    class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold transition-colors">
+                                Continuar
+                            </button>
+                            <button id="draft-discard-btn" type="button"
+                                    class="px-3 py-1.5 bg-white hover:bg-amber-100 text-amber-700 border border-amber-300 rounded-lg text-xs font-semibold transition-colors">
+                                Descartar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <form id="quote-form" novalidate>
 
                     <!-- ── CARD 1: Product ── -->
@@ -1554,6 +1575,7 @@
         }
 
         function showConfirmation(scbId, payload) {
+            _clearDraftCotizar();
             // Hide form, hide sticky, show confirm
             formSection.classList.add('hidden-section');
             stickyCta.classList.remove('show');
@@ -1630,6 +1652,7 @@
         }
 
         function showSmtpFailure(scbId, payload) {
+            _clearDraftCotizar();
             // Record is saved but email delivery failed — show recovery state
             formSection.classList.add('hidden-section');
             stickyCta.classList.remove('show');
@@ -1689,6 +1712,7 @@
         document.getElementById('btn-new-after-smtp').addEventListener('click', resetForm);
 
         function resetForm() {
+            _clearDraftCotizar();
             form.reset();
             emailConfirmed = false;
             hasRequiredField = false;
@@ -1743,6 +1767,93 @@
                 .replace(/>/g,'&gt;')
                 .replace(/"/g,'&quot;');
         }
+
+        // ── LocalStorage draft save ──────────────────────────────
+        const _DRAFT_KEY = 'crbox-draft-anon';
+        const _DRAFT_FIELD_IDS = [
+            'f-product-name', 'f-category', 'f-declared-value', 'f-product-url',
+            'f-service-type', 'f-destination-zone', 'f-weight',
+            'f-length', 'f-width', 'f-height',
+            'f-customer-name', 'f-customer-email', 'f-notes',
+        ];
+
+        function _saveDraftCotizar() {
+            var data = {};
+            _DRAFT_FIELD_IDS.forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) data[id] = el.value;
+            });
+            try { localStorage.setItem(_DRAFT_KEY, JSON.stringify(data)); } catch (e) {}
+        }
+
+        function _clearDraftCotizar() {
+            try { localStorage.removeItem(_DRAFT_KEY); } catch (e) {}
+        }
+
+        function _loadDraftCotizar() {
+            try {
+                var raw = localStorage.getItem(_DRAFT_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) { return null; }
+        }
+
+        function _restoreDraftCotizar(data) {
+            _DRAFT_FIELD_IDS.forEach(function (id) {
+                if (id === 'f-service-type') return; // handled separately
+                if (data[id] == null) return;
+                var el = document.getElementById(id);
+                if (el) el.value = data[id];
+            });
+            // Restore service type toggle
+            var svc = data['f-service-type'] || 'aereo';
+            setService(svc);
+        }
+
+        // Debounced listener — attach to all editable fields
+        var _draftTimer = null;
+        function _scheduleDraftSave() {
+            clearTimeout(_draftTimer);
+            _draftTimer = setTimeout(_saveDraftCotizar, 500);
+        }
+        _DRAFT_FIELD_IDS.forEach(function (id) {
+            if (id === 'f-service-type') return;
+            var el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', _scheduleDraftSave);
+                el.addEventListener('change', _scheduleDraftSave);
+            }
+        });
+        // Service type buttons
+        document.getElementById('btn-aereo').addEventListener('click', function () {
+            setTimeout(_saveDraftCotizar, 0);
+        });
+        document.getElementById('btn-maritimo').addEventListener('click', function () {
+            setTimeout(_saveDraftCotizar, 0);
+        });
+
+        // On load: show restore banner if a non-trivial draft exists
+        (function () {
+            var draft = _loadDraftCotizar();
+            var bar   = document.getElementById('draft-restore-bar');
+            if (!draft || !bar) return;
+            var hasData = _DRAFT_FIELD_IDS.some(function (id) {
+                return id !== 'f-service-type' && (draft[id] || '').toString().trim() !== '';
+            });
+            if (!hasData) { _clearDraftCotizar(); return; }
+
+            bar.classList.remove('hidden');
+
+            document.getElementById('draft-restore-btn').addEventListener('click', function () {
+                _restoreDraftCotizar(draft);
+                bar.classList.add('hidden');
+                // Trigger hasRequiredField check so sticky CTA can appear
+                fProductName.dispatchEvent(new Event('input'));
+            });
+            document.getElementById('draft-discard-btn').addEventListener('click', function () {
+                _clearDraftCotizar();
+                bar.classList.add('hidden');
+            });
+        })();
 
         // ── Pre-fill email from query params ────────────────────
         (function () {

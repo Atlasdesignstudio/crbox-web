@@ -89,6 +89,14 @@ def _init_db():
             );
         ''')
         conn.commit()
+        # Safe migration: add reminder_sent_at if it doesn't exist yet.
+        # executescript() auto-commits, so ALTER TABLE runs in its own transaction.
+        existing_cols = [row[1] for row in
+                         conn.execute('PRAGMA table_info(quote_requests)').fetchall()]
+        if 'reminder_sent_at' not in existing_cols:
+            conn.execute('ALTER TABLE quote_requests ADD COLUMN reminder_sent_at TEXT')
+            conn.commit()
+            print('[SOLICITUDES] Added reminder_sent_at column to quote_requests')
         conn.close()
     print('[SOLICITUDES] SQLite schema initialised OK')
 
@@ -662,6 +670,218 @@ def _start_health_monitor():
         print(f'[HEALTH MONITOR] Invalid SMTP_HEALTH_INTERVAL "{raw}", using default {_HEALTH_INTERVAL_DEFAULT}s')
         interval = _HEALTH_INTERVAL_DEFAULT
     t = threading.Thread(target=_health_monitor_loop, args=(interval,), daemon=True)
+    t.start()
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+# ── Solicitud overdue reminder ─────────────────────────────────────────────────
+# Polls for enviada solicitudes that have had no sales action after N hours and
+# sends a single digest email to the sales team (ventas@crbox.cr).
+# Each solicitud only receives one reminder (reminder_sent_at is set on send).
+_REMINDER_INTERVAL_DEFAULT = 3600   # check every hour
+
+
+def _send_reminder_digest(rows, reminder_hours: int) -> tuple[bool, str]:
+    """Build and send a digest reminder email to the sales team."""
+    settings = _smtp_settings()
+    if settings is None:
+        return False, 'SMTP not configured'
+
+    host, port_str, user, pwd = settings
+    n = len(rows)
+    plural = 'es' if n != 1 else ''
+    plural_h = 's' if reminder_hours != 1 else ''
+    subject = f'Recordatorio CRBOX: {n} solicitud{plural} pendiente{plural} de respuesta'
+
+    # ── Build row HTML for table ────────────────────────────────────────────
+    rows_html = ''
+    plain_items = []
+    now_ts = time.time()
+    for row in rows:
+        try:
+            submitted_struct = time.strptime(row['submitted_at'], '%Y-%m-%dT%H:%M:%SZ')
+            elapsed_h = int((now_ts - calendar.timegm(submitted_struct)) / 3600)
+            if elapsed_h < 48:
+                elapsed_str = f'{elapsed_h}h'
+            else:
+                elapsed_str = f'{elapsed_h // 24}d {elapsed_h % 24}h'
+        except Exception:
+            elapsed_str = '?h'
+
+        customer = row['customer_name'] or row['customer_email']
+        id_esc      = _html.escape(row['id'])
+        product_esc = _html.escape(row['product_name'])
+        customer_esc = _html.escape(customer)
+        email_esc   = _html.escape(row['customer_email'])
+
+        rows_html += (
+            f'<tr style="border-bottom:1px solid #f3f4f6;">'
+            f'<td style="padding:10px 12px;font-weight:700;color:#FF6B00;white-space:nowrap;'
+            f'font-size:13px;font-family:monospace;">{id_esc}</td>'
+            f'<td style="padding:10px 12px;font-size:13px;color:#111827;">{product_esc}</td>'
+            f'<td style="padding:10px 12px;font-size:13px;color:#374151;">{customer_esc}'
+            f'<br><span style="color:#9ca3af;font-size:12px;">{email_esc}</span></td>'
+            f'<td style="padding:10px 12px;font-size:13px;color:#6b7280;white-space:nowrap;'
+            f'font-weight:600;">{elapsed_str}</td>'
+            '</tr>'
+        )
+        plain_items.append(
+            f'  \u2022 {row["id"]} \u2014 {row["product_name"]}\n'
+            f'    Cliente: {customer} <{row["customer_email"]}>\n'
+            f'    Sin respuesta: {elapsed_str}\n'
+        )
+
+    plain = (
+        f'RECORDATORIO \u2014 CRBOX\n\n'
+        f'Hay {n} solicitud{plural} con status "enviada" que lleva{("n" if n != 1 else "")} '
+        f'm\u00e1s de {reminder_hours} hora{plural_h} sin respuesta:\n\n'
+        + ''.join(plain_items)
+        + f'\nRevisa y actualiza el status en el panel de ventas.\n\n'
+        f'\u2014 Recordatorio autom\u00e1tico de CRBOX'
+    )
+
+    html_body = (
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;'
+        'color:#1a1a1a;max-width:640px;margin:0 auto;">'
+        '<div style="background:linear-gradient(135deg,#FF6B00,#FF9A00);'
+        'padding:20px 24px;border-radius:8px 8px 0 0;">'
+        f'<p style="color:#fff;font-size:20px;font-weight:700;margin:0;">'
+        f'&#128203; {n} solicitud{plural} pendiente{plural}</p>'
+        '<p style="color:rgba(255,255,255,.85);font-size:13px;margin:4px 0 0;">'
+        'CRBOX &middot; Recordatorio autom&aacute;tico de ventas</p>'
+        '</div>'
+        '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;'
+        'padding:24px;border-radius:0 0 8px 8px;">'
+        f'<p style="font-size:15px;color:#374151;">'
+        f'La{"s" if n != 1 else ""} siguiente{"s" if n != 1 else ""} '
+        f'solicitud{plural} lleva{("n" if n != 1 else "")} m&aacute;s de '
+        f'<strong>{reminder_hours} hora{plural_h}</strong> sin respuesta:</p>'
+        '<table style="width:100%;border-collapse:collapse;margin-top:16px;">'
+        '<thead><tr style="background:#f9fafb;">'
+        '<th style="padding:8px 12px;text-align:left;font-size:11px;color:#6b7280;'
+        'font-weight:600;text-transform:uppercase;letter-spacing:.05em;">ID</th>'
+        '<th style="padding:8px 12px;text-align:left;font-size:11px;color:#6b7280;'
+        'font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Producto</th>'
+        '<th style="padding:8px 12px;text-align:left;font-size:11px;color:#6b7280;'
+        'font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Cliente</th>'
+        '<th style="padding:8px 12px;text-align:left;font-size:11px;color:#6b7280;'
+        'font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Sin respuesta</th>'
+        '</tr></thead>'
+        '<tbody>' + rows_html + '</tbody>'
+        '</table>'
+        '<p style="font-size:12px;color:#9ca3af;margin-top:24px;">'
+        '\u2014 Recordatorio autom&aacute;tico de CRBOX &middot; '
+        'Este correo se env&iacute;a una sola vez por solicitud.</p>'
+        '</div></div>'
+    )
+
+    msg = email.mime.multipart.MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From']    = f'CRBOX Sistema <{user}>'
+    msg['To']      = QUOTE_RECIPIENT
+    msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
+    msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
+
+    try:
+        port_int = int(port_str)
+        if port_int == 465:
+            with smtplib.SMTP_SSL(host, port_int, timeout=15) as srv:
+                srv.login(user, pwd)
+                srv.sendmail(user, [QUOTE_RECIPIENT], msg.as_string())
+        else:
+            with smtplib.SMTP(host, port_int, timeout=15) as srv:
+                srv.ehlo(); srv.starttls(); srv.ehlo()
+                srv.login(user, pwd)
+                srv.sendmail(user, [QUOTE_RECIPIENT], msg.as_string())
+        return True, ''
+    except smtplib.SMTPAuthenticationError:
+        return False, 'SMTP authentication failed'
+    except smtplib.SMTPException as exc:
+        return False, f'SMTP error: {exc}'
+    except OSError as exc:
+        return False, f'Network error: {exc}'
+    except Exception as exc:
+        return False, f'Unexpected error: {exc}'
+
+
+def _check_and_send_reminders(reminder_hours: int):
+    """Query for overdue enviada solicitudes and send one digest to the sales team."""
+    cutoff_ts  = time.time() - reminder_hours * 3600
+    cutoff_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(cutoff_ts))
+
+    with _DB_LOCK:
+        conn = _get_db()
+        try:
+            rows = conn.execute(
+                '''SELECT id, customer_name, customer_email, product_name, submitted_at
+                   FROM quote_requests
+                   WHERE status = 'enviada'
+                     AND submitted_at < ?
+                     AND reminder_sent_at IS NULL''',
+                (cutoff_iso,)
+            ).fetchall()
+        finally:
+            conn.close()
+
+    if not rows:
+        print('[SOLICITUD REMINDER] Check complete — no overdue solicitudes')
+        return
+
+    print(f'[SOLICITUD REMINDER] Found {len(rows)} overdue solicitudes — sending digest')
+    ok, err = _send_reminder_digest(rows, reminder_hours)
+
+    if not ok:
+        print(f'[SOLICITUD REMINDER] Failed to send digest email: {err}')
+        return
+
+    now_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+    with _DB_LOCK:
+        conn = _get_db()
+        try:
+            conn.executemany(
+                'UPDATE quote_requests SET reminder_sent_at = ? WHERE id = ?',
+                [(now_iso, row['id']) for row in rows]
+            )
+            conn.commit()
+        finally:
+            conn.close()
+    print(f'[SOLICITUD REMINDER] Digest sent — marked {len(rows)} record(s) with reminder_sent_at')
+
+
+def _solicitud_reminder_loop(interval: int, reminder_hours: int):
+    """Background daemon: periodically checks for overdue enviada solicitudes."""
+    print(f'[SOLICITUD REMINDER] Starting — interval {interval}s, threshold {reminder_hours}h')
+    while True:
+        time.sleep(interval)
+        try:
+            _check_and_send_reminders(reminder_hours)
+        except Exception as exc:
+            print(f'[SOLICITUD REMINDER] Unexpected error in reminder loop: {exc}')
+
+
+def _start_solicitud_reminder():
+    """Read env vars and launch the solicitud reminder daemon thread."""
+    raw_hours    = os.environ.get('SOLICITUD_REMINDER_HOURS', '').strip()
+    raw_interval = os.environ.get('SOLICITUD_REMINDER_INTERVAL', '').strip()
+
+    try:
+        reminder_hours = max(1, int(raw_hours)) if raw_hours else 48
+    except ValueError:
+        print(f'[SOLICITUD REMINDER] Invalid SOLICITUD_REMINDER_HOURS "{raw_hours}", using default 48h')
+        reminder_hours = 48
+
+    try:
+        interval = max(60, int(raw_interval)) if raw_interval else _REMINDER_INTERVAL_DEFAULT
+    except ValueError:
+        print(f'[SOLICITUD REMINDER] Invalid SOLICITUD_REMINDER_INTERVAL "{raw_interval}", '
+              f'using default {_REMINDER_INTERVAL_DEFAULT}s')
+        interval = _REMINDER_INTERVAL_DEFAULT
+
+    t = threading.Thread(
+        target=_solicitud_reminder_loop,
+        args=(interval, reminder_hours),
+        daemon=True
+    )
     t.start()
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1629,6 +1849,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     _init_db()
     _start_health_monitor()
+    _start_solicitud_reminder()
     server = HTTPServer(("0.0.0.0", 5000), NoCacheHandler)
     print("Serving HTTP on 0.0.0.0 port 5000 (http://0.0.0.0:5000/) ...")
     server.serve_forever()

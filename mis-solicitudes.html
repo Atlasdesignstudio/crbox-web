@@ -367,6 +367,27 @@
             <!-- The actual form -->
             <form id="new-request-form" autocomplete="off" class="px-6 py-6">
 
+                <!-- Draft restore banner -->
+                <div id="portal-draft-bar" class="hidden mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3" role="alert">
+                    <div class="flex flex-wrap items-start gap-3">
+                        <i class="fas fa-bookmark text-amber-500 mt-0.5 flex-shrink-0 text-sm"></i>
+                        <div class="flex-1 min-w-0" style="min-width:120px">
+                            <p class="text-sm font-semibold text-amber-900">Solicitud en progreso</p>
+                            <p class="text-xs text-amber-700">¿Continuar donde la dejaste?</p>
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0 items-start">
+                            <button id="portal-draft-restore-btn" type="button"
+                                    class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold transition-colors">
+                                Continuar
+                            </button>
+                            <button id="portal-draft-discard-btn" type="button"
+                                    class="px-3 py-1.5 bg-white hover:bg-amber-100 text-amber-700 border border-amber-300 rounded-lg text-xs font-semibold transition-colors">
+                                Descartar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Duplicate banner -->
                 <div id="form-dup-banner" class="hidden mb-5 flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
                     <i class="fas fa-copy text-blue-500 mt-0.5 flex-shrink-0 text-sm"></i>
