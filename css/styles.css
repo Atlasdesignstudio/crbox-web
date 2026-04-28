@@ -916,6 +916,11 @@ button.active {
     color: #991b1b;
     border: 1px solid #fecaca;
 }
+.ai-banner-neutral {
+    background: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
 
 /* ── AI confirm checkbox ──────────────────────────────────────── */
 .ai-confirm-wrapper {

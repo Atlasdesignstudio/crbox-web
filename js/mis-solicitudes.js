@@ -13,7 +13,8 @@
   var _panelHasData = false;
   var _panelSubmitted = false;
   var _dupWarningDismissedPortal = false;
-  var _portalAiActive = false;
+  var _portalAiActive     = false;
+  var _portalAiDataSource = 'manual';
 
   // ── beforeunload: warn if panel has data and user navigates away ───────────
   window.addEventListener('beforeunload', function (e) {
@@ -341,7 +342,8 @@
     _panelSubmitted = false;
     _dupWarningDismissedPortal = false;
     // Reset AI state
-    _portalAiActive = false;
+    _portalAiActive     = false;
+    _portalAiDataSource = 'manual';
     if (typeof CRBOXAIExtractor !== 'undefined') {
       CRBOXAIExtractor.resetExtraction({
         bannerTarget:   document.getElementById('ai-extract-banner-portal'),
@@ -707,6 +709,11 @@
       if (btnPortalAnalizar) {
         btnPortalAnalizar.addEventListener('click', _doPortalAiExtract);
       }
+      document.addEventListener('ai:extraction-complete', function (e) {
+        if (e.detail && e.detail.dataSource) {
+          _portalAiDataSource = e.detail.dataSource;
+        }
+      });
       fPortalUrl.addEventListener('input', function () {
         var url = (this.value || '').trim();
         if (!url) {
@@ -746,6 +753,20 @@
           fPortalCatEl.focus();
           return;
         }
+        if (_portalAiActive && typeof CRBOXAIExtractor !== 'undefined') {
+          var fconf = CRBOXAIExtractor.allFieldsConfirmed();
+          if (!fconf.ok) {
+            if (errorMsg) {
+              errorMsg.textContent = 'Revisa los campos marcados con "Confirmar" antes de enviar.';
+              errorMsg.classList.remove('hidden');
+            }
+            fconf.unconfirmedIds.forEach(function (fid) {
+              var el = document.getElementById(fid);
+              if (el) { el.style.outline = '2px solid #ef4444'; el.focus(); }
+            });
+            return;
+          }
+        }
         if (_portalAiActive && aiConfirmWrapper && aiConfirmWrapper.style.display !== 'none') {
           if (!aiConfirmChk || !aiConfirmChk.checked) {
             aiConfirmWrapper.style.outline = '2px solid #ef4444';
@@ -764,7 +785,7 @@
           weight_kg:         form.querySelector('#form-weight').value,
           customer_notes:    form.querySelector('#form-notes').value.trim(),
           service_type:      form.querySelector('#form-service-type').value,
-          data_source:       _portalAiActive ? 'ai' : 'manual',
+          data_source:       _portalAiActive ? (_portalAiDataSource || 'ai_extracted') : 'manual',
         };
 
         // Duplicate check (skip if user already dismissed)

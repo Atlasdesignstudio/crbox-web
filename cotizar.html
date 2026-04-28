@@ -1207,6 +1207,7 @@
         let _dupWarningDismissed = false;
         let _formSubmitted    = false;
         let _aiActive         = false; // AI pre-filled ≥1 field
+        let _aiDataSource     = 'manual'; // 'manual' | 'ai_extracted' | 'ai_partial'
 
         // ── beforeunload draft warning ─────────────────────────
         window.addEventListener('beforeunload', function (e) {
@@ -1473,7 +1474,8 @@
             const url = (fProductUrl.value || '').trim();
             if (!url || !url.startsWith('http')) return;
             if (typeof CRBOXAIExtractor === 'undefined') return;
-            _aiActive = false;
+            _aiActive     = false;
+            _aiDataSource = 'manual';
             CRBOXAIExtractor.runExtraction(url, {
                 bannerTarget:   aiExtractBanner,
                 fName:          fProductName,
@@ -1488,6 +1490,11 @@
                 }
             });
         }
+        document.addEventListener('ai:extraction-complete', function (e) {
+            if (e.detail && e.detail.dataSource) {
+                _aiDataSource = e.detail.dataSource;
+            }
+        });
 
         if (btnAiAnalizar) {
             btnAiAnalizar.addEventListener('click', _doAiExtract);
@@ -1538,6 +1545,16 @@
                 markFieldError(fCategory, 'err-category');
                 valid = false;
             }
+            if (_aiActive && typeof CRBOXAIExtractor !== 'undefined') {
+                const fconf = CRBOXAIExtractor.allFieldsConfirmed();
+                if (!fconf.ok) {
+                    fconf.unconfirmedIds.forEach(function (fid) {
+                        const el = document.getElementById(fid);
+                        if (el) { el.style.outline = '2px solid #ef4444'; el.focus(); }
+                    });
+                    valid = false;
+                }
+            }
             if (_aiActive && aiConfirmWrapper && aiConfirmWrapper.style.display !== 'none') {
                 if (!aiConfirmChk || !aiConfirmChk.checked) {
                     aiConfirmWrapper.style.outline = '2px solid #ef4444';
@@ -1566,7 +1583,7 @@
                 destination_zone:   destination,
                 customer_email:     email,
                 account_type:       'anonymous',
-                data_source:        _aiActive ? 'ai' : 'manual',
+                data_source:        _aiActive ? _aiDataSource : 'manual',
             };
 
             const customerName = (fCustomerName.value || '').trim();
