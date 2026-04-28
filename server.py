@@ -1110,19 +1110,20 @@ def _admin_format_date(iso_str):
         return iso_str or ''
 
 
-def _admin_status_badge_html(status):
-    cfg = {
-        'enviada':     ('#FFF7ED', '#C2410C', '#FDBA74', 'Enviada'),
-        'en_revision': ('#EFF6FF', '#1D4ED8', '#BFDBFE', 'En revisión'),
-        'respondida':  ('#F0FDF4', '#15803D', '#BBF7D0', 'Respondida'),
-        'completada':  ('#F9FAFB', '#374151', '#D1D5DB', 'Completada'),
-        'cancelada':   ('#FEF2F2', '#991B1B', '#FECACA', 'Cancelada'),
-        'expirada':    ('#F9FAFB', '#6B7280', '#E5E7EB', 'Expirada'),
-    }
-    bg, fg, border, label = cfg.get(status, ('#F9FAFB', '#374151', '#D1D5DB', status))
+_ADMIN_BADGE_CFG = {
+    'enviada':     ('#FFF7ED', '#C2410C', '#FDBA74', 'Enviada'),
+    'en_revision': ('#EFF6FF', '#1D4ED8', '#BFDBFE', 'En revisión'),
+    'respondida':  ('#F0FDF4', '#15803D', '#BBF7D0', 'Respondida'),
+    'completada':  ('#F9FAFB', '#374151', '#D1D5DB', 'Completada'),
+    'cancelada':   ('#FEF2F2', '#991B1B', '#FECACA', 'Cancelada'),
+    'expirada':    ('#F9FAFB', '#6B7280', '#E5E7EB', 'Expirada'),
+}
+
+def _admin_badge_html(status, rid):
+    bg, fg, bdr, slabel = _ADMIN_BADGE_CFG.get(status, ('#F9FAFB', '#374151', '#D1D5DB', status))
     return (
-        f'<span class="adm-badge" id="badge-{{}}" '
-        f'style="background:{bg};color:{fg};border-color:{border};">{label}</span>'
+        f'<span class="adm-badge" id="badge-{rid}" '
+        f'style="background:{bg};color:{fg};border-color:{bdr};">{slabel}</span>'
     )
 
 
@@ -1249,32 +1250,25 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
         has_transitions = bool(transitions)
 
         # Status badge
-        cfg = {
-            'enviada':     ('#FFF7ED', '#C2410C', '#FDBA74', 'Enviada'),
-            'en_revision': ('#EFF6FF', '#1D4ED8', '#BFDBFE', 'En revisión'),
-            'respondida':  ('#F0FDF4', '#15803D', '#BBF7D0', 'Respondida'),
-            'completada':  ('#F9FAFB', '#374151', '#D1D5DB', 'Completada'),
-            'cancelada':   ('#FEF2F2', '#991B1B', '#FECACA', 'Cancelada'),
-            'expirada':    ('#F9FAFB', '#6B7280', '#E5E7EB', 'Expirada'),
-        }
-        bg, fg, bdr, slabel = cfg.get(status, ('#F9FAFB', '#374151', '#D1D5DB', status))
-        badge_html = (
-            f'<span class="adm-badge" id="badge-{rid}" '
-            f'style="background:{bg};color:{fg};border-color:{bdr};">{slabel}</span>'
-        )
+        badge_html = _admin_badge_html(status, rid)
 
         # Update controls
         if has_transitions:
             sel_opts = _admin_status_options_html(status)
-            update_html = f'''<select class="adm-select" id="sel-{rid}">{sel_opts}</select>
-<textarea class="adm-note" id="note-{rid}" placeholder="Nota interna (opcional)" rows="2"></textarea>
-<button class="adm-upd-btn" onclick="doUpdate('{rid}',this)" type="button">Actualizar</button>'''
+            update_html = (
+                f'<form method="POST" action="/admin/solicitudes/{rid}/status">'
+                f'<input type="hidden" name="filter" value="{filter_val}">'
+                f'<select class="adm-select" name="status">{sel_opts}</select>'
+                f'<textarea class="adm-note" name="note" placeholder="Nota interna (opcional)" rows="2"></textarea>'
+                f'<button class="adm-upd-btn" type="submit">Actualizar</button>'
+                f'</form>'
+            )
         else:
             update_html = '<span style="color:#9ca3af;font-size:12px;">—</span>'
 
         # Table row
         table_rows += f'''<tr data-id="{rid}">
-<td class="td-id"><a href="https://clients.crbox.cr" style="color:#FF6B00;font-weight:700;font-size:13px;text-decoration:none;">{rid}</a></td>
+<td class="td-id"><span style="color:#FF6B00;font-weight:700;font-size:13px;">{rid}</span></td>
 <td><div style="font-weight:600;font-size:13px;">{name}{empresa}</div>
     <div style="color:#6b7280;font-size:12px;margin-top:2px;">{email_v}</div></td>
 <td><div style="font-size:13px;font-weight:500;">{prod}</div>
@@ -1282,17 +1276,28 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
 <td style="font-size:13px;white-space:nowrap;">{val}</td>
 <td><div style="font-size:13px;white-space:nowrap;">{date_str}</div>
     <div style="color:#9ca3af;font-size:11px;margin-top:2px;">{elapsed}</div></td>
-<td id="badge-cell-{rid}">{badge_html}</td>
+<td>{badge_html}</td>
 <td class="td-upd">{update_html}</td>
 </tr>\n'''
 
         # Card (mobile)
+        card_form = ''
+        if has_transitions:
+            card_form = (
+                f'<div class="adm-card-actions">'
+                f'<form method="POST" action="/admin/solicitudes/{rid}/status">'
+                f'<input type="hidden" name="filter" value="{filter_val}">'
+                f'<select class="adm-select" name="status">{_admin_status_options_html(status)}</select>'
+                f'<textarea class="adm-note" name="note" placeholder="Nota interna (opcional)" rows="2"></textarea>'
+                f'<button class="adm-upd-btn" type="submit">Actualizar</button>'
+                f'</form></div>'
+            )
         card_rows += f'''<div class="adm-card" data-id="{rid}">
 <div class="adm-card-top">
   <div>
     <span class="adm-card-id">{rid}</span>{empresa}
   </div>
-  <div id="badge-cell-{rid}-m">{badge_html}</div>
+  <div>{badge_html}</div>
 </div>
 <div class="adm-card-fields">
   <div class="adm-card-row"><span class="adm-card-lbl">Cliente</span><span class="adm-card-val">{name}</span></div>
@@ -1301,11 +1306,7 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
   <div class="adm-card-row"><span class="adm-card-lbl">Valor</span><span class="adm-card-val">{val}</span></div>
   <div class="adm-card-row"><span class="adm-card-lbl">Fecha</span><span class="adm-card-val">{date_str} &middot; {elapsed}</span></div>
 </div>
-{(f"""<div class="adm-card-actions">
-  <select class="adm-select" id="sel-{rid}-m">{_admin_status_options_html(status)}</select>
-  <textarea class="adm-note" id="note-{rid}-m" placeholder="Nota interna (opcional)" rows="2"></textarea>
-  <button class="adm-upd-btn" onclick="doUpdateM('{rid}',this)" type="button">Actualizar</button>
-</div>""") if has_transitions else ''}
+{card_form}
 </div>\n'''
 
     # ── Empty state ────────────────────────────────────────────────────────
@@ -1460,75 +1461,6 @@ a{{color:inherit;text-decoration:none}}
 </div>
 </main>
 
-<div id="adm-toast"></div>
-
-<script>
-function showToast(msg, isErr) {{
-  var t = document.getElementById('adm-toast');
-  t.textContent = msg;
-  t.className = isErr ? 'error' : '';
-  t.classList.add('show');
-  setTimeout(function(){{ t.classList.remove('show'); }}, 3000);
-}}
-
-function applyBadge(rid, status) {{
-  var labels = {{enviada:'Enviada',en_revision:'En revision',respondida:'Respondida',
-    completada:'Completada',cancelada:'Cancelada',expirada:'Expirada'}};
-  var colors = {{
-    enviada:    ['#FFF7ED','#C2410C','#FDBA74'],
-    en_revision:['#EFF6FF','#1D4ED8','#BFDBFE'],
-    respondida: ['#F0FDF4','#15803D','#BBF7D0'],
-    completada: ['#F9FAFB','#374151','#D1D5DB'],
-    cancelada:  ['#FEF2F2','#991B1B','#FECACA'],
-    expirada:   ['#F9FAFB','#6B7280','#E5E7EB'],
-  }};
-  var c = colors[status] || ['#F9FAFB','#374151','#D1D5DB'];
-  var label = labels[status] || status;
-  var html = '<span class="adm-badge" style="background:'+c[0]+';color:'+c[1]+';border-color:'+c[2]+';">'+label+'</span>';
-  var cell = document.getElementById('badge-cell-'+rid);
-  if (cell) cell.innerHTML = html;
-  var cellM = document.getElementById('badge-cell-'+rid+'-m');
-  if (cellM) cellM.innerHTML = html;
-}}
-
-function doUpdate(rid, btn) {{
-  var sel  = document.getElementById('sel-' + rid);
-  var note = document.getElementById('note-' + rid);
-  _doUpdate(rid, sel, note, btn);
-}}
-function doUpdateM(rid, btn) {{
-  var sel  = document.getElementById('sel-' + rid + '-m');
-  var note = document.getElementById('note-' + rid + '-m');
-  _doUpdate(rid, sel, note, btn);
-}}
-function _doUpdate(rid, sel, note, btn) {{
-  var status = sel.value;
-  if (!status) {{ showToast('Selecciona un estado', true); return; }}
-  btn.disabled = true;
-  var orig = btn.textContent;
-  btn.textContent = 'Actualizando\u2026';
-  fetch('/admin/solicitudes/' + rid + '/status', {{
-    method: 'POST',
-    headers: {{'Content-Type': 'application/json'}},
-    body: JSON.stringify({{status: status, note: note ? note.value.trim() : ''}})
-  }}).then(function(r){{ return r.json(); }}).then(function(data) {{
-    if (data.ok) {{
-      applyBadge(rid, data.to);
-      showToast('\u2713 ' + rid + ' actualizado a ' + data.to, false);
-      sel.value = '';
-      if (note) note.value = '';
-    }} else {{
-      showToast(data.error || 'Error al actualizar', true);
-    }}
-    btn.disabled = false;
-    btn.textContent = orig;
-  }}).catch(function() {{
-    showToast('Error de red', true);
-    btn.disabled = false;
-    btn.textContent = orig;
-  }});
-}}
-</script>
 </body>
 </html>'''
 
@@ -2461,6 +2393,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         if _admin_password() is None:
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self.send_response(404); self.end_headers(); return
         _admin_clear_session(token)
         clear_cookie = 'admin_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'
         self._admin_redirect(
@@ -2474,8 +2408,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self._admin_redirect('/admin/login')
-            return
+            self.send_response(404); self.end_headers(); return
         qs = urllib.parse.parse_qs(self.path.partition('?')[2])
         filter_val = (qs.get('filter', ['all'])[0] or 'all').strip()
         if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
@@ -2527,19 +2460,21 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self._json_response(401, {'ok': False, 'error': 'Sesión expirada.'})
-            return
+            self.send_response(404); self.end_headers(); return
         try:
             length = int(self.headers.get('Content-Length', 0))
             raw    = self.rfile.read(length).decode('utf-8')
-            data   = json.loads(raw)
+            params = urllib.parse.parse_qs(raw)
+            new_status = (params.get('status', [''])[0] or '').strip()
+            note       = (params.get('note', [''])[0] or '').strip()[:1000] or None
+            filter_val = (params.get('filter', ['all'])[0] or 'all').strip()
+            if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
+                filter_val = 'all'
         except Exception:
-            self._json_error(400, 'Solicitud inválida.')
-            return
-        new_status = (data.get('status') or '').strip()
-        note       = (data.get('note') or '').strip()[:1000] or None
+            self.send_response(400); self.end_headers(); return
+        redirect_url = f'/admin/solicitudes?filter={filter_val}'
         if new_status not in _LEGAL_TRANSITIONS:
-            self._json_response(400, {'ok': False, 'error': f'Estado desconocido: {new_status}'})
+            self._admin_redirect(redirect_url)
             return
         try:
             with _DB_LOCK:
@@ -2549,13 +2484,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 ).fetchone()
                 if row is None:
                     conn.close()
-                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    self._admin_redirect(redirect_url)
                     return
                 current_status = row['status']
                 if new_status not in _LEGAL_TRANSITIONS.get(current_status, set()):
                     conn.close()
-                    self._json_response(400, {'ok': False, 'error':
-                        f'Transición inválida: {current_status} → {new_status}'})
+                    self._admin_redirect(redirect_url)
                     return
                 now_iso  = _now_iso()
                 hist_id  = _uuid4_hex()
@@ -2579,11 +2513,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 conn.commit()
                 conn.close()
             print(f'[ADMIN] Status updated: {scb_id} {current_status} → {new_status}')
-            self._json_response(200, {'ok': True, 'id': scb_id,
-                                       'from': current_status, 'to': new_status})
+            self._admin_redirect(redirect_url)
         except Exception as exc:
             print(f'[ADMIN] Status update error: {exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+            self._admin_redirect(redirect_url)
 
 
 if __name__ == "__main__":
