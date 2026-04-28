@@ -236,9 +236,13 @@ _VALID_PROVENANCES = {'extracted', 'inferred', 'missing', 'needs_confirmation'}
 def _normalize_field(raw):
     if not isinstance(raw, dict):
         return dict(_FIELD_DEFAULTS.get('product_name'))
+    try:
+        confidence = float(raw.get('confidence') or 0.0)
+    except (TypeError, ValueError):
+        confidence = 0.0
     out = {}
     out['value']            = raw.get('value', None)
-    out['confidence']       = float(raw.get('confidence') or 0.0)
+    out['confidence']       = max(0.0, min(1.0, confidence))
     prov = raw.get('provenance', 'missing')
     out['provenance']       = prov if prov in _VALID_PROVENANCES else 'missing'
     out['source_attribute'] = raw.get('source_attribute', None)
@@ -324,7 +328,10 @@ def _handle_ai_extract(handler):
         handler._json_response(200, result)
         return
 
-    result = _normalize_ai_result(gemini_result, url)
+    try:
+        result = _normalize_ai_result(gemini_result, url)
+    except Exception:
+        result = {'page_readable': False, 'error': 'ai_parse_failed'}
     _ai_cache_set(url_hash, result)
     handler._json_response(200, result)
 

@@ -136,7 +136,7 @@
 
         if (provenance === 'missing' || value === null || value === undefined) return false;
 
-        // <0.70: placeholder only, no pre-fill
+        // <0.70 and not needs_confirmation: placeholder only, no pre-fill
         if (confidence < CONFIDENCE_MED && provenance !== 'needs_confirmation') {
             el.placeholder = String(value);
             return false;
@@ -146,7 +146,9 @@
         el.dataset.aiSuggested = '1';
         el.dataset.aiField     = 'product_name';
 
-        var needsConfirm = (provenance === 'needs_confirmation' || confidence < CONFIDENCE_HIGH);
+        // Spec 9.2-9.3: <0.70 or needs_confirmation => red Confirmar (require action)
+        //                >=0.70 extracted/inferred   => amber Verificar (visual only)
+        var needsConfirm = (provenance === 'needs_confirmation' || confidence < CONFIDENCE_MED);
 
         el.style.color = needsConfirm ? '#9ca3af' : '';
         el.addEventListener('input', function onInput() {
