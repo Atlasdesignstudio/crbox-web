@@ -1058,15 +1058,18 @@ def _admin_clear_session(token):
 
 
 def _admin_brute_blocked(ip):
-    """Return (blocked, remaining_seconds)."""
+    """Return (blocked, remaining_seconds).
+    The 10-minute block is measured from the most recent (Nth) failed attempt,
+    so every breach triggers a full _ADMIN_BRUTE_BLOCK cooldown.
+    """
     now = time.monotonic()
     with _admin_brute_lock:
         timestamps = [t for t in _admin_brute_state.get(ip, [])
                       if now - t < _ADMIN_BRUTE_WINDOW]
         _admin_brute_state[ip] = timestamps
         if len(timestamps) >= _ADMIN_BRUTE_MAX:
-            oldest = timestamps[0]
-            remaining = max(0, int(oldest + _ADMIN_BRUTE_BLOCK - now))
+            latest = timestamps[-1]  # most recent fail → full block from there
+            remaining = max(0, int(latest + _ADMIN_BRUTE_BLOCK - now))
             if remaining > 0:
                 return True, remaining
             _admin_brute_state[ip] = []
@@ -2374,9 +2377,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return
         if pwd == _admin_password():
             token = _admin_create_session()
+            is_https = (self.headers.get('X-Forwarded-Proto', '') == 'https'
+                        or self.headers.get('X-Forwarded-Ssl', '') == 'on')
+            secure_flag = '; Secure' if is_https else ''
             cookie = (
                 f'admin_session={token}; HttpOnly; SameSite=Strict; '
-                f'Path=/; Max-Age={_ADMIN_SESSION_TTL}'
+                f'Path=/; Max-Age={_ADMIN_SESSION_TTL}{secure_flag}'
             )
             self._admin_redirect(
                 '/admin/solicitudes',
