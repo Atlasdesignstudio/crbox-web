@@ -957,6 +957,11 @@
 
                     <!-- ── Desktop submit button ── -->
                     <div class="hidden md:block anim-fadeslide" style="animation-delay:.25s;">
+                        <!-- AI confirm checkbox duplicated near submit for clarity -->
+                        <label id="ai-confirm-cotizar-submit" class="ai-confirm-wrapper" style="display:none;margin-bottom:.75rem;">
+                            <input type="checkbox" id="ai-confirm-chk-cotizar-submit">
+                            <span>Confirmo que todos los datos extraídos automáticamente son correctos antes de enviar.</span>
+                        </label>
                         <button type="submit" id="btn-submit-quote" disabled>
                             <i class="fas fa-paper-plane"></i>
                             Enviar solicitud
@@ -1490,26 +1495,47 @@
                 }
             });
         }
+        const aiConfirmWrapperSubmit = document.getElementById('ai-confirm-cotizar-submit');
+        const aiConfirmChkSubmit    = document.getElementById('ai-confirm-chk-cotizar-submit');
+
         // Disable submit CTA while AI confirm checkbox is visible and unchecked
         function _syncAiSubmitGate() {
             const submitBtn   = document.getElementById('btn-submit-quote');
             const stickyBtn   = document.getElementById('btn-sticky-submit');
             const wrapVisible = aiConfirmWrapper && aiConfirmWrapper.style.display !== 'none';
-            const checked     = aiConfirmChk && aiConfirmChk.checked;
+            const checked     = (aiConfirmChk && aiConfirmChk.checked) ||
+                                (aiConfirmChkSubmit && aiConfirmChkSubmit.checked);
             const shouldBlock = wrapVisible && !checked;
             if (submitBtn) {
-                submitBtn.disabled = shouldBlock;
+                submitBtn.disabled      = shouldBlock;
                 submitBtn.style.opacity = shouldBlock ? '0.5' : '';
                 submitBtn.style.cursor  = shouldBlock ? 'not-allowed' : '';
             }
             if (stickyBtn) {
-                stickyBtn.disabled = shouldBlock;
+                stickyBtn.disabled      = shouldBlock;
                 stickyBtn.style.opacity = shouldBlock ? '0.5' : '';
                 stickyBtn.style.cursor  = shouldBlock ? 'not-allowed' : '';
             }
+            // Keep duplicate checkbox visible/hidden in sync
+            if (aiConfirmWrapperSubmit) {
+                aiConfirmWrapperSubmit.style.display = wrapVisible ? 'flex' : 'none';
+            }
+            // Sync checked states
+            if (aiConfirmChk && aiConfirmChkSubmit && aiConfirmChk.checked !== aiConfirmChkSubmit.checked) {
+                aiConfirmChkSubmit.checked = aiConfirmChk.checked;
+            }
         }
         if (aiConfirmChk) {
-            aiConfirmChk.addEventListener('change', _syncAiSubmitGate);
+            aiConfirmChk.addEventListener('change', function () {
+                if (aiConfirmChkSubmit) aiConfirmChkSubmit.checked = aiConfirmChk.checked;
+                _syncAiSubmitGate();
+            });
+        }
+        if (aiConfirmChkSubmit) {
+            aiConfirmChkSubmit.addEventListener('change', function () {
+                if (aiConfirmChk) aiConfirmChk.checked = aiConfirmChkSubmit.checked;
+                _syncAiSubmitGate();
+            });
         }
         document.addEventListener('ai:extraction-complete', function (e) {
             if (e.detail && e.detail.dataSource) {
