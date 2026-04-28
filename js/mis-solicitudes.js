@@ -710,23 +710,16 @@
         btnPortalAnalizar.addEventListener('click', _doPortalAiExtract);
       }
       function _syncPortalAiSubmitGate() {
-        var submitBtn    = document.getElementById('form-submit-btn');
-        var confirmWrap  = document.getElementById('ai-confirm-portal');
-        var confirmChk   = document.getElementById('ai-confirm-chk-portal');
-        var wrapVisible  = confirmWrap && confirmWrap.style.display !== 'none';
-        var checked      = confirmChk && confirmChk.checked;
-        if (wrapVisible && !checked) {
-          if (submitBtn && !submitBtn.dataset.aiDisabled) {
-            submitBtn.dataset.aiDisabled = '1';
-            submitBtn.style.opacity = '0.5';
-            submitBtn.style.cursor  = 'not-allowed';
-          }
-        } else {
-          if (submitBtn && submitBtn.dataset.aiDisabled) {
-            delete submitBtn.dataset.aiDisabled;
-            submitBtn.style.opacity = '';
-            submitBtn.style.cursor  = '';
-          }
+        var submitBtn   = document.getElementById('form-submit-btn');
+        var confirmWrap = document.getElementById('ai-confirm-portal');
+        var confirmChk  = document.getElementById('ai-confirm-chk-portal');
+        var wrapVisible = confirmWrap && confirmWrap.style.display !== 'none';
+        var checked     = confirmChk && confirmChk.checked;
+        var shouldBlock = wrapVisible && !checked;
+        if (submitBtn) {
+          submitBtn.disabled         = shouldBlock;
+          submitBtn.style.opacity    = shouldBlock ? '0.5' : '';
+          submitBtn.style.cursor     = shouldBlock ? 'not-allowed' : '';
         }
       }
       var _portalConfirmChkEl = document.getElementById('ai-confirm-chk-portal');

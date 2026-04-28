@@ -1492,28 +1492,20 @@
         }
         // Disable submit CTA while AI confirm checkbox is visible and unchecked
         function _syncAiSubmitGate() {
-            const submitBtn  = document.getElementById('btn-submit-quote');
-            const stickyBtn  = document.getElementById('btn-sticky-submit');
+            const submitBtn   = document.getElementById('btn-submit-quote');
+            const stickyBtn   = document.getElementById('btn-sticky-submit');
             const wrapVisible = aiConfirmWrapper && aiConfirmWrapper.style.display !== 'none';
             const checked     = aiConfirmChk && aiConfirmChk.checked;
-            if (wrapVisible && !checked) {
-                if (submitBtn && !submitBtn.dataset.aiDisabled) {
-                    submitBtn.dataset.aiDisabled = '1';
-                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                }
-                if (stickyBtn && !stickyBtn.dataset.aiDisabled) {
-                    stickyBtn.dataset.aiDisabled = '1';
-                    stickyBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                }
-            } else {
-                if (submitBtn && submitBtn.dataset.aiDisabled) {
-                    delete submitBtn.dataset.aiDisabled;
-                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
-                if (stickyBtn && stickyBtn.dataset.aiDisabled) {
-                    delete stickyBtn.dataset.aiDisabled;
-                    stickyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
+            const shouldBlock = wrapVisible && !checked;
+            if (submitBtn) {
+                submitBtn.disabled = shouldBlock;
+                submitBtn.style.opacity = shouldBlock ? '0.5' : '';
+                submitBtn.style.cursor  = shouldBlock ? 'not-allowed' : '';
+            }
+            if (stickyBtn) {
+                stickyBtn.disabled = shouldBlock;
+                stickyBtn.style.opacity = shouldBlock ? '0.5' : '';
+                stickyBtn.style.cursor  = shouldBlock ? 'not-allowed' : '';
             }
         }
         if (aiConfirmChk) {

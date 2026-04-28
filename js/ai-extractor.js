@@ -136,12 +136,6 @@
 
         if (provenance === 'missing' || value === null || value === undefined) return false;
 
-        // <0.70 and not needs_confirmation: placeholder only, no pre-fill
-        if (confidence < CONFIDENCE_MED && provenance !== 'needs_confirmation') {
-            el.placeholder = String(value);
-            return false;
-        }
-
         el.value = String(value);
         el.dataset.aiSuggested = '1';
         el.dataset.aiField     = 'product_name';
