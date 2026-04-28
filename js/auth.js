@@ -326,7 +326,7 @@
     }
   }
 
-  var PROTECTED_PAGES = ['dashboard.html', 'mis-paquetes.html', 'mi-cuenta.html', 'mis-facturas.html'];
+  var PROTECTED_PAGES = ['dashboard.html', 'mis-paquetes.html', 'mi-cuenta.html', 'mis-facturas.html', 'mis-solicitudes.html', 'solicitud.html'];
 
   // ─── Auth gate ────────────────────────────────────────────────────────────
   // Validates all four token/email partial-state combinations:
@@ -359,7 +359,7 @@
   // ─── Portal header dropdown toggle ───────────────────────────────────────
   // Public pages each have their own inline dropdown handler; this function
   // only activates on portal pages so it never double-binds.
-  var PORTAL_PAGES = ['dashboard.html', 'mis-paquetes.html', 'mis-facturas.html', 'mi-cuenta.html'];
+  var PORTAL_PAGES = ['dashboard.html', 'mis-paquetes.html', 'mis-facturas.html', 'mi-cuenta.html', 'mis-solicitudes.html', 'solicitud.html'];
 
   function initPortalDropdown() {
     var path = window.location.pathname;

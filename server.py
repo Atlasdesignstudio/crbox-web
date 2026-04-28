@@ -757,6 +757,17 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/health':
             self._handle_health()
+        elif self.path.startswith('/api/solicitudes'):
+            path_no_qs = self.path.split('?')[0]
+            if path_no_qs == '/api/solicitudes':
+                self._handle_solicitudes_list()
+            else:
+                m = re.match(r'^/api/solicitudes/(SCB-\d+)$', path_no_qs)
+                if m:
+                    self._handle_solicitudes_detail(m.group(1))
+                else:
+                    self.send_response(404)
+                    self.end_headers()
         else:
             super().do_GET()
 
@@ -931,6 +942,19 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         if account_type not in ('personal', 'business', 'anonymous'):
             account_type = 'anonymous'
         casillero_id = (data.get('casillero_id') or '').strip() or None
+
+        # Optional portal-auth hardening: when the caller supplies auth headers
+        # (Bearer token + X-Casillero-Email), verify the token server-side and
+        # derive casillero_id from the CRBOX API response instead of trusting the
+        # client-provided payload value.  Fails silently to preserve backward
+        # compatibility with unauthenticated (webhook / public) callers.
+        auth_header = self.headers.get('Authorization', '').strip()
+        email_header = self.headers.get('X-Casillero-Email', '').strip()
+        if auth_header.startswith('Bearer ') and email_header:
+            verified_id = self._portal_auth()
+            if verified_id:
+                casillero_id = verified_id
+
         product_url = (data.get('product_url') or '').strip() or None
         category = (data.get('category') or 'otros').strip()
         weight_kg = data.get('weight_kg')
@@ -1097,6 +1121,147 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                                        'from': current_status, 'to': new_status})
         except Exception as exc:
             print(f'[SOLICITUDES] Status update error: {exc}')
+            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+
+    # ── Portal auth helper ─────────────────────────────────────────────────
+    _CRBOX_API_BASE = 'https://clients.crbox.cr/api/crboxwebapi'
+
+    def _portal_auth(self):
+        """Validate the caller against the CRBOX API and return casillero_id.
+
+        Requires:
+          Authorization: Bearer <token>   (forwarded to CRBOX API)
+          X-Casillero-Email: <email>      (used to build the getuserinfo URL)
+
+        The token is verified server-side by calling CRBOX's /getuserinfo
+        endpoint with the provided Bearer token.  401/403 from CRBOX means
+        the token is invalid or expired.  The casillero_id is extracted from
+        the verified API response — the client-supplied value is never trusted.
+
+        Returns the verified casillero_id string on success, or None on failure.
+        """
+        auth_header = self.headers.get('Authorization', '').strip()
+        email       = self.headers.get('X-Casillero-Email', '').strip()
+
+        if not auth_header.startswith('Bearer ') or len(auth_header) < 10:
+            return None
+        if not email or '@' not in email:
+            return None
+
+        api_url = (
+            self._CRBOX_API_BASE + '/getuserinfo/' +
+            urllib.parse.quote(email, safe='')
+        )
+        req = urllib.request.Request(
+            api_url,
+            headers={'Authorization': auth_header}
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                if resp.status not in (200,):
+                    return None
+                data = json.loads(resp.read().decode())
+        except urllib.error.HTTPError as exc:
+            # 401 / 403 → invalid / expired token
+            if exc.code in (401, 403):
+                return None
+            print(f'[PORTAL_AUTH] CRBOX API error {exc.code}')
+            return None
+        except Exception as exc:
+            print(f'[PORTAL_AUTH] Unexpected error: {exc}')
+            return None
+
+        # Extract casillero_id from the verified response
+        consignee = data.get('Consignee') or data
+        cas_id = (
+            consignee.get('idconsignee') or
+            consignee.get('IdConsignee') or
+            consignee.get('idConsignee')
+        )
+        if not cas_id:
+            print(f'[PORTAL_AUTH] idconsignee missing in CRBOX response')
+            return None
+        return str(cas_id).strip()
+
+    # ── GET /api/solicitudes ───────────────────────────────────────────────
+    def _handle_solicitudes_list(self):
+        casillero_id = self._portal_auth()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            return
+
+        # Optional ?status= filter
+        qs = urllib.parse.parse_qs(self.path.partition('?')[2])
+        status_filter = (qs.get('status', [''])[0] or '').strip()
+
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                if status_filter and status_filter in _LEGAL_TRANSITIONS:
+                    rows = conn.execute(
+                        '''SELECT * FROM quote_requests
+                           WHERE casillero_id = ?
+                             AND status = ?
+                           ORDER BY submitted_at DESC''',
+                        (casillero_id, status_filter)
+                    ).fetchall()
+                else:
+                    rows = conn.execute(
+                        '''SELECT * FROM quote_requests
+                           WHERE casillero_id = ?
+                           ORDER BY submitted_at DESC''',
+                        (casillero_id,)
+                    ).fetchall()
+                conn.close()
+
+            results = [dict(r) for r in rows]
+            self._json_response(200, {'ok': True, 'solicitudes': results})
+        except Exception as exc:
+            print(f'[SOLICITUDES] List error: {exc}')
+            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+
+    # ── GET /api/solicitudes/:id ───────────────────────────────────────────
+    def _handle_solicitudes_detail(self, scb_id):
+        casillero_id = self._portal_auth()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            return
+
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row = conn.execute(
+                    'SELECT * FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+
+                if row is None:
+                    conn.close()
+                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    return
+
+                row_dict = dict(row)
+
+                # Security: require a strict casillero_id match.
+                # Records with a missing casillero_id (legacy/orphaned rows) are
+                # also denied — never return data that cannot be positively attributed.
+                row_cas = (row_dict.get('casillero_id') or '').strip()
+                if not row_cas or row_cas != casillero_id:
+                    conn.close()
+                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    return
+
+                history = conn.execute(
+                    '''SELECT * FROM quote_status_history
+                       WHERE quote_request_id = ?
+                       ORDER BY changed_at DESC''',
+                    (scb_id,)
+                ).fetchall()
+                conn.close()
+
+            row_dict['history'] = [dict(h) for h in history]
+            self._json_response(200, {'ok': True, 'solicitud': row_dict})
+        except Exception as exc:
+            print(f'[SOLICITUDES] Detail error: {exc}')
             self._json_response(500, {'ok': False, 'error': 'Error interno.'})
 
     # ── /crbox-svc-token ───────────────────────────────────────────────────

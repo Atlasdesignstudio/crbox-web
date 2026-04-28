@@ -94,6 +94,10 @@
                                     <i class="fas fa-file-invoice-dollar w-5 text-center mr-3 text-orange-500"></i>
                                     <span>Mis Facturas</span>
                                 </a>
+                                <a href="mis-solicitudes.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-shopping-bag w-5 text-center mr-3 text-orange-500"></i>
+                                    <span>Mis Solicitudes</span>
+                                </a>
                                 <a href="mi-cuenta.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
                                     <i class="fas fa-user-cog w-5 text-center mr-3 text-orange-500"></i>
                                     <span>Mi Cuenta</span>
@@ -156,6 +160,10 @@
                                 <i class="fas fa-file-invoice-dollar w-6 text-center text-orange-500 mr-3"></i>
                                 <span>Mis Facturas</span>
                             </a>
+                            <a href="mis-solicitudes.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                                <i class="fas fa-shopping-bag w-6 text-center text-orange-500 mr-3"></i>
+                                <span>Mis Solicitudes</span>
+                            </a>
                             <a href="mi-cuenta.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
                                 <i class="fas fa-user-cog w-6 text-center text-orange-500 mr-3"></i>
                                 <span>Mi Cuenta</span>
@@ -197,6 +205,11 @@
             <a href="mis-facturas.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
                 <i class="fas fa-file-invoice-dollar mr-2"></i>
                 <span class="tab-prefix">Mis </span>Facturas
+                <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-0 origin-left transition-transform duration-200 group-hover:scale-x-100"></span>
+            </a>
+            <a href="mis-solicitudes.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
+                <i class="fas fa-shopping-bag mr-2"></i>
+                <span class="tab-prefix">Mis </span>Solicitudes
                 <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-0 origin-left transition-transform duration-200 group-hover:scale-x-100"></span>
             </a>
             <a href="mi-cuenta.html" class="whitespace-nowrap px-6 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
@@ -331,6 +344,32 @@
         </div>
     </div>
 </div>
+
+        <!-- Solicitudes de Compra entry card -->
+        <div class="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl shadow-sm p-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+                <div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center flex-shrink-0 shadow-inner">
+                    <i class="fas fa-shopping-bag text-orange-500 text-2xl"></i>
+                </div>
+                <div class="min-w-0">
+                    <h2 class="font-bold text-gray-900 text-base leading-tight flex items-center gap-2">
+                        Solicitar compra con CRBOX
+                        <span id="dash-sol-badge" class="hidden px-2 py-0.5 rounded-full text-xs font-bold bg-orange-500 text-white"></span>
+                    </h2>
+                    <p class="text-sm text-gray-600 mt-0.5">¿Encontraste algo en Amazon o eBay? CRBOX lo trae por ti.</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2 flex-shrink-0">
+                <a href="mis-solicitudes.html" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-orange-200 text-orange-700 rounded-xl text-sm font-semibold hover:bg-orange-50 transition-colors shadow-sm">
+                    <i class="fas fa-list-ul text-xs"></i>
+                    Mis solicitudes
+                </a>
+                <a href="mis-solicitudes.html?new=1" class="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md active:scale-95">
+                    <i class="fas fa-plus text-xs"></i>
+                    Nueva solicitud
+                </a>
+            </div>
+        </div>
 
         <!-- Dashboard Stats -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

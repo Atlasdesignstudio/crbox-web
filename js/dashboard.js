@@ -1053,7 +1053,51 @@ function initDashboard() {
     
     // Iniciar promoción (opcional)
     initPromotionTimer();
+
+    // Solicitudes de compra badge count
+    initSolicitudesBadge();
     
     // Log initialization
     console.log('CRBOX Dashboard inicializado correctamente: ' + new Date().toISOString());
+}
+
+/**
+ * Fetch active solicitudes count and show badge on the dashboard entry card.
+ * Requires CRBOXAuth (loaded via auth.js) to be present.
+ * Fails silently — badge is non-critical UI.
+ */
+function initSolicitudesBadge() {
+    var badge = document.getElementById('dash-sol-badge');
+    if (!badge) return;
+
+    // CRBOXAuth may not be available if the user is not logged in
+    if (typeof CRBOXAuth === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
+
+    var token = CRBOXAuth.getToken();
+    var email = CRBOXAuth.getEmail();
+    if (!token || !email) return;
+
+    var ACTIVE = ['enviada', 'en_revision', 'respondida'];
+
+    fetch('/api/solicitudes', {
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'X-Casillero-Email': email
+        }
+    }).then(function (res) {
+        if (!res.ok) return null;
+        return res.json();
+    }).then(function (data) {
+        if (!data || !data.solicitudes) return;
+        var count = data.solicitudes.filter(function (s) {
+            return ACTIVE.indexOf(s.status) !== -1;
+        }).length;
+        if (count > 0) {
+            badge.textContent = count;
+            badge.classList.remove('hidden');
+        }
+    }).catch(function (err) {
+        // Non-critical — badge simply stays hidden on error
+        console.warn('[Dashboard] solicitudes badge fetch error:', err);
+    });
 }

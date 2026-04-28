@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-5WD8N53F');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRBOX | Solicitud de compra</title>
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Favicons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
+    <link rel="manifest" href="img/favicon/site.webmanifest">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css?v=6">
+    <link rel="stylesheet" href="css/responsive.css?v=15">
+    <link rel="stylesheet" href="css/dashboard.css?v=6">
+
+    <style>
+        .detail-row { display: flex; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6; }
+        .detail-row:last-child { border-bottom: 0; }
+        .detail-label { font-size: 0.8125rem; font-weight: 500; color: #6b7280; min-width: 9rem; flex-shrink: 0; }
+        .detail-value { font-size: 0.9375rem; color: #111827; font-weight: 500; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5WD8N53F" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+    <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
+    <div id="toast-container" class="fixed bottom-24 right-6 z-50 flex flex-col space-y-2"></div>
+
+    <!-- ═══ Header ═══════════════════════════════════════════════════════════ -->
+    <header class="bg-white shadow-sm sticky-header">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-row justify-between items-center">
+                <div class="flex items-center">
+                    <a href="index.html">
+                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-7 w-auto">
+                    </a>
+                </div>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
+                </nav>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="calculadora.html" class="primary-btn">Calcular Envío</a>
+                    <div class="relative" id="user-dropdown">
+                        <button class="flex items-center space-x-2 text-gray-700 hover:text-orange-600 transition-colors focus:outline-none border border-gray-200 rounded-full px-3 py-1.5 shadow-sm hover:border-orange-200" id="user-menu-button" aria-expanded="false">
+                            <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                                <i class="fas fa-user text-orange-600"></i>
+                            </div>
+                            <span class="font-medium" id="header-user-name">...</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 py-1 focus:outline-none divide-y divide-gray-100 transform opacity-0 scale-95 pointer-events-none transition duration-200 ease-in-out z-50" id="user-dropdown-menu">
+                            <div class="py-2 px-4">
+                                <a href="dashboard.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-tachometer-alt w-5 text-center mr-3 text-orange-500"></i><span>Dashboard</span>
+                                </a>
+                                <a href="mis-paquetes.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-box w-5 text-center mr-3 text-orange-500"></i><span>Mis Paquetes</span>
+                                </a>
+                                <a href="mis-facturas.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-file-invoice-dollar w-5 text-center mr-3 text-orange-500"></i><span>Mis Facturas</span>
+                                </a>
+                                <a href="mis-solicitudes.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-shopping-bag w-5 text-center mr-3 text-orange-500"></i><span>Mis Solicitudes</span>
+                                </a>
+                                <a href="mi-cuenta.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-user-cog w-5 text-center mr-3 text-orange-500"></i><span>Mi Cuenta</span>
+                                </a>
+                            </div>
+                            <div class="py-2 px-4">
+                                <button class="flex w-full items-center px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150" id="logout-button">
+                                    <i class="fas fa-sign-out-alt w-5 text-center mr-3 text-orange-500"></i><span>Cerrar Sesión</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Mobile menu -->
+            <div class="md:hidden mt-4 hidden" id="mobile-menu">
+                <div class="py-3">
+                    <nav aria-label="Navegación general">
+                        <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Servicios</a>
+                        <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Cómo Funciona</a>
+                        <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Tarifas</a>
+                        <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Calculadora</a>
+                        <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Contacto</a>
+                    </nav>
+                    <section class="mt-3 p-3 rounded-xl bg-orange-50/60 border border-orange-100" aria-label="Mi Portal">
+                        <p class="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-orange-700 mb-2 px-1">Mi Portal</p>
+                        <div class="flex items-center gap-3 mb-3 p-2.5 rounded-lg bg-white border border-orange-100 shadow-sm">
+                            <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-orange-600"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="block font-semibold text-gray-800 truncate" id="mobile-user-name">Cargando...</span>
+                                <p class="text-xs text-gray-500" id="mobile-casillero-badge">Casillero #—</p>
+                            </div>
+                        </div>
+                        <nav class="space-y-0.5" aria-label="Mi cuenta">
+                            <a href="dashboard.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                                <i class="fas fa-tachometer-alt w-6 text-center text-orange-500 mr-3"></i><span>Dashboard</span>
+                            </a>
+                            <a href="mis-paquetes.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                                <i class="fas fa-box w-6 text-center text-orange-500 mr-3"></i><span>Mis Paquetes</span>
+                            </a>
+                            <a href="mis-facturas.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                                <i class="fas fa-file-invoice-dollar w-6 text-center text-orange-500 mr-3"></i><span>Mis Facturas</span>
+                            </a>
+                            <a href="mis-solicitudes.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                                <i class="fas fa-shopping-bag w-6 text-center text-orange-500 mr-3"></i><span>Mis Solicitudes</span>
+                            </a>
+                            <a href="mi-cuenta.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                                <i class="fas fa-user-cog w-6 text-center text-orange-500 mr-3"></i><span>Mi Cuenta</span>
+                            </a>
+                        </nav>
+                        <div class="mt-3 pt-3 border-t border-orange-100">
+                            <button id="mobile-logout-button" type="button" class="flex w-full items-center text-gray-700 hover:text-orange-600 hover:bg-white py-2.5 px-2 rounded-md transition-colors">
+                                <i class="fas fa-sign-out-alt w-6 text-center text-orange-500 mr-3"></i><span>Cerrar Sesión</span>
+                            </button>
+                        </div>
+                    </section>
+                    <div class="mt-3 pt-3 border-t border-gray-100">
+                        <a href="calculadora.html" class="inline-block primary-btn text-center w-full">Calcular Envío</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══ Navigation Tabs ══════════════════════════════════════════════════ -->
+    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-16 z-30">
+        <div class="container mx-auto px-4">
+            <div class="flex overflow-x-auto no-scrollbar -mb-px">
+                <a href="dashboard.html" class="whitespace-nowrap px-5 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </a>
+                <a href="mis-paquetes.html" class="whitespace-nowrap px-5 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
+                    <i class="fas fa-box mr-2"></i><span class="tab-prefix">Mis </span>Paquetes
+                </a>
+                <a href="mis-facturas.html" class="whitespace-nowrap px-5 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
+                    <i class="fas fa-file-invoice-dollar mr-2"></i><span class="tab-prefix">Mis </span>Facturas
+                </a>
+                <a href="mis-solicitudes.html" class="whitespace-nowrap px-5 py-4 font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none flex items-center relative" aria-current="page">
+                    <i class="fas fa-shopping-bag mr-2"></i><span class="tab-prefix">Mis </span>Solicitudes
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-100 origin-left"></span>
+                </a>
+                <a href="mi-cuenta.html" class="whitespace-nowrap px-5 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
+                    <i class="fas fa-user-cog mr-2"></i><span class="tab-prefix">Mi </span>Cuenta
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ Main Content ═════════════════════════════════════════════════════ -->
+    <main id="main-content" class="py-8">
+        <div class="container mx-auto px-4 max-w-3xl">
+
+            <!-- Back breadcrumb -->
+            <a href="mis-solicitudes.html" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-orange-600 transition-colors mb-6 group">
+                <i class="fas fa-arrow-left text-xs group-hover:-translate-x-0.5 transition-transform"></i>
+                Mis solicitudes
+            </a>
+
+            <!-- Loading -->
+            <div id="sol-loading" class="flex flex-col items-center justify-center py-24 gap-3">
+                <div class="w-10 h-10 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+                <p class="text-gray-500 text-sm">Cargando solicitud...</p>
+            </div>
+
+            <!-- Not found -->
+            <div id="sol-not-found" class="hidden flex flex-col items-center justify-center py-20 gap-4 text-center">
+                <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                    <i class="fas fa-search text-gray-400 text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-1">Solicitud no encontrada</h3>
+                    <p class="text-gray-500 text-sm">No se encontró esta solicitud en tu cuenta.</p>
+                </div>
+                <a href="mis-solicitudes.html" class="px-5 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors text-sm">
+                    Volver a mis solicitudes
+                </a>
+            </div>
+
+            <!-- Error -->
+            <div id="sol-error" class="hidden flex flex-col items-center justify-center py-20 gap-4 text-center">
+                <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-red-400 text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-1">No se pudo cargar</h3>
+                    <p class="text-gray-500 text-sm">Revisa tu conexión e intenta de nuevo.</p>
+                </div>
+                <button onclick="location.reload()" class="px-5 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors text-sm">
+                    Reintentar
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div id="sol-content" class="hidden">
+
+                <!-- ── Header card ─────────────────────────────────────────── -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Solicitud de compra</p>
+                            <h1 id="sol-id" class="text-3xl font-bold text-gray-900 tracking-tight mb-2"></h1>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <span id="sol-badge"></span>
+                                <span class="text-sm text-gray-500 flex items-center gap-1">
+                                    <i class="fas fa-calendar-alt text-xs text-gray-400"></i>
+                                    Enviada el <span id="sol-date" class="font-medium text-gray-700 ml-1"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 flex-shrink-0">
+                            <a id="btn-whatsapp" href="#" target="_blank" rel="noopener"
+                               class="hidden inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors">
+                                <i class="fab fa-whatsapp"></i>
+                                Preguntar por WhatsApp
+                            </a>
+                            <a id="btn-duplicate" href="mis-solicitudes.html"
+                               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 transition-colors">
+                                <i class="fas fa-copy text-xs"></i>
+                                Duplicar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Status panels ──────────────────────────────────────── -->
+                <!-- En revisión / Enviada -->
+                <div id="panel-reviewing" class="hidden mb-5">
+                    <div class="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-2xl px-5 py-4">
+                        <i class="fas fa-search text-blue-400 mt-0.5 flex-shrink-0"></i>
+                        <p class="text-sm text-blue-800">
+                            <strong class="font-semibold">CRBOX está revisando tu solicitud.</strong>
+                            Te notificaremos por email cuando tengamos novedades.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Respondida -->
+                <div id="panel-responded" class="hidden mb-5">
+                    <div class="flex items-start gap-3 bg-green-50 border border-green-200 rounded-2xl px-5 py-4">
+                        <i class="fas fa-envelope text-green-500 mt-0.5 flex-shrink-0"></i>
+                        <div>
+                            <p class="text-sm text-green-900 font-semibold mb-0.5">CRBOX respondió a esta solicitud</p>
+                            <p class="text-sm text-green-800">
+                                Revisa tu correo (<strong id="panel-responded-email" class="font-medium"></strong>) para ver los detalles del precio final.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Completada / Cancelada / Expirada -->
+                <div id="panel-completed" class="hidden mb-5">
+                    <div class="flex items-start gap-3 bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4">
+                        <i class="fas fa-archive text-gray-400 mt-0.5 flex-shrink-0"></i>
+                        <p class="text-sm text-gray-600">Esta solicitud está archivada. Puedes <a id="link-dup-notice" href="mis-solicitudes.html" class="text-orange-600 hover:underline font-medium">duplicarla</a> para crear una nueva desde los mismos datos.</p>
+                    </div>
+                </div>
+
+                <!-- ── Product card ────────────────────────────────────────── -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-5">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                        <i class="fas fa-box text-orange-400 text-sm"></i>
+                        <h2 class="font-semibold text-gray-800 text-sm">Detalles del producto</h2>
+                    </div>
+                    <div class="px-6 py-2">
+                        <div class="detail-row">
+                            <span class="detail-label">Producto</span>
+                            <span id="sol-product-name" class="detail-value font-semibold text-gray-900"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Categoría</span>
+                            <span id="sol-category" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Valor declarado</span>
+                            <span id="sol-value" class="detail-value font-semibold text-gray-900"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Enlace del producto</span>
+                            <span id="sol-url" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Tipo de servicio</span>
+                            <span id="sol-service" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Peso aproximado</span>
+                            <span id="sol-weight" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Dimensiones</span>
+                            <span id="sol-dims" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row" id="sol-notes-row">
+                            <span class="detail-label">Notas</span>
+                            <span id="sol-notes" class="detail-value text-gray-600 text-sm leading-relaxed"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Status timeline ─────────────────────────────────────── -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                        <i class="fas fa-history text-orange-400 text-sm"></i>
+                        <h2 class="font-semibold text-gray-800 text-sm">Historial de estado</h2>
+                    </div>
+                    <div class="px-6 py-5">
+                        <div id="sol-timeline"></div>
+                    </div>
+                </div>
+
+            </div><!-- /sol-content -->
+        </div>
+    </main>
+
+    <script src="js/auth.js?v=4"></script>
+    <script src="js/portal-api.js?v=4"></script>
+    <script src="js/solicitud.js?v=1"></script>
+</body>
+</html>

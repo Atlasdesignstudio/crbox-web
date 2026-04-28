@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-5WD8N53F');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRBOX | Mis Solicitudes | Casillero Virtual y Courier en Costa Rica</title>
+    <meta name="description" content="Gestiona tus solicitudes de compra en CRBOX, tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.">
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Favicons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
+    <link rel="manifest" href="img/favicon/site.webmanifest">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css?v=6">
+    <link rel="stylesheet" href="css/responsive.css?v=15">
+    <link rel="stylesheet" href="css/dashboard.css?v=6">
+
+    <style>
+        /* ── Side panel (new request form) ──────────────────────────── */
+        #new-request-panel {
+            position: fixed;
+            top: 0; right: 0;
+            width: 100%;
+            max-width: 520px;
+            height: 100%;
+            z-index: 60;
+            background: #fff;
+            box-shadow: -4px 0 32px rgba(0,0,0,.15);
+            transform: translateX(100%);
+            transition: transform .3s cubic-bezier(.4,0,.2,1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #new-request-panel:not(.translate-x-full) { transform: translateX(0); }
+        .translate-x-full { transform: translateX(100%) !important; }
+        #new-request-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.4);
+            z-index: 55;
+            backdrop-filter: blur(2px);
+        }
+        /* ── Form inputs ─────────────────────────────────────────────── */
+        .sol-input {
+            width: 100%;
+            padding: 0.5625rem 0.875rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 0.625rem;
+            background: #fff;
+            font-size: 0.9375rem;
+            color: #111827;
+            transition: border-color .15s, box-shadow .15s;
+            outline: none;
+        }
+        .sol-input:hover { border-color: #d1d5db; }
+        .sol-input:focus { border-color: #FF6B00; box-shadow: 0 0 0 3px rgba(255,107,0,.15); }
+        .sol-input::placeholder { color: #9ca3af; }
+        .sol-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.375rem;
+        }
+        .sol-field { margin-bottom: 1.125rem; }
+        /* ── Section headers ─────────────────────────────────────────── */
+        .section-eyebrow {
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #FF6B00;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5WD8N53F" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+    <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
+    <div id="toast-container" class="fixed bottom-24 right-6 z-50 flex flex-col space-y-2"></div>
+
+    <!-- ═══ Header ═══════════════════════════════════════════════════════════ -->
+    <header class="bg-white shadow-sm sticky-header">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-row justify-between items-center">
+                <div class="flex items-center">
+                    <a href="index.html">
+                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-7 w-auto">
+                    </a>
+                </div>
+
+                <!-- Desktop nav -->
+                <nav class="hidden md:flex space-x-6">
+                    <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
+                    <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
+                    <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
+                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
+                    <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
+                </nav>
+
+                <!-- Desktop user menu -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="calculadora.html" class="primary-btn">Calcular Envío</a>
+                    <div class="relative" id="user-dropdown">
+                        <button class="flex items-center space-x-2 text-gray-700 hover:text-orange-600 transition-colors focus:outline-none border border-gray-200 rounded-full px-3 py-1.5 shadow-sm hover:border-orange-200" id="user-menu-button" aria-expanded="false">
+                            <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                                <i class="fas fa-user text-orange-600"></i>
+                            </div>
+                            <span class="font-medium" id="header-user-name">...</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 py-1 focus:outline-none divide-y divide-gray-100 transform opacity-0 scale-95 pointer-events-none transition duration-200 ease-in-out z-50" id="user-dropdown-menu">
+                            <div class="py-2 px-4">
+                                <a href="dashboard.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-tachometer-alt w-5 text-center mr-3 text-orange-500"></i><span>Dashboard</span>
+                                </a>
+                                <a href="mis-paquetes.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-box w-5 text-center mr-3 text-orange-500"></i><span>Mis Paquetes</span>
+                                </a>
+                                <a href="mis-facturas.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-file-invoice-dollar w-5 text-center mr-3 text-orange-500"></i><span>Mis Facturas</span>
+                                </a>
+                                <a href="mis-solicitudes.html" class="flex items-center w-full px-2 py-2 text-sm text-orange-600 bg-orange-50 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-shopping-bag w-5 text-center mr-3 text-orange-500"></i><span>Mis Solicitudes</span>
+                                </a>
+                                <a href="mi-cuenta.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
+                                    <i class="fas fa-user-cog w-5 text-center mr-3 text-orange-500"></i><span>Mi Cuenta</span>
+                                </a>
+                            </div>
+                            <div class="py-2 px-4">
+                                <button class="flex w-full items-center px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150" id="logout-button">
+                                    <i class="fas fa-sign-out-alt w-5 text-center mr-3 text-orange-500"></i><span>Cerrar Sesión</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile menu button -->
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Mobile menu -->
+            <div class="md:hidden mt-4 hidden" id="mobile-menu">
+                <div class="py-3">
+                    <nav aria-label="Navegación general">
+                        <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Servicios</a>
+                        <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Cómo Funciona</a>
+                        <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Tarifas</a>
+                        <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Calculadora</a>
+                        <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Contacto</a>
+                    </nav>
+                    <section class="mt-3 p-3 rounded-xl bg-orange-50/60 border border-orange-100" aria-label="Mi Portal">
+                        <p class="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-orange-700 mb-2 px-1">Mi Portal</p>
+                        <div class="flex items-center gap-3 mb-3 p-2.5 rounded-lg bg-white border border-orange-100 shadow-sm">
+                            <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-orange-600"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="block font-semibold text-gray-800 truncate" id="mobile-user-name">Cargando...</span>
+                                <p class="text-xs text-gray-500" id="mobile-casillero-badge">Casillero #—</p>
+                            </div>
+                        </div>
+                        <nav class="space-y-0.5" aria-label="Mi cuenta">
+                            <a href="dashboard.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                                <i class="fas fa-tachometer-alt w-6 text-center text-orange-500 mr-3"></i><span>Dashboard</span>
+                            </a>
+                            <a href="mis-paquetes.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                                <i class="fas fa-box w-6 text-center text-orange-500 mr-3"></i><span>Mis Paquetes</span>
+                            </a>
+                            <a href="mis-facturas.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                                <i class="fas fa-file-invoice-dollar w-6 text-center text-orange-500 mr-3"></i><span>Mis Facturas</span>
+                            </a>
+                            <a href="mis-solicitudes.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors bg-white text-orange-600 font-semibold border border-orange-100 shadow-sm" aria-current="page">
+                                <i class="fas fa-shopping-bag w-6 text-center text-orange-500 mr-3"></i><span>Mis Solicitudes</span>
+                            </a>
+                            <a href="mi-cuenta.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
+                                <i class="fas fa-user-cog w-6 text-center text-orange-500 mr-3"></i><span>Mi Cuenta</span>
+                            </a>
+                        </nav>
+                        <div class="mt-3 pt-3 border-t border-orange-100">
+                            <button id="mobile-logout-button" type="button" class="flex w-full items-center text-gray-700 hover:text-orange-600 hover:bg-white py-2.5 px-2 rounded-md transition-colors">
+                                <i class="fas fa-sign-out-alt w-6 text-center text-orange-500 mr-3"></i><span>Cerrar Sesión</span>
+                            </button>
+                        </div>
+                    </section>
+                    <div class="mt-3 pt-3 border-t border-gray-100">
+                        <a href="calculadora.html" class="inline-block primary-btn text-center w-full">Calcular Envío</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══ Navigation Tabs ══════════════════════════════════════════════════ -->
+    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-16 z-30">
+        <div class="container mx-auto px-4">
+            <div class="flex overflow-x-auto no-scrollbar -mb-px">
+                <a href="dashboard.html" class="whitespace-nowrap px-5 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-0 origin-left transition-transform duration-200"></span>
+                </a>
+                <a href="mis-paquetes.html" class="whitespace-nowrap px-5 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
+                    <i class="fas fa-box mr-2"></i><span class="tab-prefix">Mis </span>Paquetes
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-0 origin-left transition-transform duration-200"></span>
+                </a>
+                <a href="mis-facturas.html" class="whitespace-nowrap px-5 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
+                    <i class="fas fa-file-invoice-dollar mr-2"></i><span class="tab-prefix">Mis </span>Facturas
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-0 origin-left transition-transform duration-200"></span>
+                </a>
+                <a href="mis-solicitudes.html" class="whitespace-nowrap px-5 py-4 font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none flex items-center relative" aria-current="page">
+                    <i class="fas fa-shopping-bag mr-2"></i><span class="tab-prefix">Mis </span>Solicitudes
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-100 origin-left transition-transform duration-200"></span>
+                </a>
+                <a href="mi-cuenta.html" class="whitespace-nowrap px-5 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
+                    <i class="fas fa-user-cog mr-2"></i><span class="tab-prefix">Mi </span>Cuenta
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-0 origin-left transition-transform duration-200"></span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ Main Content ═════════════════════════════════════════════════════ -->
+    <main id="main-content" class="py-8">
+        <div class="container mx-auto px-4 max-w-4xl">
+
+            <!-- Loading state -->
+            <div id="solicitudes-loading" class="flex flex-col items-center justify-center py-24 gap-3">
+                <div class="w-10 h-10 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+                <p class="text-gray-500 text-sm">Cargando tus solicitudes...</p>
+            </div>
+
+            <!-- Error state -->
+            <div id="solicitudes-error" class="hidden flex flex-col items-center justify-center py-20 gap-4 text-center">
+                <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-red-400 text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-1">No se pudo cargar</h3>
+                    <p class="text-gray-500 text-sm">Revisa tu conexión e intenta de nuevo.</p>
+                </div>
+                <button onclick="location.reload()" class="px-5 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors text-sm">
+                    Reintentar
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div id="solicitudes-content" class="hidden">
+
+                <!-- Page header -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+                            <i class="fas fa-shopping-bag text-orange-500 text-xl"></i>
+                            Mis Solicitudes de Compra
+                            <span id="solicitudes-active-count" class="hidden ml-1 px-2 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200"></span>
+                        </h1>
+                        <p class="text-sm text-gray-500 mt-1">Solicitudes de compra enviadas a CRBOX</p>
+                    </div>
+                    <button class="btn-nueva-solicitud inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md active:scale-95">
+                        <i class="fas fa-plus text-xs"></i>
+                        Nueva solicitud
+                    </button>
+                </div>
+
+                <!-- ── Empty state ──────────────────────────────────────────── -->
+                <div id="solicitudes-empty" class="hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 flex flex-col items-center text-center">
+                        <div class="w-20 h-20 rounded-full bg-orange-50 flex items-center justify-center mb-5">
+                            <i class="fas fa-shopping-bag text-orange-300 text-3xl"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-2">Aún no tienes solicitudes de compra</h2>
+                        <p class="text-gray-500 max-w-sm mb-6">¿Encontraste algo en Amazon, eBay u otra tienda? CRBOX lo trae por ti.</p>
+                        <button class="btn-nueva-solicitud inline-flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-all shadow-sm hover:shadow-md active:scale-95">
+                            <i class="fas fa-plus text-sm"></i>
+                            Hacer mi primera solicitud
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── Active solicitudes ────────────────────────────────────── -->
+                <div id="solicitudes-active-section" class="hidden mb-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                            <h2 class="font-semibold text-gray-800 text-sm flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                                Activas
+                            </h2>
+                        </div>
+                        <div id="solicitudes-active-list"></div>
+                    </div>
+                </div>
+
+                <!-- ── Archived solicitudes ─────────────────────────────────── -->
+                <div id="solicitudes-archived-section" class="hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <button id="archive-toggle" class="w-full px-5 py-4 border-b border-gray-100 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                            <h2 class="font-semibold text-gray-600 text-sm flex items-center gap-2">
+                                <i class="fas fa-archive text-gray-400 text-xs"></i>
+                                Historial
+                            </h2>
+                            <i id="archive-icon" class="fas fa-chevron-down text-gray-400 text-xs transition-transform duration-200"></i>
+                        </button>
+                        <div id="archived-content" class="hidden">
+                            <div id="solicitudes-archived-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /solicitudes-content -->
+        </div>
+    </main>
+
+    <!-- ═══ New Request Side Panel ═══════════════════════════════════════════ -->
+    <div id="new-request-overlay" class="hidden" role="dialog" aria-modal="true" aria-label="Nueva solicitud de compra"></div>
+
+    <div id="new-request-panel" class="translate-x-full" role="dialog" aria-label="Nueva solicitud de compra">
+        <!-- Panel header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0 bg-white">
+            <h2 id="form-heading" class="text-lg font-bold text-gray-900">Nueva solicitud de compra</h2>
+            <button id="panel-close-btn" class="w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Scrollable form body -->
+        <div class="flex-1 overflow-y-auto">
+
+            <!-- Success screen -->
+            <div id="form-success" class="hidden flex flex-col items-center text-center px-8 py-16 gap-5">
+                <div class="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-500 text-4xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-1">¡Solicitud enviada!</h3>
+                    <p class="text-sm text-gray-500 mb-1">ID de solicitud:</p>
+                    <p id="form-success-id" class="text-2xl font-bold text-orange-600 mb-4"></p>
+                    <p class="text-sm text-gray-600 max-w-xs">Recibirás un correo de confirmación. CRBOX revisará tu solicitud y te contactará pronto.</p>
+                </div>
+                <div class="flex flex-col gap-3 w-full max-w-xs">
+                    <button id="form-back-to-list" class="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-colors">
+                        Ver mis solicitudes
+                    </button>
+                    <a href="https://wa.me/50689794418" target="_blank" rel="noopener" class="px-5 py-3 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors">
+                        <i class="fab fa-whatsapp"></i>
+                        Consultar por WhatsApp
+                    </a>
+                </div>
+            </div>
+
+            <!-- The actual form -->
+            <form id="new-request-form" autocomplete="off" class="px-6 py-6">
+
+                <!-- Duplicate banner -->
+                <div id="form-dup-banner" class="hidden mb-5 flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+                    <i class="fas fa-copy text-blue-500 mt-0.5 flex-shrink-0 text-sm"></i>
+                    <p class="text-sm text-blue-800">Duplicada de <strong id="form-dup-id"></strong> — revisa los datos antes de enviar.</p>
+                </div>
+
+                <!-- Business invoice notice -->
+                <div id="form-invoice-notice" class="hidden mb-5 flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+                    <i class="fas fa-building text-orange-500 mt-0.5 flex-shrink-0 text-sm"></i>
+                    <p class="text-sm text-orange-800">Esta solicitud se facturará a tu cuenta empresarial.</p>
+                </div>
+
+                <!-- Email (read-only) -->
+                <div class="mb-5 p-3 rounded-xl bg-gray-50 border border-gray-200 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user text-orange-500 text-sm"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs text-gray-500 font-medium">Enviando como</p>
+                        <p id="form-email-display" class="text-sm font-semibold text-gray-800 truncate"></p>
+                    </div>
+                    <span class="ml-auto px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">Verificado</span>
+                </div>
+
+                <!-- Product section -->
+                <p class="section-eyebrow">Producto</p>
+
+                <div class="sol-field">
+                    <label class="sol-label" for="form-product-name">Nombre del producto <span class="text-red-500">*</span></label>
+                    <input type="text" id="form-product-name" name="product_name" required minlength="3" maxlength="200"
+                           placeholder="Ej: Sony WH-1000XM5, Teclado mecánico Logitech…"
+                           class="sol-input">
+                </div>
+
+                <div class="sol-field">
+                    <label class="sol-label" for="form-product-url">Enlace del producto</label>
+                    <input type="url" id="form-product-url" name="product_url" maxlength="1000"
+                           placeholder="https://www.amazon.com/dp/..."
+                           class="sol-input">
+                    <p class="text-xs text-gray-500 mt-1">Recomendado — ayuda a CRBOX verificar el producto y precio.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="sol-field">
+                        <label id="form-value-label" class="sol-label" for="form-declared-value">Valor del producto (USD) <span class="text-red-500">*</span></label>
+                        <input type="number" id="form-declared-value" name="declared_value_usd" required min="0.01" step="0.01"
+                               placeholder="0.00"
+                               class="sol-input">
+                    </div>
+                    <div class="sol-field">
+                        <label class="sol-label" for="form-category">Categoría <span class="text-red-500">*</span></label>
+                        <select id="form-category" name="category" required class="sol-input">
+                            <option value="otros">Otros</option>
+                            <option value="ropa">Ropa y calzado</option>
+                            <option value="electronico">Electrónico</option>
+                            <option value="computadora">Computadoras</option>
+                            <option value="celular">Celulares</option>
+                            <option value="auricular_telefono">Auriculares</option>
+                            <option value="electrodomestico">Electrodoméstico</option>
+                            <option value="cosmetico">Cosméticos</option>
+                            <option value="suplemento">Suplementos</option>
+                            <option value="libro">Libros</option>
+                            <option value="juguete">Juguetes</option>
+                            <option value="herramienta">Herramientas</option>
+                            <option value="equipo_medico">Equipo médico</option>
+                            <option value="deportivo">Deportivo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Shipping section -->
+                <p class="section-eyebrow mt-2">Envío</p>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="sol-field">
+                        <label class="sol-label" for="form-service-type">Tipo de servicio</label>
+                        <select id="form-service-type" name="service_type" class="sol-input">
+                            <option value="aereo">Aéreo</option>
+                            <option value="maritimo">Marítimo</option>
+                        </select>
+                    </div>
+                    <div class="sol-field">
+                        <label class="sol-label" for="form-weight">Peso aproximado (kg)</label>
+                        <input type="number" id="form-weight" name="weight_kg" min="0.1" step="0.1"
+                               placeholder="Ej: 1.5"
+                               class="sol-input">
+                    </div>
+                </div>
+
+                <!-- Notes section -->
+                <p class="section-eyebrow mt-2">Notas</p>
+
+                <div class="sol-field">
+                    <label class="sol-label" for="form-notes">Descripción para CRBOX</label>
+                    <textarea id="form-notes" name="customer_notes" rows="3" maxlength="500"
+                              placeholder="¿Algo que CRBOX deba saber sobre este pedido?"
+                              class="sol-input resize-none"></textarea>
+                </div>
+
+                <!-- Disclaimer -->
+                <div class="mb-5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                    <p class="text-xs text-amber-800 leading-relaxed">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Al enviar, CRBOX revisará tu solicitud y te contactará con el precio final antes de proceder. Este no es un pago ni una compra confirmada.
+                    </p>
+                </div>
+
+                <!-- Error message -->
+                <div id="form-error" class="hidden mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 font-medium"></div>
+
+                <!-- Submit -->
+                <button type="submit" id="form-submit-btn"
+                        class="w-full py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-sm transition-all shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fas fa-paper-plane mr-2"></i>Enviar solicitud
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth.js?v=4"></script>
+    <script src="js/portal-api.js?v=4"></script>
+    <script src="js/mis-solicitudes.js?v=1"></script>
+</body>
+</html>
