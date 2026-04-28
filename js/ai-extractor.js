@@ -74,26 +74,21 @@
 
         if (provenance === 'missing' || value === null || value === undefined) return false;
 
-        if (confidence >= CONFIDENCE_MED) {
-            el.value = String(value);
-            el.dataset.aiSuggested = '1';
-            el.dataset.aiField = 'product_name';
-            var badgeType = (confidence >= CONFIDENCE_HIGH && provenance === 'extracted')
-                ? 'verify'
-                : (provenance === 'needs_confirmation' ? 'confirm' : 'verify');
-            _attachBadge(el, badgeType);
-            if (confidence < CONFIDENCE_HIGH) {
-                el.style.color = '#9ca3af';
-                el.addEventListener('input', function onInput() {
-                    el.style.color = '';
-                    el.removeEventListener('input', onInput);
-                });
-            }
-            return true;
-        } else if (value !== null) {
-            el.placeholder = String(value);
+        el.value = String(value);
+        el.dataset.aiSuggested = '1';
+        el.dataset.aiField = 'product_name';
+
+        var needsConfirm = (provenance === 'needs_confirmation' || confidence < CONFIDENCE_MED);
+        _attachBadge(el, needsConfirm ? 'confirm' : 'verify');
+
+        if (needsConfirm || confidence < CONFIDENCE_HIGH) {
+            el.style.color = '#9ca3af';
+            el.addEventListener('input', function onInput() {
+                el.style.color = '';
+                el.removeEventListener('input', onInput);
+            });
         }
-        return false;
+        return true;
     }
 
     function _applyDeclaredValue(el, fieldResult) {

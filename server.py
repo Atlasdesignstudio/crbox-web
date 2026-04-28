@@ -9,6 +9,8 @@ import threading
 import smtplib
 import html as _html
 import hashlib
+import ipaddress
+import socket
 import email.mime.multipart
 import email.mime.text
 import urllib.request
@@ -21,8 +23,6 @@ QUOTE_RECIPIENT = 'ventas@crbox.cr'
 
 # ── AI / Gemini extraction ────────────────────────────────────────────────────
 _GEMINI_API_KEY  = os.environ.get('GEMINI_API_KEY', '')
-_GEMINI_URL      = ('https://generativelanguage.googleapis.com/v1beta/models/'
-                    'gemini-2.0-flash:generateContent?key=')
 
 _AI_CACHE        = {}           # sha256(url) -> (result_dict, expires_ts)
 _AI_CACHE_TTL    = 900          # 15 minutes
@@ -103,6 +103,35 @@ def _ai_cache_set(url_hash, result):
         _AI_CACHE[url_hash] = (result, time.time() + _AI_CACHE_TTL)
 
 
+_SSRF_PRIVATE_NETS = [
+    ipaddress.ip_network('127.0.0.0/8'),
+    ipaddress.ip_network('10.0.0.0/8'),
+    ipaddress.ip_network('172.16.0.0/12'),
+    ipaddress.ip_network('192.168.0.0/16'),
+    ipaddress.ip_network('169.254.0.0/16'),
+    ipaddress.ip_network('::1/128'),
+    ipaddress.ip_network('fc00::/7'),
+    ipaddress.ip_network('fe80::/10'),
+]
+
+
+def _is_ssrf_safe(url):
+    try:
+        parsed = urllib.parse.urlparse(url)
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        addrs = socket.getaddrinfo(hostname, None, proto=socket.IPPROTO_TCP)
+        for _af, _type, _proto, _canon, sockaddr in addrs:
+            ip = ipaddress.ip_address(sockaddr[0])
+            for net in _SSRF_PRIVATE_NETS:
+                if ip in net:
+                    return False
+        return True
+    except Exception:
+        return False
+
+
 class _RedirectLimitHandler(urllib.request.HTTPRedirectHandler):
     max_repeats = 3
     max_redirections = 3
@@ -148,33 +177,32 @@ def _truncate_page(html_text):
 def _call_gemini(content):
     if not _GEMINI_API_KEY:
         return None, 'No API key configured'
-    prompt = _AI_PROMPT_TEMPLATE.format(
-        categories=', '.join(_CRBOX_CATEGORIES),
-        content=content,
-    )
-    body = json.dumps({
-        'contents': [{'parts': [{'text': prompt}]}],
-        'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 1024},
-    }).encode()
-    req = urllib.request.Request(
-        _GEMINI_URL + _GEMINI_API_KEY,
-        data=body,
-        headers={'Content-Type': 'application/json'},
-        method='POST',
-    )
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read())
-        text = data['candidates'][0]['content']['parts'][0]['text'].strip()
-        text = text.lstrip('`').lstrip('json').lstrip('`').strip()
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            import google.generativeai as genai
+        genai.configure(api_key=_GEMINI_API_KEY)
+        model = genai.GenerativeModel(
+            model_name='gemini-2.0-flash',
+            generation_config=genai.GenerationConfig(
+                temperature=0.1,
+                max_output_tokens=1024,
+            ),
+        )
+        prompt = _AI_PROMPT_TEMPLATE.format(
+            categories=', '.join(_CRBOX_CATEGORIES),
+            content=content,
+        )
+        response = model.generate_content(prompt)
+        text = response.text.strip()
         if text.startswith('```'):
-            text = text[3:]
+            text = text.split('\n', 1)[-1] if '\n' in text else text[3:]
         if text.endswith('```'):
-            text = text[:-3]
+            text = text[:-3].rstrip()
         return json.loads(text), None
-    except urllib.error.HTTPError as e:
-        err_body = e.read().decode('utf-8', errors='replace')
-        return None, f'Gemini HTTP {e.code}: {err_body[:200]}'
+    except json.JSONDecodeError as ex:
+        return None, f'JSON parse error: {ex}'
     except Exception as ex:
         return None, str(ex)
 
@@ -197,6 +225,10 @@ def _handle_ai_extract(handler):
 
     if not _ai_rate_check(ip):
         handler._json_response(200, {'ok': False, 'error': 'rate_limit'})
+        return
+
+    if not _is_ssrf_safe(url):
+        handler._json_response(200, {'page_readable': False, 'error': 'invalid_url'})
         return
 
     url_hash = hashlib.sha256(url.encode()).hexdigest()

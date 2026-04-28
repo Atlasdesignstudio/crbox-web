@@ -1492,12 +1492,6 @@
         if (btnAiAnalizar) {
             btnAiAnalizar.addEventListener('click', _doAiExtract);
         }
-        fProductUrl.addEventListener('blur', function () {
-            const url = (this.value || '').trim();
-            if (url && url.startsWith('http')) {
-                _doAiExtract();
-            }
-        });
         fProductUrl.addEventListener('input', function () {
             const url = (this.value || '').trim();
             if (!url && typeof CRBOXAIExtractor !== 'undefined') {
@@ -1539,6 +1533,10 @@
             if (!emailConfirmed)        {
                 document.getElementById('err-email-text').textContent = 'Por favor confirma tu correo antes de enviar.';
                 markFieldError(fEmail, 'err-email'); valid = false;
+            }
+            if (fCategory.dataset.aiSuggested === '1' && fCategory.dataset.aiConfirmed !== '1') {
+                markFieldError(fCategory, 'err-category');
+                valid = false;
             }
             if (_aiActive && aiConfirmWrapper && aiConfirmWrapper.style.display !== 'none') {
                 if (!aiConfirmChk || !aiConfirmChk.checked) {

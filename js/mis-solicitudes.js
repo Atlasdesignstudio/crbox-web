@@ -681,12 +681,6 @@
       if (btnPortalAnalizar) {
         btnPortalAnalizar.addEventListener('click', _doPortalAiExtract);
       }
-      fPortalUrl.addEventListener('blur', function () {
-        var url = (this.value || '').trim();
-        if (url && url.startsWith('http')) {
-          _doPortalAiExtract();
-        }
-      });
       fPortalUrl.addEventListener('input', function () {
         var url = (this.value || '').trim();
         if (!url) {
@@ -715,6 +709,17 @@
         // AI confirm check
         var aiConfirmWrapper = document.getElementById('ai-confirm-portal');
         var aiConfirmChk     = document.getElementById('ai-confirm-chk-portal');
+        var fPortalCatEl     = document.getElementById('form-category');
+        if (fPortalCatEl &&
+            fPortalCatEl.dataset.aiSuggested === '1' &&
+            fPortalCatEl.dataset.aiConfirmed  !== '1') {
+          if (errorMsg) {
+            errorMsg.textContent = 'Por favor confirma la categoría del producto en el menú desplegable.';
+            errorMsg.classList.remove('hidden');
+          }
+          fPortalCatEl.focus();
+          return;
+        }
         if (_portalAiActive && aiConfirmWrapper && aiConfirmWrapper.style.display !== 'none') {
           if (!aiConfirmChk || !aiConfirmChk.checked) {
             aiConfirmWrapper.style.outline = '2px solid #ef4444';
