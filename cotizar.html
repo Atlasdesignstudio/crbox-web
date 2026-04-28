@@ -1490,10 +1490,40 @@
                 }
             });
         }
+        // Disable submit CTA while AI confirm checkbox is visible and unchecked
+        function _syncAiSubmitGate() {
+            const submitBtn  = document.getElementById('btn-submit-quote');
+            const stickyBtn  = document.getElementById('btn-sticky-submit');
+            const wrapVisible = aiConfirmWrapper && aiConfirmWrapper.style.display !== 'none';
+            const checked     = aiConfirmChk && aiConfirmChk.checked;
+            if (wrapVisible && !checked) {
+                if (submitBtn && !submitBtn.dataset.aiDisabled) {
+                    submitBtn.dataset.aiDisabled = '1';
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                if (stickyBtn && !stickyBtn.dataset.aiDisabled) {
+                    stickyBtn.dataset.aiDisabled = '1';
+                    stickyBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            } else {
+                if (submitBtn && submitBtn.dataset.aiDisabled) {
+                    delete submitBtn.dataset.aiDisabled;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                if (stickyBtn && stickyBtn.dataset.aiDisabled) {
+                    delete stickyBtn.dataset.aiDisabled;
+                    stickyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        }
+        if (aiConfirmChk) {
+            aiConfirmChk.addEventListener('change', _syncAiSubmitGate);
+        }
         document.addEventListener('ai:extraction-complete', function (e) {
             if (e.detail && e.detail.dataSource) {
                 _aiDataSource = e.detail.dataSource;
             }
+            setTimeout(_syncAiSubmitGate, 0);
         });
 
         if (btnAiAnalizar) {

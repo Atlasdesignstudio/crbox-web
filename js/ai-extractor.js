@@ -136,13 +136,19 @@
 
         if (provenance === 'missing' || value === null || value === undefined) return false;
 
+        // <0.70: placeholder only, no pre-fill
+        if (confidence < CONFIDENCE_MED && provenance !== 'needs_confirmation') {
+            el.placeholder = String(value);
+            return false;
+        }
+
+        el.value = String(value);
         el.dataset.aiSuggested = '1';
         el.dataset.aiField     = 'product_name';
 
         var needsConfirm = (provenance === 'needs_confirmation' || confidence < CONFIDENCE_HIGH);
 
-        el.value       = String(value);
-        el.style.color = (needsConfirm) ? '#9ca3af' : '';
+        el.style.color = needsConfirm ? '#9ca3af' : '';
         el.addEventListener('input', function onInput() {
             el.style.color = '';
             el.removeEventListener('input', onInput);

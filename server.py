@@ -141,9 +141,15 @@ def _is_ssrf_safe(url):
         return False
 
 
-class _RedirectLimitHandler(urllib.request.HTTPRedirectHandler):
+class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Follow up to 3 redirects but revalidate each hop for SSRF safety."""
     max_repeats = 3
     max_redirections = 3
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not _is_ssrf_safe(newurl):
+            raise urllib.error.URLError('redirect to private network blocked')
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 def _fetch_page(url):
@@ -154,7 +160,7 @@ def _fetch_page(url):
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
     })
-    opener = urllib.request.build_opener(_RedirectLimitHandler)
+    opener = urllib.request.build_opener(_SafeRedirectHandler)
     try:
         with opener.open(req, timeout=10) as resp:
             raw = resp.read(200_000)
@@ -216,6 +222,60 @@ def _call_gemini(content):
         return None, str(ex)
 
 
+_FIELD_DEFAULTS = {
+    'product_name':       {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
+    'declared_value_usd': {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
+    'category':           {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
+    'weight_kg':          {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
+    'dimensions_cm':      {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
+}
+
+_VALID_PROVENANCES = {'extracted', 'inferred', 'missing', 'needs_confirmation'}
+
+
+def _normalize_field(raw):
+    if not isinstance(raw, dict):
+        return dict(_FIELD_DEFAULTS.get('product_name'))
+    out = {}
+    out['value']            = raw.get('value', None)
+    out['confidence']       = float(raw.get('confidence') or 0.0)
+    prov = raw.get('provenance', 'missing')
+    out['provenance']       = prov if prov in _VALID_PROVENANCES else 'missing'
+    out['source_attribute'] = raw.get('source_attribute', None)
+    return out
+
+
+def _normalize_ai_result(raw, source_url):
+    now_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+    out = {}
+    out['source_url']         = source_url
+    out['extracted_at']       = now_iso
+    out['model']              = 'gemini-2.0-flash'
+    out['page_readable']      = bool(raw.get('page_readable', True))
+    out['partial']            = bool(raw.get('partial', False))
+    out['extraction_warnings'] = raw.get('extraction_warnings') or []
+
+    raw_fields = raw.get('fields') or {}
+    fields = {}
+    for fname, defaults in _FIELD_DEFAULTS.items():
+        raw_f = raw_fields.get(fname)
+        fields[fname] = _normalize_field(raw_f) if raw_f else dict(defaults)
+
+    # weight and dimensions must always be missing/null per spec
+    fields['weight_kg']     = dict(_FIELD_DEFAULTS['weight_kg'])
+    fields['dimensions_cm'] = dict(_FIELD_DEFAULTS['dimensions_cm'])
+
+    # category value must be a valid CRBOX code or null
+    cat_val = fields['category'].get('value')
+    if cat_val and str(cat_val) not in _CRBOX_CATEGORIES:
+        fields['category']['value']      = None
+        fields['category']['provenance'] = 'missing'
+        fields['category']['confidence'] = 0.0
+
+    out['fields'] = fields
+    return out
+
+
 def _handle_ai_extract(handler):
     try:
         length = int(handler.headers.get('Content-Length', 0))
@@ -264,9 +324,9 @@ def _handle_ai_extract(handler):
         handler._json_response(200, result)
         return
 
-    gemini_result['source_url'] = url
-    _ai_cache_set(url_hash, gemini_result)
-    handler._json_response(200, gemini_result)
+    result = _normalize_ai_result(gemini_result, url)
+    _ai_cache_set(url_hash, result)
+    handler._json_response(200, result)
 
 # ── SQLite / Solicitudes ──────────────────────────────────────────────────────
 _DB_PATH = 'solicitudes.db'
