@@ -659,6 +659,31 @@
 
       var btnPortalAnalizar = document.getElementById('btn-ai-analizar-portal');
 
+      var _PORTAL_CATEGORY_MAP = {
+        'celulares':           'celular',
+        'consola_videojuegos': 'electronico',
+        'camara':              'electronico',
+        'bocina':              'electronico',
+        'televisor':           'electronico',
+        'electrodomesticos':   'electrodomestico',
+        'aspiradora':          'electrodomestico',
+        'colchon':             'otros',
+        'herramientas':        'herramienta',
+        'bicicleta_economica': 'deportivo',
+        'bicicleta_cara':      'deportivo',
+        'bola':                'deportivo',
+        'coche_bebe':          'otros',
+        'juguetes':            'juguete',
+        'amortiguadores':      'otros',
+        'aros_carro_moto':     'otros',
+        'vehiculos':           'otros',
+        'salud_belleza':       'cosmetico',
+        'suplementos':         'suplemento',
+        'cds':                 'libro',
+        'anteojos':            'ropa',
+        'cinturon':            'ropa',
+      };
+
       function _doPortalAiExtract() {
         var url = (fPortalUrl.value || '').trim();
         if (!url || !url.startsWith('http')) return;
@@ -669,6 +694,7 @@
           fValue:         fPortalValue,
           fCategory:      fPortalCat,
           confirmWrapper: aiConfirm,
+          categoryMap:    _PORTAL_CATEGORY_MAP,
         }).then(function () {
           var b = aiBanner ? aiBanner.querySelector('.ai-extract-banner') : null;
           if (b && (b.classList.contains('ai-banner-success') ||

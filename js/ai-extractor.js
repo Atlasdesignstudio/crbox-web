@@ -7,18 +7,31 @@
     var CONFIDENCE_HIGH = 0.90;
     var CONFIDENCE_MED  = 0.70;
 
-    function _removeBadgesFromEl(el) {
-        if (!el || !el.parentNode) return;
-        var existing = el.parentNode.querySelectorAll('.ai-badge');
+    function _removeBadgesFromLabel(labelEl) {
+        if (!labelEl) return;
+        var existing = labelEl.querySelectorAll('.ai-badge');
         existing.forEach(function (b) { b.parentNode.removeChild(b); });
     }
 
+    function _findLabel(el) {
+        if (!el || !el.id) return null;
+        return document.querySelector('label[for="' + el.id + '"]');
+    }
+
     function _attachBadge(el, type) {
-        _removeBadgesFromEl(el);
-        var badge = document.createElement('span');
-        badge.className = type === 'verify' ? 'ai-badge ai-badge-verify' : 'ai-badge ai-badge-confirm';
-        badge.textContent = type === 'verify' ? 'Verificar' : 'Confirmar';
-        el.parentNode.insertBefore(badge, el.nextSibling);
+        var labelEl = _findLabel(el);
+        if (labelEl) {
+            _removeBadgesFromLabel(labelEl);
+            var badge = document.createElement('span');
+            badge.className = type === 'verify' ? 'ai-badge ai-badge-verify' : 'ai-badge ai-badge-confirm';
+            badge.textContent = type === 'verify' ? 'Verificar' : 'Confirmar';
+            labelEl.appendChild(badge);
+        }
+    }
+
+    function _removeBadge(el) {
+        var labelEl = _findLabel(el);
+        if (labelEl) _removeBadgesFromLabel(labelEl);
     }
 
     function _showBanner(container, type, message) {
@@ -59,9 +72,10 @@
         var fields = formFields || {};
         [fields.fName, fields.fValue, fields.fCategory].forEach(function (el) {
             if (!el) return;
-            _removeBadgesFromEl(el);
-            el.removeAttribute('data-ai-suggested');
-            el.removeAttribute('data-ai-field');
+            _removeBadge(el);
+            delete el.dataset.aiSuggested;
+            delete el.dataset.aiField;
+            delete el.dataset.aiConfirmed;
             el.style.color = '';
         });
     }
@@ -112,7 +126,7 @@
         return true;
     }
 
-    function _applyCategory(el, fieldResult) {
+    function _applyCategory(el, fieldResult, categoryMap) {
         if (!el || !fieldResult) return false;
         var provenance = fieldResult.provenance;
         var confidence = fieldResult.confidence || 0;
@@ -122,6 +136,10 @@
         if (confidence < CONFIDENCE_MED) return false;
 
         var strVal = String(value);
+        if (categoryMap && categoryMap[strVal]) {
+            strVal = categoryMap[strVal];
+        }
+
         var found  = false;
         for (var i = 0; i < el.options.length; i++) {
             if (el.options[i].value === strVal) {
@@ -139,7 +157,7 @@
 
         el.addEventListener('change', function onCatChange() {
             el.dataset.aiConfirmed = '1';
-            _removeBadgesFromEl(el);
+            _removeBadge(el);
             el.removeEventListener('change', onCatChange);
         });
 
@@ -166,6 +184,7 @@
         var fValue         = formFields.fValue;
         var fCategory      = formFields.fCategory;
         var confirmWrapper = formFields.confirmWrapper;
+        var categoryMap    = formFields.categoryMap || null;
 
         _showBanner(bannerTarget, 'loading', 'Analizando el enlace del producto…');
         clearExtractionBadges(formFields);
@@ -177,14 +196,18 @@
         }).then(function (resp) {
             return resp.json();
         }).then(function (result) {
+            if (result && result.error === 'rate_limit') {
+                _showBanner(bannerTarget, 'error',
+                    'Límite de consultas alcanzado. Inténtalo más tarde.');
+                document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
+                    detail: { url: url, result: result, filledCount: 0 }
+                }));
+                return result;
+            }
+
             if (!result || result.page_readable === false) {
-                var msg;
-                if (result && result.error === 'rate_limit') {
-                    msg = 'Límite de consultas alcanzado. Inténtalo más tarde.';
-                } else {
-                    msg = 'No pudimos leer esta página automáticamente. Ingresa los datos del producto manualmente.';
-                }
-                _showBanner(bannerTarget, 'error', msg);
+                _showBanner(bannerTarget, 'error',
+                    'No pudimos leer esta página automáticamente. Ingresa los datos del producto manualmente.');
                 document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
                     detail: { url: url, result: result, filledCount: 0 }
                 }));
@@ -196,7 +219,7 @@
 
             filledCount += _applyProductName(fName, fields.product_name) ? 1 : 0;
             filledCount += _applyDeclaredValue(fValue, fields.declared_value_usd) ? 1 : 0;
-            filledCount += _applyCategory(fCategory, fields.category) ? 1 : 0;
+            filledCount += _applyCategory(fCategory, fields.category, categoryMap) ? 1 : 0;
 
             if (filledCount === 0) {
                 _showBanner(bannerTarget, 'error',
@@ -223,7 +246,8 @@
             }));
             return result;
         }).catch(function (err) {
-            _removeBanner(bannerTarget);
+            _showBanner(bannerTarget, 'error',
+                'No pudimos leer esta página automáticamente. Ingresa los datos del producto manualmente.');
             document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
                 detail: { url: url, result: null, filledCount: 0 }
             }));
@@ -241,11 +265,11 @@
     }
 
     global.CRBOXAIExtractor = {
-        runExtraction:        runExtraction,
+        runExtraction:         runExtraction,
         clearExtractionBadges: clearExtractionBadges,
-        resetExtraction:      resetExtraction,
-        run:                  runExtraction,
-        reset:                resetExtraction,
+        resetExtraction:       resetExtraction,
+        run:                   runExtraction,
+        reset:                 resetExtraction,
     };
 
 })(window);

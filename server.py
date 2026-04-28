@@ -23,6 +23,15 @@ QUOTE_RECIPIENT = 'ventas@crbox.cr'
 
 # ── AI / Gemini extraction ────────────────────────────────────────────────────
 _GEMINI_API_KEY  = os.environ.get('GEMINI_API_KEY', '')
+try:
+    import warnings as _w
+    with _w.catch_warnings():
+        _w.simplefilter('ignore')
+        import google.generativeai as _genai_check  # noqa: F401
+    print(f'[AI] google-generativeai available; key configured: {bool(_GEMINI_API_KEY)}')
+    del _genai_check, _w
+except ImportError:
+    print('[AI] WARNING: google-generativeai not installed — AI extraction disabled')
 
 _AI_CACHE        = {}           # sha256(url) -> (result_dict, expires_ts)
 _AI_CACHE_TTL    = 900          # 15 minutes
