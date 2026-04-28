@@ -423,11 +423,12 @@
                 </div>
 
                 <div class="sol-field">
-                    <label class="sol-label" for="form-product-url">Enlace del producto</label>
+                    <label class="sol-label" for="form-product-url">Enlace del producto <span class="text-gray-400 font-normal text-xs">(autocompleta los datos)</span></label>
                     <input type="url" id="form-product-url" name="product_url" maxlength="1000"
                            placeholder="https://www.amazon.com/dp/..."
                            class="sol-input">
-                    <p class="text-xs text-gray-500 mt-1">Recomendado — ayuda a CRBOX verificar el producto y precio.</p>
+                    <p class="text-xs text-gray-500 mt-1">Pega el enlace y completaremos los datos automáticamente.</p>
+                    <div id="ai-extract-banner-portal"></div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -514,6 +515,12 @@
                     </div>
                 </div>
 
+                <!-- AI confirm checkbox (shown only when AI prefilled ≥1 field) -->
+                <label id="ai-confirm-portal" class="ai-confirm-wrapper" style="display:none;">
+                    <input type="checkbox" id="ai-confirm-chk-portal">
+                    <span>Confirmo que todos los datos extraídos automáticamente son correctos antes de enviar.</span>
+                </label>
+
                 <!-- Error message -->
                 <div id="form-error" class="hidden mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 font-medium"></div>
 
@@ -530,6 +537,7 @@
     <!-- Scripts -->
     <script src="js/auth.js?v=4"></script>
     <script src="js/portal-api.js?v=4"></script>
-    <script src="js/mis-solicitudes.js?v=1"></script>
+    <script src="js/ai-extractor.js"></script>
+    <script src="js/mis-solicitudes.js?v=2"></script>
 </body>
 </html>

@@ -8,14 +8,229 @@ import calendar
 import threading
 import smtplib
 import html as _html
+import hashlib
 import email.mime.multipart
 import email.mime.text
 import urllib.request
 import urllib.parse
+import urllib.error
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 CRBOX_AUTH_URL = 'https://clients.crbox.cr/authtoken'
 QUOTE_RECIPIENT = 'ventas@crbox.cr'
+
+# ── AI / Gemini extraction ────────────────────────────────────────────────────
+_GEMINI_API_KEY  = os.environ.get('GEMINI_API_KEY', '')
+_GEMINI_URL      = ('https://generativelanguage.googleapis.com/v1beta/models/'
+                    'gemini-2.0-flash:generateContent?key=')
+
+_AI_CACHE        = {}           # sha256(url) -> (result_dict, expires_ts)
+_AI_CACHE_TTL    = 900          # 15 minutes
+_AI_CACHE_LOCK   = threading.Lock()
+
+_AI_RATE         = {}           # ip -> [ts, ...]
+_AI_RATE_LOCK    = threading.Lock()
+_AI_RATE_LIMIT   = 10           # calls per IP per hour
+
+_CRBOX_CATEGORIES = (
+    'celulares', 'computadora', 'consola_videojuegos', 'camara',
+    'auricular_telefono', 'bocina', 'televisor',
+    'ropa', 'anteojos', 'cinturon',
+    'electrodomesticos', 'aspiradora', 'colchon', 'herramientas',
+    'bicicleta_economica', 'bicicleta_cara', 'bola',
+    'coche_bebe', 'juguetes',
+    'amortiguadores', 'aros_carro_moto', 'vehiculos',
+    'salud_belleza', 'suplementos', 'cds', 'otros',
+)
+
+_AI_PROMPT_TEMPLATE = """\
+You are a product-data extraction assistant for a Costa Rica courier company called CRBOX.
+Extract product information from the HTML/text below and return ONLY a JSON object.
+
+CRBOX category codes (choose the single best match):
+{categories}
+
+JSON schema (return exactly this structure):
+{{
+  "page_readable": true,
+  "partial": false,
+  "fields": {{
+    "product_name":       {{"value": null, "confidence": 0.0, "provenance": "missing", "source_attribute": null}},
+    "declared_value_usd": {{"value": null, "confidence": 0.0, "provenance": "missing", "source_attribute": null}},
+    "category":           {{"value": null, "confidence": 0.0, "provenance": "missing", "source_attribute": null}},
+    "weight_kg":          {{"value": null, "confidence": 0.0, "provenance": "missing", "source_attribute": null}},
+    "dimensions_cm":      {{"value": null, "confidence": 0.0, "provenance": "missing", "source_attribute": null}}
+  }},
+  "extraction_warnings": []
+}}
+
+Rules:
+1. "provenance" must be one of: "extracted" | "inferred" | "missing" | "needs_confirmation"
+2. weight_kg and dimensions_cm MUST always be provenance "missing" with value null.
+3. declared_value_usd: extract the sale price in USD as a float. If multiple prices exist, use needs_confirmation.
+4. category: choose from the list above. Use "inferred" provenance since it is always inferred from context.
+5. If the page is a login wall, CAPTCHA, error page, or you cannot determine a product name, set page_readable to false.
+6. Do not invent or guess values. Return "missing" rather than a guess.
+7. Return ONLY valid JSON — no markdown, no code fences, no explanation.
+
+PAGE CONTENT:
+{content}
+"""
+
+
+def _ai_rate_check(ip):
+    now = time.time()
+    with _AI_RATE_LOCK:
+        timestamps = _AI_RATE.get(ip, [])
+        timestamps = [t for t in timestamps if now - t < 3600]
+        if len(timestamps) >= _AI_RATE_LIMIT:
+            return False
+        timestamps.append(now)
+        _AI_RATE[ip] = timestamps
+    return True
+
+
+def _ai_cache_get(url_hash):
+    with _AI_CACHE_LOCK:
+        entry = _AI_CACHE.get(url_hash)
+        if entry and time.time() < entry[1]:
+            return entry[0]
+    return None
+
+
+def _ai_cache_set(url_hash, result):
+    with _AI_CACHE_LOCK:
+        _AI_CACHE[url_hash] = (result, time.time() + _AI_CACHE_TTL)
+
+
+def _fetch_page(url):
+    import ssl as _ssl
+    req = urllib.request.Request(url, headers={
+        'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                       'AppleWebKit/537.36 (KHTML, like Gecko) '
+                       'Chrome/124.0.0.0 Safari/537.36'),
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+    })
+    try:
+        ctx = _ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = _ssl.CERT_NONE
+    except Exception:
+        ctx = None
+    try:
+        with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
+            raw = resp.read(200_000)
+            charset = 'utf-8'
+            ctype = resp.headers.get('Content-Type', '')
+            if 'charset=' in ctype:
+                charset = ctype.split('charset=')[-1].split(';')[0].strip()
+            try:
+                text = raw.decode(charset, errors='replace')
+            except Exception:
+                text = raw.decode('utf-8', errors='replace')
+            return text, None
+    except urllib.error.HTTPError as e:
+        return None, f'HTTP {e.code}'
+    except Exception as ex:
+        return None, str(ex)
+
+
+def _truncate_page(html_text):
+    import re as _re
+    head_match = _re.search(r'<head[\s>].*?</head>', html_text, _re.IGNORECASE | _re.DOTALL)
+    head_part  = head_match.group(0) if head_match else ''
+    body_match = _re.search(r'<body[\s>]', html_text, _re.IGNORECASE)
+    body_part  = html_text[body_match.start():] if body_match else html_text
+    combined   = head_part + '\n' + body_part[:15_000]
+    return combined[:20_000]
+
+
+def _call_gemini(content):
+    if not _GEMINI_API_KEY:
+        return None, 'No API key configured'
+    prompt = _AI_PROMPT_TEMPLATE.format(
+        categories=', '.join(_CRBOX_CATEGORIES),
+        content=content,
+    )
+    body = json.dumps({
+        'contents': [{'parts': [{'text': prompt}]}],
+        'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 1024},
+    }).encode()
+    req = urllib.request.Request(
+        _GEMINI_URL + _GEMINI_API_KEY,
+        data=body,
+        headers={'Content-Type': 'application/json'},
+        method='POST',
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read())
+        text = data['candidates'][0]['content']['parts'][0]['text'].strip()
+        text = text.lstrip('`').lstrip('json').lstrip('`').strip()
+        if text.startswith('```'):
+            text = text[3:]
+        if text.endswith('```'):
+            text = text[:-3]
+        return json.loads(text), None
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode('utf-8', errors='replace')
+        return None, f'Gemini HTTP {e.code}: {err_body[:200]}'
+    except Exception as ex:
+        return None, str(ex)
+
+
+def _handle_ai_extract(handler):
+    try:
+        length = int(handler.headers.get('Content-Length', 0))
+        body   = json.loads(handler.rfile.read(length)) if length else {}
+    except Exception:
+        handler._json_response(400, {'error': 'bad_request'})
+        return
+
+    url = (body.get('url') or '').strip()
+    if not url or not url.startswith(('http://', 'https://')):
+        handler._json_response(400, {'error': 'invalid_url'})
+        return
+
+    ip = (handler.headers.get('X-Forwarded-For') or
+          handler.client_address[0] or '0.0.0.0').split(',')[0].strip()
+
+    if not _ai_rate_check(ip):
+        handler._json_response(200, {
+            'page_readable': False,
+            'error': 'rate_limited',
+            'message': 'Límite de consultas alcanzado. Inténtalo más tarde.',
+        })
+        return
+
+    url_hash = hashlib.sha256(url.encode()).hexdigest()
+    cached = _ai_cache_get(url_hash)
+    if cached is not None:
+        handler._json_response(200, cached)
+        return
+
+    page_text, fetch_err = _fetch_page(url)
+    if not page_text:
+        result = {'page_readable': False, 'error': 'fetch_failed',
+                  'message': fetch_err or 'No se pudo acceder a la página.'}
+        _ai_cache_set(url_hash, result)
+        handler._json_response(200, result)
+        return
+
+    truncated = _truncate_page(page_text)
+    gemini_result, gemini_err = _call_gemini(truncated)
+
+    if gemini_err or not isinstance(gemini_result, dict):
+        result = {'page_readable': False, 'error': 'ai_failed',
+                  'message': 'No se pudo analizar la página en este momento.'}
+        _ai_cache_set(url_hash, result)
+        handler._json_response(200, result)
+        return
+
+    gemini_result['source_url'] = url
+    _ai_cache_set(url_hash, gemini_result)
+    handler._json_response(200, gemini_result)
 
 # ── SQLite / Solicitudes ──────────────────────────────────────────────────────
 _DB_PATH = 'solicitudes.db'
@@ -1526,6 +1741,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_svc_token()
         elif self.path == '/send-quote':
             self._handle_send_quote()
+        elif self.path == '/api/ai/extract':
+            _handle_ai_extract(self)
         elif self.path == '/api/solicitudes':
             self._handle_solicitudes_post()
         elif self.path == '/api/solicitudes/link-guest':

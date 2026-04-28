@@ -629,8 +629,25 @@
                             <div class="q-section-icon"><i class="fas fa-box"></i></div>
                             <div>
                                 <div class="q-section-title">Información del producto</div>
-                                <div class="q-section-sub">Cuéntanos qué deseas comprar</div>
+                                <div class="q-section-sub">Pega el enlace para autocompletar o llena los campos</div>
                             </div>
+                        </div>
+
+                        <!-- Product URL (first — triggers AI extraction) -->
+                        <div class="mb-4">
+                            <label class="q-label" for="f-product-url">
+                                URL del producto <span class="q-optional">(opcional — autocompleta los datos)</span>
+                            </label>
+                            <input
+                                type="url"
+                                id="f-product-url"
+                                class="q-input"
+                                placeholder="https://www.amazon.com/dp/..."
+                                autocomplete="off"
+                            >
+                            <div class="q-hint">Pega el enlace del producto y completaremos los datos automáticamente.</div>
+                            <!-- AI extraction banner mounts here -->
+                            <div id="ai-extract-banner-cotizar"></div>
                         </div>
 
                         <!-- Product name -->
@@ -716,7 +733,7 @@
                         </div>
 
                         <!-- Declared value -->
-                        <div class="mb-4">
+                        <div class="mb-0">
                             <label class="q-label" for="f-declared-value">
                                 Valor declarado <span class="q-required">*</span>
                             </label>
@@ -740,20 +757,11 @@
                             </div>
                         </div>
 
-                        <!-- Product URL -->
-                        <div class="mb-0">
-                            <label class="q-label" for="f-product-url">
-                                URL del producto <span class="q-optional">(opcional)</span>
-                            </label>
-                            <input
-                                type="url"
-                                id="f-product-url"
-                                class="q-input"
-                                placeholder="https://www.amazon.com/dp/..."
-                                autocomplete="off"
-                            >
-                            <div class="q-hint">Si ya encontraste el producto en línea, pégalo aquí para que el equipo lo vea.</div>
-                        </div>
+                        <!-- AI confirm checkbox (shown only when AI prefilled ≥1 field) -->
+                        <label id="ai-confirm-cotizar" class="ai-confirm-wrapper" style="display:none;">
+                            <input type="checkbox" id="ai-confirm-chk-cotizar">
+                            <span>Confirmo que todos los datos extraídos automáticamente son correctos antes de enviar.</span>
+                        </label>
                     </div>
 
                     <!-- ── CARD 2: Shipping ── -->
@@ -1131,6 +1139,7 @@
     <script src="js/auth.js"></script>
     <script src="js/nav-auth.js?v=1" defer></script>
     <script src="js/analytics.js" defer></script>
+    <script src="js/ai-extractor.js"></script>
     <script>
     (function () {
         'use strict';
@@ -1179,12 +1188,17 @@
         const notesCharCount  = document.getElementById('notes-char-count');
         const serviceHintText = document.getElementById('service-hint-text');
 
+        const aiExtractBanner  = document.getElementById('ai-extract-banner-cotizar');
+        const aiConfirmWrapper = document.getElementById('ai-confirm-cotizar');
+        const aiConfirmChk     = document.getElementById('ai-confirm-chk-cotizar');
+
         // ── State ──────────────────────────────────────────────
         let emailConfirmed    = false;
         let hasRequiredField  = false; // has user filled any required field?
         let lastSubmitPayload = null;  // keep for WA fallback
         let _dupWarningDismissed = false;
         let _formSubmitted    = false;
+        let _aiActive         = false; // AI pre-filled ≥1 field
 
         // ── beforeunload draft warning ─────────────────────────
         window.addEventListener('beforeunload', function (e) {
@@ -1444,6 +1458,48 @@
             }
         });
 
+        // ── AI extraction (URL blur) ────────────────────────────
+        let _aiExtractTimer = null;
+        fProductUrl.addEventListener('blur', function () {
+            const url = (this.value || '').trim();
+            if (!url || !url.startsWith('http')) return;
+            if (typeof CRBOXAIExtractor === 'undefined') return;
+            clearTimeout(_aiExtractTimer);
+            _aiExtractTimer = setTimeout(function () {
+                _aiActive = false;
+                CRBOXAIExtractor.run({
+                    url:          url,
+                    bannerTarget: aiExtractBanner,
+                    fName:        fProductName,
+                    fValue:       fDeclaredValue,
+                    fCategory:    fCategory,
+                    confirmWrapper: aiConfirmWrapper,
+                    onRequiredChange: function () {
+                        _aiActive = true;
+                    },
+                }).then(function () {
+                    var banner = aiExtractBanner.querySelector('.ai-extract-banner');
+                    if (banner && (banner.classList.contains('ai-banner-success') ||
+                                   banner.classList.contains('ai-banner-partial'))) {
+                        _aiActive = true;
+                    }
+                });
+            }, 300);
+        });
+        fProductUrl.addEventListener('input', function () {
+            const url = (this.value || '').trim();
+            if (!url && typeof CRBOXAIExtractor !== 'undefined') {
+                CRBOXAIExtractor.reset({
+                    bannerTarget:   aiExtractBanner,
+                    fName:          fProductName,
+                    fValue:         fDeclaredValue,
+                    fCategory:      fCategory,
+                    confirmWrapper: aiConfirmWrapper,
+                });
+                _aiActive = false;
+            }
+        });
+
         // ── Submit (form or sticky) ─────────────────────────────
         form.addEventListener('submit', function (e) {
             e.preventDefault();
@@ -1472,11 +1528,22 @@
                 document.getElementById('err-email-text').textContent = 'Por favor confirma tu correo antes de enviar.';
                 markFieldError(fEmail, 'err-email'); valid = false;
             }
+            if (_aiActive && aiConfirmWrapper && aiConfirmWrapper.style.display !== 'none') {
+                if (!aiConfirmChk || !aiConfirmChk.checked) {
+                    aiConfirmWrapper.style.outline = '2px solid #ef4444';
+                    aiConfirmWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    valid = false;
+                } else {
+                    aiConfirmWrapper.style.outline = '';
+                }
+            }
 
             if (!valid) {
                 // Scroll to first error
-                const firstErr = form.querySelector('.q-error');
-                if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (!(_aiActive && aiConfirmWrapper && !aiConfirmChk.checked)) {
+                    const firstErr = form.querySelector('.q-error');
+                    if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
                 return;
             }
 
@@ -1489,7 +1556,7 @@
                 destination_zone:   destination,
                 customer_email:     email,
                 account_type:       'anonymous',
-                data_source:        'manual',
+                data_source:        _aiActive ? 'ai' : 'manual',
             };
 
             const customerName = (fCustomerName.value || '').trim();

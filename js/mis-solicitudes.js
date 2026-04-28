@@ -13,6 +13,7 @@
   var _panelHasData = false;
   var _panelSubmitted = false;
   var _dupWarningDismissedPortal = false;
+  var _portalAiActive = false;
 
   // ── beforeunload: warn if panel has data and user navigates away ───────────
   window.addEventListener('beforeunload', function (e) {
@@ -339,6 +340,12 @@
     _panelHasData = false;
     _panelSubmitted = false;
     _dupWarningDismissedPortal = false;
+    // Reset AI state
+    _portalAiActive = false;
+    var aiBannerEl  = document.getElementById('ai-extract-banner-portal');
+    var aiConfirmEl = document.getElementById('ai-confirm-portal');
+    if (aiBannerEl)  { aiBannerEl.innerHTML = ''; }
+    if (aiConfirmEl) { aiConfirmEl.style.display = 'none'; aiConfirmEl.style.outline = ''; }
   }
 
   function _setFormField(id, value) {
@@ -365,7 +372,7 @@
       weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
       customer_notes: formData.customer_notes || null,
       service_type: formData.service_type || 'aereo',
-      data_source: 'manual'
+      data_source: formData.data_source || 'manual'
     };
 
     return fetch('/api/solicitudes', {
@@ -629,6 +636,56 @@
       });
     }
 
+    // ── AI extractor wiring ───────────────────────────────────────────────────
+    (function () {
+      var fPortalUrl   = document.getElementById('form-product-url');
+      var fPortalName  = document.getElementById('form-product-name');
+      var fPortalValue = document.getElementById('form-declared-value');
+      var fPortalCat   = document.getElementById('form-category');
+      var aiBanner     = document.getElementById('ai-extract-banner-portal');
+      var aiConfirm    = document.getElementById('ai-confirm-portal');
+
+      if (!fPortalUrl || typeof CRBOXAIExtractor === 'undefined') return;
+
+      var _aiTimer = null;
+      fPortalUrl.addEventListener('blur', function () {
+        var url = (this.value || '').trim();
+        if (!url || !url.startsWith('http')) return;
+        clearTimeout(_aiTimer);
+        _aiTimer = setTimeout(function () {
+          _portalAiActive = false;
+          CRBOXAIExtractor.run({
+            url:            url,
+            bannerTarget:   aiBanner,
+            fName:          fPortalName,
+            fValue:         fPortalValue,
+            fCategory:      fPortalCat,
+            confirmWrapper: aiConfirm,
+            onRequiredChange: function () { _portalAiActive = true; },
+          }).then(function () {
+            var b = aiBanner.querySelector('.ai-extract-banner');
+            if (b && (b.classList.contains('ai-banner-success') ||
+                      b.classList.contains('ai-banner-partial'))) {
+              _portalAiActive = true;
+            }
+          });
+        }, 300);
+      });
+      fPortalUrl.addEventListener('input', function () {
+        var url = (this.value || '').trim();
+        if (!url) {
+          CRBOXAIExtractor.reset({
+            bannerTarget:   aiBanner,
+            fName:          fPortalName,
+            fValue:         fPortalValue,
+            fCategory:      fPortalCat,
+            confirmWrapper: aiConfirm,
+          });
+          _portalAiActive = false;
+        }
+      });
+    })();
+
     // Form submission
     var form = document.getElementById('new-request-form');
     if (form) {
@@ -639,6 +696,19 @@
 
         if (errorMsg) errorMsg.classList.add('hidden');
 
+        // AI confirm check
+        var aiConfirmWrapper = document.getElementById('ai-confirm-portal');
+        var aiConfirmChk     = document.getElementById('ai-confirm-chk-portal');
+        if (_portalAiActive && aiConfirmWrapper && aiConfirmWrapper.style.display !== 'none') {
+          if (!aiConfirmChk || !aiConfirmChk.checked) {
+            aiConfirmWrapper.style.outline = '2px solid #ef4444';
+            aiConfirmWrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            return;
+          } else {
+            aiConfirmWrapper.style.outline = '';
+          }
+        }
+
         var formData = {
           product_name:      form.querySelector('#form-product-name').value.trim(),
           product_url:       form.querySelector('#form-product-url').value.trim(),
@@ -646,7 +716,8 @@
           category:          form.querySelector('#form-category').value,
           weight_kg:         form.querySelector('#form-weight').value,
           customer_notes:    form.querySelector('#form-notes').value.trim(),
-          service_type:      form.querySelector('#form-service-type').value
+          service_type:      form.querySelector('#form-service-type').value,
+          data_source:       _portalAiActive ? 'ai' : 'manual',
         };
 
         // Duplicate check (skip if user already dismissed)

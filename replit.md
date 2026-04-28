@@ -39,6 +39,7 @@ The script updates all six public HTML pages automatically. It must also be run 
 | `js/seo-config.js` | SEO/structured data configuration |
 | `js/tariff-adapter.js` | **[Task 131]** Tariff data-adapter layer. All duty/tax lookups go through `TARIFF_ADAPTER.getTariffRate(categoryCode)`. Returns `{ rate, source, pct }` where source is `local_estimated`, `official_tica`, or `user_override`. To wire in official TICA data, populate `OFFICIAL_RATES`. |
 | `js/calculator-engine.js` | **[Task 131]** Pure calculation engine. Exposes `CALCULATOR_ENGINE.calcSinglePackage(item)`, `calcSeparate(items, dest)`, `calcConsolidated(items, dest)`. No formula changes — structural refactor and extension of original inline logic. |
+| `js/ai-extractor.js` | **[Task 181]** AI product extraction module. Exposes `window.CRBOXAIExtractor` with `run(config)` and `reset(config)`. Calls `POST /api/ai/extract`, applies fields with confidence-appropriate badges, shows status banners, and manages the AI confirm checkbox. Used in both `cotizar.html` and `mis-solicitudes.html`. |
 
 ### Calculator page (calculadora.html) — Task 131 + Task 142 upgrade
 
