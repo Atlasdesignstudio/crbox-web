@@ -1,0 +1,277 @@
+You know the CRBOX system, current codebase, existing portal behavior, and the implementation history so far. I want you to proceed intelligently from that context.
+
+We are now moving into the next phase after the Build Now system, but I do not want uncontrolled scope creep or parallel execution across unstable dependencies.
+
+Your job here is to:
+1. review the next-phase tasks,
+2. refine them where needed,
+3. recommend the safest execution order,
+4. proceed only with the right ones first,
+5. and stop at the correct checkpoints before moving on.
+
+This is not a request to blindly execute everything.  
+This is a request to act like a strong technical product-minded engineer who understands sequencing, risk, UX quality, and non-regression.
+
+--------------------------------------------------
+CURRENT GOAL
+--------------------------------------------------
+
+We already have the roadmap for these next tasks:
+
+- #174 — AI Product Extraction: Gemini Endpoint + Form UI
+- #175 — Chat-Assisted Purchase Request Intake
+- #176 — Phase 2 Quick Wins: Draft Save, 48h Reminder, Address Prefill
+- #177 — Portal-Native Sales Response and Confirmar Compra Flow
+- #178 — QuoteRequest–Package Linking and Bidirectional Portal Links
+
+I want you to evaluate and refine these tasks with full awareness of:
+- the current CRBOX implementation
+- what is already stable vs not yet proven
+- real regression risk
+- the difference between “good dependency order” and “safe implementation timing”
+- the existing protected flows that must not break
+
+--------------------------------------------------
+PRIMARY INSTRUCTION
+--------------------------------------------------
+
+Do not treat all of the above tasks as equally ready to execute.
+
+I want you to do the following:
+
+### A. First, assess the current readiness of the system
+Before proceeding, determine:
+
+1. Is the current Build Now system actually stable enough to start Phase 2?
+2. Are the following already working and regression-safe?
+   - quote request backend loop
+   - public /cotizar.html flow
+   - portal mis-solicitudes flow
+   - solicitud detail flow
+   - guest linking / dedup / cancel / mobile hardening (if already attempted)
+3. Is the current UI quality good enough to layer more functionality on top of it, or should some cleanup happen first?
+
+If anything critical is still unstable, say so clearly and do not continue into later tasks blindly.
+
+### B. Recommend the correct execution order
+I want a concrete recommendation for the next execution order, not a generic answer.
+
+My current belief is:
+1. #176 first
+2. #174 second
+3. #175 later
+4. #177 much later
+5. #178 after #177
+
+You should evaluate whether that is correct based on the actual current codebase and system state.
+
+If you think another order is better, say so clearly and explain why.
+
+### C. Refine each task where needed
+For each of #174–#178, tell me whether it is:
+- ready as-is
+- needs small refinement
+- needs significant refinement
+- should be deferred
+
+For every task that needs refinement, provide the improved task prompt/spec.
+
+### D. Only proceed with the right immediate tasks
+Do not try to execute all future phases now.
+
+I want you to identify:
+- which tasks should be started now
+- which should be held
+- which should only be converted into future-ready tasks but not yet implemented
+
+--------------------------------------------------
+NON-REGRESSION IS ABSOLUTE
+--------------------------------------------------
+
+This next phase must remain strictly additive.
+
+The following existing flows are protected and must continue working exactly as they do now unless a task explicitly requires otherwise:
+
+- Afiliarse / registration flow
+- Login and password recovery
+- Dashboard current working functionality
+- Mis Paquetes
+- Mis Facturas
+- Mi Cuenta
+- Existing session/auth behavior
+- Existing calculator behavior outside quote-request enhancements
+
+Rules:
+- Prefer new routes, new modules, and isolated additions
+- Do not refactor shared working logic unless absolutely necessary
+- Treat shared files as high-risk: server.py, auth.js, portal-api.js, shared nav, shared CSS
+- If a shared-file change is required, make it minimal and justified
+- No unrelated cleanup/refactors
+- Preserve existing backend contracts and URL paths
+- Every task completion must include a Regression check section with explicit pass/fail on protected flows
+
+--------------------------------------------------
+DESIGN / UX BAR
+--------------------------------------------------
+
+This is still a consumer-facing product experience, not an internal admin build.
+
+Any new surface or enhancement must maintain a high UI/UX standard:
+- strong visual hierarchy
+- premium spacing and rhythm
+- polished modern forms
+- calm, trustworthy, high-quality states
+- elegant confidence indicators
+- designed mobile behavior
+- no generic CRUD/admin aesthetics
+- no clunky “AI demo” feeling
+- no feature layering that makes the UI confusing
+
+Public quote flow should feel:
+- warm
+- fast
+- reassuring
+- conversion-oriented
+
+Portal quote flow should feel:
+- clean
+- trustworthy
+- productized
+- consistent with the CRBOX portal
+
+If any next-phase task risks degrading clarity or design quality, flag that explicitly.
+
+--------------------------------------------------
+SPECIFIC INSTRUCTIONS PER TASK
+--------------------------------------------------
+
+## 1) TASK #176 — PHASE 2 QUICK WINS
+I want you to review whether this task is ready to proceed now with minimal refinement.
+
+Please specifically evaluate:
+- whether draft save is safe to add now
+- whether the 48h reminder is safe in the current backend architecture
+- whether destination zone prefill from account address is reliable with current getuserinfo data
+- whether any of these three should be split apart rather than bundled together
+
+If the task is good, tighten it only where useful.
+If it should be split, recommend the split.
+
+## 2) TASK #174 — AI PRODUCT EXTRACTION
+This is likely the first major next-phase feature.
+
+Please review and refine it carefully.
+
+I want you to challenge and improve it where necessary, especially around:
+- server-side fetch reliability
+- Gemini integration boundaries
+- caching strategy
+- rate limiting
+- exact fallback behavior
+- UI confidence/provenance presentation
+- ensuring the feature never blocks manual form completion
+- ensuring weight/dimensions are never AI-filled
+- ensuring declared value and category are never silently accepted
+- ensuring the portal and public versions remain aligned but not duplicated unnecessarily
+
+Also:
+- if there are implementation choices that are better than the current plan, recommend them
+- if the current prompt assumes something unrealistic about merchant-page fetching, correct it
+- if this should be broken into backend-first and UI-second substeps, recommend that
+
+## 3) TASK #175 — CHAT-ASSISTED PURCHASE REQUEST INTAKE
+This is the task I trust least unless tightly controlled.
+
+Please evaluate whether this task is too ambitious or too early.
+
+I want you to review and improve it with strong product judgment:
+- Is chat actually the right next step once #174 exists?
+- Should it be deferred until URL extraction proves reliable in production?
+- Is the split-panel pattern still the best implementation?
+- Should the first version be lighter than currently described?
+- What is the minimum viable version of this feature that adds real value without making the form experience fragile?
+
+If you think #175 should be narrowed, propose the narrower version.
+
+## 4) TASK #177 — PORTAL-NATIVE SALES RESPONSE + CONFIRMAR COMPRA
+This should be treated as later-phase unless there is a compelling reason otherwise.
+
+Please evaluate:
+- whether it is too early
+- whether the dependency on the internal sales/admin surface is strong enough that this should wait
+- whether the state model needs further evolution before this is built
+- whether the response card + confirm/decline model is correct as currently specified
+
+If it should be deferred, say so clearly.
+If it is worth refining now for future readiness, provide the improved future task spec without executing it yet.
+
+## 5) TASK #178 — QUOTEREQUEST–PACKAGE LINKING
+Treat this as an even later-phase task unless proven otherwise.
+
+Please evaluate:
+- whether this is correctly dependent on #177
+- whether linking by tracking number is sufficient or too fragile
+- whether the current package data available from CRBOX APIs makes this feasible yet
+- whether this task needs stronger safeguards before it is implementation-ready
+
+Again: if it should be held, say so.  
+If it should be refined for future use only, do that.
+
+--------------------------------------------------
+WHAT I WANT BACK
+--------------------------------------------------
+
+Please answer in this structure:
+
+### 1. Current system readiness assessment
+Tell me whether the current Build Now system is stable enough to move into next-phase work.
+
+### 2. Recommended execution order
+Tell me the exact next order you recommend for #174–#178.
+
+### 3. Task-by-task verdict
+For each of #174, #175, #176, #177, #178, label it:
+- Ready now
+- Ready with light refinement
+- Needs significant refinement
+- Defer for later
+
+### 4. Refined task prompts
+For every task that should be refined, give me the revised full prompt/spec — strong enough to execute without ambiguity.
+
+### 5. Immediate action recommendation
+Tell me which one(s) should actually be started now, and which should explicitly wait.
+
+### 6. Risk notes
+Call out the main risks:
+- technical
+- UX
+- operational
+- regression-related
+
+--------------------------------------------------
+IMPORTANT BEHAVIORAL INSTRUCTION
+--------------------------------------------------
+
+Because you know the system, I want you to do more than just comply literally.
+
+Where appropriate:
+- challenge assumptions
+- tighten scope
+- recommend safer sequencing
+- split tasks when that is the smarter move
+- identify over-ambitious parts
+- improve prompts where needed
+- suggest better implementations if the current wording is not ideal
+
+Do not be passive.
+Do not rubber-stamp every task.
+Use judgment.
+
+At the same time:
+- stay grounded in the current CRBOX reality
+- avoid speculative future magic
+- do not invent dependencies that do not exist
+- do not expand scope unless there is a clear reason
+
+The goal is to move forward intelligently, not just continue the roadmap mechanically.
