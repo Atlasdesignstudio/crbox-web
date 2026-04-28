@@ -2489,7 +2489,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         if data_source not in ('manual', 'ai_extracted', 'ai_partial'):
             data_source = 'manual'
         ai_extraction_result = data.get('ai_extraction_result')
-        ai_extraction_json = json.dumps(ai_extraction_result) if ai_extraction_result else None
+        ai_extraction_json = (
+            json.dumps(ai_extraction_result)
+            if 'ai_extraction_result' in data and ai_extraction_result is not None
+            else None
+        )
 
         try:
             weight_kg = float(weight_kg) if weight_kg is not None else None
