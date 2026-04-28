@@ -638,14 +638,22 @@
                             <label class="q-label" for="f-product-url">
                                 URL del producto <span class="q-optional">(opcional — autocompleta los datos)</span>
                             </label>
-                            <input
-                                type="url"
-                                id="f-product-url"
-                                class="q-input"
-                                placeholder="https://www.amazon.com/dp/..."
-                                autocomplete="off"
-                            >
-                            <div class="q-hint">Pega el enlace del producto y completaremos los datos automáticamente.</div>
+                            <div style="display:flex;gap:.5rem;align-items:center;">
+                                <input
+                                    type="url"
+                                    id="f-product-url"
+                                    class="q-input"
+                                    placeholder="https://www.amazon.com/dp/..."
+                                    autocomplete="off"
+                                    style="flex:1;"
+                                >
+                                <button type="button" id="btn-ai-analizar-cotizar"
+                                    style="flex-shrink:0;padding:.65rem 1rem;background:#FF6B00;color:#fff;border:none;border-radius:.6rem;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s;"
+                                    onmouseover="this.style.background='#E05A00'" onmouseout="this.style.background='#FF6B00'">
+                                    <i class="fas fa-magic"></i> Analizar
+                                </button>
+                            </div>
+                            <div class="q-hint">Pega el enlace del producto y presiona "Analizar" para completar los datos automáticamente.</div>
                             <!-- AI extraction banner mounts here -->
                             <div id="ai-extract-banner-cotizar"></div>
                         </div>
@@ -1458,38 +1466,42 @@
             }
         });
 
-        // ── AI extraction (URL blur) ────────────────────────────
-        let _aiExtractTimer = null;
-        fProductUrl.addEventListener('blur', function () {
-            const url = (this.value || '').trim();
+        // ── AI extraction ────────────────────────────────────────
+        const btnAiAnalizar = document.getElementById('btn-ai-analizar-cotizar');
+
+        function _doAiExtract() {
+            const url = (fProductUrl.value || '').trim();
             if (!url || !url.startsWith('http')) return;
             if (typeof CRBOXAIExtractor === 'undefined') return;
-            clearTimeout(_aiExtractTimer);
-            _aiExtractTimer = setTimeout(function () {
-                _aiActive = false;
-                CRBOXAIExtractor.run({
-                    url:          url,
-                    bannerTarget: aiExtractBanner,
-                    fName:        fProductName,
-                    fValue:       fDeclaredValue,
-                    fCategory:    fCategory,
-                    confirmWrapper: aiConfirmWrapper,
-                    onRequiredChange: function () {
-                        _aiActive = true;
-                    },
-                }).then(function () {
-                    var banner = aiExtractBanner.querySelector('.ai-extract-banner');
-                    if (banner && (banner.classList.contains('ai-banner-success') ||
-                                   banner.classList.contains('ai-banner-partial'))) {
-                        _aiActive = true;
-                    }
-                });
-            }, 300);
+            _aiActive = false;
+            CRBOXAIExtractor.runExtraction(url, {
+                bannerTarget:   aiExtractBanner,
+                fName:          fProductName,
+                fValue:         fDeclaredValue,
+                fCategory:      fCategory,
+                confirmWrapper: aiConfirmWrapper,
+            }).then(function (result) {
+                var banner = aiExtractBanner.querySelector('.ai-extract-banner');
+                if (banner && (banner.classList.contains('ai-banner-success') ||
+                               banner.classList.contains('ai-banner-partial'))) {
+                    _aiActive = true;
+                }
+            });
+        }
+
+        if (btnAiAnalizar) {
+            btnAiAnalizar.addEventListener('click', _doAiExtract);
+        }
+        fProductUrl.addEventListener('blur', function () {
+            const url = (this.value || '').trim();
+            if (url && url.startsWith('http')) {
+                _doAiExtract();
+            }
         });
         fProductUrl.addEventListener('input', function () {
             const url = (this.value || '').trim();
             if (!url && typeof CRBOXAIExtractor !== 'undefined') {
-                CRBOXAIExtractor.reset({
+                CRBOXAIExtractor.resetExtraction({
                     bannerTarget:   aiExtractBanner,
                     fName:          fProductName,
                     fValue:         fDeclaredValue,

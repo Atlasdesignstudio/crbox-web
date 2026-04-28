@@ -342,10 +342,20 @@
     _dupWarningDismissedPortal = false;
     // Reset AI state
     _portalAiActive = false;
-    var aiBannerEl  = document.getElementById('ai-extract-banner-portal');
-    var aiConfirmEl = document.getElementById('ai-confirm-portal');
-    if (aiBannerEl)  { aiBannerEl.innerHTML = ''; }
-    if (aiConfirmEl) { aiConfirmEl.style.display = 'none'; aiConfirmEl.style.outline = ''; }
+    if (typeof CRBOXAIExtractor !== 'undefined') {
+      CRBOXAIExtractor.resetExtraction({
+        bannerTarget:   document.getElementById('ai-extract-banner-portal'),
+        fName:          document.getElementById('form-product-name'),
+        fValue:         document.getElementById('form-declared-value'),
+        fCategory:      document.getElementById('form-category'),
+        confirmWrapper: document.getElementById('ai-confirm-portal'),
+      });
+    } else {
+      var aiBannerEl  = document.getElementById('ai-extract-banner-portal');
+      var aiConfirmEl = document.getElementById('ai-confirm-portal');
+      if (aiBannerEl)  aiBannerEl.innerHTML = '';
+      if (aiConfirmEl) { aiConfirmEl.style.display = 'none'; aiConfirmEl.style.outline = ''; }
+    }
   }
 
   function _setFormField(id, value) {
@@ -647,34 +657,40 @@
 
       if (!fPortalUrl || typeof CRBOXAIExtractor === 'undefined') return;
 
-      var _aiTimer = null;
+      var btnPortalAnalizar = document.getElementById('btn-ai-analizar-portal');
+
+      function _doPortalAiExtract() {
+        var url = (fPortalUrl.value || '').trim();
+        if (!url || !url.startsWith('http')) return;
+        _portalAiActive = false;
+        CRBOXAIExtractor.runExtraction(url, {
+          bannerTarget:   aiBanner,
+          fName:          fPortalName,
+          fValue:         fPortalValue,
+          fCategory:      fPortalCat,
+          confirmWrapper: aiConfirm,
+        }).then(function () {
+          var b = aiBanner ? aiBanner.querySelector('.ai-extract-banner') : null;
+          if (b && (b.classList.contains('ai-banner-success') ||
+                    b.classList.contains('ai-banner-partial'))) {
+            _portalAiActive = true;
+          }
+        });
+      }
+
+      if (btnPortalAnalizar) {
+        btnPortalAnalizar.addEventListener('click', _doPortalAiExtract);
+      }
       fPortalUrl.addEventListener('blur', function () {
         var url = (this.value || '').trim();
-        if (!url || !url.startsWith('http')) return;
-        clearTimeout(_aiTimer);
-        _aiTimer = setTimeout(function () {
-          _portalAiActive = false;
-          CRBOXAIExtractor.run({
-            url:            url,
-            bannerTarget:   aiBanner,
-            fName:          fPortalName,
-            fValue:         fPortalValue,
-            fCategory:      fPortalCat,
-            confirmWrapper: aiConfirm,
-            onRequiredChange: function () { _portalAiActive = true; },
-          }).then(function () {
-            var b = aiBanner.querySelector('.ai-extract-banner');
-            if (b && (b.classList.contains('ai-banner-success') ||
-                      b.classList.contains('ai-banner-partial'))) {
-              _portalAiActive = true;
-            }
-          });
-        }, 300);
+        if (url && url.startsWith('http')) {
+          _doPortalAiExtract();
+        }
       });
       fPortalUrl.addEventListener('input', function () {
         var url = (this.value || '').trim();
         if (!url) {
-          CRBOXAIExtractor.reset({
+          CRBOXAIExtractor.resetExtraction({
             bannerTarget:   aiBanner,
             fName:          fPortalName,
             fValue:         fPortalValue,

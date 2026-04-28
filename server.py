@@ -103,8 +103,12 @@ def _ai_cache_set(url_hash, result):
         _AI_CACHE[url_hash] = (result, time.time() + _AI_CACHE_TTL)
 
 
+class _RedirectLimitHandler(urllib.request.HTTPRedirectHandler):
+    max_repeats = 3
+    max_redirections = 3
+
+
 def _fetch_page(url):
-    import ssl as _ssl
     req = urllib.request.Request(url, headers={
         'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
                        'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -112,14 +116,9 @@ def _fetch_page(url):
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
     })
+    opener = urllib.request.build_opener(_RedirectLimitHandler)
     try:
-        ctx = _ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = _ssl.CERT_NONE
-    except Exception:
-        ctx = None
-    try:
-        with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
+        with opener.open(req, timeout=10) as resp:
             raw = resp.read(200_000)
             charset = 'utf-8'
             ctype = resp.headers.get('Content-Type', '')
@@ -190,18 +189,14 @@ def _handle_ai_extract(handler):
 
     url = (body.get('url') or '').strip()
     if not url or not url.startswith(('http://', 'https://')):
-        handler._json_response(400, {'error': 'invalid_url'})
+        handler._json_response(200, {'page_readable': False, 'error': 'invalid_url'})
         return
 
     ip = (handler.headers.get('X-Forwarded-For') or
           handler.client_address[0] or '0.0.0.0').split(',')[0].strip()
 
     if not _ai_rate_check(ip):
-        handler._json_response(200, {
-            'page_readable': False,
-            'error': 'rate_limited',
-            'message': 'Límite de consultas alcanzado. Inténtalo más tarde.',
-        })
+        handler._json_response(200, {'ok': False, 'error': 'rate_limit'})
         return
 
     url_hash = hashlib.sha256(url.encode()).hexdigest()

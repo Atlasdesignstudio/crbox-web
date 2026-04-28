@@ -424,10 +424,17 @@
 
                 <div class="sol-field">
                     <label class="sol-label" for="form-product-url">Enlace del producto <span class="text-gray-400 font-normal text-xs">(autocompleta los datos)</span></label>
-                    <input type="url" id="form-product-url" name="product_url" maxlength="1000"
-                           placeholder="https://www.amazon.com/dp/..."
-                           class="sol-input">
-                    <p class="text-xs text-gray-500 mt-1">Pega el enlace y completaremos los datos automáticamente.</p>
+                    <div style="display:flex;gap:.4rem;align-items:center;">
+                        <input type="url" id="form-product-url" name="product_url" maxlength="1000"
+                               placeholder="https://www.amazon.com/dp/..."
+                               class="sol-input" style="flex:1;">
+                        <button type="button" id="btn-ai-analizar-portal"
+                            style="flex-shrink:0;padding:.55rem .85rem;background:#FF6B00;color:#fff;border:none;border-radius:.55rem;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s;"
+                            onmouseover="this.style.background='#E05A00'" onmouseout="this.style.background='#FF6B00'">
+                            <i class="fas fa-magic"></i> Analizar
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Pega el enlace y presiona "Analizar" para completar los datos automáticamente.</p>
                     <div id="ai-extract-banner-portal"></div>
                 </div>
 
