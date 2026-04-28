@@ -404,7 +404,8 @@ def _init_db():
                 cancelled_at        TEXT,
                 expires_at          TEXT,
                 linked_package_id   TEXT,
-                ai_extraction_json  TEXT
+                ai_extraction_json  TEXT,
+                response_json       TEXT
             );
 
             CREATE TABLE IF NOT EXISTS quote_status_history (
@@ -431,6 +432,10 @@ def _init_db():
             conn.execute('ALTER TABLE quote_requests ADD COLUMN ai_extraction_json TEXT')
             conn.commit()
             print('[SOLICITUDES] Added ai_extraction_json column to quote_requests')
+        if 'response_json' not in existing_cols:
+            conn.execute('ALTER TABLE quote_requests ADD COLUMN response_json TEXT')
+            conn.commit()
+            print('[SOLICITUDES] Added response_json column to quote_requests')
         conn.close()
     print('[SOLICITUDES] SQLite schema initialised OK')
 
@@ -817,6 +822,179 @@ def _send_cancellation_email(scb_id, customer_email, customer_name, product_name
     msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
     msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
     _send_smtp(msg, [customer_email])
+
+
+def _build_response_email_html(scb_id, product_name, customer_name,
+                                confirmed_price_usd, availability,
+                                delivery_timeline, conditions,
+                                difference_explanation, customer_message):
+    esc = _html.escape
+    avail_labels = {
+        'disponible': 'Disponible',
+        'no_disponible': 'No disponible',
+        'disponible_con_condiciones': 'Disponible con condiciones',
+    }
+    avail_label = avail_labels.get(availability, esc(availability))
+    avail_style_map = {
+        'disponible': 'color:#16a34a;font-weight:700;',
+        'no_disponible': 'color:#dc2626;font-weight:700;',
+        'disponible_con_condiciones': 'color:#d97706;font-weight:700;',
+    }
+    avail_style = avail_style_map.get(availability, '')
+
+    if availability == 'no_disponible':
+        header_bg = 'linear-gradient(135deg,#6b7280,#9ca3af)'
+        header_icon = '&#10005;'
+    elif availability == 'disponible_con_condiciones':
+        header_bg = 'linear-gradient(135deg,#f59e0b,#fbbf24)'
+        header_icon = '&#9888;'
+    else:
+        header_bg = 'linear-gradient(135deg,#FF6B00,#FF9A00)'
+        header_icon = '&#10003;'
+
+    greeting = f'Hola {esc(customer_name)},' if customer_name else 'Hola,'
+
+    price_rows = ''
+    if availability != 'no_disponible':
+        price_rows = (
+            f'<tr><td style="padding:5px 0;color:#666;width:40%;">Precio de env&iacute;o</td>'
+            f'<td style="padding:5px 0;font-weight:700;color:#FF6B00;font-size:16px;">'
+            f'${confirmed_price_usd:,.2f} USD</td></tr>'
+            f'<tr><td style="padding:5px 0;color:#666;">Tiempo estimado</td>'
+            f'<td style="padding:5px 0;color:#111;">{esc(delivery_timeline)}</td></tr>'
+        )
+
+    no_disponible_block = ''
+    if availability == 'no_disponible':
+        no_disponible_block = (
+            '<div style="background:#fef2f2;border-left:4px solid #dc2626;border-radius:4px;'
+            'padding:14px 16px;margin:16px 0;">'
+            '<p style="font-size:14px;color:#7f1d1d;margin:0;line-height:1.6;">'
+            'En este momento el producto no est&aacute; disponible para su compra '
+            'a trav&eacute;s de CRBOX. Si tienes alguna pregunta, no dudes en '
+            'contactarnos respondiendo a este correo.</p>'
+            '</div>'
+        )
+
+    conditions_block = ''
+    if conditions and conditions.strip():
+        conditions_block = (
+            '<div style="background:#fff7ed;border-left:4px solid #f59e0b;border-radius:4px;'
+            'padding:14px 16px;margin:16px 0;">'
+            '<p style="font-size:12px;font-weight:700;color:#92400e;text-transform:uppercase;'
+            'letter-spacing:.06em;margin:0 0 6px;">Condiciones</p>'
+            f'<p style="font-size:14px;color:#78350f;margin:0;line-height:1.6;">'
+            f'{esc(conditions.strip())}</p>'
+            '</div>'
+        )
+
+    message_block = (
+        '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;'
+        'padding:14px 16px;margin:16px 0;">'
+        f'<p style="font-size:14px;color:#111;line-height:1.7;margin:0;white-space:pre-line;">'
+        f'{esc(customer_message.strip())}</p>'
+        '</div>'
+    )
+
+    diff_block = ''
+    if difference_explanation and difference_explanation.strip():
+        diff_block = (
+            '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;'
+            'padding:12px 16px;margin:16px 0;">'
+            '<p style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;'
+            'letter-spacing:.06em;margin:0 0 6px;">Nota sobre el estimado</p>'
+            f'<p style="font-size:13px;color:#374151;margin:0;line-height:1.6;">'
+            f'{esc(difference_explanation.strip())}</p>'
+            '</div>'
+        )
+
+    return (
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;'
+        'color:#1a1a1a;max-width:600px;margin:0 auto;">'
+        f'<div style="background:{header_bg};padding:24px;border-radius:8px 8px 0 0;">'
+        f'<p style="color:#fff;font-size:22px;font-weight:700;margin:0;">'
+        f'{header_icon} Respuesta a tu solicitud</p>'
+        f'<p style="color:rgba(255,255,255,.85);font-size:13px;margin:6px 0 0;">'
+        f'ID: <strong>{esc(scb_id)}</strong></p>'
+        '</div>'
+        '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;'
+        'padding:28px;border-radius:0 0 8px 8px;">'
+        f'<p style="font-size:15px;color:#111;margin:0 0 20px;">{greeting}</p>'
+        '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;'
+        'padding:16px 20px;margin-bottom:4px;">'
+        '<p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#FF6B00;'
+        'text-transform:uppercase;letter-spacing:.06em;">Resumen de tu solicitud</p>'
+        '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+        f'<tr><td style="padding:5px 0;color:#666;width:40%;">ID</td>'
+        f'<td style="padding:5px 0;font-weight:700;color:#111;">{esc(scb_id)}</td></tr>'
+        f'<tr><td style="padding:5px 0;color:#666;">Producto</td>'
+        f'<td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
+        f'<tr><td style="padding:5px 0;color:#666;">Disponibilidad</td>'
+        f'<td style="padding:5px 0;{avail_style}">{avail_label}</td></tr>'
+        f'{price_rows}'
+        '</table>'
+        '</div>'
+        f'{no_disponible_block}'
+        f'{conditions_block}'
+        f'{message_block}'
+        f'{diff_block}'
+        '<p style="font-size:12px;color:#9ca3af;margin:20px 0 0;">Para cualquier consulta, '
+        f'responde a este correo indicando tu ID <strong>{esc(scb_id)}</strong>. '
+        'El equipo de CRBOX estar&aacute; encantado de ayudarte.</p>'
+        '</div></div>'
+    )
+
+
+def _send_customer_response(scb_id, customer_email, customer_name, product_name,
+                              confirmed_price_usd, availability, delivery_timeline,
+                              conditions, difference_explanation, customer_message,
+                              smtp_user):
+    avail_labels = {
+        'disponible': 'Disponible',
+        'no_disponible': 'No disponible',
+        'disponible_con_condiciones': 'Disponible con condiciones',
+    }
+    avail_label = avail_labels.get(availability, availability)
+    greeting = f'Hola {customer_name},' if customer_name else 'Hola,'
+    subject = f'[{scb_id}] Respuesta a tu solicitud de compra \u2014 {product_name}'
+
+    plain_parts = [
+        f'{greeting}\n',
+        'CRBOX ha revisado tu solicitud y tiene una respuesta para ti.',
+        '',
+        f'ID: {scb_id}',
+        f'Producto: {product_name}',
+        f'Disponibilidad: {avail_label}',
+    ]
+    if availability != 'no_disponible':
+        plain_parts.append(f'Precio de envio confirmado: ${confirmed_price_usd:,.2f} USD')
+        plain_parts.append(f'Tiempo de entrega estimado: {delivery_timeline}')
+    if conditions and conditions.strip():
+        plain_parts.append(f'\nCondiciones:\n{conditions.strip()}')
+    plain_parts.append(f'\n{customer_message.strip()}')
+    if difference_explanation and difference_explanation.strip():
+        plain_parts.append(f'\nNota sobre el estimado:\n{difference_explanation.strip()}')
+    plain_parts.extend([
+        f'\nSi tienes preguntas, responde a este correo indicando tu ID: {scb_id}',
+        'Equipo CRBOX | ventas@crbox.cr',
+    ])
+    plain = '\n'.join(plain_parts)
+
+    html_body = _build_response_email_html(
+        scb_id, product_name, customer_name,
+        confirmed_price_usd, availability, delivery_timeline,
+        conditions, difference_explanation, customer_message
+    )
+
+    msg = email.mime.multipart.MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = f'CRBOX <{smtp_user}>'
+    msg['To'] = customer_email
+    msg['Reply-To'] = 'ventas@crbox.cr'
+    msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
+    msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
+    _send_smtp(msg, [customer_email])
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1667,6 +1845,15 @@ def _build_admin_detail_html(row, history, filter_val='all'):
   </div>
 </div>'''
 
+    # ── response_json (parse once, used for composer and read-only block) ───
+    resp_data = {}
+    resp_json_raw = row.get('response_json') or None
+    if resp_json_raw:
+        try:
+            resp_data = json.loads(resp_json_raw)
+        except Exception:
+            resp_data = {}
+
     # ── Estimado del sistema block ──────────────────────────────────────────
     estimado_html   = ''
     estimate_usd    = row.get('estimate_usd')
@@ -1690,8 +1877,8 @@ def _build_admin_detail_html(row, history, filter_val='all'):
         total_str = f'${estimate_usd:,.2f}' if estimate_usd is not None else '—'
         estimado_html = f'''<div class="adm-detail-section" style="border-color:#bfdbfe;background:#eff6ff;">
   <div class="adm-detail-section-title" style="justify-content:space-between;">
-    <span>&#129518; Estimado del sistema</span>
-    <span class="adm-src-badge" style="background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">Estimado autom&aacute;tico</span>
+    <span>&#129518; Estimado autom&aacute;tico del sistema</span>
+    <span class="adm-src-badge" style="background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">Calculadora CRBOX</span>
   </div>
   <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">Este valor fue generado autom&aacute;ticamente usando la l&oacute;gica actual de estimaci&oacute;n de CRBOX. Es solo referencia interna y no sustituye la revisi&oacute;n comercial.</p>
   <div class="adm-detail-rows">
@@ -1769,6 +1956,139 @@ def _build_admin_detail_html(row, history, filter_val='all'):
         update_html = f'''<div class="adm-detail-section">
   <div class="adm-detail-section-title">&#9998; Actualizar estado</div>
   <p style="color:#9ca3af;font-size:13px;">Este estado no permite m&aacute;s transiciones.</p>
+</div>'''
+
+    # ── Response composer or read-only "Respuesta enviada" block ───────────
+    _AVAIL_LABELS = {
+        'disponible': 'Disponible',
+        'no_disponible': 'No disponible',
+        'disponible_con_condiciones': 'Disponible con condiciones',
+    }
+    composer_html = ''
+    if resp_json_raw:
+        # Read-only block — response already sent
+        ro_price = resp_data.get('confirmed_shipping_price_usd')
+        ro_avail = resp_data.get('availability', '')
+        ro_avail_label = _AVAIL_LABELS.get(ro_avail, esc(ro_avail))
+        ro_avail_color = {
+            'disponible': '#16a34a',
+            'no_disponible': '#dc2626',
+            'disponible_con_condiciones': '#d97706',
+        }.get(ro_avail, '#374151')
+        ro_timeline  = esc(resp_data.get('delivery_timeline') or '—')
+        ro_conds     = esc(resp_data.get('conditions') or '')
+        ro_diff      = esc(resp_data.get('difference_explanation') or '')
+        ro_msg       = esc(resp_data.get('customer_message') or '—')
+        ro_sent_at   = _admin_format_date(resp_data.get('sent_at', ''))
+        ro_price_str = f'${ro_price:,.2f} USD' if ro_price is not None else '—'
+
+        ro_conds_row = (
+            f'<div class="adm-detail-row"><span class="adm-detail-label">Condiciones</span>'
+            f'<span class="adm-detail-val" style="white-space:pre-wrap;">{ro_conds}</span></div>'
+        ) if ro_conds else ''
+        ro_diff_row = (
+            f'<div class="adm-detail-row"><span class="adm-detail-label">Nota sobre el estimado</span>'
+            f'<span class="adm-detail-val" style="white-space:pre-wrap;">{ro_diff}</span></div>'
+        ) if ro_diff else ''
+
+        composer_html = f'''<div class="adm-detail-section" style="border-color:#d1fae5;background:#f0fdf4;">
+  <div class="adm-detail-section-title" style="justify-content:space-between;">
+    <span>&#9993; Respuesta enviada</span>
+    <span class="adm-src-badge" style="background:#d1fae5;color:#065f46;border-color:#6ee7b7;">{esc(ro_sent_at)}</span>
+  </div>
+  <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">
+    Respuesta revisada y enviada por CRBOX al cliente. Solo lectura.
+  </p>
+  <div class="adm-detail-rows">
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Disponibilidad</span>
+      <span class="adm-detail-val" style="font-weight:700;color:{ro_avail_color};">{ro_avail_label}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Precio confirmado</span>
+      <span class="adm-detail-val" style="font-weight:700;color:#FF6B00;">{esc(ro_price_str)}</span>
+    </div>
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Tiempo de entrega</span>
+      <span class="adm-detail-val">{ro_timeline}</span>
+    </div>
+    {ro_conds_row}
+    {ro_diff_row}
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Mensaje al cliente</span>
+      <span class="adm-detail-val" style="white-space:pre-wrap;">{ro_msg}</span>
+    </div>
+  </div>
+</div>'''
+    elif status in ('enviada', 'en_revision'):
+        # Show the composer form
+        est_str = f'${estimate_usd:,.2f} USD' if estimate_usd is not None else '—'
+        composer_html = f'''<div class="adm-detail-section" style="border-color:#fed7aa;background:#fff7ed;">
+  <div class="adm-detail-section-title">&#9993; Respuesta revisada por CRBOX</div>
+  <p style="font-size:12px;color:#6b7280;margin-bottom:16px;">
+    Completa los campos y env&iacute;a la respuesta al cliente. El correo se env&iacute;a
+    autom&aacute;ticamente al confirmar.
+  </p>
+  <div class="adm-resp-cmp">
+    <div class="adm-resp-cmp-item">
+      <div class="adm-resp-cmp-label">Estimado autom&aacute;tico del sistema</div>
+      <div class="adm-resp-cmp-val" style="color:#1d4ed8;">{esc(est_str)}</div>
+    </div>
+    <div class="adm-resp-cmp-arrow">&#8594;</div>
+    <div class="adm-resp-cmp-item">
+      <div class="adm-resp-cmp-label">Precio confirmado por ventas</div>
+      <div class="adm-resp-cmp-val" id="resp-price-display" style="color:#FF6B00;">&mdash;</div>
+    </div>
+  </div>
+  <form method="POST" action="/admin/solicitudes/{rid}/respond">
+    <input type="hidden" name="filter" value="{esc(filter_val)}">
+    <div class="adm-resp-field">
+      <label class="adm-resp-label">Precio de env&iacute;o confirmado (USD) <span style="color:#ef4444;">*</span></label>
+      <input class="adm-resp-input" type="number" name="confirmed_price"
+             id="resp-price-input" step="0.01" min="0.01" placeholder="Ej. 45.00" required
+             oninput="(function(v){{var d=document.getElementById('resp-price-display');
+               var n=parseFloat(v);d.textContent=isNaN(n)||n<=0?'\u2014':'$'+n.toFixed(2)+' USD';}})
+               (this.value)">
+    </div>
+    <div class="adm-resp-field">
+      <label class="adm-resp-label">Disponibilidad <span style="color:#ef4444;">*</span></label>
+      <select class="adm-select" name="availability" required>
+        <option value="">Seleccionar&hellip;</option>
+        <option value="disponible">Disponible</option>
+        <option value="no_disponible">No disponible</option>
+        <option value="disponible_con_condiciones">Disponible con condiciones</option>
+      </select>
+    </div>
+    <div class="adm-resp-field">
+      <label class="adm-resp-label">Tiempo de entrega estimado <span style="color:#ef4444;">*</span></label>
+      <input class="adm-resp-input" type="text" name="delivery_timeline"
+             placeholder="Ej. 5&ndash;8 d&iacute;as h&aacute;biles" maxlength="200" required>
+    </div>
+    <div class="adm-resp-field">
+      <label class="adm-resp-label">Condiciones <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>
+      <textarea class="adm-note" name="conditions" rows="3" maxlength="2000"
+                placeholder="Condiciones adicionales que el cliente debe conocer&hellip;"></textarea>
+    </div>
+    <div class="adm-resp-field">
+      <label class="adm-resp-label">Explicaci&oacute;n de diferencia con el estimado <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>
+      <p style="font-size:11px;color:#9ca3af;margin:0 0 6px;">Usa este campo si el precio revisado difiere del estimado autom&aacute;tico y el cliente se beneficiar&iacute;a de una explicaci&oacute;n.</p>
+      <textarea class="adm-note" name="difference_explanation" rows="2" maxlength="2000"
+                placeholder="Ej. El peso real del producto es mayor al estimado por el sistema."></textarea>
+    </div>
+    <div class="adm-resp-field">
+      <label class="adm-resp-label">Mensaje al cliente <span style="color:#ef4444;">*</span></label>
+      <textarea class="adm-note" name="customer_message" rows="5" maxlength="5000" required
+                placeholder="Escribe el mensaje que el cliente recibir&aacute; en el correo&hellip;"></textarea>
+    </div>
+    <div style="margin-top:4px;">
+      <button class="adm-upd-btn" type="submit"
+              style="background:#16a34a;max-width:280px;"
+              onmouseover="this.style.background='#15803d'"
+              onmouseout="this.style.background='#16a34a'">
+        &#9993;&nbsp; Enviar respuesta al cliente
+      </button>
+    </div>
+  </form>
 </div>'''
 
     # ── Source badge for header ─────────────────────────────────────────────
@@ -1857,6 +2177,19 @@ a{{color:inherit;text-decoration:none}}
   padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s;
   font-family:inherit;width:100%}}
 .adm-upd-btn:hover{{background:#E05A00}}
+.adm-resp-cmp{{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid #fed7aa;
+  border-radius:8px;padding:14px 16px;margin-bottom:20px;flex-wrap:wrap}}
+.adm-resp-cmp-item{{flex:1;min-width:120px}}
+.adm-resp-cmp-label{{font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;
+  letter-spacing:.05em;margin-bottom:4px}}
+.adm-resp-cmp-val{{font-size:18px;font-weight:800;letter-spacing:-.02em}}
+.adm-resp-cmp-arrow{{font-size:20px;color:#d1d5db;flex-shrink:0}}
+.adm-resp-field{{margin-bottom:14px}}
+.adm-resp-label{{display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:5px}}
+.adm-resp-input{{display:block;border:1.5px solid #e5e7eb;border-radius:6px;padding:8px 12px;
+  font-size:13px;background:#fff;font-family:inherit;color:#374151;width:100%;
+  transition:border-color .2s}}
+.adm-resp-input:focus{{outline:none;border-color:#FF6B00}}
 @media(max-width:600px){{
   .adm-detail-wrap{{padding:16px 12px 48px}}
   .adm-detail-label{{min-width:90px}}
@@ -1885,6 +2218,7 @@ a{{color:inherit;text-decoration:none}}
   {estimado_html}
   {history_html}
   {update_html}
+  {composer_html}
 </div>
 </body>
 </html>'''
@@ -2293,13 +2627,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         else:
             m_status       = re.match(r'^/api/solicitudes/(SCB-\d+)/status$', self.path)
             m_cancel       = re.match(r'^/api/solicitudes/(SCB-\d+)/cancel$', self.path)
-            m_admin_status = re.match(r'^/admin/solicitudes/(SCB-\d+)/status$', self.path)
+            m_admin_status  = re.match(r'^/admin/solicitudes/(SCB-\d+)/status$', self.path)
+            m_admin_respond = re.match(r'^/admin/solicitudes/(SCB-\d+)/respond$', self.path)
             if m_status:
                 self._handle_solicitudes_status(m_status.group(1))
             elif m_cancel:
                 self._handle_cancel_solicitud(m_cancel.group(1))
             elif m_admin_status:
                 self._handle_admin_solicitudes_status(m_admin_status.group(1))
+            elif m_admin_respond:
+                self._handle_admin_solicitudes_respond(m_admin_respond.group(1))
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -3344,6 +3681,171 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             print(f'[ADMIN] Status update error: {exc}')
             self._admin_redirect(redirect_url)
+
+    # ── POST /admin/solicitudes/:id/respond ───────────────────────────────
+    def _handle_admin_solicitudes_respond(self, scb_id):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self.send_response(404); self.end_headers(); return
+
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            raw    = self.rfile.read(length).decode('utf-8')
+            params = urllib.parse.parse_qs(raw, keep_blank_values=True)
+            filter_val = (params.get('filter', ['all'])[0] or 'all').strip()
+            if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
+                filter_val = 'all'
+            confirmed_price_str    = (params.get('confirmed_price', [''])[0] or '').strip()
+            availability           = (params.get('availability', [''])[0] or '').strip()
+            delivery_timeline      = (params.get('delivery_timeline', [''])[0] or '').strip()[:500]
+            conditions             = (params.get('conditions', [''])[0] or '').strip()[:2000]
+            difference_explanation = (params.get('difference_explanation', [''])[0] or '').strip()[:2000]
+            customer_message       = (params.get('customer_message', [''])[0] or '').strip()[:5000]
+        except Exception:
+            self.send_response(400); self.end_headers(); return
+
+        redirect_url = f'/admin/solicitudes/{scb_id}?filter={filter_val}'
+        _VALID_AVAIL = {'disponible', 'no_disponible', 'disponible_con_condiciones'}
+
+        # ── Validate ─────────────────────────────────────────────────────
+        errors = []
+        confirmed_price = None
+        try:
+            confirmed_price = float(confirmed_price_str)
+            if confirmed_price <= 0:
+                errors.append('El precio de envío confirmado debe ser mayor a cero.')
+        except (ValueError, TypeError):
+            errors.append('El precio de envío confirmado no es un número válido.')
+        if availability not in _VALID_AVAIL:
+            errors.append('Selecciona una opción de disponibilidad válida.')
+        if not delivery_timeline:
+            errors.append('El tiempo de entrega es obligatorio.')
+        if not customer_message:
+            errors.append('El mensaje al cliente es obligatorio.')
+
+        if errors:
+            error_list = ''.join(f'<li>{_html.escape(e)}</li>' for e in errors)
+            err_html = (
+                f'<div style="font-family:sans-serif;padding:40px 24px;max-width:600px;margin:0 auto;">'
+                f'<h2 style="color:#dc2626;margin-bottom:12px;">Error de validación</h2>'
+                f'<ul style="color:#374151;line-height:2;">{error_list}</ul>'
+                f'<a href="{_html.escape(redirect_url)}" style="display:inline-block;margin-top:20px;'
+                f'color:#FF6B00;">&#8592; Volver</a></div>'
+            )
+            self._admin_html_response(err_html, status=400)
+            return
+
+        # ── Fetch solicitud ───────────────────────────────────────────────
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row  = conn.execute(
+                    'SELECT * FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+                conn.close()
+        except Exception as exc:
+            print(f'[ADMIN] Respond DB read error: {exc}')
+            self._admin_html_response(
+                '<h1 style="font-family:sans-serif;padding:40px;">Error interno</h1>', status=500
+            )
+            return
+
+        if row is None:
+            self._admin_redirect(redirect_url)
+            return
+
+        row = dict(row)
+        current_status = row['status']
+
+        # Guard: only respond to active solicitudes without an existing response
+        if current_status not in ('enviada', 'en_revision') or row.get('response_json'):
+            self._admin_redirect(redirect_url)
+            return
+
+        # ── Send email (must succeed before any DB write) ─────────────────
+        settings = _smtp_settings()
+        if settings is None:
+            self._admin_html_response(
+                '<div style="font-family:sans-serif;padding:40px 24px;max-width:600px;margin:0 auto;">'
+                '<h2 style="color:#dc2626;">SMTP no configurado</h2>'
+                '<p style="color:#374151;margin:12px 0;">No se puede enviar el correo porque SMTP '
+                'no está configurado en este entorno.</p>'
+                f'<a href="{_html.escape(redirect_url)}" style="color:#FF6B00;">&#8592; Volver</a>'
+                '</div>',
+                status=503
+            )
+            return
+
+        smtp_user = settings[2]
+        try:
+            _send_customer_response(
+                scb_id,
+                row['customer_email'],
+                row.get('customer_name'),
+                row['product_name'],
+                confirmed_price,
+                availability,
+                delivery_timeline,
+                conditions,
+                difference_explanation,
+                customer_message,
+                smtp_user,
+            )
+            print(f'[ADMIN] Response email sent for {scb_id} → {row["customer_email"]}')
+        except Exception as exc:
+            print(f'[ADMIN] Response email error for {scb_id}: {exc}')
+            self._admin_html_response(
+                '<div style="font-family:sans-serif;padding:40px 24px;max-width:600px;margin:0 auto;">'
+                f'<h2 style="color:#dc2626;">Error al enviar el correo</h2>'
+                f'<p style="color:#374151;margin:12px 0;">No se pudo enviar el correo al cliente. '
+                f'La solicitud <strong>{_html.escape(scb_id)}</strong> no fue modificada.</p>'
+                f'<p style="color:#6b7280;font-size:13px;margin:8px 0;">Detalle: {_html.escape(str(exc))}</p>'
+                f'<a href="{_html.escape(redirect_url)}" style="color:#FF6B00;">&#8592; Volver</a>'
+                '</div>',
+                status=502
+            )
+            return
+
+        # ── Commit DB writes (email succeeded) ───────────────────────────
+        now_iso  = _now_iso()
+        hist_id  = _uuid4_hex()
+        hist_note = f'Respuesta enviada \u00b7 disponibilidad: {availability}'
+
+        resp_payload = json.dumps({
+            'confirmed_shipping_price_usd': confirmed_price,
+            'availability': availability,
+            'delivery_timeline': delivery_timeline,
+            'conditions': conditions,
+            'difference_explanation': difference_explanation,
+            'customer_message': customer_message,
+            'sent_at': now_iso,
+        }, ensure_ascii=False)
+
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                conn.execute(
+                    'UPDATE quote_requests SET status = ?, responded_at = ?, response_json = ? WHERE id = ?',
+                    ('respondida', now_iso, resp_payload, scb_id)
+                )
+                conn.execute(
+                    '''INSERT INTO quote_status_history
+                       (id, quote_request_id, from_status, to_status, changed_at, changed_by, note)
+                       VALUES (?,?,?,?,?,?,?)''',
+                    (hist_id, scb_id, current_status, 'respondida', now_iso, 'sales', hist_note)
+                )
+                conn.commit()
+                conn.close()
+            print(f'[ADMIN] {scb_id} → respondida, response_json stored')
+        except Exception as exc:
+            print(f'[ADMIN] Respond DB write error for {scb_id}: {exc}')
+            # Email already sent; redirect anyway so sales knows it went out
+            self._admin_redirect(redirect_url)
+            return
+
+        self._admin_redirect(redirect_url)
 
 
 if __name__ == "__main__":
