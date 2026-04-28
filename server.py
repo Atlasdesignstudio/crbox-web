@@ -3251,7 +3251,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 ).fetchone()
                 if row is None:
                     conn.close()
-                    self._admin_redirect(f'/admin/solicitudes?filter={filter_val}')
+                    not_found_html = (
+                        f'<h2 style="font-family:sans-serif;color:#374151;padding:40px 20px;">'
+                        f'Solicitud no encontrada: {_html.escape(scb_id)}</h2>'
+                        f'<p style="font-family:sans-serif;padding:0 20px;">'
+                        f'<a href="/admin/solicitudes?filter={_html.escape(filter_val)}">'
+                        f'&#8592; Volver a solicitudes</a></p>'
+                    )
+                    self._admin_html_response(not_found_html, status=404)
                     return
                 row     = dict(row)
                 history = [dict(h) for h in conn.execute(
