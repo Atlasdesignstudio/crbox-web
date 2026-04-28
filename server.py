@@ -691,7 +691,7 @@ def _send_reminder_digest(rows, reminder_hours: int) -> tuple[bool, str]:
     n = len(rows)
     plural = 'es' if n != 1 else ''
     plural_h = 's' if reminder_hours != 1 else ''
-    subject = f'Recordatorio CRBOX: {n} solicitud{plural} pendiente{plural} de respuesta'
+    subject = f'Recordatorio: {n} solicitud(es) pendiente(s) de respuesta.'
 
     # ── Build row HTML for table ────────────────────────────────────────────
     rows_html = ''

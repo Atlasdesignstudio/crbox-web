@@ -479,8 +479,7 @@
 
   function _checkPortalDraftOnOpen(prefill) {
     if (prefill) {
-      // Prefill from duplicate — do not show restore banner
-      _clearPortalDraft();
+      // Prefill from duplicate — suppress banner but preserve any existing draft
       return;
     }
     var draft = _loadPortalDraft();
