@@ -920,6 +920,7 @@ def _build_response_email_html(scb_id, product_name, customer_name,
         '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;'
         'padding:28px;border-radius:0 0 8px 8px;">'
         f'<p style="font-size:15px;color:#111;margin:0 0 20px;">{greeting}</p>'
+        f'{no_disponible_block}'
         '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;'
         'padding:16px 20px;margin-bottom:4px;">'
         '<p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#FF6B00;'
@@ -934,7 +935,6 @@ def _build_response_email_html(scb_id, product_name, customer_name,
         f'{price_rows}'
         '</table>'
         '</div>'
-        f'{no_disponible_block}'
         f'{conditions_block}'
         f'{message_block}'
         f'{diff_block}'
@@ -2045,10 +2045,7 @@ def _build_admin_detail_html(row, history, filter_val='all'):
     <div class="adm-resp-field">
       <label class="adm-resp-label">Precio de env&iacute;o confirmado (USD) <span style="color:#ef4444;">*</span></label>
       <input class="adm-resp-input" type="number" name="confirmed_price"
-             id="resp-price-input" step="0.01" min="0.01" placeholder="Ej. 45.00" required
-             oninput="(function(v){{var d=document.getElementById('resp-price-display');
-               var n=parseFloat(v);d.textContent=isNaN(n)||n<=0?'\u2014':'$'+n.toFixed(2)+' USD';}})
-               (this.value)">
+             id="resp-price-input" step="0.01" min="0.01" placeholder="Ej. 45.00" required>
     </div>
     <div class="adm-resp-field">
       <label class="adm-resp-label">Disponibilidad <span style="color:#ef4444;">*</span></label>
@@ -2089,6 +2086,18 @@ def _build_admin_detail_html(row, history, filter_val='all'):
       </button>
     </div>
   </form>
+  <script>
+    (function() {{
+      var inp = document.getElementById('resp-price-input');
+      var disp = document.getElementById('resp-price-display');
+      if (inp && disp) {{
+        inp.addEventListener('input', function() {{
+          var n = parseFloat(this.value);
+          disp.textContent = isNaN(n) || n <= 0 ? '\u2014' : '$' + n.toFixed(2) + ' USD';
+        }});
+      }}
+    }})();
+  </script>
 </div>'''
 
     # ── Source badge for header ─────────────────────────────────────────────
