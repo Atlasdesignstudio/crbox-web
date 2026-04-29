@@ -1082,14 +1082,16 @@
     </section>
 
     <!-- Service Comparison -->
-    <section id="service-comparison" class="py-16 md:py-24 bg-gray-50">
+    <section id="service-comparison" class="py-12 md:py-24 bg-gray-50">
         <div class="container mx-auto px-4">
-            <div class="text-center mb-14">
+            <div class="text-center mb-8 md:mb-14">
                 <span class="text-orange-600 font-semibold mb-2 inline-block">ELIGE EL MEJOR SERVICIO</span>
-                <h2 class="text-3xl font-bold mb-4">Comparativa de Servicios</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Compara nuestros servicios de envío para elegir el que mejor se adapte a tus necesidades</p>
+                <h2 class="text-2xl md:text-3xl font-bold mb-3 md:mb-4">Comparativa de Servicios</h2>
+                <p class="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">Compara nuestros servicios de envío para elegir el que mejor se adapte a tus necesidades</p>
             </div>
-            <div class="max-w-5xl mx-auto overflow-hidden rounded-xl shadow-lg">
+
+            <!-- Desktop table (hidden on mobile) -->
+            <div class="hidden md:block max-w-5xl mx-auto overflow-hidden rounded-xl shadow-lg">
                 <div class="bg-white">
                     <div class="grid grid-cols-3">
                         <div class="p-6 border-b border-gray-200"></div>
@@ -1117,6 +1119,105 @@
                         <div class="p-6 text-center"><button id="bottom-toggle-maritimo" class="secondary-btn py-2 px-4 rounded-lg"><i class="fas fa-ship mr-2"></i>Cotizar marítimo</button></div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Mobile cards (hidden on md+) -->
+            <div class="md:hidden space-y-4">
+
+                <!-- Aéreo card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-orange-100 overflow-hidden">
+                    <div class="bg-orange-50 px-5 py-4 flex items-center gap-3 border-b border-orange-100">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-plane text-orange-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-orange-600 text-lg leading-tight">Servicio Aéreo</h3>
+                            <p class="text-sm text-orange-700">Rápido y Confiable</p>
+                        </div>
+                    </div>
+                    <div class="divide-y divide-gray-100 px-5">
+                        <div class="py-4 flex items-center justify-between gap-4">
+                            <span class="text-sm text-gray-500 flex items-center gap-2 flex-shrink-0">
+                                <i class="fas fa-clock w-4 text-center text-gray-400"></i> Tiempo
+                            </span>
+                            <div class="text-right">
+                                <span class="font-semibold text-gray-900 text-sm">2-4 días hábiles</span>
+                                <p class="text-xs text-gray-400">Desde llegada a Miami</p>
+                            </div>
+                        </div>
+                        <div class="py-4 flex items-center justify-between gap-4">
+                            <span class="text-sm text-gray-500 flex items-center gap-2 flex-shrink-0">
+                                <i class="fas fa-weight-hanging w-4 text-center text-gray-400"></i> Peso ideal
+                            </span>
+                            <div class="text-right">
+                                <span class="font-semibold text-gray-900 text-sm">Hasta 100 kg</span>
+                                <p class="text-xs text-gray-400">Paquetes pequeños</p>
+                            </div>
+                        </div>
+                        <div class="py-4 flex items-center justify-between gap-4">
+                            <span class="text-sm text-gray-500 flex items-center gap-2 flex-shrink-0">
+                                <i class="fas fa-dollar-sign w-4 text-center text-gray-400"></i> Costo
+                            </span>
+                            <div class="text-right">
+                                <span class="font-semibold text-gray-900 text-sm">Moderado</span>
+                                <p class="text-xs text-gray-400">Desde $5</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-5 pb-5 pt-3">
+                        <button id="bottom-toggle-aero-m" class="w-full py-3.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold transition-colors shadow-sm flex items-center justify-center gap-2">
+                            <i class="fas fa-calculator text-sm"></i> Calcular aéreo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Marítimo card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-blue-100 overflow-hidden">
+                    <div class="bg-blue-50 px-5 py-4 flex items-center gap-3 border-b border-blue-100">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-ship text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-blue-600 text-lg leading-tight">Servicio Marítimo</h3>
+                            <p class="text-sm text-blue-700">Económico para Volumen</p>
+                        </div>
+                    </div>
+                    <div class="divide-y divide-gray-100 px-5">
+                        <div class="py-4 flex items-center justify-between gap-4">
+                            <span class="text-sm text-gray-500 flex items-center gap-2 flex-shrink-0">
+                                <i class="fas fa-clock w-4 text-center text-gray-400"></i> Tiempo
+                            </span>
+                            <div class="text-right">
+                                <span class="font-semibold text-gray-900 text-sm">6-7 días</span>
+                                <p class="text-xs text-gray-400">Desde salida de puerto</p>
+                            </div>
+                        </div>
+                        <div class="py-4 flex items-center justify-between gap-4">
+                            <span class="text-sm text-gray-500 flex items-center gap-2 flex-shrink-0">
+                                <i class="fas fa-weight-hanging w-4 text-center text-gray-400"></i> Peso ideal
+                            </span>
+                            <div class="text-right">
+                                <span class="font-semibold text-gray-900 text-sm">Más de 100 kg</span>
+                                <p class="text-xs text-gray-400">Sin límite máximo</p>
+                            </div>
+                        </div>
+                        <div class="py-4 flex items-center justify-between gap-4">
+                            <span class="text-sm text-gray-500 flex items-center gap-2 flex-shrink-0">
+                                <i class="fas fa-dollar-sign w-4 text-center text-gray-400"></i> Costo
+                            </span>
+                            <div class="text-right">
+                                <span class="font-semibold text-gray-900 text-sm">Económico</span>
+                                <p class="text-xs text-gray-400">Desde $18/pie cúbico</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-5 pb-5 pt-3">
+                        <button id="bottom-toggle-maritimo-m" class="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors shadow-sm flex items-center justify-center gap-2">
+                            <i class="fas fa-ship text-sm"></i> Cotizar marítimo
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>
@@ -1258,6 +1359,8 @@
         if (toggleMaritimo) toggleMaritimo.addEventListener('click', showMaritimo);
         if ($('bottom-toggle-aero')) $('bottom-toggle-aero').addEventListener('click', showAero);
         if ($('bottom-toggle-maritimo')) $('bottom-toggle-maritimo').addEventListener('click', showMaritimo);
+        if ($('bottom-toggle-aero-m')) $('bottom-toggle-aero-m').addEventListener('click', showAero);
+        if ($('bottom-toggle-maritimo-m')) $('bottom-toggle-maritimo-m').addEventListener('click', showMaritimo);
 
         /* ── Maritime form ─────────────────────────────────────── */
         const maritimoForm = $('maritimo-quote-form');
