@@ -222,15 +222,16 @@
             display: none;
         }
         @media(min-width: 768px) {
-            .step-stagger {
-                margin-top: 2.5rem;
-            }
             .steps-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
+                grid-auto-rows: 1fr;
                 gap: 2rem;
                 max-width: 900px;
                 margin: 0 auto;
+            }
+            .step-editorial-card {
+                height: 100%;
             }
         }
         @media(max-width: 767px) {
