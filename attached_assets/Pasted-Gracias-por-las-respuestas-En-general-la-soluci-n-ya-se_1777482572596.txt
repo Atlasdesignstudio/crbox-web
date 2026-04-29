@@ -1,0 +1,64 @@
+Gracias por las respuestas. En general la solución ya se ve bastante más sólida, pero quiero dejar unas correcciones y confirmaciones muy claras antes de darla por cerrada.
+
+Importante: las capturas del flujo viejo las revisé yo, no vienen de tu lado. Y con base en esas capturas quiero ajustar una parte de la explicación para que quede técnicamente precisa.
+
+## 1. Auth server-side
+Me parece correcto que /api/invoice-upload valide server-side contra el modelo real del portal usando getuserinfo/<email> + Bearer token, y que ignore cualquier identidad o casillero enviado por el cliente.  
+Eso sí quiero mantenerlo exactamente así.
+
+## 2. Validación de archivo
+Bien la validación server-side:
+- MIME restringido a PDF / imágenes permitidas
+- límite de 12 MB
+Eso me parece correcto para esta fase.
+
+## 3. Orphaned files
+Bien que ya agregaste:
+- DELETE /api/invoice-upload/<filename> auth-gated
+- cleanup inmediato si falla createPurchaseBill
+- sweep periódico como catch-all
+
+Eso sí era una brecha real y está bien cubrirla.
+
+## 4. Corrección importante sobre la causa raíz
+Aquí sí quiero un ajuste explícito en la documentación y en la narrativa técnica.
+
+Con las capturas del request viejo que yo revisé, lo que se ve es esto:
+- saveBill sí iba con Authorization: Bearer ...
+- no veo evidencia de cookies WordPress tipo wordpress_logged_in_*, wordpress_sec_*, etc.
+- por tanto, no quiero que se documente como hecho que el flujo viejo dependía de una sesión WordPress del usuario
+
+Lo que la evidencia sugiere más fuertemente es:
+- Bearer auth del portal
+- más una posible restricción de origen/contexto (https://crbox.cr)
+- no una sesión WordPress del navegador como requisito comprobado
+
+La solución server-side puede seguir siendo válida igual, pero quiero que la explicación quede corregida y alineada con la evidencia disponible.
+
+## 5. URL pública / FileLocation
+Entiendo el modelo de FileLocation pública y conceptualmente es consistente con el flujo anterior. Eso me parece aceptable siempre que el backend de CRBOX realmente pueda consumir esa URL downstream.
+
+O sea: no me basta solo con que postcreatepurchasebill devuelva OK.  
+Quiero distinguir entre:
+- éxito del API call
+- éxito real end-to-end downstream
+
+## 6. Riesgo pendiente
+El riesgo de guardar archivos en disco local y perderlos en un redeploy sí me parece real e importante. No bloquea esta iteración, pero sí quiero que quede documentado como follow-up prioritario hacia storage persistente/external si esta funcionalidad se va a usar de forma seria.
+
+## Lo que quiero que me confirmes ahora
+Por favor déjame esto cerrado así:
+
+1. actualiza la documentación / explicación de arquitectura para que la causa raíz no afirme como hecho una “WordPress session cookie requirement” si la evidencia apunta más bien a Bearer auth + origin restriction/context
+2. confirma explícitamente si ya validaste un caso real end-to-end, es decir:
+   - upload al nuevo /api/invoice-upload
+   - postcreatepurchasebill devuelve OK
+   - la factura queda realmente usable / visible downstream en CRBOX como se espera
+3. si el punto 2.3 todavía no está validado completamente, dilo explícitamente y no lo demos por garantizado todavía
+
+## Mi posición
+La dirección general me parece buena y razonable.  
+Pero quiero que quede:
+- técnicamente bien formulada
+- consistente con la evidencia real
+- y sin confundir “API respondió OK” con “funcionó completo downstream”

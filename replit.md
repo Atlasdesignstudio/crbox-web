@@ -89,7 +89,13 @@ All tariff lookups use `TARIFF_ADAPTER`. Tax figures carry provenance badges (am
 
 **Intentional architecture decision — not a temporary workaround.**
 
-The original `saveBill` flow called `https://crbox.cr/wp-json/crbox/v1/saveBill` directly from the browser. This was broken in the standalone portal context for two reasons: (1) WordPress blocks cross-origin requests (CORS), and (2) the WP REST endpoint requires a WordPress session cookie that portal users do not have (they authenticate via `clients.crbox.cr`, a separate system).
+The original `saveBill` flow called `https://crbox.cr/wp-json/crbox/v1/saveBill` directly from the browser, sending `Authorization: Bearer <token>`. It failed with `{"Error":"The user is not logged in"}`.
+
+**Cause-root (corrected):** The evidence shows the old request did carry a Bearer token — no WordPress session cookies were visible in the captured requests. The most likely failure reason is that the Bearer token issued by `clients.crbox.cr` is not recognised by the WordPress site (`crbox.cr`), combined with a possible origin/context restriction (the endpoint may only accept calls originating from within the `crbox.cr` context). The claim that this required a WordPress browser-session cookie is **not supported by the available evidence** and has been removed from this document.
+
+The server-side proxy approach resolves this regardless of exact cause: a server-to-server call from our Python server bypasses both CORS and any origin-based restrictions that the WP endpoint may apply to browser requests.
+
+⚠️ **End-to-end validation status:** the code has been verified structurally (auth guard rejects invalid tokens, files are saved, DELETE cleans up correctly). A full real-user end-to-end test — upload → `postcreatepurchasebill` returns OK → invoice is visible and usable downstream in the CRBOX admin — **has not been performed yet**. "API responded OK" and "invoice works downstream in CRBOX" are not the same thing and should be confirmed before treating this as production-ready.
 
 The replacement stores invoice files on the portal server itself under `uploads/invoices/<uuid>.<ext>` and serves them over the portal's public HTTPS URL. This is appropriate because:
 
