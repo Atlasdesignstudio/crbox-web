@@ -1,9 +1,13 @@
 (function () {
     'use strict';
 
+    var ADMIN_EMAIL = 'prueba@crbox.cr';
+
     document.addEventListener('DOMContentLoaded', function () {
         var auth = window.CRBOXAuth;
         if (!auth || !auth.isLoggedIn()) return;
+
+        var isAdmin = (auth.getEmail() === ADMIN_EMAIL);
 
         // ── Desktop ───────────────────────────────────────────────────────────
         var userDropdown = document.getElementById('user-dropdown');
@@ -21,6 +25,17 @@
             dashLink.style.textDecoration = 'none';
             dashLink.innerHTML = '<i class="fas fa-tachometer-alt"></i><span>Dashboard</span>';
             userDropdown.parentNode.replaceChild(dashLink, userDropdown);
+
+            // Inject admin link for prueba@crbox.cr only
+            if (isAdmin) {
+                var adminLink = document.createElement('a');
+                adminLink.href = '/admin/solicitudes';
+                adminLink.className = 'secondary-btn flex items-center gap-2';
+                adminLink.style.textDecoration = 'none';
+                adminLink.style.marginLeft = '8px';
+                adminLink.innerHTML = '<i class="fas fa-shield-alt"></i><span>Panel Admin</span>';
+                dashLink.parentNode.insertBefore(adminLink, dashLink.nextSibling);
+            }
         }
 
         // ── Mobile menu ───────────────────────────────────────────────────────
@@ -41,6 +56,16 @@
             mobileDash.style.textDecoration = 'none';
             mobileDash.textContent = 'Dashboard';
             calcLink.parentNode.appendChild(mobileDash);
+
+            // Inject mobile admin link for prueba@crbox.cr only
+            if (isAdmin) {
+                var mobileAdmin = document.createElement('a');
+                mobileAdmin.href = '/admin/solicitudes';
+                mobileAdmin.className = calcLink.className;
+                mobileAdmin.style.textDecoration = 'none';
+                mobileAdmin.textContent = 'Panel Admin';
+                calcLink.parentNode.appendChild(mobileAdmin);
+            }
         }
     });
 }());

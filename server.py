@@ -2469,9 +2469,12 @@ def _admin_validate_session(token):
         expiry = _admin_sessions.get(token)
         if expiry is None:
             return False
-        if time.time() > expiry:
+        now = time.time()
+        if now > expiry:
             del _admin_sessions[token]
             return False
+        # Sliding window: extend the session by a full TTL on every valid request
+        _admin_sessions[token] = now + _ADMIN_SESSION_TTL
         return True
 
 
@@ -3377,7 +3380,7 @@ a{{color:inherit;text-decoration:none}}
 </html>'''
 
 
-def _build_admin_login_html(error='', blocked_secs=0):
+def _build_admin_login_html(error='', blocked_secs=0, expired=False):
     esc = _html.escape
     if blocked_secs > 0:
         mins = (blocked_secs + 59) // 60
@@ -3387,6 +3390,12 @@ def _build_admin_login_html(error='', blocked_secs=0):
         )
     elif error:
         alert_html = f'<div class="adl-alert">{esc(error)}</div>'
+    elif expired:
+        alert_html = (
+            '<div class="adl-alert adl-alert-expired">'
+            'Tu sesi\u00f3n expir\u00f3. Por favor inicia sesi\u00f3n de nuevo.'
+            '</div>'
+        )
     else:
         alert_html = ''
 
@@ -3420,6 +3429,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,s
 .adl-alert{{margin-bottom:16px;padding:11px 14px;border-radius:8px;font-size:13px;
   background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}}
 .adl-alert-block{{background:#FFF7ED;color:#C2410C;border-color:#FDBA74}}
+.adl-alert-expired{{background:#EFF6FF;color:#1E40AF;border:1px solid #BFDBFE}}
 </style>
 </head>
 <body>
@@ -5056,11 +5066,32 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 return part[len('admin_session='):].strip()
         return ''
 
+    def _admin_session_cookie_refresh(self):
+        """Return a Set-Cookie header value that refreshes the browser-side TTL
+        for the current admin session, or None if there is no valid session."""
+        token = self._admin_get_session_token()
+        if not token:
+            return None
+        with _admin_sessions_lock:
+            if token not in _admin_sessions:
+                return None
+        is_https = (self.headers.get('X-Forwarded-Proto', '') == 'https'
+                    or self.headers.get('X-Forwarded-Ssl', '') == 'on')
+        secure_flag = '; Secure' if is_https else ''
+        return (
+            f'admin_session={token}; HttpOnly; SameSite=Strict; '
+            f'Path=/; Max-Age={_ADMIN_SESSION_TTL}{secure_flag}'
+        )
+
     def _admin_html_response(self, html_str, status=200, extra_headers=None):
         body = html_str.encode('utf-8')
         self.send_response(status)
         self.send_header('Content-Type', 'text/html; charset=utf-8')
         self.send_header('Content-Length', str(len(body)))
+        # Refresh browser cookie TTL so it stays alive alongside the server session
+        refresh_cookie = self._admin_session_cookie_refresh()
+        if refresh_cookie:
+            self.send_header('Set-Cookie', refresh_cookie)
         if extra_headers:
             for k, v in extra_headers:
                 self.send_header(k, v)
@@ -5070,6 +5101,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def _admin_redirect(self, location, extra_headers=None):
         self.send_response(302)
         self.send_header('Location', location)
+        # Refresh browser cookie TTL on authenticated redirects (e.g. POST→GET flows)
+        refresh_cookie = self._admin_session_cookie_refresh()
+        if refresh_cookie:
+            self.send_header('Set-Cookie', refresh_cookie)
         if extra_headers:
             for k, v in extra_headers:
                 self.send_header(k, v)
@@ -5083,7 +5118,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         if _admin_validate_session(token):
             self._admin_redirect('/admin/solicitudes')
             return
-        self._admin_html_response(_build_admin_login_html())
+        qs = urllib.parse.parse_qs(self.path.partition('?')[2])
+        expired = (qs.get('msg', [''])[0] == 'expired')
+        self._admin_html_response(_build_admin_login_html(expired=expired))
 
     # ── POST /admin/login ──────────────────────────────────────────────────
     def _handle_admin_login_post(self):
@@ -5145,7 +5182,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self.send_response(404); self.end_headers(); return
+            self._admin_redirect('/admin/login?msg=expired')
+            return
         qs = urllib.parse.parse_qs(self.path.partition('?')[2])
         filter_val = (qs.get('filter', ['all'])[0] or 'all').strip()
         if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
@@ -5199,7 +5237,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self.send_response(404); self.end_headers(); return
+            self._admin_redirect('/admin/login?msg=expired')
+            return
         try:
             with _DB_LOCK:
                 conn = _get_db()
@@ -5221,7 +5260,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self._admin_redirect('/admin/login')
+            self._admin_redirect('/admin/login?msg=expired')
             return
         try:
             with _DB_LOCK:
@@ -5335,7 +5374,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self._admin_redirect('/admin/login')
+            self._admin_redirect('/admin/login?msg=expired')
             return
         qs = urllib.parse.parse_qs(self.path.partition('?')[2])
         filter_val = (qs.get('filter', ['all'])[0] or 'all').strip()
