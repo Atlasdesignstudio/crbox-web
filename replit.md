@@ -79,8 +79,26 @@ All tariff lookups use `TARIFF_ADAPTER`. Tax figures carry provenance badges (am
 | `updateProfile(payload)` | `POST /postedituser` | Clears cache, re-fetches fresh info |
 | `getPackages(idConsignee, start, end, track, status)` | `GET /getuserpackages/...` | Default start: 30 days back; empty track → `null` path segment |
 | `getBills(email, start, end)` | `GET /getfacturas/...` | Default start: 30 days back |
+| `saveBill(email, file, wrId)` | `POST /api/invoice-upload` (portal proxy) | Step 1 of invoice upload. Stores file on portal server under `uploads/invoices/<uuid>.<ext>`, returns `{url, type, file}` where `url` is the absolute public URL. Requires portal auth (Bearer + X-Casillero-Email). |
+| `deleteInvoiceUpload(filename)` | `DELETE /api/invoice-upload/<filename>` | Best-effort cleanup. Called automatically when `createPurchaseBill` fails to remove orphaned uploads. |
+| `createPurchaseBill(payload)` | `POST /postcreatepurchasebill` | Step 2. Creates the invoice record on `clients.crbox.cr` with `FileLocation` = absolute URL from step 1. |
 | `recoverPassword(email)` | `GET /getuserpasswordrecovery/{email}` | No auth; returns `{ok: bool, message: str}`; rejects only on network error |
 | `formatDate(date)` | — | Returns `DD-MM-YYYY` string |
+
+### Invoice Upload Architecture
+
+**Intentional architecture decision — not a temporary workaround.**
+
+The original `saveBill` flow called `https://crbox.cr/wp-json/crbox/v1/saveBill` directly from the browser. This was broken in the standalone portal context for two reasons: (1) WordPress blocks cross-origin requests (CORS), and (2) the WP REST endpoint requires a WordPress session cookie that portal users do not have (they authenticate via `clients.crbox.cr`, a separate system).
+
+The replacement stores invoice files on the portal server itself under `uploads/invoices/<uuid>.<ext>` and serves them over the portal's public HTTPS URL. This is appropriate because:
+
+- **Auth**: `POST /api/invoice-upload` requires a valid CRBOX Bearer token verified server-side via the CRBOX API (`/getuserinfo`). Auth is not just a string check.
+- **File validation**: MIME type must be PDF, JPG, JPEG, PNG, GIF, or WEBP. Max 12 MB. Both enforced server-side.
+- **Orphan cleanup**: if `createPurchaseBill` (step 2) fails, the JS immediately calls `DELETE /api/invoice-upload/<filename>`. A background thread also sweeps files older than 30 days.
+- **Privacy**: files are reachable by direct UUID path without auth. UUIDs provide 122 bits of entropy (enumeration-proof). This matches how the original WordPress URL model worked and is required so the CRBOX backend can fetch the file without portal credentials.
+- **Production URL**: the `FileLocation` value is `window.location.origin + '/uploads/invoices/<uuid>.<ext>'`, which in production resolves to the deployed Replit HTTPS domain. Files persist as long as the deployment is running.
+- **Upload directory**: `uploads/invoices/` — excluded from git via `.gitignore`, kept alive via `.gitkeep`.
 
 Portal pages wired (all four now call real API on DOMContentLoaded):
 - **dashboard.html** — header name, casillero, Miami address name, welcome h1

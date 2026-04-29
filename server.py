@@ -4057,6 +4057,33 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         else:
             super().do_GET()
 
+    def do_DELETE(self):
+        """DELETE /api/invoice-upload/<filename>
+        Removes an orphaned invoice file.  Requires the same portal auth as the
+        upload endpoint so only the authenticated owner can delete."""
+        import re as _re
+        m = _re.match(r'^/api/invoice-upload/([a-f0-9\-]{36}\.[a-z]{2,4})$', self.path)
+        if not m:
+            self.send_response(404)
+            self.end_headers()
+            return
+        filename = m.group(1)
+
+        casillero_id = self._portal_auth()
+        if not casillero_id:
+            self._json_response(401, {'error': 'Autenticación requerida.'})
+            return
+
+        filepath = os.path.join(self._INVOICE_UPLOAD_DIR, filename)
+        try:
+            if os.path.isfile(filepath):
+                os.remove(filepath)
+                print(f'[INVOICE_DELETE] Removed: {filename} casillero={casillero_id}')
+            self._json_response(200, {'ok': True})
+        except Exception as exc:
+            print(f'[INVOICE_DELETE] Error removing {filename}: {exc}')
+            self._json_response(500, {'error': 'No se pudo eliminar el archivo.'})
+
     def do_POST(self):
         if self.path == '/admin/login':
             self._handle_admin_login_post()
@@ -6304,11 +6331,53 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._admin_redirect(redirect_url)
 
 
+# ── Invoice upload orphan cleanup ─────────────────────────────────────────────
+# Removes invoice files that have been on disk for more than 30 days without
+# being linked to a purchase bill record.  Runs once at startup then every 24 h.
+# The 30-day window is generous: createPurchaseBill failures are retried
+# immediately by the user, so any file still present after a day is almost
+# certainly orphaned.  UUIDs prevent accidental guessing; the only risk is wasted
+# disk space, which this sweep handles.
+_INVOICE_CLEANUP_INTERVAL  = 86400      # check every 24 h
+_INVOICE_ORPHAN_AGE_SECS   = 30 * 86400 # files older than 30 days are removed
+
+
+def _invoice_cleanup_loop():
+    import glob as _glob
+    upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              'uploads', 'invoices')
+    while True:
+        try:
+            now    = time.time()
+            cutoff = now - _INVOICE_ORPHAN_AGE_SECS
+            removed = 0
+            for path in _glob.glob(os.path.join(upload_dir, '*')):
+                if os.path.basename(path) == '.gitkeep':
+                    continue
+                try:
+                    if os.path.getmtime(path) < cutoff:
+                        os.remove(path)
+                        removed += 1
+                except Exception:
+                    pass
+            if removed:
+                print(f'[INVOICE_CLEANUP] Removed {removed} orphaned file(s) older than 30 days')
+        except Exception as exc:
+            print(f'[INVOICE_CLEANUP] Error: {exc}')
+        time.sleep(_INVOICE_CLEANUP_INTERVAL)
+
+
+def _start_invoice_cleanup():
+    t = threading.Thread(target=_invoice_cleanup_loop, daemon=True)
+    t.start()
+
+
 if __name__ == "__main__":
     _init_db()
     _verify_gemini_model_at_startup()
     _start_health_monitor()
     _start_solicitud_reminder()
+    _start_invoice_cleanup()
     server = HTTPServer(("0.0.0.0", 5000), NoCacheHandler)
     print("Serving HTTP on 0.0.0.0 port 5000 (http://0.0.0.0:5000/) ...")
     server.serve_forever()

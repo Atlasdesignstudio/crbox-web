@@ -306,6 +306,24 @@
     });
   }
 
+  // ─── deleteInvoiceUpload ──────────────────────────────────────────────────
+  // Best-effort cleanup: removes an orphaned invoice file when createPurchaseBill
+  // fails after saveBill succeeded.  Errors are swallowed since this is cleanup,
+  // not critical path.
+  function deleteInvoiceUpload(filename) {
+    if (!filename) return;
+    var token = CRBOXAuth.getToken();
+    var email = CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '';
+    if (!token || !email) return;
+    fetch('/api/invoice-upload/' + encodeURIComponent(filename), {
+      method: 'DELETE',
+      headers: {
+        'Authorization':     'Bearer ' + token,
+        'X-Casillero-Email': email,
+      },
+    }).catch(function () { /* best-effort */ });
+  }
+
   // ─── createPurchaseBill ───────────────────────────────────────────────────
   // Step 2 of the invoice upload flow.
   // Creates the purchase-bill record in the CRBOX system.
@@ -504,6 +522,7 @@
     getPackages:          getPackages,
     getBills:             getBills,
     saveBill:             saveBill,
+    deleteInvoiceUpload:  deleteInvoiceUpload,
     createPurchaseBill:   createPurchaseBill,
     recoverPassword:      recoverPassword,
     formatDate:         formatDate,

@@ -3114,9 +3114,13 @@
             userEmail = (CRBOXAuth && CRBOXAuth.getEmail && CRBOXAuth.getEmail()) || '';
           } catch (ex) { userEmail = ''; }
 
-          // Step 1: upload the file to WordPress media
+          // Track the uploaded filename so we can delete it if step 2 fails
+          var _savedInvoiceFile = null;
+
+          // Step 1: upload the file to the portal server
           CRBOXPortalAPI.saveBill(userEmail, file, wrId)
             .then(function(saved) {
+              _savedInvoiceFile = saved.file || null;
               var fileUrl = saved.url || saved.file || '';
 
               // Step 2: create the purchase bill record
@@ -3191,7 +3195,10 @@
                   : 'No se pudo subir el archivo al servidor. Verifica tu conexión e inténtalo de nuevo.';
                 _setInvoiceError(_uploadMsg, true);
               } else if (err && err.step === 'createPurchaseBill') {
-                // File uploaded but bill record creation failed — partial state
+                // File uploaded but bill record creation failed — delete the orphaned upload
+                if (_savedInvoiceFile) {
+                  CRBOXPortalAPI.deleteInvoiceUpload(_savedInvoiceFile);
+                }
                 _setInvoicePartial(
                   'El archivo se subió correctamente, pero no se pudo registrar la factura en el sistema. ' +
                   'Por favor contacta a soporte con el número de recibo ' + (pkg.number || pkg.idwarehousereceipt) + '.', true);
