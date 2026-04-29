@@ -2237,15 +2237,26 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         note_h   = h.get('note') or ''
         by       = h.get('changed_by') or 'system'
         ts       = _admin_format_date(h.get('changed_at', ''))
-        from_lbl = status_label_map.get(from_s, esc(from_s))
-        to_lbl   = status_label_map.get(to_s, esc(to_s))
-        transition_html = (
-            f'<span style="color:#6b7280;">{from_lbl}</span> &rarr; <strong>{to_lbl}</strong>'
-            if from_s else f'<strong>{to_lbl}</strong>'
-        )
-        note_item = f'<div class="tl-note">&ldquo;{esc(note_h)}&rdquo;</div>' if note_h else ''
-        _, fg, bdr, _ = _ADMIN_BADGE_CFG.get(to_s, ('#F9FAFB', '#374151', '#D1D5DB', ''))
-        timeline_items += f'''<div class="tl-item">
+        is_internal_note = (from_s and to_s and from_s == to_s)
+        if is_internal_note:
+            timeline_items += f'''<div class="tl-item tl-item-note">
+  <div class="tl-dot" style="background:#fbbf24;border-color:#d97706;"></div>
+  <div class="tl-body" style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 10px;">
+    <div class="tl-transition" style="color:#92400e;font-size:12px;font-weight:600;">&#128221; Nota interna</div>
+    <div class="tl-meta">{esc(ts)} &middot; por {esc(by)}</div>
+    <div class="tl-note" style="margin-top:4px;">&ldquo;{esc(note_h)}&rdquo;</div>
+  </div>
+</div>'''
+        else:
+            from_lbl = status_label_map.get(from_s, esc(from_s))
+            to_lbl   = status_label_map.get(to_s, esc(to_s))
+            transition_html = (
+                f'<span style="color:#6b7280;">{from_lbl}</span> &rarr; <strong>{to_lbl}</strong>'
+                if from_s else f'<strong>{to_lbl}</strong>'
+            )
+            note_item = f'<div class="tl-note">&ldquo;{esc(note_h)}&rdquo;</div>' if note_h else ''
+            _, fg, bdr, _ = _ADMIN_BADGE_CFG.get(to_s, ('#F9FAFB', '#374151', '#D1D5DB', ''))
+            timeline_items += f'''<div class="tl-item">
   <div class="tl-dot" style="background:{fg};border-color:{bdr};"></div>
   <div class="tl-body">
     <div class="tl-transition">{transition_html}</div>
@@ -2283,6 +2294,23 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
   <div class="adm-detail-section-title">&#9998; Actualizar estado</div>
   <p style="color:#9ca3af;font-size:13px;">Este estado no permite m&aacute;s transiciones.</p>
 </div>'''
+
+    # ── Internal note form (non-terminal statuses only) ─────────────────────
+    _TERMINAL_STATUSES = {'completada', 'cancelada', 'expirada'}
+    if status not in _TERMINAL_STATUSES:
+        add_note_html = f'''<div class="adm-detail-section">
+  <div class="adm-detail-section-title">&#128221; Agregar nota interna</div>
+  <form method="POST" action="/admin/solicitudes/{rid}/add-note">
+    <input type="hidden" name="filter" value="{esc(filter_val)}">
+    <div style="margin-bottom:8px;">
+      <textarea class="adm-note" name="note" placeholder="Escribe una nota interna&hellip;" rows="3" style="max-width:440px;" required></textarea>
+    </div>
+    <button class="adm-upd-btn" type="submit" style="max-width:220px;background:#d97706;border-color:#b45309;">Guardar nota interna</button>
+  </form>
+  <p style="font-size:11px;color:#9ca3af;margin-top:8px;">La nota es solo visible para el equipo de ventas y no cambia el estado de la solicitud.</p>
+</div>'''
+    else:
+        add_note_html = ''
 
     # ── Response composer or read-only "Respuesta enviada" block ───────────
     _AVAIL_LABELS = {
@@ -2720,6 +2748,7 @@ a{{color:inherit;text-decoration:none}}
   {estimado_html}
   {history_html}
   {update_html}
+  {add_note_html}
   {link_pkg_html}
   {composer_html}
 </div>
@@ -3137,6 +3166,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             m_admin_resend    = re.match(r'^/admin/solicitudes/(SCB-\d+)/resend-response$', self.path)
             m_admin_suggest   = re.match(r'^/admin/solicitudes/(SCB-\d+)/suggest-draft$', self.path)
             m_admin_link_pkg  = re.match(r'^/admin/solicitudes/(SCB-\d+)/link-package$', self.path)
+            m_admin_add_note  = re.match(r'^/admin/solicitudes/(SCB-\d+)/add-note$', self.path)
             if m_status:
                 self._handle_solicitudes_status(m_status.group(1))
             elif m_cancel:
@@ -3155,6 +3185,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_admin_solicitudes_suggest_draft(m_admin_suggest.group(1))
             elif m_admin_link_pkg:
                 self._handle_admin_solicitudes_link_package(m_admin_link_pkg.group(1))
+            elif m_admin_add_note:
+                self._handle_admin_solicitudes_add_note(m_admin_add_note.group(1))
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -3689,7 +3721,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 ).fetchall()
                 conn.close()
 
-            row_dict['history'] = [dict(h) for h in history]
+            row_dict['history'] = [
+                dict(h) for h in history
+                if not (h['from_status'] and h['to_status'] and h['from_status'] == h['to_status'])
+            ]
             self._json_response(200, {'ok': True, 'solicitud': row_dict})
         except Exception as exc:
             print(f'[SOLICITUDES] Detail error: {exc}')
@@ -4384,6 +4419,58 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             print(f'[ADMIN] Status update error: {exc}')
             self._admin_redirect(redirect_url)
+
+    # ── POST /admin/solicitudes/:id/add-note ──────────────────────────────
+    def _handle_admin_solicitudes_add_note(self, scb_id):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self.send_response(404); self.end_headers(); return
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            raw    = self.rfile.read(length).decode('utf-8')
+            params = urllib.parse.parse_qs(raw)
+            note       = (params.get('note', [''])[0] or '').strip()[:1000]
+            filter_val = (params.get('filter', ['all'])[0] or 'all').strip()
+            if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
+                filter_val = 'all'
+        except Exception:
+            self.send_response(400); self.end_headers(); return
+        redirect_url = f'/admin/solicitudes/{scb_id}?filter={filter_val}'
+        if not note:
+            self._admin_redirect(redirect_url)
+            return
+        _TERMINAL_STATUSES = {'completada', 'cancelada', 'expirada'}
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row = conn.execute(
+                    'SELECT status FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+                if row is None:
+                    conn.close()
+                    self._admin_redirect(redirect_url)
+                    return
+                current_status = row['status']
+                if current_status in _TERMINAL_STATUSES:
+                    conn.close()
+                    self._admin_redirect(redirect_url)
+                    return
+                now_iso = _now_iso()
+                hist_id = _uuid4_hex()
+                conn.execute(
+                    '''INSERT INTO quote_status_history
+                       (id, quote_request_id, from_status, to_status, changed_at, changed_by, note)
+                       VALUES (?,?,?,?,?,?,?)''',
+                    (hist_id, scb_id, current_status, current_status, now_iso, 'sales', note)
+                )
+                conn.commit()
+                conn.close()
+            print(f'[ADMIN] Internal note added: {scb_id}')
+        except Exception as exc:
+            print(f'[ADMIN] Add note error: {exc}')
+        self._admin_redirect(redirect_url)
 
     # ── POST /admin/solicitudes/:id/respond ───────────────────────────────
     def _handle_admin_solicitudes_respond(self, scb_id):
