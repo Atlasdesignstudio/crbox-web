@@ -509,7 +509,8 @@ _LEGAL_TRANSITIONS = {
     'pendiente_compra_crbox':            {'cancelada'},
     'pendiente_confirmacion_pago_cliente': {'cancelada'},
     'pagado_por_cliente':                {'cancelada'},
-    'comprado':                          {'cancelada'},
+    'comprado':                          {'listo_para_retiro', 'completada', 'cancelada'},
+    'listo_para_retiro':                 {'completada', 'cancelada'},
     'pendiente_compra_cliente':          {'completada', 'cancelada'},
     'completada':                        set(),
     'cancelada':                         set(),
@@ -525,7 +526,8 @@ _ADMIN_LEGAL_TRANSITIONS = {
     'pendiente_compra_crbox':            {'pendiente_confirmacion_pago_cliente', 'cancelada'},
     'pendiente_confirmacion_pago_cliente': {'pagado_por_cliente', 'cancelada'},
     'pagado_por_cliente':                {'comprado', 'cancelada'},
-    'comprado':                          {'completada', 'cancelada'},
+    'comprado':                          {'listo_para_retiro', 'completada', 'cancelada'},
+    'listo_para_retiro':                 {'completada', 'cancelada'},
     'pendiente_compra_cliente':          {'completada', 'cancelada'},
     'completada':                        set(),
     'cancelada':                         set(),
@@ -1179,6 +1181,114 @@ def _send_customer_response(scb_id, customer_email, customer_name, product_name,
     _send_smtp(msg, [customer_email])
 
 
+def _send_comprado_notification(scb_id, customer_email, customer_name, product_name, smtp_user):
+    """Notify the customer that CRBOX has purchased their item and it is in transit."""
+    esc = _html.escape
+    greeting = f'Hola {customer_name},' if customer_name else 'Hola,'
+    subject = f'[{scb_id}] Tu producto fue comprado — en camino a Costa Rica'
+    plain = (
+        f'{greeting}\n\n'
+        f'Te informamos que CRBOX ha completado la compra de tu producto.\n\n'
+        f'ID de solicitud: {scb_id}\n'
+        f'Producto: {product_name}\n\n'
+        f'El artículo está siendo coordinado para su envío hacia Costa Rica. '
+        f'Te avisaremos en cuanto llegue y esté listo para retiro.\n\n'
+        f'Si tienes preguntas, responde a este correo indicando tu ID: {scb_id}\n\n'
+        f'Equipo CRBOX\nventas@crbox.cr'
+    )
+    html_body = (
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1a1a1a;max-width:600px;margin:0 auto;">'
+        '<div style="background:linear-gradient(135deg,#15803d,#16a34a);padding:24px;border-radius:8px 8px 0 0;">'
+        '<p style="color:#fff;font-size:22px;font-weight:700;margin:0;">&#x1F6CD; ¡Compra realizada!</p>'
+        f'<p style="color:rgba(255,255,255,.85);font-size:13px;margin:6px 0 0;">ID: <strong>{esc(scb_id)}</strong></p>'
+        '</div>'
+        '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:28px;border-radius:0 0 8px 8px;">'
+        f'<p style="font-size:15px;color:#111;margin:0 0 20px;">{esc(greeting)}<br><br>'
+        f'CRBOX ha completado la compra de tu producto. El artículo está en camino a Costa Rica.</p>'
+        '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:16px 20px;margin-bottom:20px;">'
+        '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+        f'<tr><td style="padding:5px 0;color:#166534;width:40%;">ID</td>'
+        f'<td style="padding:5px 0;font-weight:700;color:#111;">{esc(scb_id)}</td></tr>'
+        f'<tr><td style="padding:5px 0;color:#166534;">Producto</td>'
+        f'<td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
+        '<tr><td style="padding:5px 0;color:#166534;">Estado</td>'
+        '<td style="padding:5px 0;color:#15803d;font-weight:600;">Compra realizada — en tránsito</td></tr>'
+        '</table></div>'
+        '<p style="font-size:14px;color:#374151;margin:0 0 16px;">'
+        'Te notificaremos en cuanto el paquete llegue a Costa Rica y esté disponible para retiro.</p>'
+        f'<p style="font-size:12px;color:#9ca3af;margin:0;">¿Tienes preguntas? Responde a este correo '
+        f'incluyendo el ID <strong>{esc(scb_id)}</strong>.</p>'
+        '</div></div>'
+    )
+    msg = email.mime.multipart.MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = f'CRBOX <{smtp_user}>'
+    msg['To'] = customer_email
+    msg['Reply-To'] = 'ventas@crbox.cr'
+    msg['Message-ID'] = f'<{_uuid4_hex()}@crbox.cr>'
+    msg['Date'] = email.utils.formatdate(localtime=False)
+    msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
+    msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
+    _send_smtp(msg, [customer_email])
+
+
+def _send_listo_para_retiro_notification(scb_id, customer_email, customer_name, product_name, smtp_user):
+    """Notify the customer that their package is in Costa Rica and ready for pickup."""
+    esc = _html.escape
+    greeting = f'Hola {customer_name},' if customer_name else 'Hola,'
+    subject = f'[{scb_id}] Tu paquete llegó a Costa Rica — listo para retiro'
+    plain = (
+        f'{greeting}\n\n'
+        f'¡Buenas noticias! Tu paquete llegó a Costa Rica y está disponible para retiro.\n\n'
+        f'ID de solicitud: {scb_id}\n'
+        f'Producto: {product_name}\n\n'
+        f'Para coordinar el retiro:\n'
+        f'  • Comunícate con nosotros a ventas@crbox.cr\n'
+        f'  • O visita nuestras instalaciones\n'
+        f'  • Trae tu cédula o documento de identidad y tu número de casillero ({scb_id})\n\n'
+        f'Si tienes preguntas, responde a este correo indicando tu ID: {scb_id}\n\n'
+        f'Equipo CRBOX\nventas@crbox.cr'
+    )
+    html_body = (
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1a1a1a;max-width:600px;margin:0 auto;">'
+        '<div style="background:linear-gradient(135deg,#d97706,#f59e0b);padding:24px;border-radius:8px 8px 0 0;">'
+        '<p style="color:#fff;font-size:22px;font-weight:700;margin:0;">&#x1F4E6; ¡Tu paquete llegó!</p>'
+        f'<p style="color:rgba(255,255,255,.85);font-size:13px;margin:6px 0 0;">ID: <strong>{esc(scb_id)}</strong></p>'
+        '</div>'
+        '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:28px;border-radius:0 0 8px 8px;">'
+        f'<p style="font-size:15px;color:#111;margin:0 0 20px;">{esc(greeting)}<br><br>'
+        f'Tu paquete llegó a Costa Rica y está <strong>listo para retiro</strong> en nuestras instalaciones.</p>'
+        '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:16px 20px;margin-bottom:20px;">'
+        '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+        f'<tr><td style="padding:5px 0;color:#92400e;width:40%;">ID</td>'
+        f'<td style="padding:5px 0;font-weight:700;color:#111;">{esc(scb_id)}</td></tr>'
+        f'<tr><td style="padding:5px 0;color:#92400e;">Producto</td>'
+        f'<td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
+        '<tr><td style="padding:5px 0;color:#92400e;">Estado</td>'
+        '<td style="padding:5px 0;color:#d97706;font-weight:600;">Listo para retiro en Costa Rica</td></tr>'
+        '</table></div>'
+        '<p style="font-size:14px;font-weight:600;color:#111;margin:0 0 8px;">¿Cómo coordinar el retiro?</p>'
+        '<ul style="font-size:14px;color:#374151;margin:0 0 20px;padding-left:20px;">'
+        f'<li style="margin-bottom:6px;">Contáctanos a <a href="mailto:ventas@crbox.cr" style="color:#d97706;">ventas@crbox.cr</a></li>'
+        '<li style="margin-bottom:6px;">O visita nuestras instalaciones</li>'
+        f'<li>Trae tu cédula o documento de identidad y menciona tu ID: <strong>{esc(scb_id)}</strong></li>'
+        '</ul>'
+        f'<p style="font-size:12px;color:#9ca3af;margin:0;">¿Tienes preguntas? Responde a este correo '
+        f'incluyendo el ID <strong>{esc(scb_id)}</strong>.</p>'
+        '</div></div>'
+    )
+    msg = email.mime.multipart.MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = f'CRBOX <{smtp_user}>'
+    msg['To'] = customer_email
+    msg['Reply-To'] = 'ventas@crbox.cr'
+    msg['Message-ID'] = f'<{_uuid4_hex()}@crbox.cr>'
+    msg['Date'] = email.utils.formatdate(localtime=False)
+    msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
+    msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
+    _send_smtp(msg, [customer_email])
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 _rate_lock   = threading.Lock()
@@ -1816,6 +1926,7 @@ _ADMIN_BADGE_CFG = {
     'pendiente_confirmacion_pago_cliente': ('#FFFBEB', '#92400E', '#FDE68A', 'Confirmación de pago'),
     'pagado_por_cliente':                ('#EFF6FF', '#1D4ED8', '#BFDBFE', 'Pago confirmado'),
     'comprado':                          ('#F0FDF4', '#15803D', '#BBF7D0', 'Comprado'),
+    'listo_para_retiro':                 ('#FFFBEB', '#92400E', '#FDE68A', 'Listo para retiro'),
     'pendiente_compra_cliente':          ('#EFF6FF', '#1E40AF', '#BFDBFE', 'Compra propia'),
     'completada':                        ('#F9FAFB', '#374151', '#D1D5DB', 'Completada'),
     'cancelada':                         ('#FEF2F2', '#991B1B', '#FECACA', 'Cancelada'),
@@ -1839,24 +1950,32 @@ def _admin_status_options_html(current_status):
         'pendiente_confirmacion_pago_cliente': 'Confirmar pago pendiente',
         'pagado_por_cliente':                'Pago confirmado',
         'comprado':                          'Comprado por CRBOX',
+        'listo_para_retiro':                 'Listo para retiro',
         'pendiente_compra_cliente':          'Compra propia',
         'completada':                        'Completada',
         'cancelada':                         'Cancelada',
         'expirada':                          'Expirada',
+    }
+    context_labels = {
+        'comprado': {
+            'completada': 'Completada (omitir retiro)',
+        },
     }
     transitions = _ADMIN_LEGAL_TRANSITIONS.get(current_status, set())
     order = [
         'en_revision', 'respondida',
         'pendiente_compra_crbox', 'pendiente_confirmacion_pago_cliente',
         'pagado_por_cliente', 'comprado',
-        'pendiente_compra_cliente', 'completada', 'cancelada',
+        'listo_para_retiro', 'pendiente_compra_cliente', 'completada', 'cancelada',
     ]
     opts = [
         f'<option value="" disabled selected>— Cambiar a —</option>'
     ]
+    ctx = context_labels.get(current_status, {})
     for nxt in order:
         if nxt in transitions:
-            opts.append(f'<option value="{nxt}">{labels.get(nxt, nxt)}</option>')
+            label = ctx.get(nxt, labels.get(nxt, nxt))
+            opts.append(f'<option value="{nxt}">{label}</option>')
     return '\n'.join(opts)
 
 
@@ -2105,6 +2224,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         'pendiente_confirmacion_pago_cliente': 'Confirmaci&oacute;n de pago',
         'pagado_por_cliente':                'Pago confirmado',
         'comprado':                          'Comprado por CRBOX',
+        'listo_para_retiro':                 'Listo para retiro',
         'pendiente_compra_cliente':          'Compra propia',
         'completada':                        'Completada',
         'cancelada':                         'Cancelada',
@@ -4080,7 +4200,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         active_statuses   = ('enviada', 'en_revision', 'pendiente_compra_crbox',
                             'pendiente_confirmacion_pago_cliente', 'pagado_por_cliente',
-                            'comprado', 'pendiente_compra_cliente')
+                            'comprado', 'listo_para_retiro', 'pendiente_compra_cliente')
         responded_statuses= ('respondida',)
         archived_statuses = ('completada', 'cancelada', 'expirada')
 
@@ -4193,12 +4313,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             with _DB_LOCK:
                 conn = _get_db()
                 row = conn.execute(
-                    'SELECT status FROM quote_requests WHERE id = ?', (scb_id,)
+                    'SELECT * FROM quote_requests WHERE id = ?', (scb_id,)
                 ).fetchone()
                 if row is None:
                     conn.close()
                     self._admin_redirect(redirect_url)
                     return
+                row = dict(row)
                 current_status = row['status']
                 if new_status not in _ADMIN_LEGAL_TRANSITIONS.get(current_status, set()):
                     conn.close()
@@ -4226,6 +4347,25 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 conn.commit()
                 conn.close()
             print(f'[ADMIN] Status updated: {scb_id} {current_status} → {new_status}')
+            # ── Post-transition email notifications ───────────────────────
+            smtp_user = os.environ.get('SMTP_USER', '').strip()
+            smtp_ok   = smtp_user and os.environ.get('SMTP_HOST', '').strip()
+            c_email   = row.get('customer_email', '')
+            c_name    = row.get('customer_name', '') or ''
+            c_product = row.get('product_name', '') or ''
+            if smtp_ok and c_email:
+                try:
+                    if new_status == 'comprado':
+                        _send_comprado_notification(scb_id, c_email, c_name, c_product, smtp_user)
+                        print(f'[ADMIN] comprado email sent: {scb_id}')
+                    elif new_status == 'listo_para_retiro':
+                        _send_listo_para_retiro_notification(scb_id, c_email, c_name, c_product, smtp_user)
+                        print(f'[ADMIN] listo_para_retiro email sent: {scb_id}')
+                    elif new_status == 'cancelada':
+                        _send_cancellation_email(scb_id, c_email, c_name, c_product, smtp_user)
+                        print(f'[ADMIN] admin-cancel email sent: {scb_id}')
+                except Exception as email_exc:
+                    print(f'[ADMIN] post-status email error ({new_status}): {email_exc}')
             self._admin_redirect(redirect_url)
         except Exception as exc:
             print(f'[ADMIN] Status update error: {exc}')

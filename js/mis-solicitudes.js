@@ -54,6 +54,7 @@
     pendiente_confirmacion_pago_cliente:   'Confirmación de pago',
     pagado_por_cliente:                    'Pago confirmado',
     comprado:                              'Compra realizada',
+    listo_para_retiro:                     'Listo para retiro',
     pendiente_compra_cliente:              'Compra propia',
     completada:              'Completada',
     cancelada:               'Cancelada',
@@ -68,6 +69,7 @@
     pendiente_confirmacion_pago_cliente:  { bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400' },
     pagado_por_cliente:                   { bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-400' },
     comprado:                             { bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  dot: 'bg-green-400' },
+    listo_para_retiro:                    { bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400' },
     pendiente_compra_cliente:             { bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-400' },
     completada:                           { bg: 'bg-gray-100',  text: 'text-gray-600',   border: 'border-gray-200',   dot: 'bg-gray-400' },
     cancelada:                            { bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200',    dot: 'bg-red-400' },
@@ -76,7 +78,7 @@
 
   var ACTIVE_STATUSES   = ['enviada', 'en_revision', 'respondida', 'pendiente_compra_crbox',
                            'pendiente_confirmacion_pago_cliente', 'pagado_por_cliente', 'comprado',
-                           'pendiente_compra_cliente'];
+                           'listo_para_retiro', 'pendiente_compra_cliente'];
   var ARCHIVED_STATUSES = ['completada', 'cancelada', 'expirada'];
 
   // ─── Category labels ────────────────────────────────────────────────────────
