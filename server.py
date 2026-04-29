@@ -4055,6 +4055,15 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(403)
             self.end_headers()
         else:
+            # Clean-URL support: /servicios → /servicios.html
+            clean_path = self.path.split('?')[0].rstrip('/')
+            if clean_path and '.' not in os.path.basename(clean_path):
+                html_file = clean_path.lstrip('/') + '.html'
+                if os.path.isfile(html_file):
+                    self.send_response(301)
+                    self.send_header('Location', '/' + html_file)
+                    self.end_headers()
+                    return
             super().do_GET()
 
     def do_DELETE(self):
