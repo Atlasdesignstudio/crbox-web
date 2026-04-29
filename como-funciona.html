@@ -426,6 +426,145 @@
             background-color: white;
             color: #FF6B00;
         }
+
+        /* ── FAQ collapsible (mobile only) ─────────────────── */
+        .faq-item .faq-answer {
+            overflow: hidden;
+            transition: max-height .35s ease, opacity .25s ease;
+        }
+        .faq-chevron {
+            flex-shrink: 0;
+            transition: transform .3s ease;
+            color: #9ca3af;
+            font-size: .85rem;
+        }
+        @media (max-width: 767px) {
+            .faq-item {
+                cursor: pointer;
+            }
+            .faq-item .faq-answer {
+                max-height: 0;
+                opacity: 0;
+            }
+            .faq-item.faq-open .faq-answer {
+                max-height: 400px;
+                opacity: 1;
+            }
+            .faq-item.faq-open .faq-chevron {
+                transform: rotate(180deg);
+                color: #FF6B00;
+            }
+        }
+        @media (min-width: 768px) {
+            .faq-chevron { display: none; }
+            .faq-item .faq-answer {
+                max-height: none !important;
+                opacity: 1 !important;
+            }
+        }
+
+        /* ── Consolidation accordion (mobile only) ──────────── */
+        .consol-panel-body {
+            overflow: hidden;
+            transition: max-height .35s ease, opacity .25s ease;
+        }
+        .consol-chevron {
+            flex-shrink: 0;
+            transition: transform .3s ease;
+            font-size: .9rem;
+        }
+        @media (max-width: 767px) {
+            .consol-panel-header {
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                padding-bottom: 0;
+            }
+            .consol-panel-body {
+                max-height: 0;
+                opacity: 0;
+            }
+            .consol-panel.consol-open .consol-panel-body {
+                max-height: 800px;
+                opacity: 1;
+            }
+            .consol-panel.consol-open .consol-chevron {
+                transform: rotate(180deg);
+            }
+        }
+        @media (min-width: 768px) {
+            .consol-chevron { display: none; }
+            .consol-panel-body {
+                max-height: none !important;
+                opacity: 1 !important;
+            }
+        }
+
+        /* ── Testimonials carousel (mobile only) ────────────── */
+        @media (max-width: 767px) {
+            #testimonials-grid {
+                display: block;
+                position: relative;
+            }
+            #testimonials-grid .testimonial-card-v2 {
+                display: none;
+            }
+            #testimonials-grid .testimonial-card-v2.carousel-active {
+                display: flex;
+                animation: cfFadeIn .3s ease;
+            }
+            @keyframes cfFadeIn {
+                from { opacity: 0; transform: translateX(20px); }
+                to   { opacity: 1; transform: translateX(0); }
+            }
+            .cf-carousel-controls {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 1rem;
+                margin-top: 1.25rem;
+            }
+            .cf-carousel-btn {
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                border: 2px solid #FF6B00;
+                background: #fff;
+                color: #FF6B00;
+                font-size: .85rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: background .2s, color .2s;
+            }
+            .cf-carousel-btn:hover {
+                background: #FF6B00;
+                color: #fff;
+            }
+            .cf-carousel-dots {
+                display: flex;
+                gap: 6px;
+                align-items: center;
+            }
+            .cf-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #d1d5db;
+                transition: background .25s, transform .25s;
+                cursor: pointer;
+            }
+            .cf-dot.active {
+                background: #FF6B00;
+                transform: scale(1.25);
+            }
+        }
+        @media (min-width: 768px) {
+            .cf-carousel-controls { display: none !important; }
+        }
     </style>
 </head>
 
@@ -629,7 +768,7 @@
 
     <!-- Features Banner -->
     <section class="py-12 bg-white border-t border-b border-gray-200">
-        <div class="container mx-auto px-4">
+        <div class="container mx-auto px-8 md:px-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <div class="flex flex-col items-center text-center">
                     <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
@@ -672,33 +811,44 @@
             <div class="max-w-6xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                     <div class="flex flex-col md:flex-row">
-                        <div class="w-full md:w-1/2 gradient-bg p-8 md:p-12 text-white flex items-center">
-                            <div>
-                                <h2 class="text-2xl md:text-3xl font-bold mb-4">Beneficios de Consolidar Paquetes</h2>
-                                <p class="mb-6">Aprovecha al máximo nuestro servicio combinando múltiples compras en un solo envío y ahorra significativamente.</p>
-                                <ul class="space-y-3">
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check-circle mt-1 mr-3"></i>
-                                        <span>Reduce costos de envío hasta un 40%</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check-circle mt-1 mr-3"></i>
-                                        <span>Consolida compras de diferentes tiendas</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check-circle mt-1 mr-3"></i>
-                                        <span>Optimiza el espacio y peso de tus envíos</span>
-                                    </li>
-                                    <li class="flex items-start">
-                                        <i class="fas fa-check-circle mt-1 mr-3"></i>
-                                        <span>Menor impacto ambiental</span>
-                                    </li>
-                                </ul>
+                        <div class="consol-panel w-full md:w-1/2 gradient-bg p-8 md:p-12 text-white">
+                            <div class="consol-panel-header" aria-expanded="false">
+                                <h2 class="text-2xl md:text-3xl font-bold">Beneficios de Consolidar Paquetes</h2>
+                                <i class="fas fa-chevron-down consol-chevron ml-3 text-white opacity-80"></i>
+                            </div>
+                            <div class="consol-panel-body">
+                                <div class="md:flex md:items-center">
+                                    <div class="pt-4 md:pt-0">
+                                        <p class="mb-6">Aprovecha al máximo nuestro servicio combinando múltiples compras en un solo envío y ahorra significativamente.</p>
+                                        <ul class="space-y-3">
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check-circle mt-1 mr-3"></i>
+                                                <span>Reduce costos de envío hasta un 40%</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check-circle mt-1 mr-3"></i>
+                                                <span>Consolida compras de diferentes tiendas</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check-circle mt-1 mr-3"></i>
+                                                <span>Optimiza el espacio y peso de tus envíos</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check-circle mt-1 mr-3"></i>
+                                                <span>Menor impacto ambiental</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="w-full md:w-1/2 p-8 md:p-12">
-                            <h3 class="text-xl font-bold mb-4">¿Cómo consolidar tus paquetes?</h3>
-                            <ol class="space-y-4">
+                        <div class="consol-panel w-full md:w-1/2 p-8 md:p-12">
+                            <div class="consol-panel-header" aria-expanded="false">
+                                <h3 class="text-xl font-bold">¿Cómo consolidar tus paquetes?</h3>
+                                <i class="fas fa-chevron-down consol-chevron ml-3 text-gray-500"></i>
+                            </div>
+                            <div class="consol-panel-body">
+                            <ol class="space-y-4 pt-4 md:pt-0">
                                 <li class="flex">
                                     <div class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold mr-3">
                                         1
@@ -738,7 +888,8 @@
                                     <i class="fas fa-calculator ml-2"></i>
                                 </a>
                             </div>
-                        </div>
+                            </div><!-- /consol-panel-body -->
+                        </div><!-- /consol-panel right -->
                     </div>
                 </div>
             </div>
@@ -762,9 +913,12 @@
                             <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
                                 <i class="fas fa-clock"></i>
                             </div>
-                            <h3 class="text-xl font-semibold">¿Cuánto tiempo tarda en llegar mi paquete?</h3>
+                            <h3 class="text-xl font-semibold flex-1">¿Cuánto tiempo tarda en llegar mi paquete?</h3>
+                            <i class="fas fa-chevron-down faq-chevron ml-3 mt-1"></i>
                         </div>
-                        <p class="text-gray-600 mt-2 sm:ml-14">Para courier aéreo, el tiempo promedio es de 3 a 5 días hábiles desde que recibimos el paquete en Miami. Para carga marítima, aproximadamente 6 a 7 días.</p>
+                        <div class="faq-answer">
+                            <p class="text-gray-600 mt-2 sm:ml-14">Para courier aéreo, el tiempo promedio es de 3 a 5 días hábiles desde que recibimos el paquete en Miami. Para carga marítima, aproximadamente 6 a 7 días.</p>
+                        </div>
                     </div>
                     
                     <!-- FAQ Item 2 -->
@@ -773,9 +927,12 @@
                             <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
                                 <i class="fas fa-box-open"></i>
                             </div>
-                            <h3 class="text-xl font-semibold">¿Puedo consolidar varios paquetes?</h3>
+                            <h3 class="text-xl font-semibold flex-1">¿Puedo consolidar varios paquetes?</h3>
+                            <i class="fas fa-chevron-down faq-chevron ml-3 mt-1"></i>
                         </div>
-                        <p class="text-gray-600 mt-2 sm:ml-14">¡Sí! Espera a que todos tus paquetes lleguen a nuestra bodega en Miami y ahorra significativamente en costos de envío consolidándolos.</p>
+                        <div class="faq-answer">
+                            <p class="text-gray-600 mt-2 sm:ml-14">¡Sí! Espera a que todos tus paquetes lleguen a nuestra bodega en Miami y ahorra significativamente en costos de envío consolidándolos.</p>
+                        </div>
                     </div>
                     
                     <!-- FAQ Item 3 -->
@@ -784,9 +941,12 @@
                             <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
                                 <i class="fas fa-file-invoice-dollar"></i>
                             </div>
-                            <h3 class="text-xl font-semibold">¿Qué pasa si no tengo la factura?</h3>
+                            <h3 class="text-xl font-semibold flex-1">¿Qué pasa si no tengo la factura?</h3>
+                            <i class="fas fa-chevron-down faq-chevron ml-3 mt-1"></i>
                         </div>
-                        <p class="text-gray-600 mt-2 sm:ml-14">La factura es indispensable para trámites aduanales. Si no tienes la original, puedes enviar un comprobante de pago que muestre claramente el valor de la compra.</p>
+                        <div class="faq-answer">
+                            <p class="text-gray-600 mt-2 sm:ml-14">La factura es indispensable para trámites aduanales. Si no tienes la original, puedes enviar un comprobante de pago que muestre claramente el valor de la compra.</p>
+                        </div>
                     </div>
                     
                     <!-- FAQ Item 4 -->
@@ -795,9 +955,12 @@
                             <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
                                 <i class="fas fa-search-location"></i>
                             </div>
-                            <h3 class="text-xl font-semibold">¿Cómo puedo rastrear mi paquete?</h3>
+                            <h3 class="text-xl font-semibold flex-1">¿Cómo puedo rastrear mi paquete?</h3>
+                            <i class="fas fa-chevron-down faq-chevron ml-3 mt-1"></i>
                         </div>
-                        <p class="text-gray-600 mt-2 sm:ml-14">Te mantenemos informado en tiempo real: al iniciar sesión puedes ver el estado de cada envío y recibirás notificaciones por correo en cada cambio importante.</p>
+                        <div class="faq-answer">
+                            <p class="text-gray-600 mt-2 sm:ml-14">Te mantenemos informado en tiempo real: al iniciar sesión puedes ver el estado de cada envío y recibirás notificaciones por correo en cada cambio importante.</p>
+                        </div>
                     </div>
                 </div>
                 
@@ -895,10 +1058,10 @@
                 <p class="text-lg text-gray-500 max-w-2xl mx-auto">Miles de costarricenses confían en CRBOX para sus compras internacionales.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div id="testimonials-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
 
                 <!-- Testimonial 1 -->
-                <div class="testimonial-card-v2">
+                <div class="testimonial-card-v2 carousel-active" data-index="0">
                     <div class="flex items-center justify-between">
                         <div class="testimonial-stars">
                             <i class="fas fa-star text-yellow-400"></i>
@@ -924,7 +1087,7 @@
                 </div>
 
                 <!-- Testimonial 2 -->
-                <div class="testimonial-card-v2">
+                <div class="testimonial-card-v2" data-index="1">
                     <div class="flex items-center justify-between">
                         <div class="testimonial-stars">
                             <i class="fas fa-star text-yellow-400"></i>
@@ -950,7 +1113,7 @@
                 </div>
 
                 <!-- Testimonial 3 -->
-                <div class="testimonial-card-v2">
+                <div class="testimonial-card-v2" data-index="2">
                     <div class="flex items-center justify-between">
                         <div class="testimonial-stars">
                             <i class="fas fa-star text-yellow-400"></i>
@@ -975,7 +1138,23 @@
                     </div>
                 </div>
 
+            </div><!-- /testimonials-grid -->
+
+            <!-- Carousel controls — visible on mobile only -->
+            <div class="cf-carousel-controls" id="cf-carousel-controls">
+                <button class="cf-carousel-btn" id="cf-prev" aria-label="Anterior">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="cf-carousel-dots" id="cf-dots">
+                    <span class="cf-dot active" data-dot="0"></span>
+                    <span class="cf-dot" data-dot="1"></span>
+                    <span class="cf-dot" data-dot="2"></span>
+                </div>
+                <button class="cf-carousel-btn" id="cf-next" aria-label="Siguiente">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
+
         </div>
     </section>
 
@@ -1171,5 +1350,85 @@
 </script>
 <script src="js/seo-config.js" defer></script>
 <script src="js/analytics.js" defer></script>
+
+<script>
+(function () {
+    var MOBILE_BP = 768;
+
+    /* ─── FAQ collapsible ─────────────────────────────────── */
+    function initFAQ() {
+        if (window.innerWidth >= MOBILE_BP) return;
+        var items = document.querySelectorAll('.faq-item');
+        items.forEach(function (item) {
+            item.addEventListener('click', function () {
+                item.classList.toggle('faq-open');
+            });
+        });
+    }
+
+    /* ─── Consolidation accordion ─────────────────────────── */
+    function initConsolAccordion() {
+        if (window.innerWidth >= MOBILE_BP) return;
+        var panels = document.querySelectorAll('.consol-panel');
+        panels.forEach(function (panel) {
+            var header = panel.querySelector('.consol-panel-header');
+            if (!header) return;
+            header.addEventListener('click', function () {
+                var isOpen = panel.classList.contains('consol-open');
+                panel.classList.toggle('consol-open', !isOpen);
+                header.setAttribute('aria-expanded', String(!isOpen));
+            });
+        });
+    }
+
+    /* ─── Testimonials carousel ───────────────────────────── */
+    function initCarousel() {
+        if (window.innerWidth >= MOBILE_BP) return;
+        var grid   = document.getElementById('testimonials-grid');
+        var prev   = document.getElementById('cf-prev');
+        var next   = document.getElementById('cf-next');
+        var dots   = document.querySelectorAll('.cf-dot');
+        if (!grid || !prev || !next) return;
+
+        var cards  = grid.querySelectorAll('.testimonial-card-v2');
+        var total  = cards.length;
+        var cur    = 0;
+
+        function goTo(idx) {
+            cards[cur].classList.remove('carousel-active');
+            dots[cur].classList.remove('active');
+            cur = (idx + total) % total;
+            cards[cur].classList.add('carousel-active');
+            dots[cur].classList.add('active');
+        }
+
+        prev.addEventListener('click', function () { goTo(cur - 1); });
+        next.addEventListener('click', function () { goTo(cur + 1); });
+        dots.forEach(function (dot) {
+            dot.addEventListener('click', function () {
+                goTo(parseInt(dot.dataset.dot, 10));
+            });
+        });
+
+        /* Touch swipe */
+        var touchStartX = 0;
+        grid.addEventListener('touchstart', function (e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        grid.addEventListener('touchend', function (e) {
+            var dx = e.changedTouches[0].screenX - touchStartX;
+            if (Math.abs(dx) > 40) {
+                goTo(dx < 0 ? cur + 1 : cur - 1);
+            }
+        }, { passive: true });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initFAQ();
+        initConsolAccordion();
+        initCarousel();
+    });
+})();
+</script>
 </body>
 </html>
