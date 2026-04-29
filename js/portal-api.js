@@ -242,35 +242,54 @@
 
   // ─── saveBill ─────────────────────────────────────────────────────────────
   // Step 1 of the invoice upload flow.
-  // Uploads the invoice file to the WP-JSON endpoint and returns the upload
-  // response object { file, url, type }.
+  // Uploads the invoice file to the portal server (/api/invoice-upload), which
+  // stores it locally under uploads/invoices/<uuid>.<ext> and returns a full
+  // absolute URL pointing to this server.  That URL is then passed as
+  // FileLocation to createPurchaseBill (step 2).
   // Rejects with a plain Error (step tagged via err.step = 'saveBill') so the
   // caller can show a specific message and avoid calling step 2.
   function saveBill(email, file, wrId) {
+    var token = CRBOXAuth.getToken();
+    if (!token) {
+      var noAuthErr = new Error('Sesión no iniciada. Por favor inicia sesión.');
+      noAuthErr.step = 'saveBill';
+      return Promise.reject(noAuthErr);
+    }
+
     var fd = new FormData();
     fd.append('email',   String(email || ''));
     fd.append('invoice', file);
     fd.append('wr_id',   String(wrId  || ''));
 
-    return fetch('https://crbox.cr/wp-json/crbox/v1/saveBill', {
+    return fetch('/api/invoice-upload', {
       method: 'POST',
-      body:   fd
-      // No Authorization header — this WP-JSON endpoint uses email + wr_id
-      // for scoping, not Bearer auth.
+      headers: {
+        'Authorization':    'Bearer ' + token,
+        'X-Casillero-Email': String(email || ''),
+      },
+      body: fd,
     }).catch(function (netErr) {
-      // Network / CORS failure before any response arrived (TypeError, etc.)
       netErr.step = 'saveBill';
       throw netErr;
     }).then(function (res) {
       if (!res.ok) {
-        var err = new Error('No se pudo subir el archivo de factura (' + res.status + '). Intenta de nuevo.');
-        err.step = 'saveBill';
-        throw err;
+        return res.text().then(function (txt) {
+          var detail = '';
+          try {
+            var j = JSON.parse(txt);
+            detail = j.message || j.error || '';
+          } catch (_) { detail = txt.length < 200 ? txt.trim() : ''; }
+          var msg = 'No se pudo subir el archivo de factura (' + res.status + ').' +
+                    (detail ? ' ' + detail : ' Intenta de nuevo.');
+          var err = new Error(msg);
+          err.step = 'saveBill';
+          throw err;
+        });
       }
-      return res.json().catch(function (parseErr) {
-        // WordPress returned a 200 OK but with a non-JSON body (PHP warning, HTML, etc.)
-        parseErr.step = 'saveBill';
-        throw parseErr;
+      return res.json().catch(function () {
+        var e = new Error('Respuesta inesperada del servidor. Intenta de nuevo.');
+        e.step = 'saveBill';
+        throw e;
       });
     }).then(function (data) {
       if (!data || !data.url) {
@@ -278,7 +297,12 @@
         err2.step = 'saveBill';
         throw err2;
       }
-      return data;
+      // Convert the relative path to a full absolute URL so createPurchaseBill
+      // can pass it as FileLocation (the CRBOX backend needs an absolute URL).
+      var absUrl = (typeof window !== 'undefined' && window.location && window.location.origin)
+        ? window.location.origin + data.url
+        : data.url;
+      return { url: absUrl, type: data.type, file: data.file };
     });
   }
 

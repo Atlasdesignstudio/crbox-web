@@ -4050,6 +4050,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 else:
                     self.send_response(404)
                     self.end_headers()
+        elif self.path.rstrip('/') == '/uploads' or self.path.rstrip('/') == '/uploads/invoices':
+            # Block directory listing for the uploads folder
+            self.send_response(403)
+            self.end_headers()
         else:
             super().do_GET()
 
@@ -4072,6 +4076,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_link_guest()
         elif self.path == '/api/solicitudes/check-duplicate':
             self._handle_check_duplicate()
+        elif self.path == '/api/proxy/saveBill':
+            self._handle_proxy_savebill()
+        elif self.path == '/api/invoice-upload':
+            self._handle_invoice_upload()
         else:
             m_status       = re.match(r'^/api/solicitudes/(SCB-\d+)/status$', self.path)
             m_cancel       = re.match(r'^/api/solicitudes/(SCB-\d+)/cancel$', self.path)
@@ -4786,6 +4794,165 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             print(f'[SOLICITUDES] check-duplicate error: {exc}')
             self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+
+    # ── POST /api/proxy/saveBill ───────────────────────────────────────────
+    # Server-side proxy for the WordPress invoice-file upload endpoint.
+    # The browser cannot call https://crbox.cr/wp-json/crbox/v1/saveBill
+    # directly because WordPress does not send CORS headers for that route.
+    # This handler forwards the raw multipart/form-data body verbatim to
+    # WordPress, then relays the response back — no CORS restrictions apply
+    # to server-to-server requests.
+    _SAVEBILL_WP_URL = 'https://crbox.cr/wp-json/crbox/v1/saveBill'
+    _SAVEBILL_MAX    = 12 * 1024 * 1024  # 12 MB hard ceiling
+
+    def _handle_proxy_savebill(self):
+        import base64 as _b64
+        try:
+            ct = self.headers.get('Content-Type', '')
+            if not ct.lower().startswith('multipart/form-data'):
+                self._json_response(400, {'error': 'Content-Type must be multipart/form-data'})
+                return
+
+            length = int(self.headers.get('Content-Length', 0))
+            if length <= 0 or length > self._SAVEBILL_MAX:
+                self._json_response(413, {'error': 'Tamaño de archivo inválido o demasiado grande.'})
+                return
+
+            body = self.rfile.read(length)
+
+            req = urllib.request.Request(
+                self._SAVEBILL_WP_URL,
+                data=body,
+                method='POST',
+            )
+            req.add_header('Content-Type', ct)
+            req.add_header('Content-Length', str(length))
+            req.add_header('User-Agent', 'CRBOX-Portal-Proxy/1.0')
+
+            # Authenticate with WordPress using the service account credentials.
+            # WordPress REST API accepts HTTP Basic auth when Application Passwords
+            # are enabled (WordPress 5.6+) or via a compatible auth plugin.
+            svc_email = os.environ.get('CRBOX_SVC_EMAIL', '')
+            svc_pass  = os.environ.get('CRBOX_SVC_PASSWORD', '')
+            if svc_email and svc_pass:
+                creds = _b64.b64encode(f'{svc_email}:{svc_pass}'.encode()).decode()
+                req.add_header('Authorization', f'Basic {creds}')
+
+            try:
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    resp_body = resp.read(1 * 1024 * 1024)  # cap at 1 MB
+                    resp_ct   = resp.headers.get('Content-Type', 'application/json')
+                    resp_code = resp.status
+            except urllib.error.HTTPError as exc:
+                resp_body = exc.read(1 * 1024 * 1024)
+                resp_ct   = exc.headers.get('Content-Type', 'application/json')
+                resp_code = exc.code
+                print(f'[PROXY/saveBill] WordPress HTTP {resp_code}')
+
+            self.send_response(resp_code)
+            if 'json' in resp_ct:
+                self.send_header('Content-Type', 'application/json')
+            else:
+                self.send_header('Content-Type', resp_ct)
+            self.send_header('Content-Length', str(len(resp_body)))
+            self.end_headers()
+            self.wfile.write(resp_body)
+
+        except Exception as exc:
+            print(f'[PROXY/saveBill] Unexpected error: {exc}')
+            self._json_response(502, {'error': f'Error de proxy: {exc}'})
+
+    # ── POST /api/invoice-upload ───────────────────────────────────────────
+    # Stores the invoice file locally and returns a public URL so the client
+    # can pass it as FileLocation to createPurchaseBill without depending on
+    # the WordPress saveBill endpoint (which requires WP auth we don't have).
+    _INVOICE_UPLOAD_DIR  = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads', 'invoices')
+    _INVOICE_MAX_BYTES   = 12 * 1024 * 1024  # 12 MB
+    _INVOICE_ALLOW_TYPES = {
+        'application/pdf':  '.pdf',
+        'image/jpeg':       '.jpg',
+        'image/jpg':        '.jpg',
+        'image/png':        '.png',
+        'image/gif':        '.gif',
+        'image/webp':       '.webp',
+    }
+
+    def _handle_invoice_upload(self):
+        import uuid as _uuid
+        import warnings as _warnings
+        with _warnings.catch_warnings():
+            _warnings.simplefilter('ignore', DeprecationWarning)
+            import cgi as _cgi  # noqa: PLC0415 — deprecated but still available in Python ≤3.12
+        # Require portal auth so only logged-in clients can store files
+        casillero_id = self._portal_auth()
+        if not casillero_id:
+            self._json_response(401, {'error': 'Autenticación requerida.'})
+            return
+
+        ct     = self.headers.get('Content-Type', '')
+        length = int(self.headers.get('Content-Length', 0))
+        if length <= 0 or length > self._INVOICE_MAX_BYTES:
+            self._json_response(413, {'error': 'Tamaño de archivo inválido o demasiado grande (máx. 12 MB).'})
+            return
+
+        try:
+            with _warnings.catch_warnings():
+                _warnings.simplefilter('ignore', DeprecationWarning)
+                form = _cgi.FieldStorage(
+                    fp=self.rfile,
+                    headers=self.headers,
+                    environ={
+                        'REQUEST_METHOD': 'POST',
+                        'CONTENT_TYPE':   ct,
+                        'CONTENT_LENGTH': str(length),
+                    },
+                    keep_blank_values=True,
+                )
+        except Exception as exc:
+            print(f'[INVOICE_UPLOAD] Form parse error: {exc}')
+            self._json_response(400, {'error': 'No se pudo leer el formulario. Intenta de nuevo.'})
+            return
+
+        file_item = form.get('invoice') if hasattr(form, 'get') else None
+        if not file_item or not hasattr(file_item, 'file') or file_item.file is None:
+            self._json_response(400, {'error': 'Campo "invoice" requerido.'})
+            return
+
+        file_bytes  = file_item.file.read()
+        if not file_bytes:
+            self._json_response(400, {'error': 'El archivo está vacío.'})
+            return
+
+        mime        = (file_item.type or 'application/octet-stream').split(';')[0].strip().lower()
+        orig_name   = (file_item.filename or 'invoice').strip()
+
+        # Determine extension from MIME, fall back to the original filename's ext
+        ext = self._INVOICE_ALLOW_TYPES.get(mime)
+        if not ext:
+            _, dot, orig_ext = orig_name.rpartition('.')
+            ext = ('.' + orig_ext.lower()) if dot else '.bin'
+            if ext not in ('.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp'):
+                self._json_response(415, {'error': 'Tipo de archivo no permitido. Usa PDF, JPG, PNG, GIF o WEBP.'})
+                return
+
+        # Persist with a UUID name so the path is unguessable
+        filename = str(_uuid.uuid4()) + ext
+        os.makedirs(self._INVOICE_UPLOAD_DIR, exist_ok=True)
+        filepath = os.path.join(self._INVOICE_UPLOAD_DIR, filename)
+        try:
+            with open(filepath, 'wb') as fh:
+                fh.write(file_bytes)
+        except Exception as exc:
+            print(f'[INVOICE_UPLOAD] Write error: {exc}')
+            self._json_response(500, {'error': 'Error al guardar el archivo. Intenta de nuevo.'})
+            return
+
+        print(f'[INVOICE_UPLOAD] Saved: {filename} ({len(file_bytes)} bytes) casillero={casillero_id}')
+        self._json_response(200, {
+            'url':  '/uploads/invoices/' + filename,
+            'type': mime,
+            'file': filename,
+        })
 
     # ── POST /api/solicitudes/:id/cancel ──────────────────────────────────
     def _handle_cancel_solicitud(self, scb_id):
