@@ -1,0 +1,67 @@
+This is a strong master plan and I agree with the overall diagnosis.
+
+The key conclusion makes sense:
+the most important remaining gap is now the CRBOX-managed purchase branch, specifically the fact that the live UI already implies a later “ready for pickup / available in Costa Rica” moment, but the state model and notification flow do not yet fulfill that promise.
+
+So yes — directionally, I agree that the next major milestone should be to properly close that branch.
+
+## What I agree with
+I agree with these core points:
+
+- the current most visible customer-facing gap is the missing listo_para_retiro / Costa Rica-ready state
+- the comprado state currently creates an expectation that is not yet operationally fulfilled
+- admin-initiated cancellation without customer email is a real trust / communication defect
+- the self-purchase “auto-link” wording is misleading if the process is still fully manual
+- QA / hardening is now becoming much more important because the system already has enough states and branches to create subtle inconsistencies
+
+## Small refinement to sequencing
+I agree with the plan overall, but I would slightly refine the execution order.
+
+### I agree that the next major milestone should be:
+close the CRBOX-managed branch properly
+with:
+- listo_para_retiro
+- the corresponding portal panel
+- email on comprado
+- email on listo_para_retiro
+
+That makes sense.
+
+### But I would like one small sequencing refinement:
+Please consider whether the admin-cancel email and the misleading auto-link copy fix should be pulled slightly earlier, or at least grouped very close after the first milestone.
+
+Reason:
+- both are relatively small
+- both affect customer trust directly
+- both are communication-truth issues, not deep architectural tasks
+
+So while I still agree with the overall roadmap, I want you to keep an eye on whether those two fixes should be brought forward slightly if they are low-cost.
+
+## What I want from you now
+Please turn this master plan into the next concrete execution block.
+
+Specifically:
+
+1. Confirm whether you still recommend the immediate next milestone as:
+   - listo_para_retiro state + portal panel
+   - plus emails for comprado and listo_para_retiro
+
+2. Tell me whether you would keep:
+   - admin-cancel email
+   - and the self-purchase auto-link copy correction
+   in the exact order you proposed,
+   or whether you think they should be pulled slightly earlier because they are small but trust-critical.
+
+3. Based on that, give me the next concrete task or task bundle you recommend tackling now.
+
+## Important principles to preserve
+Please keep preserving these:
+- CRBOX-managed purchase is tracked mainly through Mis Solicitudes
+- self-purchase is the branch where package relationship / overlay logic makes the most sense
+- Gemini remains extraction/drafting only
+- calculator logic remains the estimate source of truth
+- do not overcomplicate with automation where a truthful manual workflow is enough
+
+So in short:
+I agree with the master plan.
+Now please convert it into the next concrete task recommendation from here, with the sequencing refinement above taken into account.
