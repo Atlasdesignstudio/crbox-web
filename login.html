@@ -445,7 +445,25 @@
 
                 CRBOXAuth.doLogin(emailVal, passwordVal, rememberVal)
                     .then(function () {
-                        window.location.href = 'dashboard.html';
+                        // Check for orphaned guest requests before redirecting so
+                        // the dashboard can show the link prompt immediately.
+                        var token = CRBOXAuth.getToken();
+                        var email = CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : emailVal;
+                        return fetch('/api/solicitudes/check-orphaned', {
+                            headers: {
+                                'Authorization': 'Bearer ' + token,
+                                'X-Casillero-Email': email
+                            }
+                        }).then(function (res) {
+                            if (!res.ok) return null;
+                            return res.json();
+                        }).then(function (data) {
+                            var dest = 'dashboard.html';
+                            if (data && data.count > 0) dest += '?link_guest=1';
+                            window.location.href = dest;
+                        }).catch(function () {
+                            window.location.href = 'dashboard.html';
+                        });
                     })
                     .catch(function (err) {
                         console.error('[CRBOX] Login error:', err);

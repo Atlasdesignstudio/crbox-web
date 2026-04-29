@@ -225,6 +225,25 @@
 <main class="py-8">
     <div class="container mx-auto px-4">
 
+        <!-- Guest-quote link banner (shown after login when orphaned requests exist) -->
+        <div id="guest-link-banner" class="hidden mb-4 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 shadow-sm" role="alert" aria-live="polite">
+            <div class="flex-shrink-0 mt-0.5 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                <i class="fas fa-link text-amber-600 text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-amber-800" id="guest-link-banner-msg">Tienes solicitudes enviadas antes de crear tu cuenta.</p>
+                <p class="text-xs text-amber-700 mt-0.5">¿Agregarlas a tu perfil para verlas en Mis Solicitudes?</p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <button id="guest-link-btn" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-600 text-white hover:bg-amber-700 active:scale-95 transition-all">
+                    <i class="fas fa-plus text-xs"></i> Agregar
+                </button>
+                <button id="guest-link-dismiss" type="button" class="text-amber-500 hover:text-amber-700 transition-colors" aria-label="Cerrar">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+        </div>
+
         <!-- Activation toast (shown once when the account becomes Activated) -->
         <div id="activation-toast" class="activation-toast hidden" role="status" aria-live="polite">
             <i class="fas fa-rocket activation-toast-icon"></i>
@@ -1085,6 +1104,143 @@
     }).catch(function () {});
   }
 
+  // ── Guest-quote link banner ──────────────────────────────────────────────
+  var _GUEST_LINK_SESSION_KEY = 'crbox_guest_link_checked';
+
+  function _guestLinkSessionKey() {
+    // Scope the flag by email so different accounts on the same browser
+    // don't share each other's "already checked" state.
+    var email = CRBOXAuth.getEmail ? (CRBOXAuth.getEmail() || '') : '';
+    return email ? (_GUEST_LINK_SESSION_KEY + ':' + email.toLowerCase()) : _GUEST_LINK_SESSION_KEY;
+  }
+
+  function _hideBanner() {
+    var banner = document.getElementById('guest-link-banner');
+    if (banner) banner.classList.add('hidden');
+  }
+
+  function _showGuestLinkBanner(count) {
+    var banner = document.getElementById('guest-link-banner');
+    if (!banner) return;
+    var msg = document.getElementById('guest-link-banner-msg');
+    if (msg) {
+      msg.textContent = 'Tienes ' + count + ' solicitud' + (count === 1 ? '' : 'es') +
+        ' enviada' + (count === 1 ? '' : 's') + ' antes de iniciar sesión.';
+    }
+    banner.classList.remove('hidden');
+    // Mark as checked now so a page refresh doesn't re-trigger the endpoint.
+    // Dismiss / link button clicks rely on this already being set.
+    try { sessionStorage.setItem(_guestLinkSessionKey(), '1'); } catch (e) {}
+
+    var addBtn = document.getElementById('guest-link-btn');
+    var dismissBtn = document.getElementById('guest-link-dismiss');
+
+    if (dismissBtn && !dismissBtn._wired) {
+      dismissBtn._wired = true;
+      dismissBtn.addEventListener('click', function () {
+        _hideBanner();
+      });
+    }
+
+    if (addBtn && !addBtn._wired) {
+      addBtn._wired = true;
+      addBtn.addEventListener('click', function () {
+        addBtn.disabled = true;
+        addBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
+        var token = CRBOXAuth.getToken();
+        var email = CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '';
+        fetch('/api/solicitudes/link-guest', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'X-Casillero-Email': email
+          }
+        }).then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+          })
+          .then(function (data) {
+            _hideBanner();
+            if (data && data.linked > 0) {
+              _loadSolicitudesBadge();
+              // Show a brief confirmation toast if available
+              var tc = document.getElementById('toast-container');
+              if (tc) {
+                var el = document.createElement('div');
+                el.className = 'flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium bg-gray-900 text-white';
+                el.innerHTML = '<i class="fas fa-check-circle text-green-400"></i> ' +
+                  data.linked + ' solicitud' + (data.linked === 1 ? '' : 'es') + ' agregada' +
+                  (data.linked === 1 ? '' : 's') + ' a tu perfil.';
+                tc.appendChild(el);
+                setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 4500);
+              }
+            }
+          })
+          .catch(function () {
+            addBtn.disabled = false;
+            addBtn.innerHTML = '<i class="fas fa-plus text-xs"></i> Agregar';
+          });
+      });
+    }
+  }
+
+  function _checkGuestLink(urlParams) {
+    var hasParam = urlParams.get('link_guest') === '1';
+
+    // When there's no query param, only run once per browser session
+    if (!hasParam) {
+      try {
+        if (sessionStorage.getItem(_guestLinkSessionKey()) === '1') return;
+      } catch (e) {}
+    }
+
+    var token = CRBOXAuth.getToken();
+    var email = CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '';
+
+    if (hasParam) {
+      // Clean up the URL so refresh doesn't retrigger
+      try {
+        var cleanUrl = window.location.pathname;
+        window.history.replaceState(null, '', cleanUrl);
+      } catch (e) {}
+      if (!token || !email) return;
+      // Param means login already confirmed count > 0; fetch to get the count for the message
+      fetch('/api/solicitudes/check-orphaned', {
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'X-Casillero-Email': email
+        }
+      }).then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (data && data.count > 0) {
+            _showGuestLinkBanner(data.count); // sets session flag internally
+          } else {
+            // No orphans (already claimed or race); mark checked so we stop polling
+            try { sessionStorage.setItem(_guestLinkSessionKey(), '1'); } catch (e) {}
+          }
+        }).catch(function () {});
+    } else {
+      // No param: do a direct check (deduped by session flag above)
+      if (!token || !email) return;
+      fetch('/api/solicitudes/check-orphaned', {
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'X-Casillero-Email': email
+        }
+      }).then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (data && data.count > 0) {
+            _showGuestLinkBanner(data.count); // sets session flag internally
+          } else {
+            // No orphans: mark checked so we don't call the endpoint on every page visit
+            try { sessionStorage.setItem(_guestLinkSessionKey(), '1'); } catch (e) {}
+          }
+        }).catch(function () {
+          try { sessionStorage.setItem(_guestLinkSessionKey(), '1'); } catch (e) {}
+        });
+    }
+  }
+
   function _loadDashboard() {
     if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
 
@@ -1092,6 +1248,9 @@
     var urlParams = new URLSearchParams(location.search);
     var isOnboarding = urlParams.get('onboarding') === '1';
     try { if (localStorage.getItem('crbox_onboarding') === '1') isOnboarding = true; } catch (e) {}
+
+    // Check for orphaned guest requests (deduped via sessionStorage)
+    _checkGuestLink(urlParams);
 
     CRBOXPortalAPI.getUserInfo()
       .then(function (info) {
