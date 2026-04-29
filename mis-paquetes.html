@@ -484,8 +484,8 @@
                                 <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso Kg</th>
                                 <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</th>
                                 <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider sticky-col-factura">Factura</th>
-                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider sticky-col-actions">Acciones</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider sticky-col-factura">Factura</th>
+                                <th class="whitespace-nowrap px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider sticky-col-actions">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="packages-tbody">
@@ -1426,42 +1426,57 @@
         td.sticky-col-actions, th.sticky-col-actions {
             position: sticky;
             right: 0;
-            width: 56px;
-            min-width: 56px;
-            max-width: 56px;
-            background-color: #fff;
+            min-width: 80px;
+            background-color: #FF6B00;
+            color: #fff;
             z-index: 1;
         }
         td.sticky-col-factura, th.sticky-col-factura {
             position: sticky;
-            right: 56px; /* overridden by JS once real width is measured */
-            background-color: #fff;
+            right: 80px; /* starting value; overridden by JS after render */
+            background-color: #FF6B00;
+            color: #fff;
             z-index: 1;
-            /* orange scroll-hint gradient attached to the cell itself */
-            box-shadow: -8px 0 12px rgba(255, 107, 0, 0.10);
+            box-shadow: -6px 0 14px rgba(255, 107, 0, 0.18);
             transition: box-shadow .2s;
         }
-        /* hide gradient when fully scrolled (class toggled by JS) */
+        /* hide left-shadow hint when fully scrolled to end */
         #table-scroll-wrapper.at-scroll-end td.sticky-col-factura,
         #table-scroll-wrapper.at-scroll-end th.sticky-col-factura {
             box-shadow: none;
         }
+        /* header row stays same orange but slightly darker */
         thead th.sticky-col-factura,
         thead th.sticky-col-actions {
-            background-color: #f9fafb;
+            background-color: #E05A00;
+            color: #fff;
             z-index: 2;
         }
+        /* row hover: deepen orange a little */
         tr:hover td.sticky-col-factura,
         tr:hover td.sticky-col-actions {
-            background-color: #fff7f0;
+            background-color: #e86000;
         }
-        tr.bg-blue-50 td.sticky-col-factura,
-        tr.bg-blue-50 td.sticky-col-actions {
-            background-color: #eff6ff;
+        /* buttons / text inside orange sticky cells */
+        td.sticky-col-factura .btn-invoice,
+        td.sticky-col-factura .btn-view-invoice {
+            background-color: rgba(255,255,255,0.18) !important;
+            color: #fff !important;
+            border-color: rgba(255,255,255,0.38) !important;
         }
-        tr.bg-yellow-50 td.sticky-col-factura,
-        tr.bg-yellow-50 td.sticky-col-actions {
-            background-color: #fefce8;
+        td.sticky-col-factura .btn-invoice:hover,
+        td.sticky-col-factura .btn-view-invoice:hover {
+            background-color: rgba(255,255,255,0.32) !important;
+        }
+        td.sticky-col-factura span.text-gray-400 {
+            color: rgba(255,255,255,0.55) !important;
+        }
+        td.sticky-col-actions .btn-detail {
+            color: rgba(255,255,255,0.90) !important;
+        }
+        td.sticky-col-actions .btn-detail:hover {
+            background-color: rgba(255,255,255,0.20) !important;
+            color: #fff !important;
         }
         /* ── Row highlight from deep-link ────────────────────────────── */
         @keyframes pkgRowPulse {
