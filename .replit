@@ -6,7 +6,9 @@ channel = "stable-25_05"
 packages = ["freetype", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "tcl", "tk", "zlib"]
 
 [deployment]
-run = ["sh", "-c", "npx serve ."]
+run = ["python3", "server.py"]
+deploymentTarget = "vm"
+build = ["pip", "install", "-r", "requirements.txt"]
 
 [[ports]]
 localPort = 3000
