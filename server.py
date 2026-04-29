@@ -443,27 +443,33 @@ _DB_PATH = 'solicitudes.db'
 _DB_LOCK = threading.Lock()
 
 _LEGAL_TRANSITIONS = {
-    'enviada':                {'en_revision', 'respondida', 'cancelada', 'expirada'},
-    'en_revision':            {'respondida', 'cancelada', 'expirada'},
-    'respondida':             {'completada', 'cancelada', 'pendiente_compra_crbox', 'pendiente_compra_cliente'},
-    'pendiente_compra_crbox': {'completada', 'cancelada'},
-    'pendiente_compra_cliente': {'completada', 'cancelada'},
-    'completada':             set(),
-    'cancelada':              set(),
-    'expirada':               set(),
+    'enviada':                           {'en_revision', 'respondida', 'cancelada', 'expirada'},
+    'en_revision':                       {'respondida', 'cancelada', 'expirada'},
+    'respondida':                        {'completada', 'cancelada', 'pendiente_compra_crbox', 'pendiente_compra_cliente'},
+    'pendiente_compra_crbox':            {'cancelada'},
+    'pendiente_confirmacion_pago_cliente': {'cancelada'},
+    'pagado_por_cliente':                {'cancelada'},
+    'comprado':                          {'cancelada'},
+    'pendiente_compra_cliente':          {'completada', 'cancelada'},
+    'completada':                        set(),
+    'cancelada':                         set(),
+    'expirada':                          set(),
 }
 
 # Admin panel enforces stricter progression: enviada must go through en_revision
 # before being marked respondida (no skip allowed).
 _ADMIN_LEGAL_TRANSITIONS = {
-    'enviada':                {'en_revision', 'cancelada'},
-    'en_revision':            {'respondida', 'cancelada'},
-    'respondida':             {'completada', 'cancelada', 'pendiente_compra_crbox', 'pendiente_compra_cliente'},
-    'pendiente_compra_crbox': {'completada', 'cancelada'},
-    'pendiente_compra_cliente': {'completada', 'cancelada'},
-    'completada':             set(),
-    'cancelada':              set(),
-    'expirada':               set(),
+    'enviada':                           {'en_revision', 'cancelada'},
+    'en_revision':                       {'respondida', 'cancelada'},
+    'respondida':                        {'completada', 'cancelada', 'pendiente_compra_crbox', 'pendiente_compra_cliente'},
+    'pendiente_compra_crbox':            {'pendiente_confirmacion_pago_cliente', 'cancelada'},
+    'pendiente_confirmacion_pago_cliente': {'pagado_por_cliente', 'cancelada'},
+    'pagado_por_cliente':                {'comprado', 'cancelada'},
+    'comprado':                          {'completada', 'cancelada'},
+    'pendiente_compra_cliente':          {'completada', 'cancelada'},
+    'completada':                        set(),
+    'cancelada':                         set(),
+    'expirada':                          set(),
 }
 
 _DEV_SALES_TOKEN = 'crbox-dev-sales-token-2026'
@@ -1737,14 +1743,17 @@ def _admin_format_date(iso_str):
 
 
 _ADMIN_BADGE_CFG = {
-    'enviada':                  ('#FFF7ED', '#C2410C', '#FDBA74', 'Enviada'),
-    'en_revision':              ('#EFF6FF', '#1D4ED8', '#BFDBFE', 'En revisión'),
-    'respondida':               ('#F0FDF4', '#15803D', '#BBF7D0', 'Respondida'),
-    'pendiente_compra_crbox':   ('#FFF7ED', '#9A3412', '#FED7AA', 'Compra CRBOX'),
-    'pendiente_compra_cliente': ('#EFF6FF', '#1E40AF', '#BFDBFE', 'Compra propia'),
-    'completada':               ('#F9FAFB', '#374151', '#D1D5DB', 'Completada'),
-    'cancelada':                ('#FEF2F2', '#991B1B', '#FECACA', 'Cancelada'),
-    'expirada':                 ('#F9FAFB', '#6B7280', '#E5E7EB', 'Expirada'),
+    'enviada':                           ('#FFF7ED', '#C2410C', '#FDBA74', 'Enviada'),
+    'en_revision':                       ('#EFF6FF', '#1D4ED8', '#BFDBFE', 'En revisión'),
+    'respondida':                        ('#F0FDF4', '#15803D', '#BBF7D0', 'Respondida'),
+    'pendiente_compra_crbox':            ('#FFF7ED', '#9A3412', '#FED7AA', 'Compra CRBOX'),
+    'pendiente_confirmacion_pago_cliente': ('#FFFBEB', '#92400E', '#FDE68A', 'Confirmación de pago'),
+    'pagado_por_cliente':                ('#EFF6FF', '#1D4ED8', '#BFDBFE', 'Pago confirmado'),
+    'comprado':                          ('#F0FDF4', '#15803D', '#BBF7D0', 'Comprado'),
+    'pendiente_compra_cliente':          ('#EFF6FF', '#1E40AF', '#BFDBFE', 'Compra propia'),
+    'completada':                        ('#F9FAFB', '#374151', '#D1D5DB', 'Completada'),
+    'cancelada':                         ('#FEF2F2', '#991B1B', '#FECACA', 'Cancelada'),
+    'expirada':                          ('#F9FAFB', '#6B7280', '#E5E7EB', 'Expirada'),
 }
 
 def _admin_badge_html(status, rid):
@@ -1757,17 +1766,25 @@ def _admin_badge_html(status, rid):
 
 def _admin_status_options_html(current_status):
     labels = {
-        'enviada':                 'Enviada',
-        'en_revision':             'En revisión',
-        'respondida':              'Respondida',
-        'pendiente_compra_crbox':  'Compra por CRBOX',
-        'pendiente_compra_cliente':'Compra propia',
-        'completada':              'Completada',
-        'cancelada':               'Cancelada',
-        'expirada':                'Expirada',
+        'enviada':                           'Enviada',
+        'en_revision':                       'En revisión',
+        'respondida':                        'Respondida',
+        'pendiente_compra_crbox':            'Compra por CRBOX',
+        'pendiente_confirmacion_pago_cliente': 'Confirmar pago pendiente',
+        'pagado_por_cliente':                'Pago confirmado',
+        'comprado':                          'Comprado por CRBOX',
+        'pendiente_compra_cliente':          'Compra propia',
+        'completada':                        'Completada',
+        'cancelada':                         'Cancelada',
+        'expirada':                          'Expirada',
     }
     transitions = _ADMIN_LEGAL_TRANSITIONS.get(current_status, set())
-    order = ['en_revision', 'respondida', 'pendiente_compra_crbox', 'pendiente_compra_cliente', 'completada', 'cancelada']
+    order = [
+        'en_revision', 'respondida',
+        'pendiente_compra_crbox', 'pendiente_confirmacion_pago_cliente',
+        'pagado_por_cliente', 'comprado',
+        'pendiente_compra_cliente', 'completada', 'cancelada',
+    ]
     opts = [
         f'<option value="" disabled selected>— Cambiar a —</option>'
     ]
@@ -2015,14 +2032,17 @@ def _build_admin_detail_html(row, history, filter_val='all'):
 
     # ── Status history timeline ─────────────────────────────────────────────
     status_label_map = {
-        'enviada':                 'Enviada',
-        'en_revision':             'En revisi&oacute;n',
-        'respondida':              'Respondida',
-        'pendiente_compra_crbox':  'Compra por CRBOX',
-        'pendiente_compra_cliente':'Compra propia',
-        'completada':              'Completada',
-        'cancelada':               'Cancelada',
-        'expirada':                'Expirada',
+        'enviada':                           'Enviada',
+        'en_revision':                       'En revisi&oacute;n',
+        'respondida':                        'Respondida',
+        'pendiente_compra_crbox':            'Compra por CRBOX',
+        'pendiente_confirmacion_pago_cliente': 'Confirmaci&oacute;n de pago',
+        'pagado_por_cliente':                'Pago confirmado',
+        'comprado':                          'Comprado por CRBOX',
+        'pendiente_compra_cliente':          'Compra propia',
+        'completada':                        'Completada',
+        'cancelada':                         'Cancelada',
+        'expirada':                          'Expirada',
     }
     timeline_items = ''
     for h in history:
@@ -3960,7 +3980,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
             filter_val = 'all'
 
-        active_statuses   = ('enviada', 'en_revision', 'pendiente_compra_crbox', 'pendiente_compra_cliente')
+        active_statuses   = ('enviada', 'en_revision', 'pendiente_compra_crbox',
+                            'pendiente_confirmacion_pago_cliente', 'pagado_por_cliente',
+                            'comprado', 'pendiente_compra_cliente')
         responded_statuses= ('respondida',)
         archived_statuses = ('completada', 'cancelada', 'expirada')
 

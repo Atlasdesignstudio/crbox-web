@@ -1055,7 +1055,9 @@
     });
   }
 
-  var _SOL_ACTIVE_STATUSES = ['enviada', 'en_revision', 'respondida', 'pendiente_compra_crbox', 'pendiente_compra_cliente'];
+  var _SOL_ACTIVE_STATUSES = ['enviada', 'en_revision', 'respondida', 'pendiente_compra_crbox',
+                              'pendiente_confirmacion_pago_cliente', 'pagado_por_cliente', 'comprado',
+                              'pendiente_compra_cliente'];
 
   function _loadSolicitudesBadge() {
     var token = CRBOXAuth.getToken();

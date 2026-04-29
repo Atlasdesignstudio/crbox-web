@@ -50,25 +50,33 @@
     enviada:                 'Enviada',
     en_revision:             'En revisión',
     respondida:              'Respondida',
-    pendiente_compra_crbox:  'Compra por CRBOX',
-    pendiente_compra_cliente:'Compra propia',
+    pendiente_compra_crbox:                'Compra por CRBOX',
+    pendiente_confirmacion_pago_cliente:   'Confirmación de pago',
+    pagado_por_cliente:                    'Pago confirmado',
+    comprado:                              'Compra realizada',
+    pendiente_compra_cliente:              'Compra propia',
     completada:              'Completada',
     cancelada:               'Cancelada',
     expirada:                'Expirada'
   };
 
   var STATUS_COLORS = {
-    enviada:                 { bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-400' },
-    en_revision:             { bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400' },
-    respondida:              { bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  dot: 'bg-green-400' },
-    pendiente_compra_crbox:  { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-400' },
-    pendiente_compra_cliente:{ bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-400' },
-    completada:              { bg: 'bg-gray-100',  text: 'text-gray-600',   border: 'border-gray-200',   dot: 'bg-gray-400' },
-    cancelada:               { bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200',    dot: 'bg-red-400' },
-    expirada:                { bg: 'bg-gray-100',  text: 'text-gray-500',   border: 'border-gray-200',   dot: 'bg-gray-300' }
+    enviada:                              { bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-400' },
+    en_revision:                          { bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400' },
+    respondida:                           { bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  dot: 'bg-green-400' },
+    pendiente_compra_crbox:               { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-400' },
+    pendiente_confirmacion_pago_cliente:  { bg: 'bg-amber-50',  text: 'text-amber-700',  border: 'border-amber-200',  dot: 'bg-amber-400' },
+    pagado_por_cliente:                   { bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-400' },
+    comprado:                             { bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  dot: 'bg-green-400' },
+    pendiente_compra_cliente:             { bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-400' },
+    completada:                           { bg: 'bg-gray-100',  text: 'text-gray-600',   border: 'border-gray-200',   dot: 'bg-gray-400' },
+    cancelada:                            { bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200',    dot: 'bg-red-400' },
+    expirada:                             { bg: 'bg-gray-100',  text: 'text-gray-500',   border: 'border-gray-200',   dot: 'bg-gray-300' }
   };
 
-  var ACTIVE_STATUSES   = ['enviada', 'en_revision', 'respondida', 'pendiente_compra_crbox', 'pendiente_compra_cliente'];
+  var ACTIVE_STATUSES   = ['enviada', 'en_revision', 'respondida', 'pendiente_compra_crbox',
+                           'pendiente_confirmacion_pago_cliente', 'pagado_por_cliente', 'comprado',
+                           'pendiente_compra_cliente'];
   var ARCHIVED_STATUSES = ['completada', 'cancelada', 'expirada'];
 
   // ─── Category labels ────────────────────────────────────────────────────────
