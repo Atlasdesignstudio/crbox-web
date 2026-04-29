@@ -952,7 +952,6 @@ button.active {
     background-color: #FF6B00;
     color: #fff !important;
     box-shadow: 0 4px 20px rgba(255, 107, 0, 0.38);
-    active-scale: 0.95;
 }
 .tarifas-cta-btn:hover {
     background-color: #E05A00;
