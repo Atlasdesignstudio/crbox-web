@@ -318,8 +318,9 @@
         return filled;
     }
 
-    // Show a small "from product page — confirm" note beneath the physical data section
-    function _showPhysicalNote(anchorEl) {
+    // Show a small "from product page — confirm" note beneath the physical data section.
+    // Pass convertedFromUS=true when any field was converted from imperial units.
+    function _showPhysicalNote(anchorEl, convertedFromUS) {
         if (!anchorEl) return;
         // Walk up to find the mb-0 wrapper that contains all physical fields
         var container = anchorEl.parentNode;
@@ -335,9 +336,19 @@
         var note = document.createElement('p');
         note.className = 'ai-physical-note';
         note.style.cssText = 'font-size:.74rem;color:#d97706;margin-top:.5rem;line-height:1.4;';
-        note.innerHTML = '<i class="fas fa-info-circle" style="margin-right:.3rem;"></i>' +
-            'Datos físicos extraídos de la página del producto — confirma antes de enviar.';
+        var text = 'Datos físicos extraídos de la página del producto — confirma antes de enviar.';
+        if (convertedFromUS) {
+            text += ' <strong>Convertido de unidades americanas (lbs/pulgadas) a kg/cm.</strong>';
+        }
+        note.innerHTML = '<i class="fas fa-info-circle" style="margin-right:.3rem;"></i>' + text;
         container.appendChild(note);
+    }
+
+    // Returns true when the given field result carries a US source unit (lbs, oz, in).
+    function _isUSUnit(fieldResult) {
+        if (!fieldResult) return false;
+        var u = (fieldResult.source_unit || '').toLowerCase();
+        return u === 'lbs' || u === 'lb' || u === 'oz' || u === 'in';
     }
 
     // ── Confirm checkbox helpers ─────────────────────────────────────────
@@ -419,7 +430,8 @@
                 physicalFilled = true;
             }
             if (physicalFilled) {
-                _showPhysicalNote(fWeight || fLength || fWidth || fHeight);
+                var convertedFromUS = _isUSUnit(fields.weight_kg) || _isUSUnit(fields.dimensions_cm);
+                _showPhysicalNote(fWeight || fLength || fWidth || fHeight, convertedFromUS);
             }
 
             if (filledCount === 0) {

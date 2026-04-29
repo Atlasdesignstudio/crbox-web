@@ -497,11 +497,11 @@ def _call_gemini_draft(context):
 
 
 _FIELD_DEFAULTS = {
-    'product_name':       {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
-    'declared_value_usd': {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
-    'category':           {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
-    'weight_kg':          {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
-    'dimensions_cm':      {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None},
+    'product_name':       {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None, 'source_unit': None},
+    'declared_value_usd': {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None, 'source_unit': None},
+    'category':           {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None, 'source_unit': None},
+    'weight_kg':          {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None, 'source_unit': None},
+    'dimensions_cm':      {'value': None, 'confidence': 0.0, 'provenance': 'missing', 'source_attribute': None, 'source_unit': None},
 }
 
 _VALID_PROVENANCES = {'extracted', 'inferred', 'missing', 'needs_confirmation'}
@@ -520,36 +520,93 @@ def _normalize_field(raw):
     prov = raw.get('provenance', 'missing')
     out['provenance']       = prov if prov in _VALID_PROVENANCES else 'missing'
     out['source_attribute'] = raw.get('source_attribute', None)
+    out['source_unit']      = None
     return out
 
 
-def _normalize_dimensions(raw_value):
-    """Normalize a dimensions value to {length, width, height} floats or None."""
+# ── Unit conversion constants ────────────────────────────────────────────────
+_LBS_TO_KG = 0.45359237
+_OZ_TO_KG  = 0.02834952
+_IN_TO_CM  = 2.54
+
+
+def _parse_weight_to_kg(raw_value):
+    """Parse a weight value (str or number) and return (kg_float, source_unit) or (None, None).
+
+    Detects common US units (lbs, lb, oz) and converts to kg.
+    Returns source_unit=None when value is already in kg or unit is unknown.
+    """
     import re as _re
     if raw_value is None:
-        return None
+        return None, None
+    if isinstance(raw_value, (int, float)):
+        v = float(raw_value)
+        return (round(v, 3), None) if v > 0 else (None, None)
+    s = str(raw_value).strip()
+    m = _re.match(r'^(\d+(?:[.,]\d+)?)\s*([a-zA-Z]+)?$', s)
+    if not m:
+        return None, None
+    num_str = m.group(1).replace(',', '.')
+    unit = (m.group(2) or '').lower().strip().rstrip('s')  # strip plural 's'
+    try:
+        num = float(num_str)
+    except ValueError:
+        return None, None
+    if unit in ('lb', 'lbs', 'pound'):
+        return round(num * _LBS_TO_KG, 3), 'lbs'
+    elif unit in ('oz', 'ounce'):
+        return round(num * _OZ_TO_KG, 3), 'oz'
+    elif unit in ('g', 'gram'):
+        return round(num / 1000.0, 3), 'g'
+    elif unit in ('kg', 'kilogram', ''):
+        return round(num, 3), 'kg' if unit else None
+    else:
+        # Unknown unit — return number as-is and record the unit for debugging
+        return round(num, 3), unit if unit else None
+
+
+def _normalize_dimensions(raw_value):
+    """Normalize a dimensions value to ({length, width, height}, source_unit) or (None, None).
+
+    Detects common US units (in, inch, inches) from strings or dict unit keys
+    and converts to centimetres.  source_unit is 'in' when conversion occurs,
+    'cm' when the value was already metric, or None when unspecified.
+    """
+    import re as _re
+    if raw_value is None:
+        return None, None
     if isinstance(raw_value, dict):
+        unit = str(raw_value.get('unit') or '').lower().strip()
         try:
-            return {
+            parsed = {
                 'length': float(raw_value.get('length') or raw_value.get('l') or 0) or None,
                 'width':  float(raw_value.get('width')  or raw_value.get('w') or 0) or None,
                 'height': float(raw_value.get('height') or raw_value.get('h') or 0) or None,
             }
         except (TypeError, ValueError):
-            return None
+            return None, None
+        if unit in ('in', 'inch', 'inches', '"'):
+            parsed = {k: round(v * _IN_TO_CM, 2) if v else v for k, v in parsed.items()}
+            return parsed, 'in'
+        return parsed, 'cm' if unit in ('cm', 'centimeter', 'centimeters') else None
     s = str(raw_value).strip()
-    # Match patterns like "30x20x10", "30×20×10", "30 x 20 x 10"
+    # Match patterns like "30x20x10", "30×20×10", "30 x 20 x 10" with optional unit suffix
     m = _re.match(
-        r'^(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)(\s*cm)?$',
-        s
+        r'^(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)'
+        r'\s*(cm|in|inch|inches|")?$',
+        s, _re.IGNORECASE
     )
     if m:
-        return {
-            'length': float(m.group(1)),
-            'width':  float(m.group(2)),
-            'height': float(m.group(3)),
-        }
-    return None
+        l, w, h = float(m.group(1)), float(m.group(2)), float(m.group(3))
+        unit_raw = (m.group(4) or '').lower().strip('"')
+        if unit_raw in ('in', 'inch', 'inches'):
+            return {
+                'length': round(l * _IN_TO_CM, 2),
+                'width':  round(w * _IN_TO_CM, 2),
+                'height': round(h * _IN_TO_CM, 2),
+            }, 'in'
+        return {'length': l, 'width': w, 'height': h}, 'cm' if unit_raw == 'cm' else None
+    return None, None
 
 
 def _normalize_ai_result(raw, source_url):
@@ -568,32 +625,31 @@ def _normalize_ai_result(raw, source_url):
         raw_f = raw_fields.get(fname)
         fields[fname] = _normalize_field(raw_f) if raw_f else dict(defaults)
 
-    # Normalize weight: must be a positive float or null
+    # Normalize weight: detect US units (lbs, oz) and convert to kg
     w_field = fields['weight_kg']
     if w_field.get('provenance') != 'missing' and w_field.get('value') is not None:
-        try:
-            w_val = float(w_field['value'])
-            if w_val > 0:
-                w_field['value'] = round(w_val, 3)
-            else:
-                w_field['value']      = None
-                w_field['provenance'] = 'missing'
-                w_field['confidence'] = 0.0
-        except (TypeError, ValueError):
-            w_field['value']      = None
-            w_field['provenance'] = 'missing'
-            w_field['confidence'] = 0.0
+        w_val, w_source_unit = _parse_weight_to_kg(w_field['value'])
+        if w_val and w_val > 0:
+            w_field['value']       = w_val
+            w_field['source_unit'] = w_source_unit
+        else:
+            w_field['value']       = None
+            w_field['provenance']  = 'missing'
+            w_field['confidence']  = 0.0
+            w_field['source_unit'] = None
 
-    # Normalize dimensions: coerce to structured object or null
+    # Normalize dimensions: detect US units (in/inches) and convert to cm
     d_field = fields['dimensions_cm']
     if d_field.get('provenance') != 'missing' and d_field.get('value') is not None:
-        parsed = _normalize_dimensions(d_field['value'])
+        parsed, d_source_unit = _normalize_dimensions(d_field['value'])
         if parsed and any(v for v in parsed.values() if v):
-            d_field['value'] = parsed
+            d_field['value']       = parsed
+            d_field['source_unit'] = d_source_unit
         else:
-            d_field['value']      = None
-            d_field['provenance'] = 'missing'
-            d_field['confidence'] = 0.0
+            d_field['value']       = None
+            d_field['provenance']  = 'missing'
+            d_field['confidence']  = 0.0
+            d_field['source_unit'] = None
 
     # category value must be a valid CRBOX code or null
     cat_val = fields['category'].get('value')
