@@ -3981,6 +3981,20 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 conn.close()
 
             print(f'[SOLICITUDES] Intent: {scb_id} respondida → {new_status} (casillero {casillero_id})')
+            if new_status == 'cancelada':
+                settings  = _smtp_settings()
+                smtp_user = settings[2] if settings else 'noreply@crbox.cr'
+                try:
+                    _send_cancellation_email(
+                        scb_id,
+                        row_dict['customer_email'],
+                        row_dict.get('customer_name'),
+                        row_dict['product_name'],
+                        smtp_user
+                    )
+                    print(f'[SOLICITUDES] Intent-cancel email sent: {scb_id}')
+                except Exception as email_exc:
+                    print(f'[SOLICITUDES] Intent-cancel email failed: {email_exc}')
             self._json_response(200, {'ok': True, 'id': scb_id, 'new_status': new_status})
         except Exception as exc:
             print(f'[SOLICITUDES] Intent error: {exc}')

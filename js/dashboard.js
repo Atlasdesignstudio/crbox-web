@@ -1077,7 +1077,9 @@ function initSolicitudesBadge() {
     var email = CRBOXAuth.getEmail();
     if (!token || !email) return;
 
-    var ACTIVE = ['enviada', 'en_revision', 'respondida', 'listo_para_retiro'];
+    var ACTIVE = ['enviada', 'en_revision', 'respondida', 'pendiente_compra_crbox',
+                  'pendiente_confirmacion_pago_cliente', 'pagado_por_cliente', 'comprado',
+                  'listo_para_retiro', 'pendiente_compra_cliente'];
 
     fetch('/api/solicitudes', {
         headers: {
