@@ -1382,7 +1382,7 @@ All endpoints are new additions to `server.py` or a dedicated API module.
 ### 18.4 AI Service Layer
 
 - The `/api/ai/extract` endpoint fetches the merchant URL server-side using Python's `urllib` or `httpx`
-- HTML content is passed to the Gemini API via `google-generativeai` Python package (`pip install google-generativeai` — this is the only new external dependency)
+- HTML content is passed to the Gemini API via `google-genai` Python package (`pip install google-genai` — this is the only new external dependency)
 - API key stored in environment secret `GEMINI_API_KEY`
 - Extraction results are cached in memory (or SQLite) for 15 minutes keyed by URL hash
 - Timeout: 10 seconds for the fetch; 8 seconds for Gemini inference
@@ -1482,7 +1482,7 @@ The decision rule: build anything that blocks a real quote from being submitted 
 
 | Feature | Dependency |
 |---------|------------|
-| AI product extraction from URL (`/api/ai/extract`) | Gemini API key (`GEMINI_API_KEY`); server-side URL fetch; `google-generativeai` Python package |
+| AI product extraction from URL (`/api/ai/extract`) | Gemini API key (`GEMINI_API_KEY`); server-side URL fetch; `google-genai` Python package |
 | Chat-assisted intake layout | `/api/ai/extract` endpoint; chat UI module |
 | Per-field confidence badges in the form | AI extraction result with provenance field |
 | Multi-item requests (QuoteItem model) | UI redesign of the form step |
