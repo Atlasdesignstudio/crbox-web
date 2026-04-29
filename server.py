@@ -23,18 +23,17 @@ QUOTE_RECIPIENT = 'ventas@crbox.cr'
 
 # ── AI / Gemini extraction ────────────────────────────────────────────────────
 _GEMINI_API_KEY  = os.environ.get('GEMINI_API_KEY', '')
-# Model is configurable via GEMINI_MODEL env var; defaults to gemini-1.5-flash
-# (stable, broadly available). Override with e.g. "gemini-2.0-flash-lite" if needed.
-_GEMINI_MODEL    = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
+# Model is configurable via GEMINI_MODEL env var.
+# Default: gemini-2.5-flash-lite — confirmed available and working for this key
+# (verified via list_models() + live generateContent call on 2026-04-29).
+# To override: set GEMINI_MODEL=gemini-2.5-flash (or any supported model name).
+_GEMINI_MODEL    = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash-lite')
 try:
-    import warnings as _w
-    with _w.catch_warnings():
-        _w.simplefilter('ignore')
-        import google.generativeai as _genai_check  # noqa: F401
-    print(f'[AI] google-generativeai available; key configured: {bool(_GEMINI_API_KEY)}; model: {_GEMINI_MODEL}')
-    del _genai_check, _w
+    from google import genai as _genai_check  # noqa: F401
+    print(f'[AI] google-genai available; key configured: {bool(_GEMINI_API_KEY)}; model: {_GEMINI_MODEL}')
+    del _genai_check
 except ImportError:
-    print('[AI] WARNING: google-generativeai not installed — AI extraction disabled')
+    print('[AI] WARNING: google-genai not installed — AI extraction disabled')
 
 _AI_CACHE        = {}           # sha256(url) -> (result_dict, expires_ts)
 _AI_CACHE_TTL    = 900          # 15 minutes
@@ -196,24 +195,24 @@ def _call_gemini(content):
     if not _GEMINI_API_KEY:
         return None, 'No API key configured'
     try:
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            import google.generativeai as genai
-        genai.configure(api_key=_GEMINI_API_KEY)
-        model = genai.GenerativeModel(
-            model_name=_GEMINI_MODEL,
-            generation_config=genai.GenerationConfig(
-                temperature=0.1,
-                max_output_tokens=1024,
-            ),
-        )
+        from google import genai
+        from google.genai import types as _gtypes
+        client = genai.Client(api_key=_GEMINI_API_KEY)
         prompt = _AI_PROMPT_TEMPLATE.format(
             categories=', '.join(_CRBOX_CATEGORIES),
             content=content,
         )
-        response = model.generate_content(prompt)
-        text = response.text.strip()
+        response = client.models.generate_content(
+            model=_GEMINI_MODEL,
+            contents=prompt,
+            config=_gtypes.GenerateContentConfig(
+                temperature=0.1,
+                max_output_tokens=1024,
+            ),
+        )
+        text = (response.text or '').strip()
+        if not text:
+            return None, f'Empty response from model {_GEMINI_MODEL}'
         if text.startswith('```'):
             text = text.split('\n', 1)[-1] if '\n' in text else text[3:]
         if text.endswith('```'):
@@ -222,7 +221,7 @@ def _call_gemini(content):
     except json.JSONDecodeError as ex:
         return None, f'JSON parse error: {ex}'
     except Exception as ex:
-        return None, str(ex)
+        return None, f'Gemini error ({_GEMINI_MODEL}): {ex}'
 
 
 _DRAFT_PROMPT_TEMPLATE = """\
@@ -292,21 +291,21 @@ def _call_gemini_draft(context):
     if not _GEMINI_API_KEY:
         return None, 'No API key configured'
     try:
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            import google.generativeai as genai
-        genai.configure(api_key=_GEMINI_API_KEY)
-        model = genai.GenerativeModel(
-            model_name=_GEMINI_MODEL,
-            generation_config=genai.GenerationConfig(
+        from google import genai
+        from google.genai import types as _gtypes
+        client = genai.Client(api_key=_GEMINI_API_KEY)
+        prompt = _DRAFT_PROMPT_TEMPLATE.format(**context)
+        response = client.models.generate_content(
+            model=_GEMINI_MODEL,
+            contents=prompt,
+            config=_gtypes.GenerateContentConfig(
                 temperature=0.4,
                 max_output_tokens=1500,
             ),
         )
-        prompt = _DRAFT_PROMPT_TEMPLATE.format(**context)
-        response = model.generate_content(prompt)
-        text = response.text.strip()
+        text = (response.text or '').strip()
+        if not text:
+            return None, f'Empty response from model {_GEMINI_MODEL}'
         if text.startswith('```'):
             text = text.split('\n', 1)[-1] if '\n' in text else text[3:]
         if text.endswith('```'):
@@ -322,7 +321,7 @@ def _call_gemini_draft(context):
     except json.JSONDecodeError as ex:
         return None, f'JSON parse error: {ex}'
     except Exception as ex:
-        return None, str(ex)
+        return None, f'Gemini error ({_GEMINI_MODEL}): {ex}'
 
 
 _FIELD_DEFAULTS = {
