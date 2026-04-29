@@ -85,27 +85,59 @@
             color: #FF6B00;
             margin-bottom: 0.5rem;
         }
+        /* ── CTA buttons — CRBOX brand orange, guaranteed white text ──── */
+        .btn-nueva-solicitud,
+        #form-submit-btn,
+        #form-back-to-list {
+            background-color: #FF6B00 !important;
+            color: #fff !important;
+        }
+        .btn-nueva-solicitud:hover,
+        #form-submit-btn:hover,
+        #form-back-to-list:hover {
+            background-color: #E05A00 !important;
+            color: #fff !important;
+        }
         /* ── Disabled button states ──────────────────────────────────── */
-        .btn-nueva-solicitud:disabled { opacity: 0.85; cursor: not-allowed; pointer-events: none; filter: saturate(0.4); }
-        #form-submit-btn:disabled { opacity: 0.85; cursor: not-allowed; filter: saturate(0.4); }
+        .btn-nueva-solicitud:disabled {
+            cursor: not-allowed;
+            pointer-events: none;
+            background-color: #d1d5db !important;
+            color: #6b7280 !important;
+            box-shadow: none !important;
+        }
+        #form-submit-btn:disabled {
+            cursor: not-allowed;
+            background-color: #d1d5db !important;
+            color: #6b7280 !important;
+            box-shadow: none !important;
+        }
         /* ── TomSelect overrides to match .sol-input ─────────────────── */
+        /* Use !important to beat the Bootstrap5 TomSelect theme (loaded after this block) */
         .ts-wrapper.single .ts-control {
-            padding: 0.5rem 0.875rem;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 0.625rem;
-            background: #fff;
-            font-size: 0.9375rem;
-            color: #111827;
-            min-height: unset;
-            box-shadow: none;
+            padding: 0.5rem 0.875rem !important;
+            border: 1.5px solid #e5e7eb !important;
+            border-radius: 0.625rem !important;
+            background-color: #fff !important;
+            background: #fff !important;
+            font-size: 0.9375rem !important;
+            color: #111827 !important;
+            min-height: unset !important;
+            box-shadow: none !important;
             cursor: pointer;
         }
-        .ts-wrapper.single .ts-control:hover { border-color: #d1d5db; }
-        .ts-wrapper.single.focus .ts-control { border-color: #FF6B00; box-shadow: 0 0 0 3px rgba(255,107,0,.15); }
-        .ts-wrapper .ts-dropdown { border-radius: 0.625rem; border: 1.5px solid #e5e7eb; font-size: 0.9rem; }
+        .ts-wrapper.single .ts-control:hover { border-color: #d1d5db !important; }
+        .ts-wrapper.single.focus .ts-control { border-color: #FF6B00 !important; box-shadow: 0 0 0 3px rgba(255,107,0,.15) !important; }
+        .ts-wrapper .ts-dropdown {
+            border-radius: 0.625rem !important;
+            border: 1.5px solid #e5e7eb !important;
+            font-size: 0.9rem !important;
+            background-color: #fff !important;
+        }
         .ts-wrapper .ts-dropdown .ts-dropdown-content { max-height: 220px; }
-        .ts-wrapper .ts-dropdown .option:hover, .ts-wrapper .ts-dropdown .option.active { background: #fff7f0; color: #FF6B00; }
-        .ts-wrapper .ts-dropdown .option.selected { background: #fff0e6; color: #c2410c; font-weight: 600; }
+        .ts-wrapper .ts-dropdown .option { background-color: #fff !important; color: #111827 !important; }
+        .ts-wrapper .ts-dropdown .option:hover, .ts-wrapper .ts-dropdown .option.active { background: #fff7f0 !important; color: #FF6B00 !important; }
+        .ts-wrapper .ts-dropdown .option.selected { background: #fff0e6 !important; color: #c2410c !important; font-weight: 600; }
     </style>
 </head>
 <body class="bg-gray-50">
