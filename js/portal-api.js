@@ -240,6 +240,86 @@
     });
   }
 
+  // ─── saveBill ─────────────────────────────────────────────────────────────
+  // Step 1 of the invoice upload flow.
+  // Uploads the invoice file to the WP-JSON endpoint and returns the upload
+  // response object { file, url, type }.
+  // Rejects with a plain Error (step tagged via err.step = 'saveBill') so the
+  // caller can show a specific message and avoid calling step 2.
+  function saveBill(email, file, wrId) {
+    var fd = new FormData();
+    fd.append('email',   String(email || ''));
+    fd.append('invoice', file);
+    fd.append('wr_id',   String(wrId  || ''));
+
+    return fetch('https://crbox.cr/wp-json/crbox/v1/saveBill', {
+      method: 'POST',
+      body:   fd
+      // No Authorization header — this WP-JSON endpoint uses email + wr_id
+      // for scoping, not Bearer auth.
+    }).then(function (res) {
+      if (!res.ok) {
+        var err = new Error('No se pudo subir el archivo de factura (' + res.status + '). Intenta de nuevo.');
+        err.step = 'saveBill';
+        throw err;
+      }
+      return res.json();
+    }).then(function (data) {
+      if (!data || !data.url) {
+        var err2 = new Error('El servidor no devolvió la URL del archivo subido. Intenta de nuevo.');
+        err2.step = 'saveBill';
+        throw err2;
+      }
+      return data;
+    });
+  }
+
+  // ─── createPurchaseBill ───────────────────────────────────────────────────
+  // Step 2 of the invoice upload flow.
+  // Creates the purchase-bill record in the CRBOX system.
+  // payload: { ClientInvoiceText, Descripcion, FileLocation, Monto,
+  //            NumeroFactura, WRId }
+  // Rejects with err.step = 'createPurchaseBill' on failure.
+  function createPurchaseBill(payload) {
+    var token = CRBOXAuth.getToken();
+    if (!token) return Promise.reject(new Error('Sesión no iniciada. Por favor inicia sesión.'));
+
+    var body = new URLSearchParams();
+    // Use payload[k] ?? '' so numeric 0 values (e.g. Monto=0) are preserved as '0',
+    // not silently dropped by the falsy coercion of || ''.
+    Object.keys(payload).forEach(function (k) {
+      var v = payload[k];
+      body.append(k, (v !== null && v !== undefined) ? String(v) : '');
+    });
+
+    return fetch(BASE + '/postcreatepurchasebill', {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer ' + token
+      },
+      body: body.toString()
+    }).then(function (res) {
+      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
+      if (!res.ok) {
+        var err = new Error('No se pudo registrar la factura en el sistema (' + res.status + '). El archivo ya fue subido pero el registro falló.');
+        err.step = 'createPurchaseBill';
+        throw err;
+      }
+      return res.json();
+    }).then(function (data) {
+      var sr = data && (data.StatusResult || data.statusResult || '');
+      if (sr !== 'OK') {
+        var msg = (data && (data.Message || data.message)) || 'No se pudo registrar la factura.';
+        var err2 = new Error(msg + ' El archivo ya fue subido pero el registro falló.');
+        err2.step = 'createPurchaseBill';
+        err2.apiData = data;
+        throw err2;
+      }
+      return data;
+    });
+  }
+
   // ─── recoverPassword ──────────────────────────────────────────────────────
   // GET endpoint — no auth required.
   // Resolves {ok: true|false, message: string}; only rejects on network errors.
@@ -343,6 +423,7 @@
     var carrier = carrierInfo.carrier || {};
     return {
       number:                _str(raw.number),
+      trackingnumber:        _str(raw.trackingnumber || raw.trackingNumber || carrierInfo.trackingnumber || ''),
       receiveddatetime:      raw.receiveddatetime || '',
       totalweight:           _num(raw.totalweight),
       totalvolume:           _num(raw.totalvolume),
@@ -379,12 +460,14 @@
 
   // ─── Public API ───────────────────────────────────────────────────────────
   global.CRBOXPortalAPI = {
-    getUserInfo:        getUserInfo,
-    clearUserInfoCache: clearUserInfoCache,
-    updateProfile:      updateProfile,
-    getPackages:        getPackages,
-    getBills:           getBills,
-    recoverPassword:    recoverPassword,
+    getUserInfo:          getUserInfo,
+    clearUserInfoCache:   clearUserInfoCache,
+    updateProfile:        updateProfile,
+    getPackages:          getPackages,
+    getBills:             getBills,
+    saveBill:             saveBill,
+    createPurchaseBill:   createPurchaseBill,
+    recoverPassword:      recoverPassword,
     formatDate:         formatDate,
     last30Days:         _last30Days,
     lastNMonths:        _lastNMonths,

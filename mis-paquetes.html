@@ -397,7 +397,7 @@
                 </div>
                 
                 <!-- Etiquetas de estado rápido -->
-                <div class="grid grid-cols-3 sm:grid-cols-6 border-b border-gray-100">
+                <div class="grid grid-cols-4 sm:grid-cols-7 border-b border-gray-100">
                     <button class="status-tab active flex flex-col items-center py-3 px-2 text-center hover:bg-orange-50 transition-all" data-status="all">
                         <span class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 mb-2">
                             <i class="fas fa-boxes"></i>
@@ -440,6 +440,13 @@
                         <span class="text-sm font-medium">CRBOX</span>
                         <span class="text-xs text-gray-500">—</span>
                     </button>
+                    <button class="status-tab flex flex-col items-center py-3 px-2 text-center hover:bg-red-50 transition-all border-l border-gray-100" data-status="pendiente-factura" title="Paquetes que aún no tienen factura de compra subida">
+                        <span class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 mb-2">
+                            <i class="fas fa-file-invoice"></i>
+                        </span>
+                        <span class="text-sm font-medium text-red-700">Sin factura</span>
+                        <span class="text-xs text-red-400">—</span>
+                    </button>
                 </div>
                 
                 <!-- Información de resultados -->
@@ -478,12 +485,13 @@
                                 <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso Kg</th>
                                 <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</th>
                                 <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Factura</th>
                                 <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="packages-tbody">
                             <tr id="list-initial-loading-row">
-                                <td colspan="14" class="text-center py-12 text-gray-400">
+                                <td colspan="15" class="text-center py-12 text-gray-400">
                                     <i class="fas fa-spinner fa-spin text-2xl mb-3 block"></i>
                                     Cargando paquetes...
                                 </td>
@@ -865,6 +873,104 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de Subir Factura de Compra -->
+    <div id="invoice-upload-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="invoice-modal-title">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-screen overflow-y-auto">
+            <!-- Header -->
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+                <div class="flex items-center min-w-0">
+                    <div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 mr-3 flex-shrink-0">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 id="invoice-modal-title" class="text-lg font-bold text-gray-800">Subir Factura de Compra</h3>
+                        <p class="text-xs text-gray-500 truncate" id="invoice-modal-subtitle">Paquete —</p>
+                    </div>
+                </div>
+                <button id="close-invoice-modal-btn" class="text-gray-400 hover:text-gray-600 focus:outline-none rounded-full p-1 ml-3 flex-shrink-0" aria-label="Cerrar">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <!-- Form -->
+            <form id="invoice-upload-form" novalidate class="p-5 space-y-4">
+                <!-- Invoice number -->
+                <div>
+                    <label for="invoice-numero" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Número de factura <span class="text-red-500" aria-hidden="true">*</span>
+                    </label>
+                    <input type="text" id="invoice-numero" autocomplete="off"
+                        class="w-full h-11 px-4 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-sm"
+                        placeholder="Ej. INV-2024-001" required>
+                </div>
+                <!-- Amount -->
+                <div>
+                    <label for="invoice-monto" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Monto en USD <span class="text-red-500" aria-hidden="true">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm select-none">$</span>
+                        <input type="number" id="invoice-monto" min="0" step="0.01"
+                            class="w-full h-11 pl-8 pr-4 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-sm"
+                            placeholder="0.00" required>
+                    </div>
+                </div>
+                <!-- Description -->
+                <div>
+                    <label for="invoice-descripcion" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Descripción <span class="text-red-500" aria-hidden="true">*</span>
+                    </label>
+                    <input type="text" id="invoice-descripcion" maxlength="200"
+                        class="w-full h-11 px-4 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-sm"
+                        placeholder="Ej. Compra de electrónica en Amazon" required>
+                </div>
+                <!-- File upload -->
+                <div>
+                    <label for="invoice-file" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        Archivo de factura <span class="text-red-500" aria-hidden="true">*</span>
+                    </label>
+                    <div id="invoice-file-dropzone" class="relative border-2 border-dashed border-gray-200 rounded-lg p-5 text-center hover:border-orange-400 transition-colors cursor-pointer bg-gray-50 hover:bg-orange-50">
+                        <i class="fas fa-cloud-upload-alt text-2xl text-gray-400 mb-2 block"></i>
+                        <p class="text-sm text-gray-600 mb-1">Haz clic para seleccionar archivo</p>
+                        <p class="text-xs text-gray-400">PDF, JPG, JPEG, PNG, GIF, WEBP — máx. 10 MB</p>
+                        <input type="file" id="invoice-file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,image/*,application/pdf" required aria-label="Seleccionar archivo de factura">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1.5 flex items-center gap-1" id="invoice-file-name" style="display:none!important">
+                        <i class="fas fa-paperclip text-gray-400"></i>
+                        <span id="invoice-file-name-text"></span>
+                    </p>
+                </div>
+                <!-- Error state -->
+                <div id="invoice-form-error" class="hidden rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700 flex items-start gap-2">
+                    <i class="fas fa-exclamation-circle flex-shrink-0 mt-0.5"></i>
+                    <span id="invoice-form-error-text"></span>
+                </div>
+                <!-- Partial success state (upload succeeded, bill creation failed) -->
+                <div id="invoice-form-partial" class="hidden rounded-lg bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-700 flex items-start gap-2">
+                    <i class="fas fa-exclamation-triangle flex-shrink-0 mt-0.5"></i>
+                    <span id="invoice-form-partial-text"></span>
+                </div>
+                <!-- Full success state -->
+                <div id="invoice-form-success" class="hidden rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-700 flex items-start gap-2">
+                    <i class="fas fa-check-circle flex-shrink-0 mt-0.5"></i>
+                    <span>Factura subida y registrada exitosamente. Actualizando lista de paquetes…</span>
+                </div>
+                <!-- Buttons -->
+                <div class="flex justify-end gap-3 pt-1">
+                    <button type="button" id="invoice-cancel-btn"
+                        class="px-5 py-2.5 rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="invoice-submit-btn"
+                        class="px-5 py-2.5 rounded-lg bg-orange-600 text-white text-sm font-medium hover:bg-orange-700 transition-colors flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                        <i class="fas fa-upload" id="invoice-submit-icon"></i>
+                        <span id="invoice-submit-label">Subir Factura</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1707,10 +1813,10 @@
             const activeFilters = document.getElementById('active-filters');
             const existingFilters = activeFilters.querySelectorAll('.inline-flex');
             
-            // Eliminar filtros de estado existentes
+            // Eliminar filtros de estado/factura existentes
             existingFilters.forEach(f => {
-                const filterText = f.querySelector('span').textContent;
-                if (['Miami', 'CARGADO', 'EN ESPERA', 'EN TRÁNSITO', 'SJO', 'CRBOX'].includes(filterText)) {
+                const filterText = f.querySelector('span') ? f.querySelector('span').textContent : '';
+                if (['Miami', 'CARGADO', 'EN ESPERA', 'EN TRÁNSITO', 'SJO', 'CRBOX', 'Sin factura'].includes(filterText)) {
                     f.remove();
                 }
             });
@@ -1722,16 +1828,21 @@
                 'EN ESPERA': 'yellow',
                 'EN TRÁNSITO': 'green',
                 'SJO': 'teal',
-                'CRBOX': 'orange'
+                'CRBOX': 'orange',
+                'pendiente-factura': 'red'
+            };
+            const filterLabels = {
+                'pendiente-factura': 'Sin factura'
             };
             
             const color = filterColors[filter] || 'blue';
+            const label = filterLabels[filter] || filter;
             
             const filterEl = document.createElement('div');
             filterEl.className = `inline-flex items-center px-3 py-1 rounded-full bg-${color}-50 text-${color}-700 border border-${color}-100`;
             filterEl.innerHTML = `
-                <span class="text-sm">${filter}</span>
-                <button class="ml-2 text-${color}-400 hover:text-${color}-700" aria-label="Eliminar filtro ${filter}">
+                <span class="text-sm">${label}</span>
+                <button class="ml-2 text-${color}-400 hover:text-${color}-700" aria-label="Eliminar filtro">
                     <i class="fas fa-times-circle"></i>
                 </button>
             `;
@@ -1985,6 +2096,12 @@
                         trackingModal.classList.add('hidden');
                         document.body.style.overflow = '';
                     }
+
+                    var invoiceModal = document.getElementById('invoice-upload-modal');
+                    if (invoiceModal && !invoiceModal.classList.contains('hidden')) {
+                        invoiceModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
                 }
             });
         }
@@ -2022,6 +2139,7 @@
       var _cachedPackages = [];      // Mapped packages (via CRBOXPortalAPI.mapPackage)
       var _renderedPackages = [];    // Mapped packages currently in render order
       var _currentModalPkg = null;
+      var _currentInvoicePkg = null; // Package being invoiced in the upload modal
       var _currentPage = 1;
       var _allSortedPackages = [];
       // Set on page-load when navigated here via ?receipt=<num> from Mis Facturas.
@@ -2089,6 +2207,28 @@
         return '';
       }
 
+      // Returns the invoice action button HTML for a package.
+      // invoicesCount > 0             → "Ver factura" (opens detail modal)
+      // invoicesCount === 0 (strict)  → "Subir factura" (opens upload modal), only if wrId is known
+      // invoicesCount null/undefined  → unknown; show "—" — do not assume invoiceless
+      function _renderInvoiceAction(pkg) {
+        var _invCount = pkg.invoicesCount;
+        var _invKnown = (_invCount !== null && _invCount !== undefined);
+        var hasInvoice = _invKnown && Number(_invCount) > 0;
+        var noInvoice  = _invKnown && Number(_invCount) === 0;
+        if (hasInvoice) {
+          return '<button class="btn-view-invoice inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition-colors whitespace-nowrap">' +
+            '<i class="fas fa-file-invoice"></i> Ver factura' +
+            '</button>';
+        }
+        if (noInvoice && pkg.idwarehousereceipt) {
+          return '<button class="btn-invoice inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition-colors whitespace-nowrap">' +
+            '<i class="fas fa-file-upload"></i> Subir factura' +
+            '</button>';
+        }
+        return '<span class="text-xs text-gray-400">—</span>';
+      }
+
       function _renderRow(pkg, idx) {
         var statusKey = _statusKey(pkg);
         var dateStr   = _fmtDate(pkg.bestDate);
@@ -2115,6 +2255,7 @@
           '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">' + _esc(_fmtNum(pkg.totalweight)) + '</td>' +
           '<td class="px-4 py-4 text-sm text-gray-500 max-w-xs">' + _esc(_orDash(pkg.consigneeNotes)) + '</td>' +
           '<td class="px-4 py-4 text-sm text-gray-700 max-w-xs">' + _esc(_orDash(pkg.descripcion)) + '</td>' +
+          '<td class="px-4 py-4 whitespace-nowrap text-center">' + _renderInvoiceAction(pkg) + '</td>' +
           '<td class="px-4 py-4 text-right whitespace-nowrap">' +
             '<div class="flex justify-end space-x-1">' +
               '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" aria-label="Ver detalles">' +
@@ -2178,7 +2319,8 @@
                 detailsLine('fa-store', sucursal) +
               '</div>' +
             '</div>' +
-            '<div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">' +
+            '<div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">' +
+              '<div>' + _renderInvoiceAction(pkg) + '</div>' +
               '<div class="flex space-x-1">' +
                 '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" aria-label="Ver detalles">' +
                   '<i class="fas fa-eye"></i>' +
@@ -2273,8 +2415,20 @@
 
         var filteredWithIdx = [];
         for (var fi = 0; fi < sorted.length; fi++) {
-          if (activeStatus === 'all' || _statusKey(sorted[fi]) === activeStatus) {
-            filteredWithIdx.push({ pkg: sorted[fi], idx: fi });
+          var _pkg = sorted[fi];
+          var _matchesStatus;
+          if (activeStatus === 'all') {
+            _matchesStatus = true;
+          } else if (activeStatus === 'pendiente-factura') {
+            // Strict: only include packages where invoicesCount is KNOWN to be 0.
+            // Treat null/undefined as "unknown" — do not overclassify as invoiceless.
+            var _ic = _pkg.invoicesCount;
+            _matchesStatus = (_ic !== null && _ic !== undefined && Number(_ic) === 0);
+          } else {
+            _matchesStatus = (_statusKey(_pkg) === activeStatus);
+          }
+          if (_matchesStatus) {
+            filteredWithIdx.push({ pkg: _pkg, idx: fi });
           }
         }
 
@@ -2290,7 +2444,7 @@
         var pagedWithIdx = filteredWithIdx.slice(start, start + itemsPerPage);
 
         var _emptyListHtml =
-          '<tr><td colspan="14">' +
+          '<tr><td colspan="15">' +
             '<div class="flex flex-col items-center justify-center py-16 text-gray-400">' +
               '<i class="fas fa-box-open text-5xl mb-4 text-gray-300"></i>' +
               '<p class="text-lg font-medium text-gray-500 mb-1">No tienes paquetes registrados</p>' +
@@ -2334,13 +2488,13 @@
             tbody.innerHTML = groupedRows.map(function(x) {
               if (x.isEsperaHeader) {
                 return '<tr class="bg-yellow-50 border-t-2 border-yellow-100">' +
-                  '<td colspan="14" class="px-4 py-1.5 text-xs font-semibold text-yellow-700 tracking-wide">' +
+                  '<td colspan="15" class="px-4 py-1.5 text-xs font-semibold text-yellow-700 tracking-wide">' +
                   '<i class="fas fa-clock mr-1.5"></i>Paquetes en espera' +
                   '</td></tr>';
               }
               if (x.isHeader) {
                 return '<tr class="bg-blue-50 border-t-2 border-blue-100">' +
-                  '<td colspan="14" class="px-4 py-1.5 text-xs font-semibold text-blue-600 tracking-wide">' +
+                  '<td colspan="15" class="px-4 py-1.5 text-xs font-semibold text-blue-600 tracking-wide">' +
                   '<i class="fas fa-layer-group mr-1.5"></i>Embarque ' + _esc(x.mawb) +
                   '</td></tr>';
               }
@@ -2382,9 +2536,13 @@
       function _renderStats(packages) {
         var total = packages.length;
         var counts = {};
+        var pendienteFacturaCount = 0;
         packages.forEach(function (p) {
           var key = _statusKey(p);
           counts[key] = (counts[key] || 0) + 1;
+          // Strict: only count packages where invoicesCount is KNOWN to be 0.
+          var _sic = p.invoicesCount;
+          if (_sic !== null && _sic !== undefined && Number(_sic) === 0) pendienteFacturaCount++;
         });
         _txt('total-paquetes', String(total));
         _txt('en-transito',    String(counts['EN TRÁNSITO'] || 0));
@@ -2393,7 +2551,14 @@
 
         document.querySelectorAll('.status-tab').forEach(function (tab) {
           var ds = (tab.getAttribute('data-status') || '').trim();
-          var count = ds === 'all' ? total : (counts[ds] || 0);
+          var count;
+          if (ds === 'all') {
+            count = total;
+          } else if (ds === 'pendiente-factura') {
+            count = pendienteFacturaCount;
+          } else {
+            count = counts[ds] || 0;
+          }
           var badge = tab.querySelector('span.text-xs');
           if (badge) badge.textContent = String(count);
         });
@@ -2459,7 +2624,7 @@
         var gridView = document.getElementById('grid-view');
         if (!tbody) return;
 
-        var loadingRow = '<tr><td colspan="14" class="text-center py-8 text-gray-400">' +
+        var loadingRow = '<tr><td colspan="15" class="text-center py-8 text-gray-400">' +
           '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando paquetes...</td></tr>';
         tbody.innerHTML = loadingRow;
         if (gridView) {
@@ -2495,7 +2660,7 @@
           var errMsg = '<i class="fas fa-exclamation-triangle mr-2"></i>' +
             'No se pudieron cargar los paquetes. ' +
             '<button onclick="location.reload();" class="underline font-medium">Reintentar</button>';
-          tbody.innerHTML = '<tr><td colspan="14" class="text-center py-8 text-orange-500">' + errMsg + '</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="15" class="text-center py-8 text-orange-500">' + errMsg + '</td></tr>';
           if (gridView) {
             gridView.innerHTML = '<div class="col-span-3 text-center py-8 text-orange-500">' + errMsg + '</div>';
           }
@@ -2626,6 +2791,276 @@
         }
       }
 
+      // ── Invoice Upload Modal ──────────────────────────────────────────────────
+
+      function _openInvoiceModal(pkg) {
+        var modal = document.getElementById('invoice-upload-modal');
+        if (!modal) return;
+        _currentInvoicePkg = pkg;
+
+        // Set subtitle
+        var subtitle = document.getElementById('invoice-modal-subtitle');
+        if (subtitle) {
+          var label = [pkg.number, pkg.trackingNumber, pkg.descripcion].filter(Boolean).join(' · ');
+          subtitle.textContent = label || 'Paquete';
+        }
+
+        // Reset form state
+        var form = document.getElementById('invoice-upload-form');
+        if (form) form.reset();
+        var fileInput = document.getElementById('invoice-file');
+        if (fileInput) fileInput.value = '';
+        _setInvoiceFileLabel('');
+        _setInvoiceError('', false);
+        _setInvoicePartial('', false);
+        _setInvoiceSuccess(false);
+        _setInvoiceSubmitting(false);
+
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        var firstInput = document.getElementById('invoice-numero');
+        if (firstInput) setTimeout(function() { firstInput.focus(); }, 80);
+      }
+
+      function _closeInvoiceModal() {
+        var modal = document.getElementById('invoice-upload-modal');
+        if (modal) modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        _currentInvoicePkg = null;
+      }
+
+      function _setInvoiceFileLabel(name) {
+        var el   = document.getElementById('invoice-file-name');
+        var txt  = document.getElementById('invoice-file-name-text');
+        if (el && txt) {
+          if (name) {
+            txt.textContent = name;
+            el.style.removeProperty('display');
+          } else {
+            el.style.display = 'none';
+          }
+        }
+      }
+
+      function _setInvoiceError(msg, show) {
+        var el  = document.getElementById('invoice-form-error');
+        var txt = document.getElementById('invoice-form-error-text');
+        if (!el) return;
+        if (show && msg) {
+          if (txt) txt.textContent = msg;
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      }
+
+      function _setInvoicePartial(msg, show) {
+        var el  = document.getElementById('invoice-form-partial');
+        var txt = document.getElementById('invoice-form-partial-text');
+        if (!el) return;
+        if (show && msg) {
+          if (txt) txt.textContent = msg;
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      }
+
+      function _setInvoiceSuccess(show) {
+        var el = document.getElementById('invoice-form-success');
+        if (el) {
+          if (show) el.classList.remove('hidden'); else el.classList.add('hidden');
+        }
+      }
+
+      function _setInvoiceSubmitting(submitting) {
+        var btn   = document.getElementById('invoice-submit-btn');
+        var icon  = document.getElementById('invoice-submit-icon');
+        var label = document.getElementById('invoice-submit-label');
+        var cancelBtn = document.getElementById('invoice-cancel-btn');
+        if (btn) btn.disabled = submitting;
+        if (cancelBtn) cancelBtn.disabled = submitting;
+        if (icon) {
+          icon.className = submitting ? 'fas fa-spinner fa-spin' : 'fas fa-upload';
+        }
+        if (label) label.textContent = submitting ? 'Subiendo…' : 'Subir Factura';
+      }
+
+      // Wire invoice form file input label
+      (function _wireInvoiceFileInput() {
+        var fi = document.getElementById('invoice-file');
+        if (!fi) return;
+        fi.addEventListener('change', function() {
+          var f = fi.files && fi.files[0];
+          _setInvoiceFileLabel(f ? f.name : '');
+        });
+      })();
+
+      // Wire invoice modal close / cancel buttons
+      (function _wireInvoiceModalClose() {
+        var closeBtn  = document.getElementById('close-invoice-modal-btn');
+        var cancelBtn = document.getElementById('invoice-cancel-btn');
+        if (closeBtn)  closeBtn.addEventListener('click', _closeInvoiceModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', _closeInvoiceModal);
+
+        // Close on backdrop click
+        var modal = document.getElementById('invoice-upload-modal');
+        if (modal) {
+          modal.addEventListener('click', function(e) {
+            if (e.target === modal) _closeInvoiceModal();
+          });
+        }
+      })();
+
+      // Wire invoice form submit
+      (function _wireInvoiceFormSubmit() {
+        var form = document.getElementById('invoice-upload-form');
+        if (!form) return;
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          if (!_currentInvoicePkg) return;
+
+          var numero    = (document.getElementById('invoice-numero')      || {}).value || '';
+          var monto     = (document.getElementById('invoice-monto')       || {}).value || '';
+          var desc      = (document.getElementById('invoice-descripcion') || {}).value || '';
+          var fileInput = document.getElementById('invoice-file');
+          var file      = fileInput && fileInput.files && fileInput.files[0];
+
+          // Allowed file types: PDF and common images (matches legacy portal)
+          var ALLOWED_MIME = [
+            'application/pdf',
+            'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'
+          ];
+          var ALLOWED_EXT = /\.(pdf|jpg|jpeg|png|gif|webp)$/i;
+
+          // Client-side validation
+          if (!numero.trim()) {
+            _setInvoiceError('Por favor ingresa el número de factura.', true);
+            document.getElementById('invoice-numero').focus();
+            return;
+          }
+          if (!monto || isNaN(parseFloat(monto)) || parseFloat(monto) < 0) {
+            _setInvoiceError('Por favor ingresa un monto válido en USD.', true);
+            document.getElementById('invoice-monto').focus();
+            return;
+          }
+          if (!desc.trim()) {
+            _setInvoiceError('Por favor ingresa una descripción del artículo.', true);
+            document.getElementById('invoice-descripcion').focus();
+            return;
+          }
+          if (!file) {
+            _setInvoiceError('Por favor selecciona el archivo de factura (PDF, imagen, etc.).', true);
+            return;
+          }
+          if (file.size > 10 * 1024 * 1024) {
+            _setInvoiceError('El archivo supera el límite de 10 MB. Por favor selecciona un archivo más pequeño.', true);
+            return;
+          }
+          var _mimeOk = ALLOWED_MIME.indexOf(file.type) !== -1;
+          var _extOk  = ALLOWED_EXT.test(file.name);
+          if (!_mimeOk && !_extOk) {
+            _setInvoiceError('Tipo de archivo no permitido. Por favor sube un PDF o imagen (JPG, PNG, GIF, WEBP).', true);
+            return;
+          }
+
+          _setInvoiceError('', false);
+          _setInvoicePartial('', false);
+          _setInvoiceSuccess(false);
+          _setInvoiceSubmitting(true);
+
+          var pkg       = _currentInvoicePkg;
+          var wrId      = pkg.idwarehousereceipt;
+          var userEmail = '';
+          try {
+            // CRBOXAuth.getEmail() is the authoritative email getter (mirrors dashboard.html usage)
+            userEmail = (CRBOXAuth && CRBOXAuth.getEmail && CRBOXAuth.getEmail()) || '';
+          } catch (ex) { userEmail = ''; }
+
+          // Step 1: upload the file to WordPress media
+          CRBOXPortalAPI.saveBill(userEmail, file, wrId)
+            .then(function(saved) {
+              var fileUrl = saved.url || saved.file || '';
+
+              // Step 2: create the purchase bill record
+              // Field names must match the exact backend contract for postcreatepurchasebill.
+              var clientInvoiceText = '<p>' + desc.trim().replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p>';
+              var payload = {
+                WRId:              wrId,
+                NumeroFactura:     numero.trim(),
+                Monto:             parseFloat(monto),
+                Descripcion:       desc.trim(),
+                ClientInvoiceText: clientInvoiceText,
+                FileLocation:      fileUrl
+              };
+              return CRBOXPortalAPI.createPurchaseBill(payload);
+            })
+            .then(function() {
+              // Both writes succeeded — now refresh the package list inline
+              // so we can detect and report a refresh failure distinctly.
+              if (!_cachedConsigneeId) {
+                // No consignee id to refresh with; treat as success, user can reload manually
+                _setInvoiceSuccess(true);
+                _setInvoiceSubmitting(false);
+                setTimeout(_closeInvoiceModal, 1800);
+                return;
+              }
+              // Read the CURRENT UI filter/date state exactly as _applyFiltersFromUI does,
+              // so the refreshed list matches what the user was looking at before upload.
+              var _tracking  = (document.getElementById('search-input')  || {}).value || '';
+              var _statusVal = (document.getElementById('status-filter') || {}).value || '';
+              var _dateVal   = (document.getElementById('date-filter')   || {}).value || 'month';
+              return CRBOXPortalAPI.getPackages(
+                _cachedConsigneeId,
+                _dateFilterToDate(_dateVal),
+                new Date(),
+                _tracking || '',
+                _statusFilterToCode(_statusVal)
+              ).then(function(data) {
+                // Refresh succeeded — update state and re-render
+                var raw      = Array.isArray(data) ? data : (data.packages || data.Packages || []);
+                var packages = raw.map(function(r) { return CRBOXPortalAPI.mapPackage(r); });
+                _cachedPackages = packages;
+                _renderStats(packages);
+                _renderAll(packages, true);
+                // Show success in modal, then close
+                _setInvoiceSuccess(true);
+                _setInvoiceSubmitting(false);
+                setTimeout(_closeInvoiceModal, 1800);
+              }).catch(function(refreshErr) {
+                // Both writes succeeded but refresh failed — show partial-success, keep modal open
+                if (refreshErr && refreshErr.isAuthError) return; // redirect already in flight
+                var refErr = new Error('refresh failed');
+                refErr.step = 'refresh';
+                throw refErr;
+              });
+            })
+            .catch(function(err) {
+              _setInvoiceSubmitting(false);
+              console.error('[CRBOX] Invoice upload error:', err);
+
+              if (err && err.step === 'saveBill') {
+                // Upload itself failed — clean failure, user can retry
+                _setInvoiceError(
+                  'No se pudo subir el archivo al servidor. Verifica tu conexión e inténtalo de nuevo.', true);
+              } else if (err && err.step === 'createPurchaseBill') {
+                // File uploaded but bill record creation failed — partial state
+                _setInvoicePartial(
+                  'El archivo se subió correctamente, pero no se pudo registrar la factura en el sistema. ' +
+                  'Por favor contacta a soporte con el número de recibo ' + (pkg.number || pkg.idwarehousereceipt) + '.', true);
+              } else if (err && err.step === 'refresh') {
+                // Both writes succeeded but the page refresh failed — partial success
+                _setInvoicePartial(
+                  'La factura se registró correctamente. No se pudo actualizar la lista en este momento — ' +
+                  'por favor recarga la página para ver el estado actualizado.', true);
+              } else {
+                _setInvoiceError(
+                  'Ocurrió un error inesperado. Por favor inténtalo de nuevo o contacta a soporte.', true);
+              }
+            });
+        });
+      })();
+
       // Expose a tracking lookup so the first-script tracking modal can check real packages
       window._CRBOX_isKnownTracking = function(tn) {
         return _cachedPackages.some(function(p) {
@@ -2682,6 +3117,38 @@
           }
           var rtrackingNum = _currentModalPkg ? (_currentModalPkg.trackingNumber || '') : '';
           _openTrackingModal(rtrackingNum);
+          return;
+        }
+
+        // Invoice upload button — opens the upload modal
+        var invoiceBtn = e.target.closest('.btn-invoice');
+        if (invoiceBtn) {
+          var irow = invoiceBtn.closest('[data-pkg-idx]');
+          if (irow) {
+            var iidx = parseInt(irow.getAttribute('data-pkg-idx'), 10);
+            var ipkg = _renderedPackages[iidx];
+            if (ipkg) {
+              _openInvoiceModal(ipkg);
+            } else {
+              showToast('No se pudo cargar la información del paquete', 'warning');
+            }
+          }
+          return;
+        }
+
+        // View invoice button — opens the details modal (invoice info is shown there)
+        var viewInvoiceBtn = e.target.closest('.btn-view-invoice');
+        if (viewInvoiceBtn) {
+          var vrow = viewInvoiceBtn.closest('[data-pkg-idx]');
+          if (vrow) {
+            var vidx = parseInt(vrow.getAttribute('data-pkg-idx'), 10);
+            var vpkg = _renderedPackages[vidx];
+            if (vpkg) {
+              _openDetailsModal(vpkg);
+            } else {
+              showToast('No se pudo cargar la información del paquete', 'warning');
+            }
+          }
           return;
         }
       });
@@ -2767,7 +3234,7 @@
             console.warn('[CRBOX] getUserInfo error (transient):', err);
             var tbody = document.getElementById('packages-tbody');
             if (tbody) {
-              tbody.innerHTML = '<tr><td colspan="14" class="text-center py-8 text-orange-500">' +
+              tbody.innerHTML = '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
                 '<i class="fas fa-exclamation-triangle mr-2"></i>' +
                 'No se pudo cargar la información de tu cuenta. ' +
                 '<button onclick="CRBOXPortalAPI.clearUserInfoCache();location.reload();" ' +
