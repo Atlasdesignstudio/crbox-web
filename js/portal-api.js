@@ -402,6 +402,7 @@
       airShipmentNumber:       _str(raw.airShipmentNumber),
       descripcion:             _str(raw.descripcion),
       invoicesCount:           _num(raw.invoicesCount),
+      invoiceFileUrl:          _str(raw.fileLocation || raw.FileLocation || raw.invoiceFileUrl || raw.InvoiceFileUrl || raw.invoiceurl || raw.InvoiceUrl || ''),
       hasPackage:              raw.hasPackage === true || raw.hasPackage === 'true',
       impresoFactura:          raw.impresoFactura === true || raw.impresoFactura === 'true',
       consolidadoFactura:      raw.consolidadoFactura === true || raw.consolidadoFactura === 'true',
@@ -452,6 +453,7 @@
       total:                   _num(f.total),
       descuentoNombre:         _str(disc._nombre || disc.nombre),
       isInvoiced:              f.isInvoiced === true || f.isInvoiced === 'true',
+      invoiceFileUrl:          _str(f.fileLocation || f.FileLocation || f.invoiceFileUrl || f.InvoiceFileUrl || f.pdfUrl || f.PdfUrl || ''),
       recibos:                 recArr.map(mapRecibo),
       // Convenience derived
       bestDate:                f.billedDate || f.createdDate || ''

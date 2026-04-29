@@ -468,7 +468,9 @@
 
             <!-- Vista de Lista -->
             <div id="list-view" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8 transform transition-all hover:shadow-md">
-                <div class="min-w-full overflow-x-auto">
+                <div class="table-overflow-wrapper">
+                <div class="table-scroll-fade" id="table-scroll-fade"></div>
+                <div class="min-w-full overflow-x-auto" id="table-scroll-wrapper">
                     <table class="data-table w-full">
                         <thead>
                             <tr>
@@ -485,8 +487,8 @@
                                 <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso Kg</th>
                                 <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</th>
                                 <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Factura</th>
-                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider sticky-col-factura">Factura</th>
+                                <th class="whitespace-nowrap bg-gray-50 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider sticky-col-actions">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="packages-tbody">
@@ -498,6 +500,11 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                </div>
+                <p class="text-xs text-center text-gray-400 py-1 flex items-center justify-center gap-1" id="table-scroll-hint" style="display:none!important">
+                    <i class="fas fa-arrows-alt-h"></i> Desliza para ver más columnas
+                </p>
                 </div>
                 
                 <!-- Paginación -->
@@ -709,14 +716,14 @@
 
     <!-- Modal de Detalles del Paquete -->
     <div id="package-details-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 flex flex-col" style="max-height:90vh">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
                 <h3 id="modal-title" class="text-xl font-bold text-gray-800">Detalles del Paquete</h3>
                 <button id="close-details-modal-btn" class="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 rounded-full" aria-label="Cerrar">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            <div class="p-6">
+            <div class="p-6 overflow-y-auto flex-1">
                 <div class="flex items-center mb-6">
                     <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4">
                         <i class="fas fa-box"></i>
@@ -1418,6 +1425,54 @@
             background-color: #FF6B00;
         }
         
+        /* ── Sticky last 2 table columns ────────────────────────────── */
+        td.sticky-col-factura, th.sticky-col-factura {
+            position: sticky;
+            right: 56px;
+            background-color: #fff;
+            z-index: 1;
+        }
+        td.sticky-col-actions, th.sticky-col-actions {
+            position: sticky;
+            right: 0;
+            background-color: #fff;
+            z-index: 1;
+            box-shadow: -3px 0 6px rgba(0,0,0,.06);
+        }
+        thead th.sticky-col-factura,
+        thead th.sticky-col-actions {
+            background-color: #f9fafb;
+            z-index: 2;
+        }
+        tr:hover td.sticky-col-factura,
+        tr:hover td.sticky-col-actions {
+            background-color: #fff7f0;
+        }
+        tr.bg-blue-50 td.sticky-col-factura,
+        tr.bg-blue-50 td.sticky-col-actions {
+            background-color: #eff6ff;
+        }
+        tr.bg-yellow-50 td.sticky-col-factura,
+        tr.bg-yellow-50 td.sticky-col-actions {
+            background-color: #fefce8;
+        }
+        /* ── Table scroll hint ───────────────────────────────────────── */
+        .table-overflow-wrapper { position: relative; }
+        .table-scroll-fade {
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 48px;
+            background: linear-gradient(to left, rgba(255,255,255,.9), transparent);
+            pointer-events: none;
+            z-index: 3;
+            transition: opacity .2s;
+        }
+        /* ── Row highlight from deep-link ────────────────────────────── */
+        @keyframes pkgRowPulse {
+            0%, 30% { background-color: #fff3b0 !important; }
+            100%    { background-color: transparent; }
+        }
+        tr.pkg-row-highlighted, tr.pkg-row-highlighted td { animation: pkgRowPulse 2.5s ease-out forwards; }
         /* Mejoras para responsividad en móviles */
         @media (max-width: 768px) {
             .sticky-header {
@@ -1464,8 +1519,25 @@
             initStatusFilter();
             initModalHandlers();
             initSearchFilter();
-            
+            initTableScrollFade();
         });
+
+        function initTableScrollFade() {
+            var wrapper = document.getElementById('table-scroll-wrapper');
+            var fade    = document.getElementById('table-scroll-fade');
+            if (!wrapper || !fade) return;
+            function updateFade() {
+                var atEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 4;
+                fade.style.opacity = atEnd ? '0' : '1';
+            }
+            wrapper.addEventListener('scroll', updateFade, { passive: true });
+            // Re-check when data renders (MutationObserver on tbody)
+            var tbody = document.getElementById('packages-tbody');
+            if (tbody && typeof MutationObserver !== 'undefined') {
+                new MutationObserver(updateFade).observe(tbody, { childList: true });
+            }
+            updateFade();
+        }
         
         // Header sticky con sombra al scroll
         function initStickyHeader() {
@@ -2217,7 +2289,11 @@
         var hasInvoice = _invKnown && Number(_invCount) > 0;
         var noInvoice  = _invKnown && Number(_invCount) === 0;
         if (hasInvoice) {
-          return '<button class="btn-view-invoice inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition-colors whitespace-nowrap">' +
+          var fileUrl   = _esc(pkg.invoiceFileUrl || '');
+          var receipt   = pkg.number ? encodeURIComponent(pkg.number) : '';
+          var fallback  = receipt ? 'mis-facturas.html?receipt=' + receipt : 'mis-facturas.html';
+          return '<button class="btn-view-invoice inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition-colors whitespace-nowrap"' +
+            ' data-invoice-url="' + fileUrl + '" data-fallback-url="' + _esc(fallback) + '">' +
             '<i class="fas fa-file-invoice"></i> Ver factura' +
             '</button>';
         }
@@ -2255,16 +2331,11 @@
           '<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">' + _esc(_fmtNum(pkg.totalweight)) + '</td>' +
           '<td class="px-4 py-4 text-sm text-gray-500 max-w-xs">' + _esc(_orDash(pkg.consigneeNotes)) + '</td>' +
           '<td class="px-4 py-4 text-sm text-gray-700 max-w-xs">' + _esc(_orDash(pkg.descripcion)) + '</td>' +
-          '<td class="px-4 py-4 whitespace-nowrap text-center">' + _renderInvoiceAction(pkg) + '</td>' +
-          '<td class="px-4 py-4 text-right whitespace-nowrap">' +
-            '<div class="flex justify-end space-x-1">' +
-              '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" aria-label="Ver detalles">' +
-                '<i class="fas fa-eye"></i>' +
-              '</button>' +
-              '<button class="btn-track p-1.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-50" title="Rastrear" aria-label="Rastrear">' +
-                '<i class="fas fa-search-location"></i>' +
-              '</button>' +
-            '</div>' +
+          '<td class="px-4 py-4 whitespace-nowrap text-center sticky-col-factura">' + _renderInvoiceAction(pkg) + '</td>' +
+          '<td class="px-4 py-4 text-right whitespace-nowrap sticky-col-actions">' +
+            '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" aria-label="Ver detalles">' +
+              '<i class="fas fa-eye"></i>' +
+            '</button>' +
           '</td>' +
         '</tr>';
       }
@@ -2645,14 +2716,24 @@
           // ?receipt= deep-link: client-side filter on warehouse receipt number.
           // Consumed once; cleared so subsequent filter changes show all packages.
           var _displayPackages = packages;
+          var _highlightOnRender = false;
           if (_receiptQueryParam) {
             var _rMatched = packages.filter(function (p) { return p.number === _receiptQueryParam; });
-            if (_rMatched.length > 0) _displayPackages = _rMatched;
+            if (_rMatched.length > 0) { _displayPackages = _rMatched; _highlightOnRender = true; }
             _receiptQueryParam = '';
           }
 
           _renderStats(_displayPackages);
           _renderAll(_displayPackages, true);
+          if (_highlightOnRender) {
+            setTimeout(function () {
+              var _tb = document.getElementById('packages-tbody');
+              if (_tb) {
+                var _firstRow = _tb.querySelector('tr[data-pkg-idx]');
+                if (_firstRow) { _firstRow.classList.add('pkg-row-highlighted'); }
+              }
+            }, 80);
+          }
         })
         .catch(function (err) {
           if (err && err.isAuthError) return; // redirect already in flight
@@ -2713,8 +2794,16 @@
             if (facturaLink) {
               if (hasCount) {
                 var receiptNum = pkg.number ? String(pkg.number).trim() : '';
-                facturaLink.href = receiptNum ? 'mis-facturas.html?receipt=' + encodeURIComponent(receiptNum) : 'mis-facturas.html';
-                facturaLink.textContent = (Number(pkg.invoicesCount) > 1) ? 'Ver facturas relacionadas →' : 'Ver factura completa →';
+                if (pkg.invoiceFileUrl) {
+                  facturaLink.href = pkg.invoiceFileUrl;
+                  facturaLink.setAttribute('target', '_blank');
+                  facturaLink.setAttribute('rel', 'noopener');
+                  facturaLink.textContent = 'Ver archivo de factura →';
+                } else {
+                  facturaLink.href = receiptNum ? 'mis-facturas.html?receipt=' + encodeURIComponent(receiptNum) : 'mis-facturas.html';
+                  facturaLink.removeAttribute('target');
+                  facturaLink.textContent = (Number(pkg.invoicesCount) > 1) ? 'Ver facturas relacionadas →' : 'Ver factura completa →';
+                }
                 facturaLink.classList.remove('hidden');
               } else {
                 facturaLink.classList.add('hidden');
@@ -3136,18 +3225,15 @@
           return;
         }
 
-        // View invoice button — opens the details modal (invoice info is shown there)
+        // View invoice button — opens the uploaded file if available, otherwise navigates to mis-facturas
         var viewInvoiceBtn = e.target.closest('.btn-view-invoice');
         if (viewInvoiceBtn) {
-          var vrow = viewInvoiceBtn.closest('[data-pkg-idx]');
-          if (vrow) {
-            var vidx = parseInt(vrow.getAttribute('data-pkg-idx'), 10);
-            var vpkg = _renderedPackages[vidx];
-            if (vpkg) {
-              _openDetailsModal(vpkg);
-            } else {
-              showToast('No se pudo cargar la información del paquete', 'warning');
-            }
+          var invoiceUrl  = viewInvoiceBtn.getAttribute('data-invoice-url') || '';
+          var fallbackUrl = viewInvoiceBtn.getAttribute('data-fallback-url') || 'mis-facturas.html';
+          if (invoiceUrl) {
+            window.open(invoiceUrl, '_blank', 'noopener');
+          } else {
+            window.location.href = fallbackUrl;
           }
           return;
         }

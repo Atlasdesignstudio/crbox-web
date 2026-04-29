@@ -1230,10 +1230,18 @@
         }
         var dlBtn = e.target.closest('.btn-download-bill');
         if (dlBtn) {
-          // Real PDF download endpoint is not exposed; the action stays
-          // safe and informative until the backend confirms one.
-          if (typeof showToast === 'function') {
-            showToast('Descarga de facturas próximamente disponible', 'info');
+          var dlRow = dlBtn.closest('tr[data-bill-idx]');
+          if (dlRow) {
+            var dlIdx = parseInt(dlRow.getAttribute('data-bill-idx'), 10);
+            if (!isNaN(dlIdx)) {
+              var dlBill = _cachedBills[dlIdx];
+              var dlUrl  = dlBill && dlBill.invoiceFileUrl;
+              if (dlUrl) {
+                window.open(dlUrl, '_blank', 'noopener');
+              } else if (typeof showToast === 'function') {
+                showToast('No hay archivo disponible para esta factura', 'info');
+              }
+            }
           }
           return;
         }
