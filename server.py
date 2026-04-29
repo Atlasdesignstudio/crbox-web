@@ -4019,6 +4019,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/admin/login':
                 self._handle_admin_login_get()
+            elif path_no_qs == '/admin/portal-login':
+                self._handle_admin_portal_login()
             elif path_no_qs == '/admin/solicitudes':
                 self._handle_admin_solicitudes_get()
             elif path_no_qs == '/admin/consultas':
@@ -5109,6 +5111,95 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             for k, v in extra_headers:
                 self.send_header(k, v)
         self.end_headers()
+
+    # ── GET /admin/portal-login ────────────────────────────────────────────
+    def _handle_admin_portal_login(self):
+        """Bridge endpoint: validates the portal Bearer token via CRBOX API.
+
+        Success (CRBOX confirms email == prueba@crbox.cr):
+          302 → /admin/solicitudes with Set-Cookie: admin_session=<token>.
+
+        Failure (bad token, wrong email, or API returns no email):
+          403 with no body and NO Set-Cookie header whatsoever.
+
+        Security: identity is derived exclusively from the CRBOX API response.
+        The client-supplied X-Casillero-Email header is only used to construct
+        the /getuserinfo URL — it is NEVER used as the email for the access
+        decision.  If the CRBOX API response does not contain an email field,
+        the request is rejected.  Both paths bypass _admin_redirect() to prevent
+        any cookie side-effects from session-refresh logic.
+        """
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+
+        _PORTAL_ADMIN_EMAIL = 'prueba@crbox.cr'
+
+        # Strict CRBOX validation — email from API response only, no fallback.
+        verified_email = self._portal_auth_email_only()
+        if verified_email and verified_email.strip().lower() == _PORTAL_ADMIN_EMAIL:
+            token = _admin_create_session()
+            is_https = (self.headers.get('X-Forwarded-Proto', '') == 'https'
+                        or self.headers.get('X-Forwarded-Ssl', '') == 'on')
+            secure_flag = '; Secure' if is_https else ''
+            cookie = (
+                f'admin_session={token}; HttpOnly; SameSite=Strict; '
+                f'Path=/; Max-Age={_ADMIN_SESSION_TTL}{secure_flag}'
+            )
+            self.send_response(302)
+            self.send_header('Location', '/admin/solicitudes')
+            self.send_header('Set-Cookie', cookie)
+            self.end_headers()
+        else:
+            # Failure: 403 with no body and no Set-Cookie.
+            # A non-redirect response lets the client navigate directly to
+            # /admin/login without an extra hop through /admin/solicitudes.
+            self.send_response(403)
+            self.send_header('Content-Length', '0')
+            self.end_headers()
+
+    def _portal_auth_email_only(self):
+        """Strict variant of _portal_auth_full: calls the CRBOX API to validate
+        the Bearer token and returns the email field from the API response ONLY.
+        Returns None if validation fails OR if the API response contains no
+        explicit email — the client-supplied X-Casillero-Email header is never
+        used as a fallback for the returned value.
+        """
+        auth_header  = self.headers.get('Authorization', '').strip()
+        header_email = self.headers.get('X-Casillero-Email', '').strip()
+
+        if not auth_header.startswith('Bearer ') or len(auth_header) < 10:
+            return None
+        if not header_email or '@' not in header_email:
+            return None
+
+        api_url = (
+            self._CRBOX_API_BASE + '/getuserinfo/' +
+            urllib.parse.quote(header_email, safe='')
+        )
+        req = urllib.request.Request(api_url, headers={'Authorization': auth_header})
+        try:
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                if resp.status != 200:
+                    return None
+                data = json.loads(resp.read().decode())
+        except urllib.error.HTTPError as exc:
+            if exc.code in (401, 403):
+                return None
+            print(f'[PORTAL_AUTH_ADMIN] CRBOX API error {exc.code}')
+            return None
+        except Exception as exc:
+            print(f'[PORTAL_AUTH_ADMIN] Unexpected error: {exc}')
+            return None
+
+        consignee = data.get('Consignee') or data
+        # Email must come from the API response — no fallback to header value.
+        api_email = (
+            consignee.get('email') or consignee.get('Email') or
+            consignee.get('correo') or consignee.get('Correo')
+        )
+        if not api_email:
+            return None
+        return str(api_email).strip().lower()
 
     # ── GET /admin/login ───────────────────────────────────────────────────
     def _handle_admin_login_get(self):

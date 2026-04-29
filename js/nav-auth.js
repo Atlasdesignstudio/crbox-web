@@ -3,6 +3,30 @@
 
     var ADMIN_EMAIL = 'prueba@crbox.cr';
 
+    function _goAdminPortal() {
+        var auth = window.CRBOXAuth;
+        if (!auth) { window.location.href = '/admin/login'; return; }
+        var authHeader = auth.getAuthHeader();
+        var email      = auth.getEmail();
+        if (!authHeader || !email) { window.location.href = '/admin/login'; return; }
+        fetch('/admin/portal-login', {
+            method:   'GET',
+            redirect: 'manual',
+            headers: {
+                'Authorization':     authHeader,
+                'X-Casillero-Email': email
+            }
+        }).then(function (res) {
+            if (res.type === 'opaqueredirect' || res.status === 302) {
+                window.location.href = '/admin/solicitudes';
+            } else {
+                window.location.href = '/admin/login';
+            }
+        }).catch(function () {
+            window.location.href = '/admin/login';
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         var auth = window.CRBOXAuth;
         if (!auth || !auth.isLoggedIn()) return;
@@ -29,11 +53,16 @@
             // Inject admin link for prueba@crbox.cr only
             if (isAdmin) {
                 var adminLink = document.createElement('a');
-                adminLink.href = '/admin/solicitudes';
+                adminLink.href = '#';
                 adminLink.className = 'secondary-btn flex items-center gap-2';
                 adminLink.style.textDecoration = 'none';
                 adminLink.style.marginLeft = '8px';
+                adminLink.style.cursor = 'pointer';
                 adminLink.innerHTML = '<i class="fas fa-shield-alt"></i><span>Panel Admin</span>';
+                adminLink.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    _goAdminPortal();
+                });
                 dashLink.parentNode.insertBefore(adminLink, dashLink.nextSibling);
             }
         }
@@ -60,10 +89,15 @@
             // Inject mobile admin link for prueba@crbox.cr only
             if (isAdmin) {
                 var mobileAdmin = document.createElement('a');
-                mobileAdmin.href = '/admin/solicitudes';
+                mobileAdmin.href = '#';
                 mobileAdmin.className = calcLink.className;
                 mobileAdmin.style.textDecoration = 'none';
+                mobileAdmin.style.cursor = 'pointer';
                 mobileAdmin.textContent = 'Panel Admin';
+                mobileAdmin.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    _goAdminPortal();
+                });
                 calcLink.parentNode.appendChild(mobileAdmin);
             }
         }
