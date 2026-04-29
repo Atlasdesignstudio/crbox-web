@@ -1,0 +1,48 @@
+This looks strong overall and I agree with the direction of #232.
+
+It correctly addresses the five pending items as one coherent refinement pass:
+- rename the portal language to Cotizaciones
+- fix the washed-out CTA visibility issues
+- align the portal form taxonomy with the calculator taxonomy
+- run the estimate from the real calculator engine
+- and send that estimate context internally with the request
+
+So yes, directionally I agree.
+
+## Refinements I want before approval
+
+1. Keep the estimate clearly labeled as preliminary
+The live estimate shown in the portal form must not read as a final CRBOX-approved price.
+Please make sure both in the portal and in the internal/admin display it is clearly framed as something like:
+- Estimado automático
+- Referencia preliminar
+- and/or explicit copy that the final price is reviewed by CRBOX
+
+2. Keep automatic estimate data clearly separate from the reviewed commercial response
+Please do not blur:
+- the calculator-generated estimate
+- and the later human-reviewed CRBOX response / confirmed shipping price
+
+Those are different layers and should remain clearly separated in storage and UI.
+
+3. Handle maritime explicitly as manual
+For maritime, do not create an ambiguous empty estimate object.
+Please make the behavior explicit, both in UX and in data handling:
+- maritime = se cotizará manualmente
+- and either no estimate payload is sent, or it is explicitly flagged as manual mode
+
+4. Do not only copy the visible option list — confirm the actual values
+Please make sure the category dropdown uses the exact values expected by tariff-adapter.js, not just matching labels.
+The important part is real value compatibility, not only visual parity with the calculator modal.
+
+5. Audit the button visibility issue beyond CSS if needed
+It is fine to fix disabled-state styling explicitly, but also confirm whether the washed-out behavior was caused by any incorrect JS state management.
+If so, fix that too.
+
+6. Be explicit about where estimate context is surfaced in admin
+My preference is:
+- show it in the request detail view
+- with a clear label such as Estimado automático del sistema
+- and keep it visually distinct from the later reviewed response
+
+If you include these refinements, the task direction looks good to me.
