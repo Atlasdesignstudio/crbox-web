@@ -1232,6 +1232,64 @@ def _send_comprado_notification(scb_id, customer_email, customer_name, product_n
     _send_smtp(msg, [customer_email])
 
 
+def _send_completada_notification(scb_id, customer_email, customer_name, product_name, package_id, smtp_user):
+    """Notify the customer that their self-purchase solicitud is completada and their package is registered."""
+    esc = _html.escape
+    greeting = f'Hola {customer_name},' if customer_name else 'Hola,'
+    subject = f'[{scb_id}] Tu solicitud fue completada — paquete registrado'
+    plain = (
+        f'{greeting}\n\n'
+        f'Tu solicitud de autopedido {scb_id} ha sido completada. '
+        f'El paquete ha sido registrado en nuestro sistema.\n\n'
+        f'ID de solicitud: {scb_id}\n'
+        f'Producto: {product_name}\n'
+        f'ID de paquete: {package_id}\n\n'
+        f'Puedes seguir el estado de tu paquete en la sección Mis Paquetes de tu portal:\n'
+        f'https://crbox.cr/mis-paquetes\n\n'
+        f'Si tienes preguntas, responde a este correo indicando tu ID: {scb_id}\n\n'
+        f'Equipo CRBOX\nventas@crbox.cr'
+    )
+    html_body = (
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1a1a1a;max-width:600px;margin:0 auto;">'
+        '<div style="background:linear-gradient(135deg,#FF6B00,#FF9A00);padding:24px;border-radius:8px 8px 0 0;">'
+        '<p style="color:#fff;font-size:22px;font-weight:700;margin:0;">&#10003; Solicitud completada</p>'
+        f'<p style="color:rgba(255,255,255,.85);font-size:13px;margin:6px 0 0;">ID: <strong>{esc(scb_id)}</strong></p>'
+        '</div>'
+        '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:28px;border-radius:0 0 8px 8px;">'
+        f'<p style="font-size:15px;color:#111;margin:0 0 20px;">{esc(greeting)}<br><br>'
+        f'Tu solicitud <strong>{esc(scb_id)}</strong> ha sido completada y tu paquete ha sido registrado.</p>'
+        '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:16px 20px;margin-bottom:20px;">'
+        '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+        f'<tr><td style="padding:5px 0;color:#9a3412;width:40%;">ID Solicitud</td>'
+        f'<td style="padding:5px 0;font-weight:700;color:#111;">{esc(scb_id)}</td></tr>'
+        f'<tr><td style="padding:5px 0;color:#9a3412;">Producto</td>'
+        f'<td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
+        f'<tr><td style="padding:5px 0;color:#9a3412;">ID Paquete</td>'
+        f'<td style="padding:5px 0;font-weight:700;color:#111;">{esc(package_id)}</td></tr>'
+        '<tr><td style="padding:5px 0;color:#9a3412;">Estado</td>'
+        '<td style="padding:5px 0;color:#FF6B00;font-weight:600;">Completada</td></tr>'
+        '</table></div>'
+        '<p style="font-size:14px;color:#374151;margin:0 0 16px;">'
+        'Sigue el estado de tu paquete en <strong>Mis Paquetes</strong>.</p>'
+        '<a href="https://crbox.cr/mis-paquetes" style="display:inline-block;background:#FF6B00;color:#fff;'
+        'font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;margin-bottom:20px;">'
+        'Ver Mis Paquetes</a>'
+        f'<p style="font-size:12px;color:#9ca3af;margin:0;">¿Tienes preguntas? Responde a este correo '
+        f'incluyendo el ID <strong>{esc(scb_id)}</strong>.</p>'
+        '</div></div>'
+    )
+    msg = email.mime.multipart.MIMEMultipart('alternative')
+    msg['Subject'] = subject
+    msg['From'] = f'CRBOX <{smtp_user}>'
+    msg['To'] = customer_email
+    msg['Reply-To'] = 'ventas@crbox.cr'
+    msg['Message-ID'] = f'<{_uuid4_hex()}@crbox.cr>'
+    msg['Date'] = email.utils.formatdate(localtime=False)
+    msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
+    msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
+    _send_smtp(msg, [customer_email])
+
+
 def _send_listo_para_retiro_notification(scb_id, customer_email, customer_name, product_name, smtp_user):
     """Notify the customer that their package is in Costa Rica and ready for pickup."""
     esc = _html.escape
@@ -4923,12 +4981,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             with _DB_LOCK:
                 conn = _get_db()
                 row = conn.execute(
-                    'SELECT status FROM quote_requests WHERE id = ?', (scb_id,)
+                    'SELECT status, customer_email, customer_name, product_name FROM quote_requests WHERE id = ?',
+                    (scb_id,)
                 ).fetchone()
                 if row is None or row['status'] != 'pendiente_compra_cliente':
                     conn.close()
                     self._admin_redirect(redirect_url)
                     return
+                customer_email = row['customer_email']
+                customer_name  = row['customer_name']
+                product_name   = row['product_name']
                 now_iso = _now_iso()
                 hist_id = _uuid4_hex()
                 conn.execute(
@@ -4948,6 +5010,15 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 conn.commit()
                 conn.close()
             print(f'[ADMIN] link-package: {scb_id} → completada, package={package_id}')
+            settings  = _smtp_settings()
+            smtp_user = settings[2] if settings else 'noreply@crbox.cr'
+            try:
+                _send_completada_notification(
+                    scb_id, customer_email, customer_name, product_name,
+                    package_id, smtp_user
+                )
+            except Exception as mail_exc:
+                print(f'[ADMIN] link-package completada email failed: {mail_exc}')
             self._admin_redirect(redirect_url)
         except Exception as exc:
             print(f'[ADMIN] link-package error: {exc}')
