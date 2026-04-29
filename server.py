@@ -28,12 +28,34 @@ _GEMINI_API_KEY  = os.environ.get('GEMINI_API_KEY', '')
 # (verified via list_models() + live generateContent call on 2026-04-29).
 # To override: set GEMINI_MODEL=gemini-2.5-flash (or any supported model name).
 _GEMINI_MODEL    = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash-lite')
+_GEMINI_SDK_OK   = False
 try:
     from google import genai as _genai_check  # noqa: F401
+    _GEMINI_SDK_OK = True
     print(f'[AI] google-genai available; key configured: {bool(_GEMINI_API_KEY)}; model: {_GEMINI_MODEL}')
     del _genai_check
 except ImportError:
     print('[AI] WARNING: google-genai not installed — AI extraction disabled')
+
+
+def _verify_gemini_model_at_startup():
+    """Run once at startup: confirm the configured model is available via list_models()."""
+    if not _GEMINI_SDK_OK or not _GEMINI_API_KEY:
+        return
+    try:
+        from google import genai as _gv
+        client = _gv.Client(api_key=_GEMINI_API_KEY)
+        available = {m.name for m in client.models.list()}
+        # Model names are returned as "models/<name>"; accept both forms
+        canonical = f'models/{_GEMINI_MODEL}'
+        if canonical in available or _GEMINI_MODEL in available:
+            print(f'[AI] Model verification OK: {_GEMINI_MODEL} is available')
+        else:
+            print(f'[AI] WARNING: configured model "{_GEMINI_MODEL}" not found in list_models(); '
+                  f'available (sample): {sorted(available)[:5]}. '
+                  f'Set GEMINI_MODEL env var to a valid model name.')
+    except Exception as _ex:
+        print(f'[AI] WARNING: model verification failed ({_ex}); AI may not work')
 
 _AI_CACHE        = {}           # sha256(url) -> (result_dict, expires_ts)
 _AI_CACHE_TTL    = 900          # 15 minutes
@@ -4498,6 +4520,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     _init_db()
+    _verify_gemini_model_at_startup()
     _start_health_monitor()
     _start_solicitud_reminder()
     server = HTTPServer(("0.0.0.0", 5000), NoCacheHandler)
