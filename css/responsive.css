@@ -1324,9 +1324,9 @@
         min-height: 44px;
     }
 
-    /* Intro CTA button: ensure full width */
-    #aerea a[href="calculadora.html"] {
-        display: block;
+    /* Intro CTA button: full width on mobile */
+    #aerea .tarifas-cta-btn {
+        display: flex;
         width: 100%;
     }
 }

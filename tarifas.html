@@ -43,7 +43,7 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css?v=4">
+    <link rel="stylesheet" href="css/styles.css?v=5">
     <link rel="stylesheet" href="css/responsive.css?v=12">
 
     <!-- Structured Data: FAQ de Tarifas -->
@@ -265,23 +265,21 @@
     <!-- Courier Aéreo Rates -->
 <section id="aerea" class="py-16 md:py-24">
     <div class="container mx-auto px-4">
-        <div class="text-center mb-12">
-            <span class="text-orange-600 font-semibold mb-2 inline-block">SERVICIO EXPRESS</span>
-            <h2 class="text-3xl font-bold mb-4">Tarifas de Carga Courier (Aérea)</h2>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Solución rápida y eficiente para paquetes con valor CIF menor a $1,000.00 o peso máximo de 30 kg. Entrega en 2-4 días hábiles.</p>
-        </div>
-        
-        <!-- Intro contextual + CTA calculadora -->
-        <div class="max-w-3xl mx-auto mb-10 text-center px-2">
-            <p class="text-gray-600 text-lg mb-6">Estas son nuestras tarifas de referencia para envíos courier. Si querés saber cuánto te costaría un paquete específico, usá la calculadora.</p>
-            <a href="calculadora.html" class="inline-block w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg px-10 py-4 rounded-xl shadow-lg transition-colors duration-200">
-                <i class="fas fa-calculator mr-2"></i> Calcular mi envío
+        <!-- Intro unificado: eyebrow → heading → descripción → nota → CTA -->
+        <div class="max-w-2xl mx-auto text-center mb-12 px-2">
+            <span class="text-xs font-bold uppercase tracking-widest text-orange-500 mb-3 inline-block">Courier Aéreo Express</span>
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-snug">Tarifas de referencia</h2>
+            <p class="text-gray-500 text-base md:text-lg mb-2 max-w-xl mx-auto">Precios base para envíos courier desde EE.UU. a Costa Rica. Para estimar el costo de tu paquete específico, usá la calculadora.</p>
+            <p class="text-xs text-gray-400 mb-8">Hasta 30 kg &nbsp;·&nbsp; Valor CIF menor a $1,000 &nbsp;·&nbsp; Entrega estimada 2–4 días hábiles</p>
+            <a href="calculadora.html"
+               class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-10 py-4 rounded-xl font-bold text-lg text-white transition-all duration-200 tarifas-cta-btn">
+                <i class="fas fa-calculator"></i> Calcular mi envío
             </a>
         </div>
 
         <!-- Tablas de tarifas en tabs con mejor diseño visual -->
         <div class="max-w-4xl mx-auto">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Tablas de Tarifas</h3>
+            <p class="text-xs font-semibold uppercase tracking-widest text-gray-400 text-center mb-6">Tablas de Tarifas</p>
             
             <!-- Tabs con diseño mejorado -->
 <div class="mb-8">
