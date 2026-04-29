@@ -257,13 +257,21 @@
       body:   fd
       // No Authorization header — this WP-JSON endpoint uses email + wr_id
       // for scoping, not Bearer auth.
+    }).catch(function (netErr) {
+      // Network / CORS failure before any response arrived (TypeError, etc.)
+      netErr.step = 'saveBill';
+      throw netErr;
     }).then(function (res) {
       if (!res.ok) {
         var err = new Error('No se pudo subir el archivo de factura (' + res.status + '). Intenta de nuevo.');
         err.step = 'saveBill';
         throw err;
       }
-      return res.json();
+      return res.json().catch(function (parseErr) {
+        // WordPress returned a 200 OK but with a non-JSON body (PHP warning, HTML, etc.)
+        parseErr.step = 'saveBill';
+        throw parseErr;
+      });
     }).then(function (data) {
       if (!data || !data.url) {
         var err2 = new Error('El servidor no devolvió la URL del archivo subido. Intenta de nuevo.');
@@ -282,7 +290,11 @@
   // Rejects with err.step = 'createPurchaseBill' on failure.
   function createPurchaseBill(payload) {
     var token = CRBOXAuth.getToken();
-    if (!token) return Promise.reject(new Error('Sesión no iniciada. Por favor inicia sesión.'));
+    if (!token) {
+      var noTokenErr = new Error('Sesión no iniciada. Por favor inicia sesión.');
+      noTokenErr.step = 'createPurchaseBill';
+      return Promise.reject(noTokenErr);
+    }
 
     var body = new URLSearchParams();
     // Use payload[k] ?? '' so numeric 0 values (e.g. Monto=0) are preserved as '0',

@@ -3143,7 +3143,12 @@
             })
             .catch(function(err) {
               _setInvoiceSubmitting(false);
-              console.error('[CRBOX] Invoice upload error:', err);
+              console.error('[CRBOX] Invoice upload error:', err,
+                'step:', err && err.step,
+                'message:', err && err.message,
+                'stack:', err && err.stack);
+
+              if (err && err.isAuthError) return; // redirect already in flight
 
               if (err && err.step === 'saveBill') {
                 // Upload itself failed — clean failure, user can retry
