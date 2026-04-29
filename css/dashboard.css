@@ -1255,6 +1255,92 @@ textarea:focus-visible {
     box-shadow: none !important;
 }
 
+/* ==============================================================
+   Mi Cuenta — read-only info card
+   Clean, soft container for personal data display rows.
+   Matches the Miami address panel treatment for visual consistency.
+   ============================================================== */
+.account-info-card {
+    background: #F9FAFB;
+    border: 1px solid #F3F4F6;
+    border-radius: 0.875rem;
+    padding: 1.25rem 1.375rem;
+    transition: box-shadow var(--transition-fast) ease;
+}
+@media (min-width: 768px) {
+    .account-info-card {
+        padding: 1.375rem 1.5rem;
+    }
+}
+
+/* Inside the info card, spread rows a little more generously */
+.account-info-card .account-kv-row {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+.account-info-card .account-kv-row:first-child {
+    padding-top: 0;
+}
+.account-info-card .account-kv-row:last-child {
+    padding-bottom: 0;
+}
+
+/* Make the value text more prominent than plain labels */
+.account-info-card .account-kv-row dd {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: #111827;
+}
+
+/* Email addresses and long values: prevent overflow on narrow screens */
+.account-info-card .account-kv-row dd {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Mobile: stack label above value so long strings don't compress */
+@media (max-width: 480px) {
+    .account-info-card .account-kv-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    .account-info-card .account-kv-row dd {
+        text-align: left;
+        font-size: 0.9375rem;
+    }
+}
+
+/* ==============================================================
+   Mi Cuenta — profile header refinement
+   Tighter top gap between avatar row and tab strip.
+   ============================================================== */
+.profile-header {
+    padding-bottom: 1.25rem;
+}
+@media (min-width: 768px) {
+    .profile-header {
+        padding-bottom: 1.5rem;
+    }
+}
+
+/* Casillero badge under the name — slightly warmer colour for premium feel */
+#profile-casillero {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Tab strip: slightly elevated tray border */
+.account-inner-tab-strip {
+    border-top: 1px solid #F3F4F6;
+}
+
+/* Tab panel body: consistent inner breathing room */
+.account-tab {
+    min-height: 18rem;
+}
+
 
 /* =====================================================================
    Onboarding & activation (Task #113)

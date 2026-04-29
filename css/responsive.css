@@ -941,24 +941,27 @@
     font-size: 0.9375rem !important;
     scroll-snap-align: start;
   }
-  /* Stack the page-title save button below text */
-  #save-profile-btn {
-    width: 100%;
-    margin-top: 0.5rem;
-  }
-  /* Form grids stack on mobile already via Tailwind; tighten gap */
-  #personal-info-tab .grid,
-  #security-tab .grid,
-  #notifications-tab .grid,
-  #address-info-tab .grid {
-    gap: 1rem !important;
-  }
   /* Account tab content: tighter horizontal padding on phones */
   #personal-info-tab,
   #address-info-tab,
   #security-tab,
   #notifications-tab {
     padding: 1.25rem !important;
+  }
+  /* Read-only info card: tighter padding on narrow phones */
+  .account-info-card {
+    padding: 1rem !important;
+  }
+  /* Personal info kv rows: stack label above value on narrow phones */
+  #personal-info-tab .account-kv-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    padding: 0.625rem 0;
+  }
+  #personal-info-tab .account-kv-row dd {
+    text-align: left;
+    font-size: 0.9375rem;
   }
   /* Address kv rows: stack label above value so values don't get
      cramped against the right edge on narrow screens */
@@ -971,6 +974,10 @@
   #address-info-tab .account-kv-row dd {
     text-align: left;
     font-size: 0.9375rem;
+  }
+  /* Security tab: password form max-width takes full width on phone */
+  #security-tab .max-w-xl {
+    max-width: 100% !important;
   }
 
   /* ---- Modals: turn into bottom-sheets on mobile ----

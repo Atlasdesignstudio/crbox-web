@@ -17,8 +17,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css?v=6">
-    <link rel="stylesheet" href="css/responsive.css?v=15">
-    <link rel="stylesheet" href="css/dashboard.css?v=6">
+    <link rel="stylesheet" href="css/responsive.css?v=16">
+    <link rel="stylesheet" href="css/dashboard.css?v=7">
 </head>
 <body class="bg-gray-50">
     <!-- Google Tag Manager (noscript) -->
@@ -180,19 +180,10 @@
     <main class="py-8">
         <div class="container mx-auto px-4">
             
-            <!-- Page Title & Actions -->
-            <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-6 gap-4">
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1 tracking-tight">Mi Cuenta</h1>
-                    <p class="text-gray-600 text-sm md:text-base">Información personal, direcciones y preferencias de tu cuenta CRBOX.</p>
-                </div>
-                <div class="flex flex-col items-stretch md:items-end">
-                    <button id="save-profile-btn" class="action-btn-primary">
-                        <i class="fas fa-save mr-2"></i>
-                        Guardar Cambios
-                    </button>
-                    <p id="save-error-msg" class="hidden mt-2 text-red-600 text-sm font-medium"></p>
-                </div>
+            <!-- Page Title -->
+            <div class="mb-6">
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1 tracking-tight">Mi Cuenta</h1>
+                <p class="text-gray-600 text-sm md:text-base">Información personal, direcciones y preferencias de tu cuenta CRBOX.</p>
             </div>
 
             <!-- Profile Section -->
@@ -265,49 +256,47 @@
                 
                 <!-- Personal Info Tab -->
                 <div class="p-6 md:p-8 account-tab" id="personal-info-tab">
-                    <form>
-                        <h3 class="account-section-title">Datos personales</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-8">
-                            <div class="form-group">
-                                <label for="first_name" class="form-label">Nombre</label>
-                                <input type="text" id="first_name" name="first_name" class="form-control" value="">
+                    <h3 class="account-section-title">Datos personales</h3>
+                    <div class="account-info-card mb-8">
+                        <dl class="account-kv-list">
+                            <div class="account-kv-row">
+                                <dt>Nombre</dt>
+                                <dd id="profile-first-name">—</dd>
                             </div>
-                            <div class="form-group">
-                                <label for="last_name" class="form-label">Apellido</label>
-                                <input type="text" id="last_name" name="last_name" class="form-control" value="">
+                            <div class="account-kv-row">
+                                <dt>Apellido</dt>
+                                <dd id="profile-last-name">—</dd>
                             </div>
-                            <div class="form-group">
-                                <label for="email" class="form-label">Correo Electrónico</label>
-                                <input type="email" id="email" name="email" class="form-control" value="">
+                            <div class="account-kv-row">
+                                <dt>Correo Electrónico</dt>
+                                <dd id="profile-email">—</dd>
                             </div>
-                            <div class="form-group">
-                                <label for="phone" class="form-label">Teléfono</label>
-                                <input type="tel" id="phone" name="phone" class="form-control" value="">
+                            <div class="account-kv-row">
+                                <dt>Teléfono</dt>
+                                <dd id="profile-phone">—</dd>
                             </div>
-                        </div>
+                        </dl>
+                    </div>
 
-                        <h3 class="account-section-title">Identificación</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-5 mb-8">
-                            <div class="form-group">
-                                <label for="id_type" class="form-label">Tipo</label>
-                                <select id="id_type" name="id_type" class="form-control">
-                                    <option value="cedula">Cédula Nacional</option>
-                                    <option value="dimex">DIMEX</option>
-                                    <option value="passport">Pasaporte</option>
-                                </select>
+                    <h3 class="account-section-title">Identificación</h3>
+                    <div class="account-info-card mb-8">
+                        <dl class="account-kv-list">
+                            <div class="account-kv-row">
+                                <dt>Tipo de Documento</dt>
+                                <dd id="profile-id-type">—</dd>
                             </div>
-                            <div class="form-group md:col-span-2">
-                                <label for="id_number" class="form-label">Número de Identificación</label>
-                                <input type="text" id="id_number" name="id_number" class="form-control" value="">
+                            <div class="account-kv-row">
+                                <dt>Número de Identificación</dt>
+                                <dd id="profile-id-number">—</dd>
                             </div>
-                        </div>
+                        </dl>
+                    </div>
 
-                        <h3 class="account-section-title">Preferencias</h3>
-                        <div class="account-coming-soon">
-                            <i class="fas fa-clock"></i>
-                            <span>Las preferencias de consolidación, inspección y seguro estarán disponibles próximamente. Por ahora, contáctanos para coordinarlas con tu envío.</span>
-                        </div>
-                    </form>
+                    <h3 class="account-section-title">Preferencias</h3>
+                    <div class="account-coming-soon">
+                        <i class="fas fa-clock"></i>
+                        <span>Las preferencias de consolidación, inspección y seguro estarán disponibles próximamente. Por ahora, contáctanos para coordinarlas con tu envío.</span>
+                    </div>
                 </div>
                 
                 <!-- Address Info Tab (Hidden by default) -->
@@ -411,7 +400,7 @@
                                         <i class="fas fa-key mr-2"></i>
                                         Actualizar Contraseña
                                     </button>
-                                    <p class="text-xs text-gray-500 mt-2">Esta acción usa el botón "Guardar Cambios" para enviar la nueva contraseña al servidor.</p>
+                                    <p id="password-save-error" class="hidden mt-2 text-red-600 text-sm font-medium"></p>
                                 </div>
                             </div>
                         </form>
@@ -443,9 +432,16 @@
                                 <input type="checkbox" id="notify_promotions" name="notify_promotions" class="h-5 w-5 text-orange-600 rounded mt-0.5 flex-shrink-0">
                                 <span class="ml-3">
                                     <span class="block text-gray-800 font-medium">Promociones y ofertas especiales</span>
-                                    <span class="block text-xs text-gray-500 mt-1">Esta preferencia se guarda al pulsar "Guardar Cambios" en la cabecera del perfil.</span>
+                                    <span class="block text-xs text-gray-500 mt-1">Recibe noticias de descuentos y ofertas exclusivas de CRBOX.</span>
                                 </span>
                             </label>
+                        </div>
+                        <div class="mt-4">
+                            <button type="button" id="save-notifications-btn" class="action-btn-primary">
+                                <i class="fas fa-save mr-2"></i>
+                                Guardar Preferencias
+                            </button>
+                            <p id="notifications-save-error" class="hidden mt-2 text-red-600 text-sm font-medium"></p>
                         </div>
                     </div>
                 </div>
@@ -611,9 +607,9 @@
                 const requestedTab = params.get('tab') || 'personal-info';
                 const tabCopy = {
                     'personal-info': {
-                        title:    'Verifica tu información personal',
-                        text:     'Confirma tu nombre, correo, identificación y teléfono. Con esto activamos tu casillero y emitimos tu factura electrónica.',
-                        emphasis: ['first_name','last_name','id_type','id_number','phone']
+                        title:    'Revisa tu información personal',
+                        text:     'Asegúrate de que tu nombre, correo e identificación sean correctos. Contáctanos si necesitas actualizar algún dato.',
+                        emphasis: []
                     },
                     'address-info': {
                         title:    'Confirma tu dirección de entrega',
@@ -674,23 +670,22 @@
                     }
                 }, 250);
 
-                // "Guardar y continuar": relabel the relevant primary CTA in this
-                // tab and, when the save succeeds (button content briefly shows
-                // "¡Guardado!"), redirect back to the dashboard.
-                var saveBtnId = (requestedTab === 'address-info') ? 'save-address-btn' : 'save-profile-btn';
-                var saveBtn = document.getElementById(saveBtnId) || document.getElementById('save-profile-btn');
+                // "Guardar y continuar": relabel the relevant CTA in setup mode.
+                // personal-info and address-info are display-only, no save CTA needed.
+                var saveBtnId = (requestedTab === 'security')      ? 'update-password-btn'
+                              : (requestedTab === 'notifications') ? 'save-notifications-btn'
+                              : null;
+                var saveBtn = saveBtnId ? document.getElementById(saveBtnId) : null;
                 if (saveBtn) {
                     saveBtn.classList.add('setup-cta');
-                    var labelText = saveBtn.querySelector('.btn-label') || saveBtn;
                     var originalLabel = saveBtn.innerHTML;
                     var iconMatch = originalLabel.match(/<i[^>]*><\/i>/);
                     var icon = iconMatch ? iconMatch[0] + ' ' : '<i class="fas fa-arrow-right mr-2"></i> ';
                     saveBtn.innerHTML = icon + 'Guardar y continuar';
 
-                    // Watch for the "¡Guardado!" success state the inline save handler
-                    // toggles, then redirect to the dashboard.
+                    // Watch for the success state, then redirect to the dashboard.
                     var observer = new MutationObserver(function () {
-                        if (/¡Guardado!|Guardado/i.test(saveBtn.textContent || '')) {
+                        if (/¡Guardado!|Guardado|actualizada/i.test(saveBtn.textContent || '')) {
                             observer.disconnect();
                             setTimeout(function () {
                                 window.location.href = 'dashboard.html?onboarding=1';
@@ -797,79 +792,93 @@
                 });
             }
             
-            // Forward "Actualizar Contraseña" click to the main save handler so it actually
-            // persists the new password via postedituser. Without this, the button was inert.
-            const updatePasswordBtn = document.getElementById('update-password-btn');
-            if (updatePasswordBtn) {
-                updatePasswordBtn.addEventListener('click', function () {
-                    var newPwd = (document.getElementById('new_password') || {}).value || '';
-                    var confPwd = (document.getElementById('confirm_password') || {}).value || '';
-                    if (!newPwd || !confPwd) {
-                        alert('Por favor ingresa la nueva contraseña y su confirmación.');
-                        return;
-                    }
-                    var mainBtn = document.getElementById('save-profile-btn');
-                    if (mainBtn) mainBtn.click();
-                });
-            }
-
-            // Save changes button — real API call
-            const saveChangesBtn = document.getElementById('save-profile-btn');
-            
-            if (saveChangesBtn) {
-                saveChangesBtn.addEventListener('click', function() {
+            // Notifications save — persists the newsletter preference via API
+            const saveNotificationsBtn = document.getElementById('save-notifications-btn');
+            if (saveNotificationsBtn) {
+                saveNotificationsBtn.addEventListener('click', function () {
                     if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) {
                         alert('Debes iniciar sesión para guardar cambios.');
                         return;
                     }
-                    const btn = this;
-                    const originalHTML = btn.innerHTML;
+                    var btn = this;
+                    var originalHTML = btn.innerHTML;
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
                     btn.disabled = true;
 
                     var rawInfo = window.__crboxUserInfo || {};
                     var newsletterEl = document.getElementById('notify_promotions');
-                    var formEdits = {
-                        firstName:       (document.getElementById('first_name')        || {}).value || '',
-                        lastName1:       (document.getElementById('last_name')         || {}).value || '',
-                        email:           (document.getElementById('email')             || {}).value || CRBOXAuth.getEmail() || '',
-                        phone:           (document.getElementById('phone')             || {}).value || '',
-                        idType:          (document.getElementById('id_type')           || {}).value || '',
-                        idNumber:        (document.getElementById('id_number')         || {}).value || '',
-                        password:        (document.getElementById('new_password')      || {}).value || '',
-                        confirmPassword: (document.getElementById('confirm_password')  || {}).value || '',
-                        receivesNewsletter: newsletterEl ? !!newsletterEl.checked : undefined
-                    };
+                    var formEdits = { receivesNewsletter: newsletterEl ? !!newsletterEl.checked : false };
                     var payload = CRBOXAuth.buildUpdateProfilePayload(rawInfo, formEdits);
 
                     CRBOXPortalAPI.updateProfile(payload)
                         .then(function (result) {
                             window.__crboxUserInfo = result.userInfo || rawInfo;
                             btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
-                            if (typeof window.__crboxApplyProfile === 'function' && result.userInfo) {
-                                window.__crboxApplyProfile(result.userInfo);
-                            }
-                            setTimeout(function () {
-                                btn.innerHTML = originalHTML;
-                                btn.disabled = false;
-                            }, 1800);
+                            setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
                         })
                         .catch(function (err) {
-                            console.error('[CRBOX] updateProfile error:', err);
-                            var userMsg = (err && err.message) || 'No se pudo guardar el perfil. Intenta de nuevo.';
+                            console.error('[CRBOX] saveNotifications error:', err);
+                            var userMsg = (err && err.message) || 'No se pudo guardar la preferencia. Intenta de nuevo.';
                             btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Error al guardar';
-                            btn.title = userMsg;
-                            var errEl = document.getElementById('save-error-msg');
+                            var errEl = document.getElementById('notifications-save-error');
                             if (errEl) {
                                 errEl.textContent = userMsg;
                                 errEl.classList.remove('hidden');
                                 setTimeout(function () { errEl.classList.add('hidden'); }, 5000);
                             }
-                            setTimeout(function () {
-                                btn.innerHTML = originalHTML;
-                                btn.disabled = false;
-                                btn.title = '';
-                            }, 2500);
+                            setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2500);
+                        });
+                });
+            }
+
+            // Password save — standalone, independent of personal info
+            const updatePasswordBtn = document.getElementById('update-password-btn');
+            if (updatePasswordBtn) {
+                updatePasswordBtn.addEventListener('click', function () {
+                    if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) {
+                        alert('Debes iniciar sesión para guardar cambios.');
+                        return;
+                    }
+                    var newPwd  = (document.getElementById('new_password')      || {}).value || '';
+                    var confPwd = (document.getElementById('confirm_password')  || {}).value || '';
+                    if (!newPwd || !confPwd) {
+                        alert('Por favor ingresa la nueva contraseña y su confirmación.');
+                        return;
+                    }
+                    if (newPwd !== confPwd) {
+                        alert('Las contraseñas no coinciden. Verifica e intenta de nuevo.');
+                        return;
+                    }
+                    var btn = this;
+                    var originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
+                    btn.disabled = true;
+
+                    var rawInfo = window.__crboxUserInfo || {};
+                    var formEdits = { password: newPwd, confirmPassword: confPwd };
+                    var payload = CRBOXAuth.buildUpdateProfilePayload(rawInfo, formEdits);
+
+                    CRBOXPortalAPI.updateProfile(payload)
+                        .then(function (result) {
+                            window.__crboxUserInfo = result.userInfo || rawInfo;
+                            btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Contraseña actualizada!';
+                            document.getElementById('new_password').value = '';
+                            document.getElementById('confirm_password').value = '';
+                            var cpEl = document.getElementById('current_password');
+                            if (cpEl) cpEl.value = '';
+                            setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2200);
+                        })
+                        .catch(function (err) {
+                            console.error('[CRBOX] updatePassword error:', err);
+                            var userMsg = (err && err.message) || 'No se pudo actualizar la contraseña. Intenta de nuevo.';
+                            btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Error al guardar';
+                            var errEl = document.getElementById('password-save-error');
+                            if (errEl) {
+                                errEl.textContent = userMsg;
+                                errEl.classList.remove('hidden');
+                                setTimeout(function () { errEl.classList.add('hidden'); }, 5000);
+                            }
+                            setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2500);
                         });
                 });
             }
@@ -908,23 +917,19 @@
           avatarEl.textContent = i1 + (i1 !== i2 ? i2 : '');
         }
 
-        _val('first_name', firstName);
-        _val('last_name',  lastName1);
-        _val('email',      email);
-        _val('phone',      phone);
-        _val('id_number',  idNum);
+        // Populate read-only personal info display
+        _txt('profile-first-name', firstName || '—');
+        _txt('profile-last-name',  lastName1 || '—');
+        _txt('profile-email',      email     || '—');
+        _txt('profile-phone',      phone     || '—');
+        _txt('profile-id-number',  idNum     || '—');
 
         if (idType) {
-          var sel = document.getElementById('id_type');
-          if (sel) {
-            var opts = sel.options;
-            for (var i = 0; i < opts.length; i++) {
-              if (opts[i].value.toLowerCase() === idType.toLowerCase() ||
-                  opts[i].text.toLowerCase().indexOf(idType.toLowerCase()) >= 0) {
-                sel.selectedIndex = i; break;
-              }
-            }
-          }
+          var idTypeLabels = { cedula: 'Cédula Nacional', dimex: 'DIMEX', passport: 'Pasaporte' };
+          var idTypeDisplay = idTypeLabels[idType.toLowerCase()] || idType;
+          _txt('profile-id-type', idTypeDisplay);
+        } else {
+          _txt('profile-id-type', '—');
         }
 
         var addrName = document.getElementById('miami-addr-name');
