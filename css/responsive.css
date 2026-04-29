@@ -1267,6 +1267,70 @@
   }
 }
 
+/* =========================
+   TARIFAS PAGE — MOBILE
+========================= */
+@media (max-width: 640px) {
+    /* Aérea section: reduce top padding so intro sits closer to heading */
+    #aerea {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    /* Marítima section */
+    #maritima {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    /* CTA pre-footer section */
+    #cta-tarifas {
+        padding-top: 2.5rem !important;
+        padding-bottom: 2.5rem !important;
+    }
+
+    /* Delivery section */
+    #aerea + section {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    /* Weight table mobile card grid: tighter row padding */
+    #tab-peso .sm\:hidden .px-3 {
+        padding-left: 0.625rem;
+        padding-right: 0.625rem;
+    }
+
+    /* Maritime table: always scrollable horizontally */
+    #maritima .overflow-x-auto {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Delivery cards: force single column */
+    #aerea + section .grid.grid-cols-1.md\:grid-cols-3 {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Maritime weekly schedule: single column */
+    #maritima .grid.grid-cols-1.md\:grid-cols-3 {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Tab navigation: wrap with comfortable tap targets */
+    #tarifas-tab-nav button {
+        font-size: 0.8125rem !important;
+        padding: 0.625rem 0.875rem !important;
+        min-height: 44px;
+    }
+
+    /* Intro CTA button: ensure full width */
+    #aerea a[href="calculadora.html"] {
+        display: block;
+        width: 100%;
+    }
+}
+
 /* ── Cotizar: sticky CTA safe-area bottom padding (iOS notch) ── */
 @media (max-width: 767px) {
   #sticky-cta-bar {

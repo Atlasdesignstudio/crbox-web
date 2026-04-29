@@ -97,31 +97,6 @@
             background-image: url('data:image/svg+xml;charset=utf8,%3Csvg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z" fill="%23ffffff" fill-opacity="0.1" fill-rule="evenodd"/%3E%3C/svg%3E');
         }
         
-        .calculator-section {
-            transition: all 0.3s ease;
-        }
-        
-        .tarifa-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .tarifa-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        .form-input:focus {
-            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.3);
-        }
-        
-        .result-item {
-            transition: all 0.3s ease;
-        }
-        
-        .result-appear {
-            animation: fadeIn 0.5s ease forwards;
-        }
-        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -296,136 +271,13 @@
             <p class="text-lg text-gray-600 max-w-3xl mx-auto">Solución rápida y eficiente para paquetes con valor CIF menor a $1,000.00 o peso máximo de 30 kg. Entrega en 2-4 días hábiles.</p>
         </div>
         
-        <!-- Guía de cálculo primero (ahora fuera de los tabs) -->
-        <div class="max-w-4xl mx-auto mb-12">
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div class="bg-blue-100 py-2 px-4">
-                    <h3 class="text-xl font-semibold text-blue-800">Cómo Calcular tu Envío</h3>
-                </div>
-                
-                <div class="bg-blue-100 py-2 px-4 mb-4">
-                    <p class="text-blue-800">Guía paso a paso para entender el costo total de tu envío</p>
-                </div>
-                
-                <div class="p-6">
-                    <!-- Pasos del cálculo -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-sm">
-                            <div class="flex justify-center mb-3">
-                                <div class="step-number">1</div>
-                            </div>
-                            <h4 class="text-center font-semibold text-gray-800 mb-3">Determina el Peso</h4>
-                            <p class="text-sm text-gray-600 text-center">Identifica el peso real de tu paquete o calcula el peso volumétrico (largo x ancho x alto en cm / 6000).</p>
-                        </div>
-                        
-                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-sm">
-                            <div class="flex justify-center mb-3">
-                                <div class="step-number">1</div>
-                            </div>
-                            <h4 class="text-center font-semibold text-gray-800 mb-3">Calcula Costo por Peso</h4>
-                            <p class="text-sm text-gray-600 text-center">Busca la tarifa correspondiente al peso en la tabla de "Tarifas por Peso". Este será tu costo base.</p>
-                        </div>
-                        
-                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-sm">
-                            <div class="flex justify-center mb-3">
-                                <div class="step-number">1</div>
-                            </div>
-                            <h4 class="text-center font-semibold text-gray-800 mb-3">Determina Valor CIF</h4>
-                            <p class="text-sm text-gray-600 text-center">Identifica el valor CIF (costo + seguro + flete) del paquete según tu factura comercial.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-sm">
-                            <div class="flex justify-center mb-3">
-                                <div class="step-number">1</div>
-                            </div>
-                            <h4 class="text-center font-semibold text-gray-800 mb-3">Agrega Cargo por Manejo</h4>
-                            <p class="text-sm text-gray-600 text-center">Según el valor CIF, busca el cargo por manejo correspondiente en la tabla de "Costo de Manejo".</p>
-                        </div>
-                        
-                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-sm">
-                            <div class="flex justify-center mb-3">
-                                <div class="step-number">1</div>
-                            </div>
-                            <h4 class="text-center font-semibold text-gray-800 mb-3">Considera la Entrega</h4>
-                            <p class="text-sm text-gray-600 text-center">Suma el costo de entrega a domicilio según tu ubicación y el peso del paquete.</p>
-                        </div>
-                        
-                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 shadow-sm">
-                            <div class="flex justify-center mb-3">
-                                <div class="step-number">1</div>
-                            </div>
-                            <h4 class="text-center font-semibold text-gray-800 mb-3">Costo Total</h4>
-                            <p class="text-sm text-gray-600 text-center">Suma todos los componentes para obtener el costo total de tu envío (sin incluir impuestos).</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Ejemplo de cálculo -->
-                    <div class="bg-green-50 p-6 rounded-lg border border-green-200 shadow-sm mb-8">
-                        <h4 class="font-semibold text-green-800 mb-4 text-center text-lg">Ejemplo de Cálculo</h4>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="bg-white p-4 rounded-lg shadow-sm">
-                                <h5 class="font-semibold text-gray-800 mb-3 border-b pb-2">Datos del Paquete:</h5>
-                                <ul class="space-y-2 text-gray-700">
-                                    <li class="flex justify-between">
-                                        <span>Peso real:</span>
-                                        <span class="font-semibold">5 kg</span>
-                                    </li>
-                                    <li class="flex justify-between">
-                                        <span>Dimensiones:</span>
-                                        <span class="font-semibold">30 x 20 x 15 cm</span>
-                                    </li>
-                                    <li class="flex justify-between">
-                                        <span>Peso volumétrico:</span>
-                                        <span class="font-semibold">30 x 20 x 15 / 6000 = 1.5 kg</span>
-                                    </li>
-                                    <li class="flex justify-between">
-                                        <span>Valor CIF:</span>
-                                        <span class="font-semibold">$150</span>
-                                    </li>
-                                    <li class="flex justify-between">
-                                        <span>Ubicación de entrega:</span>
-                                        <span class="font-semibold">San José</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            
-                            <div class="bg-white p-4 rounded-lg shadow-sm">
-                                <h5 class="font-semibold text-gray-800 mb-3 border-b pb-2">Cálculo Final:</h5>
-                                <ul class="space-y-2 text-gray-700">
-                                    <li class="flex justify-between">
-                                        <span>Tarifa por peso (5 kg):</span>
-                                        <span class="font-semibold text-green-700">$23</span>
-                                    </li>
-                                    <li class="flex justify-between">
-                                        <span>Recargo combustible (19%):</span>
-                                        <span class="font-semibold text-green-700">$4.37</span>
-                                    </li>
-                                    <li class="flex justify-between">
-                                        <span>Cargo por manejo ($150):</span>
-                                        <span class="font-semibold text-green-700">$14</span>
-                                    </li>
-                                    <li class="flex justify-between">
-                                        <span>Seguro ($1 por $100):</span>
-                                        <span class="font-semibold text-green-700">$2</span>
-                                    </li>
-                                    <li class="flex justify-between">
-                                        <span>Entrega a domicilio (San José):</span>
-                                        <span class="font-semibold text-green-700">$5</span>
-                                    </li>
-                                    <li class="flex justify-between border-t pt-2 mt-2">
-                                        <span class="font-bold">TOTAL:</span>
-                                        <span class="font-bold text-orange-600">$48.37</span>
-                                    </li>
-                                    <li class="text-xs text-gray-500 mt-2 pt-2 border-t">
-                                        <i class="fas fa-info-circle mr-1"></i> No incluye impuestos de importación, los cuales dependen de la categoría del producto.
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Intro contextual + CTA calculadora -->
+        <div class="max-w-3xl mx-auto mb-10 text-center px-2">
+            <p class="text-gray-600 text-lg mb-6">Estas son nuestras tarifas de referencia para envíos courier. Si querés saber cuánto te costaría un paquete específico, usá la calculadora.</p>
+            <a href="calculadora.html" class="inline-block w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg px-10 py-4 rounded-xl shadow-lg transition-colors duration-200">
+                <i class="fas fa-calculator mr-2"></i> Calcular mi envío
+            </a>
+        </div>
 
         <!-- Tablas de tarifas en tabs con mejor diseño visual -->
         <div class="max-w-4xl mx-auto">
@@ -459,7 +311,8 @@
                     </div>
                     
                     <div class="p-6">
-                        <div class="overflow-x-auto">
+                        <!-- Desktop table (6 columns) -->
+                        <div class="overflow-x-auto hidden sm:block">
                             <table class="w-full">
                                 <thead>
                                     <tr class="border-b bg-gray-50">
@@ -530,6 +383,32 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <!-- Mobile card grid (2 columns: Kg | Precio) -->
+                        <div class="sm:hidden grid grid-cols-2 gap-2">
+                            <div class="bg-gray-100 px-3 py-2 font-semibold text-gray-700 text-sm">Peso (kg)</div>
+                            <div class="bg-gray-100 px-3 py-2 font-semibold text-gray-700 text-sm">Precio</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">½</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$5</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">1</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$7</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">2</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$11</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">3</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$15</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">4</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$19</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">5</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$23</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">6</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$27</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">7</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$32</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">8</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$36</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">9</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$40</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">10</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$44</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">11</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$48</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">12</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$52</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">13</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$56</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">14</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$60</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">15</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$64</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">16</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$68</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">17</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$72</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">18</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$76</div>
+                            <div class="px-3 py-2 border-b text-sm text-gray-700">19</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$80</div>
+                            <div class="px-3 py-2 text-sm text-gray-700">20</div><div class="px-3 py-2 text-sm font-semibold text-green-700">$84</div>
                         </div>
                         
                         <div class="bg-blue-50 p-4 border-l-4 border-blue-500 m-6">
@@ -710,101 +589,6 @@
                 </div>
             </div>
 
-            <!-- Calculadora rápida debajo de las tablas -->
-            <div class="mt-12 bg-white rounded-lg shadow-lg overflow-hidden p-6">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Calculadora Rápida</h3>
-                <p class="text-center text-gray-600 mb-8">Calcula el costo aproximado de tu envío de manera fácil y rápida</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <div class="mb-4">
-                            <label for="peso" class="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
-                            <input type="number" id="peso" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="largo" class="block text-sm font-medium text-gray-700 mb-1">Largo (cm)</label>
-                            <input type="number" id="largo" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="ancho" class="block text-sm font-medium text-gray-700 mb-1">Ancho (cm)</label>
-                            <input type="number" id="ancho" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="alto" class="block text-sm font-medium text-gray-700 mb-1">Alto (cm)</label>
-                            <input type="number" id="alto" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="mb-4">
-                            <label for="valor" class="block text-sm font-medium text-gray-700 mb-1">Valor CIF ($)</label>
-                            <input type="number" id="valor" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="ubicacion" class="block text-sm font-medium text-gray-700 mb-1">Ubicación de entrega</label>
-                            <select id="ubicacion" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                                <option value="sanjose">San José</option>
-                                <option value="heredia">Heredia</option>
-                                <option value="alajuela">Alajuela</option>
-                                <option value="cartago">Cartago</option>
-                                <option value="otros">Otras localidades</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mt-6">
-                            <button id="calcular-btn" class="w-full bg-orange-600 text-white py-4 px-6 rounded-lg hover:bg-orange-700 transition-all duration-300 font-bold text-lg shadow-md flex items-center justify-center">
-                                <i class="fas fa-calculator mr-3 text-xl"></i> Calcular
-                            </button>
-                        </div>
-                        
-                        <div id="resultado-calculo" class="mt-4 p-4 bg-white rounded-md border border-gray-300 hidden">
-                            <h5 class="font-semibold text-gray-800 mb-2 border-b pb-2">Resultado:</h5>
-                            <div class="space-y-2">
-                                <p class="flex justify-between text-sm">
-                                    <span>Peso aplicable:</span>
-                                    <span id="peso-aplicable" class="font-semibold">-</span>
-                                </p>
-                                <p class="flex justify-between text-sm">
-                                    <span>Tarifa por peso:</span>
-                                    <span id="tarifa-peso" class="font-semibold">-</span>
-                                </p>
-                                <p class="flex justify-between text-sm">
-                                    <span>Recargo por combustible (19%):</span>
-                                    <span id="recargo-combustible" class="font-semibold">-</span>
-                                </p>
-                                <p class="flex justify-between text-sm">
-                                    <span>Cargo por manejo:</span>
-                                    <span id="cargo-manejo" class="font-semibold">-</span>
-                                </p>
-                                <p class="flex justify-between text-sm">
-                                    <span>Seguro ($1 por $100):</span>
-                                    <span id="costo-seguro" class="font-semibold">-</span>
-                                </p>
-                                <p class="flex justify-between text-sm">
-                                    <span>Entrega a domicilio:</span>
-                                    <span id="costo-entrega" class="font-semibold">-</span>
-                                </p>
-                                <p class="flex justify-between font-bold text-orange-600 border-t pt-2 mt-2">
-                                    <span>TOTAL:</span>
-                                    <span id="costo-total">-</span>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="text-center mt-6">
-                    <a href="calculadora.html" class="text-orange-600 font-medium hover:underline inline-flex items-center">
-                        <span>Ir a la calculadora completa</span>
-                        <i class="fas fa-arrow-right ml-2"></i>
-                    </a>
-                </div>
-            </div>
-            
             <div class="mt-10 bg-green-50 rounded-lg p-6 border-l-4 border-green-500">
                 <h3 class="text-lg font-semibold mb-3 text-green-800 flex items-center">
                     <i class="fas fa-check-circle mr-2"></i>
@@ -1031,7 +815,7 @@
                             </thead>
                             <tbody>
                                 <tr class="border-t hover:bg-gray-50">
-                                    <td class="px-4 py-3 font-semibold text-green-700">USD $3.20</td>
+                                    <td class="px-4 py-3 font-semibold text-green-700">USD $3.25</td>
                                     <td class="px-4 py-3 font-semibold text-green-700">USD $7.60</td>
                                     <td class="px-4 py-3 font-semibold text-green-700">$215.00</td>
                                     <td class="px-4 py-3 font-semibold text-green-700">$205.00</td>
@@ -1046,7 +830,7 @@
                         <ul class="space-y-3">
                             <li class="flex items-start bg-gray-50 p-3 rounded-lg">
                                 <i class="fas fa-warehouse text-orange-600 mr-3 mt-1"></i>
-                                <span class="text-gray-700">Bodegaje mínimo en Costa Rica: <span class="font-semibold">$150.00 + IVA</span> (Puede variar según días totales de permanencia, valor de carga y/o revisiones de aduana)</span>
+                                <span class="text-gray-700">Bodegaje mínimo en Costa Rica: <span class="font-semibold">$165.00 + IVA</span> (Puede variar según días totales de permanencia, valor de carga y/o revisiones de aduana)</span>
                             </li>
                             <li class="flex items-start bg-gray-50 p-3 rounded-lg">
                                 <i class="fas fa-clipboard-check text-orange-600 mr-3 mt-1"></i>
@@ -1161,22 +945,16 @@
     </div>
 </section>
 
-<!-- Calculator CTA -->
+<!-- Cotizar CTA -->
 <section id="cta-tarifas" class="py-16 md:py-20 gradient-bg relative overflow-hidden">
     <div class="absolute inset-0 opacity-10 bg-pattern"></div>
     <div class="container mx-auto px-4 text-center relative z-10">
-        <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">¿Quieres calcular el costo exacto de tu envío?</h2>
-        <p class="text-xl text-white text-opacity-90 mb-8 max-w-3xl mx-auto">Utiliza nuestra calculadora interactiva para obtener un estimado preciso del costo total, incluyendo transporte, manejo e impuestos aproximados</p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="calculadora.html" style="background-color: white; color: #FF6B00;" class="px-8 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center">
-                <i class="fas fa-calculator mr-2"></i>
-                Usar Calculadora
-            </a>
-            <a href="contacto.html" style="background-color: transparent; border: 2px solid white; color: white;" class="hover:bg-white hover:text-orange-600 px-8 py-3 rounded-lg font-medium transition-colors shadow-lg flex items-center justify-center">
-                <i class="fas fa-file-invoice-dollar mr-2"></i>
-                Solicitar Cotización Personalizada
-            </a>
-        </div>
+        <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">¿Tenés un envío específico en mente?</h2>
+        <p class="text-xl text-white mb-8 max-w-3xl mx-auto">Nuestro equipo puede prepararte una cotización personalizada según tu carga, frecuencia y necesidades. Sin compromiso.</p>
+        <a href="cotizar.html" class="inline-block w-full sm:w-auto px-10 py-4 rounded-xl font-bold text-lg shadow-lg transition-colors" style="background-color: white; color: #FF6B00;">
+            <i class="fas fa-file-invoice-dollar mr-2"></i>
+            Solicitar Cotización Personalizada
+        </a>
     </div>
     
     <!-- Decorative Wave -->
@@ -1342,114 +1120,6 @@ function showTab(tabId) {
                 top: 0,
                 behavior: 'smooth'
             });
-        });
-    }
-
-    // Calculadora rápida
-const calcularBtn = document.getElementById('calcular-btn');
-const resultadoCalculo = document.getElementById('resultado-calculo');
-
-if (calcularBtn && resultadoCalculo) {
-    calcularBtn.addEventListener('click', function() {
-        // Obtener valores
-        const peso = parseFloat(document.getElementById('peso').value) || 0;
-        const largo = parseFloat(document.getElementById('largo').value) || 0;
-        const ancho = parseFloat(document.getElementById('ancho').value) || 0;
-        const alto = parseFloat(document.getElementById('alto').value) || 0;
-        const valor = parseFloat(document.getElementById('valor').value) || 0;
-        const ubicacion = document.getElementById('ubicacion').value;
-        
-        // Calcular peso volumétrico
-        const pesoVolumetrico = (largo * ancho * alto) / 6000;
-        
-        // Determinar cuál peso aplicar
-        const pesoAplicable = Math.max(peso, pesoVolumetrico);
-        
-        // Calcular tarifa por peso
-        let tarifaPeso = 0;
-        if (pesoAplicable <= 0.5) tarifaPeso = 5;
-        else if (pesoAplicable <= 1) tarifaPeso = 7;
-        else if (pesoAplicable <= 2) tarifaPeso = 11;
-        else if (pesoAplicable <= 3) tarifaPeso = 15;
-        else if (pesoAplicable <= 4) tarifaPeso = 19;
-        else if (pesoAplicable <= 5) tarifaPeso = 23;
-        else if (pesoAplicable <= 6) tarifaPeso = 27;
-        else if (pesoAplicable <= 7) tarifaPeso = 32;
-        else if (pesoAplicable <= 8) tarifaPeso = 36;
-        else if (pesoAplicable <= 9) tarifaPeso = 40;
-        else if (pesoAplicable <= 10) tarifaPeso = 44;
-        else if (pesoAplicable <= 11) tarifaPeso = 48;
-        else if (pesoAplicable <= 12) tarifaPeso = 52;
-        else if (pesoAplicable <= 13) tarifaPeso = 56;
-        else if (pesoAplicable <= 14) tarifaPeso = 60;
-        else if (pesoAplicable <= 15) tarifaPeso = 64;
-        else if (pesoAplicable <= 16) tarifaPeso = 68;
-        else if (pesoAplicable <= 17) tarifaPeso = 72;
-        else if (pesoAplicable <= 18) tarifaPeso = 76;
-        else if (pesoAplicable <= 19) tarifaPeso = 80;
-        else if (pesoAplicable <= 20) tarifaPeso = 84;
-        else if (pesoAplicable <= 100) tarifaPeso = 84 + ((pesoAplicable - 20) * 3);
-        else tarifaPeso = 84 + ((100 - 20) * 3) + ((pesoAplicable - 100) * 2.3);
-        
-        // Calcular cargo por combustible (19% del flete)
-        const fuelSurcharge = tarifaPeso * 0.19;
-        
-        // Calcular cargo por manejo
-        let cargoManejo = 0;
-        if (valor < 20) cargoManejo = 1.5;
-        else if (valor < 30) cargoManejo = 3.5;    // Cambiado <= por 
-        else if (valor < 50) cargoManejo = 5.5;    // Cambiado <= por 
-        else if (valor < 100) cargoManejo = 7;     // Cambiado <= por 
-        else if (valor < 200) cargoManejo = 14;    // Cambiado <= por 
-        else if (valor < 250) cargoManejo = 25;    // Nuevo rango: 200-249 = $25
-        else if (valor < 500) cargoManejo = 35;    // Actualizado
-        else if (valor < 1000) cargoManejo = 45;   // Cambiado <= por 
-        else if (valor < 2500) cargoManejo = 100;  // Cambiado <= por 
-        else if (valor < 5000) cargoManejo = 125;  // Cambiado <= por 
-        else if (valor < 10000) cargoManejo = 150; // Cambiado <= por 
-        else if (valor < 15000) cargoManejo = 175; // Cambiado <= por 
-        else cargoManejo = valor * 0.005;          // 0.5% del valor
-        
-        // Calcular costo de entrega
-        let costoEntrega = 0;
-        if (ubicacion === 'sanjose' || ubicacion === 'heredia' || ubicacion === 'alajuela') {
-            if (pesoAplicable <= 10) costoEntrega = 5;
-            else if (pesoAplicable <= 20) costoEntrega = 7;
-            else if (pesoAplicable <= 50) costoEntrega = 12;
-            else costoEntrega = 15; // para pesos mayores
-        } else if (ubicacion === 'cartago') {
-            if (pesoAplicable <= 10) costoEntrega = 10;
-            else if (pesoAplicable <= 20) costoEntrega = 15;
-            else if (pesoAplicable <= 50) costoEntrega = 18;
-            else costoEntrega = 20; // para pesos mayores
-        } else {
-            if (pesoAplicable <= 10) costoEntrega = 15;
-            else if (pesoAplicable <= 20) costoEntrega = 20;
-            else if (pesoAplicable <= 50) costoEntrega = 25;
-            else costoEntrega = 30; // para pesos mayores en zonas alejadas
-        }
-
-        // Calcular costo de seguro ($1 por cada $100 de valor, redondeando hacia arriba)
-const seguro = Math.ceil(valor / 100);
-        
-        // Calcular costo total incluyendo cargo por combustible y seguro
-const costoTotal = tarifaPeso + fuelSurcharge + cargoManejo + costoEntrega + seguro;
-            
-            // Mostrar resultados con animación
-document.getElementById('peso-aplicable').textContent = pesoAplicable.toFixed(2) + ' kg' + (pesoVolumetrico > peso ? ' (volumétrico)' : ' (real)');
-document.getElementById('tarifa-peso').textContent = '$' + tarifaPeso.toFixed(2);
-document.getElementById('cargo-manejo').textContent = '$' + cargoManejo.toFixed(2);
-document.getElementById('costo-entrega').textContent = '$' + costoEntrega.toFixed(2);
-// Añadir una nueva línea para mostrar el recargo por combustible
-document.getElementById('recargo-combustible').textContent = '$' + fuelSurcharge.toFixed(2);
-document.getElementById('costo-seguro').textContent = '$' + seguro.toFixed(2);
-document.getElementById('costo-total').textContent = '$' + costoTotal.toFixed(2);
-            
-            // Mostrar resultado con animación
-            resultadoCalculo.classList.remove('hidden');
-            
-            // Hacer scroll al resultado
-            resultadoCalculo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         });
     }
 
