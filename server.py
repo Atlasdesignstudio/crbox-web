@@ -4906,10 +4906,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
     def _handle_invoice_upload(self):
         import uuid as _uuid
-        import warnings as _warnings
-        with _warnings.catch_warnings():
-            _warnings.simplefilter('ignore', DeprecationWarning)
-            import cgi as _cgi  # noqa: PLC0415 — deprecated but still available in Python ≤3.12
+        import email.parser  as _ep
+        import email.policy  as _epol
+
         # Require portal auth so only logged-in clients can store files
         casillero_id = self._portal_auth()
         if not casillero_id:
@@ -4922,36 +4921,57 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(413, {'error': 'Tamaño de archivo inválido o demasiado grande (máx. 12 MB).'})
             return
 
+        # Read the full body into memory before parsing so there are no
+        # streaming / buffering issues with the socket rfile.
         try:
-            with _warnings.catch_warnings():
-                _warnings.simplefilter('ignore', DeprecationWarning)
-                form = _cgi.FieldStorage(
-                    fp=self.rfile,
-                    headers=self.headers,
-                    environ={
-                        'REQUEST_METHOD': 'POST',
-                        'CONTENT_TYPE':   ct,
-                        'CONTENT_LENGTH': str(length),
-                    },
-                    keep_blank_values=True,
-                )
+            body = self.rfile.read(length)
         except Exception as exc:
-            print(f'[INVOICE_UPLOAD] Form parse error: {exc}')
+            print(f'[INVOICE_UPLOAD] Body read error: {exc}')
+            self._json_response(400, {'error': 'No se pudo leer el cuerpo de la solicitud.'})
+            return
+
+        # Parse the multipart body using email.parser (stdlib, no deprecated cgi).
+        # Prepend the Content-Type header so the parser knows the boundary.
+        try:
+            raw_msg = b'Content-Type: ' + ct.encode() + b'\r\n\r\n' + body
+            msg     = _ep.BytesParser(policy=_epol.compat32).parsebytes(raw_msg)
+        except Exception as exc:
+            print(f'[INVOICE_UPLOAD] Multipart parse error: {exc}')
             self._json_response(400, {'error': 'No se pudo leer el formulario. Intenta de nuevo.'})
             return
 
-        file_item = form.get('invoice') if hasattr(form, 'get') else None
-        if not file_item or not hasattr(file_item, 'file') or file_item.file is None:
-            self._json_response(400, {'error': 'Campo "invoice" requerido.'})
-            return
+        # Walk the MIME tree to find the part named "invoice"
+        file_bytes = None
+        mime       = 'application/octet-stream'
+        orig_name  = 'invoice'
+        for part in msg.walk():
+            cd = part.get('Content-Disposition', '')
+            if not cd:
+                continue
+            # Content-Disposition can be:  form-data; name="invoice"; filename="..."
+            params = {}
+            for segment in cd.split(';'):
+                segment = segment.strip()
+                if '=' in segment:
+                    k, _, v = segment.partition('=')
+                    params[k.strip().lower()] = v.strip().strip('"\'')
+            if params.get('name') != 'invoice':
+                continue
+            payload = part.get_payload(decode=True)
+            if payload is None:
+                continue
+            file_bytes = payload
+            mime       = (part.get_content_type() or 'application/octet-stream').split(';')[0].strip().lower()
+            fn         = params.get('filename') or part.get_filename() or ''
+            if fn:
+                orig_name = fn
+            break
 
-        file_bytes  = file_item.file.read()
         if not file_bytes:
-            self._json_response(400, {'error': 'El archivo está vacío.'})
+            self._json_response(400, {'error': 'Campo "invoice" requerido o archivo vacío.'})
             return
 
-        mime        = (file_item.type or 'application/octet-stream').split(';')[0].strip().lower()
-        orig_name   = (file_item.filename or 'invoice').strip()
+        orig_name = orig_name.strip()
 
         # Determine extension from MIME, fall back to the original filename's ext
         ext = self._INVOICE_ALLOW_TYPES.get(mime)
