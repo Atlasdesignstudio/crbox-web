@@ -1424,18 +1424,19 @@
         }
         
         /* ── Sticky last 2 table columns ────────────────────────────── */
-        td.sticky-col-factura, th.sticky-col-factura {
-            position: sticky;
-            right: 56px;
-            background-color: #fff;
-            z-index: 1;
-        }
         td.sticky-col-actions, th.sticky-col-actions {
             position: sticky;
             right: 0;
+            width: 60px;
+            min-width: 60px;
             background-color: #fff;
             z-index: 1;
-            box-shadow: -3px 0 6px rgba(0,0,0,.06);
+        }
+        td.sticky-col-factura, th.sticky-col-factura {
+            position: sticky;
+            right: 60px;
+            background-color: #fff;
+            z-index: 1;
         }
         thead th.sticky-col-factura,
         thead th.sticky-col-actions {
@@ -1458,9 +1459,9 @@
         .table-overflow-wrapper { position: relative; }
         .table-scroll-fade {
             position: absolute;
-            top: 0; right: 0; bottom: 0;
-            width: 48px;
-            background: linear-gradient(to left, rgba(255,255,255,.9), transparent);
+            top: 0; bottom: 0;
+            width: 56px;
+            background: linear-gradient(to left, rgba(255,107,0,.10), transparent);
             pointer-events: none;
             z-index: 3;
             transition: opacity .2s;
@@ -1524,17 +1525,32 @@
             var wrapper = document.getElementById('table-scroll-wrapper');
             var fade    = document.getElementById('table-scroll-fade');
             if (!wrapper || !fade) return;
+
+            function positionFade() {
+                // Place the fade at the left boundary of the sticky section
+                var facturaEl = wrapper.querySelector('th.sticky-col-factura');
+                var actionsEl = wrapper.querySelector('th.sticky-col-actions');
+                var stickyW = (facturaEl ? facturaEl.offsetWidth : 0) +
+                              (actionsEl ? actionsEl.offsetWidth : 0);
+                if (stickyW > 0) fade.style.right = stickyW + 'px';
+            }
+
             function updateFade() {
+                positionFade();
                 var atEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 4;
                 fade.style.opacity = atEnd ? '0' : '1';
             }
+
             wrapper.addEventListener('scroll', updateFade, { passive: true });
-            // Re-check when data renders (MutationObserver on tbody)
+            window.addEventListener('resize', updateFade, { passive: true });
+            // Re-check when data renders
             var tbody = document.getElementById('packages-tbody');
             if (tbody && typeof MutationObserver !== 'undefined') {
-                new MutationObserver(updateFade).observe(tbody, { childList: true });
+                new MutationObserver(function() {
+                    setTimeout(updateFade, 30);
+                }).observe(tbody, { childList: true });
             }
-            updateFade();
+            setTimeout(updateFade, 50);
         }
         
         // Header sticky con sombra al scroll
