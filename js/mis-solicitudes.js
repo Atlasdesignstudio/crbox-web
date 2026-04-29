@@ -800,10 +800,14 @@
       var catEl = document.getElementById('form-category');
       if (catEl && typeof TomSelect !== 'undefined') {
         _portalTomSelect = new TomSelect(catEl, {
-          placeholder:       '— Buscar categoría —',
-          allowEmptyOption:  true,
-          maxOptions:        300,
-          searchField:       ['text'],
+          maxItems:         1,
+          create:           false,
+          sortField:        { field: 'text', direction: 'asc' },
+          searchField:      ['text'],
+          placeholder:      'Buscar categoría...',
+          diacritics:       true,
+          allowEmptyOption: true,
+          items:            [],
           onChange: function () {
             _triggerPortalEstimate();
           }
@@ -814,7 +818,7 @@
     // ── Live estimate ─────────────────────────────────────────────────────────
     function _triggerPortalEstimate() {
       var valEl  = document.getElementById('form-declared-value');
-      var catEl  = document.getElementById('form-category');
+      var wgtEl  = document.getElementById('form-weight');
       var svcEl  = document.getElementById('form-service-type');
       var panel  = document.getElementById('portal-estimate-panel');
       var airDiv = document.getElementById('portal-estimate-air');
@@ -823,8 +827,9 @@
       if (!panel) return;
 
       var val = valEl ? parseFloat(valEl.value) : NaN;
-      var cat = _portalTomSelect ? _portalTomSelect.getValue() : (catEl ? catEl.value : '');
+      var cat = _portalTomSelect ? _portalTomSelect.getValue() : '';
       var svc = svcEl ? svcEl.value : 'aereo';
+      var wgt = wgtEl ? (parseFloat(wgtEl.value) || 0) : 0;
 
       var hasVal = !isNaN(val) && val > 0;
       var hasCat = !!cat;
@@ -847,30 +852,46 @@
       if (airDiv) airDiv.classList.remove('hidden');
       if (marDiv) marDiv.classList.add('hidden');
 
-      if (typeof CRBOXCalcEngine !== 'undefined' && typeof CRBOXTariffAdapter !== 'undefined') {
+      if (typeof CALCULATOR_ENGINE !== 'undefined') {
         try {
-          var pkg = { category: cat, declared_value_usd: val, weight_kg: 0, service_type: 'aereo' };
-          var result = CRBOXCalcEngine.calcSinglePackage(pkg);
-          if (result && result.ok) {
-            var freight   = result.freight_usd || 0;
-            var taxes     = result.taxes_usd || 0;
-            var total     = result.total_usd || 0;
+          var tariffInfo = (typeof TARIFF_ADAPTER !== 'undefined')
+            ? TARIFF_ADAPTER.getTariffRate(cat)
+            : { rate: 0.2995, source: 'local_estimated', pct: '29.95%' };
+          var pkg = {
+            value:       val,
+            weight:      wgt,
+            category:    cat,
+            destination: 'sanjose'
+          };
+          var result = CALCULATOR_ENGINE.calcSinglePackage(pkg);
+          if (result && typeof result.total === 'number') {
+            var freight  = result.freight  || 0;
+            var fuel     = result.fuel     || 0;
+            var handling = result.handling || 0;
+            var taxes    = result.taxes    || 0;
+            var total    = result.total    || 0;
             var fmt = function (n) { return '$' + n.toFixed(2); };
             var peFreight = document.getElementById('pe-freight');
             var peTaxes   = document.getElementById('pe-taxes');
             var peTotal   = document.getElementById('pe-total');
-            if (peFreight) peFreight.textContent = fmt(freight);
+            if (peFreight) peFreight.textContent = fmt(freight + fuel + handling);
             if (peTaxes)   peTaxes.textContent   = fmt(taxes);
             if (peTotal)   peTotal.textContent    = fmt(total);
             _portalAutoEstimate = {
               estimate_usd: total,
               estimate_breakdown: {
-                freight_usd: freight,
-                taxes_usd:   taxes,
-                total_usd:   total,
-                category:    cat,
+                service_type:       'aereo',
+                category:           cat,
                 declared_value_usd: val,
-                service_type: 'aereo'
+                weight_kg:          wgt,
+                freight_usd:        freight,
+                fuel_usd:           fuel,
+                handling_usd:       handling,
+                taxes_usd:          taxes,
+                total_usd:          total,
+                tariff_rate:        tariffInfo.rate,
+                tariff_source:      tariffInfo.source,
+                destination:        'sanjose'
               }
             };
           } else {
@@ -883,8 +904,10 @@
     }
 
     var _fValEl = document.getElementById('form-declared-value');
+    var _fWgtEl = document.getElementById('form-weight');
     var _fSvcEl = document.getElementById('form-service-type');
     if (_fValEl) _fValEl.addEventListener('input', _triggerPortalEstimate);
+    if (_fWgtEl) _fWgtEl.addEventListener('input', _triggerPortalEstimate);
     if (_fSvcEl) _fSvcEl.addEventListener('change', _triggerPortalEstimate);
 
     // Portal duplicate warning dismiss button
