@@ -13,6 +13,7 @@ import ipaddress
 import socket
 import email.mime.multipart
 import email.mime.text
+import email.utils
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -901,6 +902,8 @@ def _send_customer_confirmation(scb_id, customer_email, customer_name,
     msg['Subject'] = subject
     msg['From'] = f'CRBOX <{smtp_user}>'
     msg['To'] = customer_email
+    msg['Message-ID'] = f'<{_uuid4_hex()}@crbox.cr>'
+    msg['Date'] = email.utils.formatdate(localtime=False)
 
     greeting = f'Hola {customer_name},' if customer_name else 'Hola,'
     plain = (
@@ -995,6 +998,8 @@ def _send_cancellation_email(scb_id, customer_email, customer_name, product_name
     msg['Subject'] = subject
     msg['From'] = f'CRBOX <{smtp_user}>'
     msg['To'] = customer_email
+    msg['Message-ID'] = f'<{_uuid4_hex()}@crbox.cr>'
+    msg['Date'] = email.utils.formatdate(localtime=False)
     msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
     msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
     _send_smtp(msg, [customer_email])
@@ -1167,6 +1172,8 @@ def _send_customer_response(scb_id, customer_email, customer_name, product_name,
     msg['From'] = f'CRBOX <{smtp_user}>'
     msg['To'] = customer_email
     msg['Reply-To'] = 'ventas@crbox.cr'
+    msg['Message-ID'] = f'<{_uuid4_hex()}@crbox.cr>'
+    msg['Date'] = email.utils.formatdate(localtime=False)
     msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
     msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
     _send_smtp(msg, [customer_email])
@@ -1853,7 +1860,7 @@ def _admin_status_options_html(current_status):
     return '\n'.join(opts)
 
 
-def _build_admin_detail_html(row, history, filter_val='all'):
+def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     esc = _html.escape
     rid       = esc(row['id'])
     back_url  = f'/admin/solicitudes?filter={esc(filter_val)}'
@@ -2190,6 +2197,19 @@ def _build_admin_detail_html(row, history, filter_val='all'):
             f'<span class="adm-detail-val" style="white-space:pre-wrap;">{ro_diff}</span></div>'
         ) if ro_diff else ''
 
+        # Check history for any resend events
+        last_resend = next(
+            (h for h in reversed(history) if 'reenviada' in (h.get('note') or '').lower()),
+            None
+        )
+        resend_note_html = ''
+        if last_resend:
+            resend_ts = _admin_format_date(last_resend.get('changed_at', ''))
+            resend_note_html = (
+                f'<p style="font-size:11px;color:#6b7280;margin:10px 0 0;">'
+                f'&#128338; &Uacute;ltimo reenv&iacute;o: {esc(resend_ts)}</p>'
+            )
+
         composer_html = f'''<div class="adm-detail-section" style="border-color:#d1fae5;background:#f0fdf4;">
   <div class="adm-detail-section-title" style="justify-content:space-between;">
     <span>&#9993; Respuesta enviada</span>
@@ -2217,6 +2237,21 @@ def _build_admin_detail_html(row, history, filter_val='all'):
       <span class="adm-detail-label">Mensaje al cliente</span>
       <span class="adm-detail-val" style="white-space:pre-wrap;">{ro_msg}</span>
     </div>
+  </div>
+  <div style="margin-top:16px;padding-top:14px;border-top:1px solid #d1fae5;">
+    <form method="POST" action="/admin/solicitudes/{rid}/resend-response">
+      <input type="hidden" name="filter" value="{esc(filter_val)}">
+      <button type="submit"
+        style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;
+               background:#fff;border:1.5px solid #6ee7b7;border-radius:8px;
+               color:#065f46;font-size:13px;font-weight:700;cursor:pointer;
+               font-family:inherit;transition:all .2s;"
+        onmouseover="this.style.background='#d1fae5'"
+        onmouseout="this.style.background='#fff'">
+        &#128257;&nbsp; Reenviar notificaci&oacute;n al cliente
+      </button>
+    </form>
+    {resend_note_html}
   </div>
 </div>'''
     elif status in ('enviada', 'en_revision'):
@@ -2552,6 +2587,7 @@ a{{color:inherit;text-decoration:none}}
 </header>
 <div class="adm-detail-wrap">
   <a href="{back_url}" class="adm-back">&#8592; Volver a solicitudes</a>
+  {'<div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#065f46;">&#10003;&nbsp; Notificaci&oacute;n reenviada correctamente al cliente.</div>' if resent else ''}
   <div class="adm-page-title">
     <span class="adm-scb-id">{rid}</span>
     {badge_html}
@@ -2978,6 +3014,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             m_tracking     = re.match(r'^/api/solicitudes/(SCB-\d+)/tracking$', self.path)
             m_admin_status    = re.match(r'^/admin/solicitudes/(SCB-\d+)/status$', self.path)
             m_admin_respond   = re.match(r'^/admin/solicitudes/(SCB-\d+)/respond$', self.path)
+            m_admin_resend    = re.match(r'^/admin/solicitudes/(SCB-\d+)/resend-response$', self.path)
             m_admin_suggest   = re.match(r'^/admin/solicitudes/(SCB-\d+)/suggest-draft$', self.path)
             m_admin_link_pkg  = re.match(r'^/admin/solicitudes/(SCB-\d+)/link-package$', self.path)
             if m_status:
@@ -2992,6 +3029,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_admin_solicitudes_status(m_admin_status.group(1))
             elif m_admin_respond:
                 self._handle_admin_solicitudes_respond(m_admin_respond.group(1))
+            elif m_admin_resend:
+                self._handle_admin_solicitudes_resend_response(m_admin_resend.group(1))
             elif m_admin_suggest:
                 self._handle_admin_solicitudes_suggest_draft(m_admin_suggest.group(1))
             elif m_admin_link_pkg:
@@ -4093,6 +4132,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         filter_val = (qs.get('filter', ['all'])[0] or 'all').strip()
         if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
             filter_val = 'all'
+        resent = qs.get('resent', [''])[0] == '1'
         try:
             with _DB_LOCK:
                 conn  = _get_db()
@@ -4120,7 +4160,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             print(f'[ADMIN] Detail DB error: {exc}')
             self._admin_html_response('<h1>Error interno</h1>', status=500)
             return
-        html = _build_admin_detail_html(row, history, filter_val)
+        html = _build_admin_detail_html(row, history, filter_val, resent=resent)
         self._admin_html_response(html)
 
     # ── POST /admin/solicitudes/:id/status ────────────────────────────────
@@ -4356,6 +4396,123 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         self._admin_redirect(redirect_url)
 
+
+    # ── POST /admin/solicitudes/:id/resend-response ───────────────────────
+    def _handle_admin_solicitudes_resend_response(self, scb_id):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self.send_response(404); self.end_headers(); return
+
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            raw    = self.rfile.read(length).decode('utf-8')
+            params = urllib.parse.parse_qs(raw, keep_blank_values=True)
+            filter_val = (params.get('filter', ['all'])[0] or 'all').strip()
+            if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
+                filter_val = 'all'
+        except Exception:
+            self.send_response(400); self.end_headers(); return
+
+        redirect_url = f'/admin/solicitudes/{scb_id}?filter={filter_val}'
+
+        # ── Fetch solicitud ───────────────────────────────────────────────
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row  = conn.execute(
+                    'SELECT * FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+                conn.close()
+        except Exception as exc:
+            print(f'[ADMIN] Resend DB read error: {exc}')
+            self._admin_html_response(
+                '<h1 style="font-family:sans-serif;padding:40px;">Error interno</h1>', status=500
+            )
+            return
+
+        if row is None:
+            self._admin_redirect(redirect_url)
+            return
+
+        row = dict(row)
+
+        # Must be respondida with stored response_json
+        if row.get('status') != 'respondida' or not row.get('response_json'):
+            self._admin_redirect(redirect_url)
+            return
+
+        try:
+            resp_data = json.loads(row['response_json'])
+        except Exception:
+            self._admin_redirect(redirect_url)
+            return
+
+        # ── Check SMTP ────────────────────────────────────────────────────
+        settings = _smtp_settings()
+        if settings is None:
+            self._admin_html_response(
+                '<div style="font-family:sans-serif;padding:40px 24px;max-width:600px;margin:0 auto;">'
+                '<h2 style="color:#dc2626;">SMTP no configurado</h2>'
+                '<p style="color:#374151;margin:12px 0;">No se puede enviar el correo porque SMTP '
+                'no est&aacute; configurado en este entorno.</p>'
+                f'<a href="{_html.escape(redirect_url)}" style="color:#FF6B00;">&#8592; Volver</a>'
+                '</div>',
+                status=503
+            )
+            return
+
+        smtp_user = settings[2]
+
+        # ── Resend email ──────────────────────────────────────────────────
+        try:
+            _send_customer_response(
+                scb_id,
+                row['customer_email'],
+                row.get('customer_name'),
+                row['product_name'],
+                resp_data.get('confirmed_shipping_price_usd', 0),
+                resp_data.get('availability', 'disponible'),
+                resp_data.get('delivery_timeline', ''),
+                resp_data.get('conditions', ''),
+                resp_data.get('difference_explanation', ''),
+                resp_data.get('customer_message', ''),
+                smtp_user,
+            )
+            print(f'[ADMIN] Response email resent for {scb_id} → {row["customer_email"]}')
+        except Exception as exc:
+            print(f'[ADMIN] Resend email error for {scb_id}: {exc}')
+            self._admin_html_response(
+                '<div style="font-family:sans-serif;padding:40px 24px;max-width:600px;margin:0 auto;">'
+                f'<h2 style="color:#dc2626;">Error al reenviar el correo</h2>'
+                f'<p style="color:#374151;margin:12px 0;">No se pudo reenviar el correo al cliente.</p>'
+                f'<p style="color:#6b7280;font-size:13px;margin:8px 0;">Detalle: {_html.escape(str(exc))}</p>'
+                f'<a href="{_html.escape(redirect_url)}" style="color:#FF6B00;">&#8592; Volver</a>'
+                '</div>',
+                status=502
+            )
+            return
+
+        # ── Insert history note ───────────────────────────────────────────
+        now_iso = _now_iso()
+        hist_id = _uuid4_hex()
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                conn.execute(
+                    '''INSERT INTO quote_status_history
+                       (id, quote_request_id, from_status, to_status, changed_at, changed_by, note)
+                       VALUES (?,?,?,?,?,?,?)''',
+                    (hist_id, scb_id, 'respondida', 'respondida', now_iso, 'sales',
+                     'Notificación reenviada al cliente')
+                )
+                conn.commit()
+                conn.close()
+        except Exception as exc:
+            print(f'[ADMIN] Resend history insert error for {scb_id}: {exc}')
+
+        self._admin_redirect(f'/admin/solicitudes/{scb_id}?filter={filter_val}&resent=1')
 
     # ── POST /admin/solicitudes/:id/suggest-draft ─────────────────────────
     def _handle_admin_solicitudes_suggest_draft(self, scb_id):
