@@ -1,0 +1,124 @@
+Please investigate and fix a real data-flow inconsistency between Mis Paquetes and Mis Facturas in the client portal.
+
+This is not a visual task.  
+This is a backend/data wiring / frontend truthfulness investigation and fix.
+
+## Problem
+When a user uploads a factura from Mis Paquetes, the upload flow appears to work there, but the factura does not appear in Mis Facturas afterward.
+
+That should not happen.
+
+If the factura upload is truly being accepted by the backend and associated correctly, then Mis Facturas should reflect that real backend state.
+
+So I need you to inspect the full flow and determine exactly where it is breaking.
+
+---
+
+## What I want investigated
+Please inspect the end-to-end chain:
+
+### 1. Upload flow from Mis Paquetes
+Check exactly what happens when a user uploads a factura from Mis Paquetes:
+- what request is sent
+- to which endpoint(s)
+- what payload is sent
+- what backend response comes back
+- whether the invoice is only uploaded as a file
+- whether it is truly registered as a purchase bill in the legacy backend
+- whether it is associated to the correct package / warehouse receipt / user
+
+### 2. Data source for Mis Facturas
+Inspect what Mis Facturas is actually using as its source of truth:
+- which endpoint is called
+- what parameters are sent
+- what data shape comes back
+- whether that endpoint should already include newly uploaded purchase bills
+- whether the current frontend is filtering them out
+- whether the backend is not returning them at all
+- whether there is a mismatch between “uploaded file” and “registered factura record”
+
+### 3. Relationship between both modules
+I want a clear answer to this:
+- when a factura is uploaded in Mis Paquetes, what exact backend action should make it appear in Mis Facturas?
+- is that action currently missing?
+- is it incomplete?
+- is it asynchronous and not being refreshed?
+- or is Mis Facturas reading from a different source that never receives that uploaded record?
+
+---
+
+## Core expectation
+The system should work like this:
+
+- user uploads factura in Mis Paquetes
+- backend stores and registers it properly
+- factura is linked to the correct package / receipt
+- Mis Facturas then shows that factura because it is reading the real backend state
+
+If that is not happening, I need you to find the exact break.
+
+---
+
+## What I want fixed
+Please make the flow truthfully consistent so that:
+
+### If the backend truly supports it
+- a factura uploaded from Mis Paquetes becomes visible in Mis Facturas
+- the record shown in Mis Facturas is based on the real backend response
+- no fake local-only invoice state is used
+- the relationship to the package is preserved
+
+### If the backend does NOT actually support that automatically
+Then do not fake it.
+
+Instead:
+- identify the exact missing backend registration step
+- explain what is happening truthfully
+- implement the correct missing call if it exists in the legacy contracts
+- or surface the limitation honestly if there is no real way to make Mis Facturas reflect it yet
+
+---
+
+## Important constraints
+- do not invent invoice records client-side
+- do not simulate Mis Facturas entries locally
+- do not create fake bridging data just to make the UI look correct
+- use only real backend-supported flows
+- preserve truthfulness: if the backend returns it, show it; if not, fix the wiring or explain the real limitation
+
+---
+
+## Specific things to inspect
+Please verify all of the following:
+
+- whether the upload flow in Mis Paquetes is only saving a file or also creating a real factura/bill record
+- whether the correct package/receipt identifier is being sent
+- whether the createPurchaseBill step is really succeeding
+- whether Mis Facturas is using the expected real endpoint for invoices
+- whether Mis Facturas needs a refresh after upload
+- whether the invoice endpoint requires a different date range or filters that are excluding the new record
+- whether uploaded purchase bills and listed “facturas” are actually the same backend entity or not
+- whether the uploaded invoice is attached to the package in package data but not surfaced in bill data
+- whether the frontend mapping in Mis Facturas is dropping valid returned records because of shape mismatch
+
+---
+
+## Desired output
+I want both the fix and the diagnosis.
+
+## Done looks like
+- after uploading a factura from Mis Paquetes, if the backend truly registers it, it appears in Mis Facturas
+- Mis Facturas is reading real backend data, not local fake state
+- package/invoice linkage is preserved where available
+- if something in the legacy backend prevents this, that limitation is identified precisely and handled honestly
+
+---
+
+## Please report back with
+1. what exact endpoint(s) are involved in the Mis Paquetes upload flow
+2. whether the upload currently creates a real factura record or only uploads a file
+3. what endpoint Mis Facturas uses as source of truth
+4. why the uploaded factura was not appearing there
+5. what exact fix you made
+6. whether the fix is fully real backend-backed or whether there is still a legacy backend limitation
+7. how you verified that a newly uploaded factura now appears in Mis Facturas, if the backend supports it
