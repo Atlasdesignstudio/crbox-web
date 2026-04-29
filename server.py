@@ -39,21 +39,31 @@ except ImportError:
 
 
 def _verify_gemini_model_at_startup():
-    """Run once at startup: confirm the configured model is available via list_models()."""
+    """Run once at startup: confirm the configured model exists and supports generateContent."""
     if not _GEMINI_SDK_OK or not _GEMINI_API_KEY:
         return
     try:
         from google import genai as _gv
         client = _gv.Client(api_key=_GEMINI_API_KEY)
-        available = {m.name for m in client.models.list()}
-        # Model names are returned as "models/<name>"; accept both forms
+        # Build map: normalised short name → model object
+        model_map = {}
+        for m in client.models.list():
+            model_map[m.name] = m                  # "models/gemini-2.5-flash-lite"
+            short = m.name.split('/', 1)[-1]
+            model_map[short] = m                   # "gemini-2.5-flash-lite"
         canonical = f'models/{_GEMINI_MODEL}'
-        if canonical in available or _GEMINI_MODEL in available:
-            print(f'[AI] Model verification OK: {_GEMINI_MODEL} is available')
-        else:
+        found = model_map.get(canonical) or model_map.get(_GEMINI_MODEL)
+        if found is None:
             print(f'[AI] WARNING: configured model "{_GEMINI_MODEL}" not found in list_models(); '
-                  f'available (sample): {sorted(available)[:5]}. '
+                  f'available (sample): {sorted(model_map.keys())[:6]}. '
                   f'Set GEMINI_MODEL env var to a valid model name.')
+            return
+        actions = list(found.supported_actions or [])
+        if 'generateContent' in actions:
+            print(f'[AI] Model verification OK: {found.name} supports generateContent')
+        else:
+            print(f'[AI] WARNING: model "{found.name}" found but supported_actions={actions}; '
+                  f'generateContent may not be available. Set GEMINI_MODEL to a supported model.')
     except Exception as _ex:
         print(f'[AI] WARNING: model verification failed ({_ex}); AI may not work')
 
