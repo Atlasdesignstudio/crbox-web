@@ -23,12 +23,15 @@ QUOTE_RECIPIENT = 'ventas@crbox.cr'
 
 # ── AI / Gemini extraction ────────────────────────────────────────────────────
 _GEMINI_API_KEY  = os.environ.get('GEMINI_API_KEY', '')
+# Model is configurable via GEMINI_MODEL env var; defaults to gemini-1.5-flash
+# (stable, broadly available). Override with e.g. "gemini-2.0-flash-lite" if needed.
+_GEMINI_MODEL    = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
 try:
     import warnings as _w
     with _w.catch_warnings():
         _w.simplefilter('ignore')
         import google.generativeai as _genai_check  # noqa: F401
-    print(f'[AI] google-generativeai available; key configured: {bool(_GEMINI_API_KEY)}')
+    print(f'[AI] google-generativeai available; key configured: {bool(_GEMINI_API_KEY)}; model: {_GEMINI_MODEL}')
     del _genai_check, _w
 except ImportError:
     print('[AI] WARNING: google-generativeai not installed — AI extraction disabled')
@@ -199,7 +202,7 @@ def _call_gemini(content):
             import google.generativeai as genai
         genai.configure(api_key=_GEMINI_API_KEY)
         model = genai.GenerativeModel(
-            model_name='gemini-2.0-flash',
+            model_name=_GEMINI_MODEL,
             generation_config=genai.GenerationConfig(
                 temperature=0.1,
                 max_output_tokens=1024,
@@ -295,7 +298,7 @@ def _call_gemini_draft(context):
             import google.generativeai as genai
         genai.configure(api_key=_GEMINI_API_KEY)
         model = genai.GenerativeModel(
-            model_name='gemini-2.0-flash',
+            model_name=_GEMINI_MODEL,
             generation_config=genai.GenerationConfig(
                 temperature=0.4,
                 max_output_tokens=1500,
@@ -354,7 +357,7 @@ def _normalize_ai_result(raw, source_url):
     out = {}
     out['source_url']         = source_url
     out['extracted_at']       = now_iso
-    out['model']              = 'gemini-2.0-flash'
+    out['model']              = _GEMINI_MODEL
     out['page_readable']      = bool(raw.get('page_readable', True))
     out['partial']            = bool(raw.get('partial', False))
     out['extraction_warnings'] = raw.get('extraction_warnings') or []
@@ -2012,9 +2015,14 @@ def _build_admin_detail_html(row, history, filter_val='all'):
 
     # ── Status history timeline ─────────────────────────────────────────────
     status_label_map = {
-        'enviada': 'Enviada', 'en_revision': 'En revisi&oacute;n',
-        'respondida': 'Respondida', 'completada': 'Completada',
-        'cancelada': 'Cancelada', 'expirada': 'Expirada',
+        'enviada':                 'Enviada',
+        'en_revision':             'En revisi&oacute;n',
+        'respondida':              'Respondida',
+        'pendiente_compra_crbox':  'Compra por CRBOX',
+        'pendiente_compra_cliente':'Compra propia',
+        'completada':              'Completada',
+        'cancelada':               'Cancelada',
+        'expirada':                'Expirada',
     }
     timeline_items = ''
     for h in history:
@@ -2313,6 +2321,43 @@ def _build_admin_detail_html(row, history, filter_val='all'):
   </script>
 </div>'''
 
+    # ── Link-package action block (pendiente_compra_cliente only) ───────────
+    link_pkg_html = ''
+    if status == 'pendiente_compra_cliente':
+        cust_tracking = (row.get('expected_tracking_number') or '').strip()
+        tracking_ref_row = ''
+        if cust_tracking:
+            tracking_ref_row = (
+                f'<div class="adm-detail-row" style="margin-bottom:12px;">'
+                f'<span class="adm-detail-label">Tracking del cliente</span>'
+                f'<span class="adm-detail-val" style="font-family:monospace;font-size:12px;">'
+                f'{esc(cust_tracking)}</span></div>'
+            )
+        link_pkg_html = f'''<div class="adm-detail-section" style="border-color:#c4b5fd;background:#faf5ff;">
+  <div class="adm-detail-section-title" style="color:#6d28d9;">&#128279; Vincular paquete y completar</div>
+  <p style="font-size:12px;color:#6b7280;margin-bottom:14px;">Registra el ID del paquete CRBOX que correspond&iacute;a a esta solicitud. Esto cerrar&aacute; la solicitud como completada y activar&aacute; la vista del paquete en el portal del cliente.</p>
+  {tracking_ref_row}
+  <form method="POST" action="/admin/solicitudes/{rid}/link-package">
+    <input type="hidden" name="filter" value="{esc(filter_val)}">
+    <div style="margin-bottom:8px;">
+      <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">ID del paquete CRBOX <span style="color:#ef4444;">*</span></label>
+      <input type="text" name="package_id" required
+             placeholder="ej. CRBOX-00001"
+             style="width:100%;max-width:320px;padding:8px 12px;border:1px solid #c4b5fd;
+                    border-radius:8px;font-size:13px;color:#111;background:#fff;
+                    outline:none;" />
+    </div>
+    <button type="submit"
+            style="margin-top:4px;padding:8px 22px;background:#7c3aed;color:#fff;
+                   border:none;border-radius:8px;font-size:13px;font-weight:700;
+                   cursor:pointer;transition:background .2s;"
+            onmouseover="this.style.background='#6d28d9'"
+            onmouseout="this.style.background='#7c3aed'">
+      &#128279;&nbsp; Vincular paquete y completar
+    </button>
+  </form>
+</div>'''
+
     # ── Source badge for header ─────────────────────────────────────────────
     src_map = {
         'manual':       ('Manual',        'adm-src-manual'),
@@ -2440,6 +2485,7 @@ a{{color:inherit;text-decoration:none}}
   {estimado_html}
   {history_html}
   {update_html}
+  {link_pkg_html}
   {composer_html}
 </div>
 </body>
@@ -2851,9 +2897,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             m_cancel       = re.match(r'^/api/solicitudes/(SCB-\d+)/cancel$', self.path)
             m_intent       = re.match(r'^/api/solicitudes/(SCB-\d+)/intent$', self.path)
             m_tracking     = re.match(r'^/api/solicitudes/(SCB-\d+)/tracking$', self.path)
-            m_admin_status   = re.match(r'^/admin/solicitudes/(SCB-\d+)/status$', self.path)
-            m_admin_respond  = re.match(r'^/admin/solicitudes/(SCB-\d+)/respond$', self.path)
-            m_admin_suggest  = re.match(r'^/admin/solicitudes/(SCB-\d+)/suggest-draft$', self.path)
+            m_admin_status    = re.match(r'^/admin/solicitudes/(SCB-\d+)/status$', self.path)
+            m_admin_respond   = re.match(r'^/admin/solicitudes/(SCB-\d+)/respond$', self.path)
+            m_admin_suggest   = re.match(r'^/admin/solicitudes/(SCB-\d+)/suggest-draft$', self.path)
+            m_admin_link_pkg  = re.match(r'^/admin/solicitudes/(SCB-\d+)/link-package$', self.path)
             if m_status:
                 self._handle_solicitudes_status(m_status.group(1))
             elif m_cancel:
@@ -2868,6 +2915,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_admin_solicitudes_respond(m_admin_respond.group(1))
             elif m_admin_suggest:
                 self._handle_admin_solicitudes_suggest_draft(m_admin_suggest.group(1))
+            elif m_admin_link_pkg:
+                self._handle_admin_solicitudes_link_package(m_admin_link_pkg.group(1))
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -4366,6 +4415,64 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             draft['difference_explanation'] = ''
 
         self._json_response(200, draft)
+
+
+    def _handle_admin_solicitudes_link_package(self, scb_id):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self.send_response(404); self.end_headers(); return
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            raw    = self.rfile.read(length).decode('utf-8')
+            params = urllib.parse.parse_qs(raw)
+            package_id = (params.get('package_id', [''])[0] or '').strip()
+            filter_val = (params.get('filter', ['all'])[0] or 'all').strip()
+            if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
+                filter_val = 'all'
+        except Exception:
+            self.send_response(400); self.end_headers(); return
+
+        redirect_url = f'/admin/solicitudes/{scb_id}?filter={filter_val}'
+
+        if not package_id:
+            self._admin_redirect(redirect_url)
+            return
+
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row = conn.execute(
+                    'SELECT status FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+                if row is None or row['status'] != 'pendiente_compra_cliente':
+                    conn.close()
+                    self._admin_redirect(redirect_url)
+                    return
+                now_iso = _now_iso()
+                hist_id = _uuid4_hex()
+                conn.execute(
+                    '''UPDATE quote_requests
+                       SET status = ?, linked_package_id = ?, completed_at = ?
+                       WHERE id = ?''',
+                    ('completada', package_id, now_iso, scb_id)
+                )
+                conn.execute(
+                    '''INSERT INTO quote_status_history
+                       (id, quote_request_id, from_status, to_status, changed_at, changed_by, note)
+                       VALUES (?,?,?,?,?,?,?)''',
+                    (hist_id, scb_id, 'pendiente_compra_cliente', 'completada',
+                     now_iso, 'sales',
+                     f'Solicitud completada \u00b7 paquete vinculado: {package_id}')
+                )
+                conn.commit()
+                conn.close()
+            print(f'[ADMIN] link-package: {scb_id} → completada, package={package_id}')
+            self._admin_redirect(redirect_url)
+        except Exception as exc:
+            print(f'[ADMIN] link-package error: {exc}')
+            self._admin_redirect(redirect_url)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,114 @@
+This looks like the right next task and I agree with the direction.
+
+It solves the most important structural gap on the self-purchase path without overcomplicating the system:
+- it creates the first real write path for linked_package_id
+- it closes pendiente_compra_cliente in a truthful way
+- it activates the existing customer-side linked-package panel with real data
+- it stays intentionally manual and narrow in scope
+
+I would approve this direction with a few refinements and one additional technical issue that must be addressed.
+
+## Refinements for #192
+
+1. Strengthen package ID validation slightly
+Please do more than just “non-empty”:
+- trim whitespace
+- reject blank-after-trim input
+- if there is a known CRBOX package ID format, validate minimally
+- otherwise at least sanitize and require a reasonable non-empty value
+
+2. Make the history note more explicit
+Instead of only “Admin vinculó paquete [ID]”, use a clearer note such as:
+- Solicitud completada · paquete vinculado: [ID]
+or equivalent
+
+3. Keep the completion semantics explicit
+completed_at is correct here because the request is being resolved through a real linked package, not just by customer intent. Please preserve that semantic distinction.
+
+4. Make the portal smoke test slightly stricter
+Please verify not only that panel-linked-package appears, but also:
+- the rendered package ID is correct
+- the link behaves safely
+- solicitudes without linked_package_id remain unchanged
+
+## Important additional issue: Gemini model is failing right now
+There is also a separate issue that needs to be addressed in parallel or immediately after this.
+
+The “Sugerir borrador con IA” flow is currently failing with this runtime error:
+
+- 404 This model models/gemini-2.0-flash is no longer available to new users. Please update your code to use a newer model
+
+This means the current Gemini drafting flow is pointing to an outdated / unavailable model for this project, so the feature is not operational even if the rest of the UI is in place.
+
+Please take this into account explicitly.
+
+### What I want regarding this Gemini issue
+Please verify and update the Gemini model configuration used by the drafting assistant and any related Gemini calls so they use a currently supported model for this project.
+
+Important:
+- do not change the product boundary
+- Gemini should still only be used for extraction / drafting assistance
+- Gemini must not be used for pricing
+- the calculator / estimate logic remains the sole source of truth for preliminary estimate math
+
+Please also confirm whether this model update affects:
+- admin draft assistance only
+- URL/product extraction as well
+- or both
+
+And after updating it, validate that:
+- the “Sugerir borrador con IA” button works again
+- the fallback / error handling remains clean
+- no other Gemini-integrated flow is still pointing to a deprecated model name
+
+## One more structural refinement
+The solicitud form should stay aligned with the calculator structure and logic as much as possible.
+
+The request form should reuse the same underlying option model as the calculator for things like:
+- category taxonomy
+- service type options
+- relevant shipping-related dropdowns
+- any other estimate-driving fields
+
+I do not mean the UI must look identical, but I do mean the form should share the same underlying business structure and option set wherever those fields affect calculation or quote interpretation.
+
+Why this matters:
+1. It keeps the estimate that reaches CRBOX consistent with the existing calculator logic.
+2. It avoids having two different category/service models drifting apart over time.
+3. It makes the request data more reliable for both the internal team and the stored estimate context.
+
+Please incorporate this principle into the next-step recommendation:
+- the solicitud form should reuse the calculator’s field taxonomy and option model wherever possible
+- avoid creating a parallel, simplified dropdown structure if that would weaken estimate consistency
+- if there is any mismatch today between the solicitud form and the calculator dropdowns/options, call it out clearly and recommend whether it should be normalized now or in the next related task
+
+## Also apply this same principle to Gemini prefill
+Please make sure this same alignment principle applies when Gemini extraction is used.
+
+I want Gemini to prefill the solicitud form with extracted data where useful, but always within the same structural model as the calculator.
+
+That means:
+- Gemini can prefill fields like product name, product URL, declared/product value, and suggested category
+- but the form itself should still use the calculator’s underlying taxonomy / dropdown structure / business-field model
+- Gemini should populate into that structure, not create a parallel interpretation of the request
+
+Important:
+- do not let Gemini become a separate business-logic layer
+- Gemini should assist with field population, but the request form should still stay aligned with the same option model the calculator uses for estimate-related inputs
+- if a field is too uncertain or too important to infer reliably, it should stay manual or require explicit confirmation
+
+## What I want in this task / next-step definition
+Please keep #192 intentionally narrow:
+- admin-side action on pendiente_compra_cliente
+- manual package-link completion flow
+- real write path for linked_package_id
+- portal linked-package panel finally rendering with real data
+
+And separately, please tell me whether the Gemini model update should be:
+- folded into this task as a small technical fix
+or
+- split into its own quick technical task immediately before / after #192
+
+My instinct is:
+- keep #192 focused on expected-package resolution
+- but do not ignore the Gemini model issue, because the drafting assistant is currently broken in practice.

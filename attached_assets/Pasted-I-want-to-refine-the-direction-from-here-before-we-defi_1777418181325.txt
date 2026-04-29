@@ -1,0 +1,87 @@
+I want to refine the direction from here before we define the next task.
+
+Please take into account both:
+1. your recent assessment of what is actually already built vs. still missing
+2. my preference to keep some parts of the workflow more manual for now, instead of overbuilding them too early
+
+## Important product direction
+I do not want to overcomplicate the Comprar con CRBOX path yet.
+
+The earlier direction was going too deep into a more fully structured operational purchase workflow. For now, I want this path to stay simpler and more manual, while still being useful and visible to both the customer and CRBOX sales.
+
+### What I want for the CRBOX-purchase path right now
+When the customer chooses:
+- Comprar con CRBOX
+- Lo compraré por mi cuenta
+- No continuar
+
+that intent should absolutely be visible to CRBOX sales/admin.
+
+But for the Comprar con CRBOX path, I do not want a heavy automated fulfillment workflow yet.
+
+Instead, the near-term model should be:
+
+- customer selects Comprar con CRBOX
+- sales/admin is notified or can clearly see that intent
+- sales/admin can manually progress the solicitud through clear states such as:
+  - pendiente_compra_crbox
+  - pendiente_confirmacion_pago_cliente
+  - pagado_por_cliente
+  - comprado
+- the customer sees understandable progress in the portal
+- once the item is marked as comprado, the customer receives a clear signal/message that CRBOX has already purchased it
+
+That is enough for now.
+
+### What I do NOT want yet for this path
+Please do not over-scope this into:
+- payment automation
+- fully modeled internal purchase operations
+- complex CRBOX-purchase package-linking mechanics
+- deep admin workflows beyond what is needed for manual state progression
+
+Those can come later.
+
+## Where I believe the more meaningful remaining gap is
+I think the more important unresolved area is still the self-purchase / expected-package / package-linking side, because that path still has a more meaningful product gap.
+
+Also, based on your last assessment, I understand that:
+- quote → review → response is in good shape
+- post-intent resolution is still the weaker half
+- linked_package_id is still not meaningfully written/used in practice
+- the expected-package / package-resolution side is still the more open gap
+- Gemini seems integrated and useful, but should still be treated as operational and helpful, not as a reason to overcomplicate the rest of the product right now
+
+## What I want from you now
+Given all of that, please tell me:
+
+### 1. Is my direction correct?
+Meaning:
+- keep the Comprar con CRBOX path more manual for now
+- focus the deeper product/system work more on the self-purchase / expected-package / linking side
+
+### 2. What should be the single next task to tackle
+Not a broad roadmap yet — I want the next concrete task.
+
+Please recommend the one next task that should be tackled now, based on:
+- what is already done
+- what is still missing
+- my preference not to overbuild the CRBOX-purchase path yet
+- the real business/UX gap that remains
+
+### 3. Why that task should come next
+Explain:
+- what problem it solves
+- why it is more important than other remaining tasks
+- whether it is mainly:
+  - operational closure
+  - UX completion
+  - data integrity
+  - admin efficiency
+  - package-linking foundation
+
+### 4. What that task should explicitly NOT try to solve yet
+Please define the right scope boundary too, so we do not overbuild the next step.
+
+I want a sharp recommendation here:
+given the current state of the system and the simpler/manual direction I want for CRBOX-managed purchases, what is the next task we should tackle now?

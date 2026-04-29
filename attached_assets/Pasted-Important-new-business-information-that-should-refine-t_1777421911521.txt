@@ -1,0 +1,83 @@
+Important new business information that should refine the model and the next-task planning.
+
+## New business reality for the Comprar con CRBOX path
+When CRBOX buys the product on behalf of the customer, the shipment arrives in Miami under CRBOX’s name, not directly under the customer’s profile / casillero.
+
+Because of that:
+- there is no automatic way to assign that Miami package to the customer profile at that stage
+- the customer will not see meaningful package progress in Mis Paquetes during that part of the flow
+- the package is only assigned manually later, when CRBOX staff in Costa Rica receives it and associates it internally
+- the customer is then informed that it has arrived and is ready for pickup
+
+## Product implication
+This changes how the two post-response paths should be understood:
+
+### 1. Lo compraré por mi cuenta
+This remains the path where:
+- expected package
+- optional tracking number
+- linked_package_id
+- and eventual relationship to Mis Paquetes
+
+make the most sense.
+
+So the expected-package / overlay-linking model is primarily for this self-purchase path.
+
+### 2. Comprar con CRBOX
+This path should not be modeled as something the customer follows through Mis Paquetes during the Miami / transit stage.
+
+Instead, the correct customer-facing surface for this branch is:
+- Mis Solicitudes as the main progress surface
+- with clear manual / operational status progression
+- and then a final update when the package has arrived in Costa Rica and is ready for pickup
+
+In other words:
+for the CRBOX-managed purchase branch, the customer should understand progress through solicitud states, not by expecting a package to appear in Mis Paquetes.
+
+## What this means for the current task direction
+I still agree that #192 is the right next task for the self-purchase path, because that is where linked_package_id and package overlay actually matter.
+
+So please keep #192 focused on:
+- admin-side resolution for pendiente_compra_cliente
+- manual entry / confirmation of the real CRBOX package ID
+- writing linked_package_id
+- adding the history note
+- transitioning the solicitud to completada
+- activating the existing linked-package panel in solicitud.html
+
+That still seems correct.
+
+## But please refine the model for the CRBOX-managed purchase branch
+For Comprar con CRBOX, I do not want the next work to be framed around Mis Paquetes linking.
+
+Instead, I want that path to evolve as a more manual solicitud-state workflow, for example with states such as:
+- pendiente_compra_crbox
+- pendiente_confirmacion_pago_cliente
+- pagado_por_cliente
+- comprado
+- and potentially a later customer-visible state indicating that it has already arrived in Costa Rica / is ready for pickup
+
+The main idea is:
+- sales/admin manually advances this branch
+- the customer sees clear progress in Mis Solicitudes
+- the important customer outcome is a clear status/update saying that CRBOX already purchased it and later that it is ready for pickup
+- this branch should not depend on package-linking to Mis Paquetes as the primary UX model
+
+## Please revise the plan / sequencing accordingly
+So, with this new business information in mind, please do the following:
+
+1. Keep #192 as the next task for the self-purchase / expected-package resolution path
+2. Explicitly separate the self-purchase / package-linking branch from the CRBOX-managed purchase branch
+3. Reframe the CRBOX-managed purchase branch as a manual solicitud-state workflow, not a Mis Paquetes-linked workflow
+4. Tell me whether, after #192, the next task should now be:
+   - the CRBOX-managed purchase state expansion (pendiente_confirmacion_pago_cliente, pagado_por_cliente, comprado, etc.)
+   - or something else you now think is more important
+
+## One more thing
+Please preserve these principles:
+- linked_package_id is overlay metadata only
+- no mutation of legacy CRBOX package backend records
+- calculator logic remains the source of truth for estimates
+- Gemini remains extraction / drafting assistance only, not pricing logic
+
+Please update the next-step recommendation and task planning with this new business reality fully integrated.
