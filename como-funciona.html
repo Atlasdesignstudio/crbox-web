@@ -848,10 +848,16 @@
                         }
                         btn.disabled = true;
                         btn.textContent = 'Enviando…';
-                        fetch('/api/faq-pregunta', {
+                        fetch('/api/consultas', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({nombre: nombre, correo: correo, pregunta: pregunta})
+                            body: JSON.stringify({
+                                nombre: nombre,
+                                correo: correo,
+                                mensaje: pregunta,
+                                asunto: 'Pregunta FAQ',
+                                source: 'como-funciona'
+                            })
                         })
                         .then(function(r) { return r.json(); })
                         .then(function(data) {

@@ -837,6 +837,18 @@ def _init_db():
                 submitted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
                 status       TEXT NOT NULL DEFAULT 'nueva'
             );
+
+            CREATE TABLE IF NOT EXISTS general_inquiries (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre       TEXT NOT NULL,
+                correo       TEXT NOT NULL,
+                telefono     TEXT NOT NULL DEFAULT '',
+                asunto       TEXT NOT NULL DEFAULT '',
+                mensaje      TEXT NOT NULL,
+                source       TEXT NOT NULL DEFAULT 'contacto',
+                submitted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                email_sent   INTEGER NOT NULL DEFAULT 0
+            );
         ''')
         conn.commit()
         # Safe migration: add reminder_sent_at if it doesn't exist yet.
@@ -863,6 +875,22 @@ def _init_db():
             conn.execute('ALTER TABLE quote_requests ADD COLUMN customer_reminder_sent_at TEXT')
             conn.commit()
             print('[SOLICITUDES] Added customer_reminder_sent_at column to quote_requests')
+        # Legacy migration: extend consultas_generales (FAQ path) with extra columns.
+        # New general contact intake now uses the separate general_inquiries table.
+        cg_cols = [row[1] for row in
+                   conn.execute('PRAGMA table_info(consultas_generales)').fetchall()]
+        if 'telefono' not in cg_cols:
+            conn.execute('ALTER TABLE consultas_generales ADD COLUMN telefono TEXT')
+            conn.commit()
+            print('[CONSULTAS] Added telefono column to consultas_generales')
+        if 'asunto' not in cg_cols:
+            conn.execute('ALTER TABLE consultas_generales ADD COLUMN asunto TEXT')
+            conn.commit()
+            print('[CONSULTAS] Added asunto column to consultas_generales')
+        if 'email_sent' not in cg_cols:
+            conn.execute('ALTER TABLE consultas_generales ADD COLUMN email_sent INTEGER NOT NULL DEFAULT 0')
+            conn.commit()
+            print('[CONSULTAS] Added email_sent column to consultas_generales')
         conn.close()
     print('[SOLICITUDES] SQLite schema initialised OK')
 
@@ -907,6 +935,99 @@ def _store_inquiry(nombre, correo, pregunta, source):
         new_id = cur.lastrowid
         conn.commit()
         conn.close()
+    return new_id
+
+
+def _save_general_inquiry(nombre, correo, telefono, asunto, mensaje, source):
+    """Reusable intake helper for general contact form submissions.
+
+    (a) Inserts a record into the `general_inquiries` table.
+    (b) Attempts to send a ventas notification email.
+    (c) Logs email failure without raising — the saved record is never lost.
+
+    Returns the new row id.
+    Raises on DB failure (so the caller can return a 500 and avoid silent data loss).
+    """
+    now_iso = _now_iso()
+    with _DB_LOCK:
+        conn = _get_db()
+        cur = conn.execute(
+            'INSERT INTO general_inquiries '
+            '(nombre, correo, telefono, asunto, mensaje, source, submitted_at, email_sent) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, 0)',
+            (
+                nombre.strip(),
+                correo.strip(),
+                (telefono or '').strip(),
+                (asunto or '').strip(),
+                mensaje.strip(),
+                source,
+                now_iso,
+            )
+        )
+        new_id = cur.lastrowid
+        conn.commit()
+        conn.close()
+
+    # Attempt email notification — failure is logged, not raised
+    email_ok = False
+    try:
+        import email.mime.multipart as _mime_mp, email.mime.text as _mime_txt
+        settings  = _smtp_settings()
+        smtp_user = settings[2] if settings else 'noreply@crbox.cr'
+        esc = _html.escape
+        subject_line = f'[Contacto] Nueva consulta de {nombre}' + (f' — {asunto}' if asunto else '')
+        plain = (
+            f'Nueva consulta recibida desde el formulario de contacto.\n\n'
+            f'Nombre: {nombre}\n'
+            f'Correo: {correo}\n'
+            f'Teléfono: {telefono or "—"}\n'
+            f'Asunto: {asunto or "—"}\n\n'
+            f'Mensaje:\n{mensaje}\n\n'
+            f'Fuente: {source}\n'
+            f'Registro #: {new_id}\n'
+            f'Ver en panel: {os.environ.get("SITE_URL", "https://crbox.cr")}/admin/consultas'
+        )
+        html_body = (
+            f'<p><strong>Nueva consulta — Formulario de Contacto</strong></p>'
+            f'<table style="border-collapse:collapse;font-size:14px;">'
+            f'<tr><td style="padding:4px 12px 4px 0;color:#6b7280;">Nombre</td>'
+            f'<td style="padding:4px 0;font-weight:600;">{esc(nombre)}</td></tr>'
+            f'<tr><td style="padding:4px 12px 4px 0;color:#6b7280;">Correo</td>'
+            f'<td style="padding:4px 0;">{esc(correo)}</td></tr>'
+            f'<tr><td style="padding:4px 12px 4px 0;color:#6b7280;">Teléfono</td>'
+            f'<td style="padding:4px 0;">{esc(telefono or "—")}</td></tr>'
+            f'<tr><td style="padding:4px 12px 4px 0;color:#6b7280;">Asunto</td>'
+            f'<td style="padding:4px 0;">{esc(asunto or "—")}</td></tr>'
+            f'</table>'
+            f'<p style="margin-top:12px;"><strong>Mensaje:</strong><br>'
+            f'{esc(mensaje).replace(chr(10), "<br>")}</p>'
+            f'<p style="color:#9ca3af;font-size:12px;margin-top:16px;">Fuente: {esc(source)} · Registro #{new_id}</p>'
+        )
+        msg = _mime_mp.MIMEMultipart('alternative')
+        msg['Subject'] = subject_line
+        msg['From']    = f'CRBOX <{smtp_user}>'
+        msg['To']      = QUOTE_RECIPIENT
+        msg.attach(_mime_txt.MIMEText(plain, 'plain', 'utf-8'))
+        msg.attach(_mime_txt.MIMEText(html_body, 'html', 'utf-8'))
+        _send_smtp(msg, [QUOTE_RECIPIENT])
+        email_ok = True
+    except Exception as mail_exc:
+        print(f'[CONSULTAS] Email notification failed (record #{new_id} preserved): {mail_exc}')
+
+    # Update email_sent flag
+    if email_ok:
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                conn.execute(
+                    'UPDATE general_inquiries SET email_sent=1 WHERE id=?', (new_id,)
+                )
+                conn.commit()
+                conn.close()
+        except Exception as upd_exc:
+            print(f'[CONSULTAS] Could not update email_sent flag for #{new_id}: {upd_exc}')
+
     return new_id
 
 
@@ -3569,7 +3690,7 @@ a{{color:inherit;text-decoration:none}}
   <span class="adm-header-logo">CRBOX</span>
   <span class="adm-header-sep">|</span>
   <span class="adm-header-title">Panel de ventas</span>
-  <a href="/admin/consultas" class="adm-header-link">Consultas FAQ</a>
+  <a href="/admin/consultas" class="adm-header-link">Consultas Generales</a>
   <a href="/admin/logout" class="adm-logout">Salir</a>
 </header>
 
@@ -3607,54 +3728,51 @@ def _build_admin_consultas_html(rows):
     card_rows  = ''
     for r in rows:
         rid      = str(r['id'])
-        nombre   = esc(r['nombre'] or '—')
-        correo   = esc(r['correo'] or '—')
-        pregunta = esc(r['pregunta'] or '—')
-        source   = esc(r['source'] or '—')
-        status   = r['status'] or 'nueva'
-        date_str = _admin_format_date(r['submitted_at'])
-        elapsed  = _admin_elapsed(r['submitted_at'])
-        badge_cfg = {
-            'nueva':     ('#FFF7ED', '#C2410C', '#FDBA74', 'Nueva'),
-            'revisada':  ('#F0FDF4', '#15803D', '#BBF7D0', 'Revisada'),
-            'cerrada':   ('#F9FAFB', '#6B7280', '#E5E7EB', 'Cerrada'),
-        }
-        bg, fg, bdr, slabel = badge_cfg.get(status, ('#F9FAFB', '#374151', '#E5E7EB', status))
-        badge_html = (
-            f'<span class="adm-badge" '
-            f'style="background:{bg};color:{fg};border-color:{bdr};">{slabel}</span>'
-        )
+        nombre   = esc(r.get('nombre') or '—')
+        correo   = esc(r.get('correo') or '—')
+        asunto   = esc(r.get('asunto') or '—')
+        source   = esc(r.get('source') or '—')
+        email_sent = r.get('email_sent', 0)
+        date_str = _admin_format_date(r.get('submitted_at'))
+        elapsed  = _admin_elapsed(r.get('submitted_at'))
+        # Email delivery badge
+        if email_sent:
+            email_badge = '<span class="adm-badge" style="background:#F0FDF4;color:#15803D;border-color:#BBF7D0;">Enviado</span>'
+        else:
+            email_badge = '<span class="adm-badge" style="background:#FFF7ED;color:#C2410C;border-color:#FDBA74;">Fallido</span>'
+        ver_link = f'<a href="/admin/consultas/{rid}" style="color:#FF6B00;font-weight:600;font-size:12px;white-space:nowrap;">Ver&nbsp;&#8594;</a>'
         table_rows += f'''<tr>
 <td style="white-space:nowrap;color:#FF6B00;font-weight:700;font-size:13px;">{rid}</td>
 <td><div style="font-weight:600;font-size:13px;">{nombre}</div>
     <div style="color:#6b7280;font-size:12px;margin-top:2px;">{correo}</div></td>
-<td style="font-size:13px;max-width:300px;">{pregunta}</td>
-<td style="font-size:12px;color:#6b7280;">{source}</td>
+<td style="font-size:13px;color:#374151;">{asunto}</td>
 <td><div style="font-size:13px;white-space:nowrap;">{date_str}</div>
     <div style="color:#9ca3af;font-size:11px;margin-top:2px;">{elapsed}</div></td>
-<td>{badge_html}</td>
+<td>{email_badge}</td>
+<td>{ver_link}</td>
 </tr>\n'''
         card_rows += f'''<div class="adm-card">
 <div class="adm-card-top">
   <div><span class="adm-card-id">#{rid}</span></div>
-  <div>{badge_html}</div>
+  <div>{email_badge}</div>
 </div>
 <div class="adm-card-fields">
   <div class="adm-card-row"><span class="adm-card-lbl">Nombre</span><span class="adm-card-val">{nombre}</span></div>
   <div class="adm-card-row"><span class="adm-card-lbl">Correo</span><span class="adm-card-val" style="font-size:11px;">{correo}</span></div>
-  <div class="adm-card-row"><span class="adm-card-lbl">Pregunta</span><span class="adm-card-val">{pregunta}</span></div>
+  <div class="adm-card-row"><span class="adm-card-lbl">Asunto</span><span class="adm-card-val">{asunto}</span></div>
   <div class="adm-card-row"><span class="adm-card-lbl">Fuente</span><span class="adm-card-val">{source}</span></div>
   <div class="adm-card-row"><span class="adm-card-lbl">Fecha</span><span class="adm-card-val">{date_str} &middot; {elapsed}</span></div>
 </div>
+<a href="/admin/consultas/{rid}" style="display:block;text-align:center;margin-top:8px;padding:8px;background:#f9fafb;border-radius:6px;color:#FF6B00;font-size:13px;font-weight:600;">Ver detalle &#8594;</a>
 </div>\n'''
 
     n = len(rows)
-    count_label = f'{n} consulta{"s" if n != 1 else ""}'
+    count_label = f'{n} consulta{"s" if n != 1 else ""} generales'
     if not rows:
         empty_html = '''<div class="adm-empty">
 <div style="font-size:36px;margin-bottom:12px;">📬</div>
 <h3>Sin consultas aún</h3>
-<p>Las consultas del formulario FAQ aparecerán aquí.</p>
+<p>Las consultas del formulario de contacto aparecerán aquí.</p>
 </div>'''
         table_body_html = f'<tr><td colspan="6">{empty_html}</td></tr>'
         cards_html      = empty_html
@@ -3668,7 +3786,7 @@ def _build_admin_consultas_html(rows):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Consultas — CRBOX</title>
+<title>Consultas Generales — CRBOX</title>
 <style>
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
 body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
@@ -3729,8 +3847,8 @@ a{{color:inherit;text-decoration:none}}
 <header class="adm-header">
   <span class="adm-header-logo">CRBOX</span>
   <span class="adm-header-sep">|</span>
-  <span class="adm-header-title">Consultas FAQ</span>
-  <a href="/admin/solicitudes" class="adm-header-link">Solicitudes</a>
+  <span class="adm-header-title">Consultas Generales</span>
+  <a href="/admin/solicitudes" class="adm-header-link">Cotizaciones</a>
   <a href="/admin/logout" class="adm-logout">Salir</a>
 </header>
 <main class="adm-main">
@@ -3740,7 +3858,7 @@ a{{color:inherit;text-decoration:none}}
   <table class="adm-table">
     <thead>
       <tr>
-        <th>#</th><th>Contacto</th><th>Pregunta</th><th>Fuente</th><th>Fecha</th><th>Estado</th>
+        <th>#</th><th>Contacto</th><th>Asunto</th><th>Fecha</th><th>Email</th><th></th>
       </tr>
     </thead>
     <tbody>{table_body_html}</tbody>
@@ -3748,6 +3866,127 @@ a{{color:inherit;text-decoration:none}}
   </div>
   <div class="adm-cards">{cards_html}</div>
 </div>
+</main>
+</body>
+</html>'''
+
+
+def _build_admin_consultas_detail_html(row):
+    """Render the detail view for a single general inquiry. No quote/pricing UI."""
+    esc = _html.escape
+    rid      = str(row.get('id', '—'))
+    nombre   = esc(row.get('nombre') or '—')
+    correo   = esc(row.get('correo') or '—')
+    telefono = esc(row.get('telefono') or '—')
+    asunto   = esc(row.get('asunto') or '—')
+    mensaje  = esc(row.get('mensaje') or row.get('pregunta') or '—').replace('\n', '<br>')
+    source   = esc(row.get('source') or '—')
+    date_str = _admin_format_date(row.get('submitted_at'))
+    email_sent = row.get('email_sent', 0)
+    email_badge = (
+        '<span style="display:inline-block;padding:3px 10px;border-radius:999px;'
+        'font-size:12px;font-weight:700;border:1px solid #BBF7D0;'
+        'background:#F0FDF4;color:#15803D;">Enviado</span>'
+        if email_sent else
+        '<span style="display:inline-block;padding:3px 10px;border-radius:999px;'
+        'font-size:12px;font-weight:700;border:1px solid #FDBA74;'
+        'background:#FFF7ED;color:#C2410C;">Fallido</span>'
+    )
+    return f'''<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Consulta #{rid} — CRBOX</title>
+<style>
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
+  background:#f3f4f6;color:#111;min-height:100vh}}
+a{{color:inherit;text-decoration:none}}
+.adm-header{{background:#1f2937;padding:12px 20px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.18)}}
+.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:18px;letter-spacing:-.5px}}
+.adm-header-title{{color:#fff;font-size:14px;font-weight:600}}
+.adm-header-sep{{color:#4b5563;font-size:16px}}
+.adm-header-link{{color:#9ca3af;font-size:13px;padding:6px 12px;border-radius:6px;
+  border:1px solid #374151;transition:all .2s}}
+.adm-header-link:hover{{color:#fff;border-color:#6b7280}}
+.adm-logout{{margin-left:auto;color:#9ca3af;font-size:13px;padding:6px 12px;
+  border-radius:6px;border:1px solid #374151;transition:all .2s}}
+.adm-logout:hover{{color:#fff;border-color:#6b7280}}
+.adm-main{{padding:20px;max-width:720px;margin:0 auto}}
+.adm-back{{display:inline-flex;align-items:center;gap:6px;color:#6b7280;font-size:13px;
+  margin-bottom:16px;padding:6px 0;}}
+.adm-back:hover{{color:#FF6B00}}
+.adm-card{{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}}
+.adm-card-header{{padding:16px 20px;border-bottom:1px solid #f3f4f6;background:#fafafa;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}}
+.adm-card-title{{font-size:15px;font-weight:700;color:#111}}
+.adm-field-grid{{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:0}}
+.adm-field{{padding:10px 0;border-bottom:1px solid #f3f4f6}}
+.adm-field:nth-last-child(-n+2){{border-bottom:none}}
+.adm-field-label{{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:4px}}
+.adm-field-value{{font-size:13px;color:#111;word-break:break-word}}
+.adm-message-block{{padding:0 20px 20px}}
+.adm-message-label{{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:8px}}
+.adm-message-body{{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;
+  padding:14px 16px;font-size:13px;line-height:1.65;color:#374151;white-space:pre-wrap}}
+@media(max-width:540px){{
+  .adm-field-grid{{grid-template-columns:1fr}}
+  .adm-field{{border-bottom:1px solid #f3f4f6 !important}}
+  .adm-field:last-child{{border-bottom:none !important}}
+}}
+</style>
+</head>
+<body>
+<header class="adm-header">
+  <span class="adm-header-logo">CRBOX</span>
+  <span class="adm-header-sep">|</span>
+  <span class="adm-header-title">Consultas Generales</span>
+  <a href="/admin/solicitudes" class="adm-header-link">Cotizaciones</a>
+  <a href="/admin/logout" class="adm-logout">Salir</a>
+</header>
+<main class="adm-main">
+  <a href="/admin/consultas" class="adm-back">&#8592; Volver a la lista</a>
+  <div class="adm-card">
+    <div class="adm-card-header">
+      <span class="adm-card-title">Consulta #{rid}</span>
+      {email_badge}
+    </div>
+    <div class="adm-field-grid">
+      <div class="adm-field">
+        <div class="adm-field-label">Nombre</div>
+        <div class="adm-field-value">{nombre}</div>
+      </div>
+      <div class="adm-field">
+        <div class="adm-field-label">Correo</div>
+        <div class="adm-field-value">{correo}</div>
+      </div>
+      <div class="adm-field">
+        <div class="adm-field-label">Teléfono</div>
+        <div class="adm-field-value">{telefono}</div>
+      </div>
+      <div class="adm-field">
+        <div class="adm-field-label">Asunto</div>
+        <div class="adm-field-value">{asunto}</div>
+      </div>
+      <div class="adm-field">
+        <div class="adm-field-label">Fuente</div>
+        <div class="adm-field-value">{source}</div>
+      </div>
+      <div class="adm-field">
+        <div class="adm-field-label">Fecha</div>
+        <div class="adm-field-value">{date_str}</div>
+      </div>
+    </div>
+    <div class="adm-message-block">
+      <div class="adm-message-label">Mensaje</div>
+      <div class="adm-message-body">{mensaje}</div>
+    </div>
+  </div>
 </main>
 </body>
 </html>'''
@@ -3778,8 +4017,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_admin_logout()
             else:
                 m_detail = re.match(r'^/admin/solicitudes/(SCB-\d+)$', path_no_qs)
+                m_cq_detail = re.match(r'^/admin/consultas/(\d+)$', path_no_qs)
                 if m_detail:
                     self._handle_admin_solicitudes_detail(m_detail.group(1))
+                elif m_cq_detail:
+                    self._handle_admin_consultas_detail(int(m_cq_detail.group(1)))
                 else:
                     self.send_response(404)
                     self.end_headers()
@@ -3810,6 +4052,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             _handle_ai_extract(self)
         elif self.path == '/api/solicitudes':
             self._handle_solicitudes_post()
+        elif self.path == '/api/consultas':
+            self._handle_api_consultas_post()
         elif self.path == '/api/faq-pregunta':
             self._handle_faq_pregunta_post()
         elif self.path == '/api/solicitudes/link-guest':
@@ -4960,7 +5204,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             with _DB_LOCK:
                 conn = _get_db()
                 rows = conn.execute(
-                    'SELECT * FROM consultas_generales ORDER BY submitted_at DESC'
+                    'SELECT * FROM general_inquiries ORDER BY submitted_at DESC'
                 ).fetchall()
                 conn.close()
         except Exception as exc:
@@ -4970,6 +5214,65 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         rows = [dict(r) for r in rows]
         html = _build_admin_consultas_html(rows)
         self._admin_html_response(html)
+
+    # ── GET /admin/consultas/:id ───────────────────────────────────────────
+    def _handle_admin_consultas_detail(self, inquiry_id):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._admin_redirect('/admin/login')
+            return
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row = conn.execute(
+                    'SELECT * FROM general_inquiries WHERE id=?', (inquiry_id,)
+                ).fetchone()
+                conn.close()
+        except Exception as exc:
+            print(f'[ADMIN] consultas detail DB error: {exc}')
+            self._admin_html_response('<h1>Error interno</h1>', status=500)
+            return
+        if row is None:
+            self.send_response(404); self.end_headers(); return
+        html = _build_admin_consultas_detail_html(dict(row))
+        self._admin_html_response(html)
+
+    # ── POST /api/consultas ────────────────────────────────────────────────
+    def _handle_api_consultas_post(self):
+        """Accept a general contact form submission from the public site.
+
+        Saves the inquiry to general_inquiries (separate from quote_requests)
+        and attempts a ventas notification email. Always returns success once
+        the DB save succeeds, regardless of email outcome.
+        """
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            raw    = self.rfile.read(length) if length > 0 else b''
+            data   = json.loads(raw.decode('utf-8'))
+        except Exception:
+            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            return
+        nombre  = (data.get('nombre')  or '').strip()
+        correo  = (data.get('correo')  or '').strip()
+        telefono = (data.get('telefono') or '').strip()
+        asunto  = (data.get('asunto')  or '').strip()
+        mensaje = (data.get('mensaje') or '').strip()
+        source  = (data.get('source')  or 'contacto').strip()
+        if not nombre or not correo or not mensaje:
+            self._json_response(400, {'ok': False, 'error': 'Nombre, correo y mensaje son requeridos.'})
+            return
+        if '@' not in correo or '.' not in correo.split('@')[-1] or len(correo) > 254:
+            self._json_response(400, {'ok': False, 'error': 'Ingresa un correo electrónico válido.'})
+            return
+        try:
+            _save_general_inquiry(nombre, correo, telefono, asunto, mensaje, source)
+        except Exception as db_exc:
+            print(f'[API/CONSULTAS] DB insert failed: {db_exc}')
+            self._json_response(500, {'ok': False, 'error': 'Error al guardar la consulta. Intenta de nuevo.'})
+            return
+        self._json_response(200, {'ok': True})
 
     # ── POST /api/faq-pregunta ─────────────────────────────────────────────
     def _handle_faq_pregunta_post(self):
