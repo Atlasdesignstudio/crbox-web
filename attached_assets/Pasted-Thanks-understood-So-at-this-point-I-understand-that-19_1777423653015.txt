@@ -1,0 +1,100 @@
+Thanks — understood.
+
+So at this point I understand that:
+
+- #194 is now implemented
+- the CRBOX-managed purchase branch now has its manual internal progression
+- and your recommendation is that the next priority should be the future “listo para retiro / llegó a Costa Rica” state, before any reverse cross-reference work
+
+That sequencing makes sense conceptually.
+
+However, before we move on to that next branch-extension task, I need to flag two important current issues that still appear to be unresolved in the live system:
+
+---
+
+## 1. Gemini is still not actually fixed at runtime
+
+Even after the earlier Gemini model fix, I am still seeing runtime errors when using the AI drafting flow.
+
+The current error is:
+
+404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent
+
+So please treat the Gemini issue as not fully resolved yet.
+
+I need you to clarify:
+
+- whether the previous Gemini fix is actually incomplete
+- whether both extraction and draft assistance are still affected, or only one of them
+- whether the issue is:
+  - wrong model name
+  - wrong API version compatibility
+  - SDK usage mismatch
+  - or some combination of those
+
+### What I want here
+Please investigate properly instead of guessing model names.
+
+Specifically:
+1. identify which Gemini models are actually available for this project / key
+2. confirm which one supports generateContent
+3. update both Gemini call sites accordingly
+4. ideally make model selection configurable (for example GEMINI_MODEL) instead of hardcoding another fragile model string
+5. confirm whether both:
+   - product extraction
+   - admin draft assistance
+   are working after the fix
+
+Important:
+- keep Gemini limited to extraction and drafting assistance only
+- do not touch pricing / estimate logic
+
+---
+
+## 2. Customer response notification email is still not reliable
+
+The portal response display is working — the reviewed CRBOX response appears in the customer solicitud view — but the notification loop is still not reliable enough.
+
+From what I’m seeing:
+- the response exists in the portal
+- but the customer is not reliably receiving the email telling them that CRBOX already responded / that the response is ready in the portal
+
+So from the customer’s perspective, the response may be there, but they may not know about it unless they manually check.
+
+### I need you to verify this explicitly
+Please check:
+
+1. when admin sends the reviewed response, is the customer email notification actually being triggered?
+2. if yes, is SMTP succeeding or failing?
+3. is the correct recipient being used?
+4. is the email content being built correctly?
+5. or is this still an incomplete implementation rather than a bug?
+
+### Product requirement
+When CRBOX responds to a solicitud, the customer should receive a clear email notification saying that:
+- CRBOX already reviewed the request
+- the response is available
+- they can also review it in the client portal
+
+This should not depend on the customer randomly checking the portal.
+
+---
+
+## What I want from you now
+Before moving to the next roadmap item after #194, please tell me clearly:
+
+1. what is the real status of the Gemini fix
+2. what is the real status of the customer response notification email
+3. whether these are:
+   - bugs
+   - incomplete implementations
+   - or SMTP / runtime issues
+4. which one should be fixed first
+5. what the concrete next task should be to resolve them
+
+My current instinct is:
+- first restore Gemini properly if it is still broken
+- and make sure the customer response notification email actually works reliably
+- then continue with the next CRBOX-managed purchase milestone such as listo_para_retiro
+
+Please assess and recommend the correct immediate next task from here.
