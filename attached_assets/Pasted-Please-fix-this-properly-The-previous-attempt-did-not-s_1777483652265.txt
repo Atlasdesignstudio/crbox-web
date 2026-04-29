@@ -1,0 +1,102 @@
+Please fix this properly.  
+The previous attempt did not solve the problem.
+
+I am attaching the latest screenshot because the secondary portal nav is still visibly left-aligned and the selected tab state is still not communicating selection correctly enough.
+
+This needs to be treated as a hard override / definitive fix, not another soft styling attempt.
+
+## What is still wrong
+
+### 1. The secondary nav is still left-aligned
+The nav group below the main navbar (Dashboard / MisPaquetes / MisFacturas / Cotizaciones / MiCuenta) is still not centered in the viewport.
+
+Even after the supposed fix, it remains visually anchored to the left.
+
+I do not care if the current code looks theoretically correct.  
+It is not correct in the actual rendered result.
+
+So please stop optimizing for “this should work” and optimize for the actual rendered output.
+
+### What I need
+The entire secondary nav group must be visually centered in the viewport on desktop.
+
+Not:
+- centered text inside a left-aligned wrapper
+- centered inside a container that itself is offset left
+- “approximately centered”
+- centered only until some inherited rule pushes it left again
+
+I mean:
+- the whole pill/nav block itself must sit in the center of the page visually
+- it must remain centered regardless of inherited wrapper behavior
+- if needed, rebuild that nav wrapper section completely so the result is actually correct
+
+If the current DOM / wrapper / overflow structure is fighting the layout, then rebuild that part cleanly instead of trying another patch.
+
+---
+
+### 2. The selected tab still does not read strongly enough as selected
+The currently selected tab should feel clearly active and aligned with the CRBOX orange emphasis.
+
+Right now it still does not feel like the obvious selected state.
+
+The selected state must be more explicit and more visible than the inactive tabs.
+
+### What I want for the active tab
+Please make the active tab unmistakably selected using CRBOX-consistent emphasis such as:
+
+- orange text
+- subtle orange-tinted background
+- stronger font weight
+- optional orange border / underline / inset emphasis
+- clear contrast versus inactive tabs
+
+The key point:
+the active tab must feel like the current location, not like just another neutral tab.
+
+### Important
+If some inherited style is muting the active state, override it.
+If some shared class is weakening contrast, override it.
+If necessary, define a dedicated active-tab class for this secondary portal nav and apply it explicitly.
+
+---
+
+## Implementation instruction
+Please do not keep trying small cosmetic tweaks on the current wrapper if the rendered result stays wrong.
+
+Instead:
+
+1. inspect the actual full DOM hierarchy of the secondary nav
+2. identify every parent affecting horizontal alignment
+3. identify any width / max-width / overflow / justify / margin rules still biasing the group left
+4. either fully override those rules or rebuild this secondary nav container cleanly
+5. define an explicit, deterministic active state class for the selected tab
+6. verify the fix in the rendered UI, not just in code
+
+---
+
+## Hard constraint
+I want the fix to prioritize the final rendered result over preserving the current implementation.
+
+So if this section needs to be partially rebuilt to make it truly centered and clearly active, do it.
+
+Do not get stuck protecting a broken structure.
+
+---
+
+## Done looks like
+- the entire secondary nav group is truly centered in the desktop viewport
+- the selected tab is immediately recognizable as selected
+- the selected state uses orange emphasis and stronger contrast than inactive tabs
+- there is no visual ambiguity about where the user currently is
+- no regression on mobile scrolling behavior
+- no regression in hover states or clickability
+
+---
+
+## Report back with
+1. why the previous fix still failed in the actual rendered output
+2. whether you overrode or rebuilt the secondary nav wrapper
+3. the exact class/style strategy now enforcing true centering
+4. the exact active-state treatment now enforcing a clearly selected tab
+5. confirmation that the result was checked visually in the browser, not only reasoned from code

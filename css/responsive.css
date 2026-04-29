@@ -1112,51 +1112,65 @@
 }
 
 /* =============================================================
-   PORTAL TAB BAR — Desktop segmented-control (pill) style
-   Applies to all 4 portal pages (responsive.css is the shared
-   stylesheet). Mobile flat-tab behaviour in the max-768px block
-   above remains unchanged.
+   PORTAL SECONDARY NAV — .portal-tab-nav
+   Self-contained, class-scoped. No dependency on Tailwind
+   overflow/flex helpers or sticky-wrapper selectors.
+   Centering: flex + justify-content:center on the nav itself,
+   which is a block element spanning full viewport width.
+   Active state: orange-tinted background + darker orange text +
+   semibold weight — clearly stronger than gray inactive tabs.
    ============================================================= */
-@media (min-width: 769px) {
-  .sticky.top-16.z-30 {
-    background: #f8fafc;
+.portal-tab-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 6px 16px;
+  gap: 2px;
+  background: transparent;
+}
+.portal-tab-nav::-webkit-scrollbar { display: none; }
+
+.portal-tab-nav > a {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+  border: none;
+}
+
+.portal-tab-nav > a:hover:not([aria-current]) {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.portal-tab-nav > a[aria-current="page"] {
+  background: #ffedd5;   /* warm orange tint — clearly distinct from white bg */
+  color: #c2410c;         /* orange-700 — strong, unambiguous */
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .portal-tab-nav {
+    justify-content: flex-start; /* allow scroll from left on narrow screens */
+    padding: 4px 8px;
   }
-  .sticky.top-16.z-30 .container {
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+  .portal-tab-nav > a {
+    padding: 8px 10px;
+    font-size: 0.8125rem;
   }
-  /* Pill tray */
-  .sticky.top-16.z-30 .no-scrollbar {
-    background: #eef0f3;
-    border-radius: 0.875rem;
-    padding: 0.25rem;
-    margin-bottom: 0 !important;
-    display: inline-flex !important;
-    width: auto;
-    gap: 2px;
-  }
-  /* Reset Tailwind border-b from every tab link */
-  .sticky.top-16.z-30 .no-scrollbar > a {
-    border-bottom: none !important;
-    border-radius: 0.625rem;
-    padding: 0.5rem 1.25rem !important;
-    color: #6b7280;
-    font-weight: 500;
-  }
-  /* Active tab: white pill with shadow + orange text */
-  .sticky.top-16.z-30 .no-scrollbar > a[aria-current="page"] {
-    background: #ffffff;
-    color: #ea580c !important;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
-  }
-  /* Inactive hover: barely-there reveal */
-  .sticky.top-16.z-30 .no-scrollbar > a:not([aria-current="page"]):hover {
-    color: #374151;
-    background: rgba(255,255,255,0.55);
-  }
-  /* Underline spans are meaningless in pill mode — hide them */
-  .sticky.top-16.z-30 .no-scrollbar > a > span.absolute {
-    display: none !important;
+  .portal-tab-nav .tab-prefix {
+    display: none;
   }
 }
 

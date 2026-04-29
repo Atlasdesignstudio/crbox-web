@@ -1,0 +1,165 @@
+Please make a targeted but decisive refinement to the Mi Cuenta section of the client portal.
+
+This is not about preserving the current treatment if it is visually wrong.  
+If the current structure/styles are causing the page to look stiff, generic, or broken, then override or rebuild that section cleanly while staying inside the CRBOX palette and overall portal language.
+
+## Main issue
+On desktop, the Mi Cuenta tab/page currently looks visually poor, dry, and unrefined.
+
+It feels:
+- too stiff
+- too plain
+- too “system-like”
+- not premium
+- not intentional
+- not aligned with the quality of the rest of the portal
+
+The screenshots show that the overall presentation of the account area is not working well visually.
+
+I do not want a generic “form page” look.
+
+I want it to feel:
+- cleaner
+- more intentional
+- more elegant
+- softer
+- more curated
+- still clearly functional
+- still fully within the CRBOX palette only
+
+If necessary, override inherited styles or rebuild the section styling entirely. Do not get trapped trying to save a bad structure if the rendered result is poor.
+
+---
+
+## 1. Refine the overall Mi Cuenta page UI
+Please redesign/refine the visual treatment of the account section so it feels much more polished.
+
+### What to improve
+- header / hero balance
+- spacing rhythm
+- card/container treatment
+- tab section styling inside Mi Cuenta
+- visual hierarchy
+- typography emphasis
+- background/block separation
+- premium feel without adding random decoration
+
+### Important
+Stay within the current CRBOX visual language:
+- same palette family
+- same brand tone
+- no unrelated colors
+- no flashy redesign
+
+But the result should feel much more resolved than it does now.
+
+---
+
+## 2. Make the page fully mobile responsive
+This needs to be handled properly on mobile too.
+
+The page should be:
+- fully responsive
+- visually balanced on small screens
+- no awkward compression
+- no clipped areas
+- no broken tab layouts
+- no form-like density that becomes uncomfortable on mobile
+
+Make sure the account section translates gracefully to mobile, not just technically.
+
+---
+
+## 3. Very important product/UX change: personal data should not be freely editable by default
+Right now, in Datos personales, the fields look directly editable and the user can easily overwrite them.
+
+I do not want that.
+
+At this stage, the better experience is:
+- do not present the personal information like an actively editable form
+- do not let the user casually modify those values directly
+- do not make it feel like they should type over them
+
+Instead, I want the data to be shown more as account information display, not as a freeform editable profile form.
+
+## What I want instead
+The section should behave more like:
+- read-only account information
+- clean display of the stored data
+- structured information presentation
+- not a live editable form
+
+### Important constraint
+I do not want:
+- editable inputs by default
+- “unlock changes”
+- “edit” button
+- inline quick editing
+- anything that encourages direct modification right now
+
+So the simplest correct behavior is:
+- show the stored values
+- keep them non-editable
+- present them clearly and elegantly
+
+This is both a UX and product-direction decision.
+
+---
+
+## 4. Data presentation style
+Since the fields should no longer feel editable, please rethink that section visually.
+
+It should feel like:
+- account record / account details
+- elegant information blocks or read-only rows
+- clearly labeled values
+- organized and easy to scan
+- better than raw disabled form fields if possible
+
+### Avoid
+- ugly disabled-input look
+- generic greyed-out fields everywhere
+- dead enterprise form feeling
+
+If you need to change the markup pattern from editable inputs to read-only display rows/cards, do it.
+
+---
+
+## 5. Keep the rest coherent
+If there is currently a “Guardar cambios” CTA or any other editing-oriented control that no longer makes sense once the page is read-only by default, review it and adjust accordingly.
+
+Do not leave edit/save affordances that contradict the new non-editable behavior.
+
+The page should feel internally coherent:
+- if it is read-only, the UI should read as read-only
+- if a control remains, it must still make sense
+
+---
+
+## Constraints
+- stay within CRBOX palette only
+- do not redesign the whole portal
+- do not invent new product flows that were not asked
+- do not add edit/unlock interactions
+- do not keep the current ugly/stiff treatment just for the sake of preserving code
+- prioritize final rendered quality
+
+---
+
+## Done looks like
+- Mi Cuenta looks significantly more refined and premium on desktop
+- the section no longer feels like a generic stiff form page
+- the account information is displayed clearly and elegantly
+- personal data is not directly editable
+- there is no confusing edit/save contradiction
+- the page is fully responsive and visually resolved on mobile
+- the result still feels native to CRBOX and uses only the brand palette
+
+---
+
+## Please report back with
+1. whether you overrode or rebuilt the current Mi Cuenta structure/styles
+2. how you changed the visual treatment to make it feel more premium
+3. how the personal data section now behaves as read-only
+4. what you changed about any save/edit controls so the UX stays coherent
+5. confirmation that desktop and mobile were both reviewed visually
