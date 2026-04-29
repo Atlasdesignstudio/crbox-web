@@ -984,9 +984,9 @@
         var checked     = confirmChk && confirmChk.checked;
         var shouldBlock = wrapVisible && !checked;
         if (submitBtn) {
-          submitBtn.disabled         = shouldBlock;
-          submitBtn.style.opacity    = shouldBlock ? '0.5' : '';
-          submitBtn.style.cursor     = shouldBlock ? 'not-allowed' : '';
+          submitBtn.disabled = shouldBlock;
+          submitBtn.style.opacity = '';
+          submitBtn.style.cursor  = '';
         }
       }
       var _portalConfirmChkEl = document.getElementById('ai-confirm-chk-portal');
