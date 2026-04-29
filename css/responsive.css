@@ -980,6 +980,46 @@
     max-width: 100% !important;
   }
 
+  /* ---- Mi Cuenta: profile header upper zone on phones ---- */
+  /* Profile header: reduce bottom padding so it doesn't feel too tall */
+  .profile-header {
+    padding: 0 1.25rem 1.75rem !important;
+  }
+  /* Avatar: keep centered, give it generous breathing room */
+  .profile-avatar {
+    width: 5.5rem !important;
+    height: 5.5rem !important;
+    margin-top: -2.5rem !important;
+  }
+  /* Name: slightly smaller on phones but still prominent */
+  #profile-header-name {
+    font-size: 1.375rem !important;
+    letter-spacing: -0.01em;
+  }
+  /* Casillero row */
+  #profile-casillero {
+    font-size: 0.875rem !important;
+  }
+  /* Setup card: tighter horizontal margin on phones so it breathes */
+  .setup-banner {
+    margin: 1rem 1rem 1.25rem !important;
+    padding: 1.125rem 1.125rem 1.125rem 1.125rem !important;
+    gap: 1rem !important;
+  }
+  /* Setup card chips: allow wrapping and ensure tap target height */
+  .setup-banner-links {
+    gap: 0.4rem !important;
+  }
+  .setup-banner-link {
+    font-size: 0.75rem !important;
+    padding: 0.35rem 0.75rem !important;
+  }
+  /* Dismiss button: keep clear of chips on small screens */
+  .setup-banner-dismiss {
+    top: 0.875rem !important;
+    right: 0.875rem !important;
+  }
+
   /* ---- Modals: turn into bottom-sheets on mobile ----
      Less context-switching cost than a centered dialog on a phone. */
   #package-details-modal,
