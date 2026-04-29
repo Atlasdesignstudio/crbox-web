@@ -1486,6 +1486,10 @@
                 fName:          fProductName,
                 fValue:         fDeclaredValue,
                 fCategory:      fCategory,
+                fWeight:        document.getElementById('f-weight'),
+                fLength:        document.getElementById('f-length'),
+                fWidth:         document.getElementById('f-width'),
+                fHeight:        document.getElementById('f-height'),
                 confirmWrapper: aiConfirmWrapper,
             }).then(function (result) {
                 var banner = aiExtractBanner.querySelector('.ai-extract-banner');
@@ -1555,6 +1559,10 @@
                     fName:          fProductName,
                     fValue:         fDeclaredValue,
                     fCategory:      fCategory,
+                    fWeight:        document.getElementById('f-weight'),
+                    fLength:        document.getElementById('f-length'),
+                    fWidth:         document.getElementById('f-width'),
+                    fHeight:        document.getElementById('f-height'),
                     confirmWrapper: aiConfirmWrapper,
                 });
                 _aiActive = false;
@@ -1861,6 +1869,21 @@
         function resetForm() {
             _clearDraftCotizar();
             form.reset();
+            // Clear AI extraction state, badges, and physical note
+            if (typeof CRBOXAIExtractor !== 'undefined') {
+                CRBOXAIExtractor.resetExtraction({
+                    bannerTarget:   aiExtractBanner,
+                    fName:          fProductName,
+                    fValue:         fDeclaredValue,
+                    fCategory:      fCategory,
+                    fWeight:        document.getElementById('f-weight'),
+                    fLength:        document.getElementById('f-length'),
+                    fWidth:         document.getElementById('f-width'),
+                    fHeight:        document.getElementById('f-height'),
+                    confirmWrapper: aiConfirmWrapper,
+                });
+            }
+            _aiActive = false;
             emailConfirmed = false;
             hasRequiredField = false;
             lastSubmitPayload = null;

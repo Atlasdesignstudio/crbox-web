@@ -118,7 +118,8 @@
 
     function clearExtractionBadges(formFields) {
         var fields = formFields || {};
-        [fields.fName, fields.fValue, fields.fCategory].forEach(function (el) {
+        [fields.fName, fields.fValue, fields.fCategory, fields.fWeight,
+         fields.fLength, fields.fWidth, fields.fHeight].forEach(function (el) {
             if (!el) return;
             _removeBadge(el);
             delete el.dataset.aiSuggested;
@@ -126,6 +127,20 @@
             delete el.dataset.aiConfirmed;
             el.style.color = '';
         });
+        // Remove any physical-data hint notes
+        var _anchorEl = fields.fWeight || fields.fLength || null;
+        if (_anchorEl) {
+            var _container = _anchorEl.parentNode;
+            var _limit = 8;
+            while (_container && _limit-- > 0) {
+                if (_container.classList && _container.classList.contains('mb-0')) break;
+                _container = _container.parentNode;
+            }
+            if (_container && _container.querySelector) {
+                var _note = _container.querySelector('.ai-physical-note');
+                if (_note) _note.parentNode.removeChild(_note);
+            }
+        }
         _confirmTracker.clear();
     }
 
@@ -222,6 +237,109 @@
         return true;
     }
 
+    function _applyWeight(el, fieldResult) {
+        if (!el || !fieldResult) return false;
+        var provenance = fieldResult.provenance;
+        var confidence = fieldResult.confidence || 0;
+        var value      = fieldResult.value;
+
+        if (provenance === 'missing' || value === null || value === undefined) return false;
+        if (confidence < CONFIDENCE_MED) return false;
+
+        el.value = String(parseFloat(value).toFixed(2));
+        el.dataset.aiSuggested = '1';
+        el.dataset.aiField     = 'weight_kg';
+        el.style.color = '#9ca3af';
+        el.addEventListener('input', function onInput() {
+            el.style.color = '';
+            el.removeEventListener('input', onInput);
+        });
+        _attachBadge(el, 'confirm');
+        _confirmTracker.require(el);
+        return true;
+    }
+
+    function _applyDimensions(elLength, elWidth, elHeight, fieldResult) {
+        if (!fieldResult) return false;
+        var provenance = fieldResult.provenance;
+        var confidence = fieldResult.confidence || 0;
+        var value      = fieldResult.value;
+
+        if (provenance === 'missing' || value === null || value === undefined) return false;
+        if (confidence < CONFIDENCE_MED) return false;
+
+        // value should be {length, width, height}
+        var dims = null;
+        if (typeof value === 'object' && !Array.isArray(value)) {
+            dims = value;
+        }
+        if (!dims) return false;
+
+        var filled = false;
+        if (elLength && dims.length != null) {
+            elLength.value = String(parseFloat(dims.length).toFixed(1));
+            elLength.dataset.aiSuggested = '1';
+            elLength.dataset.aiField     = 'dimension_length';
+            elLength.style.color = '#9ca3af';
+            elLength.addEventListener('input', function onInput() {
+                elLength.style.color = '';
+                elLength.removeEventListener('input', onInput);
+            });
+            _attachBadge(elLength, 'confirm');
+            _confirmTracker.require(elLength);
+            filled = true;
+        }
+        if (elWidth && dims.width != null) {
+            elWidth.value = String(parseFloat(dims.width).toFixed(1));
+            elWidth.dataset.aiSuggested = '1';
+            elWidth.dataset.aiField     = 'dimension_width';
+            elWidth.style.color = '#9ca3af';
+            elWidth.addEventListener('input', function onInput() {
+                elWidth.style.color = '';
+                elWidth.removeEventListener('input', onInput);
+            });
+            _attachBadge(elWidth, 'confirm');
+            _confirmTracker.require(elWidth);
+            filled = true;
+        }
+        if (elHeight && dims.height != null) {
+            elHeight.value = String(parseFloat(dims.height).toFixed(1));
+            elHeight.dataset.aiSuggested = '1';
+            elHeight.dataset.aiField     = 'dimension_height';
+            elHeight.style.color = '#9ca3af';
+            elHeight.addEventListener('input', function onInput() {
+                elHeight.style.color = '';
+                elHeight.removeEventListener('input', onInput);
+            });
+            _attachBadge(elHeight, 'confirm');
+            _confirmTracker.require(elHeight);
+            filled = true;
+        }
+        return filled;
+    }
+
+    // Show a small "from product page — confirm" note beneath the physical data section
+    function _showPhysicalNote(anchorEl) {
+        if (!anchorEl) return;
+        // Walk up to find the mb-0 wrapper that contains all physical fields
+        var container = anchorEl.parentNode;
+        var limit = 8;
+        while (container && limit-- > 0) {
+            if (container.classList && container.classList.contains('mb-0')) break;
+            container = container.parentNode;
+        }
+        if (!container || !container.classList || !container.classList.contains('mb-0')) {
+            container = anchorEl.parentNode;
+        }
+        if (container.querySelector && container.querySelector('.ai-physical-note')) return;
+        var note = document.createElement('p');
+        note.className = 'ai-physical-note';
+        note.style.cssText = 'font-size:.74rem;color:#d97706;margin-top:.5rem;line-height:1.4;';
+        note.innerHTML = '<i class="fas fa-info-circle" style="margin-right:.3rem;"></i>' +
+            'Datos físicos extraídos de la página del producto — confirma antes de enviar.';
+        container.appendChild(note);
+    }
+
     // ── Confirm checkbox helpers ─────────────────────────────────────────
 
     function _showConfirmCheckbox(wrapper) {
@@ -245,6 +363,10 @@
         var fName          = formFields.fName;
         var fValue         = formFields.fValue;
         var fCategory      = formFields.fCategory;
+        var fWeight        = formFields.fWeight   || null;
+        var fLength        = formFields.fLength   || null;
+        var fWidth         = formFields.fWidth    || null;
+        var fHeight        = formFields.fHeight   || null;
         var confirmWrapper = formFields.confirmWrapper;
         var categoryMap    = formFields.categoryMap || null;
 
@@ -286,6 +408,19 @@
             filledCount += _applyProductName(fName,   fields.product_name)       ? 1 : 0;
             filledCount += _applyDeclaredValue(fValue, fields.declared_value_usd) ? 1 : 0;
             filledCount += _applyCategory(fCategory,  fields.category, categoryMap) ? 1 : 0;
+
+            var physicalFilled = false;
+            if (_applyWeight(fWeight, fields.weight_kg)) {
+                filledCount += 1;
+                physicalFilled = true;
+            }
+            if (_applyDimensions(fLength, fWidth, fHeight, fields.dimensions_cm)) {
+                filledCount += 1;
+                physicalFilled = true;
+            }
+            if (physicalFilled) {
+                _showPhysicalNote(fWeight || fLength || fWidth || fHeight);
+            }
 
             if (filledCount === 0) {
                 _lastExtractionResult = null;

@@ -127,12 +127,13 @@ JSON schema (return exactly this structure):
 
 Rules:
 1. "provenance" must be one of: "extracted" | "inferred" | "missing" | "needs_confirmation"
-2. weight_kg and dimensions_cm MUST always be provenance "missing" with value null.
-3. declared_value_usd: extract the sale price in USD as a float. If multiple prices exist, use needs_confirmation.
-4. category: choose from the list above. Use "inferred" provenance since it is always inferred from context.
-5. If the page is a login wall, CAPTCHA, error page, or you cannot determine a product name, set page_readable to false.
-6. Do not invent or guess values. Return "missing" rather than a guess.
-7. Return ONLY valid JSON — no markdown, no code fences, no explanation.
+2. declared_value_usd: extract the sale price in USD as a float. If multiple prices exist, use needs_confirmation. If the price is in another currency, convert to USD if an exchange rate is obvious, otherwise use needs_confirmation.
+3. category: choose from the list above. Use "inferred" provenance since it is always inferred from context.
+4. weight_kg: extract the PRODUCT weight in kilograms as a float (not shipping weight). Look in spec tables, product details, and technical specifications. If found, use "extracted" provenance. If not found, use "missing" with null value. Do NOT guess.
+5. dimensions_cm: extract product dimensions (L×W×H) in centimeters as a string like "30x20x10" or as an object {{"length": 30, "width": 20, "height": 10}}. Look in spec tables and product details sections. These are PRODUCT dimensions, not box/shipping dimensions. If found, use "extracted" provenance. If not found, use "missing" with null value. Do NOT guess.
+6. If the page is a login wall, CAPTCHA, error page, or you cannot determine a product name, set page_readable to false.
+7. Do not invent or guess values. Return "missing" rather than a guess.
+8. Return ONLY valid JSON — no markdown, no code fences, no explanation.
 
 PAGE CONTENT:
 {content}
@@ -231,14 +232,135 @@ def _fetch_page(url):
         return None, str(ex)
 
 
+def _extract_structured_data(html_text):
+    """Extract JSON-LD blocks and Open Graph / standard meta price tags from raw HTML.
+    Returns a compact plain-text summary to prepend to the Gemini prompt content."""
+    import re as _re
+    import json as _json
+    lines = []
+
+    # ── JSON-LD blocks ────────────────────────────────────────────────────────
+    for m in _re.finditer(
+        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        html_text, _re.IGNORECASE | _re.DOTALL
+    ):
+        raw = m.group(1).strip()
+        try:
+            obj = _json.loads(raw)
+        except Exception:
+            continue
+        # Flatten top-level @graph arrays and plain arrays into a single list
+        if isinstance(obj, list):
+            items = list(obj)
+        elif isinstance(obj, dict) and '@graph' in obj:
+            items = list(obj['@graph']) if isinstance(obj['@graph'], list) else [obj]
+        else:
+            items = [obj]
+        idx = 0
+        while idx < len(items):
+            item = items[idx]
+            idx += 1
+            if not isinstance(item, dict):
+                continue
+            rtype = str(item.get('@type', '')).lower()
+            if rtype not in ('product', 'offer'):
+                # Expand nested offers/product and @graph inside any @type
+                for key in ('offers', 'mainEntity', '@graph'):
+                    sub = item.get(key)
+                    if isinstance(sub, dict):
+                        items.append(sub)
+                    elif isinstance(sub, list):
+                        items.extend(sub)
+                continue
+            name  = item.get('name') or item.get('headline')
+            if name:
+                lines.append(f'[LD+JSON] name: {name}')
+            offers = item.get('offers')
+            if isinstance(offers, dict):
+                offers = [offers]
+            if isinstance(offers, list):
+                for o in offers:
+                    price    = o.get('price') or o.get('lowPrice')
+                    currency = o.get('priceCurrency', 'USD')
+                    if price is not None:
+                        lines.append(f'[LD+JSON] price: {price} {currency}')
+                    avail = o.get('availability', '')
+                    if avail:
+                        lines.append(f'[LD+JSON] availability: {avail}')
+            # Direct price on product
+            if item.get('price') is not None:
+                lines.append(f'[LD+JSON] price: {item["price"]} {item.get("priceCurrency","USD")}')
+            # Weight
+            weight = item.get('weight')
+            if isinstance(weight, dict):
+                lines.append(f'[LD+JSON] weight: {weight.get("value")} {weight.get("unitCode","KGM")}')
+            # Dimensions / depth / height / width
+            for dim_key in ('depth', 'height', 'width'):
+                dim = item.get(dim_key)
+                if isinstance(dim, dict) and dim.get('value'):
+                    lines.append(f'[LD+JSON] {dim_key}: {dim["value"]} {dim.get("unitCode","CMT")}')
+
+    # ── Open Graph / standard meta tags ──────────────────────────────────────
+    for m in _re.finditer(r'<meta\s+([^>]+)>', html_text, _re.IGNORECASE):
+        attrs_raw = m.group(1)
+        prop  = _re.search(r'(?:property|name)=["\']([^"\']+)["\']', attrs_raw, _re.IGNORECASE)
+        cont  = _re.search(r'content=["\']([^"\']+)["\']', attrs_raw, _re.IGNORECASE)
+        if not prop or not cont:
+            continue
+        pname = prop.group(1).lower()
+        value = cont.group(1).strip()
+        if not value:
+            continue
+        if pname in ('product:price:amount', 'og:price:amount', 'price'):
+            lines.append(f'[meta] price: {value}')
+        elif pname in ('product:price:currency',):
+            lines.append(f'[meta] currency: {value}')
+        elif pname in ('og:title', 'twitter:title'):
+            lines.append(f'[meta] title: {value}')
+        elif pname in ('product:weight',):
+            lines.append(f'[meta] weight: {value}')
+
+    if not lines:
+        return ''
+    # Cap the summary to avoid inflating the prompt beyond budget (~2 000 chars)
+    summary = '=== STRUCTURED DATA (high confidence) ===\n' + '\n'.join(lines) + '\n\n'
+    return summary[:2_000]
+
+
+_SPEC_SECTION_PATTERNS = [
+    r'(?:product[\s_-]*)?(?:detail|spec|specification|technical[\s_-]*info|item[\s_-]*spec)',
+    r'(?:dimensions?|measurements?|size[\s_-]*info)',
+    r'(?:weight[\s_-]*&[\s_-]*dimension)',
+]
+
+
 def _truncate_page(html_text):
     import re as _re
     head_match = _re.search(r'<head[\s>].*?</head>', html_text, _re.IGNORECASE | _re.DOTALL)
     head_part  = head_match.group(0) if head_match else ''
     body_match = _re.search(r'<body[\s>]', html_text, _re.IGNORECASE)
-    body_part  = html_text[body_match.start():] if body_match else html_text
-    combined   = head_part + '\n' + body_part[:15_000]
-    return combined[:20_000]
+    body_start = body_match.start() if body_match else 0
+    body_text  = html_text[body_start:]
+
+    # Try to find spec/detail sections and prioritise them
+    spec_bonus = ''
+    combined_pattern = '|'.join(_SPEC_SECTION_PATTERNS)
+    spec_re = _re.compile(combined_pattern, _re.IGNORECASE)
+    for m in spec_re.finditer(body_text):
+        # Grab up to 3000 chars around each spec section hit
+        start = max(0, m.start() - 200)
+        end   = min(len(body_text), m.end() + 3000)
+        snippet = body_text[start:end]
+        if snippet not in spec_bonus:
+            spec_bonus += snippet
+        if len(spec_bonus) > 6000:
+            break
+
+    body_head = body_text[:12_000]
+    combined  = head_part + '\n' + body_head
+    if spec_bonus:
+        combined += '\n\n=== PRODUCT SPECIFICATION SECTION ===\n' + spec_bonus
+    return combined[:22_000]
 
 
 def _call_gemini(content):
@@ -401,6 +523,35 @@ def _normalize_field(raw):
     return out
 
 
+def _normalize_dimensions(raw_value):
+    """Normalize a dimensions value to {length, width, height} floats or None."""
+    import re as _re
+    if raw_value is None:
+        return None
+    if isinstance(raw_value, dict):
+        try:
+            return {
+                'length': float(raw_value.get('length') or raw_value.get('l') or 0) or None,
+                'width':  float(raw_value.get('width')  or raw_value.get('w') or 0) or None,
+                'height': float(raw_value.get('height') or raw_value.get('h') or 0) or None,
+            }
+        except (TypeError, ValueError):
+            return None
+    s = str(raw_value).strip()
+    # Match patterns like "30x20x10", "30×20×10", "30 x 20 x 10"
+    m = _re.match(
+        r'^(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)(\s*cm)?$',
+        s
+    )
+    if m:
+        return {
+            'length': float(m.group(1)),
+            'width':  float(m.group(2)),
+            'height': float(m.group(3)),
+        }
+    return None
+
+
 def _normalize_ai_result(raw, source_url):
     now_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
     out = {}
@@ -417,9 +568,32 @@ def _normalize_ai_result(raw, source_url):
         raw_f = raw_fields.get(fname)
         fields[fname] = _normalize_field(raw_f) if raw_f else dict(defaults)
 
-    # weight and dimensions must always be missing/null per spec
-    fields['weight_kg']     = dict(_FIELD_DEFAULTS['weight_kg'])
-    fields['dimensions_cm'] = dict(_FIELD_DEFAULTS['dimensions_cm'])
+    # Normalize weight: must be a positive float or null
+    w_field = fields['weight_kg']
+    if w_field.get('provenance') != 'missing' and w_field.get('value') is not None:
+        try:
+            w_val = float(w_field['value'])
+            if w_val > 0:
+                w_field['value'] = round(w_val, 3)
+            else:
+                w_field['value']      = None
+                w_field['provenance'] = 'missing'
+                w_field['confidence'] = 0.0
+        except (TypeError, ValueError):
+            w_field['value']      = None
+            w_field['provenance'] = 'missing'
+            w_field['confidence'] = 0.0
+
+    # Normalize dimensions: coerce to structured object or null
+    d_field = fields['dimensions_cm']
+    if d_field.get('provenance') != 'missing' and d_field.get('value') is not None:
+        parsed = _normalize_dimensions(d_field['value'])
+        if parsed and any(v for v in parsed.values() if v):
+            d_field['value'] = parsed
+        else:
+            d_field['value']      = None
+            d_field['provenance'] = 'missing'
+            d_field['confidence'] = 0.0
 
     # category value must be a valid CRBOX code or null
     cat_val = fields['category'].get('value')
@@ -470,7 +644,11 @@ def _handle_ai_extract(handler):
         handler._json_response(200, result)
         return
 
+    structured_summary = _extract_structured_data(page_text)
     truncated = _truncate_page(page_text)
+    # Prepend high-confidence structured data so Gemini has reliable anchors
+    if structured_summary:
+        truncated = structured_summary + truncated
     gemini_result, gemini_err = _call_gemini(truncated)
 
     if gemini_err or not isinstance(gemini_result, dict):
