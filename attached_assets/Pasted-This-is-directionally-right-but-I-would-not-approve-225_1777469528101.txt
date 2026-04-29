@@ -1,0 +1,66 @@
+This is directionally right, but I would not approve #225 yet without a few important refinements.
+
+## What I agree with
+I agree with the overall bundle:
+- refine the Contáctenos page UX
+- update the Llámanos phone number
+- improve and reposition the form
+- add the Miami office to Sucursales
+- and make public-site inquiries visible inside the internal operational system, not only in email
+
+That direction is correct.
+
+## Key refinement 1 — do not mix general inquiries into quote_requests unless absolutely necessary
+The plan currently says:
+- add a request_type column to quote_requests
+- or create a separate lightweight general_inquiries table if cleaner
+
+My strong preference is:
+### use a separate table for general inquiries
+
+These are not quote requests.
+They do not share the same business model as cotizaciones:
+- no shipping fields
+- no estimate
+- no intent flow
+- no package linking
+- no quote response composer
+
+So I want this to stay conceptually clean:
+- same internal tool if needed
+- but a separate data model
+
+## Key refinement 2 — keep “Consultas Generales” semantically separate from cotizaciones
+I do want these inquiries visible inside the internal system, but I do not want them to feel like just another status filter of solicitudes if that causes conceptual mixing.
+
+So please make sure the internal surface reflects:
+- Cotizaciones
+- and Consultas Generales
+
+as different intake types, even if they live in the same admin tool.
+
+## Key refinement 3 — do not lose the inquiry if email fails
+Please make the behavior explicit:
+- if the inquiry is stored successfully in the database
+- but the ventas email fails
+
+the inquiry should still remain saved in the internal system.
+Log the email failure, but do not lose the submission.
+
+## Key refinement 4 — make the intake pattern reusable
+Please design this in a way that can later be reused by:
+- the Contáctenos form
+- the FAQ inline form on Cómo Funciona
+- and other lightweight public-site question forms
+
+So even if this task implements it first for contacto.html, the structure should not be one-off or tightly coupled only to that page.
+
+## UX refinements
+For the page itself:
+
+1. The three top cards should feel much more intentional and visually stronger, but still warm and simple — not overdesigned.
+2. The form should feel short, modern, and low-friction.
+3. Please review whether every field is truly necessary from a UX perspective.
+4. Adding the Miami office should not break the balance of the branches/locations section, especially on mobile.
+
+If you include these refinements, then the task direction looks good.

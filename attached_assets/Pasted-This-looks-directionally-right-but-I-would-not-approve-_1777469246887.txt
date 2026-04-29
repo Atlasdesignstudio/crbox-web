@@ -1,0 +1,54 @@
+This looks directionally right, but I would not approve #221 yet without one important refinement.
+
+## I agree with the core direction
+The three focus areas make sense:
+- redesign / strengthen the 4-step process section
+- improve the testimonials section
+- replace the weak FAQ CTA with an inline question form
+
+That is aligned with what I want.
+
+## But there is one important missing requirement
+The FAQ question form should not only send an email to ventas@crbox.cr.
+
+As we discussed for other public-site message flows, I also want these submissions to become visible inside the internal admin / quote tool under a separate area such as:
+
+- Dudas generales
+- Consultas generales
+- or equivalent
+
+So the rule should be:
+
+- yes, the message is emailed to ventas
+- but it should also appear in the internal operational tool
+- and it should remain conceptually separate from quote requests / cotizaciones
+
+I do not want public-site inquiries to exist only in email.
+
+## Please refine the backend part accordingly
+Instead of treating /api/faq-pregunta as email-only, please refine it so that the FAQ form submission:
+
+1. sends the email to ventas
+2. also creates/stores an internal general-inquiry record visible in the internal tool
+
+This should follow the same pattern we want for other public-site message forms, so we do not create disconnected intake channels.
+
+## Additional refinement
+Please keep the 4-step redesign elegant, but do not sacrifice clarity for style.
+The section should feel more premium and readable, but still remain:
+- concise
+- easy to scan
+- very clear in sequence and user understanding
+
+For the FAQ form:
+- keep it lightweight
+- no redirect
+- inline success/error states
+- strong mobile usability
+
+## So my requested refinement is:
+Please update #221 so the FAQ form is not just a public email form, but part of the same broader public-inquiry intake model:
+- email to ventas
+- and visible in the internal tool under a general-inquiries area
+
+Once that is included, the task direction looks good.
