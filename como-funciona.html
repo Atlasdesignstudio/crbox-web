@@ -502,6 +502,17 @@
             }
         }
 
+        /* ── Features banner — card per item on mobile ─────── */
+        @media (max-width: 767px) {
+            .feature-banner-item {
+                background: #fff;
+                border: 1px solid #f3f4f6;
+                border-radius: 14px;
+                padding: 1.5rem 1.25rem;
+                box-shadow: 0 1px 6px rgba(0,0,0,.05);
+            }
+        }
+
         /* ── Testimonials carousel (mobile only) ────────────── */
         @media (max-width: 767px) {
             #testimonials-grid {
@@ -769,8 +780,8 @@
     <!-- Features Banner -->
     <section class="py-12 bg-white border-t border-b border-gray-200">
         <div class="container mx-auto px-8 md:px-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="flex flex-col items-center text-center">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="feature-banner-item flex flex-col items-center text-center">
                     <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
                         <i class="fas fa-shipping-fast text-2xl"></i>
                     </div>
@@ -778,7 +789,7 @@
                     <p class="text-gray-600">Recibe tus compras en un tiempo promedio de 2-4 días hábiles.</p>
                 </div>
                 
-                <div class="flex flex-col items-center text-center">
+                <div class="feature-banner-item flex flex-col items-center text-center">
                     <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
                         <i class="fas fa-map-marker-alt text-2xl"></i>
                     </div>
@@ -786,7 +797,7 @@
                     <p class="text-gray-600">Entregamos en todas las provincias de Costa Rica.</p>
                 </div>
                 
-                <div class="flex flex-col items-center text-center">
+                <div class="feature-banner-item flex flex-col items-center text-center">
                     <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
                         <i class="fas fa-shield-alt text-2xl"></i>
                     </div>
@@ -794,7 +805,7 @@
                     <p class="text-gray-600">Tus paquetes protegidos en cada etapa del envío.</p>
                 </div>
                 
-                <div class="flex flex-col items-center text-center">
+                <div class="feature-banner-item flex flex-col items-center text-center">
                     <div class="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mb-4">
                         <i class="fas fa-headset text-2xl"></i>
                     </div>
@@ -1353,11 +1364,8 @@
 
 <script>
 (function () {
-    var MOBILE_BP = 768;
-
     /* ─── FAQ collapsible ─────────────────────────────────── */
     function initFAQ() {
-        if (window.innerWidth >= MOBILE_BP) return;
         var items = document.querySelectorAll('.faq-item');
         items.forEach(function (item) {
             item.addEventListener('click', function () {
@@ -1368,7 +1376,6 @@
 
     /* ─── Consolidation accordion ─────────────────────────── */
     function initConsolAccordion() {
-        if (window.innerWidth >= MOBILE_BP) return;
         var panels = document.querySelectorAll('.consol-panel');
         panels.forEach(function (panel) {
             var header = panel.querySelector('.consol-panel-header');
@@ -1383,7 +1390,6 @@
 
     /* ─── Testimonials carousel ───────────────────────────── */
     function initCarousel() {
-        if (window.innerWidth >= MOBILE_BP) return;
         var grid   = document.getElementById('testimonials-grid');
         var prev   = document.getElementById('cf-prev');
         var next   = document.getElementById('cf-next');
