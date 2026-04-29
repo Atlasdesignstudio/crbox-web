@@ -827,6 +827,16 @@ def _init_db():
                 note             TEXT,
                 FOREIGN KEY (quote_request_id) REFERENCES quote_requests(id)
             );
+
+            CREATE TABLE IF NOT EXISTS consultas_generales (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre       TEXT NOT NULL,
+                correo       TEXT NOT NULL,
+                pregunta     TEXT NOT NULL,
+                source       TEXT NOT NULL,
+                submitted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                status       TEXT NOT NULL DEFAULT 'nueva'
+            );
         ''')
         conn.commit()
         # Safe migration: add reminder_sent_at if it doesn't exist yet.
@@ -882,6 +892,22 @@ def _now_iso():
 
 def _now_display():
     return time.strftime('%d/%m/%Y %H:%M', time.gmtime())
+
+
+def _store_inquiry(nombre, correo, pregunta, source):
+    """Insert a row into consultas_generales. Returns the new row id. Raises on failure."""
+    now_iso = _now_iso()
+    with _DB_LOCK:
+        conn = _get_db()
+        cur = conn.execute(
+            'INSERT INTO consultas_generales (nombre, correo, pregunta, source, submitted_at) '
+            'VALUES (?, ?, ?, ?, ?)',
+            (nombre.strip(), correo.strip(), pregunta.strip(), source, now_iso)
+        )
+        new_id = cur.lastrowid
+        conn.commit()
+        conn.close()
+    return new_id
 
 
 def _send_smtp(msg, recipients):
@@ -3116,6 +3142,9 @@ a{{color:inherit;text-decoration:none}}
 .adm-header-logo{{color:#FF6B00;font-weight:800;font-size:18px;letter-spacing:-.5px}}
 .adm-header-title{{color:#fff;font-size:14px;font-weight:600}}
 .adm-header-sep{{color:#4b5563;font-size:16px}}
+.adm-header-link{{color:#9ca3af;font-size:13px;padding:6px 12px;
+  border-radius:6px;border:1px solid #374151;transition:all .2s}}
+.adm-header-link:hover{{color:#fff;border-color:#6b7280}}
 .adm-logout{{margin-left:auto;color:#9ca3af;font-size:13px;padding:6px 12px;
   border-radius:6px;border:1px solid #374151;transition:all .2s}}
 .adm-logout:hover{{color:#fff;border-color:#6b7280}}
@@ -3437,6 +3466,9 @@ a{{color:inherit;text-decoration:none}}
 .adm-header-logo{{color:#FF6B00;font-weight:800;font-size:18px;letter-spacing:-.5px}}
 .adm-header-title{{color:#fff;font-size:14px;font-weight:600}}
 .adm-header-sep{{color:#4b5563;font-size:16px}}
+.adm-header-link{{color:#9ca3af;font-size:13px;padding:6px 12px;
+  border-radius:6px;border:1px solid #374151;transition:all .2s}}
+.adm-header-link:hover{{color:#fff;border-color:#6b7280}}
 .adm-logout{{margin-left:auto;color:#9ca3af;font-size:13px;padding:6px 12px;
   border-radius:6px;border:1px solid #374151;transition:all .2s}}
 .adm-logout:hover{{color:#fff;border-color:#6b7280}}
@@ -3537,6 +3569,7 @@ a{{color:inherit;text-decoration:none}}
   <span class="adm-header-logo">CRBOX</span>
   <span class="adm-header-sep">|</span>
   <span class="adm-header-title">Panel de ventas</span>
+  <a href="/admin/consultas" class="adm-header-link">Consultas FAQ</a>
   <a href="/admin/logout" class="adm-logout">Salir</a>
 </header>
 
@@ -3568,6 +3601,158 @@ a{{color:inherit;text-decoration:none}}
 </html>'''
 
 
+def _build_admin_consultas_html(rows):
+    esc = _html.escape
+    table_rows = ''
+    card_rows  = ''
+    for r in rows:
+        rid      = str(r['id'])
+        nombre   = esc(r['nombre'] or '—')
+        correo   = esc(r['correo'] or '—')
+        pregunta = esc(r['pregunta'] or '—')
+        source   = esc(r['source'] or '—')
+        status   = r['status'] or 'nueva'
+        date_str = _admin_format_date(r['submitted_at'])
+        elapsed  = _admin_elapsed(r['submitted_at'])
+        badge_cfg = {
+            'nueva':     ('#FFF7ED', '#C2410C', '#FDBA74', 'Nueva'),
+            'revisada':  ('#F0FDF4', '#15803D', '#BBF7D0', 'Revisada'),
+            'cerrada':   ('#F9FAFB', '#6B7280', '#E5E7EB', 'Cerrada'),
+        }
+        bg, fg, bdr, slabel = badge_cfg.get(status, ('#F9FAFB', '#374151', '#E5E7EB', status))
+        badge_html = (
+            f'<span class="adm-badge" '
+            f'style="background:{bg};color:{fg};border-color:{bdr};">{slabel}</span>'
+        )
+        table_rows += f'''<tr>
+<td style="white-space:nowrap;color:#FF6B00;font-weight:700;font-size:13px;">{rid}</td>
+<td><div style="font-weight:600;font-size:13px;">{nombre}</div>
+    <div style="color:#6b7280;font-size:12px;margin-top:2px;">{correo}</div></td>
+<td style="font-size:13px;max-width:300px;">{pregunta}</td>
+<td style="font-size:12px;color:#6b7280;">{source}</td>
+<td><div style="font-size:13px;white-space:nowrap;">{date_str}</div>
+    <div style="color:#9ca3af;font-size:11px;margin-top:2px;">{elapsed}</div></td>
+<td>{badge_html}</td>
+</tr>\n'''
+        card_rows += f'''<div class="adm-card">
+<div class="adm-card-top">
+  <div><span class="adm-card-id">#{rid}</span></div>
+  <div>{badge_html}</div>
+</div>
+<div class="adm-card-fields">
+  <div class="adm-card-row"><span class="adm-card-lbl">Nombre</span><span class="adm-card-val">{nombre}</span></div>
+  <div class="adm-card-row"><span class="adm-card-lbl">Correo</span><span class="adm-card-val" style="font-size:11px;">{correo}</span></div>
+  <div class="adm-card-row"><span class="adm-card-lbl">Pregunta</span><span class="adm-card-val">{pregunta}</span></div>
+  <div class="adm-card-row"><span class="adm-card-lbl">Fuente</span><span class="adm-card-val">{source}</span></div>
+  <div class="adm-card-row"><span class="adm-card-lbl">Fecha</span><span class="adm-card-val">{date_str} &middot; {elapsed}</span></div>
+</div>
+</div>\n'''
+
+    n = len(rows)
+    count_label = f'{n} consulta{"s" if n != 1 else ""}'
+    if not rows:
+        empty_html = '''<div class="adm-empty">
+<div style="font-size:36px;margin-bottom:12px;">📬</div>
+<h3>Sin consultas aún</h3>
+<p>Las consultas del formulario FAQ aparecerán aquí.</p>
+</div>'''
+        table_body_html = f'<tr><td colspan="6">{empty_html}</td></tr>'
+        cards_html      = empty_html
+    else:
+        table_body_html = table_rows
+        cards_html      = card_rows
+
+    return f'''<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Consultas — CRBOX</title>
+<style>
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
+  background:#f3f4f6;color:#111;min-height:100vh}}
+a{{color:inherit;text-decoration:none}}
+.adm-header{{background:#1f2937;padding:12px 20px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.18)}}
+.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:18px;letter-spacing:-.5px}}
+.adm-header-title{{color:#fff;font-size:14px;font-weight:600}}
+.adm-header-sep{{color:#4b5563;font-size:16px}}
+.adm-header-link{{color:#9ca3af;font-size:13px;padding:6px 12px;border-radius:6px;
+  border:1px solid #374151;transition:all .2s}}
+.adm-header-link:hover{{color:#fff;border-color:#6b7280}}
+.adm-logout{{margin-left:auto;color:#9ca3af;font-size:13px;padding:6px 12px;
+  border-radius:6px;border:1px solid #374151;transition:all .2s}}
+.adm-logout:hover{{color:#fff;border-color:#6b7280}}
+.adm-main{{padding:20px}}
+.adm-panel{{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}}
+.adm-count{{padding:12px 16px;font-size:13px;color:#6b7280;
+  border-bottom:1px solid #f3f4f6;background:#fafafa}}
+.adm-table{{width:100%;border-collapse:collapse}}
+.adm-table th{{background:#f9fafb;padding:10px 14px;text-align:left;
+  font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;
+  letter-spacing:.06em;border-bottom:1px solid #e5e7eb;white-space:nowrap}}
+.adm-table td{{padding:13px 14px;border-bottom:1px solid #f3f4f6;
+  vertical-align:top;font-size:13px}}
+.adm-table tr:last-child td{{border-bottom:none}}
+.adm-table tr:hover td{{background:#fafafa}}
+.adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
+  font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
+.adm-table-wrap{{overflow-x:auto}}
+.adm-cards{{display:none;flex-direction:column;gap:10px;padding:12px}}
+.adm-card{{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,.06)}}
+.adm-card-top{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}}
+.adm-card-id{{font-size:14px;font-weight:700;color:#111}}
+.adm-card-fields{{margin-bottom:10px}}
+.adm-card-row{{display:flex;justify-content:space-between;align-items:baseline;
+  padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:13px}}
+.adm-card-row:last-child{{border-bottom:none}}
+.adm-card-lbl{{color:#9ca3af;font-size:12px;min-width:60px}}
+.adm-card-val{{color:#111;font-size:12px;text-align:right;word-break:break-all;max-width:70%}}
+.adm-empty{{text-align:center;padding:48px 20px;color:#9ca3af}}
+.adm-empty h3{{font-size:16px;font-weight:600;color:#6b7280;margin-bottom:6px}}
+.adm-empty p{{font-size:13px}}
+@media(max-width:720px){{
+  .adm-header{{padding:10px 14px}}
+  .adm-main{{padding:0 0 40px}}
+  .adm-panel{{border-radius:0}}
+  .adm-table-wrap{{display:none}}
+  .adm-cards{{display:flex}}
+}}
+@media(min-width:721px){{
+  .adm-table-wrap{{overflow-x:auto}}
+}}
+</style>
+</head>
+<body>
+<header class="adm-header">
+  <span class="adm-header-logo">CRBOX</span>
+  <span class="adm-header-sep">|</span>
+  <span class="adm-header-title">Consultas FAQ</span>
+  <a href="/admin/solicitudes" class="adm-header-link">Solicitudes</a>
+  <a href="/admin/logout" class="adm-logout">Salir</a>
+</header>
+<main class="adm-main">
+<div class="adm-panel">
+  <div class="adm-count">{count_label}</div>
+  <div class="adm-table-wrap">
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Contacto</th><th>Pregunta</th><th>Fuente</th><th>Fecha</th><th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>{table_body_html}</tbody>
+  </table>
+  </div>
+  <div class="adm-cards">{cards_html}</div>
+</div>
+</main>
+</body>
+</html>'''
+
+
 class NoCacheHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
@@ -3587,6 +3772,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_admin_login_get()
             elif path_no_qs == '/admin/solicitudes':
                 self._handle_admin_solicitudes_get()
+            elif path_no_qs == '/admin/consultas':
+                self._handle_admin_consultas_get()
             elif path_no_qs == '/admin/logout':
                 self._handle_admin_logout()
             else:
@@ -3623,6 +3810,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             _handle_ai_extract(self)
         elif self.path == '/api/solicitudes':
             self._handle_solicitudes_post()
+        elif self.path == '/api/faq-pregunta':
+            self._handle_faq_pregunta_post()
         elif self.path == '/api/solicitudes/link-guest':
             self._handle_link_guest()
         elif self.path == '/api/solicitudes/check-duplicate':
@@ -4759,6 +4948,83 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         html = _build_admin_solicitudes_html(rows, filter_val, counts)
         self._admin_html_response(html)
+
+    # ── GET /admin/consultas ───────────────────────────────────────────────
+    def _handle_admin_consultas_get(self):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self.send_response(404); self.end_headers(); return
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                rows = conn.execute(
+                    'SELECT * FROM consultas_generales ORDER BY submitted_at DESC'
+                ).fetchall()
+                conn.close()
+        except Exception as exc:
+            print(f'[ADMIN] consultas DB error: {exc}')
+            self._admin_html_response('<h1>Error interno</h1>', status=500)
+            return
+        rows = [dict(r) for r in rows]
+        html = _build_admin_consultas_html(rows)
+        self._admin_html_response(html)
+
+    # ── POST /api/faq-pregunta ─────────────────────────────────────────────
+    def _handle_faq_pregunta_post(self):
+        try:
+            length = int(self.headers.get('Content-Length', 0))
+            raw    = self.rfile.read(length) if length > 0 else b''
+            data   = json.loads(raw.decode('utf-8'))
+        except Exception:
+            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            return
+        nombre   = (data.get('nombre') or '').strip()
+        correo   = (data.get('correo') or '').strip()
+        pregunta = (data.get('pregunta') or '').strip()
+        if not nombre or not correo or not pregunta:
+            self._json_response(400, {'ok': False, 'error': 'Todos los campos son requeridos.'})
+            return
+        if '@' not in correo or '.' not in correo.split('@')[-1] or len(correo) > 254:
+            self._json_response(400, {'ok': False, 'error': 'Ingresa un correo electrónico válido.'})
+            return
+        try:
+            new_id = _store_inquiry(nombre, correo, pregunta, 'faq-como-funciona')
+        except Exception as db_exc:
+            print(f'[FAQ-PREGUNTA] DB insert failed: {db_exc}')
+            self._json_response(500, {'ok': False, 'error': 'Error al guardar la consulta.'})
+            return
+        try:
+            settings  = _smtp_settings()
+            smtp_user = settings[2] if settings else 'noreply@crbox.cr'
+            import email.mime.multipart, email.mime.text
+            esc = _html.escape
+            subject = f'[FAQ] Nueva consulta de {nombre}'
+            plain   = (
+                f'Nueva consulta recibida desde el formulario FAQ de Cómo Funciona.\n\n'
+                f'Nombre: {nombre}\nCorreo: {correo}\n\n'
+                f'Pregunta:\n{pregunta}\n\n'
+                f'Registro #: {new_id}\n'
+                f'Ver en panel: {os.environ.get("SITE_URL", "https://crbox.cr")}/admin/consultas'
+            )
+            html_body = (
+                f'<p><strong>Nueva consulta FAQ</strong></p>'
+                f'<p><strong>Nombre:</strong> {esc(nombre)}<br>'
+                f'<strong>Correo:</strong> {esc(correo)}</p>'
+                f'<p><strong>Pregunta:</strong><br>{esc(pregunta)}</p>'
+                f'<p style="color:#9ca3af;font-size:12px;">Registro #{new_id}</p>'
+            )
+            msg = email.mime.multipart.MIMEMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From']    = f'CRBOX <{smtp_user}>'
+            msg['To']      = QUOTE_RECIPIENT
+            msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
+            msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
+            _send_smtp(msg, [QUOTE_RECIPIENT])
+        except Exception as mail_exc:
+            print(f'[FAQ-PREGUNTA] Email notification failed (record #{new_id} preserved): {mail_exc}')
+        self._json_response(200, {'ok': True})
 
     # ── GET /admin/solicitudes/:id ─────────────────────────────────────────
     def _handle_admin_solicitudes_detail(self, scb_id):

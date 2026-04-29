@@ -134,72 +134,272 @@
             background-image: url('data:image/svg+xml;charset=utf8,%3Csvg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z" fill="%23ffffff" fill-opacity="0.1" fill-rule="evenodd"/%3E%3C/svg%3E');
         }
         
-        .step-card {
-            height: 100%;
+        /* ── Step cards (redesigned) ───────────────────────── */
+        .step-editorial-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 2px 16px rgba(0,0,0,.07);
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: transform .2s, box-shadow .2s;
         }
-        
-        .step-card-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+        .step-editorial-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 28px rgba(0,0,0,.10);
         }
-        
-        .icon-circular {
-            width: 80px; 
-            height: 80px;
+        .step-num-bg {
+            position: absolute;
+            top: -12px;
+            right: 16px;
+            font-size: 7rem;
+            font-weight: 900;
+            color: #FF6B00;
+            opacity: .07;
+            line-height: 1;
+            pointer-events: none;
+            user-select: none;
+        }
+        .step-icon-wrap {
+            width: 56px;
+            height: 56px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            background-color: #FFF3E0;
+            border-radius: 14px;
+            background: #FFF3E0;
             color: #FF6B00;
-            font-size: 2rem;
-            margin: 0 auto 1.5rem;
+            font-size: 1.4rem;
+            margin-bottom: 1.25rem;
+            flex-shrink: 0;
         }
-        
-        .step-info {
+        .step-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            color: #FF6B00;
+            text-transform: uppercase;
+            margin-bottom: .4rem;
+        }
+        .step-headline {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: .75rem;
+            line-height: 1.3;
+        }
+        .step-desc {
+            font-size: 0.95rem;
+            color: #4b5563;
+            line-height: 1.65;
+            margin-bottom: 1.25rem;
             flex: 1;
+        }
+        .step-tip {
+            border-left: 3px solid;
+            padding: .75rem 1rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 1.25rem;
+        }
+        .step-tip-orange { border-color: #FF6B00; background: #FFF7ED; color: #9A3412; }
+        .step-tip-blue   { border-color: #3B82F6; background: #EFF6FF; color: #1E40AF; }
+        .step-tip-green  { border-color: #22C55E; background: #F0FDF4; color: #15803D; }
+        .step-cta-link {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            font-size: .875rem;
+            font-weight: 700;
+            color: #FF6B00;
+            transition: gap .2s;
+        }
+        .step-cta-link:hover { gap: .6rem; }
+        .step-connector {
+            display: none;
+        }
+        @media(min-width: 768px) {
+            .step-stagger {
+                margin-top: 2.5rem;
+            }
+            .steps-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+                max-width: 900px;
+                margin: 0 auto;
+            }
+        }
+        @media(max-width: 767px) {
+            .steps-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+                max-width: 540px;
+                margin: 0 auto;
+            }
+            .step-editorial-card {
+                padding: 1.75rem;
+            }
+        }
+
+        /* ── Testimonials (polished) ───────────────────────── */
+        .testimonial-card-v2 {
+            background: #fff;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 2px 14px rgba(0,0,0,.07);
             display: flex;
             flex-direction: column;
+            gap: 1.25rem;
+            position: relative;
         }
-        
-        .step-info p {
-            text-align: justify;
-            margin-bottom: 1rem;
+        .testimonial-quote-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg,#FF6B00,#FF9A00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1rem;
+            flex-shrink: 0;
         }
-        
-        .step-badge {
-            background-color: #FFF3E0;
+        .testimonial-stars {
+            display: flex;
+            gap: 3px;
+        }
+        .testimonial-body {
+            font-size: .97rem;
+            color: #374151;
+            line-height: 1.7;
+            font-style: italic;
+        }
+        .testimonial-attribution {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding-top: .5rem;
+            border-top: 1px solid #f3f4f6;
+        }
+        .testimonial-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #FFF3E0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: #FF6B00;
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.25rem 1rem;
-            border-radius: 9999px;
-            display: inline-block;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .testimonial-name {
+            font-weight: 700;
+            font-size: .9rem;
+            color: #111827;
+        }
+        .testimonial-location {
+            font-size: .8rem;
+            color: #9ca3af;
+        }
+
+        /* ── FAQ inline form ───────────────────────────────── */
+        .faq-form-wrap {
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 560px;
+            margin: 0 auto;
+        }
+        .faq-form-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: .35rem;
+        }
+        .faq-form-subtitle {
+            font-size: .875rem;
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+        .faq-form-field {
             margin-bottom: 1rem;
         }
-        
-        .tip-box {
-            background-color: #F8F9FA;
-            border-left-width: 4px;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-top: auto;
-            text-align: left;
+        .faq-form-label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: .35rem;
+        }
+        .faq-form-input {
             width: 100%;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            padding: .65rem .9rem;
+            font-size: .9rem;
+            font-family: inherit;
+            color: #111;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
         }
-        
-        .tip-box p {
-            margin: 0;
-            font-size: 0.875rem;
+        .faq-form-input:focus {
+            border-color: #FF6B00;
+            box-shadow: 0 0 0 3px rgba(255,107,0,.1);
         }
-        
+        .faq-form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .faq-form-btn {
+            display: block;
+            width: 100%;
+            background: #FF6B00;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: .75rem 1.5rem;
+            font-size: .95rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background .2s;
+            margin-top: .5rem;
+        }
+        .faq-form-btn:hover { background: #E05A00; }
+        .faq-form-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+        .faq-form-success {
+            display: none;
+            background: #F0FDF4;
+            border: 1.5px solid #BBF7D0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            color: #15803D;
+            font-size: .95rem;
+            line-height: 1.6;
+        }
+        .faq-form-error {
+            display: none;
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 8px;
+            padding: .75rem 1rem;
+            color: #991B1B;
+            font-size: .85rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Legacy styles kept for feature cards elsewhere */
         .faq-item {
             height: 100%;
         }
-        
         .testimonial-card {
             height: 100%;
         }
@@ -349,110 +549,79 @@
     <!-- Process Steps -->
     <section id="proceso" class="py-16 md:py-24 bg-gray-50">
         <div class="container mx-auto px-4">
-            <div class="text-center mb-16">
-                <span class="text-orange-600 font-semibold mb-2 inline-block">NUESTRO PROCESO</span>
+            <div class="text-center mb-14">
+                <span class="text-orange-600 font-semibold mb-2 inline-block tracking-widest text-sm">NUESTRO PROCESO</span>
                 <h2 class="text-3xl md:text-4xl font-bold mb-4">Tu Compra en 4 Simples Pasos</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Un servicio diseñado para brindarte la mejor experiencia de compra internacional.</p>
+                <p class="text-lg text-gray-500 max-w-2xl mx-auto">Desde que te registras hasta que recibes en tu puerta — un proceso diseñado para ser claro, rápido y sin fricciones.</p>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+
+            <div class="steps-grid">
+
                 <!-- Step 1 -->
-                <div class="feature-card p-6 step-card">
-                    <div class="step-card-content">
-                        <div class="text-center">
-                            <div class="icon-circular mb-4">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <span class="step-badge">PASO 1</span>
-                            <h3 class="text-xl font-bold mb-3">Afíliate Gratis</h3>
-                        </div>
-                        <div class="step-info">
-                            <p class="text-gray-600">Completa nuestro formulario digital y obtén al instante tu dirección en Miami. El proceso toma solo unos minutos.</p>
-                            <div class="tip-box border-orange-500 bg-orange-50">
-                                <p class="text-orange-800"><strong>Ventaja CRBOX:</strong> Envíos desde Miami dos veces por semana con entrega promedio en 2-4 días hábiles.</p>
-                            </div>
-                            <div class="mt-6 text-center">
-                                <a href="afiliate.html" class="text-orange-600 font-medium flex items-center justify-center hover:text-orange-700 transition-colors">
-                                    Comenzar Ahora
-                                    <i class="fas fa-chevron-right ml-1 text-sm"></i>
-                                </a>
-                            </div>
-                        </div>
+                <div class="step-editorial-card">
+                    <span class="step-num-bg" aria-hidden="true">01</span>
+                    <div class="step-icon-wrap">
+                        <i class="fas fa-user-plus"></i>
                     </div>
+                    <p class="step-label">Paso 1 — Registro</p>
+                    <h3 class="step-headline">Afíliate y obtén tu dirección en Miami</h3>
+                    <p class="step-desc">Completa nuestro formulario digital en minutos y obtén al instante una dirección personal en Miami. Usa esa dirección como destino en cualquier tienda de Estados Unidos — sin costo de afiliación.</p>
+                    <div class="step-tip step-tip-orange">
+                        <strong>Ventaja CRBOX:</strong> Salidas desde Miami dos veces por semana. Entrega promedio en Costa Rica: 2–4 días hábiles.
+                    </div>
+                    <a href="afiliate.html" class="step-cta-link">
+                        Comenzar Ahora <i class="fas fa-arrow-right text-xs"></i>
+                    </a>
                 </div>
-                
+
                 <!-- Step 2 -->
-                <div class="feature-card p-6 step-card">
-                    <div class="step-card-content">
-                        <div class="text-center">
-                            <div class="icon-circular mb-4">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <span class="step-badge">PASO 2</span>
-                            <h3 class="text-xl font-bold mb-3">Compra en USA</h3>
-                        </div>
-                        <div class="step-info">
-                            <p class="text-gray-600">Usa tu dirección de Miami para comprar en miles de tiendas online en Estados Unidos, o pídenos que hagamos la compra por ti.</p>
-                            <div class="tip-box border-blue-500 bg-blue-50">
-                                <p class="text-blue-800"><strong>Consejo clave:</strong> Incluye siempre tu número de casillero en la dirección para identificar tus paquetes correctamente.</p>
-                            </div>
-                            <div class="mt-6 text-center">
-                                <a href="servicios.html#compras" class="text-orange-600 font-medium flex items-center justify-center hover:text-orange-700 transition-colors">
-                                    Compras por Encargo
-                                    <i class="fas fa-chevron-right ml-1 text-sm"></i>
-                                </a>
-                            </div>
-                        </div>
+                <div class="step-editorial-card step-stagger">
+                    <span class="step-num-bg" aria-hidden="true">02</span>
+                    <div class="step-icon-wrap">
+                        <i class="fas fa-shopping-cart"></i>
                     </div>
+                    <p class="step-label">Paso 2 — Compra</p>
+                    <h3 class="step-headline">Compra en miles de tiendas de USA</h3>
+                    <p class="step-desc">Usa tu dirección CRBOX en Amazon, Walmart, Best Buy, Target, Apple o cualquier tienda que despache a Miami. También puedes pedirnos que hagamos la compra por ti.</p>
+                    <div class="step-tip step-tip-blue">
+                        <strong>Consejo clave:</strong> Incluye siempre tu número de casillero en la dirección de envío para que identifiquemos tu paquete de inmediato.
+                    </div>
+                    <a href="servicios.html#compras" class="step-cta-link">
+                        Ver Servicio de Compras <i class="fas fa-arrow-right text-xs"></i>
+                    </a>
                 </div>
-                
+
                 <!-- Step 3 -->
-                <div class="feature-card p-6 step-card">
-                    <div class="step-card-content">
-                        <div class="text-center">
-                            <div class="icon-circular mb-4">
-                                <i class="fas fa-bell"></i>
-                            </div>
-                            <span class="step-badge">PASO 3</span>
-                            <h3 class="text-xl font-bold mb-3">Recibe Notificación</h3>
-                        </div>
-                        <div class="step-info">
-                            <p class="text-gray-600">Te alertamos inmediatamente cuando tu paquete llega a Miami. Sube la factura y autoriza el envío en pocos clics.</p>
-                            <div class="tip-box border-orange-500 bg-orange-50">
-                                <p class="text-orange-800"><strong>Importante:</strong> La factura es requisito indispensable para trámites aduanales. Sin este documento no podemos procesar tu envío.</p>
-                            </div>
-                            <div class="mt-6 text-center">
-                                <!-- Espacio para mantener alineación -->
-                                <div class="h-6"></div>
-                            </div>
-                        </div>
+                <div class="step-editorial-card">
+                    <span class="step-num-bg" aria-hidden="true">03</span>
+                    <div class="step-icon-wrap">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <p class="step-label">Paso 3 — Notificación</p>
+                    <h3 class="step-headline">Te avisamos cuando llega a Miami</h3>
+                    <p class="step-desc">En cuanto tu paquete llega a nuestra bodega en Miami recibirás una notificación por correo. Sube la factura de compra y autoriza el envío desde tu panel — todo en pocos clics.</p>
+                    <div class="step-tip step-tip-orange">
+                        <strong>Importante:</strong> La factura es requisito para los trámites aduanales. Si no tienes la original, un comprobante de pago con el valor declarado es suficiente.
                     </div>
                 </div>
-                
+
                 <!-- Step 4 -->
-                <div class="feature-card p-6 step-card">
-                    <div class="step-card-content">
-                        <div class="text-center">
-                            <div class="icon-circular mb-4">
-                                <i class="fas fa-box"></i>
-                            </div>
-                            <span class="step-badge">PASO 4</span>
-                            <h3 class="text-xl font-bold mb-3">Recibe tu Paquete</h3>
-                        </div>
-                        <div class="step-info">
-                            <p class="text-gray-600">Entregamos directamente en tu casa u oficina en cualquier parte de Costa Rica, con seguimiento en cada etapa del proceso.</p>
-                            <div class="tip-box border-green-500 bg-green-50">
-                                <p class="text-green-800"><strong>Beneficio exclusivo:</strong> Seguimiento 24/7 de tu paquete en cada etapa del proceso.</p>
-                            </div>
-                            <div class="mt-6 text-center">
-                                <a href="tarifas.html" class="text-orange-600 font-medium flex items-center justify-center hover:text-orange-700 transition-colors">
-                                    Ver Tarifas de Entrega
-                                    <i class="fas fa-chevron-right ml-1 text-sm"></i>
-                                </a>
-                            </div>
-                        </div>
+                <div class="step-editorial-card step-stagger">
+                    <span class="step-num-bg" aria-hidden="true">04</span>
+                    <div class="step-icon-wrap">
+                        <i class="fas fa-box"></i>
                     </div>
+                    <p class="step-label">Paso 4 — Entrega</p>
+                    <h3 class="step-headline">Recibe en tu puerta en Costa Rica</h3>
+                    <p class="step-desc">Entregamos a domicilio en cualquier punto del país o puedes recoger sin costo en nuestras sucursales en San José. Seguimiento en tiempo real en cada etapa del trayecto.</p>
+                    <div class="step-tip step-tip-green">
+                        <strong>Beneficio exclusivo:</strong> Seguimiento 24/7 de tu paquete. Recibirás actualizaciones automáticas en cada cambio de estado.
+                    </div>
+                    <a href="tarifas.html" class="step-cta-link">
+                        Ver Tarifas de Entrega <i class="fas fa-arrow-right text-xs"></i>
+                    </a>
                 </div>
+
             </div>
         </div>
     </section>
@@ -631,98 +800,174 @@
                     </div>
                 </div>
                 
-                <div class="mt-12 text-center">
-                    <p class="text-gray-600 mb-4">¿No encontraste lo que buscabas?</p>
-                    <a href="contacto.html" class="inline-flex items-center px-5 py-3 rounded-lg bg-orange-100 text-orange-700 font-medium hover:bg-orange-200 transition-colors">
-                        <i class="fas fa-comments mr-2"></i>
-                        Contáctanos para más información
-                    </a>
+                <div class="mt-14">
+                    <div class="faq-form-wrap">
+                        <p class="faq-form-title">¿No encontraste lo que buscabas?</p>
+                        <p class="faq-form-subtitle">Escríbenos tu pregunta y nuestro equipo la revisará.</p>
+                        <div id="faq-form-error" class="faq-form-error"></div>
+                        <form id="faq-pregunta-form" novalidate>
+                            <div class="faq-form-field">
+                                <label class="faq-form-label" for="faq-nombre">Nombre</label>
+                                <input class="faq-form-input" type="text" id="faq-nombre" name="nombre" placeholder="Tu nombre" required maxlength="120">
+                            </div>
+                            <div class="faq-form-field">
+                                <label class="faq-form-label" for="faq-correo">Correo electrónico</label>
+                                <input class="faq-form-input" type="email" id="faq-correo" name="correo" placeholder="tu@correo.com" required maxlength="200">
+                            </div>
+                            <div class="faq-form-field">
+                                <label class="faq-form-label" for="faq-pregunta">Tu pregunta</label>
+                                <textarea class="faq-form-input faq-form-textarea" id="faq-pregunta" name="pregunta" placeholder="¿En qué podemos ayudarte?" required maxlength="2000"></textarea>
+                            </div>
+                            <button class="faq-form-btn" type="submit" id="faq-submit-btn">Enviar pregunta</button>
+                        </form>
+                        <div id="faq-form-success" class="faq-form-success">
+                            <div style="font-size:1.5rem;margin-bottom:.5rem;">✓</div>
+                            <strong>Tu consulta fue enviada correctamente.</strong><br>
+                            Nuestro equipo la revisará pronto.
+                        </div>
+                    </div>
                 </div>
+
+                <script>
+                (function() {
+                    var form    = document.getElementById('faq-pregunta-form');
+                    var errBox  = document.getElementById('faq-form-error');
+                    var success = document.getElementById('faq-form-success');
+                    var btn     = document.getElementById('faq-submit-btn');
+                    if (!form) return;
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        errBox.style.display = 'none';
+                        var nombre   = document.getElementById('faq-nombre').value.trim();
+                        var correo   = document.getElementById('faq-correo').value.trim();
+                        var pregunta = document.getElementById('faq-pregunta').value.trim();
+                        if (!nombre || !correo || !pregunta) {
+                            errBox.textContent = 'Por favor completa todos los campos.';
+                            errBox.style.display = 'block';
+                            return;
+                        }
+                        btn.disabled = true;
+                        btn.textContent = 'Enviando…';
+                        fetch('/api/faq-pregunta', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({nombre: nombre, correo: correo, pregunta: pregunta})
+                        })
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (data.ok) {
+                                form.style.display = 'none';
+                                errBox.style.display = 'none';
+                                success.style.display = 'block';
+                            } else {
+                                errBox.textContent = data.error || 'Ocurrió un error. Intenta de nuevo.';
+                                errBox.style.display = 'block';
+                                btn.disabled = false;
+                                btn.textContent = 'Enviar pregunta';
+                            }
+                        })
+                        .catch(function() {
+                            errBox.textContent = 'No se pudo conectar. Verifica tu conexión e intenta de nuevo.';
+                            errBox.style.display = 'block';
+                            btn.disabled = false;
+                            btn.textContent = 'Enviar pregunta';
+                        });
+                    });
+                })();
+                </script>
             </div>
         </div>
     </section>
 
     <!-- Testimonials Section -->
-    <section class="py-16 bg-gray-50">
+    <section class="py-16 md:py-20 bg-gray-50">
         <div class="container mx-auto px-4">
             <div class="text-center mb-12">
-                <span class="text-orange-600 font-semibold mb-2 inline-block">TESTIMONIOS</span>
-                <h2 class="text-3xl font-bold mb-4">Lo que dicen nuestros clientes</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Miles de costarricenses confían en CRBOX para sus compras internacionales.</p>
+                <span class="text-orange-600 font-semibold mb-2 inline-block tracking-widest text-sm">TESTIMONIOS</span>
+                <h2 class="text-3xl font-bold mb-3">Lo que dicen nuestros clientes</h2>
+                <p class="text-lg text-gray-500 max-w-2xl mx-auto">Miles de costarricenses confían en CRBOX para sus compras internacionales.</p>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+
                 <!-- Testimonial 1 -->
-                <div class="testimonial-card p-6 relative">
-                    <div class="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white text-xl">
-                        <i class="fas fa-quote-right"></i>
+                <div class="testimonial-card-v2">
+                    <div class="flex items-center justify-between">
+                        <div class="testimonial-stars">
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                        </div>
+                        <div class="testimonial-quote-icon">
+                            <i class="fas fa-quote-right" style="font-size:.85rem;"></i>
+                        </div>
                     </div>
-                    <div class="mb-4 flex">
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                    </div>
-                    <p class="text-gray-600 mb-4 text-justify">"He utilizado CRBOX durante más de un año y el servicio es excelente. Mis paquetes siempre llegan en perfectas condiciones y en el tiempo prometido."</p>
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
+                    <p class="testimonial-body">"He utilizado CRBOX durante más de un año y el servicio es excelente. Mis paquetes siempre llegan en perfectas condiciones y en el tiempo prometido."</p>
+                    <div class="testimonial-attribution">
+                        <div class="testimonial-avatar">
                             <i class="fas fa-user"></i>
                         </div>
                         <div>
-                            <p class="font-semibold">María Fernández</p>
-                            <p class="text-sm text-gray-500">San José</p>
+                            <p class="testimonial-name">María Fernández</p>
+                            <p class="testimonial-location">San José</p>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Testimonial 2 -->
-                <div class="testimonial-card p-6 relative">
-                    <div class="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white text-xl">
-                        <i class="fas fa-quote-right"></i>
+                <div class="testimonial-card-v2">
+                    <div class="flex items-center justify-between">
+                        <div class="testimonial-stars">
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                        </div>
+                        <div class="testimonial-quote-icon">
+                            <i class="fas fa-quote-right" style="font-size:.85rem;"></i>
+                        </div>
                     </div>
-                    <div class="mb-4 flex">
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                    </div>
-                    <p class="text-gray-600 mb-4 text-justify">"La consolidación de paquetes me ha ahorrado mucho dinero. El proceso es sencillo y el seguimiento en tiempo real me da tranquilidad sobre mis compras."</p>
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
+                    <p class="testimonial-body">"La consolidación de paquetes me ha ahorrado mucho dinero. El proceso es sencillo y el seguimiento en tiempo real me da tranquilidad sobre mis compras."</p>
+                    <div class="testimonial-attribution">
+                        <div class="testimonial-avatar">
                             <i class="fas fa-user"></i>
                         </div>
                         <div>
-                            <p class="font-semibold">Carlos Montero</p>
-                            <p class="text-sm text-gray-500">Heredia</p>
+                            <p class="testimonial-name">Carlos Montero</p>
+                            <p class="testimonial-location">Heredia</p>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Testimonial 3 -->
-                <div class="testimonial-card p-6 relative">
-                    <div class="absolute -top-4 -right-4 w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white text-xl">
-                        <i class="fas fa-quote-right"></i>
+                <div class="testimonial-card-v2">
+                    <div class="flex items-center justify-between">
+                        <div class="testimonial-stars">
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <i class="fas fa-star text-yellow-400"></i>
+                        </div>
+                        <div class="testimonial-quote-icon">
+                            <i class="fas fa-quote-right" style="font-size:.85rem;"></i>
+                        </div>
                     </div>
-                    <div class="mb-4 flex">
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                    </div>
-                    <p class="text-gray-600 mb-4 text-justify">"El servicio al cliente es excepcional. Siempre responden rápidamente a mis consultas y me mantienen informada sobre el estado de mis envíos."</p>
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
+                    <p class="testimonial-body">"El servicio al cliente es excepcional. Siempre responden rápidamente a mis consultas y me mantienen informada sobre el estado de mis envíos."</p>
+                    <div class="testimonial-attribution">
+                        <div class="testimonial-avatar">
                             <i class="fas fa-user"></i>
                         </div>
                         <div>
-                            <p class="font-semibold">Laura Jiménez</p>
-                            <p class="text-sm text-gray-500">Cartago</p>
+                            <p class="testimonial-name">Laura Jiménez</p>
+                            <p class="testimonial-location">Cartago</p>
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </section>
