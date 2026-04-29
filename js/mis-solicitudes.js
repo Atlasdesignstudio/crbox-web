@@ -833,8 +833,9 @@
 
       var hasVal = !isNaN(val) && val > 0;
       var hasCat = !!cat;
+      var hasWgt = wgt > 0;
 
-      if (!hasVal || !hasCat) {
+      if (!hasVal || !hasCat || !hasWgt) {
         panel.classList.add('hidden');
         _portalAutoEstimate = null;
         return;
