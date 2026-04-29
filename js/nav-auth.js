@@ -3,6 +3,22 @@
 
     var ADMIN_EMAIL = 'prueba@crbox.cr';
 
+    // Pages that are inside the authenticated client portal.
+    // On these pages a logged-in non-admin user is already in their account
+    // context — no "go to Dashboard" CTA should be injected.
+    var PORTAL_PAGES = [
+        'dashboard.html',
+        'mis-paquetes.html',
+        'mis-facturas.html',
+        'mis-solicitudes.html',
+        'mi-cuenta.html'
+    ];
+
+    function _isPortalPage() {
+        var page = (window.location.pathname.split('/').pop() || '').split('?')[0];
+        return PORTAL_PAGES.indexOf(page) !== -1;
+    }
+
     function _goAdminPortal() {
         var auth = window.CRBOXAuth;
         if (!auth) { window.location.href = '/admin/login'; return; }
@@ -31,7 +47,8 @@
         var auth = window.CRBOXAuth;
         if (!auth || !auth.isLoggedIn()) return;
 
-        var isAdmin = (auth.getEmail() === ADMIN_EMAIL);
+        var isAdmin  = (auth.getEmail() === ADMIN_EMAIL);
+        var inPortal = _isPortalPage();
 
         // ── Desktop ───────────────────────────────────────────────────────────
         var userDropdown = document.getElementById('user-dropdown');
@@ -43,7 +60,8 @@
             }
 
             if (isAdmin) {
-                // Admin: keep the user dropdown intact, inject Panel Admin button after it
+                // prueba@crbox.cr — keep user dropdown intact AND inject Panel Admin
+                // beside it, on every page (public and portal).
                 var adminBtn = document.createElement('a');
                 adminBtn.href = '#';
                 adminBtn.className = 'secondary-btn flex items-center gap-2';
@@ -54,8 +72,15 @@
                     _goAdminPortal();
                 });
                 userDropdown.parentNode.insertBefore(adminBtn, userDropdown.nextSibling);
+
+            } else if (inPortal) {
+                // Normal user already inside the portal — keep the existing
+                // user-dropdown (name chip + dropdown menu) intact.
+                // No redundant "Dashboard" or admin CTA is shown here.
+
             } else {
-                // Non-admin: replace the dropdown with a Dashboard CTA
+                // Normal user on a public page — replace the dropdown with a
+                // "Dashboard" link so they can enter the portal easily.
                 var dashLink = document.createElement('a');
                 dashLink.href = 'dashboard.html';
                 dashLink.className = 'secondary-btn flex items-center gap-2';
@@ -77,7 +102,7 @@
         var calcLink = mobileMenu.querySelector('a[href="calculadora.html"]');
         if (calcLink && calcLink.parentNode) {
             if (isAdmin) {
-                // Admin: only inject Panel Admin — no Dashboard link
+                // prueba@crbox.cr — inject Panel Admin link on every page
                 if (!calcLink.parentNode.querySelector('.nav-admin-mobile')) {
                     var mobileAdmin = document.createElement('a');
                     mobileAdmin.href = '#';
@@ -90,8 +115,8 @@
                     });
                     calcLink.parentNode.appendChild(mobileAdmin);
                 }
-            } else {
-                // Non-admin: inject Dashboard CTA (existing behaviour)
+            } else if (!inPortal) {
+                // Normal user on a public page — inject "Dashboard" link
                 if (!calcLink.parentNode.querySelector('a[href="dashboard.html"]')) {
                     var mobileDash = document.createElement('a');
                     mobileDash.href = 'dashboard.html';
@@ -101,6 +126,7 @@
                     calcLink.parentNode.appendChild(mobileDash);
                 }
             }
+            // Normal user already in the portal — no injection needed
         }
     });
 }());
