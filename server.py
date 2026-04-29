@@ -793,6 +793,10 @@ def _init_db():
             conn.execute('ALTER TABLE quote_requests ADD COLUMN expected_tracking_number TEXT')
             conn.commit()
             print('[SOLICITUDES] Added expected_tracking_number column to quote_requests')
+        if 'customer_reminder_sent_at' not in existing_cols:
+            conn.execute('ALTER TABLE quote_requests ADD COLUMN customer_reminder_sent_at TEXT')
+            conn.commit()
+            print('[SOLICITUDES] Added customer_reminder_sent_at column to quote_requests')
         conn.close()
     print('[SOLICITUDES] SQLite schema initialised OK')
 
@@ -1817,9 +1821,11 @@ def _send_reminder_digest(rows, reminder_hours: int) -> tuple[bool, str]:
     )
 
     msg = email.mime.multipart.MIMEMultipart('alternative')
-    msg['Subject'] = subject
-    msg['From']    = f'CRBOX Sistema <{user}>'
-    msg['To']      = QUOTE_RECIPIENT
+    msg['Subject']    = subject
+    msg['From']       = f'CRBOX Sistema <{user}>'
+    msg['To']         = QUOTE_RECIPIENT
+    msg['Message-ID'] = f'<{_uuid4_hex()}@crbox.cr>'
+    msg['Date']       = email.utils.formatdate(localtime=False)
     msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
     msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
 
@@ -1845,11 +1851,116 @@ def _send_reminder_digest(rows, reminder_hours: int) -> tuple[bool, str]:
         return False, f'Unexpected error: {exc}'
 
 
+def _send_quote_reminder_customer(scb_id, customer_email, customer_name,
+                                   product_name, confirmed_price, expires_at,
+                                   smtp_user) -> tuple[bool, str]:
+    """Send a single reminder email to a customer whose quote is awaiting their reply."""
+    esc = _html.escape
+    greeting = f'Hola {customer_name},' if customer_name else 'Hola,'
+    subject = f'[{scb_id}] Recordatorio: tu cotización de CRBOX está esperando tu respuesta'
+
+    portal_url = f'https://crbox.cr/solicitud?id={scb_id}'
+
+    price_plain = f'${confirmed_price:,.2f} USD' if confirmed_price else 'Ver detalle en el portal'
+    price_html  = (
+        f'<strong style="color:#FF6B00;font-size:16px;">${confirmed_price:,.2f} USD</strong>'
+        if confirmed_price else
+        '<span style="color:#374151;">Ver detalle en el portal</span>'
+    )
+
+    deadline_plain = ''
+    deadline_html  = ''
+    if expires_at:
+        deadline_plain = f'\nFecha límite de la cotización: {expires_at}\n'
+        deadline_html  = (
+            '<p style="font-size:13px;color:#6b7280;margin:8px 0 0;">'
+            f'&#x23F0; Fecha l&iacute;mite: <strong>{esc(expires_at)}</strong></p>'
+        )
+
+    plain = (
+        f'{greeting}\n\n'
+        f'Tu solicitud de cotización {scb_id} sigue esperando tu respuesta. '
+        f'El equipo de CRBOX ya revisó tu pedido y preparó una cotización para ti.\n\n'
+        f'Resumen de tu solicitud:\n'
+        f'  ID: {scb_id}\n'
+        f'  Producto: {product_name}\n'
+        f'  Precio de envío cotizado: {price_plain}\n'
+        f'{deadline_plain}'
+        f'\nPara aceptar, rechazar o hacer preguntas, visita:\n'
+        f'{portal_url}\n\n'
+        f'Si ya tomaste una decisión o no necesitas esta cotización, puedes ignorar este mensaje.\n\n'
+        f'Equipo CRBOX\nventas@crbox.cr'
+    )
+
+    html_body = (
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;'
+        'color:#1a1a1a;max-width:600px;margin:0 auto;">'
+        '<div style="background:linear-gradient(135deg,#FF6B00,#FF9A00);'
+        'padding:24px;border-radius:8px 8px 0 0;">'
+        '<p style="color:#fff;font-size:22px;font-weight:700;margin:0;">'
+        '&#128203; Recordatorio de cotizaci&oacute;n</p>'
+        f'<p style="color:rgba(255,255,255,.85);font-size:13px;margin:6px 0 0;">'
+        f'ID: <strong>{esc(scb_id)}</strong> &middot; CRBOX</p>'
+        '</div>'
+        '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;'
+        'padding:28px;border-radius:0 0 8px 8px;">'
+        f'<p style="font-size:15px;color:#111;margin:0 0 16px;">{esc(greeting)}</p>'
+        '<p style="font-size:14px;color:#374151;margin:0 0 20px;">'
+        'Tu solicitud de cotizaci&oacute;n ya fue revisada por el equipo de CRBOX. '
+        'Todav&iacute;a estamos esperando tu respuesta para continuar.</p>'
+        '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;'
+        'padding:16px 20px;margin-bottom:20px;">'
+        '<p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#FF6B00;'
+        'text-transform:uppercase;letter-spacing:.06em;">Resumen de tu solicitud</p>'
+        '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+        f'<tr><td style="padding:5px 0;color:#666;width:40%;">ID</td>'
+        f'<td style="padding:5px 0;font-weight:700;color:#111;">{esc(scb_id)}</td></tr>'
+        f'<tr><td style="padding:5px 0;color:#666;">Producto</td>'
+        f'<td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
+        f'<tr><td style="padding:5px 0;color:#666;">Precio de env&iacute;o</td>'
+        f'<td style="padding:5px 0;">{price_html}</td></tr>'
+        '</table>'
+        f'{deadline_html}'
+        '</div>'
+        f'<a href="{esc(portal_url)}" style="display:inline-block;background:#FF6B00;color:#fff;'
+        'font-weight:700;font-size:14px;padding:12px 28px;border-radius:8px;'
+        'text-decoration:none;margin-bottom:20px;">Ver mi solicitud</a>'
+        '<p style="font-size:13px;color:#6b7280;margin:0 0 8px;">'
+        'Si ya tomaste una decisi&oacute;n o no necesitas esta cotizaci&oacute;n, '
+        'puedes ignorar este mensaje.</p>'
+        '<p style="font-size:12px;color:#9ca3af;margin:16px 0 0;">'
+        f'¿Tienes preguntas? Responde a este correo indicando tu ID '
+        f'<strong>{esc(scb_id)}</strong>.</p>'
+        '</div></div>'
+    )
+
+    settings = _smtp_settings()
+    if settings is None:
+        return False, 'SMTP not configured'
+
+    msg = email.mime.multipart.MIMEMultipart('alternative')
+    msg['Subject']    = subject
+    msg['From']       = f'CRBOX <{smtp_user}>'
+    msg['To']         = customer_email
+    msg['Reply-To']   = 'ventas@crbox.cr'
+    msg['Message-ID'] = f'<{_uuid4_hex()}@crbox.cr>'
+    msg['Date']       = email.utils.formatdate(localtime=False)
+    msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
+    msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
+
+    try:
+        _send_smtp(msg, [customer_email])
+        return True, ''
+    except Exception as exc:
+        return False, str(exc)
+
+
 def _check_and_send_reminders(reminder_hours: int):
-    """Query for overdue enviada solicitudes and send one digest to the sales team."""
+    """Query for overdue solicitudes and send reminders for both sales and customers."""
     cutoff_ts  = time.time() - reminder_hours * 3600
     cutoff_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(cutoff_ts))
 
+    # ── Internal sales digest: enviada requests with no sales action ────────
     with _DB_LOCK:
         conn = _get_db()
         try:
@@ -1865,28 +1976,96 @@ def _check_and_send_reminders(reminder_hours: int):
             conn.close()
 
     if not rows:
-        print('[SOLICITUD REMINDER] Check complete — no overdue solicitudes')
+        print('[SOLICITUD REMINDER] Check complete — no overdue enviada solicitudes')
+    else:
+        print(f'[SOLICITUD REMINDER] Found {len(rows)} overdue enviada solicitudes — sending digest')
+        ok, err = _send_reminder_digest(rows, reminder_hours)
+
+        if not ok:
+            print(f'[SOLICITUD REMINDER] Failed to send digest email: {err}')
+        else:
+            now_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+            with _DB_LOCK:
+                conn = _get_db()
+                try:
+                    conn.executemany(
+                        'UPDATE quote_requests SET reminder_sent_at = ? WHERE id = ?',
+                        [(now_iso, row['id']) for row in rows]
+                    )
+                    conn.commit()
+                finally:
+                    conn.close()
+            print(f'[SOLICITUD REMINDER] Digest sent — marked {len(rows)} record(s) with reminder_sent_at')
+
+    # ── Customer reminder: respondida requests with no customer action ───────
+    settings = _smtp_settings()
+    if settings is None:
+        print('[SOLICITUD REMINDER] SMTP not configured — skipping customer reminders')
         return
 
-    print(f'[SOLICITUD REMINDER] Found {len(rows)} overdue solicitudes — sending digest')
-    ok, err = _send_reminder_digest(rows, reminder_hours)
+    smtp_user = settings[2]
 
-    if not ok:
-        print(f'[SOLICITUD REMINDER] Failed to send digest email: {err}')
-        return
-
-    now_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
     with _DB_LOCK:
         conn = _get_db()
         try:
-            conn.executemany(
-                'UPDATE quote_requests SET reminder_sent_at = ? WHERE id = ?',
-                [(now_iso, row['id']) for row in rows]
-            )
-            conn.commit()
+            customer_rows = conn.execute(
+                '''SELECT id, customer_name, customer_email, product_name,
+                          response_json, expires_at
+                   FROM quote_requests
+                   WHERE status = 'respondida'
+                     AND responded_at < ?
+                     AND customer_reminder_sent_at IS NULL''',
+                (cutoff_iso,)
+            ).fetchall()
         finally:
             conn.close()
-    print(f'[SOLICITUD REMINDER] Digest sent — marked {len(rows)} record(s) with reminder_sent_at')
+
+    if not customer_rows:
+        print('[SOLICITUD REMINDER] No respondida solicitudes need a customer reminder')
+        return
+
+    print(f'[SOLICITUD REMINDER] Found {len(customer_rows)} respondida solicitudes — sending customer reminders')
+
+    now_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+    sent_ids = []
+    for row in customer_rows:
+        scb_id         = row['id']
+        customer_email = row['customer_email']
+        customer_name  = row['customer_name'] or ''
+        product_name   = row['product_name']
+        expires_at     = row['expires_at']
+
+        confirmed_price = None
+        resp_raw = row['response_json']
+        if resp_raw:
+            try:
+                resp_data = json.loads(resp_raw)
+                confirmed_price = resp_data.get('confirmed_shipping_price_usd')
+            except Exception:
+                pass
+
+        ok, err = _send_quote_reminder_customer(
+            scb_id, customer_email, customer_name,
+            product_name, confirmed_price, expires_at, smtp_user
+        )
+        if ok:
+            sent_ids.append(scb_id)
+            print(f'[SOLICITUD REMINDER] Customer reminder sent for {scb_id}')
+        else:
+            print(f'[SOLICITUD REMINDER] Failed to send customer reminder for {scb_id}: {err}')
+
+    if sent_ids:
+        with _DB_LOCK:
+            conn = _get_db()
+            try:
+                conn.executemany(
+                    'UPDATE quote_requests SET customer_reminder_sent_at = ? WHERE id = ?',
+                    [(now_iso, sid) for sid in sent_ids]
+                )
+                conn.commit()
+            finally:
+                conn.close()
+        print(f'[SOLICITUD REMINDER] Marked {len(sent_ids)} record(s) with customer_reminder_sent_at')
 
 
 def _solicitud_reminder_loop(interval: int, reminder_hours: int):
