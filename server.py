@@ -39,31 +39,48 @@ except ImportError:
 
 
 def _verify_gemini_model_at_startup():
-    """Run once at startup: confirm the configured model exists and supports generateContent."""
+    """Run once at startup: confirm the configured model exists and supports generateContent.
+
+    If the configured model is missing or unsupported, automatically switches
+    _GEMINI_MODEL to the first available model that supports generateContent so
+    that AI features degrade gracefully instead of failing every request.
+    """
+    global _GEMINI_MODEL
     if not _GEMINI_SDK_OK or not _GEMINI_API_KEY:
         return
     try:
         from google import genai as _gv
         client = _gv.Client(api_key=_GEMINI_API_KEY)
-        # Build map: normalised short name → model object
+        # Collect all models that support generateContent
+        gc_models = []
         model_map = {}
         for m in client.models.list():
-            model_map[m.name] = m                  # "models/gemini-2.5-flash-lite"
             short = m.name.split('/', 1)[-1]
-            model_map[short] = m                   # "gemini-2.5-flash-lite"
+            model_map[m.name] = m
+            model_map[short] = m
+            if 'generateContent' in (m.supported_actions or []):
+                gc_models.append(m.name)
+
         canonical = f'models/{_GEMINI_MODEL}'
         found = model_map.get(canonical) or model_map.get(_GEMINI_MODEL)
-        if found is None:
-            print(f'[AI] WARNING: configured model "{_GEMINI_MODEL}" not found in list_models(); '
-                  f'available (sample): {sorted(model_map.keys())[:6]}. '
-                  f'Set GEMINI_MODEL env var to a valid model name.')
-            return
-        actions = list(found.supported_actions or [])
-        if 'generateContent' in actions:
+
+        if found is not None and 'generateContent' in (found.supported_actions or []):
             print(f'[AI] Model verification OK: {found.name} supports generateContent')
+            return
+
+        # Configured model is unavailable or unsupported — try to auto-select
+        if found is None:
+            print(f'[AI] WARNING: configured model "{_GEMINI_MODEL}" not found in list_models()')
         else:
-            print(f'[AI] WARNING: model "{found.name}" found but supported_actions={actions}; '
-                  f'generateContent may not be available. Set GEMINI_MODEL to a supported model.')
+            print(f'[AI] WARNING: model "{found.name}" does not support generateContent '
+                  f'(actions={list(found.supported_actions or [])})')
+
+        if gc_models:
+            _GEMINI_MODEL = gc_models[0].split('/', 1)[-1]  # use short name
+            print(f'[AI] Auto-selected fallback model: {_GEMINI_MODEL} (supports generateContent)')
+        else:
+            print(f'[AI] ERROR: no models supporting generateContent found for this API key; '
+                  f'AI features will be disabled until GEMINI_MODEL is set to a valid model.')
     except Exception as _ex:
         print(f'[AI] WARNING: model verification failed ({_ex}); AI may not work')
 
