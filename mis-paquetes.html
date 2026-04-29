@@ -467,7 +467,6 @@
             <!-- Vista de Lista -->
             <div id="list-view" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8 transform transition-all hover:shadow-md">
                 <div class="table-overflow-wrapper">
-                <div class="table-scroll-fade" id="table-scroll-fade"></div>
                 <div class="min-w-full overflow-x-auto" id="table-scroll-wrapper">
                     <table class="data-table w-full">
                         <thead>
@@ -1427,16 +1426,25 @@
         td.sticky-col-actions, th.sticky-col-actions {
             position: sticky;
             right: 0;
-            width: 60px;
-            min-width: 60px;
+            width: 56px;
+            min-width: 56px;
+            max-width: 56px;
             background-color: #fff;
             z-index: 1;
         }
         td.sticky-col-factura, th.sticky-col-factura {
             position: sticky;
-            right: 60px;
+            right: 56px; /* overridden by JS once real width is measured */
             background-color: #fff;
             z-index: 1;
+            /* orange scroll-hint gradient attached to the cell itself */
+            box-shadow: -8px 0 12px rgba(255, 107, 0, 0.10);
+            transition: box-shadow .2s;
+        }
+        /* hide gradient when fully scrolled (class toggled by JS) */
+        #table-scroll-wrapper.at-scroll-end td.sticky-col-factura,
+        #table-scroll-wrapper.at-scroll-end th.sticky-col-factura {
+            box-shadow: none;
         }
         thead th.sticky-col-factura,
         thead th.sticky-col-actions {
@@ -1454,17 +1462,6 @@
         tr.bg-yellow-50 td.sticky-col-factura,
         tr.bg-yellow-50 td.sticky-col-actions {
             background-color: #fefce8;
-        }
-        /* ── Table scroll hint ───────────────────────────────────────── */
-        .table-overflow-wrapper { position: relative; }
-        .table-scroll-fade {
-            position: absolute;
-            top: 0; bottom: 0;
-            width: 56px;
-            background: linear-gradient(to left, rgba(255,107,0,.10), transparent);
-            pointer-events: none;
-            z-index: 3;
-            transition: opacity .2s;
         }
         /* ── Row highlight from deep-link ────────────────────────────── */
         @keyframes pkgRowPulse {
@@ -1523,34 +1520,40 @@
 
         function initTableScrollFade() {
             var wrapper = document.getElementById('table-scroll-wrapper');
-            var fade    = document.getElementById('table-scroll-fade');
-            if (!wrapper || !fade) return;
+            if (!wrapper) return;
 
-            function positionFade() {
-                // Place the fade at the left boundary of the sticky section
-                var facturaEl = wrapper.querySelector('th.sticky-col-factura');
-                var actionsEl = wrapper.querySelector('th.sticky-col-actions');
-                var stickyW = (facturaEl ? facturaEl.offsetWidth : 0) +
-                              (actionsEl ? actionsEl.offsetWidth : 0);
-                if (stickyW > 0) fade.style.right = stickyW + 'px';
+            function fixStickyRight() {
+                // Measure actual rendered width of the Acciones column and apply it
+                // to the right offset of every Factura cell so they never overlap.
+                var actionsCell = wrapper.querySelector('th.sticky-col-actions') ||
+                                  wrapper.querySelector('td.sticky-col-actions');
+                if (!actionsCell) return;
+                var w = actionsCell.getBoundingClientRect().width;
+                if (w < 1) return;
+                var rightVal = Math.ceil(w) + 'px';
+                wrapper.querySelectorAll('.sticky-col-factura').forEach(function(el) {
+                    el.style.right = rightVal;
+                });
             }
 
-            function updateFade() {
-                positionFade();
+            function updateScrollState() {
                 var atEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 4;
-                fade.style.opacity = atEnd ? '0' : '1';
+                wrapper.classList.toggle('at-scroll-end', atEnd);
             }
 
-            wrapper.addEventListener('scroll', updateFade, { passive: true });
-            window.addEventListener('resize', updateFade, { passive: true });
-            // Re-check when data renders
+            wrapper.addEventListener('scroll', updateScrollState, { passive: true });
+            window.addEventListener('resize', function() {
+                fixStickyRight();
+                updateScrollState();
+            }, { passive: true });
+
             var tbody = document.getElementById('packages-tbody');
             if (tbody && typeof MutationObserver !== 'undefined') {
                 new MutationObserver(function() {
-                    setTimeout(updateFade, 30);
+                    setTimeout(function() { fixStickyRight(); updateScrollState(); }, 30);
                 }).observe(tbody, { childList: true });
             }
-            setTimeout(updateFade, 50);
+            setTimeout(function() { fixStickyRight(); updateScrollState(); }, 50);
         }
         
         // Header sticky con sombra al scroll
