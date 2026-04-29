@@ -6,7 +6,7 @@
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRBOX | Mis Solicitudes | Casillero Virtual y Courier en Costa Rica</title>
+    <title>CRBOX | Mis Cotizaciones | Casillero Virtual y Courier en Costa Rica</title>
     <meta name="description" content="Gestiona tus solicitudes de compra en CRBOX, tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.">
     <meta name="robots" content="noindex, nofollow">
 
@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="css/styles.css?v=6">
     <link rel="stylesheet" href="css/responsive.css?v=15">
     <link rel="stylesheet" href="css/dashboard.css?v=6">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
 
     <style>
         /* ── Side panel (new request form) ──────────────────────────── */
@@ -84,6 +85,27 @@
             color: #FF6B00;
             margin-bottom: 0.5rem;
         }
+        /* ── Disabled button states ──────────────────────────────────── */
+        .btn-nueva-solicitud:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+        #form-submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+        /* ── TomSelect overrides to match .sol-input ─────────────────── */
+        .ts-wrapper.single .ts-control {
+            padding: 0.5rem 0.875rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 0.625rem;
+            background: #fff;
+            font-size: 0.9375rem;
+            color: #111827;
+            min-height: unset;
+            box-shadow: none;
+            cursor: pointer;
+        }
+        .ts-wrapper.single .ts-control:hover { border-color: #d1d5db; }
+        .ts-wrapper.single.focus .ts-control { border-color: #FF6B00; box-shadow: 0 0 0 3px rgba(255,107,0,.15); }
+        .ts-wrapper .ts-dropdown { border-radius: 0.625rem; border: 1.5px solid #e5e7eb; font-size: 0.9rem; }
+        .ts-wrapper .ts-dropdown .ts-dropdown-content { max-height: 220px; }
+        .ts-wrapper .ts-dropdown .option:hover, .ts-wrapper .ts-dropdown .option.active { background: #fff7f0; color: #FF6B00; }
+        .ts-wrapper .ts-dropdown .option.selected { background: #fff0e6; color: #c2410c; font-weight: 600; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -135,7 +157,7 @@
                                     <i class="fas fa-file-invoice-dollar w-5 text-center mr-3 text-orange-500"></i><span>Mis Facturas</span>
                                 </a>
                                 <a href="mis-solicitudes.html" class="flex items-center w-full px-2 py-2 text-sm text-orange-600 bg-orange-50 rounded-md transition-colors duration-150">
-                                    <i class="fas fa-shopping-bag w-5 text-center mr-3 text-orange-500"></i><span>Mis Solicitudes</span>
+                                    <i class="fas fa-shopping-bag w-5 text-center mr-3 text-orange-500"></i><span>Cotizaciones</span>
                                 </a>
                                 <a href="mi-cuenta.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
                                     <i class="fas fa-user-cog w-5 text-center mr-3 text-orange-500"></i><span>Mi Cuenta</span>
@@ -188,7 +210,7 @@
                                 <i class="fas fa-file-invoice-dollar w-6 text-center text-orange-500 mr-3"></i><span>Mis Facturas</span>
                             </a>
                             <a href="mis-solicitudes.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors bg-white text-orange-600 font-semibold border border-orange-100 shadow-sm" aria-current="page">
-                                <i class="fas fa-shopping-bag w-6 text-center text-orange-500 mr-3"></i><span>Mis Solicitudes</span>
+                                <i class="fas fa-shopping-bag w-6 text-center text-orange-500 mr-3"></i><span>Cotizaciones</span>
                             </a>
                             <a href="mi-cuenta.html" class="flex items-center py-2.5 px-2 rounded-md transition-colors text-gray-700 hover:text-orange-600 hover:bg-white">
                                 <i class="fas fa-user-cog w-6 text-center text-orange-500 mr-3"></i><span>Mi Cuenta</span>
@@ -225,7 +247,7 @@
                     <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-0 origin-left transition-transform duration-200"></span>
                 </a>
                 <a href="mis-solicitudes.html" class="whitespace-nowrap px-5 py-4 font-medium text-orange-600 border-b-2 border-orange-600 focus:outline-none flex items-center relative" aria-current="page">
-                    <i class="fas fa-shopping-bag mr-2"></i><span class="tab-prefix">Mis </span>Solicitudes
+                    <i class="fas fa-shopping-bag mr-2"></i>Cotizaciones
                     <span class="absolute bottom-0 left-0 w-full h-0.5 bg-orange-600 transform scale-x-100 origin-left transition-transform duration-200"></span>
                 </a>
                 <a href="mi-cuenta.html" class="whitespace-nowrap px-5 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
@@ -268,14 +290,14 @@
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
                             <i class="fas fa-shopping-bag text-orange-500 text-xl"></i>
-                            Mis Solicitudes de Compra
+                            Mis Cotizaciones
                             <span id="solicitudes-active-count" class="hidden ml-1 px-2 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200"></span>
                         </h1>
-                        <p class="text-sm text-gray-500 mt-1">Solicitudes de compra enviadas a CRBOX</p>
+                        <p class="text-sm text-gray-500 mt-1">Cotizaciones enviadas a CRBOX</p>
                     </div>
                     <button class="btn-nueva-solicitud inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold text-sm transition-all shadow-sm hover:shadow-md active:scale-95">
                         <i class="fas fa-plus text-xs"></i>
-                        Nueva solicitud
+                        Nueva cotización
                     </button>
                 </div>
 
@@ -285,11 +307,11 @@
                         <div class="w-20 h-20 rounded-full bg-orange-50 flex items-center justify-center mb-5">
                             <i class="fas fa-shopping-bag text-orange-300 text-3xl"></i>
                         </div>
-                        <h2 class="text-xl font-bold text-gray-800 mb-2">Aún no tienes solicitudes de compra</h2>
+                        <h2 class="text-xl font-bold text-gray-800 mb-2">Aún no tienes cotizaciones</h2>
                         <p class="text-gray-500 max-w-sm mb-6">¿Encontraste algo en Amazon, eBay u otra tienda? CRBOX lo trae por ti.</p>
                         <button class="btn-nueva-solicitud inline-flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-all shadow-sm hover:shadow-md active:scale-95">
                             <i class="fas fa-plus text-sm"></i>
-                            Hacer mi primera solicitud
+                            Hacer mi primera cotización
                         </button>
                     </div>
                 </div>
@@ -328,12 +350,12 @@
     </main>
 
     <!-- ═══ New Request Side Panel ═══════════════════════════════════════════ -->
-    <div id="new-request-overlay" class="hidden" role="dialog" aria-modal="true" aria-label="Nueva solicitud de compra"></div>
+    <div id="new-request-overlay" class="hidden" role="dialog" aria-modal="true" aria-label="Nueva cotización"></div>
 
-    <div id="new-request-panel" class="translate-x-full" role="dialog" aria-label="Nueva solicitud de compra">
+    <div id="new-request-panel" class="translate-x-full" role="dialog" aria-label="Nueva cotización">
         <!-- Panel header -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0 bg-white">
-            <h2 id="form-heading" class="text-lg font-bold text-gray-900">Nueva solicitud de compra</h2>
+            <h2 id="form-heading" class="text-lg font-bold text-gray-900">Nueva cotización</h2>
             <button id="panel-close-btn" class="w-9 h-9 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors" aria-label="Cerrar">
                 <i class="fas fa-times"></i>
             </button>
@@ -348,14 +370,14 @@
                     <i class="fas fa-check-circle text-green-500 text-4xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-1">¡Solicitud enviada!</h3>
-                    <p class="text-sm text-gray-500 mb-1">ID de solicitud:</p>
+                    <h3 class="text-xl font-bold text-gray-900 mb-1">¡Cotización enviada!</h3>
+                    <p class="text-sm text-gray-500 mb-1">ID de cotización:</p>
                     <p id="form-success-id" class="text-2xl font-bold text-orange-600 mb-4"></p>
-                    <p class="text-sm text-gray-600 max-w-xs">Recibirás un correo de confirmación. CRBOX revisará tu solicitud y te contactará pronto.</p>
+                    <p class="text-sm text-gray-600 max-w-xs">Recibirás un correo de confirmación. CRBOX revisará tu cotización y te contactará pronto.</p>
                 </div>
                 <div class="flex flex-col gap-3 w-full max-w-xs">
                     <button id="form-back-to-list" class="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold transition-colors">
-                        Ver mis solicitudes
+                        Ver mis cotizaciones
                     </button>
                     <a href="https://wa.me/50689794418" target="_blank" rel="noopener" class="px-5 py-3 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors">
                         <i class="fab fa-whatsapp"></i>
@@ -372,7 +394,7 @@
                     <div class="flex flex-wrap items-start gap-3">
                         <i class="fas fa-bookmark text-amber-500 mt-0.5 flex-shrink-0 text-sm"></i>
                         <div class="flex-1 min-w-0" style="min-width:120px">
-                            <p class="text-sm font-semibold text-amber-900">Solicitud en progreso</p>
+                            <p class="text-sm font-semibold text-amber-900">Cotización en progreso</p>
                             <p class="text-xs text-amber-700">¿Continuar donde la dejaste?</p>
                         </div>
                         <div class="flex gap-2 flex-shrink-0 items-start">
@@ -448,20 +470,147 @@
                     <div class="sol-field">
                         <label class="sol-label" for="form-category">Categoría <span class="text-red-500">*</span></label>
                         <select id="form-category" name="category" required class="sol-input">
+                            <option value="">— Buscar categoría —</option>
+                            <option value="accesorios_impresora">Accesorios de Impresora</option>
+                            <option value="adaptador">Adaptador</option>
+                            <option value="adornos">Adornos</option>
+                            <option value="alarma">Alarma</option>
+                            <option value="alfombra">Alfombra</option>
+                            <option value="amortiguadores">Amortiguadores</option>
+                            <option value="amplificador">Amplificador</option>
+                            <option value="amplificador_grabador">Amplificador con grabador</option>
+                            <option value="antena">Antena</option>
+                            <option value="anteojos">Anteojos</option>
+                            <option value="aros_bicicleta">Aros de Bicicleta</option>
+                            <option value="aros_carro_moto">Aros de Carro/Moto</option>
+                            <option value="arrancador">Arrancador</option>
+                            <option value="articulos_fiesta">Artículos para Fiesta</option>
+                            <option value="aspiradora">Aspiradora</option>
+                            <option value="auricular_telefono">Auricular de Teléfono</option>
+                            <option value="baterias">Baterías laptop/celular</option>
+                            <option value="bicicleta_economica">Bicicleta CIF &lt;$1000</option>
+                            <option value="bicicleta_cara">Bicicleta CIF $1000+</option>
+                            <option value="binoculares">Binoculares</option>
+                            <option value="bocina">Bocina / Pito</option>
+                            <option value="bola">Bola deportiva</option>
+                            <option value="bomba_aceite_agua">Bomba de Aceite/Agua</option>
+                            <option value="bombillos">Bombillos</option>
+                            <option value="bujias">Bujías</option>
+                            <option value="cables_electricos">Cables Eléctricos</option>
+                            <option value="calculadora">Calculadora</option>
+                            <option value="camara">Cámara Fotográfica/Video</option>
+                            <option value="cana_pescar">Caña de Pescar</option>
+                            <option value="cargador">Cargador</option>
+                            <option value="casco_seguridad">Casco de Seguridad</option>
+                            <option value="case_cpu">Case para CPU</option>
+                            <option value="cds">CDs / Discos</option>
+                            <option value="celulares">Celulares</option>
+                            <option value="cinturon">Cinturón</option>
+                            <option value="cluth">Clutch de Vehículo</option>
+                            <option value="coche_bebe">Coche de Bebé</option>
+                            <option value="colchon">Colchón</option>
+                            <option value="computadora">Computadora</option>
+                            <option value="consola_videojuegos">Consola de Videojuegos</option>
+                            <option value="control_remoto">Control Remoto</option>
+                            <option value="cortinas">Cortinas</option>
+                            <option value="disco_duro">Disco Duro</option>
+                            <option value="diskman_walkman">Discman / Walkman</option>
+                            <option value="dvds">DVDs</option>
+                            <option value="electrodomesticos">Electrodomésticos</option>
+                            <option value="equipo_karaoke">Equipo de Karaoke</option>
+                            <option value="equipo_sonido">Equipo de Sonido</option>
+                            <option value="filtro_aceite_aire">Filtro de Aceite/Aire</option>
+                            <option value="filtro_agua">Filtro de Agua</option>
+                            <option value="fluorescente">Fluorescente / Tubo LED</option>
+                            <option value="fotocopiadora">Fotocopiadora</option>
+                            <option value="fuente_poder">Fuente de Poder</option>
+                            <option value="gata_hidraulica">Gata Hidráulica</option>
+                            <option value="gorras">Gorras</option>
+                            <option value="griferia">Grifería</option>
+                            <option value="guitarra_acustica">Guitarra Acústica</option>
+                            <option value="guitarra_electrica">Guitarra Eléctrica</option>
+                            <option value="herramientas">Herramientas</option>
+                            <option value="home_teather">Home Theater</option>
+                            <option value="impresora">Impresora</option>
+                            <option value="instrumentos_musicales">Instrumentos Musicales</option>
+                            <option value="ipod_mp3_mp4">iPod / MP3 / MP4</option>
+                            <option value="joyeria_bisuteria">Joyería / Bisutería</option>
+                            <option value="juego_mesa">Juego de Mesa</option>
+                            <option value="juguetes">Juguetes</option>
+                            <option value="lampara">Lámpara</option>
+                            <option value="lector_dvd_cd">Lector DVD / CD</option>
+                            <option value="lente_camara">Lente de Cámara</option>
+                            <option value="lente_contacto">Lente de Contacto</option>
+                            <option value="libros">Libros</option>
+                            <option value="llave_maya">Llave Maya / Llave Inglesa</option>
+                            <option value="llantas_vehiculo">Llantas de Vehículo</option>
+                            <option value="luces_carro">Luces de Carro</option>
+                            <option value="maletines_bolsos">Maletines / Bolsos</option>
+                            <option value="manguera">Manguera</option>
+                            <option value="maquina_coser_soldar">Máquina de Coser/Soldar</option>
+                            <option value="memoria">Memoria / SSD</option>
+                            <option value="microscopio">Microscopio</option>
+                            <option value="mixer">Mixer de Audio</option>
+                            <option value="molduras_vehiculo">Molduras de Vehículo</option>
+                            <option value="monitor">Monitor</option>
+                            <option value="muebles">Muebles</option>
+                            <option value="mufla">Mufla de Escape</option>
+                            <option value="ollas_sartenes">Ollas / Sartenes</option>
+                            <option value="palos_golf">Palos de Golf</option>
+                            <option value="panos">Paños / Trapos</option>
+                            <option value="papel">Papel</option>
+                            <option value="parabrisas">Parabrisas</option>
+                            <option value="parlantes">Parlantes</option>
+                            <option value="partes_carroceria">Partes de Carrocería</option>
+                            <option value="patines">Patines</option>
+                            <option value="pelucas">Pelucas</option>
+                            <option value="pinon">Piñón</option>
+                            <option value="plancha_pelo">Plancha de Pelo</option>
+                            <option value="platos_ceramica">Platos / Cerámica</option>
+                            <option value="posters">Pósters / Cuadros</option>
+                            <option value="procesador">Procesador CPU</option>
+                            <option value="proyector_video">Proyector de Video</option>
+                            <option value="quemador_cd_dvd">Quemador CD/DVD</option>
+                            <option value="rack_carro">Rack de Carro</option>
+                            <option value="radiador">Radiador</option>
+                            <option value="radio_carro">Radio de Carro</option>
+                            <option value="radio_comunicacion">Radio de Comunicación</option>
+                            <option value="raqueta">Raqueta</option>
+                            <option value="rasuradora_electrica">Rasuradora Eléctrica</option>
+                            <option value="refrigerador">Refrigerador</option>
+                            <option value="relojes">Relojes</option>
+                            <option value="reproductor_bluray">Reproductor Blu-ray</option>
+                            <option value="repuestos_vehiculo">Repuestos de Vehículo</option>
+                            <option value="retrovisor">Retrovisor</option>
+                            <option value="romana">Romana / Báscula</option>
+                            <option value="ropa">Ropa</option>
+                            <option value="router">Router / Switch</option>
+                            <option value="sabanas">Sábanas</option>
+                            <option value="secadoras_pelo">Secadora de Pelo</option>
+                            <option value="silla_bebe_carro">Silla de Bebé para Carro</option>
+                            <option value="sleeping_bag">Sleeping Bag / Saco de Dormir</option>
+                            <option value="software">Software</option>
+                            <option value="sombrilla">Sombrilla / Paraguas</option>
+                            <option value="sombrilla_fotografia">Sombrilla de Fotografía</option>
+                            <option value="suspension_carro">Suspensión de Carro</option>
+                            <option value="suspension_moto">Suspensión de Moto</option>
+                            <option value="tabla_surf">Tabla de Surf</option>
+                            <option value="tableta_electronica">Tableta / iPad</option>
+                            <option value="tarjeta_madre">Tarjeta Madre</option>
+                            <option value="tarjeta_video_sonido">Tarjeta de Video/Sonido</option>
+                            <option value="teclado_computadora">Teclado de Computadora</option>
+                            <option value="teclado_musical">Teclado Musical</option>
+                            <option value="telefonos">Teléfonos</option>
+                            <option value="televisor">Televisor</option>
+                            <option value="tienda_campana">Tienda de Campaña</option>
+                            <option value="tripode">Trípode</option>
+                            <option value="valvulas">Válvulas</option>
+                            <option value="vaso_vidrio">Vasos / Cristalería</option>
+                            <option value="ventiladores_computadora">Ventiladores para PC</option>
+                            <option value="video_juegos">Video Juegos</option>
+                            <option value="video_monitor">Video Monitor</option>
+                            <option value="zapatos">Zapatos</option>
                             <option value="otros">Otros</option>
-                            <option value="ropa">Ropa y calzado</option>
-                            <option value="electronico">Electrónico</option>
-                            <option value="computadora">Computadoras</option>
-                            <option value="celular">Celulares</option>
-                            <option value="auricular_telefono">Auriculares</option>
-                            <option value="electrodomestico">Electrodoméstico</option>
-                            <option value="cosmetico">Cosméticos</option>
-                            <option value="suplemento">Suplementos</option>
-                            <option value="libro">Libros</option>
-                            <option value="juguete">Juguetes</option>
-                            <option value="herramienta">Herramientas</option>
-                            <option value="equipo_medico">Equipo médico</option>
-                            <option value="deportivo">Deportivo</option>
                         </select>
                     </div>
                 </div>
@@ -493,6 +642,36 @@
                     <textarea id="form-notes" name="customer_notes" rows="3" maxlength="500"
                               placeholder="¿Algo que CRBOX deba saber sobre este pedido?"
                               class="sol-input resize-none"></textarea>
+                </div>
+
+                <!-- Estimate preview -->
+                <div id="portal-estimate-panel" class="hidden mb-5">
+                    <div id="portal-estimate-air" class="hidden p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                        <p class="text-xs font-bold uppercase tracking-wider text-blue-700 mb-3">
+                            <i class="fas fa-calculator mr-1"></i> Estimado automático
+                        </p>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Flete aéreo</span>
+                                <span id="pe-freight" class="font-semibold text-gray-800">—</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Impuestos est.</span>
+                                <span id="pe-taxes" class="font-semibold text-gray-800">—</span>
+                            </div>
+                            <div class="flex justify-between text-sm border-t border-blue-200 pt-2 mt-1">
+                                <span class="font-bold text-gray-800">Total estimado</span>
+                                <span id="pe-total" class="font-bold text-orange-600 text-lg">—</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-blue-600 mt-3 leading-relaxed">Referencia preliminar generada automáticamente. El precio final lo confirma CRBOX antes de proceder.</p>
+                    </div>
+                    <div id="portal-estimate-maritime" class="hidden p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                        <p class="text-xs font-bold uppercase tracking-wider text-amber-700 mb-1">
+                            <i class="fas fa-ship mr-1"></i> Envío marítimo
+                        </p>
+                        <p class="text-sm text-amber-800 mt-1">El estimado marítimo se calcula caso a caso. CRBOX te contactará con el costo exacto después de revisar tu cotización.</p>
+                    </div>
                 </div>
 
                 <!-- Disclaimer -->
@@ -534,7 +713,7 @@
                 <!-- Submit -->
                 <button type="submit" id="form-submit-btn"
                         class="w-full py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-sm transition-all shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center gap-2">
-                    <i class="fas fa-paper-plane mr-2"></i>Enviar solicitud
+                    <i class="fas fa-paper-plane mr-2"></i>Enviar cotización
                 </button>
 
             </form>
@@ -545,6 +724,9 @@
     <script src="js/auth.js?v=4"></script>
     <script src="js/portal-api.js?v=4"></script>
     <script src="js/ai-extractor.js"></script>
-    <script src="js/mis-solicitudes.js?v=2"></script>
+    <script src="js/tariff-adapter.js"></script>
+    <script src="js/calculator-engine.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="js/mis-solicitudes.js?v=3"></script>
 </body>
 </html>

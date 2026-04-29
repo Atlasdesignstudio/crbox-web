@@ -15,6 +15,8 @@
   var _dupWarningDismissedPortal = false;
   var _portalAiActive     = false;
   var _portalAiDataSource = 'manual';
+  var _portalTomSelect    = null;
+  var _portalAutoEstimate = null;
 
   // ── beforeunload: warn if panel has data and user navigates away ───────────
   window.addEventListener('beforeunload', function (e) {
@@ -83,20 +85,146 @@
 
   // ─── Category labels ────────────────────────────────────────────────────────
   var CATEGORY_LABELS = {
-    ropa:            'Ropa y calzado',
-    electronico:     'Electrónico',
-    computadora:     'Computadoras',
-    celular:         'Celulares',
-    auricular_telefono: 'Auriculares',
-    electrodomestico: 'Electrodoméstico',
-    cosmetico:       'Cosméticos',
-    suplemento:      'Suplementos',
-    libro:           'Libros',
-    juguete:         'Juguetes',
-    herramienta:     'Herramientas',
-    equipo_medico:   'Equipo médico',
-    deportivo:       'Deportivo',
-    otros:           'Otros'
+    accesorios_impresora: 'Accesorios de Impresora',
+    adaptador:            'Adaptador',
+    adornos:              'Adornos',
+    alarma:               'Alarma',
+    alfombra:             'Alfombra',
+    amortiguadores:       'Amortiguadores',
+    amplificador:         'Amplificador',
+    amplificador_grabador:'Amplificador con grabador',
+    antena:               'Antena',
+    anteojos:             'Anteojos',
+    aros_bicicleta:       'Aros de Bicicleta',
+    aros_carro_moto:      'Aros de Carro/Moto',
+    arrancador:           'Arrancador',
+    articulos_fiesta:     'Artículos para Fiesta',
+    aspiradora:           'Aspiradora',
+    auricular_telefono:   'Auricular de Teléfono',
+    baterias:             'Baterías laptop/celular',
+    bicicleta_economica:  'Bicicleta CIF <$1000',
+    bicicleta_cara:       'Bicicleta CIF $1000+',
+    binoculares:          'Binoculares',
+    bocina:               'Bocina / Pito',
+    bola:                 'Bola deportiva',
+    bomba_aceite_agua:    'Bomba de Aceite/Agua',
+    bombillos:            'Bombillos',
+    bujias:               'Bujías',
+    cables_electricos:    'Cables Eléctricos',
+    calculadora:          'Calculadora',
+    camara:               'Cámara Fotográfica/Video',
+    cana_pescar:          'Caña de Pescar',
+    cargador:             'Cargador',
+    casco_seguridad:      'Casco de Seguridad',
+    case_cpu:             'Case para CPU',
+    cds:                  'CDs / Discos',
+    celulares:            'Celulares',
+    cinturon:             'Cinturón',
+    cluth:                'Clutch de Vehículo',
+    coche_bebe:           'Coche de Bebé',
+    colchon:              'Colchón',
+    computadora:          'Computadora',
+    consola_videojuegos:  'Consola de Videojuegos',
+    control_remoto:       'Control Remoto',
+    cortinas:             'Cortinas',
+    disco_duro:           'Disco Duro',
+    diskman_walkman:      'Discman / Walkman',
+    dvds:                 'DVDs',
+    electrodomesticos:    'Electrodomésticos',
+    equipo_karaoke:       'Equipo de Karaoke',
+    equipo_sonido:        'Equipo de Sonido',
+    filtro_aceite_aire:   'Filtro de Aceite/Aire',
+    filtro_agua:          'Filtro de Agua',
+    fluorescente:         'Fluorescente / Tubo LED',
+    fotocopiadora:        'Fotocopiadora',
+    fuente_poder:         'Fuente de Poder',
+    gata_hidraulica:      'Gata Hidráulica',
+    gorras:               'Gorras',
+    griferia:             'Grifería',
+    guitarra_acustica:    'Guitarra Acústica',
+    guitarra_electrica:   'Guitarra Eléctrica',
+    herramientas:         'Herramientas',
+    home_teather:         'Home Theater',
+    impresora:            'Impresora',
+    instrumentos_musicales:'Instrumentos Musicales',
+    ipod_mp3_mp4:         'iPod / MP3 / MP4',
+    joyeria_bisuteria:    'Joyería / Bisutería',
+    juego_mesa:           'Juego de Mesa',
+    juguetes:             'Juguetes',
+    lampara:              'Lámpara',
+    lector_dvd_cd:        'Lector DVD / CD',
+    lente_camara:         'Lente de Cámara',
+    lente_contacto:       'Lente de Contacto',
+    libros:               'Libros',
+    llave_maya:           'Llave Maya / Llave Inglesa',
+    llantas_vehiculo:     'Llantas de Vehículo',
+    luces_carro:          'Luces de Carro',
+    maletines_bolsos:     'Maletines / Bolsos',
+    manguera:             'Manguera',
+    maquina_coser_soldar: 'Máquina de Coser/Soldar',
+    memoria:              'Memoria / SSD',
+    microscopio:          'Microscopio',
+    mixer:                'Mixer de Audio',
+    molduras_vehiculo:    'Molduras de Vehículo',
+    monitor:              'Monitor',
+    muebles:              'Muebles',
+    mufla:                'Mufla de Escape',
+    ollas_sartenes:       'Ollas / Sartenes',
+    palos_golf:           'Palos de Golf',
+    panos:                'Paños / Trapos',
+    papel:                'Papel',
+    parabrisas:           'Parabrisas',
+    parlantes:            'Parlantes',
+    partes_carroceria:    'Partes de Carrocería',
+    patines:              'Patines',
+    pelucas:              'Pelucas',
+    pinon:                'Piñón',
+    plancha_pelo:         'Plancha de Pelo',
+    platos_ceramica:      'Platos / Cerámica',
+    posters:              'Pósters / Cuadros',
+    procesador:           'Procesador CPU',
+    proyector_video:      'Proyector de Video',
+    quemador_cd_dvd:      'Quemador CD/DVD',
+    rack_carro:           'Rack de Carro',
+    radiador:             'Radiador',
+    radio_carro:          'Radio de Carro',
+    radio_comunicacion:   'Radio de Comunicación',
+    raqueta:              'Raqueta',
+    rasuradora_electrica: 'Rasuradora Eléctrica',
+    refrigerador:         'Refrigerador',
+    relojes:              'Relojes',
+    reproductor_bluray:   'Reproductor Blu-ray',
+    repuestos_vehiculo:   'Repuestos de Vehículo',
+    retrovisor:           'Retrovisor',
+    romana:               'Romana / Báscula',
+    ropa:                 'Ropa',
+    router:               'Router / Switch',
+    sabanas:              'Sábanas',
+    secadoras_pelo:       'Secadora de Pelo',
+    silla_bebe_carro:     'Silla de Bebé para Carro',
+    sleeping_bag:         'Sleeping Bag / Saco de Dormir',
+    software:             'Software',
+    sombrilla:            'Sombrilla / Paraguas',
+    sombrilla_fotografia: 'Sombrilla de Fotografía',
+    suspension_carro:     'Suspensión de Carro',
+    suspension_moto:      'Suspensión de Moto',
+    tabla_surf:           'Tabla de Surf',
+    tableta_electronica:  'Tableta / iPad',
+    tarjeta_madre:        'Tarjeta Madre',
+    tarjeta_video_sonido: 'Tarjeta de Video/Sonido',
+    teclado_computadora:  'Teclado de Computadora',
+    teclado_musical:      'Teclado Musical',
+    telefonos:            'Teléfonos',
+    televisor:            'Televisor',
+    tienda_campana:       'Tienda de Campaña',
+    tripode:              'Trípode',
+    valvulas:             'Válvulas',
+    vaso_vidrio:          'Vasos / Cristalería',
+    ventiladores_computadora: 'Ventiladores para PC',
+    video_juegos:         'Video Juegos',
+    video_monitor:        'Video Monitor',
+    zapatos:              'Zapatos',
+    otros:                'Otros'
   };
 
   // ─── Helper: status badge HTML ─────────────────────────────────────────────
@@ -260,8 +388,8 @@
 
     if (heading) {
       heading.textContent = _isCompany
-        ? 'Nueva solicitud de compra — Cuenta empresarial'
-        : 'Nueva solicitud de compra';
+        ? 'Nueva cotización — Cuenta empresarial'
+        : 'Nueva cotización';
     }
     if (valueLabel) {
       valueLabel.textContent = _isCompany
@@ -342,10 +470,14 @@
     var errorMsg  = document.getElementById('form-error');
     var portalDupWarn = document.getElementById('portal-dup-warning');
     if (formEl)    { formEl.reset(); formEl.classList.remove('hidden'); }
+    if (_portalTomSelect) { _portalTomSelect.clear(true); }
+    var estimatePanelReset = document.getElementById('portal-estimate-panel');
+    if (estimatePanelReset) estimatePanelReset.classList.add('hidden');
+    _portalAutoEstimate = null;
     if (successEl) successEl.classList.add('hidden');
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar solicitud';
+      submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar cotización';
     }
     if (dupBanner) dupBanner.classList.add('hidden');
     if (errorMsg)  errorMsg.classList.add('hidden');
@@ -379,8 +511,12 @@
     if (el && value != null) el.value = value;
   }
   function _setSelectField(id, value) {
-    var el = document.getElementById(id);
-    if (el && value) el.value = value;
+    if (id === 'form-category' && _portalTomSelect) {
+      _portalTomSelect.setValue(value, true);
+    } else {
+      var el = document.getElementById(id);
+      if (el && value) el.value = value;
+    }
   }
 
   // ─── Submit new request ────────────────────────────────────────────────────
@@ -404,6 +540,11 @@
     if (_portalAiActive && typeof CRBOXAIExtractor !== 'undefined') {
       var lastResult = CRBOXAIExtractor.getLastResult();
       if (lastResult) payload.ai_extraction_result = lastResult;
+    }
+    // Attach live estimate if available
+    if (_portalAutoEstimate) {
+      payload.estimate_usd = _portalAutoEstimate.estimate_usd;
+      payload.estimate_breakdown = _portalAutoEstimate.estimate_breakdown;
     }
 
     return fetch('/api/solicitudes', {
@@ -430,7 +571,7 @@
     var submitBtn = document.getElementById('form-submit-btn');
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar solicitud';
+      submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar cotización';
     }
 
     if (form) form.classList.add('hidden');
@@ -654,6 +795,98 @@
       _initPortalDraftSave(formForTracking);
     }
 
+    // ── TomSelect for category dropdown ───────────────────────────────────────
+    (function () {
+      var catEl = document.getElementById('form-category');
+      if (catEl && typeof TomSelect !== 'undefined') {
+        _portalTomSelect = new TomSelect(catEl, {
+          placeholder:       '— Buscar categoría —',
+          allowEmptyOption:  true,
+          maxOptions:        300,
+          searchField:       ['text'],
+          onChange: function () {
+            _triggerPortalEstimate();
+          }
+        });
+      }
+    })();
+
+    // ── Live estimate ─────────────────────────────────────────────────────────
+    function _triggerPortalEstimate() {
+      var valEl  = document.getElementById('form-declared-value');
+      var catEl  = document.getElementById('form-category');
+      var svcEl  = document.getElementById('form-service-type');
+      var panel  = document.getElementById('portal-estimate-panel');
+      var airDiv = document.getElementById('portal-estimate-air');
+      var marDiv = document.getElementById('portal-estimate-maritime');
+
+      if (!panel) return;
+
+      var val = valEl ? parseFloat(valEl.value) : NaN;
+      var cat = _portalTomSelect ? _portalTomSelect.getValue() : (catEl ? catEl.value : '');
+      var svc = svcEl ? svcEl.value : 'aereo';
+
+      var hasVal = !isNaN(val) && val > 0;
+      var hasCat = !!cat;
+
+      if (!hasVal || !hasCat) {
+        panel.classList.add('hidden');
+        _portalAutoEstimate = null;
+        return;
+      }
+
+      panel.classList.remove('hidden');
+
+      if (svc === 'maritimo') {
+        if (airDiv) airDiv.classList.add('hidden');
+        if (marDiv) marDiv.classList.remove('hidden');
+        _portalAutoEstimate = null;
+        return;
+      }
+
+      if (airDiv) airDiv.classList.remove('hidden');
+      if (marDiv) marDiv.classList.add('hidden');
+
+      if (typeof CRBOXCalcEngine !== 'undefined' && typeof CRBOXTariffAdapter !== 'undefined') {
+        try {
+          var pkg = { category: cat, declared_value_usd: val, weight_kg: 0, service_type: 'aereo' };
+          var result = CRBOXCalcEngine.calcSinglePackage(pkg);
+          if (result && result.ok) {
+            var freight   = result.freight_usd || 0;
+            var taxes     = result.taxes_usd || 0;
+            var total     = result.total_usd || 0;
+            var fmt = function (n) { return '$' + n.toFixed(2); };
+            var peFreight = document.getElementById('pe-freight');
+            var peTaxes   = document.getElementById('pe-taxes');
+            var peTotal   = document.getElementById('pe-total');
+            if (peFreight) peFreight.textContent = fmt(freight);
+            if (peTaxes)   peTaxes.textContent   = fmt(taxes);
+            if (peTotal)   peTotal.textContent    = fmt(total);
+            _portalAutoEstimate = {
+              estimate_usd: total,
+              estimate_breakdown: {
+                freight_usd: freight,
+                taxes_usd:   taxes,
+                total_usd:   total,
+                category:    cat,
+                declared_value_usd: val,
+                service_type: 'aereo'
+              }
+            };
+          } else {
+            _portalAutoEstimate = null;
+          }
+        } catch (ex) {
+          _portalAutoEstimate = null;
+        }
+      }
+    }
+
+    var _fValEl = document.getElementById('form-declared-value');
+    var _fSvcEl = document.getElementById('form-service-type');
+    if (_fValEl) _fValEl.addEventListener('input', _triggerPortalEstimate);
+    if (_fSvcEl) _fSvcEl.addEventListener('change', _triggerPortalEstimate);
+
     // Portal duplicate warning dismiss button
     var btnPortalDupDismiss = document.getElementById('btn-portal-dup-dismiss');
     if (btnPortalDupDismiss) {
@@ -681,28 +914,19 @@
       var btnPortalAnalizar = document.getElementById('btn-ai-analizar-portal');
 
       var _PORTAL_CATEGORY_MAP = {
-        'celulares':           'celular',
-        'consola_videojuegos': 'electronico',
-        'camara':              'electronico',
-        'bocina':              'electronico',
-        'televisor':           'electronico',
-        'electrodomesticos':   'electrodomestico',
-        'aspiradora':          'electrodomestico',
-        'colchon':             'otros',
-        'herramientas':        'herramienta',
-        'bicicleta_economica': 'deportivo',
-        'bicicleta_cara':      'deportivo',
-        'bola':                'deportivo',
-        'coche_bebe':          'otros',
-        'juguetes':            'juguete',
-        'amortiguadores':      'otros',
-        'aros_carro_moto':     'otros',
-        'vehiculos':           'otros',
-        'salud_belleza':       'cosmetico',
-        'suplementos':         'suplemento',
-        'cds':                 'libro',
-        'anteojos':            'ropa',
-        'cinturon':            'ropa',
+        'vehiculos':     'repuestos_vehiculo',
+        'salud_belleza': 'otros',
+        'suplementos':   'otros',
+        'celular':       'celulares',
+        'electronico':   'otros',
+        'electrodomestico': 'electrodomesticos',
+        'herramienta':   'herramientas',
+        'juguete':       'juguetes',
+        'libro':         'libros',
+        'deportivo':     'bola',
+        'cosmetico':     'otros',
+        'suplemento':    'otros',
+        'equipo_medico': 'otros',
       };
 
       function _doPortalAiExtract() {
@@ -838,7 +1062,7 @@
                 // Unlock button so user can still proceed after dismissing warning
                 if (submitBtn) {
                   submitBtn.disabled = false;
-                  submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar solicitud';
+                  submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar cotización';
                 }
                 var dw = document.getElementById('portal-dup-warning');
                 var dl = document.getElementById('portal-dup-link');
@@ -890,7 +1114,7 @@
             }
             if (submitBtn) {
               submitBtn.disabled = false;
-              submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar solicitud';
+              submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar cotización';
             }
           }
         }).catch(function (err) {
@@ -900,7 +1124,7 @@
           }
           if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar solicitud';
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar cotización';
           }
           console.warn('[Mis Solicitudes] submit error:', err);
         });
