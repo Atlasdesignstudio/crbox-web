@@ -36,34 +36,32 @@
         // ── Desktop ───────────────────────────────────────────────────────────
         var userDropdown = document.getElementById('user-dropdown');
         if (userDropdown) {
-            // Hide the "Afíliate Gratis" link that sits immediately before the dropdown
+            // Always hide the "Afíliate Gratis" link next to the dropdown
             var prev = userDropdown.previousElementSibling;
             if (prev && prev.tagName === 'A' && String(prev.getAttribute('href') || '').indexOf('afiliate') !== -1) {
                 prev.style.display = 'none';
             }
 
-            // Replace the entire user-circle dropdown with a single "Dashboard" CTA
-            var dashLink = document.createElement('a');
-            dashLink.href = 'dashboard.html';
-            dashLink.className = 'secondary-btn flex items-center gap-2';
-            dashLink.style.textDecoration = 'none';
-            dashLink.innerHTML = '<i class="fas fa-tachometer-alt"></i><span>Dashboard</span>';
-            userDropdown.parentNode.replaceChild(dashLink, userDropdown);
-
-            // Inject admin link for prueba@crbox.cr only
             if (isAdmin) {
-                var adminLink = document.createElement('a');
-                adminLink.href = '#';
-                adminLink.className = 'secondary-btn flex items-center gap-2';
-                adminLink.style.textDecoration = 'none';
-                adminLink.style.marginLeft = '8px';
-                adminLink.style.cursor = 'pointer';
-                adminLink.innerHTML = '<i class="fas fa-shield-alt"></i><span>Panel Admin</span>';
-                adminLink.addEventListener('click', function (e) {
+                // Admin: keep the user dropdown intact, inject Panel Admin button after it
+                var adminBtn = document.createElement('a');
+                adminBtn.href = '#';
+                adminBtn.className = 'secondary-btn flex items-center gap-2';
+                adminBtn.style.cssText = 'text-decoration:none;margin-left:8px;cursor:pointer;';
+                adminBtn.innerHTML = '<i class="fas fa-shield-alt"></i><span>Panel Admin</span>';
+                adminBtn.addEventListener('click', function (e) {
                     e.preventDefault();
                     _goAdminPortal();
                 });
-                dashLink.parentNode.insertBefore(adminLink, dashLink.nextSibling);
+                userDropdown.parentNode.insertBefore(adminBtn, userDropdown.nextSibling);
+            } else {
+                // Non-admin: replace the dropdown with a Dashboard CTA
+                var dashLink = document.createElement('a');
+                dashLink.href = 'dashboard.html';
+                dashLink.className = 'secondary-btn flex items-center gap-2';
+                dashLink.style.textDecoration = 'none';
+                dashLink.innerHTML = '<i class="fas fa-tachometer-alt"></i><span>Dashboard</span>';
+                userDropdown.parentNode.replaceChild(dashLink, userDropdown);
             }
         }
 
@@ -71,34 +69,37 @@
         var mobileMenu = document.getElementById('mobile-menu');
         if (!mobileMenu) return;
 
-        // Hide every "Afíliate Gratis" link in the mobile menu
+        // Always hide "Afíliate Gratis" links in the mobile menu
         mobileMenu.querySelectorAll('a[href="afiliate.html"]').forEach(function (el) {
             el.style.display = 'none';
         });
 
-        // Insert a "Dashboard" CTA inside the button group (div with Calcular Envío)
         var calcLink = mobileMenu.querySelector('a[href="calculadora.html"]');
-        if (calcLink && calcLink.parentNode && !calcLink.parentNode.querySelector('a[href="dashboard.html"]')) {
-            var mobileDash = document.createElement('a');
-            mobileDash.href = 'dashboard.html';
-            mobileDash.className = calcLink.className;
-            mobileDash.style.textDecoration = 'none';
-            mobileDash.textContent = 'Dashboard';
-            calcLink.parentNode.appendChild(mobileDash);
-
-            // Inject mobile admin link for prueba@crbox.cr only
+        if (calcLink && calcLink.parentNode) {
             if (isAdmin) {
-                var mobileAdmin = document.createElement('a');
-                mobileAdmin.href = '#';
-                mobileAdmin.className = calcLink.className;
-                mobileAdmin.style.textDecoration = 'none';
-                mobileAdmin.style.cursor = 'pointer';
-                mobileAdmin.textContent = 'Panel Admin';
-                mobileAdmin.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    _goAdminPortal();
-                });
-                calcLink.parentNode.appendChild(mobileAdmin);
+                // Admin: only inject Panel Admin — no Dashboard link
+                if (!calcLink.parentNode.querySelector('.nav-admin-mobile')) {
+                    var mobileAdmin = document.createElement('a');
+                    mobileAdmin.href = '#';
+                    mobileAdmin.className = calcLink.className + ' nav-admin-mobile';
+                    mobileAdmin.style.cssText = 'text-decoration:none;cursor:pointer;';
+                    mobileAdmin.textContent = 'Panel Admin';
+                    mobileAdmin.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        _goAdminPortal();
+                    });
+                    calcLink.parentNode.appendChild(mobileAdmin);
+                }
+            } else {
+                // Non-admin: inject Dashboard CTA (existing behaviour)
+                if (!calcLink.parentNode.querySelector('a[href="dashboard.html"]')) {
+                    var mobileDash = document.createElement('a');
+                    mobileDash.href = 'dashboard.html';
+                    mobileDash.className = calcLink.className;
+                    mobileDash.style.textDecoration = 'none';
+                    mobileDash.textContent = 'Dashboard';
+                    calcLink.parentNode.appendChild(mobileDash);
+                }
             }
         }
     });
