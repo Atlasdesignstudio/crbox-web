@@ -456,7 +456,18 @@ def _handle_ai_extract(handler):
     gemini_result, gemini_err = _call_gemini(truncated)
 
     if gemini_err or not isinstance(gemini_result, dict):
+        # Determine a coarse actionable error code for ops/debug without leaking internals
+        if gemini_err and 'No API key' in gemini_err:
+            err_detail = 'no_api_key'
+        elif gemini_err and ('NOT_FOUND' in gemini_err or 'not found' in gemini_err.lower()):
+            err_detail = 'model_unavailable'
+        elif gemini_err and 'Empty response' in gemini_err:
+            err_detail = 'empty_response'
+        else:
+            err_detail = 'ai_error'
+        print(f'[AI] extract failed for {url!r}: {gemini_err}')
         result = {'page_readable': False, 'error': 'ai_failed',
+                  'error_detail': err_detail,
                   'message': 'No se pudo analizar la página en este momento.'}
         _ai_cache_set(url_hash, result)
         handler._json_response(200, result)
