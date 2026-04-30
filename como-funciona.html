@@ -217,18 +217,15 @@
             }
             .step-num-bg {
                 position: absolute;
-                top: 10px;
-                right: 10px;
-                width: 76px;
-                height: 96px;
-                overflow: hidden;
+                top: -12px;
+                right: 16px;
+                font-size: 7rem;
+                font-weight: 900;
+                color: #ff6b00;
+                opacity: 0.07;
+                line-height: 1;
                 pointer-events: none;
                 user-select: none;
-            }
-            .step-num-bg img {
-                width: 100%;
-                height: auto;
-                display: block;
             }
             .step-icon-wrap {
                 width: 56px;
@@ -965,25 +962,32 @@
         <!-- Process Steps -->
         <section id="proceso" class="py-16 md:py-24 bg-gray-50">
             <div class="container mx-auto px-4">
-                <div class="text-center mb-14">
-                    <span
-                        class="text-orange-600 font-semibold mb-2 inline-block tracking-widest text-sm"
-                        >NUESTRO PROCESO</span
-                    >
-                    <h2 class="text-3xl md:text-4xl font-bold mb-4">
-                        Tu Compra en 4 Simples Pasos
-                    </h2>
-                    <p class="text-lg text-gray-500 max-w-2xl mx-auto">
-                        Desde que te registras hasta que recibes en tu puerta —
-                        un proceso diseñado para ser claro, rápido y sin
-                        fricciones.
-                    </p>
+                <div class="mb-14 max-w-4xl mx-auto">
+                    <div class="flex flex-col md:flex-row items-stretch justify-center">
+                        <!-- Text -->
+                        <div class="flex-1 text-center flex flex-col items-center justify-center py-2 order-2 md:order-1">
+                            <span class="text-orange-600 font-semibold mb-2 inline-block tracking-widest text-sm">NUESTRO PROCESO</span>
+                            <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                                Tu Compra en 4 Simples Pasos
+                            </h2>
+                            <p class="text-lg text-gray-500 max-w-2xl mx-auto">
+                                Desde que te registras hasta que recibes en tu puerta —
+                                un proceso diseñado para ser claro, rápido y sin
+                                fricciones.
+                            </p>
+                        </div>
+                        <!-- Mascot with 4-finger glove -->
+                        <div class="flex-shrink-0 w-full md:w-44 lg:w-52 relative order-1 md:order-2 h-36 md:h-auto md:self-stretch">
+                            <img src="img/mascot-4.png" alt="CRBOX mascot"
+                                 class="absolute bottom-0 left-0 w-full h-full object-contain object-bottom select-none pointer-events-none">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="steps-grid">
                     <!-- Step 1 -->
                     <div class="step-editorial-card">
-                        <div class="step-num-bg" aria-hidden="true"><img src="img/mascot-1.png" alt=""></div>
+                        <span class="step-num-bg" aria-hidden="true">01</span>
                         <div class="step-icon-wrap">
                             <i class="fas fa-user-plus"></i>
                         </div>
@@ -1010,7 +1014,7 @@
 
                     <!-- Step 2 -->
                     <div class="step-editorial-card step-stagger">
-                        <div class="step-num-bg" aria-hidden="true"><img src="img/mascot-2.png" alt=""></div>
+                        <span class="step-num-bg" aria-hidden="true">02</span>
                         <div class="step-icon-wrap">
                             <i class="fas fa-shopping-cart"></i>
                         </div>
@@ -1037,7 +1041,7 @@
 
                     <!-- Step 3 -->
                     <div class="step-editorial-card">
-                        <div class="step-num-bg" aria-hidden="true"><img src="img/mascot-3.png" alt=""></div>
+                        <span class="step-num-bg" aria-hidden="true">03</span>
                         <div class="step-icon-wrap">
                             <i class="fas fa-bell"></i>
                         </div>
@@ -1061,7 +1065,7 @@
 
                     <!-- Step 4 -->
                     <div class="step-editorial-card step-stagger">
-                        <div class="step-num-bg" aria-hidden="true"><img src="img/mascot-4.png" alt=""></div>
+                        <span class="step-num-bg" aria-hidden="true">04</span>
                         <div class="step-icon-wrap">
                             <i class="fas fa-box"></i>
                         </div>
