@@ -899,17 +899,22 @@ A customer wants to import a product from the US to Costa Rica using CRBOX couri
 They shared this product URL: {url}
 
 The page cannot be scraped directly (bot protection). Use Google Search to find the product at that URL.
+Look at the product listing and its technical specifications to find ALL of the following.
 Return ONLY a valid JSON object — no markdown, no code fences, no explanation:
 {{
   "product_name": "full product name in English",
   "price_usd": 0.0,
-  "category": "one of: {categories}"
+  "category": "one of: {categories}",
+  "weight": "item weight with unit, e.g. '1.5 lbs' or '0.68 kg' — item weight NOT shipping weight",
+  "dimensions": "product dimensions as L x W x H with unit, e.g. '5.7 x 3.2 x 1.1 inches' or '14.5 x 8.1 x 2.8 cm'"
 }}
 Rules:
-- product_name: exact product name as listed on the retailer site
-- price_usd: current retail price as a number (no currency symbol), or null if not found
-- category: use one of the CRBOX codes listed above; null if unsure
-- If you cannot find the product at all, return: {{"product_name": null, "price_usd": null, "category": null}}
+- product_name: exact product name as listed on the retailer site; null if not found
+- price_usd: current sale price as a plain number (no $ symbol), e.g. 49.99; null if not found
+- category: choose one CRBOX code from the list above; null if unsure
+- weight: item/product weight as a string with unit (lbs, oz, kg, g); null if not listed in specs
+- dimensions: product dimensions L x W x H with unit (inches or cm); null if not in specs
+- If you cannot find the product at all, return all fields as null
 """
 
 _SEARCH_CAT_MAP = {
@@ -994,12 +999,11 @@ def _call_gemini_search_fallback(url):
 
 def _build_search_fallback_result(data, url):
     """Convert Google Search fallback data dict into the normalised extraction result."""
-    import datetime
-    now = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 
-    def _mf(value, conf, prov):
+    def _mf(value, conf, prov, src_unit=None):
         return {'value': value, 'confidence': conf,
-                'provenance': prov, 'source_attribute': None, 'source_unit': None}
+                'provenance': prov, 'source_attribute': None, 'source_unit': src_unit}
 
     name    = (data.get('product_name') or '').strip() or None
     cat_raw = data.get('category')
@@ -1014,10 +1018,16 @@ def _build_search_fallback_result(data, url):
         except (ValueError, TypeError):
             price = None
 
+    # Weight — parse via the shared helper (handles lbs, oz, g → kg conversion)
+    weight_kg, w_unit = _parse_weight_to_kg(data.get('weight'))
+
+    # Dimensions — parse via the shared helper (handles inches → cm conversion)
+    dims, d_unit = _normalize_dimensions(data.get('dimensions'))
+
     if not name and price is None and not cat:
         return None  # complete failure
 
-    filled = sum(1 for v in (name, price, cat) if v is not None)
+    filled = sum(1 for v in (name, price, cat, weight_kg, dims) if v is not None)
     partial = filled < 3
 
     return {
@@ -1028,11 +1038,16 @@ def _build_search_fallback_result(data, url):
         'partial':             partial,
         'extraction_warnings': ['Datos obtenidos mediante búsqueda web (página protegida).'],
         'fields': {
-            'product_name':      _mf(name,  0.85 if name  else 0.0, 'search' if name  else 'missing'),
-            'declared_value_usd':_mf(price, 0.80 if price else 0.0, 'search' if price else 'missing'),
-            'category':          _mf(cat,   0.70 if cat   else 0.0, 'search' if cat   else 'missing'),
-            'weight_kg':         _mf(None,  0.0, 'missing'),
-            'dimensions_cm':     _mf(None,  0.0, 'missing'),
+            'product_name':       _mf(name,      0.85 if name      else 0.0,
+                                      'search' if name      else 'missing'),
+            'declared_value_usd': _mf(price,     0.80 if price     else 0.0,
+                                      'search' if price     else 'missing'),
+            'category':           _mf(cat,       0.70 if cat       else 0.0,
+                                      'search' if cat       else 'missing'),
+            'weight_kg':          _mf(weight_kg, 0.75 if weight_kg else 0.0,
+                                      'search' if weight_kg else 'missing', w_unit),
+            'dimensions_cm':      _mf(dims,      0.75 if dims      else 0.0,
+                                      'search' if dims      else 'missing', d_unit),
         },
     }
 
