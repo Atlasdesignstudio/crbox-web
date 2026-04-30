@@ -3392,24 +3392,26 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
                      if acct_type == 'business' else '')
     casillero_str = esc(row.get('casillero_id') or '—')
 
-    customer_html = f'''<div class="adm-detail-section">
-  <div class="adm-detail-section-title">&#128100; Cliente</div>
+    cust_name_val = row.get('customer_name') or ''
+    cust_email_val = row.get('customer_email') or ''
+    initials = ''.join(w[0].upper() for w in cust_name_val.split() if w)[:2] or '?'
+    acct_badge_cls = {'personal': 'adm-acct-personal', 'business': 'adm-acct-business'}.get(acct_type, 'adm-acct-anon')
+    customer_html = f'''<div class="adm-detail-section adm-profile-card">
+  <div class="adm-profile-top">
+    <div class="adm-avatar">{initials}</div>
+    <div class="adm-profile-info">
+      <div class="adm-profile-name">{esc(cust_name_val) or '—'}{empresa_badge}</div>
+      <div class="adm-profile-email"><a href="mailto:{esc(cust_email_val)}" class="adm-link">{esc(cust_email_val) or '—'}</a></div>
+    </div>
+  </div>
   <div class="adm-detail-rows">
     <div class="adm-detail-row">
-      <span class="adm-detail-label">Nombre</span>
-      <span class="adm-detail-val">{esc(row.get('customer_name') or '—')}</span>
-    </div>
-    <div class="adm-detail-row">
-      <span class="adm-detail-label">Email</span>
-      <span class="adm-detail-val"><a href="mailto:{esc(row.get('customer_email',''))}" class="adm-link">{esc(row.get('customer_email') or '—')}</a></span>
-    </div>
-    <div class="adm-detail-row">
       <span class="adm-detail-label">Casillero</span>
-      <span class="adm-detail-val">{casillero_str}</span>
+      <span class="adm-detail-val adm-monospace">{casillero_str}</span>
     </div>
     <div class="adm-detail-row">
-      <span class="adm-detail-label">Tipo de cuenta</span>
-      <span class="adm-detail-val">{esc(acct_label)}{empresa_badge}</span>
+      <span class="adm-detail-label">Cuenta</span>
+      <span class="adm-detail-val"><span class="adm-acct-badge {acct_badge_cls}">{esc(acct_label)}</span></span>
     </div>
   </div>
 </div>'''
@@ -3447,30 +3449,30 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
             f'<div class="adm-detail-row" style="background:#fffbeb;border-radius:.4rem;'
             f'padding:.4rem .6rem;margin:.25rem 0;">'
             f'<span class="adm-detail-label" style="color:#92400e;">&#128196; Desc. aduana</span>'
-            f'<span class="adm-detail-val" style="font-weight:600;color:#78350f;font-style:italic;">'
+            f'<span class="adm-detail-val adm-val-warn">'
             f'{esc(customs_desc)}</span>'
             f'</div>'
         )
 
+    svc_pill_cls = 'adm-pill-aereo' if (row.get('service_type') or 'aereo') == 'aereo' else 'adm-pill-maritimo'
+    cat_pill = f'<span class="adm-pill adm-pill-neutral">{esc(cat_label)}</span>'
+    svc_pill = f'<span class="adm-pill {svc_pill_cls}">{esc(svc_str)}</span>'
     product_html = f'''<div class="adm-detail-section">
-  <div class="adm-detail-section-title">&#128230; Producto</div>
+  <div class="adm-detail-section-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+    Producto
+  </div>
+  <div class="adm-prod-name">{esc(row.get('product_name') or '—')}</div>
+  <div class="adm-prod-pills">{cat_pill}{svc_pill}</div>
   <div class="adm-detail-rows">
     <div class="adm-detail-row">
-      <span class="adm-detail-label">Nombre</span>
-      <span class="adm-detail-val" style="font-weight:600;">{esc(row.get('product_name') or '—')}</span>
+      <span class="adm-detail-label">Valor declarado</span>
+      <span class="adm-detail-val adm-val-prominent">{esc(val_str)}</span>
     </div>
     {customs_row_html}
     <div class="adm-detail-row">
-      <span class="adm-detail-label">Valor declarado</span>
-      <span class="adm-detail-val" style="font-weight:600;">{esc(val_str)}</span>
-    </div>
-    <div class="adm-detail-row">
-      <span class="adm-detail-label">Categor&iacute;a</span>
-      <span class="adm-detail-val">{esc(cat_label)}</span>
-    </div>
-    <div class="adm-detail-row">
       <span class="adm-detail-label">URL del producto</span>
-      <span class="adm-detail-val" style="word-break:break-all;">{url_html}</span>
+      <span class="adm-detail-val adm-url-val">{url_html}</span>
     </div>
     <div class="adm-detail-row">
       <span class="adm-detail-label">Peso</span>
@@ -3481,12 +3483,8 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       <span class="adm-detail-val">{dims_str}</span>
     </div>
     <div class="adm-detail-row">
-      <span class="adm-detail-label">Servicio</span>
-      <span class="adm-detail-val">{esc(svc_str)}</span>
-    </div>
-    <div class="adm-detail-row">
       <span class="adm-detail-label">Notas del cliente</span>
-      <span class="adm-detail-val">{notes_str}</span>
+      <span class="adm-detail-val" style="white-space:pre-wrap;">{notes_str}</span>
     </div>
   </div>
 </div>'''
@@ -3534,20 +3532,19 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
             prov_str = prov_labels.get(prov, esc(prov))
             val_str2 = esc(str(val)) if val is not None else '—'
             low_conf = (conf < 0.80) or (prov == 'needs_confirmation')
-            row_style  = ' style="background:#fffbeb;"' if low_conf else ''
-            conf_style = (' style="color:#d97706;font-weight:700;"'
-                          if low_conf else ' style="color:#16a34a;font-weight:700;"')
+            row_style  = ' class="adm-row-low-conf"' if low_conf else ''
+            conf_cls = ('adm-conf-low' if low_conf else 'adm-conf-ok')
             rows_html += (
                 f'<tr{row_style}>'
                 f'<td class="ai-fn">{flabel}</td>'
                 f'<td class="ai-fv">{val_str2}</td>'
                 f'<td class="ai-fp">{prov_str}</td>'
-                f'<td class="ai-fc"{conf_style}>{conf_pct}</td>'
+                f'<td class="ai-fc {conf_cls}">{conf_pct}</td>'
                 f'</tr>\n'
             )
         src_lbl    = 'AI &mdash; completo' if data_source == 'ai_extracted' else 'AI &mdash; parcial'
         no_data_note = (
-            '<p style="color:#9ca3af;font-size:12px;margin-bottom:10px;">'
+            '<p class="adm-note-xs">'
             'Los datos de extracci&oacute;n no fueron almacenados para esta solicitud.</p>'
         ) if not ai_json_raw else ''
         ai_section_html = f'''<details class="adm-ai-details">
@@ -3557,7 +3554,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     <span class="adm-ai-chevron">&#9660;</span>
   </summary>
   <div class="adm-ai-body">
-    <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">Instant&aacute;nea de los datos extra&iacute;dos autom&aacute;ticamente al momento del env&iacute;o. Solo lectura.</p>
+    <p class="adm-section-note">Instant&aacute;nea de los datos extra&iacute;dos autom&aacute;ticamente al momento del env&iacute;o. Solo lectura.</p>
     {no_data_note}<div class="adm-table-wrap" style="margin-bottom:0;">
     <table class="adm-ai-table">
       <thead>
@@ -3604,16 +3601,16 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
             except Exception:
                 pass
         total_str = f'${estimate_usd:,.2f}' if estimate_usd is not None else '—'
-        estimado_html = f'''<div class="adm-detail-section" style="border-color:#bfdbfe;background:#eff6ff;">
-  <div class="adm-detail-section-title" style="justify-content:space-between;">
+        estimado_html = f'''<div class="adm-detail-section adm-estimado-section">
+  <div class="adm-detail-section-title adm-section-header-spread">
     <span>&#129518; Estimado autom&aacute;tico del sistema</span>
-    <span class="adm-src-badge" style="background:#dbeafe;color:#1d4ed8;border-color:#93c5fd;">Calculadora CRBOX</span>
+    <span class="adm-src-badge adm-src-calc">Calculadora CRBOX</span>
   </div>
-  <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">Este valor fue generado autom&aacute;ticamente usando la l&oacute;gica actual de estimaci&oacute;n de CRBOX. Es solo referencia interna y no sustituye la revisi&oacute;n comercial.</p>
+  <p class="adm-section-note">Este valor fue generado autom&aacute;ticamente usando la l&oacute;gica actual de estimaci&oacute;n de CRBOX. Es solo referencia interna y no sustituye la revisi&oacute;n comercial.</p>
   <div class="adm-detail-rows">
     <div class="adm-detail-row">
       <span class="adm-detail-label">Total estimado</span>
-      <span class="adm-detail-val" style="font-size:18px;font-weight:800;color:#FF6B00;">{esc(total_str)}</span>
+      <span class="adm-detail-val adm-total-val">{esc(total_str)}</span>
     </div>
     <div class="adm-detail-row">
       <span class="adm-detail-label">Servicio</span>
@@ -3652,18 +3649,18 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         is_internal_note = (from_s and to_s and from_s == to_s)
         if is_internal_note:
             timeline_items += f'''<div class="tl-item tl-item-note">
-  <div class="tl-dot" style="background:#fbbf24;border-color:#d97706;"></div>
-  <div class="tl-body" style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 10px;">
-    <div class="tl-transition" style="color:#92400e;font-size:12px;font-weight:600;">&#128221; Nota interna</div>
+  <div class="tl-dot tl-dot-note"></div>
+  <div class="tl-body tl-body-note">
+    <div class="tl-transition tl-transition-note">&#128221; Nota interna</div>
     <div class="tl-meta">{esc(ts)} &middot; por {esc(by)}</div>
-    <div class="tl-note" style="margin-top:4px;">&ldquo;{esc(note_h)}&rdquo;</div>
+    <div class="tl-note tl-note-text">&ldquo;{esc(note_h)}&rdquo;</div>
   </div>
 </div>'''
         else:
             from_lbl = status_label_map.get(from_s, esc(from_s))
             to_lbl   = status_label_map.get(to_s, esc(to_s))
             transition_html = (
-                f'<span style="color:#6b7280;">{from_lbl}</span> &rarr; <strong>{to_lbl}</strong>'
+                f'<span class="tl-from">{from_lbl}</span> &rarr; <strong>{to_lbl}</strong>'
                 if from_s else f'<strong>{to_lbl}</strong>'
             )
             note_item = f'<div class="tl-note">&ldquo;{esc(note_h)}&rdquo;</div>' if note_h else ''
@@ -3677,33 +3674,55 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
   </div>
 </div>'''
 
-    tl_inner = timeline_items or '<p style="color:#9ca3af;font-size:13px;">Sin eventos registrados.</p>'
+    tl_inner = timeline_items or '<p class="adm-empty-tl">Sin eventos registrados.</p>'
     history_html = f'''<div class="adm-detail-section">
   <div class="adm-detail-section-title">&#128336; Historial de estado</div>
   <div class="tl-wrap">{tl_inner}</div>
 </div>'''
 
     # ── Status update form ──────────────────────────────────────────────────
+    _TERMINAL_STATUSES_CHK = {'completada', 'cancelada', 'expirada'}
     transitions = _ADMIN_LEGAL_TRANSITIONS.get(status, set())
     if transitions:
         sel_opts   = _admin_status_options_html(status)
-        update_html = f'''<div class="adm-detail-section">
-  <div class="adm-detail-section-title">&#9998; Actualizar estado</div>
-  <form method="POST" action="/admin/solicitudes/{rid}/status">
+        update_html = f'''<div class="adm-detail-section adm-update-module">
+  <div class="adm-detail-section-title">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    Actualizar estado
+  </div>
+  <form method="POST" action="/admin/solicitudes/{rid}/status" id="adm-update-form">
     <input type="hidden" name="filter" value="{esc(filter_val)}">
     <input type="hidden" name="from_detail" value="1">
-    <div style="margin-bottom:8px;">
-      <select class="adm-select" name="status" style="max-width:260px;">{sel_opts}</select>
+    <div class="adm-form-field">
+      <label class="adm-form-label" for="upd-status-sel">Nuevo estado</label>
+      <select class="adm-select" name="status" id="upd-status-sel" required aria-label="Seleccionar nuevo estado">{sel_opts}</select>
     </div>
-    <div style="margin-bottom:8px;">
-      <textarea class="adm-note" name="note" placeholder="Nota interna (opcional)" rows="3" style="max-width:440px;"></textarea>
+    <div class="adm-form-field">
+      <label class="adm-form-label" for="upd-note">Nota interna <span class="adm-optional">(opcional)</span></label>
+      <textarea class="adm-note" name="note" id="upd-note" placeholder="Agrega una nota interna para el equipo&hellip;" rows="3" aria-label="Nota interna opcional"></textarea>
     </div>
-    <button class="adm-upd-btn" type="submit" style="max-width:180px;">Actualizar estado</button>
+    <button class="adm-upd-btn" type="submit" id="adm-update-submit">
+      <span class="adm-btn-text">Actualizar estado</span>
+      <span class="adm-btn-spinner" aria-hidden="true" style="display:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="adm-spin"><circle cx="12" cy="12" r="10" stroke-dasharray="30 70" stroke-linecap="round"/></svg>
+        Guardando&hellip;
+      </span>
+    </button>
   </form>
+</div>'''
+    elif status in _TERMINAL_STATUSES_CHK:
+        update_html = f'''<div class="adm-detail-section adm-terminal-msg">
+  <div class="adm-terminal-icon" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+  </div>
+  <div>
+    <div class="adm-terminal-title">Estado final</div>
+    <p class="adm-terminal-text">Esta solicitud est&aacute; en estado final y no puede actualizarse.</p>
+  </div>
 </div>'''
     else:
         update_html = f'''<div class="adm-detail-section">
-  <div class="adm-detail-section-title">&#9998; Actualizar estado</div>
+  <div class="adm-detail-section-title">Actualizar estado</div>
   <p style="color:#9ca3af;font-size:13px;">Este estado no permite m&aacute;s transiciones.</p>
 </div>'''
 
@@ -3711,15 +3730,19 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     _TERMINAL_STATUSES = {'completada', 'cancelada', 'expirada'}
     if status not in _TERMINAL_STATUSES:
         add_note_html = f'''<div class="adm-detail-section">
-  <div class="adm-detail-section-title">&#128221; Agregar nota interna</div>
+  <div class="adm-detail-section-title">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    Agregar nota interna
+  </div>
   <form method="POST" action="/admin/solicitudes/{rid}/add-note">
     <input type="hidden" name="filter" value="{esc(filter_val)}">
-    <div style="margin-bottom:8px;">
-      <textarea class="adm-note" name="note" placeholder="Escribe una nota interna&hellip;" rows="3" style="max-width:440px;" required></textarea>
+    <div class="adm-form-field">
+      <label class="adm-form-label" for="add-note-ta">Nota</label>
+      <textarea class="adm-note" name="note" id="add-note-ta" placeholder="Escribe una nota interna para el equipo&hellip;" rows="3" required aria-label="Nota interna"></textarea>
     </div>
-    <button class="adm-upd-btn" type="submit" style="max-width:220px;background:#d97706;border-color:#b45309;">Guardar nota interna</button>
+    <button class="adm-upd-btn adm-btn-amber" type="submit">Guardar nota</button>
   </form>
-  <p style="font-size:11px;color:#9ca3af;margin-top:8px;">La nota es solo visible para el equipo de ventas y no cambia el estado de la solicitud.</p>
+  <p class="adm-form-hint">Solo visible para el equipo de ventas. No cambia el estado.</p>
 </div>'''
     else:
         add_note_html = ''
@@ -3766,18 +3789,21 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         if last_resend:
             resend_ts = _admin_format_date(last_resend.get('changed_at', ''))
             resend_note_html = (
-                f'<p style="font-size:11px;color:#6b7280;margin:10px 0 0;">'
+                f'<p class="adm-hint-md">'
                 f'&#128338; &Uacute;ltimo reenv&iacute;o: {esc(resend_ts)}</p>'
             )
 
-        composer_html = f'''<div class="adm-detail-section" style="border-color:#d1fae5;background:#f0fdf4;">
-  <div class="adm-detail-section-title" style="justify-content:space-between;">
-    <span>&#9993; Respuesta enviada</span>
-    <span class="adm-src-badge" style="background:#d1fae5;color:#065f46;border-color:#6ee7b7;">{esc(ro_sent_at)}</span>
+        composer_html = f'''<div class="adm-detail-section adm-resp-record">
+  <div class="adm-resp-record-header">
+    <div class="adm-resp-record-icon" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14z"/></svg>
+    </div>
+    <div>
+      <div class="adm-resp-record-title">Respuesta enviada al cliente</div>
+      <div class="adm-resp-record-date">Enviada el {esc(ro_sent_at)}</div>
+    </div>
+    <span class="adm-resp-record-stamp">Solo lectura</span>
   </div>
-  <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">
-    Respuesta revisada y enviada por CRBOX al cliente. Solo lectura.
-  </p>
   <div class="adm-detail-rows">
     <div class="adm-detail-row">
       <span class="adm-detail-label">Disponibilidad</span>
@@ -3785,7 +3811,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     </div>
     <div class="adm-detail-row">
       <span class="adm-detail-label">Precio confirmado</span>
-      <span class="adm-detail-val" style="font-weight:700;color:#FF6B00;">{esc(ro_price_str)}</span>
+      <span class="adm-detail-val adm-val-prominent">{esc(ro_price_str)}</span>
     </div>
     <div class="adm-detail-row">
       <span class="adm-detail-label">Tiempo de entrega</span>
@@ -3798,17 +3824,12 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       <span class="adm-detail-val" style="white-space:pre-wrap;">{ro_msg}</span>
     </div>
   </div>
-  <div style="margin-top:16px;padding-top:14px;border-top:1px solid #d1fae5;">
+  <div class="adm-resp-record-actions">
     <form method="POST" action="/admin/solicitudes/{rid}/resend-response">
       <input type="hidden" name="filter" value="{esc(filter_val)}">
-      <button type="submit"
-        style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;
-               background:#fff;border:1.5px solid #6ee7b7;border-radius:8px;
-               color:#065f46;font-size:13px;font-weight:700;cursor:pointer;
-               font-family:inherit;transition:all .2s;"
-        onmouseover="this.style.background='#d1fae5'"
-        onmouseout="this.style.background='#fff'">
-        &#128257;&nbsp; Reenviar notificaci&oacute;n al cliente
+      <button type="submit" class="adm-btn-secondary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+        Reenviar notificaci&oacute;n al cliente
       </button>
     </form>
     {resend_note_html}
@@ -3817,9 +3838,9 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     elif status in ('enviada', 'en_revision'):
         # Show the composer form
         est_str = f'${estimate_usd:,.2f} USD' if estimate_usd is not None else '—'
-        composer_html = f'''<div class="adm-detail-section" style="border-color:#fed7aa;background:#fff7ed;">
+        composer_html = f'''<div class="adm-detail-section adm-composer-section">
   <div class="adm-detail-section-title">&#9993; Respuesta revisada por CRBOX</div>
-  <p style="font-size:12px;color:#6b7280;margin-bottom:16px;">
+  <p class="adm-note-sm">
     Completa los campos y env&iacute;a la respuesta al cliente. El correo se env&iacute;a
     autom&aacute;ticamente al confirmar.
   </p>
@@ -3864,18 +3885,18 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
                      opacity:.45;transition:opacity .15s;">
         &#10024;&nbsp;Sugerir borrador con IA
       </button>
-      <span id="resp-ai-status" style="margin-left:10px;font-size:12px;color:#6b7280;display:none;"></span>
+      <span id="resp-ai-status" class="adm-ai-status"></span>
     </div>
     <div class="adm-resp-field">
-      <label class="adm-resp-label">Condiciones <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>
+      <label class="adm-resp-label">Condiciones <span class="adm-optional">(opcional)</span></label>
       <textarea class="adm-note" name="conditions" id="resp-conditions" rows="3" maxlength="2000"
                 placeholder="Condiciones adicionales que el cliente debe conocer&hellip;"></textarea>
       <div id="resp-ai-label-conditions" style="display:none;margin-top:4px;font-size:11px;
            color:#7c3aed;font-weight:600;">&#10024; Sugerido por IA &mdash; revise antes de enviar</div>
     </div>
     <div class="adm-resp-field">
-      <label class="adm-resp-label">Explicaci&oacute;n de diferencia con el estimado <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>
-      <p style="font-size:11px;color:#9ca3af;margin:0 0 6px;">Usa este campo si el precio revisado difiere del estimado autom&aacute;tico y el cliente se beneficiar&iacute;a de una explicaci&oacute;n.</p>
+      <label class="adm-resp-label">Explicaci&oacute;n de diferencia con el estimado <span class="adm-optional">(opcional)</span></label>
+      <p class="adm-hint-sm">Usa este campo si el precio revisado difiere del estimado autom&aacute;tico y el cliente se beneficiar&iacute;a de una explicaci&oacute;n.</p>
       <textarea class="adm-note" name="difference_explanation" id="resp-diff-expl" rows="2" maxlength="2000"
                 placeholder="Ej. El peso real del producto es mayor al estimado por el sistema."></textarea>
       <div id="resp-ai-label-diff" style="display:none;margin-top:4px;font-size:11px;
@@ -3889,10 +3910,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
            color:#7c3aed;font-weight:600;">&#10024; Sugerido por IA &mdash; revise antes de enviar</div>
     </div>
     <div style="margin-top:4px;">
-      <button class="adm-upd-btn" type="submit"
-              style="background:#16a34a;max-width:280px;"
-              onmouseover="this.style.background='#15803d'"
-              onmouseout="this.style.background='#16a34a'">
+      <button class="adm-upd-btn adm-btn-send" type="submit">
         &#9993;&nbsp; Enviar respuesta al cliente
       </button>
     </div>
@@ -3944,6 +3962,11 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
           aiBtn.disabled = true;
           aiBtn.textContent = '\u23f3\u00a0Generando borrador\u2026';
           if (aiStatus) {{ aiStatus.textContent = ''; aiStatus.style.display = 'none'; }}
+          var skeletonIds = ['resp-conditions', 'resp-diff-expl', 'resp-message'];
+          skeletonIds.forEach(function(id) {{
+            var el = document.getElementById(id);
+            if (el) el.classList.add('adm-skeleton');
+          }});
 
           fetch('/admin/solicitudes/{rid}/suggest-draft', {{
             method: 'POST',
@@ -3952,6 +3975,10 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
           }})
           .then(function(r) {{ return r.json(); }})
           .then(function(data) {{
+            skeletonIds.forEach(function(id) {{
+              var el = document.getElementById(id);
+              if (el) el.classList.remove('adm-skeleton');
+            }});
             aiBtn.disabled = false;
             aiBtn.innerHTML = '&#10024;&nbsp;Sugerir borrador con IA';
             syncAiBtn();
@@ -3980,6 +4007,10 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
             }}
           }})
           .catch(function(err) {{
+            skeletonIds.forEach(function(id) {{
+              var el = document.getElementById(id);
+              if (el) el.classList.remove('adm-skeleton');
+            }});
             aiBtn.disabled = false;
             aiBtn.innerHTML = '&#10024;&nbsp;Sugerir borrador con IA';
             syncAiBtn();
@@ -4002,19 +4033,19 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         tracking_ref_row = ''
         if cust_tracking:
             tracking_ref_row = (
-                f'<div class="adm-detail-row" style="margin-bottom:12px;">'
+                f'<div class="adm-detail-row adm-detail-row-mb">'
                 f'<span class="adm-detail-label">Tracking del cliente</span>'
-                f'<span class="adm-detail-val" style="font-family:monospace;font-size:12px;">'
+                f'<span class="adm-detail-val adm-track-val">'
                 f'{esc(cust_tracking)}</span></div>'
             )
-        link_pkg_html = f'''<div class="adm-detail-section" style="border-color:#c4b5fd;background:#faf5ff;">
+        link_pkg_html = f'''<div class="adm-detail-section adm-link-pkg-section">
   <div class="adm-detail-section-title" style="color:#6d28d9;">&#128279; Vincular paquete y completar</div>
-  <p style="font-size:12px;color:#6b7280;margin-bottom:14px;">Registra el ID del paquete CRBOX que correspond&iacute;a a esta solicitud. Esto cerrar&aacute; la solicitud como completada y activar&aacute; la vista del paquete en el portal del cliente.</p>
+  <p class="adm-section-note adm-section-note-14">Registra el ID del paquete CRBOX que correspond&iacute;a a esta solicitud. Esto cerrar&aacute; la solicitud como completada y activar&aacute; la vista del paquete en el portal del cliente.</p>
   {tracking_ref_row}
   <form method="POST" action="/admin/solicitudes/{rid}/link-package">
     <input type="hidden" name="filter" value="{esc(filter_val)}">
-    <div style="margin-bottom:8px;">
-      <label style="display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;">ID del paquete CRBOX <span style="color:#ef4444;">*</span></label>
+    <div class="adm-form-field">
+      <label class="adm-form-label">ID del paquete CRBOX <span class="adm-req">*</span></label>
       <input type="text" name="package_id" required
              placeholder="ej. CRBOX-00001"
              style="width:100%;max-width:320px;padding:8px 12px;border:1px solid #c4b5fd;
@@ -4040,6 +4071,13 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     }
     src_text, src_cls = src_map.get(data_source, ('Manual', 'adm-src-manual'))
 
+    resent_banner = (
+        '<div class="adm-resent-banner" role="alert">'
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>'
+        '&nbsp; Notificaci&oacute;n reenviada correctamente al cliente.'
+        '</div>'
+    ) if resent else ''
+
     return f'''<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -4048,106 +4086,283 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
 <meta name="robots" content="noindex,nofollow">
 <title>{rid} &mdash; Panel de ventas CRBOX</title>
 <style>
+/* ── Design system tokens ─────────────────────────────────────────── */
+:root{{
+  --clr-orange:#FF6B00;--clr-orange-dk:#E05A00;--clr-orange-lt:#fff7ed;
+  --clr-navy:#1e293b;--clr-navy2:#334155;
+  --clr-slate50:#f8fafc;--clr-slate100:#f1f5f9;--clr-slate200:#e2e8f0;
+  --clr-slate400:#94a3b8;--clr-slate500:#64748b;--clr-slate700:#374151;--clr-slate900:#111;
+  --clr-green:#15803d;--clr-green-lt:#f0fdf4;--clr-green-bd:#bbf7d0;
+  --clr-amber:#d97706;--clr-amber-lt:#fffbeb;
+  --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:20px;--sp-6:24px;--sp-8:32px;
+  --radius-sm:6px;--radius:10px;--radius-lg:14px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);--shadow:0 2px 10px rgba(0,0,0,.10);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
+}}
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
-  background:#f3f4f6;color:#111;min-height:100vh}}
+body{{font-family:var(--font);background:var(--clr-slate100);color:var(--clr-slate900);min-height:100vh}}
 a{{color:inherit;text-decoration:none}}
-.adm-header{{background:#1f2937;padding:12px 20px;display:flex;align-items:center;gap:14px;
-  position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.18)}}
-.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:18px;letter-spacing:-.5px}}
-.adm-header-title{{color:#fff;font-size:14px;font-weight:600}}
-.adm-header-sep{{color:#4b5563;font-size:16px}}
-.adm-header-link{{color:#9ca3af;font-size:13px;padding:6px 12px;
-  border-radius:6px;border:1px solid #374151;transition:all .2s}}
-.adm-header-link:hover{{color:#fff;border-color:#6b7280}}
-.adm-logout{{margin-left:auto;color:#9ca3af;font-size:13px;padding:6px 12px;
-  border-radius:6px;border:1px solid #374151;transition:all .2s}}
-.adm-logout:hover{{color:#fff;border-color:#6b7280}}
-.adm-detail-wrap{{max-width:760px;margin:0 auto;padding:24px 20px 48px}}
-.adm-back{{display:inline-flex;align-items:center;gap:6px;color:#6b7280;
-  font-size:13px;font-weight:600;margin-bottom:20px;padding:6px 12px;
-  border:1px solid #e5e7eb;border-radius:8px;background:#fff;transition:all .2s}}
-.adm-back:hover{{color:#374151;border-color:#d1d5db;background:#f9fafb}}
-.adm-page-title{{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:6px}}
-.adm-scb-id{{font-size:22px;font-weight:900;color:#FF6B00;letter-spacing:-.02em}}
-.adm-page-meta{{font-size:12px;color:#9ca3af;margin-bottom:16px}}
-.adm-detail-section{{background:#fff;border-radius:12px;border:1px solid #e5e7eb;
-  padding:20px;margin-bottom:14px}}
-.adm-detail-section-title{{font-size:14px;font-weight:700;color:#374151;
-  margin-bottom:14px;display:flex;align-items:center;gap:8px}}
+/* ── Header ──────────────────────────────────────────────────────── */
+.adm-header{{background:var(--clr-navy);height:52px;padding:0 var(--sp-5);
+  display:flex;align-items:center;gap:var(--sp-3);
+  position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.22)}}
+.adm-header-logo{{color:var(--clr-orange);font-weight:800;font-size:19px;letter-spacing:-.5px;flex-shrink:0}}
+.adm-header-sep{{color:var(--clr-navy2);font-size:18px;flex-shrink:0}}
+.adm-header-title{{color:#cbd5e1;font-size:13px;font-weight:500;flex:1;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}}
+.adm-header-nav{{display:flex;align-items:center;gap:var(--sp-2);flex-shrink:0}}
+.adm-header-link,.adm-logout{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:var(--radius-sm);
+  border:1px solid var(--clr-navy2);transition:all .2s;white-space:nowrap}}
+.adm-header-link:hover,.adm-logout:hover{{color:#fff;border-color:#64748b;background:var(--clr-navy2)}}
+/* ── Page header ─────────────────────────────────────────────────── */
+.adm-page-header{{background:#fff;border-bottom:1px solid var(--clr-slate200);
+  padding:var(--sp-4) var(--sp-5)}}
+.adm-breadcrumb{{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-3)}}
+.adm-back{{display:inline-flex;align-items:center;gap:5px;color:var(--clr-slate500);
+  font-size:12px;font-weight:600;padding:5px var(--sp-3);border:1px solid var(--clr-slate200);
+  border-radius:var(--radius-sm);background:#fff;transition:all .2s}}
+.adm-back:hover{{color:var(--clr-slate700);border-color:#d1d5db;background:var(--clr-slate50)}}
+.adm-back:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
+.adm-ph-row{{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-3);flex-wrap:wrap}}
+.adm-ph-left{{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-3)}}
+.adm-scb-id{{font-size:20px;font-weight:900;color:var(--clr-orange);letter-spacing:-.02em}}
+.adm-page-meta{{font-size:12px;color:var(--clr-slate400);margin-top:4px}}
+/* ── Resent banner ───────────────────────────────────────────────── */
+.adm-resent-banner{{display:flex;align-items:center;gap:var(--sp-2);
+  background:var(--clr-green-lt);border:1px solid var(--clr-green-bd);
+  border-radius:var(--radius);padding:var(--sp-3) var(--sp-4);
+  font-size:13px;font-weight:600;color:#065f46;margin-bottom:var(--sp-3)}}
+/* ── Two-column layout ───────────────────────────────────────────── */
+.adm-outer{{max-width:1100px;margin:0 auto;padding:var(--sp-5) var(--sp-5) 64px}}
+.adm-layout-2col{{display:grid;grid-template-columns:1fr 340px;gap:var(--sp-4);align-items:start}}
+.adm-col-main{{min-width:0}}
+.adm-col-side{{min-width:0}}
+/* ── Sections ────────────────────────────────────────────────────── */
+.adm-detail-section{{background:#fff;border-radius:var(--radius);border:1px solid var(--clr-slate200);
+  padding:var(--sp-5);margin-bottom:var(--sp-4);box-shadow:var(--shadow-sm)}}
+.adm-detail-section-title{{font-size:13px;font-weight:700;color:var(--clr-slate700);
+  margin-bottom:var(--sp-4);display:flex;align-items:center;gap:6px;
+  text-transform:uppercase;letter-spacing:.04em}}
+.adm-detail-section-title svg{{color:var(--clr-slate400);flex-shrink:0}}
+.adm-detail-rows{{border-top:1px solid var(--clr-slate100)}}
 .adm-detail-row{{display:flex;justify-content:space-between;align-items:flex-start;
-  gap:12px;padding:9px 0;border-bottom:1px solid #f3f4f6;font-size:13px}}
+  gap:var(--sp-3);padding:9px 0;border-bottom:1px solid var(--clr-slate100);font-size:13px}}
 .adm-detail-row:last-child{{border-bottom:none}}
-.adm-detail-label{{color:#9ca3af;font-size:12px;min-width:120px;flex-shrink:0;padding-top:1px}}
-.adm-detail-val{{color:#111;font-weight:500;text-align:right;word-break:break-word;
-  max-width:calc(100% - 140px)}}
+.adm-detail-label{{color:var(--clr-slate400);font-size:11px;font-weight:600;
+  min-width:110px;flex-shrink:0;padding-top:1px;text-transform:uppercase;letter-spacing:.03em}}
+.adm-detail-val{{color:var(--clr-slate900);font-weight:500;text-align:right;
+  word-break:break-word;max-width:calc(100% - 130px)}}
+/* ── Badges ──────────────────────────────────────────────────────── */
 .adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
   font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
 .adm-empresa{{display:inline-block;background:#fff7ed;color:#c2410c;
   font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;
   border:1px solid #fdba74;vertical-align:middle}}
 .adm-src-badge{{display:inline-block;padding:3px 9px;border-radius:999px;
-  font-size:11px;font-weight:700;border:1px solid;white-space:nowrap}}
-.adm-src-manual{{background:#f3f4f6;color:#374151;border-color:#e5e7eb}}
+  font-size:10px;font-weight:700;border:1px solid;white-space:nowrap}}
+.adm-src-manual{{background:#f1f5f9;color:#475569;border-color:var(--clr-slate200)}}
 .adm-src-ai{{background:#fffbeb;color:#92400e;border-color:#fde68a}}
 .adm-src-ai-partial{{background:#fff7ed;color:#c2410c;border-color:#fdba74}}
-.adm-link{{color:#FF6B00;text-decoration:underline;text-underline-offset:2px}}
-.adm-link:hover{{color:#E05A00}}
-.adm-table-wrap{{overflow-x:auto}}
-/* Collapsible AI section */
-.adm-ai-details{{border-radius:10px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:0}}
-.adm-ai-summary{{display:flex;align-items:center;gap:10px;padding:13px 16px;
-  background:#fafafa;cursor:pointer;list-style:none;font-weight:700;font-size:13px;
-  color:#374151;user-select:none;transition:background .15s}}
-.adm-ai-summary::-webkit-details-marker{{display:none}}
-.adm-ai-summary:hover{{background:#f1f5f9}}
-.adm-ai-chevron{{font-size:11px;color:#94a3b8;transition:transform .2s;margin-left:4px}}
-details.adm-ai-details[open] .adm-ai-chevron{{transform:rotate(180deg)}}
-.adm-ai-body{{padding:14px 16px;border-top:1px solid #e2e8f0}}
-.adm-ai-table{{width:100%;border-collapse:collapse}}
-.adm-ai-table th{{background:#f9fafb;padding:8px 10px;text-align:left;font-size:11px;
-  font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;
-  border-bottom:1px solid #e5e7eb}}
-.adm-ai-table td{{padding:10px;border-bottom:1px solid #f3f4f6;font-size:12px;vertical-align:top}}
-.adm-ai-table tr:last-child td{{border-bottom:none}}
-.ai-fn{{font-weight:600;color:#374151;min-width:140px}}
-.ai-fv{{color:#111;max-width:180px;word-break:break-word}}
-.ai-fp{{color:#6b7280;min-width:130px}}
-.ai-fc{{white-space:nowrap}}
+.adm-src-calc{{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}}
+.adm-badge-success{{background:#F0FDF4;color:#15803D;border-color:#BBF7D0}}
+.adm-badge-warn{{background:#FFF7ED;color:#C2410C;border-color:#FDBA74}}
+.adm-estimado-section{{border-color:#bfdbfe!important;background:#eff6ff!important}}
+.adm-total-val{{font-size:18px;font-weight:800;color:var(--clr-orange)}}
+.adm-ai-status{{margin-left:10px;font-size:12px;color:var(--clr-slate400);display:none}}
+.adm-section-header-spread{{justify-content:space-between}}
+.adm-section-note{{font-size:12px;color:var(--clr-slate400);margin-bottom:12px}}
+.adm-section-note-14{{margin-bottom:14px}}
+.adm-hint-sm{{font-size:11px;color:var(--clr-slate400);margin:0 0 6px}}
+.adm-hint-md{{font-size:11px;color:var(--clr-slate400);margin:10px 0 0}}
+.adm-note-xs{{color:#9ca3af;font-size:12px;margin-bottom:10px}}
+.adm-note-sm{{font-size:12px;color:#6b7280;margin-bottom:16px}}
+.adm-composer-section{{border-color:#fed7aa!important;background:#fff7ed!important}}
+.adm-link-pkg-section{{border-color:#c4b5fd!important;background:#faf5ff!important}}
+.adm-val-warn{{font-weight:600;color:#78350f;font-style:italic}}
+.adm-conf-low{{color:#d97706;font-weight:700}}
+.adm-conf-ok{{color:#16a34a;font-weight:700}}
+.adm-row-low-conf{{background:#fffbeb}}
+.adm-btn-send{{background:#16a34a!important;max-width:280px}}
+.adm-btn-send:hover{{background:#15803d!important}}
+.adm-track-val{{font-family:ui-monospace,monospace;font-size:12px}}
+.adm-detail-row-mb{{margin-bottom:12px}}
+.adm-pill-wrap{{margin-top:4px}}
+.adm-casillero-row{{margin-top:2px}}
+/* ── Profile card ────────────────────────────────────────────────── */
+.adm-profile-top{{display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-4)}}
+.adm-avatar{{width:42px;height:42px;border-radius:50%;background:var(--clr-orange);
+  color:#fff;font-size:16px;font-weight:800;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;letter-spacing:-.02em}}
+.adm-profile-name{{font-size:14px;font-weight:700;color:var(--clr-slate900);margin-bottom:2px}}
+.adm-profile-email{{font-size:12px;color:var(--clr-slate500)}}
+.adm-monospace{{font-family:ui-monospace,monospace;font-size:12px;background:var(--clr-slate50);
+  padding:2px 6px;border-radius:4px;border:1px solid var(--clr-slate200)}}
+.adm-acct-badge{{display:inline-block;padding:2px 8px;border-radius:999px;
+  font-size:11px;font-weight:700;border:1px solid}}
+.adm-acct-personal{{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}}
+.adm-acct-business{{background:#fff7ed;color:#c2410c;border-color:#fdba74}}
+.adm-acct-anon{{background:var(--clr-slate50);color:var(--clr-slate500);border-color:var(--clr-slate200)}}
+/* ── Product pills ───────────────────────────────────────────────── */
+.adm-prod-name{{font-size:15px;font-weight:800;color:var(--clr-slate900);margin-bottom:var(--sp-2)}}
+.adm-prod-pills{{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-bottom:var(--sp-3)}}
+.adm-pill{{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid}}
+.adm-pill-neutral{{background:var(--clr-slate50);color:var(--clr-slate500);border-color:var(--clr-slate200)}}
+.adm-pill-aereo{{background:#eff6ff;color:#2563eb;border-color:#bfdbfe}}
+.adm-pill-maritimo{{background:#ecfeff;color:#0e7490;border-color:#a5f3fc}}
+/* ── Link & URL ──────────────────────────────────────────────────── */
+.adm-link{{color:var(--clr-orange);text-decoration:underline;text-underline-offset:2px}}
+.adm-link:hover{{color:var(--clr-orange-dk)}}
+.adm-url-val{{word-break:break-all;font-size:12px}}
+.adm-val-prominent{{font-size:15px;font-weight:800;color:var(--clr-orange)}}
+/* ── Timeline ────────────────────────────────────────────────────── */
 .tl-wrap{{padding:4px 0}}
-.tl-item{{display:flex;gap:12px;padding:8px 0;position:relative}}
-.tl-item:not(:last-child)::after{{content:"";position:absolute;left:7px;top:28px;
-  bottom:-8px;width:2px;background:#e5e7eb}}
-.tl-dot{{width:16px;height:16px;border-radius:50%;border:2px solid;flex-shrink:0;margin-top:2px}}
+@keyframes admTlIn{{from{{opacity:0;transform:translateY(6px)}}to{{opacity:1;transform:none}}}}
+.tl-item{{display:flex;gap:var(--sp-3);padding:8px 0;position:relative;
+  animation:admTlIn .25s ease both}}
+@media(prefers-reduced-motion:reduce){{.tl-item{{animation:none}}}}
+.tl-item:not(:last-child)::after{{content:"";position:absolute;left:7px;top:26px;
+  bottom:-8px;width:2px;background:var(--clr-slate200)}}
+.tl-dot{{width:16px;height:16px;border-radius:50%;border:2px solid;flex-shrink:0;margin-top:3px}}
 .tl-body{{flex:1}}
-.tl-transition{{font-size:13px;color:#374151;margin-bottom:2px}}
-.tl-meta{{font-size:11px;color:#9ca3af}}
-.tl-note{{font-size:12px;color:#6b7280;margin-top:4px;font-style:italic}}
-.adm-select{{display:block;border:1.5px solid #e5e7eb;border-radius:6px;padding:8px 12px;
-  font-size:13px;background:#fff;cursor:pointer;font-family:inherit;color:#374151;width:100%}}
-.adm-note{{display:block;border:1.5px solid #e5e7eb;border-radius:6px;padding:8px 12px;
-  font-size:13px;resize:vertical;font-family:inherit;color:#374151;width:100%}}
-.adm-upd-btn{{display:block;background:#FF6B00;color:#fff;border:none;border-radius:6px;
-  padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s;
-  font-family:inherit;width:100%}}
-.adm-upd-btn:hover{{background:#E05A00}}
-.adm-resp-cmp{{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid #fed7aa;
-  border-radius:8px;padding:14px 16px;margin-bottom:20px;flex-wrap:wrap}}
+.tl-transition{{font-size:13px;color:var(--clr-slate700);margin-bottom:2px;font-weight:500}}
+.tl-meta{{font-size:11px;color:var(--clr-slate400)}}
+.tl-note{{font-size:12px;color:#6b7280;margin-top:5px;font-style:italic;
+  background:var(--clr-slate50);border-left:3px solid var(--clr-slate200);
+  padding:5px 8px;border-radius:0 var(--radius-sm) var(--radius-sm) 0}}
+.tl-dot-note{{background:#fbbf24;border-color:#d97706}}
+.tl-body-note{{background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 10px}}
+.tl-transition-note{{color:#92400e;font-size:12px;font-weight:600}}
+.tl-note-text{{margin-top:4px}}
+.tl-from{{color:var(--clr-slate400)}}
+.adm-empty-tl{{color:#9ca3af;font-size:13px;margin:0}}
+/* ── Utility layout ──────────────────────────────────────────────── */
+.adm-flex-col-end{{display:flex;flex-direction:column;align-items:flex-end;gap:var(--sp-2)}}
+.adm-text-muted-sm{{font-size:12px;color:var(--clr-slate400);white-space:nowrap;flex-shrink:0}}
+/* ── Required marker ─────────────────────────────────────────────── */
+.adm-req{{color:#ef4444}}
+/* ── Forms ───────────────────────────────────────────────────────── */
+.adm-form-field{{margin-bottom:var(--sp-3)}}
+.adm-form-label{{display:block;font-size:12px;font-weight:700;color:var(--clr-slate700);margin-bottom:5px}}
+.adm-optional{{color:var(--clr-slate400);font-weight:400}}
+.adm-form-hint{{font-size:11px;color:var(--clr-slate400);margin-top:var(--sp-2)}}
+.adm-select{{display:block;width:100%;border:1.5px solid var(--clr-slate200);
+  border-radius:var(--radius-sm);padding:9px 12px;font-size:14px;background:#fff;
+  cursor:pointer;font-family:var(--font);color:var(--clr-slate700);transition:border-color .2s;
+  -webkit-appearance:none;appearance:none;min-height:44px}}
+.adm-select:focus{{outline:2px solid var(--clr-orange);outline-offset:-1px;border-color:var(--clr-orange)}}
+.adm-note{{display:block;width:100%;border:1.5px solid var(--clr-slate200);
+  border-radius:var(--radius-sm);padding:9px 12px;font-size:16px;resize:vertical;
+  font-family:var(--font);color:var(--clr-slate700);transition:border-color .2s;min-height:44px}}
+.adm-note:focus{{outline:2px solid var(--clr-orange);outline-offset:-1px;border-color:var(--clr-orange)}}
+.adm-upd-btn{{display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;background:var(--clr-orange);color:#fff;border:none;
+  border-radius:var(--radius-sm);padding:11px 16px;font-size:13px;font-weight:700;
+  cursor:pointer;transition:background .2s;font-family:var(--font);min-height:44px}}
+.adm-upd-btn:hover{{background:var(--clr-orange-dk)}}
+.adm-upd-btn:focus-visible{{outline:2px solid var(--clr-orange-dk);outline-offset:2px}}
+.adm-upd-btn:disabled{{background:#cbd5e1;cursor:not-allowed}}
+.adm-btn-amber{{background:var(--clr-amber)}}
+.adm-btn-amber:hover{{background:#b45309}}
+.adm-btn-secondary{{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;
+  background:#fff;border:1.5px solid var(--clr-green-bd);border-radius:var(--radius-sm);
+  color:#065f46;font-size:13px;font-weight:700;cursor:pointer;
+  font-family:var(--font);transition:all .2s;min-height:44px}}
+.adm-btn-secondary:hover{{background:var(--clr-green-lt);border-color:#6ee7b7}}
+.adm-btn-secondary:focus-visible{{outline:2px solid #065f46;outline-offset:2px}}
+/* ── Spinner ─────────────────────────────────────────────────────── */
+@keyframes admSpin{{to{{transform:rotate(360deg)}}}}
+.adm-spin{{animation:admSpin .8s linear infinite;display:inline-block}}
+@keyframes admSkeletonPulse{{0%,100%{{opacity:.5}}50%{{opacity:1}}}}
+.adm-skeleton{{position:relative;overflow:hidden;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:admSkeletonPulse 1.2s ease-in-out infinite;border-radius:4px;color:transparent!important;pointer-events:none;user-select:none}}
+.adm-skeleton *{{visibility:hidden}}
+/* ── Terminal state ──────────────────────────────────────────────── */
+.adm-terminal-msg{{display:flex;align-items:flex-start;gap:var(--sp-3);
+  background:var(--clr-slate50);border-color:var(--clr-slate200)!important;
+  color:var(--clr-slate500)}}
+.adm-terminal-icon{{color:var(--clr-green);flex-shrink:0;margin-top:2px}}
+.adm-terminal-title{{font-size:13px;font-weight:700;color:var(--clr-slate700);margin-bottom:3px}}
+.adm-terminal-text{{font-size:13px;color:var(--clr-slate500)}}
+/* ── Update module ───────────────────────────────────────────────── */
+.adm-update-module{{border-color:#dbeafe!important;background:#f0f7ff!important}}
+/* ── Sent response record ────────────────────────────────────────── */
+.adm-resp-record{{border-color:var(--clr-green-bd)!important;background:var(--clr-green-lt)!important}}
+.adm-resp-record-header{{display:flex;align-items:flex-start;gap:var(--sp-3);
+  padding-bottom:var(--sp-3);margin-bottom:var(--sp-3);border-bottom:1px solid var(--clr-green-bd)}}
+.adm-resp-record-icon{{background:var(--clr-green-lt);border:1px solid var(--clr-green-bd);
+  border-radius:var(--radius-sm);padding:7px;display:flex;align-items:center;
+  justify-content:center;color:var(--clr-green);flex-shrink:0}}
+.adm-resp-record-title{{font-size:14px;font-weight:800;color:#065f46;margin-bottom:2px}}
+.adm-resp-record-date{{font-size:11px;color:#047857}}
+.adm-resp-record-stamp{{margin-left:auto;flex-shrink:0;display:inline-block;
+  padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.05em;
+  background:var(--clr-green-bd);color:#065f46;text-transform:uppercase}}
+.adm-resp-record-actions{{padding-top:var(--sp-4);margin-top:var(--sp-3);
+  border-top:1px solid var(--clr-green-bd)}}
+/* ── Composer form ───────────────────────────────────────────────── */
+.adm-resp-cmp{{display:flex;align-items:center;gap:var(--sp-4);background:#fff;
+  border:1px solid #fed7aa;border-radius:var(--radius-sm);padding:var(--sp-4);
+  margin-bottom:var(--sp-5);flex-wrap:wrap}}
 .adm-resp-cmp-item{{flex:1;min-width:120px}}
-.adm-resp-cmp-label{{font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;
-  letter-spacing:.05em;margin-bottom:4px}}
+.adm-resp-cmp-label{{font-size:11px;color:var(--clr-slate400);font-weight:600;
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}}
 .adm-resp-cmp-val{{font-size:18px;font-weight:800;letter-spacing:-.02em}}
 .adm-resp-cmp-arrow{{font-size:20px;color:#d1d5db;flex-shrink:0}}
-.adm-resp-field{{margin-bottom:14px}}
-.adm-resp-label{{display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:5px}}
-.adm-resp-input{{display:block;border:1.5px solid #e5e7eb;border-radius:6px;padding:8px 12px;
-  font-size:13px;background:#fff;font-family:inherit;color:#374151;width:100%;
-  transition:border-color .2s}}
-.adm-resp-input:focus{{outline:none;border-color:#FF6B00}}
+.adm-resp-field{{margin-bottom:var(--sp-4)}}
+.adm-resp-label{{display:block;font-size:12px;font-weight:700;color:var(--clr-slate700);margin-bottom:5px}}
+.adm-resp-input{{display:block;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
+  padding:9px 12px;font-size:16px;background:#fff;font-family:var(--font);
+  color:var(--clr-slate700);width:100%;transition:border-color .2s;min-height:44px}}
+.adm-resp-input:focus{{outline:2px solid var(--clr-orange);outline-offset:-1px;border-color:var(--clr-orange)}}
+/* ── AI details ──────────────────────────────────────────────────── */
+.adm-table-wrap{{overflow-x:auto}}
+.adm-ai-details{{border-radius:var(--radius-sm);border:1px solid var(--clr-slate200);overflow:hidden;margin-bottom:0}}
+.adm-ai-summary{{display:flex;align-items:center;gap:var(--sp-3);padding:13px 16px;
+  background:var(--clr-slate50);cursor:pointer;list-style:none;font-weight:700;font-size:13px;
+  color:var(--clr-slate700);user-select:none;transition:background .15s}}
+.adm-ai-summary::-webkit-details-marker{{display:none}}
+.adm-ai-summary:hover{{background:var(--clr-slate100)}}
+.adm-ai-summary:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:-2px}}
+.adm-ai-chevron{{font-size:11px;color:var(--clr-slate400);transition:transform .2s;margin-left:4px}}
+details.adm-ai-details[open] .adm-ai-chevron{{transform:rotate(180deg)}}
+.adm-ai-body{{padding:14px 16px;border-top:1px solid var(--clr-slate200)}}
+.adm-ai-table{{width:100%;border-collapse:collapse}}
+.adm-ai-table th{{background:var(--clr-slate50);padding:8px 10px;text-align:left;font-size:11px;
+  font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;
+  border-bottom:1px solid var(--clr-slate200)}}
+.adm-ai-table td{{padding:10px;border-bottom:1px solid var(--clr-slate100);font-size:12px;vertical-align:top}}
+.adm-ai-table tr:last-child td{{border-bottom:none}}
+.ai-fn{{font-weight:600;color:var(--clr-slate700);min-width:140px}}
+.ai-fv{{color:var(--clr-slate900);max-width:180px;word-break:break-word}}
+.ai-fp{{color:#6b7280;min-width:130px}}
+.ai-fc{{white-space:nowrap}}
+/* ── Toast system ────────────────────────────────────────────────── */
+#adm-toast-stack{{position:fixed;top:68px;right:20px;z-index:9000;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:340px}}
+.adm-toast{{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;
+  border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:#fff;
+  box-shadow:0 4px 18px rgba(0,0,0,.18);pointer-events:all;
+  transform:translateX(120%);opacity:0;transition:transform .3s ease,opacity .3s ease}}
+.adm-toast.show{{transform:none;opacity:1}}
+.adm-toast-success{{background:#16a34a}}
+.adm-toast-error{{background:#dc2626}}
+.adm-toast-info{{background:#1d4ed8}}
+.adm-toast-close{{background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;
+  padding:0;font-size:16px;line-height:1;flex-shrink:0;margin-left:auto;
+  transition:color .15s;min-width:20px;text-align:center}}
+.adm-toast-close:hover{{color:#fff}}
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media(max-width:900px){{
+  .adm-layout-2col{{grid-template-columns:1fr}}
+  .adm-col-side{{order:-1}}
+  .adm-outer{{padding:var(--sp-4) var(--sp-3) 48px}}
+}}
 @media(max-width:600px){{
-  .adm-detail-wrap{{padding:16px 12px 48px}}
+  .adm-header{{padding:0 var(--sp-3)}}
+  .adm-header-title,.adm-header-sep{{display:none}}
+  .adm-page-header{{padding:var(--sp-3) var(--sp-3)}}
   .adm-detail-label{{min-width:90px}}
   .adm-detail-val{{max-width:calc(100% - 100px)}}
+  #adm-toast-stack{{right:10px;left:10px;max-width:none;top:60px}}
 }}
 </style>
 </head>
@@ -4156,27 +4371,101 @@ details.adm-ai-details[open] .adm-ai-chevron{{transform:rotate(180deg)}}
   <span class="adm-header-logo">CRBOX</span>
   <span class="adm-header-sep">|</span>
   <span class="adm-header-title">Panel de ventas</span>
-  <a href="/admin/logout" class="adm-logout">Salir</a>
+  <nav class="adm-header-nav">
+    <a href="/admin/solicitudes" class="adm-header-link">Solicitudes</a>
+    <a href="/admin/consultas" class="adm-header-link">Consultas</a>
+    <a href="/admin/logout" class="adm-logout" aria-label="Cerrar sesi&oacute;n">Salir</a>
+  </nav>
 </header>
-<div class="adm-detail-wrap">
-  <a href="{back_url}" class="adm-back">&#8592; Volver a solicitudes</a>
-  {'<div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#065f46;">&#10003;&nbsp; Notificaci&oacute;n reenviada correctamente al cliente.</div>' if resent else ''}
-  <div class="adm-page-title">
-    <span class="adm-scb-id">{rid}</span>
-    {badge_html}
-    <span class="adm-src-badge {src_cls}">{src_text}</span>
+
+<div class="adm-page-header">
+  <div class="adm-breadcrumb">
+    <a href="{back_url}" class="adm-back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver a solicitudes
+    </a>
+  </div>
+  {resent_banner}
+  <div class="adm-ph-row">
+    <div class="adm-ph-left">
+      <span class="adm-scb-id" aria-label="ID de solicitud">{rid}</span>
+      {badge_html}
+      <span class="adm-src-badge {src_cls}">{src_text}</span>
+    </div>
   </div>
   <div class="adm-page-meta">{esc(date_str)} &middot; {esc(elapsed)}</div>
-  {customer_html}
-  {product_html}
-  {ai_section_html}
-  {estimado_html}
-  {history_html}
-  {update_html}
-  {add_note_html}
-  {link_pkg_html}
-  {composer_html}
 </div>
+
+<div class="adm-outer">
+  <div class="adm-layout-2col">
+    <div class="adm-col-main">
+      {product_html}
+      {estimado_html}
+      {ai_section_html}
+      {history_html}
+      {composer_html}
+    </div>
+    <div class="adm-col-side">
+      {customer_html}
+      {update_html}
+      {add_note_html}
+      {link_pkg_html}
+    </div>
+  </div>
+</div>
+
+<div id="adm-toast-stack" role="region" aria-live="polite" aria-label="Notificaciones"></div>
+
+<script>
+(function() {{
+  function admToast(msg, type) {{
+    type = type || 'success';
+    var stack = document.getElementById('adm-toast-stack');
+    if (!stack) return;
+    var t = document.createElement('div');
+    t.className = 'adm-toast adm-toast-' + type;
+    t.setAttribute('role', 'alert');
+    t.innerHTML = '<span style="flex:1">' + msg + '</span>'
+      + '<button class="adm-toast-close" onclick="this.parentElement.remove()" aria-label="Cerrar notificaci\u00f3n">&times;</button>';
+    stack.appendChild(t);
+    requestAnimationFrame(function() {{ t.classList.add('show'); }});
+    setTimeout(function() {{
+      t.classList.remove('show');
+      setTimeout(function() {{ t.remove(); }}, 300);
+    }}, 4000);
+  }}
+
+  var form = document.getElementById('adm-update-form');
+  if (form) {{
+    form.addEventListener('submit', function() {{
+      var btn = document.getElementById('adm-update-submit');
+      if (btn) {{
+        btn.disabled = true;
+        var txt = btn.querySelector('.adm-btn-text');
+        var spin = btn.querySelector('.adm-btn-spinner');
+        if (txt) txt.style.display = 'none';
+        if (spin) spin.style.display = '';
+      }}
+    }});
+  }}
+
+  var params = new URLSearchParams(window.location.search);
+  function admConsumeParam(key, msg, type) {{
+    if (params.get(key) === '1') {{
+      admToast(msg, type || 'success');
+      var cleaned = window.location.search.replace(new RegExp('[?&]' + key + '=1'), '') || '';
+      history.replaceState(null, '', window.location.pathname + cleaned);
+    }}
+  }}
+  admConsumeParam('updated',    'Estado actualizado correctamente', 'success');
+  admConsumeParam('upd_err',    'Error al actualizar el estado. Intente de nuevo.', 'error');
+  admConsumeParam('note_added', 'Nota interna guardada', 'success');
+  admConsumeParam('resp_sent',  'Respuesta enviada al cliente \u2713', 'success');
+  admConsumeParam('resp_err',   'Error al enviar la respuesta al cliente.', 'error');
+  admConsumeParam('resent',     'Respuesta reenviada al cliente \u2713', 'success');
+  admConsumeParam('resend_err', 'Error al reenviar el correo al cliente.', 'error');
+}})();
+</script>
 </body>
 </html>'''
 
@@ -4307,28 +4596,49 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
         )
 
     # ── Stats summary tiles ────────────────────────────────────────────────
+    _ic_inbox   = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>'
+    _ic_eye     = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+    _ic_check   = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+    _ic_process = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+    _ic_done    = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>'
+    _ic_cancel  = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+    en_proceso_total = (counts.get('pendiente_compra_crbox', 0) +
+                        counts.get('pendiente_compra_cliente', 0) +
+                        counts.get('pagado_por_cliente', 0) +
+                        counts.get('comprado', 0) +
+                        counts.get('listo_para_retiro', 0))
     stat_tiles = [
-        ('🔴', 'Nuevas',          counts.get('enviada', 0),         '#FFF7ED', '#C2410C', '#FDBA74'),
-        ('🔵', 'En revisión',     counts.get('en_revision', 0),     '#EFF6FF', '#1D4ED8', '#BFDBFE'),
-        ('🟢', 'Respondidas',     counts.get('respondida', 0),      '#F0FDF4', '#15803D', '#BBF7D0'),
-        ('🟠', 'En proceso',      (counts.get('pendiente_compra_crbox', 0) +
-                                   counts.get('pendiente_compra_cliente', 0) +
-                                   counts.get('pagado_por_cliente', 0) +
-                                   counts.get('comprado', 0) +
-                                   counts.get('listo_para_retiro', 0)),
-                                   '#FFF7ED', '#9A3412', '#FED7AA'),
-        ('✅', 'Completadas',     counts.get('completada', 0),      '#F9FAFB', '#374151', '#D1D5DB'),
-        ('❌', 'Canceladas',      counts.get('cancelada', 0),       '#FEF2F2', '#991B1B', '#FECACA'),
+        (_ic_inbox,   'Nuevas',      counts.get('enviada', 0),      '#FFF7ED', '#C2410C', '#FDBA74', 'enviada'),
+        (_ic_eye,     'En revisi\u00f3n', counts.get('en_revision', 0), '#EFF6FF', '#1D4ED8', '#BFDBFE', 'en_revision'),
+        (_ic_check,   'Respondidas', counts.get('respondida', 0),   '#F0FDF4', '#15803D', '#BBF7D0', 'respondida'),
+        (_ic_process, 'En proceso',  en_proceso_total,              '#FFF7ED', '#9A3412', '#FED7AA', None),
+        (_ic_done,    'Completadas', counts.get('completada', 0),   '#F9FAFB', '#374151', '#D1D5DB', 'completada'),
+        (_ic_cancel,  'Canceladas',  counts.get('cancelada', 0),    '#FEF2F2', '#991B1B', '#FECACA', 'cancelada'),
     ]
     stats_html = ''
-    for icon, label, val, bg, fg, bdr in stat_tiles:
-        if val == 0:
-            fg = '#9ca3af'; bg = '#f9fafb'; bdr = '#e5e7eb'
+    for icon, label, val, bg, fg, bdr, flt_key in stat_tiles:
+        zero = val == 0
+        tile_fg  = '#9ca3af' if zero else fg
+        tile_bg  = '#f9fafb' if zero else bg
+        tile_bdr = '#e5e7eb' if zero else bdr
+        if flt_key:
+            filter_url = f'/admin/solicitudes?filter=all&_status={flt_key}'
+            tile_inner = (
+                f'<a href="{filter_url}" class="adm-stat-tile-link" aria-label="Filtrar por {label}">'
+                f'<div class="adm-stat-icon" style="color:{tile_fg};">{icon}</div>'
+                f'<div class="adm-stat-num" style="color:{tile_fg};">{val}</div>'
+                f'<div class="adm-stat-lbl" style="color:{tile_fg};">{label}</div>'
+                f'</a>'
+            )
+        else:
+            tile_inner = (
+                f'<div class="adm-stat-icon" style="color:{tile_fg};">{icon}</div>'
+                f'<div class="adm-stat-num" style="color:{tile_fg};">{val}</div>'
+                f'<div class="adm-stat-lbl" style="color:{tile_fg};">{label}</div>'
+            )
         stats_html += (
-            f'<div class="adm-stat-tile" style="background:{bg};border-color:{bdr};">'
-            f'<div class="adm-stat-num" style="color:{fg};">{val}</div>'
-            f'<div class="adm-stat-lbl" style="color:{fg if val > 0 else "#9ca3af"};">{icon} {label}</div>'
-            f'</div>'
+            f'<div class="adm-stat-tile" style="background:{tile_bg};border-color:{tile_bdr};">'
+            f'{tile_inner}</div>'
         )
 
     # ── Table rows + card rows ─────────────────────────────────────────────
@@ -4370,19 +4680,43 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
                     f'font-size:10px;font-weight:700;background:#eff6ff;color:{svc_pill_color};'
                     f'border:1px solid #bfdbfe;">{svc_str}</span>')
 
-        # Update controls
+        # Update controls — expandable sub-row (desktop) / card action (mobile)
+        expand_id = f'adm-expand-{rid}'
         if has_transitions:
             sel_opts = _admin_status_options_html(status)
-            update_html = (
-                f'<form method="POST" action="/admin/solicitudes/{rid}/status">'
+            upd_btn_html = (
+                f'<button class="adm-upd-toggle" type="button" '
+                f'aria-expanded="false" aria-controls="{expand_id}" '
+                f'onclick="admToggleExpand(this,\'{expand_id}\')">'
+                f'&#x22EE;&nbsp;Actualizar'
+                f'</button>'
+            )
+            expand_form = (
+                f'<tr class="adm-expand-row" id="{expand_id}" hidden>'
+                f'<td colspan="8" class="adm-expand-td">'
+                f'<div class="adm-expand-inner">'
+                f'<form method="POST" action="/admin/solicitudes/{rid}/status" '
+                f'class="adm-inline-upd-form">'
                 f'<input type="hidden" name="filter" value="{filter_val}">'
-                f'<select class="adm-select" name="status">{sel_opts}</select>'
-                f'<textarea class="adm-note" name="note" placeholder="Nota interna (opcional)" rows="2"></textarea>'
-                f'<button class="adm-upd-btn" type="submit">Actualizar</button>'
+                f'<select class="adm-select adm-select-inline" name="status" '
+                f'aria-label="Nuevo estado para {rid}">{sel_opts}</select>'
+                f'<textarea class="adm-note adm-note-inline" name="note" '
+                f'placeholder="Nota interna (opcional)" rows="2" '
+                f'aria-label="Nota interna opcional"></textarea>'
+                f'<div class="adm-expand-actions">'
+                f'<button class="adm-upd-btn adm-upd-btn-sm" type="submit">&#10003;&nbsp;Confirmar</button>'
+                f'<button class="adm-cancel-btn" type="button" '
+                f'onclick="admToggleExpand(document.querySelector(\'[aria-controls=\\\\"{expand_id}\\\\"]\'),\'{expand_id}\')">'
+                f'Cancelar</button>'
+                f'</div>'
                 f'</form>'
+                f'</div>'
+                f'</td>'
+                f'</tr>'
             )
         else:
-            update_html = '<span style="color:#d1d5db;font-size:12px;">Terminal</span>'
+            upd_btn_html = '<span class="adm-terminal-chip">Terminal</span>'
+            expand_form  = ''
 
         # Ver → link
         ver_link = f'<a href="/admin/solicitudes/{rid}?filter={filter_val}" class="adm-ver-link">Ver&nbsp;&#8594;</a>'
@@ -4402,33 +4736,39 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
             f'data-casillero="{da_casillero}" data-prod="{da_prod}" '
             f'data-status="{da_status}" data-svc="{da_svc}">\n'
             f'<td class="td-id"><span class="adm-rid">{rid}</span><br>'
-            f'<div style="margin-top:5px;">{src_badge_html}</div></td>\n'
+            f'<div class="adm-pill-wrap">{src_badge_html}</div></td>\n'
             f'<td><div class="adm-name-line">{name}{empresa}</div>'
             f'<div class="adm-sub">{email_v}</div>'
-            f'<div class="adm-sub" style="margin-top:2px;">Casillero: <b>{casillero}</b></div></td>\n'
-            f'<td><div style="font-size:13px;font-weight:500;">{prod}</div>'
+            f'<div class="adm-sub adm-casillero-row">Casillero: <b>{casillero}</b></div></td>\n'
+            f'<td><div class="adm-prod-name">{prod}</div>'
             f'<div class="adm-sub">{cat}</div>'
-            f'<div style="margin-top:4px;">{svc_pill}</div></td>\n'
+            f'<div class="adm-pill-wrap">{svc_pill}</div></td>\n'
             f'<td class="td-val">{val}</td>\n'
-            f'<td class="td-date"><div style="white-space:nowrap;">{date_str}</div>'
+            f'<td class="td-date"><div class="adm-td-date">{date_str}</div>'
             f'<div class="adm-sub">{elapsed}</div></td>\n'
             f'<td>{badge_html}</td>\n'
-            f'<td class="td-upd">{update_html}</td>\n'
+            f'<td class="td-upd">{upd_btn_html}</td>\n'
             f'<td class="td-ver">{ver_link}</td>\n'
             f'</tr>\n'
+            f'{expand_form}\n'
         )
 
         # Card (mobile) — richer with casillero + service
         card_form = ''
         if has_transitions:
             card_form = (
+                f'<details class="adm-card-actions-details">'
+                f'<summary class="adm-card-actions-toggle">&#x22EE;&nbsp;Actualizar estado</summary>'
                 f'<div class="adm-card-actions">'
                 f'<form method="POST" action="/admin/solicitudes/{rid}/status">'
                 f'<input type="hidden" name="filter" value="{filter_val}">'
-                f'<select class="adm-select" name="status">{_admin_status_options_html(status)}</select>'
-                f'<textarea class="adm-note" name="note" placeholder="Nota interna (opcional)" rows="2"></textarea>'
-                f'<button class="adm-upd-btn" type="submit">Actualizar estado</button>'
+                f'<select class="adm-select" name="status" '
+                f'aria-label="Nuevo estado para {rid}">{_admin_status_options_html(status)}</select>'
+                f'<textarea class="adm-note" name="note" placeholder="Nota interna (opcional)" rows="2" '
+                f'aria-label="Nota interna opcional"></textarea>'
+                f'<button class="adm-upd-btn" type="submit">Confirmar actualización</button>'
                 f'</form></div>'
+                f'</details>'
             )
         detail_url = f'/admin/solicitudes/{rid}?filter={filter_val}'
         card_rows += (
@@ -4440,9 +4780,9 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
             f'<div class="adm-card-top">\n'
             f'  <div>\n'
             f'    <span class="adm-card-id">{rid}</span>{empresa}\n'
-            f'    <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;">{src_badge_html}{svc_pill}</div>\n'
+            f'    <div class="adm-badge-row">{src_badge_html}{svc_pill}</div>\n'
             f'  </div>\n'
-            f'  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">'
+            f'  <div class="adm-flex-col-end">'
             f'{badge_html}</div>\n'
             f'</div>\n'
             f'<div class="adm-card-fields">\n'
@@ -4469,9 +4809,10 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
     if not rows:
         empty_html = (
             '<div class="adm-empty">'
-            '<div style="font-size:40px;margin-bottom:14px;">📭</div>'
+            '<div class="adm-empty-icon">&#128371;</div>'
             '<h3>Sin solicitudes en esta vista</h3>'
             '<p>No hay solicitudes que coincidan con el filtro seleccionado.</p>'
+            f'<a href="/admin/solicitudes?filter=all" class="adm-empty-cta">Ver todas las solicitudes</a>'
             '</div>'
         )
         table_body_html = f'<tr><td colspan="8">{empty_html}</td></tr>'
@@ -4491,80 +4832,97 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
 <meta name="robots" content="noindex,nofollow">
 <title>Panel de ventas — CRBOX</title>
 <style>
+/* ── Design tokens ──────────────────────────────────────────────────── */
+:root{{
+  --clr-orange:#FF6B00;--clr-orange-dk:#E05A00;--clr-orange-lt:#fff7ed;
+  --clr-navy:#1e293b;--clr-navy2:#334155;
+  --clr-slate50:#f8fafc;--clr-slate100:#f1f5f9;--clr-slate200:#e2e8f0;
+  --clr-slate400:#94a3b8;--clr-slate500:#64748b;--clr-slate700:#374151;--clr-slate900:#111;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --radius-sm:6px;--radius:10px;--radius-lg:14px;
+}}
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  background:#f1f5f9;color:#111;min-height:100vh}}
+body{{font-family:var(--font);background:var(--clr-slate100);color:var(--clr-slate900);min-height:100vh}}
 a{{color:inherit;text-decoration:none}}
 /* ── Header ─────────────────────────────────────────────────────────── */
-.adm-header{{background:#1e293b;padding:0 20px;display:flex;align-items:center;gap:12px;
+.adm-header{{background:var(--clr-navy);padding:0 20px;display:flex;align-items:center;gap:12px;
   position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.22);height:52px}}
-.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:19px;letter-spacing:-.5px;flex-shrink:0}}
-.adm-header-sep{{color:#334155;font-size:18px;flex-shrink:0}}
+.adm-header-logo{{color:var(--clr-orange);font-weight:800;font-size:19px;letter-spacing:-.5px;flex-shrink:0}}
+.adm-header-sep{{color:var(--clr-navy2);font-size:18px;flex-shrink:0}}
 .adm-header-title{{color:#cbd5e1;font-size:13px;font-weight:500;flex:1;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}}
 .adm-header-nav{{display:flex;align-items:center;gap:8px;flex-shrink:0}}
-.adm-header-link{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:6px;
-  border:1px solid #334155;transition:all .2s;white-space:nowrap}}
-.adm-header-link:hover{{color:#fff;border-color:#64748b;background:#334155}}
-.adm-logout{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:6px;
-  border:1px solid #334155;transition:all .2s;white-space:nowrap}}
-.adm-logout:hover{{color:#fff;border-color:#64748b;background:#334155}}
+.adm-header-link,.adm-logout{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:var(--radius-sm);
+  border:1px solid var(--clr-navy2);transition:all .2s;white-space:nowrap}}
+.adm-header-link:hover,.adm-logout:hover{{color:#fff;border-color:#64748b;background:var(--clr-navy2)}}
+.adm-header-link:focus-visible,.adm-logout:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
 /* ── Stats bar ──────────────────────────────────────────────────────── */
 .adm-stats{{display:flex;gap:10px;padding:16px 20px;overflow-x:auto;
-  -webkit-overflow-scrolling:touch;scrollbar-width:none}}
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--clr-navy);
+  border-bottom:1px solid rgba(255,255,255,.06)}}
 .adm-stats::-webkit-scrollbar{{display:none}}
-.adm-stat-tile{{flex-shrink:0;min-width:88px;border-radius:10px;border:1px solid;
-  padding:10px 14px;text-align:center}}
-.adm-stat-num{{font-size:24px;font-weight:800;line-height:1;margin-bottom:4px}}
-.adm-stat-lbl{{font-size:10px;font-weight:600;letter-spacing:.03em}}
+.adm-stat-tile{{flex-shrink:0;min-width:100px;border-radius:var(--radius);border:1px solid;
+  padding:10px 14px;text-align:center;transition:transform .15s,box-shadow .15s}}
+.adm-stat-tile:hover{{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.1)}}
+.adm-stat-tile-link{{display:block;text-decoration:none;color:inherit}}
+.adm-stat-tile-link:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px;border-radius:4px}}
+.adm-stat-icon{{display:flex;justify-content:center;margin-bottom:4px}}
+.adm-stat-icon svg{{opacity:.7}}
+.adm-stat-num{{font-size:22px;font-weight:900;line-height:1;margin-bottom:3px;letter-spacing:-.02em}}
+.adm-stat-lbl{{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}}
 /* ── Filter tabs ────────────────────────────────────────────────────── */
 .adm-tabs{{display:flex;gap:3px;padding:0 20px;overflow-x:auto;
-  -webkit-overflow-scrolling:touch;scrollbar-width:none;background:#f1f5f9}}
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--clr-slate100)}}
 .adm-tabs::-webkit-scrollbar{{display:none}}
 .adm-tab{{flex-shrink:0;padding:7px 16px;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;
-  color:#64748b;border:1px solid transparent;border-bottom:none;transition:all .15s;cursor:pointer}}
-.adm-tab:hover{{color:#374151;background:#e2e8f0}}
-.adm-tab-active{{background:#fff;color:#FF6B00;border-color:#e2e8f0}}
-/* ── Search / filter row ────────────────────────────────────────────── */
-.adm-filter-bar{{padding:12px 16px;border-bottom:1px solid #f1f5f9;background:#fafafa}}
+  color:var(--clr-slate500);border:1px solid transparent;border-bottom:none;transition:all .15s;cursor:pointer}}
+.adm-tab:hover{{color:var(--clr-slate700);background:#e2e8f0}}
+.adm-tab:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:-2px}}
+.adm-tab-active{{background:#fff;color:var(--clr-orange);border-color:#e2e8f0}}
+/* ── Search / filter row (sticky) ──────────────────────────────────── */
+.adm-filter-bar{{padding:12px 16px;border-bottom:1px solid var(--clr-slate100);background:#fafafa;
+  position:sticky;top:52px;z-index:15;box-shadow:0 1px 4px rgba(0,0,0,.06)}}
 .adm-filter-row1{{display:flex;gap:8px;align-items:center;margin-bottom:0}}
 .adm-filter-row2{{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}}
 .adm-filter-bar input,.adm-filter-bar select{{
-  border:1.5px solid #e2e8f0;border-radius:7px;padding:7px 11px;font-size:13px;
-  background:#fff;color:#374151;font-family:inherit;outline:none;transition:border-color .2s}}
-.adm-filter-bar input:focus,.adm-filter-bar select:focus{{border-color:#FF6B00}}
+  border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);padding:8px 11px;
+  font-size:13px;background:#fff;color:var(--clr-slate700);font-family:var(--font);
+  outline:none;transition:border-color .2s;min-height:38px}}
+.adm-filter-bar input:focus,.adm-filter-bar select:focus{{border-color:var(--clr-orange);
+  outline:2px solid rgba(255,107,0,.15);outline-offset:-1px}}
 .adm-filter-search{{flex:1;min-width:0}}
 .adm-filter-status{{min-width:140px}}
 .adm-filter-svc{{min-width:110px}}
-.adm-filter-toggle{{padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;
-  background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;
-  transition:all .2s;font-family:inherit;white-space:nowrap;flex-shrink:0}}
-.adm-filter-toggle:hover,.adm-filter-toggle.active{{border-color:#FF6B00;color:#FF6B00;background:#fff7ed}}
-.adm-filter-clear{{padding:7px 13px;border:1.5px solid #e2e8f0;border-radius:7px;
-  background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;
-  transition:all .2s;font-family:inherit;white-space:nowrap}}
-.adm-filter-clear:hover{{border-color:#FF6B00;color:#FF6B00}}
+.adm-filter-toggle{{padding:8px 12px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
+  background:#fff;color:var(--clr-slate500);font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .2s;font-family:var(--font);white-space:nowrap;flex-shrink:0;
+  display:flex;align-items:center;gap:5px;min-height:38px}}
+.adm-filter-toggle:hover,.adm-filter-toggle.active{{border-color:var(--clr-orange);color:var(--clr-orange);background:var(--clr-orange-lt)}}
+.adm-filter-clear{{padding:8px 13px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
+  background:#fff;color:var(--clr-slate500);font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .2s;font-family:var(--font);white-space:nowrap;min-height:38px}}
+.adm-filter-clear:hover{{border-color:var(--clr-orange);color:var(--clr-orange)}}
 .adm-filter-row2{{display:none}}
 .adm-filter-row2.open{{display:flex}}
 /* ── Main container ─────────────────────────────────────────────────── */
 .adm-main{{padding:0 20px 48px}}
-.adm-panel{{background:#fff;border-radius:0 0 14px 14px;
+.adm-panel{{background:#fff;border-radius:0 0 var(--radius-lg) var(--radius-lg);
   box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden}}
-.adm-count{{padding:10px 16px;font-size:12px;color:#94a3b8;
-  border-bottom:1px solid #f1f5f9;background:#fafafa;letter-spacing:.02em}}
+.adm-count{{padding:10px 16px;font-size:12px;color:var(--clr-slate400);
+  border-bottom:1px solid var(--clr-slate100);background:#fafafa;letter-spacing:.02em}}
 /* ── Table ──────────────────────────────────────────────────────────── */
 .adm-table{{width:100%;border-collapse:collapse}}
-.adm-table thead th{{background:#f8fafc;padding:10px 14px;text-align:left;
-  font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;
-  letter-spacing:.07em;border-bottom:1px solid #e2e8f0;white-space:nowrap;
+.adm-table thead th{{background:var(--clr-slate50);padding:10px 14px;text-align:left;
+  font-size:10px;font-weight:700;color:var(--clr-slate400);text-transform:uppercase;
+  letter-spacing:.07em;border-bottom:1px solid var(--clr-slate200);white-space:nowrap;
   position:sticky;top:52px;z-index:5}}
-.adm-table td{{padding:13px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top}}
+.adm-table td{{padding:13px 14px;border-bottom:1px solid var(--clr-slate100);vertical-align:top}}
 .adm-table .adm-tr:last-child td{{border-bottom:none}}
-.adm-table .adm-tr{{transition:background .12s;cursor:default}}
-.adm-table .adm-tr:hover td{{background:#f8fafc}}
-.adm-rid{{color:#FF6B00;font-weight:700;font-size:12px}}
+.adm-table .adm-tr{{transition:background .12s}}
+.adm-table .adm-tr:hover td{{background:var(--clr-slate50)}}
+.adm-rid{{color:var(--clr-orange);font-weight:700;font-size:12px}}
 .adm-name-line{{font-weight:600;font-size:13px}}
-.adm-sub{{color:#94a3b8;font-size:11px;margin-top:2px}}
+.adm-sub{{color:var(--clr-slate400);font-size:11px;margin-top:2px}}
 .td-id{{white-space:nowrap;min-width:80px}}
 .td-val{{font-size:13px;white-space:nowrap;font-weight:600}}
 .td-date{{min-width:100px}}
@@ -4573,79 +4931,125 @@ a{{color:inherit;text-decoration:none}}
 /* ── Source badges ──────────────────────────────────────────────────── */
 .adm-src-badge{{display:inline-block;padding:2px 7px;border-radius:999px;
   font-size:10px;font-weight:700;border:1px solid}}
-.adm-src-manual{{background:#f1f5f9;color:#475569;border-color:#e2e8f0}}
+.adm-src-manual{{background:var(--clr-slate100);color:#475569;border-color:var(--clr-slate200)}}
 .adm-src-ai{{background:#fffbeb;color:#92400e;border-color:#fde68a}}
 .adm-src-ai-partial{{background:#fff7ed;color:#c2410c;border-color:#fdba74}}
 /* ── Ver link ───────────────────────────────────────────────────────── */
 .adm-ver-link{{display:inline-flex;align-items:center;justify-content:center;
-  padding:6px 12px;border-radius:7px;font-size:12px;font-weight:700;
-  color:#FF6B00;border:1.5px solid #fdba74;background:#fff7ed;
-  transition:all .2s;white-space:nowrap;min-height:34px}}
-.adm-ver-link:hover{{background:#FF6B00;color:#fff;border-color:#FF6B00}}
+  padding:6px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;
+  color:var(--clr-orange);border:1.5px solid #fdba74;background:var(--clr-orange-lt);
+  transition:all .2s;white-space:nowrap;min-height:36px}}
+.adm-ver-link:hover{{background:var(--clr-orange);color:#fff;border-color:var(--clr-orange)}}
+.adm-ver-link:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
 /* ── Status badges ──────────────────────────────────────────────────── */
 .adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
   font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
 .adm-empresa{{display:inline-block;background:#fff7ed;color:#c2410c;
   font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;
   border:1px solid #fdba74;vertical-align:middle;margin-left:4px}}
-/* ── Update controls ────────────────────────────────────────────────── */
-.adm-select{{display:block;width:100%;border:1.5px solid #e2e8f0;border-radius:7px;
+/* ── Update controls (list inline expandable) ───────────────────────── */
+.adm-select{{display:block;width:100%;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
   padding:7px 10px;font-size:12px;background:#fff;margin-bottom:6px;cursor:pointer;
-  font-family:inherit;color:#374151;transition:border-color .2s}}
-.adm-select:focus{{outline:none;border-color:#FF6B00}}
-.adm-note{{display:block;width:100%;border:1.5px solid #e2e8f0;border-radius:7px;
-  padding:7px 10px;font-size:12px;resize:vertical;font-family:inherit;
-  color:#374151;margin-bottom:6px;transition:border-color .2s}}
-.adm-note:focus{{outline:none;border-color:#FF6B00}}
-.adm-upd-btn{{display:block;width:100%;background:#FF6B00;color:#fff;border:none;
-  border-radius:7px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;
-  transition:background .2s;font-family:inherit;min-height:36px}}
-.adm-upd-btn:hover{{background:#e05a00}}
+  font-family:var(--font);color:var(--clr-slate700);transition:border-color .2s}}
+.adm-select:focus{{outline:2px solid var(--clr-orange);outline-offset:-1px;border-color:var(--clr-orange)}}
+.adm-note{{display:block;width:100%;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
+  padding:7px 10px;font-size:12px;resize:vertical;font-family:var(--font);
+  color:var(--clr-slate700);margin-bottom:6px;transition:border-color .2s}}
+.adm-note:focus{{outline:2px solid var(--clr-orange);outline-offset:-1px;border-color:var(--clr-orange)}}
+.adm-upd-btn{{display:block;width:100%;background:var(--clr-orange);color:#fff;border:none;
+  border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;
+  transition:background .2s;font-family:var(--font);min-height:36px}}
+.adm-upd-btn:hover{{background:var(--clr-orange-dk)}}
 .adm-upd-btn:disabled{{background:#cbd5e1;cursor:not-allowed}}
+.adm-upd-btn:focus-visible{{outline:2px solid var(--clr-orange-dk);outline-offset:2px}}
+/* ── Expandable sub-row (desktop) ───────────────────────────────────── */
+.adm-upd-toggle{{padding:6px 12px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
+  background:#fff;color:var(--clr-slate500);font-size:12px;font-weight:600;cursor:pointer;
+  font-family:var(--font);transition:all .2s;white-space:nowrap;min-height:36px}}
+.adm-upd-toggle:hover{{border-color:var(--clr-orange);color:var(--clr-orange)}}
+.adm-upd-toggle[aria-expanded="true"]{{border-color:var(--clr-orange);color:var(--clr-orange);background:var(--clr-orange-lt)}}
+.adm-upd-toggle:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
+.adm-terminal-chip{{display:inline-block;padding:3px 9px;border-radius:999px;
+  font-size:11px;font-weight:600;color:var(--clr-slate400);background:var(--clr-slate100);border:1px solid var(--clr-slate200)}}
+.adm-expand-row{{background:#fafafa}}
+.adm-expand-row td{{padding:0}}
+.adm-expand-td{{padding:0 !important}}
+.adm-expand-inner{{padding:14px 20px;border-top:2px solid var(--clr-orange-lt);
+  border-bottom:1px solid var(--clr-slate200);display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}}
+.adm-inline-upd-form{{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;width:100%}}
+.adm-select-inline{{max-width:240px;min-width:180px;margin-bottom:0}}
+.adm-note-inline{{max-width:320px;min-width:200px;margin-bottom:0;rows:2}}
+.adm-expand-actions{{display:flex;gap:8px;align-items:center;flex-shrink:0}}
+.adm-upd-btn-sm{{width:auto;padding:8px 16px}}
+.adm-cancel-btn{{padding:8px 14px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
+  background:#fff;color:var(--clr-slate500);font-size:12px;font-weight:600;cursor:pointer;
+  font-family:var(--font);transition:all .2s;min-height:36px}}
+.adm-cancel-btn:hover{{border-color:var(--clr-slate400);color:var(--clr-slate700)}}
+/* ── Mobile details/summary accordion ───────────────────────────────── */
+.adm-card-actions-details{{margin-top:8px;border-top:1px solid var(--clr-slate100)}}
+.adm-card-actions-toggle{{list-style:none;padding:10px 0 6px;font-size:12px;font-weight:700;
+  color:var(--clr-slate500);cursor:pointer;user-select:none}}
+.adm-card-actions-toggle::-webkit-details-marker{{display:none}}
+.adm-card-actions-toggle::before{{content:"⋮ ";color:var(--clr-orange)}}
+.adm-card-actions{{padding-top:8px}}
 /* ── Mobile cards ───────────────────────────────────────────────────── */
 .adm-cards{{display:none;flex-direction:column;gap:12px;padding:12px}}
-.adm-card{{background:#fff;border-radius:12px;padding:16px;
-  border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05)}}
-.adm-card-top{{display:flex;justify-content:space-between;align-items:flex-start;
-  margin-bottom:12px}}
-.adm-card-id{{font-size:15px;font-weight:800;color:#FF6B00}}
-.adm-card-fields{{margin-bottom:10px;border:1px solid #f1f5f9;border-radius:8px;overflow:hidden}}
+.adm-card{{background:#fff;border-radius:var(--radius);padding:16px;
+  border:1px solid var(--clr-slate200);box-shadow:0 1px 4px rgba(0,0,0,.05)}}
+.adm-card-top{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}}
+.adm-badge-row{{margin-top:5px;display:flex;gap:5px;flex-wrap:wrap}}
+.adm-flex-col-end{{display:flex;flex-direction:column;align-items:flex-end;gap:8px}}
+.adm-prod-name{{font-size:13px;font-weight:500}}
+.adm-casillero-row{{margin-top:2px}}
+.adm-pill-wrap{{margin-top:5px}}
+.adm-td-date{{white-space:nowrap}}
+.adm-empty-icon{{font-size:32px;margin-bottom:10px}}
+.adm-empty-hint{{font-size:12px}}
+.adm-card-id{{font-size:15px;font-weight:800;color:var(--clr-orange)}}
+.adm-card-fields{{margin-bottom:10px;border:1px solid var(--clr-slate100);border-radius:8px;overflow:hidden}}
 .adm-card-row{{display:flex;justify-content:space-between;align-items:baseline;
-  padding:7px 10px;border-bottom:1px solid #f1f5f9;font-size:13px}}
+  padding:7px 10px;border-bottom:1px solid var(--clr-slate100);font-size:13px}}
 .adm-card-row:last-child{{border-bottom:none}}
-.adm-card-lbl{{color:#94a3b8;font-size:11px;font-weight:600;min-width:68px;flex-shrink:0}}
-.adm-card-val{{color:#111;font-size:12px;text-align:right;word-break:break-all;max-width:65%}}
+.adm-card-lbl{{color:var(--clr-slate400);font-size:11px;font-weight:600;min-width:68px;flex-shrink:0}}
+.adm-card-val{{color:var(--clr-slate900);font-size:12px;text-align:right;word-break:break-all;max-width:65%}}
 .adm-card-val-bold{{font-weight:700;color:#1e293b}}
-.adm-card-actions{{margin-top:12px;padding-top:12px;border-top:1px solid #f1f5f9}}
-/* ── Empty state ────────────────────────────────────────────────────── */
-.adm-empty{{text-align:center;padding:56px 20px;color:#94a3b8}}
-.adm-empty h3{{font-size:16px;font-weight:700;color:#64748b;margin-bottom:8px}}
-.adm-empty p{{font-size:13px}}
-/* ── No results (filter) ────────────────────────────────────────────── */
-.adm-no-results{{display:none;text-align:center;padding:40px 20px;color:#94a3b8}}
-.adm-no-results.visible{{display:block}}
-/* ── Toast ──────────────────────────────────────────────────────────── */
-#adm-toast{{position:fixed;bottom:24px;right:24px;padding:12px 20px;
-  border-radius:9px;font-size:13px;font-weight:600;color:#fff;
-  background:#16a34a;box-shadow:0 4px 18px rgba(0,0,0,.18);
-  transform:translateY(80px);opacity:0;transition:all .3s;z-index:100;
-  pointer-events:none}}
-#adm-toast.show{{transform:translateY(0);opacity:1}}
-#adm-toast.error{{background:#dc2626}}
-/* ── Responsive ─────────────────────────────────────────────────────── */
-/* ── Mobile card tap target ─────────────────────────────────────────── */
-.adm-card-link{{display:block;text-decoration:none;color:inherit;
-  border-radius:12px 12px 0 0;overflow:hidden}}
-.adm-card-link:hover .adm-card-top,
-.adm-card-link:hover .adm-card-fields{{background:#f8fafc}}
-.adm-card-tap-hint{{display:none;font-size:10px;color:#94a3b8;text-align:right;
+.adm-card-actions{{margin-top:12px;padding-top:12px;border-top:1px solid var(--clr-slate100)}}
+.adm-card-link{{display:block;text-decoration:none;color:inherit;border-radius:var(--radius) var(--radius) 0 0;overflow:hidden}}
+.adm-card-link:hover .adm-card-top,.adm-card-link:hover .adm-card-fields{{background:var(--clr-slate50)}}
+.adm-card-tap-hint{{display:none;font-size:10px;color:var(--clr-slate400);text-align:right;
   padding:4px 10px 0;letter-spacing:.03em}}
+/* ── Empty state ────────────────────────────────────────────────────── */
+.adm-empty{{text-align:center;padding:56px 20px;color:var(--clr-slate400)}}
+.adm-empty-icon{{font-size:40px;margin-bottom:14px}}
+.adm-empty-hint{{font-size:12px}}
+.adm-empty h3{{font-size:16px;font-weight:700;color:var(--clr-slate500);margin-bottom:8px}}
+.adm-empty p{{font-size:13px}}
+.adm-empty-cta{{display:inline-block;margin-top:14px;padding:8px 16px;border-radius:var(--radius-sm);
+  background:var(--clr-orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;border:none;
+  font-family:var(--font);transition:background .2s}}
+.adm-empty-cta:hover{{background:var(--clr-orange-dk)}}
+/* ── No results (filter) ────────────────────────────────────────────── */
+.adm-no-results{{display:none;text-align:center;padding:40px 20px;color:var(--clr-slate400)}}
+.adm-no-results.visible{{display:block}}
+/* ── Toast stack ────────────────────────────────────────────────────── */
+#adm-toast-stack{{position:fixed;top:68px;right:20px;z-index:9000;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:340px}}
+.adm-toast{{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;
+  border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:#fff;
+  box-shadow:0 4px 18px rgba(0,0,0,.18);pointer-events:all;
+  transform:translateX(120%);opacity:0;transition:transform .3s ease,opacity .3s ease}}
+.adm-toast.show{{transform:none;opacity:1}}
+.adm-toast-success{{background:#16a34a}}.adm-toast-error{{background:#dc2626}}
+.adm-toast-close{{background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;
+  padding:0;font-size:16px;line-height:1;flex-shrink:0;margin-left:auto;
+  transition:color .15s;min-width:20px;text-align:center;font-family:var(--font)}}
+.adm-toast-close:hover{{color:#fff}}
+/* ── Responsive ─────────────────────────────────────────────────────── */
 @media(max-width:720px){{
   .adm-header{{padding:0 12px;gap:8px}}
-  .adm-header-title{{display:none}}
-  .adm-header-sep{{display:none}}
-  .adm-stats{{padding:12px 12px}}
-  .adm-stat-tile{{min-width:76px;padding:8px 10px}}
+  .adm-header-title,.adm-header-sep{{display:none}}
+  .adm-stats{{padding:12px}}
+  .adm-stat-tile{{min-width:80px;padding:8px 10px}}
   .adm-stat-num{{font-size:20px}}
   .adm-tabs{{padding:0 12px}}
   .adm-main{{padding:0 0 48px}}
@@ -4655,6 +5059,7 @@ a{{color:inherit;text-decoration:none}}
   .adm-filter-bar{{padding:10px 12px}}
   .adm-filter-toggle{{display:inline-flex}}
   .adm-card-tap-hint{{display:block}}
+  #adm-toast-stack{{right:10px;left:10px;max-width:none;top:60px}}
 }}
 @media(min-width:721px){{
   .adm-table-wrap{{overflow-x:auto}}
@@ -4691,8 +5096,7 @@ a{{color:inherit;text-decoration:none}}
              autocomplete="off" oninput="admFilter()">
       <button class="adm-filter-toggle" id="adm-flt-toggle"
               onclick="admToggleFilters()" type="button">&#9881; Filtros</button>
-      <span style="font-size:12px;color:#94a3b8;white-space:nowrap;flex-shrink:0;"
-            id="adm-count-label">{count_label}</span>
+      <span class="adm-text-muted-sm" id="adm-count-label">{count_label}</span>
     </div>
     <div class="adm-filter-row2" id="adm-filter-row2">
       <select class="adm-filter-status" id="adm-flt-status" onchange="admFilter()">
@@ -4734,86 +5138,129 @@ a{{color:inherit;text-decoration:none}}
     </thead>
     <tbody id="adm-tbody">{table_body_html}</tbody>
   </table>
-  <div class="adm-no-results" id="adm-no-results-tbl">
-    <div style="font-size:32px;margin-bottom:10px;">🔍</div>
+  <div class="adm-no-results" id="adm-no-results-tbl" role="status">
+    <div class="adm-empty-icon">&#128269;</div>
     <strong>Sin resultados</strong><br>
-    <span style="font-size:12px;">Prueba con otro término o limpia los filtros.</span>
+    <span class="adm-empty-hint">Prueba con otro t&eacute;rmino o limpia los filtros.</span>
   </div>
   </div>
 
   <!-- Mobile cards -->
   <div class="adm-cards" id="adm-cards">{cards_html}</div>
   <div class="adm-no-results" id="adm-no-results-cards">
-    <div style="font-size:32px;margin-bottom:10px;">🔍</div>
+    <div class="adm-empty-icon">&#128269;</div>
     <strong>Sin resultados</strong><br>
-    <span style="font-size:12px;">Prueba con otro término o limpia los filtros.</span>
+    <span class="adm-empty-hint">Prueba con otro t&eacute;rmino o limpia los filtros.</span>
+    <br><button class="adm-empty-cta" onclick="admClearFilter()" style="margin-top:12px;">Limpiar filtros</button>
   </div>
 
 </div>
 </main>
 
-<div id="adm-toast"></div>
+<div id="adm-toast-stack" role="region" aria-live="polite" aria-label="Notificaciones"></div>
 
 <script>
-var _totalRows = {n};
-function admFilter() {{
-  var q    = (document.getElementById('adm-search').value || '').toLowerCase().trim();
-  var fSt  = document.getElementById('adm-flt-status').value;
-  var fSvc = document.getElementById('adm-flt-svc').value;
-
-  // Table rows
-  var trs = document.querySelectorAll('#adm-tbody .adm-tr');
-  // Cards
-  var cards = document.querySelectorAll('#adm-cards .adm-card');
-
-  var visibleTbl = 0, visibleCard = 0;
-
-  function matches(el) {{
-    var name = el.dataset.name || '';
-    var email = el.dataset.email || '';
-    var cas = el.dataset.casillero || '';
-    var prod = el.dataset.prod || '';
-    var st = el.dataset.status || '';
-    var svc = el.dataset.svc || '';
-    var textOk = !q || name.includes(q) || email.includes(q) || cas.includes(q) || prod.includes(q);
-    var stOk = !fSt || st === fSt;
-    var svcOk = !fSvc || svc === fSvc;
-    return textOk && stOk && svcOk;
+(function() {{
+  function admToast(msg, type) {{
+    type = type || 'success';
+    var stack = document.getElementById('adm-toast-stack');
+    if (!stack) return;
+    var t = document.createElement('div');
+    t.className = 'adm-toast adm-toast-' + type;
+    t.setAttribute('role', 'alert');
+    t.innerHTML = '<span style="flex:1">' + msg + '</span>'
+      + '<button class="adm-toast-close" onclick="this.parentElement.remove()" aria-label="Cerrar">&times;</button>';
+    stack.appendChild(t);
+    requestAnimationFrame(function() {{ t.classList.add('show'); }});
+    setTimeout(function() {{
+      t.classList.remove('show');
+      setTimeout(function() {{ t.remove(); }}, 300);
+    }}, 4000);
   }}
 
-  trs.forEach(function(tr) {{
-    var show = matches(tr);
-    tr.style.display = show ? '' : 'none';
-    if (show) visibleTbl++;
-  }});
-  cards.forEach(function(c) {{
-    var show = matches(c);
-    c.style.display = show ? '' : 'none';
-    if (show) visibleCard++;
-  }});
+  var _totalRows = {n};
 
-  var visible = Math.max(visibleTbl, visibleCard);
-  var lbl = document.getElementById('adm-count-label');
-  if (lbl) lbl.innerHTML = '<span>' + visible + '</span> de ' + _totalRows + ' solicitud' + (_totalRows !== 1 ? 'es' : '');
+  function admFilter() {{
+    var q    = (document.getElementById('adm-search').value || '').toLowerCase().trim();
+    var fSt  = document.getElementById('adm-flt-status').value;
+    var fSvc = document.getElementById('adm-flt-svc').value;
+    var trs = document.querySelectorAll('#adm-tbody .adm-tr');
+    var cards = document.querySelectorAll('#adm-cards .adm-card');
+    var visibleTbl = 0, visibleCard = 0;
+    function matches(el) {{
+      var name = el.dataset.name || '';
+      var email = el.dataset.email || '';
+      var cas = el.dataset.casillero || '';
+      var prod = el.dataset.prod || '';
+      var st = el.dataset.status || '';
+      var svc = el.dataset.svc || '';
+      var textOk = !q || name.includes(q) || email.includes(q) || cas.includes(q) || prod.includes(q);
+      return textOk && (!fSt || st === fSt) && (!fSvc || svc === fSvc);
+    }}
+    trs.forEach(function(tr) {{
+      var s=matches(tr);
+      tr.style.display=s?'':'none';
+      if(s) visibleTbl++;
+      var next = tr.nextElementSibling;
+      if (next && next.classList.contains('adm-expand-row')) {{
+        if (!s) {{ next.hidden = true; var tb = tr.querySelector('.adm-upd-toggle'); if(tb) tb.setAttribute('aria-expanded','false'); }}
+        next.style.display = s ? '' : 'none';
+      }}
+    }});
+    cards.forEach(function(c) {{ var s=matches(c); c.style.display=s?'':'none'; if(s)visibleCard++; }});
+    var visible = Math.max(visibleTbl, visibleCard);
+    var lbl = document.getElementById('adm-count-label');
+    if (lbl) lbl.innerHTML = '<span>' + visible + '</span> de ' + _totalRows + ' solicitud' + (_totalRows !== 1 ? 'es' : '');
+    var noTbl = document.getElementById('adm-no-results-tbl');
+    var noCard = document.getElementById('adm-no-results-cards');
+    if (noTbl) noTbl.classList.toggle('visible', visibleTbl === 0 && _totalRows > 0);
+    if (noCard) noCard.classList.toggle('visible', visibleCard === 0 && _totalRows > 0);
+  }}
+  window.admFilter = admFilter;
 
-  var noTbl = document.getElementById('adm-no-results-tbl');
-  var noCard = document.getElementById('adm-no-results-cards');
-  if (noTbl) noTbl.classList.toggle('visible', visibleTbl === 0 && _totalRows > 0);
-  if (noCard) noCard.classList.toggle('visible', visibleCard === 0 && _totalRows > 0);
-}}
-function admClearFilter() {{
-  document.getElementById('adm-search').value = '';
-  document.getElementById('adm-flt-status').value = '';
-  document.getElementById('adm-flt-svc').value = '';
-  admFilter();
-}}
-function admToggleFilters() {{
-  var row2 = document.getElementById('adm-filter-row2');
-  var btn  = document.getElementById('adm-flt-toggle');
-  if (!row2) return;
-  var isOpen = row2.classList.toggle('open');
-  if (btn) btn.classList.toggle('active', isOpen);
-}}
+  window.admToggleExpand = function(btn, expandId) {{
+    var row = document.getElementById(expandId);
+    if (!row) return;
+    var isOpen = row.hidden;
+    row.hidden = !isOpen;
+    if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }};
+
+  window.admClearFilter = function() {{
+    document.getElementById('adm-search').value = '';
+    document.getElementById('adm-flt-status').value = '';
+    document.getElementById('adm-flt-svc').value = '';
+    admFilter();
+  }};
+  window.admToggleFilters = function() {{
+    var row2 = document.getElementById('adm-filter-row2');
+    var btn  = document.getElementById('adm-flt-toggle');
+    if (!row2) return;
+    var isOpen = row2.classList.toggle('open');
+    if (btn) btn.classList.toggle('active', isOpen);
+  }};
+
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('updated') === '1') {{
+    admToast('Estado actualizado correctamente', 'success');
+    history.replaceState(null, '', window.location.pathname + (window.location.search.replace(/[?&]updated=1/, '') || ''));
+  }}
+  if (params.get('upd_err') === '1') {{
+    admToast('Error al actualizar el estado. Intente de nuevo.', 'error');
+    history.replaceState(null, '', window.location.pathname + (window.location.search.replace(/[?&]upd_err=1/, '') || ''));
+  }}
+  var initStatus = params.get('_status');
+  if (initStatus) {{
+    var fltSel = document.getElementById('adm-flt-status');
+    if (fltSel) {{
+      var opt = Array.from(fltSel.options).find(function(o) {{ return o.value === initStatus; }});
+      if (opt) {{
+        fltSel.value = initStatus;
+        admFilter();
+      }}
+    }}
+  }}
+}})();
 </script>
 </body>
 </html>'''
@@ -4836,17 +5283,17 @@ def _build_admin_consultas_html(rows):
         da_email   = esc((r.get('correo') or '').lower())
         da_asunto  = esc((r.get('asunto') or '').lower())
         if email_sent:
-            email_badge = '<span class="adm-badge" style="background:#F0FDF4;color:#15803D;border-color:#BBF7D0;">&#10003; Enviado</span>'
+            email_badge = '<span class="adm-badge adm-badge-success">&#10003; Enviado</span>'
         else:
-            email_badge = '<span class="adm-badge" style="background:#FFF7ED;color:#C2410C;border-color:#FDBA74;">&#10005; Fallido</span>'
+            email_badge = '<span class="adm-badge adm-badge-warn">&#10005; Fallido</span>'
         ver_link = (f'<a href="/admin/consultas/{rid}" class="adm-ver-link">Ver&nbsp;&#8594;</a>')
         table_rows += (
             f'<tr class="adm-ctr" data-name="{da_name}" data-email="{da_email}" data-asunto="{da_asunto}">\n'
             f'<td><span class="adm-rid">#{rid}</span></td>\n'
             f'<td><div class="adm-name-line">{nombre}</div>'
             f'<div class="adm-sub">{correo}</div></td>\n'
-            f'<td style="font-size:13px;color:#374151;max-width:260px;">{asunto}</td>\n'
-            f'<td><div style="white-space:nowrap;font-size:13px;">{date_str}</div>'
+            f'<td class="adm-td-asunto">{asunto}</td>\n'
+            f'<td><div class="adm-td-date">{date_str}</div>'
             f'<div class="adm-sub">{elapsed}</div></td>\n'
             f'<td>{email_badge}</td>\n'
             f'<td class="td-ver">{ver_link}</td>\n'
@@ -4877,7 +5324,7 @@ def _build_admin_consultas_html(rows):
     if not rows:
         empty_html = (
             '<div class="adm-empty">'
-            '<div style="font-size:40px;margin-bottom:14px;">📬</div>'
+            '<div class="adm-empty-icon">&#128236;</div>'
             '<h3>Sin consultas aún</h3>'
             '<p>Las consultas del formulario de contacto aparecerán aquí.</p>'
             '</div>'
@@ -4896,86 +5343,127 @@ def _build_admin_consultas_html(rows):
 <meta name="robots" content="noindex,nofollow">
 <title>Consultas Generales — CRBOX</title>
 <style>
+/* ── Design tokens ──────────────────────────────────────────────────── */
+:root{{
+  --clr-orange:#FF6B00;--clr-orange-dk:#E05A00;--clr-orange-lt:#fff7ed;
+  --clr-navy:#1e293b;--clr-navy2:#334155;
+  --clr-slate50:#f8fafc;--clr-slate100:#f1f5f9;--clr-slate200:#e2e8f0;
+  --clr-slate400:#94a3b8;--clr-slate500:#64748b;--clr-slate700:#374151;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --radius-sm:6px;--radius:10px;--radius-lg:14px;
+}}
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  background:#f1f5f9;color:#111;min-height:100vh}}
+body{{font-family:var(--font);background:var(--clr-slate100);color:#111;min-height:100vh}}
 a{{color:inherit;text-decoration:none}}
-.adm-header{{background:#1e293b;padding:0 20px;display:flex;align-items:center;gap:12px;
+/* ── Header ─────────────────────────────────────────────────────────── */
+.adm-header{{background:var(--clr-navy);padding:0 20px;display:flex;align-items:center;gap:12px;
   position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.22);height:52px}}
-.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:19px;letter-spacing:-.5px;flex-shrink:0}}
-.adm-header-sep{{color:#334155;font-size:18px;flex-shrink:0}}
-.adm-header-title{{color:#cbd5e1;font-size:13px;font-weight:500;flex:1;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.adm-header-logo{{color:var(--clr-orange);font-weight:800;font-size:19px;letter-spacing:-.5px;flex-shrink:0}}
+.adm-header-sep{{color:var(--clr-navy2);font-size:18px;flex-shrink:0}}
+.adm-header-title{{color:#cbd5e1;font-size:13px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 .adm-header-nav{{display:flex;align-items:center;gap:8px;flex-shrink:0}}
-.adm-header-link{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:6px;
-  border:1px solid #334155;transition:all .2s;white-space:nowrap}}
-.adm-header-link:hover{{color:#fff;border-color:#64748b;background:#334155}}
-.adm-logout{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:6px;
-  border:1px solid #334155;transition:all .2s;white-space:nowrap}}
-.adm-logout:hover{{color:#fff;border-color:#64748b;background:#334155}}
-.adm-main{{padding:20px 20px 48px}}
+.adm-header-link,.adm-logout{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:var(--radius-sm);
+  border:1px solid var(--clr-navy2);transition:all .2s;white-space:nowrap}}
+.adm-header-link:hover,.adm-logout:hover{{color:#fff;border-color:#64748b;background:var(--clr-navy2)}}
+.adm-header-link:focus-visible,.adm-logout:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
+/* ── Breadcrumb header ──────────────────────────────────────────────── */
+.adm-page-topbar{{background:var(--clr-navy);border-bottom:1px solid rgba(255,255,255,.06);
+  padding:10px 20px;display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8}}
+.adm-bc-link{{color:#94a3b8;text-decoration:none;transition:color .15s}}
+.adm-bc-link:hover{{color:#fff}}
+.adm-bc-sep{{color:#475569}}
+/* ── Main ───────────────────────────────────────────────────────────── */
+.adm-main{{padding:24px 20px 56px}}
 .adm-page-header{{display:flex;align-items:center;justify-content:space-between;
   margin-bottom:16px;flex-wrap:wrap;gap:8px}}
-.adm-page-h1{{font-size:18px;font-weight:800;color:#1e293b}}
-.adm-page-count{{font-size:12px;color:#94a3b8;font-weight:500}}
+.adm-page-h1{{font-size:18px;font-weight:800;color:var(--clr-navy)}}
+.adm-page-count{{font-size:12px;color:var(--clr-slate400);font-weight:500}}
+/* ── Filter bar ─────────────────────────────────────────────────────── */
 .adm-filter-bar{{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}}
-.adm-filter-bar input{{flex:1;min-width:200px;border:1.5px solid #e2e8f0;border-radius:7px;
-  padding:8px 12px;font-size:13px;background:#fff;color:#374151;font-family:inherit;
-  outline:none;transition:border-color .2s}}
-.adm-filter-bar input:focus{{border-color:#FF6B00}}
-.adm-filter-clear{{padding:8px 13px;border:1.5px solid #e2e8f0;border-radius:7px;
-  background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;
-  transition:all .2s;font-family:inherit;white-space:nowrap}}
-.adm-filter-clear:hover{{border-color:#FF6B00;color:#FF6B00}}
-.adm-panel{{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden}}
+.adm-filter-bar input{{flex:1;min-width:200px;border:1.5px solid var(--clr-slate200);
+  border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;background:#fff;
+  color:var(--clr-slate700);font-family:var(--font);outline:none;transition:border-color .2s;min-height:38px}}
+.adm-filter-bar input:focus{{border-color:var(--clr-orange);outline:2px solid rgba(255,107,0,.15);outline-offset:-1px}}
+.adm-filter-clear{{padding:8px 13px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
+  background:#fff;color:var(--clr-slate500);font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .2s;font-family:var(--font);white-space:nowrap;min-height:38px}}
+.adm-filter-clear:hover{{border-color:var(--clr-orange);color:var(--clr-orange)}}
+/* ── Panel ──────────────────────────────────────────────────────────── */
+.adm-panel{{background:#fff;border-radius:var(--radius-lg);box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden}}
+/* ── Table ──────────────────────────────────────────────────────────── */
 .adm-table{{width:100%;border-collapse:collapse}}
-.adm-table thead th{{background:#f8fafc;padding:10px 14px;text-align:left;
-  font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;
-  letter-spacing:.07em;border-bottom:1px solid #e2e8f0;white-space:nowrap}}
-.adm-table td{{padding:13px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top}}
+.adm-table thead th{{background:var(--clr-slate50);padding:10px 14px;text-align:left;
+  font-size:10px;font-weight:700;color:var(--clr-slate400);text-transform:uppercase;
+  letter-spacing:.07em;border-bottom:1px solid var(--clr-slate200);white-space:nowrap;
+  position:sticky;top:52px;z-index:5}}
+.adm-table td{{padding:13px 14px;border-bottom:1px solid var(--clr-slate100);vertical-align:top}}
 .adm-table .adm-ctr:last-child td{{border-bottom:none}}
-.adm-table .adm-ctr:hover td{{background:#f8fafc}}
-.adm-rid{{color:#FF6B00;font-weight:700;font-size:12px}}
+.adm-table .adm-ctr{{transition:background .12s}}
+.adm-table .adm-ctr:hover td{{background:var(--clr-slate50)}}
+.adm-rid{{color:var(--clr-orange);font-weight:700;font-size:12px}}
 .adm-name-line{{font-weight:600;font-size:13px}}
-.adm-sub{{color:#94a3b8;font-size:11px;margin-top:2px}}
+.adm-sub{{color:var(--clr-slate400);font-size:11px;margin-top:2px}}
 .td-ver{{white-space:nowrap;text-align:center;vertical-align:middle}}
+.adm-td-asunto{{font-size:13px;color:#374151;max-width:260px}}
+.adm-td-date{{white-space:nowrap;font-size:13px}}
 .adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
   font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
+.adm-badge-success{{background:#F0FDF4;color:#15803D;border-color:#BBF7D0}}
+.adm-badge-warn{{background:#FFF7ED;color:#C2410C;border-color:#FDBA74}}
 .adm-ver-link{{display:inline-flex;align-items:center;justify-content:center;
-  padding:6px 12px;border-radius:7px;font-size:12px;font-weight:700;
-  color:#FF6B00;border:1.5px solid #fdba74;background:#fff7ed;
-  transition:all .2s;white-space:nowrap;min-height:34px}}
-.adm-ver-link:hover{{background:#FF6B00;color:#fff;border-color:#FF6B00}}
+  padding:6px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;
+  color:var(--clr-orange);border:1.5px solid #fdba74;background:var(--clr-orange-lt);
+  transition:all .2s;white-space:nowrap;min-height:36px}}
+.adm-ver-link:hover{{background:var(--clr-orange);color:#fff;border-color:var(--clr-orange)}}
+.adm-ver-link:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
 .adm-table-wrap{{overflow-x:auto}}
+/* ── Mobile cards ───────────────────────────────────────────────────── */
 .adm-cards{{display:none;flex-direction:column;gap:12px;padding:12px}}
-.adm-ccard{{background:#fff;border-radius:12px;padding:16px;
-  border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05)}}
+.adm-ccard{{background:#fff;border-radius:var(--radius);padding:16px;
+  border:1px solid var(--clr-slate200);box-shadow:0 1px 4px rgba(0,0,0,.05)}}
 .adm-card-top{{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}}
-.adm-card-id{{font-size:15px;font-weight:800;color:#FF6B00}}
-.adm-card-fields{{margin-bottom:10px;border:1px solid #f1f5f9;border-radius:8px;overflow:hidden}}
+.adm-card-id{{font-size:15px;font-weight:800;color:var(--clr-orange)}}
+.adm-card-fields{{margin-bottom:10px;border:1px solid var(--clr-slate100);border-radius:8px;overflow:hidden}}
 .adm-card-row{{display:flex;justify-content:space-between;align-items:baseline;
-  padding:7px 10px;border-bottom:1px solid #f1f5f9;font-size:13px}}
+  padding:7px 10px;border-bottom:1px solid var(--clr-slate100);font-size:13px}}
 .adm-card-row:last-child{{border-bottom:none}}
-.adm-card-lbl{{color:#94a3b8;font-size:11px;font-weight:600;min-width:60px;flex-shrink:0}}
+.adm-card-lbl{{color:var(--clr-slate400);font-size:11px;font-weight:600;min-width:60px;flex-shrink:0}}
 .adm-card-val{{color:#111;font-size:12px;text-align:right;word-break:break-word;max-width:65%}}
-.adm-card-val-bold{{font-weight:700;color:#1e293b}}
+.adm-card-val-bold{{font-weight:700;color:var(--clr-navy)}}
 .adm-card-detail-link{{display:block;text-align:center;margin-top:10px;padding:10px;
-  background:#fff7ed;border-radius:8px;color:#FF6B00;font-size:13px;font-weight:700;
+  background:var(--clr-orange-lt);border-radius:8px;color:var(--clr-orange);font-size:13px;font-weight:700;
   border:1.5px solid #fdba74;transition:all .2s}}
-.adm-card-detail-link:hover{{background:#FF6B00;color:#fff;border-color:#FF6B00}}
-.adm-empty{{text-align:center;padding:56px 20px;color:#94a3b8}}
-.adm-empty h3{{font-size:16px;font-weight:700;color:#64748b;margin-bottom:8px}}
+.adm-card-detail-link:hover{{background:var(--clr-orange);color:#fff;border-color:var(--clr-orange)}}
+/* ── Empty / no-results ─────────────────────────────────────────────── */
+.adm-empty{{text-align:center;padding:56px 20px;color:var(--clr-slate400)}}
+.adm-empty-icon{{font-size:40px;margin-bottom:14px}}
+.adm-empty-hint{{font-size:12px}}
+.adm-empty h3{{font-size:16px;font-weight:700;color:var(--clr-slate500);margin-bottom:8px}}
 .adm-empty p{{font-size:13px}}
-.adm-no-results{{display:none;text-align:center;padding:40px 20px;color:#94a3b8}}
+.adm-no-results{{display:none;text-align:center;padding:40px 20px;color:var(--clr-slate400)}}
 .adm-no-results.visible{{display:block}}
+/* ── Toast stack ────────────────────────────────────────────────────── */
+#adm-toast-stack{{position:fixed;top:68px;right:20px;z-index:9000;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:340px}}
+.adm-toast{{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;
+  border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:#fff;
+  box-shadow:0 4px 18px rgba(0,0,0,.18);pointer-events:all;
+  transform:translateX(120%);opacity:0;transition:transform .3s ease,opacity .3s ease}}
+.adm-toast.show{{transform:none;opacity:1}}
+.adm-toast-success{{background:#16a34a}}.adm-toast-error{{background:#dc2626}}
+.adm-toast-close{{background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;
+  padding:0;font-size:16px;line-height:1;flex-shrink:0;margin-left:auto;
+  transition:color .15s;min-width:20px;text-align:center;font-family:var(--font)}}
+.adm-toast-close:hover{{color:#fff}}
+/* ── Responsive ─────────────────────────────────────────────────────── */
 @media(max-width:720px){{
   .adm-header{{padding:0 12px;gap:8px}}
-  .adm-header-title{{display:none}}
-  .adm-header-sep{{display:none}}
-  .adm-main{{padding:12px 12px 48px}}
-  .adm-panel{{border-radius:12px}}
+  .adm-header-title,.adm-header-sep{{display:none}}
+  .adm-main{{padding:16px 12px 56px}}
+  .adm-panel{{border-radius:var(--radius)}}
   .adm-table-wrap{{display:none}}
   .adm-cards{{display:flex}}
+  #adm-toast-stack{{right:10px;left:10px;max-width:none;top:60px}}
 }}
 @media(min-width:721px){{
   .adm-table-wrap{{overflow-x:auto}}
@@ -4992,6 +5480,11 @@ a{{color:inherit;text-decoration:none}}
     <a href="/admin/logout" class="adm-logout">Salir</a>
   </nav>
 </header>
+<div class="adm-page-topbar">
+  <a href="/admin/solicitudes" class="adm-bc-link">Panel</a>
+  <span class="adm-bc-sep">&#8250;</span>
+  <span>Consultas</span>
+</div>
 <main class="adm-main">
 <div class="adm-page-header">
   <h1 class="adm-page-h1">Consultas Generales</h1>
@@ -4999,12 +5492,12 @@ a{{color:inherit;text-decoration:none}}
 </div>
 <div class="adm-filter-bar">
   <input type="search" id="adm-csearch" placeholder="Buscar por nombre, correo o asunto&hellip;"
-         autocomplete="off" oninput="cFilter()">
+         autocomplete="off" oninput="cFilter()" aria-label="Buscar consultas">
   <button class="adm-filter-clear" onclick="cClear()" type="button">&#10005; Limpiar</button>
 </div>
 <div class="adm-panel">
   <div class="adm-table-wrap">
-  <table class="adm-table">
+  <table class="adm-table" aria-label="Lista de consultas">
     <thead>
       <tr>
         <th>#</th><th>Contacto</th><th>Asunto</th><th>Fecha</th><th>Email</th><th></th>
@@ -5012,43 +5505,48 @@ a{{color:inherit;text-decoration:none}}
     </thead>
     <tbody id="adm-ctbody">{table_body_html}</tbody>
   </table>
-  <div class="adm-no-results" id="adm-no-results-tbl">
-    <div style="font-size:32px;margin-bottom:10px;">🔍</div>
+  <div class="adm-no-results" id="adm-no-results-tbl" role="status">
+    <div class="adm-empty-icon">&#128269;</div>
     <strong>Sin resultados</strong><br>
-    <span style="font-size:12px;">Prueba con otro término o limpia el filtro.</span>
+    <span class="adm-empty-hint">Prueba con otro t&eacute;rmino o limpia el filtro.</span>
   </div>
   </div>
   <div class="adm-cards" id="adm-ccards">{cards_html}</div>
-  <div class="adm-no-results" id="adm-no-results-cards">
-    <div style="font-size:32px;margin-bottom:10px;">🔍</div>
+  <div class="adm-no-results" id="adm-no-results-cards" role="status">
+    <div class="adm-empty-icon">&#128269;</div>
     <strong>Sin resultados</strong><br>
-    <span style="font-size:12px;">Prueba con otro término o limpia el filtro.</span>
+    <span class="adm-empty-hint">Prueba con otro t&eacute;rmino o limpia el filtro.</span>
   </div>
 </div>
 </main>
 
+<div id="adm-toast-stack" role="region" aria-live="polite" aria-label="Notificaciones"></div>
+
 <script>
-var _cTotal = {n};
-function cFilter() {{
-  var q = (document.getElementById('adm-csearch').value || '').toLowerCase().trim();
-  var trs = document.querySelectorAll('#adm-ctbody .adm-ctr');
-  var cards = document.querySelectorAll('#adm-ccards .adm-ccard');
-  var vT = 0, vC = 0;
-  function ok(el) {{
-    return !q || (el.dataset.name||'').includes(q) ||
-                 (el.dataset.email||'').includes(q) ||
-                 (el.dataset.asunto||'').includes(q);
+(function() {{
+  var _cTotal = {n};
+  function cFilter() {{
+    var q = (document.getElementById('adm-csearch').value || '').toLowerCase().trim();
+    var trs = document.querySelectorAll('#adm-ctbody .adm-ctr');
+    var cards = document.querySelectorAll('#adm-ccards .adm-ccard');
+    var vT = 0, vC = 0;
+    function ok(el) {{
+      return !q || (el.dataset.name||'').includes(q) ||
+                   (el.dataset.email||'').includes(q) ||
+                   (el.dataset.asunto||'').includes(q);
+    }}
+    trs.forEach(function(tr) {{ var s=ok(tr); tr.style.display=s?'':'none'; if(s)vT++; }});
+    cards.forEach(function(c) {{ var s=ok(c); c.style.display=s?'':'none'; if(s)vC++; }});
+    var v = Math.max(vT, vC);
+    var el = document.getElementById('adm-ccount');
+    if (el) el.textContent = v + ' de ' + _cTotal + ' consulta' + (_cTotal!==1?'s':'');
+    var nT=document.getElementById('adm-no-results-tbl'), nC=document.getElementById('adm-no-results-cards');
+    if(nT) nT.classList.toggle('visible', vT===0 && _cTotal>0);
+    if(nC) nC.classList.toggle('visible', vC===0 && _cTotal>0);
   }}
-  trs.forEach(function(tr) {{ var s=ok(tr); tr.style.display=s?'':'none'; if(s)vT++; }});
-  cards.forEach(function(c) {{ var s=ok(c); c.style.display=s?'':'none'; if(s)vC++; }});
-  var v = Math.max(vT, vC);
-  var el = document.getElementById('adm-ccount');
-  if (el) el.textContent = v + ' de ' + _cTotal + ' consulta' + (_cTotal!==1?'s':'');
-  var nT=document.getElementById('adm-no-results-tbl'), nC=document.getElementById('adm-no-results-cards');
-  if(nT) nT.classList.toggle('visible', vT===0 && _cTotal>0);
-  if(nC) nC.classList.toggle('visible', vC===0 && _cTotal>0);
-}}
-function cClear() {{ document.getElementById('adm-csearch').value=''; cFilter(); }}
+  window.cFilter = cFilter;
+  window.cClear = function() {{ document.getElementById('adm-csearch').value=''; cFilter(); }};
+}})();
 </script>
 </body>
 </html>'''
@@ -5083,43 +5581,75 @@ def _build_admin_consultas_detail_html(row):
 <meta name="robots" content="noindex,nofollow">
 <title>Consulta #{rid} — CRBOX</title>
 <style>
+/* ── Design tokens ──────────────────────────────────────────────────── */
+:root{{
+  --clr-orange:#FF6B00;--clr-orange-dk:#E05A00;--clr-orange-lt:#fff7ed;
+  --clr-navy:#1e293b;--clr-navy2:#334155;
+  --clr-slate50:#f8fafc;--clr-slate100:#f1f5f9;--clr-slate200:#e2e8f0;
+  --clr-slate400:#94a3b8;--clr-slate500:#64748b;--clr-slate700:#374151;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --radius-sm:6px;--radius:10px;--radius-lg:14px;
+}}
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
-  background:#f3f4f6;color:#111;min-height:100vh}}
+body{{font-family:var(--font);background:var(--clr-slate100);color:#111;min-height:100vh}}
 a{{color:inherit;text-decoration:none}}
-.adm-header{{background:#1f2937;padding:12px 20px;display:flex;align-items:center;gap:14px;
-  position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.18)}}
-.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:18px;letter-spacing:-.5px}}
-.adm-header-title{{color:#fff;font-size:14px;font-weight:600}}
-.adm-header-sep{{color:#4b5563;font-size:16px}}
-.adm-header-link{{color:#9ca3af;font-size:13px;padding:6px 12px;border-radius:6px;
-  border:1px solid #374151;transition:all .2s}}
-.adm-header-link:hover{{color:#fff;border-color:#6b7280}}
-.adm-logout{{margin-left:auto;color:#9ca3af;font-size:13px;padding:6px 12px;
-  border-radius:6px;border:1px solid #374151;transition:all .2s}}
-.adm-logout:hover{{color:#fff;border-color:#6b7280}}
-.adm-main{{padding:20px;max-width:720px;margin:0 auto}}
-.adm-back{{display:inline-flex;align-items:center;gap:6px;color:#6b7280;font-size:13px;
-  margin-bottom:16px;padding:6px 0;}}
-.adm-back:hover{{color:#FF6B00}}
-.adm-card{{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}}
-.adm-card-header{{padding:16px 20px;border-bottom:1px solid #f3f4f6;background:#fafafa;
-  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}}
-.adm-card-title{{font-size:15px;font-weight:700;color:#111}}
-.adm-field-grid{{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:0}}
-.adm-field{{padding:10px 0;border-bottom:1px solid #f3f4f6}}
+/* ── Header ─────────────────────────────────────────────────────────── */
+.adm-header{{background:var(--clr-navy);padding:0 20px;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.22);height:52px}}
+.adm-header-logo{{color:var(--clr-orange);font-weight:800;font-size:19px;letter-spacing:-.5px;flex-shrink:0}}
+.adm-header-sep{{color:var(--clr-navy2);font-size:18px;flex-shrink:0}}
+.adm-header-title{{color:#cbd5e1;font-size:13px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.adm-header-nav{{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}}
+.adm-header-link,.adm-logout{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:var(--radius-sm);
+  border:1px solid var(--clr-navy2);transition:all .2s;white-space:nowrap}}
+.adm-header-link:hover,.adm-logout:hover{{color:#fff;border-color:#64748b;background:var(--clr-navy2)}}
+.adm-header-link:focus-visible,.adm-logout:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
+/* ── Page sub-bar (breadcrumb) ──────────────────────────────────────── */
+.adm-topbar{{background:var(--clr-navy);border-bottom:1px solid rgba(255,255,255,.06);
+  padding:10px 20px;display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8}}
+.adm-bc-link{{color:#94a3b8;text-decoration:none;transition:color .15s}}
+.adm-bc-link:hover{{color:#fff}}
+.adm-bc-sep{{color:#475569}}
+/* ── Main ───────────────────────────────────────────────────────────── */
+.adm-main{{padding:24px 20px 56px;max-width:740px;margin:0 auto}}
+/* ── Card ───────────────────────────────────────────────────────────── */
+.adm-detail-card{{background:#fff;border-radius:var(--radius-lg);
+  box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:hidden}}
+.adm-detail-head{{padding:18px 22px;border-bottom:1px solid var(--clr-slate100);
+  background:var(--clr-slate50);display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px}}
+.adm-detail-id{{font-size:16px;font-weight:800;color:var(--clr-navy)}}
+.adm-detail-id span{{color:var(--clr-orange)}}
+/* ── Field grid ─────────────────────────────────────────────────────── */
+.adm-field-grid{{padding:20px 22px;display:grid;grid-template-columns:1fr 1fr;gap:0}}
+.adm-field{{padding:11px 0;border-bottom:1px solid var(--clr-slate100)}}
 .adm-field:nth-last-child(-n+2){{border-bottom:none}}
-.adm-field-label{{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;
-  letter-spacing:.06em;margin-bottom:4px}}
-.adm-field-value{{font-size:13px;color:#111;word-break:break-word}}
-.adm-message-block{{padding:0 20px 20px}}
-.adm-message-label{{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;
-  letter-spacing:.06em;margin-bottom:8px}}
-.adm-message-body{{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;
-  padding:14px 16px;font-size:13px;line-height:1.65;color:#374151;white-space:pre-wrap}}
-@media(max-width:540px){{
+.adm-field-label{{font-size:10px;font-weight:700;color:var(--clr-slate400);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:5px}}
+.adm-field-value{{font-size:13px;color:var(--clr-slate700);word-break:break-word;font-weight:500}}
+/* ── Message block ──────────────────────────────────────────────────── */
+.adm-message-block{{padding:0 22px 22px}}
+.adm-message-label{{font-size:10px;font-weight:700;color:var(--clr-slate400);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:8px;padding-top:4px}}
+.adm-message-body{{background:var(--clr-slate50);border:1px solid var(--clr-slate200);border-radius:var(--radius-sm);
+  padding:14px 16px;font-size:13px;line-height:1.7;color:var(--clr-slate700);white-space:pre-wrap}}
+/* ── Status badges ──────────────────────────────────────────────────── */
+.adm-badge-ok{{display:inline-block;padding:3px 10px;border-radius:999px;
+  font-size:11px;font-weight:700;border:1px solid #BBF7D0;background:#F0FDF4;color:#15803D}}
+.adm-badge-fail{{display:inline-block;padding:3px 10px;border-radius:999px;
+  font-size:11px;font-weight:700;border:1px solid #FDBA74;background:#FFF7ED;color:#C2410C}}
+/* ── Back link ──────────────────────────────────────────────────────── */
+.adm-back{{display:inline-flex;align-items:center;gap:6px;color:var(--clr-slate500);font-size:13px;
+  margin-bottom:16px;padding:6px 0;font-weight:500;transition:color .15s}}
+.adm-back:hover{{color:var(--clr-orange)}}
+.adm-back:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px;border-radius:4px}}
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media(max-width:600px){{
+  .adm-header{{padding:0 12px;gap:8px}}
+  .adm-header-title,.adm-header-sep{{display:none}}
+  .adm-main{{padding:16px 12px 48px}}
   .adm-field-grid{{grid-template-columns:1fr}}
-  .adm-field{{border-bottom:1px solid #f3f4f6 !important}}
+  .adm-field{{border-bottom:1px solid var(--clr-slate100) !important}}
   .adm-field:last-child{{border-bottom:none !important}}
 }}
 </style>
@@ -5129,15 +5659,24 @@ a{{color:inherit;text-decoration:none}}
   <span class="adm-header-logo">CRBOX</span>
   <span class="adm-header-sep">|</span>
   <span class="adm-header-title">Consultas Generales</span>
-  <a href="/admin/solicitudes" class="adm-header-link">Cotizaciones</a>
-  <a href="/admin/logout" class="adm-logout">Salir</a>
+  <nav class="adm-header-nav">
+    <a href="/admin/solicitudes" class="adm-header-link">Cotizaciones</a>
+    <a href="/admin/logout" class="adm-logout">Salir</a>
+  </nav>
 </header>
+<div class="adm-topbar">
+  <a href="/admin/solicitudes" class="adm-bc-link">Panel</a>
+  <span class="adm-bc-sep">&#8250;</span>
+  <a href="/admin/consultas" class="adm-bc-link">Consultas</a>
+  <span class="adm-bc-sep">&#8250;</span>
+  <span>#{rid}</span>
+</div>
 <main class="adm-main">
-  <a href="/admin/consultas" class="adm-back">&#8592; Volver a la lista</a>
-  <div class="adm-card">
-    <div class="adm-card-header">
-      <span class="adm-card-title">Consulta #{rid}</span>
-      {email_badge}
+  <a href="/admin/consultas" class="adm-back">&#8592; Volver a consultas</a>
+  <div class="adm-detail-card">
+    <div class="adm-detail-head">
+      <div class="adm-detail-id">Consulta <span>#{rid}</span></div>
+      {"<span class='adm-badge-ok'>&#10003; Correo enviado</span>" if email_sent else "<span class='adm-badge-fail'>&#10005; Correo fallido</span>"}
     </div>
     <div class="adm-field-grid">
       <div class="adm-field">
@@ -5149,7 +5688,7 @@ a{{color:inherit;text-decoration:none}}
         <div class="adm-field-value">{correo}</div>
       </div>
       <div class="adm-field">
-        <div class="adm-field-label">Teléfono</div>
+        <div class="adm-field-label">Tel&eacute;fono</div>
         <div class="adm-field-value">{telefono}</div>
       </div>
       <div class="adm-field">
@@ -6942,9 +7481,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception:
             self.send_response(400); self.end_headers(); return
         if from_detail == '1':
-            redirect_url = f'/admin/solicitudes/{scb_id}?filter={filter_val}'
+            redirect_base = f'/admin/solicitudes/{scb_id}?filter={filter_val}'
         else:
-            redirect_url = f'/admin/solicitudes?filter={filter_val}'
+            redirect_base = f'/admin/solicitudes?filter={filter_val}'
+        redirect_url = redirect_base  # used for early-exit fallbacks (no update happened)
         if new_status not in _ADMIN_LEGAL_TRANSITIONS:
             self._admin_redirect(redirect_url)
             return
@@ -7005,10 +7545,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                         print(f'[ADMIN] admin-cancel email sent: {scb_id}')
                 except Exception as email_exc:
                     print(f'[ADMIN] post-status email error ({new_status}): {email_exc}')
-            self._admin_redirect(redirect_url)
+            self._admin_redirect(redirect_base + '&updated=1')
         except Exception as exc:
             print(f'[ADMIN] Status update error: {exc}')
-            self._admin_redirect(redirect_url)
+            self._admin_redirect(redirect_url + '&upd_err=1')
 
     # ── POST /admin/solicitudes/:id/add-note ──────────────────────────────
     def _handle_admin_solicitudes_add_note(self, scb_id):
@@ -7058,6 +7598,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 conn.commit()
                 conn.close()
             print(f'[ADMIN] Internal note added: {scb_id}')
+            redirect_url = f'/admin/solicitudes/{scb_id}?filter={filter_val}&note_added=1'
         except Exception as exc:
             print(f'[ADMIN] Add note error: {exc}')
         self._admin_redirect(redirect_url)
@@ -7176,16 +7717,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             print(f'[ADMIN] Response email sent for {scb_id} → {row["customer_email"]}')
         except Exception as exc:
             print(f'[ADMIN] Response email error for {scb_id}: {exc}')
-            self._admin_html_response(
-                '<div style="font-family:sans-serif;padding:40px 24px;max-width:600px;margin:0 auto;">'
-                f'<h2 style="color:#dc2626;">Error al enviar el correo</h2>'
-                f'<p style="color:#374151;margin:12px 0;">No se pudo enviar el correo al cliente. '
-                f'La solicitud <strong>{_html.escape(scb_id)}</strong> no fue modificada.</p>'
-                f'<p style="color:#6b7280;font-size:13px;margin:8px 0;">Detalle: {_html.escape(str(exc))}</p>'
-                f'<a href="{_html.escape(redirect_url)}" style="color:#FF6B00;">&#8592; Volver</a>'
-                '</div>',
-                status=502
-            )
+            self._admin_redirect(redirect_url + '&resp_err=1')
             return
 
         # ── Commit DB writes (email succeeded) ───────────────────────────
@@ -7222,10 +7754,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             print(f'[ADMIN] Respond DB write error for {scb_id}: {exc}')
             # Email already sent; redirect anyway so sales knows it went out
-            self._admin_redirect(redirect_url)
+            self._admin_redirect(redirect_url + '&resp_sent=1')
             return
 
-        self._admin_redirect(redirect_url)
+        self._admin_redirect(redirect_url + '&resp_sent=1')
 
 
     # ── POST /admin/solicitudes/:id/resend-response ───────────────────────
@@ -7314,15 +7846,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             print(f'[ADMIN] Response email resent for {scb_id} → {row["customer_email"]}')
         except Exception as exc:
             print(f'[ADMIN] Resend email error for {scb_id}: {exc}')
-            self._admin_html_response(
-                '<div style="font-family:sans-serif;padding:40px 24px;max-width:600px;margin:0 auto;">'
-                f'<h2 style="color:#dc2626;">Error al reenviar el correo</h2>'
-                f'<p style="color:#374151;margin:12px 0;">No se pudo reenviar el correo al cliente.</p>'
-                f'<p style="color:#6b7280;font-size:13px;margin:8px 0;">Detalle: {_html.escape(str(exc))}</p>'
-                f'<a href="{_html.escape(redirect_url)}" style="color:#FF6B00;">&#8592; Volver</a>'
-                '</div>',
-                status=502
-            )
+            self._admin_redirect(redirect_url + '&resend_err=1')
             return
 
         # ── Insert history note ───────────────────────────────────────────
