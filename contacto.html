@@ -176,15 +176,16 @@
 
             .location-card {
                 height: 100%;
-                transition:
-                    transform 0.3s ease,
-                    box-shadow 0.3s ease;
+                transition: transform 0.32s cubic-bezier(0.34, 1.3, 0.64, 1),
+                            box-shadow 0.32s ease,
+                            border-color 0.2s ease;
                 overflow: hidden;
             }
 
             .location-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+                transform: translateY(-7px) scale(1.01);
+                box-shadow: 0 20px 44px rgba(0,0,0,0.10), 0 4px 14px rgba(255,107,0,0.09);
+                border-color: rgba(255, 107, 0, 0.25) !important;
             }
 
             .icon-feature {
@@ -805,240 +806,163 @@
                     </p>
                 </div>
 
-                <div
-                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto"
-                >
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+
                     <!-- Sucursal Sabana Norte -->
-                    <div
-                        class="location-card bg-white rounded-xl overflow-hidden shadow-md border border-gray-100"
-                    >
-                        <div class="h-44 overflow-hidden relative">
-                            <div
-                                class="absolute inset-0 bg-orange-600 bg-opacity-70 flex items-center justify-center z-10"
-                            >
-                                <h3 class="text-xl font-bold text-white">
-                                    Sabana Norte
-                                </h3>
-                            </div>
+                    <div class="location-card bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                        <div class="relative h-48 overflow-hidden bg-gray-100">
                             <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.1074461165126!2d-84.09093468567204!3d9.938838192747315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e8f8f8f8f8f8%3A0x1234567890abcdef!2sSabana+Norte%2C+San+Jos%C3%A9%2C+Costa+Rica!5e0!3m2!1sen!2scr!4v1634567890!5m2!1sen!2scr"
-                                width="100%"
-                                height="100%"
-                                style="border: 0"
+                                src="https://maps.google.com/maps?q=Edificio+Torres+del+Parque+Sabana+Norte+San+Jose+Costa+Rica&output=embed&z=17"
+                                width="100%" height="100%"
+                                style="border:0; pointer-events:auto"
                                 class="absolute inset-0 w-full h-full"
-                                allowfullscreen=""
-                                loading="lazy"
+                                allowfullscreen="" loading="lazy"
                                 title="Mapa Sabana Norte"
                             ></iframe>
+                            <div class="absolute bottom-0 inset-x-0 h-14 bg-gradient-to-t from-black/55 to-transparent z-10 flex items-end px-4 pb-2.5 pointer-events-none">
+                                <span class="text-white font-bold text-base leading-tight drop-shadow">Sabana Norte</span>
+                            </div>
+                            <a href="https://maps.google.com/maps?q=Edificio+Torres+del+Parque+Sabana+Norte+San+Jose+Costa+Rica" target="_blank" rel="noopener" class="absolute top-2.5 right-2.5 z-20 bg-white/90 rounded-lg px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-white hover:text-orange-600 transition-colors flex items-center gap-1.5 shadow-sm" style="backdrop-filter:blur(6px)">
+                                <i class="fas fa-external-link-alt text-orange-500" style="font-size:0.65rem"></i> Ver mapa
+                            </a>
                         </div>
-                        <div class="p-5">
-                            <div class="flex items-start mb-3">
-                                <div
-                                    class="flex-shrink-0 w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3 mt-0.5"
-                                >
-                                    <i
-                                        class="fas fa-map-marker-alt text-sm"
-                                    ></i>
+                        <div class="p-5 space-y-3.5">
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 mt-0.5">
+                                    <i class="fas fa-map-marker-alt text-sm"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-sm mb-0.5">
-                                        Dirección
-                                    </h4>
-                                    <p class="text-gray-600 text-sm">
-                                        50 metros al Oeste del ICE, Edificio
-                                        Torres del Parque, planta baja, Local
-                                        #6.
-                                    </p>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Dirección</p>
+                                    <a href="https://maps.google.com/maps?q=Edificio+Torres+del+Parque+Sabana+Norte+San+Jose+Costa+Rica" target="_blank" rel="noopener" class="text-sm text-gray-700 hover:text-orange-600 transition-colors leading-snug">
+                                        50 metros al Oeste del ICE, Edificio Torres del Parque, planta baja, Local #6.
+                                    </a>
                                 </div>
                             </div>
-                            <div class="flex items-start mb-3">
-                                <div
-                                    class="flex-shrink-0 w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3 mt-0.5"
-                                >
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 mt-0.5">
                                     <i class="fas fa-clock text-sm"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-sm mb-0.5">
-                                        Horario
-                                    </h4>
-                                    <p class="text-gray-600 text-sm">
-                                        Lun–Vie 7:00 am – 4:30 pm
-                                    </p>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Horario</p>
+                                    <p class="text-sm text-gray-700">Lun–Vie 7:00 am – 4:30 pm</p>
                                 </div>
                             </div>
-                            <div class="flex items-start">
-                                <div
-                                    class="flex-shrink-0 w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3 mt-0.5"
-                                >
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 mt-0.5">
                                     <i class="fas fa-phone-alt text-sm"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-sm mb-0.5">
-                                        Teléfono
-                                    </h4>
-                                    <p class="text-gray-600 text-sm">
-                                        +506-8979-4418
-                                    </p>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Teléfono</p>
+                                    <a href="tel:+50640001114" class="text-sm text-gray-700 hover:text-orange-600 transition-colors font-medium">+506 4000-1114</a>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Sucursal Calle Blancos -->
-                    <div
-                        class="location-card bg-white rounded-xl overflow-hidden shadow-md border border-gray-100"
-                    >
-                        <div class="h-44 overflow-hidden relative">
-                            <div
-                                class="absolute inset-0 bg-orange-600 bg-opacity-70 flex items-center justify-center z-10"
-                            >
-                                <h3 class="text-xl font-bold text-white">
-                                    Calle Blancos
-                                </h3>
-                            </div>
+                    <div class="location-card bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                        <div class="relative h-48 overflow-hidden bg-gray-100">
                             <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.1074461165126!2d-84.09093468567204!3d9.938838192747315!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8fa0e8f8f8f8f8f8%3A0x1234567890abcdef!2sCalle+Blancos%2C+San+Jos%C3%A9%2C+Costa+Rica!5e0!3m2!1sen!2scr!4v1634567890!5m2!1sen!2scr"
-                                width="100%"
-                                height="100%"
-                                style="border: 0"
+                                src="https://maps.google.com/maps?q=CC+Plaza+San+Gabriel+Calle+Blancos+San+Jose+Costa+Rica&output=embed&z=17"
+                                width="100%" height="100%"
+                                style="border:0; pointer-events:auto"
                                 class="absolute inset-0 w-full h-full"
-                                allowfullscreen=""
-                                loading="lazy"
+                                allowfullscreen="" loading="lazy"
                                 title="Mapa Calle Blancos"
                             ></iframe>
+                            <div class="absolute bottom-0 inset-x-0 h-14 bg-gradient-to-t from-black/55 to-transparent z-10 flex items-end px-4 pb-2.5 pointer-events-none">
+                                <span class="text-white font-bold text-base leading-tight drop-shadow">Calle Blancos</span>
+                            </div>
+                            <a href="https://maps.google.com/maps?q=CC+Plaza+San+Gabriel+Calle+Blancos+San+Jose+Costa+Rica" target="_blank" rel="noopener" class="absolute top-2.5 right-2.5 z-20 bg-white/90 rounded-lg px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-white hover:text-orange-600 transition-colors flex items-center gap-1.5 shadow-sm" style="backdrop-filter:blur(6px)">
+                                <i class="fas fa-external-link-alt text-orange-500" style="font-size:0.65rem"></i> Ver mapa
+                            </a>
                         </div>
-                        <div class="p-5">
-                            <div class="flex items-start mb-3">
-                                <div
-                                    class="flex-shrink-0 w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3 mt-0.5"
-                                >
-                                    <i
-                                        class="fas fa-map-marker-alt text-sm"
-                                    ></i>
+                        <div class="p-5 space-y-3.5">
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 mt-0.5">
+                                    <i class="fas fa-map-marker-alt text-sm"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-sm mb-0.5">
-                                        Dirección
-                                    </h4>
-                                    <p class="text-gray-600 text-sm">
-                                        C.C. Plaza San Gabriel, planta baja,
-                                        oficinas Amazon, Local #2.
-                                    </p>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Dirección</p>
+                                    <a href="https://maps.google.com/maps?q=CC+Plaza+San+Gabriel+Calle+Blancos+San+Jose+Costa+Rica" target="_blank" rel="noopener" class="text-sm text-gray-700 hover:text-orange-600 transition-colors leading-snug">
+                                        C.C. Plaza San Gabriel, planta baja, oficinas Amazon, Local #2.
+                                    </a>
                                 </div>
                             </div>
-                            <div class="flex items-start mb-3">
-                                <div
-                                    class="flex-shrink-0 w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3 mt-0.5"
-                                >
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 mt-0.5">
                                     <i class="fas fa-clock text-sm"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-sm mb-0.5">
-                                        Horario
-                                    </h4>
-                                    <p class="text-gray-600 text-sm">
-                                        Lun–Vie 7:00 am – 4:30 pm
-                                    </p>
-                                    <p class="text-gray-600 text-sm">
-                                        Sábados 9:00 am – 12:30 pm
-                                    </p>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Horario</p>
+                                    <p class="text-sm text-gray-700">Lun–Vie 7:00 am – 4:30 pm</p>
+                                    <p class="text-sm text-gray-700">Sábados 9:00 am – 12:30 pm</p>
                                 </div>
                             </div>
-                            <div class="flex items-start">
-                                <div
-                                    class="flex-shrink-0 w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-3 mt-0.5"
-                                >
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 mt-0.5">
                                     <i class="fas fa-phone-alt text-sm"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-sm mb-0.5">
-                                        Teléfono
-                                    </h4>
-                                    <p class="text-gray-600 text-sm">
-                                        +506-8979-4418
-                                    </p>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Teléfono</p>
+                                    <a href="tel:+50640001114" class="text-sm text-gray-700 hover:text-orange-600 transition-colors font-medium">+506 4000-1114</a>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Miami Office -->
-                    <div
-                        class="location-card bg-white rounded-xl overflow-hidden shadow-md border border-gray-100"
-                    >
-                        <div class="h-44 overflow-hidden relative">
-                            <div
-                                class="absolute inset-0 bg-blue-700 bg-opacity-70 flex items-center justify-center z-10"
-                            >
-                                <h3 class="text-xl font-bold text-white">
-                                    Miami, FL
-                                </h3>
-                            </div>
+                    <div class="location-card bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                        <div class="relative h-48 overflow-hidden bg-gray-100">
                             <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3594.3!2d-80.1918!3d25.7617!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88d9b6e7e7e7e7e7%3A0x1234567890abcdef!2sMiami%2C+FL%2C+USA!5e0!3m2!1sen!2sus!4v1700000000!5m2!1sen!2sus"
-                                width="100%"
-                                height="100%"
-                                style="border: 0"
+                                src="https://maps.google.com/maps?q=8155+NW+68th+St+Miami+FL+33195&output=embed&z=16"
+                                width="100%" height="100%"
+                                style="border:0; pointer-events:auto"
                                 class="absolute inset-0 w-full h-full"
-                                allowfullscreen=""
-                                loading="lazy"
+                                allowfullscreen="" loading="lazy"
                                 title="Mapa Miami"
                             ></iframe>
+                            <div class="absolute bottom-0 inset-x-0 h-14 bg-gradient-to-t from-black/55 to-transparent z-10 flex items-end px-4 pb-2.5 pointer-events-none">
+                                <span class="text-white font-bold text-base leading-tight drop-shadow">Miami, FL</span>
+                            </div>
+                            <a href="https://maps.google.com/maps?q=8155+NW+68th+St+Miami+FL+33195" target="_blank" rel="noopener" class="absolute top-2.5 right-2.5 z-20 bg-white/90 rounded-lg px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-white hover:text-orange-600 transition-colors flex items-center gap-1.5 shadow-sm" style="backdrop-filter:blur(6px)">
+                                <i class="fas fa-external-link-alt text-orange-500" style="font-size:0.65rem"></i> Ver mapa
+                            </a>
                         </div>
-                        <div class="p-5">
-                            <div class="flex items-start mb-3">
-                                <div
-                                    class="flex-shrink-0 w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 mt-0.5"
-                                >
-                                    <i
-                                        class="fas fa-map-marker-alt text-sm"
-                                    ></i>
+                        <div class="p-5 space-y-3.5">
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 mt-0.5">
+                                    <i class="fas fa-map-marker-alt text-sm"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-sm mb-0.5">
-                                        Dirección
-                                    </h4>
-                                    <p class="text-gray-600 text-sm">
-                                        8351 NW 21st St, Suite 100, Doral, FL
-                                        33122, USA
-                                    </p>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Dirección</p>
+                                    <a href="https://maps.google.com/maps?q=8155+NW+68th+St+Miami+FL+33195" target="_blank" rel="noopener" class="text-sm text-gray-700 hover:text-orange-600 transition-colors leading-snug">
+                                        8155 NW 68th St, Miami, FL 33195-6385, USA
+                                    </a>
                                 </div>
                             </div>
-                            <div class="flex items-start mb-3">
-                                <div
-                                    class="flex-shrink-0 w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 mt-0.5"
-                                >
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 mt-0.5">
                                     <i class="fas fa-clock text-sm"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-sm mb-0.5">
-                                        Horario
-                                    </h4>
-                                    <p class="text-gray-600 text-sm">
-                                        Lun–Vie 8:00 am – 5:00 pm
-                                    </p>
-                                    <p class="text-gray-500 text-xs mt-0.5">
-                                        Hora del Este (US Eastern Time)
-                                    </p>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Horario</p>
+                                    <p class="text-sm text-gray-700">Lun–Vie 8:00 am – 5:00 pm</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">Hora del Este (US Eastern Time)</p>
                                 </div>
                             </div>
-                            <div class="flex items-start">
-                                <div
-                                    class="flex-shrink-0 w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 mt-0.5"
-                                >
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 mt-0.5">
                                     <i class="fas fa-phone-alt text-sm"></i>
                                 </div>
                                 <div>
-                                    <h4 class="font-semibold text-sm mb-0.5">
-                                        Teléfono
-                                    </h4>
-                                    <p class="text-gray-600 text-sm">
-                                        +1 (786) 600-0000
-                                    </p>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Teléfono</p>
+                                    <a href="tel:+13058821718" class="text-sm text-gray-700 hover:text-orange-600 transition-colors font-medium">+1 (305) 882-1718</a>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </section>
