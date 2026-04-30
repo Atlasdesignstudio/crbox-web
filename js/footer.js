@@ -81,8 +81,8 @@
         <div class="crb-ft-brand">CRBOX</div>\
         <p class="crb-ft-tagline">Tu casillero virtual en Miami.\u00a0Compras en USA con entrega en Costa Rica.</p>\
         <div class="crb-ft-social">\
-          <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>\
-          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>\
+          <a href="https://www.facebook.com/crboxexpress/" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>\
+          <a href="https://www.instagram.com/crboxcr/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>\
           <a href="https://wa.me/50689794418" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>\
         </div>\
       </div>\
