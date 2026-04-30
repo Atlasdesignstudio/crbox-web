@@ -1,0 +1,151 @@
+I want a targeted visual polish pass on the Mis Cotizaciones page inside the client portal.
+
+This is not a redesign and it must not alter any existing functionality, spacing logic outside this page, quote logic, history accordion behavior, CTA behavior, or footer system globally.
+
+The goal is specifically to improve two things on this page only:
+
+1. The new “¿Cómo funciona?” explainer section currently feels too flat / too dry / too static.  
+   I want it to feel more premium, more intentional, and more visually alive — without becoming loud, oversized, or marketing-heavy.
+
+2. The footer on this page is visually coming up too much and feels like it is merging into the page content.  
+   On this page only, I want the transition into the footer to feel more natural and better separated, so the footer clearly reads as the footer — not as part of the Mis Cotizaciones content area.
+
+---
+
+## Context
+Right now:
+- the page content is relatively short
+- the explainer cards work functionally, but visually they feel plain
+- the footer starts too soon and feels too attached to the content above
+
+The result is that the page feels unfinished / compressed, even though the logic is correct.
+
+This task is about improving the visual finish of the page.
+
+---
+
+## Main objective
+Make the Mis Cotizaciones page feel more polished and intentional by:
+- upgrading the visual quality of the ¿Cómo funciona? section
+- improving the separation between page content and footer
+- doing this only on this page
+- without turning it into a redesign
+
+---
+
+## What I want improved
+
+### A. “¿Cómo funciona?” section
+Keep the same general structure:
+- heading
+- 4 cards / explainer blocks
+
+But make it feel much more refined.
+
+### Improve:
+- card presence
+- card hierarchy
+- spacing inside each card
+- icon treatment
+- typography rhythm
+- visual depth
+- overall composition
+
+### Desired feeling:
+- more premium
+- more elegant
+- more carefully designed
+- more alive
+- more intentional
+- still calm and portal-native
+
+### Avoid:
+- giant cards
+- heavy gradients
+- loud colors
+- big illustrations
+- redesigning the structure
+- making it feel like a public landing page instead of a portal support section
+
+### Direction
+Think:
+- slightly better card proportions
+- better icon containers
+- more intentional vertical rhythm
+- subtle accent details
+- slightly richer depth/shadow/border treatment
+- cleaner spacing between heading and cards
+- cards that feel designed, not generic
+
+The section should still remain compact and secondary to the main CTA.
+
+---
+
+### B. Footer separation on this page only
+Right now the footer visually rises too much and feels like it belongs to the page content.
+
+That should be fixed only on Mis Cotizaciones.
+
+### Desired result:
+- more breathing room before the footer
+- clearer separation between the explainer section and the footer
+- the footer should feel like the footer again, not like the continuation of the same content block
+
+### Important:
+Do not redesign the global footer.
+Do not change the footer system sitewide.
+Do not change footer content.
+
+Only adjust this page’s content-to-footer relationship so it feels natural.
+
+### This can be solved by:
+- adding better bottom spacing to the main content area
+- improving the vertical rhythm after the explainer section
+- ensuring the footer starts lower and more intentionally
+- optionally adding a cleaner visual buffer if needed
+
+But do it in the most minimal and elegant way possible.
+
+---
+
+## Constraints
+- page-specific only
+- do not break responsiveness
+- do not change quote creation logic
+- do not change history accordion logic
+- do not change CTA behavior
+- do not globally modify the footer component just to solve this page’s spacing issue
+- do not overdesign the explainer section
+
+---
+
+## Responsive requirement
+The improvement must work on:
+- desktop
+- tablet
+- mobile
+
+### Especially on mobile:
+- the explainer cards should still feel elegant and readable
+- spacing should not become cramped
+- the footer should not feel glued to the content
+- no overflow, clipping, or awkward stacking
+
+---
+
+## Done looks like
+- Mis Cotizaciones still behaves exactly the same
+- the “¿Cómo funciona?” section looks noticeably more polished and aesthetic
+- the cards feel more intentional and less flat
+- the page feels visually finished
+- the footer no longer feels like it intrudes into the content
+- the separation between content and footer feels natural
+- all of this is done only on this page
+
+---
+
+## Please report back with
+1. what visual refinements you made to the explainer cards
+2. how you improved the section without redesigning it
+3. what you changed to make the footer feel naturally separated on this page
+4. confirmation that no logic or shared footer behavior was changed globally
