@@ -338,8 +338,9 @@
     <section id="main-content" class="py-16 md:py-24 gradient-bg relative overflow-hidden">
         <div class="absolute inset-0 opacity-10 bg-pattern"></div>
         <div class="container mx-auto px-4 relative z-10">
-            <div class="flex flex-col items-center">
-                <div class="text-center max-w-3xl mx-auto">
+            <div class="flex flex-col md:flex-row items-stretch justify-center max-w-5xl mx-auto">
+                <!-- Text content -->
+                <div class="flex-1 text-center flex flex-col items-center justify-center py-4 order-2 md:order-1">
                     <span class="inline-block bg-white bg-opacity-20 text-white text-sm font-semibold px-4 py-1 rounded-full mb-5 tracking-wide">PLANIFICADOR DE ENVÍOS</span>
                     <h1 class="text-4xl md:text-5xl font-bold text-white mb-5 leading-tight">Calcula tu envío.<br>Descubre cuánto ahorras.</h1>
                     <p class="text-lg text-white text-opacity-90 mb-10 max-w-2xl mx-auto">Agrega los artículos que quieres traer desde USA, compara enviarlos por separado vs. en un solo paquete consolidado, y ve exactamente cuánto dinero dejas en tu bolsillo.</p>
@@ -351,6 +352,11 @@
                             <i class="fas fa-ship mr-2"></i> Servicio Marítimo
                         </button>
                     </div>
+                </div>
+                <!-- Mascot — above text on mobile, right side on desktop -->
+                <div class="flex-shrink-0 w-full md:w-52 lg:w-64 relative order-1 md:order-2 h-44 md:h-auto md:self-stretch">
+                    <img src="img/mascot-calculator.png" alt="CRBOX mascot con calculadora"
+                         class="absolute bottom-0 left-0 w-full h-full object-contain object-bottom select-none pointer-events-none">
                 </div>
             </div>
         </div>
