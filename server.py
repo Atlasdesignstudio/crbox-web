@@ -138,7 +138,7 @@ JSON schema (return exactly this structure):
 
 Extraction rules:
 1. "provenance" must be one of: "extracted" | "inferred" | "missing" | "needs_confirmation"
-2. declared_value_usd: extract the sale price in USD as a float. If multiple prices exist, use needs_confirmation. If the price is in another currency, convert to USD if an exchange rate is obvious, otherwise use needs_confirmation.
+2. declared_value_usd: extract the current sale/list price in USD as a float. Look in [LD+JSON] price lines and [meta] price lines at the top of the content first — these are the most reliable. If the price block shows something like "$XX.XX" or "price: XX.XX", use that value. If multiple prices exist or you are unsure, use needs_confirmation. If in another currency and exchange rate is obvious, convert; otherwise needs_confirmation.
 3. category: choose from the list above. Use "inferred" provenance since it is always inferred from context.
 4. weight_kg: extract the PRODUCT weight in kilograms as a float (not shipping weight). Look in spec tables, product details, and technical specifications. If found, use "extracted" provenance. If not found, use "missing" with null value. Do NOT guess.
 5. dimensions_cm: extract product dimensions (L×W×H) in centimeters as a string like "30x20x10" or as an object {{"length": 30, "width": 20, "height": 10}}. Look in spec tables and product details sections. These are PRODUCT dimensions, not box/shipping dimensions. If found, use "extracted" provenance. If not found, use "missing" with null value. Do NOT guess.
@@ -1035,13 +1035,11 @@ _SEARCH_FALLBACK_PROMPT = """\
 A customer wants to import a product from the US to Costa Rica using CRBOX courier.
 They shared this product URL: {url}
 
-The page cannot be scraped directly (bot protection). Use Google Search to find the product at that exact URL.
-If this is an Amazon URL, search for the exact ASIN in the URL to find the specific product listing and its price.
-Look at the product listing and its technical specifications to find ALL of the following.
+The page cannot be scraped directly (bot protection). Search for this product using the URL or ASIN to find its current details and price on Amazon or Google Shopping.
 Return ONLY a valid JSON object — no markdown, no code fences, no explanation:
 {{
   "product_name": "full product name in English",
-  "price_usd": 0.0,
+  "price_usd": null,
   "category": "one of: {categories}",
   "weight": "item weight with unit, e.g. '1.5 lbs' or '0.68 kg' — item weight NOT shipping weight",
   "dimensions": "product dimensions as L x W x H with unit, e.g. '5.7 x 3.2 x 1.1 inches' or '14.5 x 8.1 x 2.8 cm'",
@@ -1056,7 +1054,7 @@ Return ONLY a valid JSON object — no markdown, no code fences, no explanation:
 }}
 Rules:
 - product_name: exact product name as listed on the retailer site; null if not found
-- price_usd: the current listed price for THIS specific product URL/ASIN as a plain number (no $ symbol), e.g. 49.99. If the product has multiple configurations, use the price shown on the default listing for this ASIN. null if not found
+- price_usd: the CURRENT sale price on Amazon in USD as a plain number without the $ symbol (e.g. 49.99). Look in any search result snippet, Google Shopping card, or product listing that shows this product's price. If the product has multiple configurations, use the default listing price. null only if no price is found anywhere in the search results.
 - category: choose one CRBOX code from the list above; null if unsure
 - weight: item/product weight as a string with unit (lbs, oz, kg, g); null if not listed in specs
 - dimensions: product dimensions L x W x H with unit (inches or cm); null if not in specs
@@ -1170,9 +1168,11 @@ def _call_gemini_search_fallback(url):
             except Exception:
                 pass
 
+        grounded = True  # used real Google Search
         if not text:
             # Log candidate details, then retry WITHOUT the search tool so Gemini
             # answers from training knowledge (avoids the "grounded but empty" bug).
+            grounded = False  # falling back to training knowledge — price will be unreliable
             try:
                 cand = response.candidates[0] if response.candidates else None
                 reason = str(getattr(cand, 'finish_reason', 'unknown')) if cand else 'no candidates'
@@ -1226,7 +1226,7 @@ def _call_gemini_search_fallback(url):
                 text = ''
 
             if not text:
-                return None, 'Empty response from search fallback'
+                return None, 'Empty response from search fallback', False
         if text.startswith('```'):
             text = re.sub(r'^```[a-z]*\n?', '', text)
         if text.endswith('```'):
@@ -1235,15 +1235,22 @@ def _call_gemini_search_fallback(url):
         brace = text.find('{')
         if brace > 0:
             text = text[brace:]
-        return json.loads(text), None
+        parsed = json.loads(text)
+        src_log = 'grounded' if grounded else 'training-memory'
+        print(f'[AI] search fallback source={src_log} price_usd={parsed.get("price_usd")!r} product={str(parsed.get("product_name",""))[:60]!r}')
+        return parsed, None, grounded
     except json.JSONDecodeError as ex:
-        return None, f'JSON parse error in search fallback: {ex}'
+        return None, f'JSON parse error in search fallback: {ex}', False
     except Exception as ex:
-        return None, f'Search fallback error: {ex}'
+        return None, f'Search fallback error: {ex}', False
 
 
-def _build_search_fallback_result(data, url):
-    """Convert Google Search fallback data dict into the normalised extraction result."""
+def _build_search_fallback_result(data, url, grounded=True):
+    """Convert Google Search fallback data dict into the normalised extraction result.
+
+    grounded=True  → data came from real Google Search grounding (price is trustworthy)
+    grounded=False → data came from Gemini training memory (price is stale/unreliable, discard it)
+    """
     now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 
     def _mf(value, conf, prov, src_unit=None):
@@ -1258,7 +1265,9 @@ def _build_search_fallback_result(data, url):
     cat_raw = data.get('category')
     cat     = _map_search_category(cat_raw)
 
-    price = data.get('price_usd')
+    # Price is only trusted when it came from real Google Search grounding.
+    # Training-memory prices are stale and often wrong — discard them.
+    price = data.get('price_usd') if grounded else None
     if price is not None:
         try:
             price = float(str(price).replace(',', '').replace('$', '').strip())
@@ -1266,6 +1275,8 @@ def _build_search_fallback_result(data, url):
                 price = None
         except (ValueError, TypeError):
             price = None
+    if not grounded and data.get('price_usd') is not None:
+        print(f'[AI] discarded training-memory price={data.get("price_usd")!r} (not grounded)')
 
     # Weight — parse via the shared helper (handles lbs, oz, g → kg conversion)
     weight_kg, w_unit = _parse_weight_to_kg(data.get('weight'))
@@ -1278,9 +1289,11 @@ def _build_search_fallback_result(data, url):
 
     # Hallucination guard: if the URL has a descriptive slug and the returned
     # product name shares no meaningful words with it, the result is likely wrong.
+    has_slug = False
     if name:
         slug_match = re.search(r'amazon\.[^/]+/([A-Za-z][^/]{4,})/(?:dp|product)/', url)
         if slug_match:
+            has_slug = True
             slug_words = set(
                 w.lower() for w in re.split(r'[-_\s]+', slug_match.group(1))
                 if len(w) > 3 and w.lower() not in {'with', 'from', 'that', 'this', 'your', 'just', 'bare'}
@@ -1289,6 +1302,16 @@ def _build_search_fallback_result(data, url):
             if slug_words and name_words and not slug_words.intersection(name_words):
                 print(f'[AI] search result rejected (slug={slug_words} vs name={name_words}) — likely hallucination')
                 return None
+
+    # For bare ASIN URLs (no product slug) we cannot verify the returned product,
+    # so discard the price — showing a confidently wrong price is worse than showing nothing.
+    if price is not None and not has_slug:
+        print(f'[AI] discarded unverifiable price={price!r} for bare-ASIN URL (no slug to cross-check)')
+        price = None
+
+    # Price from search is always shown as needs_confirmation (user must verify)
+    # because Google Search snippets may reflect a different variant or stale data.
+    price_prov = 'needs_confirmation' if price is not None else 'missing'
 
     filled = sum(1 for v in (name, price, cat, weight_kg, dims) if v is not None)
     partial = filled < 3
@@ -1305,8 +1328,8 @@ def _build_search_fallback_result(data, url):
         'fields': {
             'product_name':       _mf(name,      0.85 if name      else 0.0,
                                       'search' if name      else 'missing'),
-            'declared_value_usd': _mf(price,     0.80 if price     else 0.0,
-                                      'search' if price     else 'missing'),
+            'declared_value_usd': _mf(price,     0.70 if price     else 0.0,
+                                      price_prov),
             'category':           _mf(cat,       0.70 if cat       else 0.0,
                                       'search' if cat       else 'missing'),
             'weight_kg':          _mf(weight_kg, 0.75 if weight_kg else 0.0,
@@ -1432,9 +1455,9 @@ def _handle_ai_extract(handler):
         if canonical != url:
             print(f'[AI] canonicalized URL for search: {canonical!r}')
         print(f'[AI] using search fallback for {url!r} (reason: {reason})')
-        search_data, search_err = _call_gemini_search_fallback(canonical)
+        search_data, search_err, search_grounded = _call_gemini_search_fallback(canonical)
         if search_data:
-            search_result = _build_search_fallback_result(search_data, url)
+            search_result = _build_search_fallback_result(search_data, url, grounded=search_grounded)
             if search_result:
                 print(f'[AI] search fallback succeeded for {url!r}')
                 search_result = _run_estimate_if_needed(search_result)
