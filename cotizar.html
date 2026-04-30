@@ -661,6 +661,9 @@
                                 </button>
                             </div>
                             <div class="q-hint">Pega el enlace del producto y presiona "Analizar" para completar los datos automáticamente.</div>
+                            <p id="ai-analizar-helper" style="display:none;font-size:.775rem;color:#6b7280;margin-top:.3rem;line-height:1.45;">
+                                <i class="fas fa-circle-notch fa-spin" style="margin-right:.3rem;color:#FF6B00;"></i>Estamos analizando el enlace y completando los datos del producto.
+                            </p>
                             <!-- AI extraction banner mounts here -->
                             <div id="ai-extract-banner-cotizar"></div>
                         </div>
@@ -1482,14 +1485,38 @@
         })();
 
         // ── AI extraction ────────────────────────────────────────
-        const btnAiAnalizar = document.getElementById('btn-ai-analizar-cotizar');
+        const btnAiAnalizar   = document.getElementById('btn-ai-analizar-cotizar');
+        const aiAnalizarHelper = document.getElementById('ai-analizar-helper');
+        var _aiInFlight = false;
+
+        function _setAnalizarLoading(loading) {
+            if (!btnAiAnalizar) return;
+            if (loading) {
+                btnAiAnalizar.disabled = true;
+                btnAiAnalizar.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analizando\u2026';
+                btnAiAnalizar.style.background = '#d97706';
+                btnAiAnalizar.onmouseover = null;
+                btnAiAnalizar.onmouseout  = null;
+                if (aiAnalizarHelper) aiAnalizarHelper.style.display = 'block';
+            } else {
+                btnAiAnalizar.disabled = false;
+                btnAiAnalizar.innerHTML = '<i class="fas fa-magic"></i> Analizar';
+                btnAiAnalizar.style.background = '#FF6B00';
+                btnAiAnalizar.onmouseover = function () { this.style.background = '#E05A00'; };
+                btnAiAnalizar.onmouseout  = function () { this.style.background = '#FF6B00'; };
+                if (aiAnalizarHelper) aiAnalizarHelper.style.display = 'none';
+            }
+        }
 
         function _doAiExtract() {
             const url = (fProductUrl.value || '').trim();
             if (!url || !url.startsWith('http')) return;
             if (typeof CRBOXAIExtractor === 'undefined') return;
+            if (_aiInFlight) return;
+            _aiInFlight   = true;
             _aiActive     = false;
             _aiDataSource = 'manual';
+            _setAnalizarLoading(true);
             // AI extractor writes values in canonical cm/kg — reset toggles first to avoid double-conversion
             if (_cotizarWeightToggle) _cotizarWeightToggle.setUnit('kg');
             if (_cotizarDimToggle)    _cotizarDimToggle.setUnit('cm');
@@ -1509,6 +1536,9 @@
                                banner.classList.contains('ai-banner-partial'))) {
                     _aiActive = true;
                 }
+            }).finally(function () {
+                _aiInFlight = false;
+                _setAnalizarLoading(false);
             });
         }
         const aiConfirmWrapperSubmit = document.getElementById('ai-confirm-cotizar-submit');
@@ -1578,6 +1608,7 @@
                     confirmWrapper: aiConfirmWrapper,
                 });
                 _aiActive = false;
+                if (aiAnalizarHelper) aiAnalizarHelper.style.display = 'none';
             }
         });
 

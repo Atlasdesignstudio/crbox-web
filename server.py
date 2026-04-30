@@ -14,6 +14,9 @@ import socket
 import email.mime.multipart
 import email.mime.text
 import email.utils
+import gzip as _gzip
+import zlib as _zlib
+import http.cookiejar
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -195,9 +198,9 @@ def _is_ssrf_safe(url):
 
 
 class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
-    """Follow up to 3 redirects but revalidate each hop for SSRF safety."""
-    max_repeats = 3
-    max_redirections = 3
+    """Follow up to 5 redirects but revalidate each hop for SSRF safety."""
+    max_repeats = 5
+    max_redirections = 5
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         if not _is_ssrf_safe(newurl):
@@ -205,31 +208,99 @@ class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
-def _fetch_page(url):
-    req = urllib.request.Request(url, headers={
-        'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                       'AppleWebKit/537.36 (KHTML, like Gecko) '
-                       'Chrome/124.0.0.0 Safari/537.36'),
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+_FETCH_USER_AGENTS = [
+    ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+     'AppleWebKit/537.36 (KHTML, like Gecko) '
+     'Chrome/124.0.0.0 Safari/537.36'),
+    ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+     'AppleWebKit/537.36 (KHTML, like Gecko) '
+     'Chrome/123.0.0.0 Safari/537.36'),
+    ('Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) '
+     'Gecko/20100101 Firefox/125.0'),
+    ('Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) '
+     'AppleWebKit/605.1.15 (KHTML, like Gecko) '
+     'Version/17.4.1 Safari/605.1.15'),
+]
+_FETCH_UA_INDEX = 0
+_FETCH_UA_LOCK  = threading.Lock()
+
+
+def _next_user_agent():
+    global _FETCH_UA_INDEX
+    with _FETCH_UA_LOCK:
+        ua = _FETCH_USER_AGENTS[_FETCH_UA_INDEX % len(_FETCH_USER_AGENTS)]
+        _FETCH_UA_INDEX += 1
+    return ua
+
+
+def _build_fetch_request(url):
+    parsed = urllib.parse.urlparse(url)
+    origin = f'{parsed.scheme}://{parsed.netloc}'
+    return urllib.request.Request(url, headers={
+        'User-Agent':      _next_user_agent(),
+        'Accept':          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate',
+        'DNT':             '1',
+        'Referer':         origin + '/',
+        'Connection':      'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
     })
-    opener = urllib.request.build_opener(_SafeRedirectHandler)
-    try:
-        with opener.open(req, timeout=10) as resp:
-            raw = resp.read(200_000)
-            charset = 'utf-8'
-            ctype = resp.headers.get('Content-Type', '')
-            if 'charset=' in ctype:
-                charset = ctype.split('charset=')[-1].split(';')[0].strip()
+
+
+def _decompress_response(raw, content_encoding):
+    """Decompress raw bytes according to Content-Encoding header."""
+    enc = (content_encoding or '').lower()
+    if 'gzip' in enc:
+        try:
+            return _gzip.decompress(raw)
+        except Exception:
+            pass
+    elif 'deflate' in enc:
+        try:
+            return _zlib.decompress(raw)
+        except Exception:
             try:
-                text = raw.decode(charset, errors='replace')
+                return _zlib.decompress(raw, -_zlib.MAX_WBITS)
             except Exception:
-                text = raw.decode('utf-8', errors='replace')
-            return text, None
-    except urllib.error.HTTPError as e:
-        return None, f'HTTP {e.code}'
-    except Exception as ex:
-        return None, str(ex)
+                pass
+    return raw
+
+
+def _fetch_page(url, _retries=2, _backoff=1.0):
+    last_err = 'unknown'
+    # Shared cookie jar across retries — lets session cookies set on first
+    # response (e.g. AWSALB, cf_clearance) be sent on subsequent attempts.
+    cookie_jar = http.cookiejar.CookieJar()
+    for attempt in range(_retries + 1):
+        if attempt > 0:
+            time.sleep(_backoff)
+        req = _build_fetch_request(url)
+        opener = urllib.request.build_opener(
+            _SafeRedirectHandler,
+            urllib.request.HTTPCookieProcessor(cookie_jar),
+        )
+        try:
+            with opener.open(req, timeout=12) as resp:
+                raw = resp.read(200_000)
+                content_encoding = resp.headers.get('Content-Encoding', '')
+                raw = _decompress_response(raw, content_encoding)
+                charset = 'utf-8'
+                ctype = resp.headers.get('Content-Type', '')
+                if 'charset=' in ctype:
+                    charset = ctype.split('charset=')[-1].split(';')[0].strip()
+                try:
+                    text = raw.decode(charset, errors='replace')
+                except Exception:
+                    text = raw.decode('utf-8', errors='replace')
+                return text, None
+        except urllib.error.HTTPError as e:
+            last_err = f'HTTP {e.code}'
+            if e.code in (400, 401, 403, 404, 410):
+                break
+        except Exception as ex:
+            last_err = str(ex)
+    return None, last_err
 
 
 def _extract_structured_data(html_text):
@@ -325,6 +396,145 @@ def _extract_structured_data(html_text):
     # Cap the summary to avoid inflating the prompt beyond budget (~2 000 chars)
     summary = '=== STRUCTURED DATA (high confidence) ===\n' + '\n'.join(lines) + '\n\n'
     return summary[:2_000]
+
+
+def _build_fallback_from_structured(html_text, source_url):
+    """Attempt to build a minimal extraction result directly from JSON-LD / OG tags.
+
+    Used as a Gemini fallback: if Gemini is unavailable but structured data
+    contains at least a product name, return a partial result rather than
+    page_readable=False.
+
+    Returns a normalized result dict (same shape as _normalize_ai_result output),
+    or None if no meaningful fields could be found.
+    """
+    import re as _re
+    import json as _json
+
+    name = None
+    price = None
+    currency = 'USD'
+    weight_raw = None
+
+    # ── JSON-LD ──────────────────────────────────────────────────────────────
+    for m in _re.finditer(
+        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        html_text, _re.IGNORECASE | _re.DOTALL
+    ):
+        try:
+            obj = _json.loads(m.group(1).strip())
+        except Exception:
+            continue
+        if isinstance(obj, list):
+            items = list(obj)
+        elif isinstance(obj, dict) and '@graph' in obj:
+            items = list(obj['@graph']) if isinstance(obj['@graph'], list) else [obj]
+        else:
+            items = [obj]
+        idx = 0
+        while idx < len(items):
+            item = items[idx]
+            idx += 1
+            if not isinstance(item, dict):
+                continue
+            rtype = str(item.get('@type', '')).lower()
+            if rtype not in ('product', 'offer'):
+                for key in ('offers', 'mainEntity', '@graph'):
+                    sub = item.get(key)
+                    if isinstance(sub, dict):
+                        items.append(sub)
+                    elif isinstance(sub, list):
+                        items.extend(sub)
+                continue
+            if not name:
+                name = item.get('name') or item.get('headline')
+            offers = item.get('offers')
+            if isinstance(offers, dict):
+                offers = [offers]
+            if isinstance(offers, list) and not price:
+                for o in offers:
+                    p = o.get('price') or o.get('lowPrice')
+                    if p is not None:
+                        price = p
+                        currency = o.get('priceCurrency', 'USD')
+                        break
+            if price is None and item.get('price') is not None:
+                price = item['price']
+                currency = item.get('priceCurrency', 'USD')
+            if not weight_raw:
+                w = item.get('weight')
+                if isinstance(w, dict) and w.get('value'):
+                    weight_raw = f'{w["value"]} {w.get("unitCode", "")}'
+        if name and price is not None:
+            break
+
+    # ── Open Graph / meta fallback ────────────────────────────────────────────
+    if not name or price is None:
+        for m in _re.finditer(r'<meta\s+([^>]+)>', html_text, _re.IGNORECASE):
+            attrs_raw = m.group(1)
+            prop = _re.search(r'(?:property|name)=["\']([^"\']+)["\']', attrs_raw, _re.IGNORECASE)
+            cont = _re.search(r'content=["\']([^"\']+)["\']', attrs_raw, _re.IGNORECASE)
+            if not prop or not cont:
+                continue
+            pname = prop.group(1).lower()
+            value = cont.group(1).strip()
+            if not value:
+                continue
+            if not name and pname in ('og:title', 'twitter:title'):
+                name = value
+            if price is None and pname in ('product:price:amount', 'og:price:amount', 'price'):
+                try:
+                    price = float(value)
+                except ValueError:
+                    pass
+            if pname in ('product:price:currency',):
+                currency = value
+
+    if not name:
+        return None
+
+    now_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+
+    def _field(value, confidence, provenance):
+        return {'value': value, 'confidence': confidence,
+                'provenance': provenance, 'source_attribute': 'structured_data', 'source_unit': None}
+
+    fields = {}
+    fields['product_name']       = _field(str(name), 0.92, 'extracted')
+    fields['category']           = _field(None, 0.0, 'missing')
+    fields['weight_kg']          = _field(None, 0.0, 'missing')
+    fields['dimensions_cm']      = _field(None, 0.0, 'missing')
+
+    if price is not None:
+        try:
+            price_usd = float(str(price).replace(',', ''))
+            if currency.upper() != 'USD':
+                fields['declared_value_usd'] = _field(price_usd, 0.70, 'needs_confirmation')
+            else:
+                fields['declared_value_usd'] = _field(price_usd, 0.90, 'extracted')
+        except (ValueError, TypeError):
+            fields['declared_value_usd'] = _field(None, 0.0, 'missing')
+    else:
+        fields['declared_value_usd'] = _field(None, 0.0, 'missing')
+
+    if weight_raw:
+        w_val, w_unit = _parse_weight_to_kg(weight_raw)
+        if w_val:
+            fields['weight_kg'] = _field(w_val, 0.85, 'extracted')
+            fields['weight_kg']['source_unit'] = w_unit
+
+    has_price = fields['declared_value_usd']['provenance'] != 'missing'
+    partial = not has_price
+
+    return {
+        'source_url':          source_url,
+        'extracted_at':        now_iso,
+        'model':               'structured_data_fallback',
+        'page_readable':       True,
+        'partial':             partial,
+        'fields':              fields,
+        'extraction_warnings': ['Gemini unavailable; result from structured data only'],
+    }
 
 
 _SPEC_SECTION_PATTERNS = [
@@ -708,6 +918,13 @@ def _handle_ai_extract(handler):
     gemini_result, gemini_err = _call_gemini(truncated)
 
     if gemini_err or not isinstance(gemini_result, dict):
+        # Gemini failed — try structured-data direct extraction as fallback
+        fallback = _build_fallback_from_structured(page_text, url)
+        if fallback is not None:
+            print(f'[AI] Gemini failed for {url!r} ({gemini_err}); using structured-data fallback')
+            _ai_cache_set(url_hash, fallback)
+            handler._json_response(200, fallback)
+            return
         # Determine a coarse actionable error code for ops/debug without leaking internals
         if gemini_err and 'No API key' in gemini_err:
             err_detail = 'no_api_key'

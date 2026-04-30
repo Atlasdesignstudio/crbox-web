@@ -406,7 +406,7 @@
             if (!result || result.page_readable === false) {
                 _lastExtractionResult = null;
                 _showBanner(bannerTarget, 'neutral',
-                    'No pudimos leer esta página automáticamente. Ingresa los datos del producto manualmente.');
+                    'No pudimos completar los datos automáticamente. Puedes ingresarlos manualmente.');
                 document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
                     detail: { url: url, result: result, filledCount: 0, dataSource: null }
                 }));
@@ -437,7 +437,7 @@
             if (filledCount === 0) {
                 _lastExtractionResult = null;
                 _showBanner(bannerTarget, 'neutral',
-                    'No pudimos leer esta página automáticamente. Ingresa los datos del producto manualmente.');
+                    'No pudimos completar los datos automáticamente. Puedes ingresarlos manualmente.');
                 document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
                     detail: { url: url, result: result, filledCount: 0, dataSource: null }
                 }));
@@ -450,10 +450,10 @@
 
             if (partial) {
                 _showBanner(bannerTarget, 'partial',
-                    'Revisamos la página y completamos los datos que encontramos. Verifica que todo sea correcto antes de enviar.');
+                    'Datos completados automáticamente (parcial). Revisa y completa los campos que faltan antes de enviar.');
             } else {
                 _showBanner(bannerTarget, 'success',
-                    'Datos extraídos automáticamente. Verifica que todo sea correcto antes de enviar.');
+                    'Datos completados automáticamente. Verifica que todo sea correcto antes de enviar.');
             }
 
             _showConfirmCheckbox(confirmWrapper);
@@ -466,7 +466,7 @@
         }).catch(function () {
             _lastExtractionResult = null;
             _showBanner(bannerTarget, 'neutral',
-                'No pudimos leer esta página automáticamente. Ingresa los datos del producto manualmente.');
+                'No pudimos completar los datos automáticamente. Puedes ingresarlos manualmente.');
             document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
                 detail: { url: url, result: null, filledCount: 0, dataSource: null }
             }));
