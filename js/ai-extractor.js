@@ -373,7 +373,7 @@
 
         if (provenance === 'missing' || value === null || value === undefined) return false;
 
-        var isEstimated = (provenance === 'estimated');
+        var isEstimated = (provenance === 'estimated' || provenance === 'search');
         if (!isEstimated && confidence < CONFIDENCE_MED) return false;
 
         el.value = String(parseFloat(value).toFixed(2));
@@ -401,7 +401,7 @@
 
         if (provenance === 'missing' || value === null || value === undefined) return false;
 
-        var isEstimated = (provenance === 'estimated');
+        var isEstimated = (provenance === 'estimated' || provenance === 'search');
         if (!isEstimated && confidence < CONFIDENCE_MED) return false;
 
         var dims = null;
@@ -557,12 +557,14 @@
             if (_applyWeight(fWeight, fields.weight_kg)) {
                 filledCount += 1;
                 physicalFilled = true;
-                if ((fields.weight_kg || {}).provenance === 'estimated') physicalEstimated = true;
+                var wProv = (fields.weight_kg || {}).provenance;
+                if (wProv === 'estimated' || wProv === 'search') physicalEstimated = true;
             }
             if (_applyDimensions(fLength, fWidth, fHeight, fields.dimensions_cm)) {
                 filledCount += 1;
                 physicalFilled = true;
-                if ((fields.dimensions_cm || {}).provenance === 'estimated') physicalEstimated = true;
+                var dProv = (fields.dimensions_cm || {}).provenance;
+                if (dProv === 'estimated' || dProv === 'search') physicalEstimated = true;
             }
             if (physicalFilled) {
                 var convertedFromUS = _isUSUnit(fields.weight_kg) || _isUSUnit(fields.dimensions_cm);
