@@ -872,6 +872,171 @@ def _normalize_ai_result(raw, source_url):
     return out
 
 
+_BOT_BLOCK_SIGNALS = (
+    'captcha', 'robot', 'unusual traffic', 'automated query',
+    'access denied', 'pardon our interruption', 'sorry, we just need to make sure',
+    'enter the characters you see', 'type the characters you see',
+    'verify you are human', 'ddos protection by cloudflare',
+    'checking your browser', 'just a moment', 'enable javascript and cookies',
+    'your browser sent a request that this server could not understand',
+    'this page appears when google automatically detects requests',
+    'to continue, please click the box below',
+    'something went wrong on our end', 'we need to verify that you are human',
+    'human verification', 'press & hold', 'please complete the security check',
+    'sorry for the inconvenience', 'an error occurred', 'robot or human',
+)
+
+def _is_bot_blocked(page_text):
+    """Return True when the fetched page is a bot/CAPTCHA challenge, not a real product page."""
+    if not page_text or len(page_text) < 300:
+        return True
+    lower = page_text.lower()
+    return any(sig in lower for sig in _BOT_BLOCK_SIGNALS)
+
+
+_SEARCH_FALLBACK_PROMPT = """\
+A customer wants to import a product from the US to Costa Rica using CRBOX courier.
+They shared this product URL: {url}
+
+The page cannot be scraped directly (bot protection). Use Google Search to find the product at that URL.
+Return ONLY a valid JSON object — no markdown, no code fences, no explanation:
+{{
+  "product_name": "full product name in English",
+  "price_usd": 0.0,
+  "category": "one of: {categories}"
+}}
+Rules:
+- product_name: exact product name as listed on the retailer site
+- price_usd: current retail price as a number (no currency symbol), or null if not found
+- category: use one of the CRBOX codes listed above; null if unsure
+- If you cannot find the product at all, return: {{"product_name": null, "price_usd": null, "category": null}}
+"""
+
+_SEARCH_CAT_MAP = {
+    'phone': 'celulares', 'smartphone': 'celulares', 'iphone': 'celulares',
+    'android': 'celulares', 'mobile': 'celulares',
+    'laptop': 'computadora', 'computer': 'computadora', 'pc ': 'computadora',
+    'tablet': 'computadora', 'ipad': 'computadora', 'macbook': 'computadora',
+    'console': 'consola_videojuegos', 'playstation': 'consola_videojuegos',
+    'xbox': 'consola_videojuegos', 'nintendo': 'consola_videojuegos',
+    'camera': 'camara', 'gopro': 'camara', 'dslr': 'camara',
+    'headphone': 'auricular_telefono', 'earphone': 'auricular_telefono',
+    'earbuds': 'auricular_telefono', 'airpods': 'auricular_telefono',
+    'speaker': 'bocina', 'bluetooth speaker': 'bocina',
+    'tv ': 'televisor', 'television': 'televisor', 'monitor': 'televisor',
+    'clothing': 'ropa', 'shirt': 'ropa', 'pants': 'ropa', 'dress': 'ropa',
+    'jacket': 'ropa', 'sweater': 'ropa', 'jeans': 'ropa',
+    'shoes': 'ropa', 'sneakers': 'ropa', 'boots': 'ropa',
+    'glasses': 'anteojos', 'sunglasses': 'anteojos',
+    'appliance': 'electrodomesticos', 'microwave': 'electrodomesticos',
+    'refrigerator': 'electrodomesticos', 'washer': 'electrodomesticos',
+    'vacuum': 'aspiradora', 'roomba': 'aspiradora',
+    'mattress': 'colchon', 'bed': 'colchon',
+    'tool': 'herramientas', 'drill': 'herramientas', 'saw': 'herramientas',
+    'bicycle': 'bicicleta_economica', 'bike': 'bicicleta_economica',
+    'ball': 'bola', 'basketball': 'bola', 'soccer': 'bola',
+    'stroller': 'coche_bebe', 'baby carriage': 'coche_bebe',
+    'toy': 'juguetes', 'lego': 'juguetes', 'doll': 'juguetes',
+    'rim': 'aros_carro_moto', 'wheel': 'aros_carro_moto',
+    'beauty': 'salud_belleza', 'skincare': 'salud_belleza',
+    'makeup': 'salud_belleza', 'perfume': 'salud_belleza',
+    'supplement': 'suplementos', 'protein': 'suplementos', 'vitamin': 'suplementos',
+    'electronic': 'otros', 'charger': 'otros', 'cable': 'otros',
+}
+
+def _map_search_category(raw_cat):
+    """Map Gemini's free-text category to the nearest CRBOX code."""
+    if not raw_cat:
+        return None
+    if str(raw_cat) in _CRBOX_CATEGORIES:
+        return raw_cat
+    lower = str(raw_cat).lower()
+    for keyword, code in _SEARCH_CAT_MAP.items():
+        if keyword in lower:
+            return code
+    return None
+
+
+def _call_gemini_search_fallback(url):
+    """Use Gemini + Google Search to find product info when direct scraping is blocked."""
+    if not _GEMINI_API_KEY:
+        return None, 'No API key'
+    try:
+        from google import genai
+        from google.genai import types as _gtypes
+        client = genai.Client(api_key=_GEMINI_API_KEY)
+        prompt = _SEARCH_FALLBACK_PROMPT.format(
+            url=url,
+            categories=', '.join(_CRBOX_CATEGORIES),
+        )
+        response = client.models.generate_content(
+            model=_GEMINI_MODEL,
+            contents=prompt,
+            config=_gtypes.GenerateContentConfig(
+                tools=[_gtypes.Tool(google_search=_gtypes.GoogleSearch())],
+                temperature=0.1,
+                max_output_tokens=512,
+            ),
+        )
+        text = (response.text or '').strip()
+        if not text:
+            return None, 'Empty response from search fallback'
+        if text.startswith('```'):
+            text = text.split('\n', 1)[-1] if '\n' in text else text[3:]
+        if text.endswith('```'):
+            text = text[:-3].rstrip()
+        return json.loads(text), None
+    except json.JSONDecodeError as ex:
+        return None, f'JSON parse error in search fallback: {ex}'
+    except Exception as ex:
+        return None, f'Search fallback error: {ex}'
+
+
+def _build_search_fallback_result(data, url):
+    """Convert Google Search fallback data dict into the normalised extraction result."""
+    import datetime
+    now = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def _mf(value, conf, prov):
+        return {'value': value, 'confidence': conf,
+                'provenance': prov, 'source_attribute': None, 'source_unit': None}
+
+    name    = (data.get('product_name') or '').strip() or None
+    cat_raw = data.get('category')
+    cat     = _map_search_category(cat_raw)
+
+    price = data.get('price_usd')
+    if price is not None:
+        try:
+            price = float(str(price).replace(',', '').replace('$', '').strip())
+            if price <= 0:
+                price = None
+        except (ValueError, TypeError):
+            price = None
+
+    if not name and price is None and not cat:
+        return None  # complete failure
+
+    filled = sum(1 for v in (name, price, cat) if v is not None)
+    partial = filled < 3
+
+    return {
+        'source_url':          url,
+        'extracted_at':        now,
+        'model':               _GEMINI_MODEL + '+search',
+        'page_readable':       True,
+        'partial':             partial,
+        'extraction_warnings': ['Datos obtenidos mediante búsqueda web (página protegida).'],
+        'fields': {
+            'product_name':      _mf(name,  0.85 if name  else 0.0, 'search' if name  else 'missing'),
+            'declared_value_usd':_mf(price, 0.80 if price else 0.0, 'search' if price else 'missing'),
+            'category':          _mf(cat,   0.70 if cat   else 0.0, 'search' if cat   else 'missing'),
+            'weight_kg':         _mf(None,  0.0, 'missing'),
+            'dimensions_cm':     _mf(None,  0.0, 'missing'),
+        },
+    }
+
+
 def _handle_ai_extract(handler):
     try:
         length = int(handler.headers.get('Content-Length', 0))
@@ -902,52 +1067,65 @@ def _handle_ai_extract(handler):
         handler._json_response(200, cached)
         return
 
+    # ── Step 1: try direct HTML fetch ────────────────────────────────────────
     page_text, fetch_err = _fetch_page(url)
-    if not page_text:
-        result = {'page_readable': False, 'error': 'fetch_failed',
-                  'message': fetch_err or 'No se pudo acceder a la página.'}
-        _ai_cache_set(url_hash, result)
-        handler._json_response(200, result)
-        return
+    page_blocked = (not page_text) or _is_bot_blocked(page_text)
 
-    structured_summary = _extract_structured_data(page_text)
-    truncated = _truncate_page(page_text)
-    # Prepend high-confidence structured data so Gemini has reliable anchors
-    if structured_summary:
-        truncated = structured_summary + truncated
-    gemini_result, gemini_err = _call_gemini(truncated)
+    if not page_blocked:
+        structured_summary = _extract_structured_data(page_text)
+        truncated = _truncate_page(page_text)
+        if structured_summary:
+            truncated = structured_summary + truncated
+        gemini_result, gemini_err = _call_gemini(truncated)
 
-    if gemini_err or not isinstance(gemini_result, dict):
-        # Gemini failed — try structured-data direct extraction as fallback
-        fallback = _build_fallback_from_structured(page_text, url)
-        if fallback is not None:
-            print(f'[AI] Gemini failed for {url!r} ({gemini_err}); using structured-data fallback')
-            _ai_cache_set(url_hash, fallback)
-            handler._json_response(200, fallback)
-            return
-        # Determine a coarse actionable error code for ops/debug without leaking internals
-        if gemini_err and 'No API key' in gemini_err:
-            err_detail = 'no_api_key'
-        elif gemini_err and ('NOT_FOUND' in gemini_err or 'not found' in gemini_err.lower()):
-            err_detail = 'model_unavailable'
-        elif gemini_err and 'Empty response' in gemini_err:
-            err_detail = 'empty_response'
+        if not gemini_err and isinstance(gemini_result, dict):
+            # Check if Gemini itself detected a CAPTCHA/bot page from the HTML
+            warnings = gemini_result.get('extraction_warnings', [])
+            captcha_in_warnings = any(
+                'captcha' in str(w).lower() or 'bot' in str(w).lower()
+                for w in warnings
+            )
+            if gemini_result.get('page_readable') is not False and not captcha_in_warnings:
+                try:
+                    result = _normalize_ai_result(gemini_result, url)
+                except Exception:
+                    result = {'page_readable': False, 'error': 'ai_parse_failed'}
+                _ai_cache_set(url_hash, result)
+                handler._json_response(200, result)
+                return
+            # Gemini confirmed bot page — fall through to search
+            print(f'[AI] Gemini detected bot/captcha page for {url!r} — trying search fallback')
+            page_blocked = True
         else:
-            err_detail = 'ai_error'
-        print(f'[AI] extract failed for {url!r}: {gemini_err}')
-        result = {'page_readable': False, 'error': 'ai_failed',
-                  'error_detail': err_detail,
-                  'message': 'No se pudo analizar la página en este momento.'}
+            # Gemini parse/call failed — try structured-data fallback first
+            fallback = _build_fallback_from_structured(page_text, url)
+            if fallback is not None:
+                print(f'[AI] Gemini failed for {url!r} ({gemini_err}); using structured-data fallback')
+                _ai_cache_set(url_hash, fallback)
+                handler._json_response(200, fallback)
+                return
+            # Structured fallback also failed — try search
+            print(f'[AI] extract failed for {url!r}: {gemini_err} — trying search fallback')
+            page_blocked = True
+
+    # ── Step 2: Google Search fallback (page blocked or all else failed) ────
+    if page_blocked:
+        reason = fetch_err or 'bot_blocked'
+        print(f'[AI] using search fallback for {url!r} (reason: {reason})')
+        search_data, search_err = _call_gemini_search_fallback(url)
+        if search_data:
+            search_result = _build_search_fallback_result(search_data, url)
+            if search_result:
+                print(f'[AI] search fallback succeeded for {url!r}')
+                _ai_cache_set(url_hash, search_result)
+                handler._json_response(200, search_result)
+                return
+        print(f'[AI] search fallback also failed for {url!r}: {search_err}')
+        result = {'page_readable': False, 'error': 'fetch_failed',
+                  'message': 'No se pudo acceder a la página.'}
         _ai_cache_set(url_hash, result)
         handler._json_response(200, result)
         return
-
-    try:
-        result = _normalize_ai_result(gemini_result, url)
-    except Exception:
-        result = {'page_readable': False, 'error': 'ai_parse_failed'}
-    _ai_cache_set(url_hash, result)
-    handler._json_response(200, result)
 
 # ── SQLite / Solicitudes ──────────────────────────────────────────────────────
 _DB_PATH = 'solicitudes.db'
