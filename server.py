@@ -1182,11 +1182,21 @@ def _call_gemini_search_fallback(url):
             except Exception as _diag_ex:
                 print(f'[AI] search fallback empty — diag error: {_diag_ex} — retrying without search tool')
 
-            # Retry: no search grounding, rely on training knowledge
+            # Retry: no search grounding, rely on training knowledge.
+            # Build a prompt that doesn't reference Google Search.
+            _tail = prompt.split('Return ONLY a valid JSON object', 1)
+            no_search_prompt = (
+                f'A customer wants to import a product from the US to Costa Rica using CRBOX courier.\n'
+                f'The product URL is: {url}\n\n'
+                f'Based on your training knowledge about this product URL or ASIN, '
+                f'provide the product details below.\n'
+                f'Return ONLY a valid JSON object'
+                + (_tail[1] if len(_tail) > 1 else '')
+            )
             try:
                 response2 = client.models.generate_content(
                     model=_GEMINI_MODEL,
-                    contents=prompt,
+                    contents=no_search_prompt,
                     config=_gtypes.GenerateContentConfig(
                         temperature=0.1,
                         max_output_tokens=1024,
@@ -1366,9 +1376,9 @@ def _handle_ai_extract(handler):
                 try:
                     result = _normalize_ai_result(gemini_result, url)
                     result = _run_estimate_if_needed(result)
+                    _ai_cache_set(url_hash, result)  # only cache successful extractions
                 except Exception:
                     result = {'page_readable': False, 'error': 'ai_parse_failed'}
-                _ai_cache_set(url_hash, result)
                 handler._json_response(200, result)
                 return
             # Gemini confirmed bot page — fall through to search
@@ -1406,7 +1416,6 @@ def _handle_ai_extract(handler):
         print(f'[AI] search fallback also failed for {url!r}: {search_err}')
         result = {'page_readable': False, 'error': 'fetch_failed',
                   'message': 'No se pudo acceder a la página.'}
-        _ai_cache_set(url_hash, result)
         handler._json_response(200, result)
         return
 
