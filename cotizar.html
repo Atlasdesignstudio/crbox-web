@@ -1198,31 +1198,6 @@
         let _cotizarWeightToggle   = null; // UnitConverter toggle for weight
         let _cotizarDimToggle      = null; // UnitConverter toggle for dims
 
-        // ── beforeunload draft warning ─────────────────────────
-        window.addEventListener('beforeunload', function (e) {
-            if (_formSubmitted) return;
-            // Check any non-empty field in the entire form (inputs, selects, textareas)
-            var anyFilled = false;
-            var elements = form ? form.elements : [];
-            for (var i = 0; i < elements.length; i++) {
-                var el = elements[i];
-                if (!el || el.disabled) continue;
-                var tag = el.tagName;
-                if (tag === 'INPUT' || tag === 'TEXTAREA') {
-                    if ((el.value || '').trim() !== '' && el.type !== 'hidden') {
-                        anyFilled = true;
-                        break;
-                    }
-                } else if (tag === 'SELECT' && el.value) {
-                    anyFilled = true;
-                    break;
-                }
-            }
-            if (anyFilled) {
-                e.preventDefault();
-                e.returnValue = 'Tu solicitud no ha sido enviada.';
-            }
-        });
 
         // ── Duplicate check helpers ────────────────────────────
         async function _checkDuplicateCotizar(email, productUrl, productName) {
