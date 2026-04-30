@@ -196,8 +196,37 @@
         .icon-circle { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background-color: #FFF3E0; flex-shrink: 0; }
 
         /* ── Misc ────────────────────────────────────────── */
-        .calculator-card { transition: transform .3s ease, box-shadow .3s ease; }
-        .calculator-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,.1); }
+        .calculator-card {
+            transition: transform 0.32s cubic-bezier(0.34,1.3,0.64,1),
+                        box-shadow 0.32s ease,
+                        border-color 0.2s ease;
+        }
+        .calculator-card:hover {
+            transform: translateY(-7px) scale(1.015);
+            box-shadow: 0 24px 48px rgba(255,107,0,0.12), 0 4px 14px rgba(0,0,0,0.06);
+            border-color: rgba(255,107,0,0.4) !important;
+        }
+        .calculator-card .icon-circle {
+            transition: background-color 0.25s ease, transform 0.28s cubic-bezier(0.34,1.4,0.64,1);
+        }
+        .calculator-card:hover .icon-circle {
+            background-color: #FF6B00;
+            transform: scale(1.15) rotate(-6deg);
+        }
+        .calculator-card:hover .icon-circle i { color: #fff !important; }
+
+        .info-panel {
+            transition: transform 0.28s cubic-bezier(0.34,1.3,0.64,1),
+                        box-shadow 0.28s ease;
+        }
+        .info-panel.panel-includes:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 36px rgba(22,163,74,0.13), 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .info-panel.panel-excludes:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 36px rgba(255,107,0,0.11), 0 4px 10px rgba(0,0,0,0.05);
+        }
         .result-appear { animation: fadeSlideUp .5s ease forwards; }
         .cta-button-white { background: #fff; color: #FF6B00; font-weight: 600; }
         .cta-button-outline { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.7); font-weight: 600; }
@@ -1060,19 +1089,19 @@
                 <p class="text-lg text-gray-600 max-w-3xl mx-auto">Entendiendo nuestro sistema de precios claro y sin costos ocultos</p>
             </div>
             <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 calculator-card">
+                <div class="bg-white p-6 rounded-xl border border-gray-100 calculator-card">
                     <div class="flex items-center mb-4"><div class="icon-circle"><i class="fas fa-weight text-orange-600 text-xl"></i></div><h3 class="text-xl font-semibold ml-4">Peso vs Volumen</h3></div>
                     <p class="text-gray-600">Calculamos el costo según el peso real o el peso volumétrico, lo que sea mayor. Para el peso volumétrico, usamos la fórmula: (largo × ancho × alto en cm) ÷ 6000. Al consolidar, los pesos se suman primero, luego se compara.</p>
                 </div>
-                <div class="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 calculator-card">
+                <div class="bg-white p-6 rounded-xl border border-gray-100 calculator-card">
                     <div class="flex items-center mb-4"><div class="icon-circle"><i class="fas fa-dollar-sign text-orange-600 text-xl"></i></div><h3 class="text-xl font-semibold ml-4">Valor de Compra</h3></div>
                     <p class="text-gray-600">El valor de compra determina los cargos por manejo y sirve de base para los impuestos de aduana (junto al flete). Se aplica un 19% de recargo por combustible sobre el flete en todos los envíos.</p>
                 </div>
-                <div class="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 calculator-card">
+                <div class="bg-white p-6 rounded-xl border border-gray-100 calculator-card">
                     <div class="flex items-center mb-4"><div class="icon-circle"><i class="fas fa-cubes text-orange-600 text-xl"></i></div><h3 class="text-xl font-semibold ml-4">Ahorro por Consolidación</h3></div>
                     <p class="text-gray-600">Al enviar varios artículos juntos, el flete y el recargo por combustible se calculan una sola vez sobre el peso total, en lugar de cobrarse individualmente por cada paquete. El ahorro puede ser significativo.</p>
                 </div>
-                <div class="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 calculator-card">
+                <div class="bg-white p-6 rounded-xl border border-gray-100 calculator-card">
                     <div class="flex items-center mb-4"><div class="icon-circle"><i class="fas fa-map-marker-alt text-orange-600 text-xl"></i></div><h3 class="text-xl font-semibold ml-4">Ubicación de Entrega</h3></div>
                     <p class="text-gray-600">La entrega en San José, Heredia y Alajuela tiene tarifas estándar. Cartago aplica tarifa intermedia. Para zonas fuera del GAM (Guanacaste, Puntarenas, Limón), se aplican tarifas especiales.</p>
                 </div>
@@ -1081,7 +1110,7 @@
             <div class="mt-12 max-w-5xl mx-auto bg-gray-50 p-8 rounded-xl shadow-sm">
                 <h3 class="text-2xl font-semibold mb-6 text-center">Información Importante</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-green-50 p-6 rounded-xl border-l-4 border-green-500">
+                    <div class="bg-green-50 p-6 rounded-xl border-l-4 border-green-500 info-panel panel-includes">
                         <h4 class="font-semibold text-green-800 text-lg mb-3">¿Qué incluye nuestro servicio?</h4>
                         <ul class="space-y-3">
                             <li class="flex items-start"><i class="fas fa-check text-green-600 mt-1 mr-3"></i><span class="text-green-800">Recepción y manejo en Miami</span></li>
@@ -1092,7 +1121,7 @@
                             <li class="flex items-start"><i class="fas fa-check text-green-600 mt-1 mr-3"></i><span class="text-green-800">Seguimiento del envío</span></li>
                         </ul>
                     </div>
-                    <div class="bg-yellow-50 p-6 rounded-xl border-l-4 border-yellow-500">
+                    <div class="bg-yellow-50 p-6 rounded-xl border-l-4 border-yellow-500 info-panel panel-excludes">
                         <h4 class="font-semibold text-yellow-800 text-lg mb-3">¿Qué NO incluye?</h4>
                         <ul class="space-y-3">
                             <li class="flex items-start"><i class="fas fa-times text-yellow-600 mt-1 mr-3"></i><span class="text-yellow-800">Trámites para permisos especiales</span></li>
