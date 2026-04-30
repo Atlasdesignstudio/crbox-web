@@ -1,0 +1,323 @@
+#278 - Global Footer Redesign
+
+## What & Why
+The current footer is repeated across many HTML files, feels visually under-designed, contains outdated or incomplete contact information, uses broken legal links, and does not reflect the same level of polish as the rest of the CRBOX experience.
+
+This task is a footer-only redesign and systemization pass across:
+- all public pages
+- all client portal pages
+
+The goal is to:
+- redesign the footer so it feels more premium, intentional, and modern
+- correct contact/hours/location information using the Contact page as source of truth
+- make legal links stop behaving incorrectly
+- centralize the footer into one maintainable implementation
+- ensure the footer is truly designed for mobile, not just technically responsive
+
+This is not a broader redesign of the site or portal.
+
+---
+
+## Done looks like
+- The footer is visually more refined, premium, and intentionally designed.
+- The footer uses a single reusable source instead of duplicated HTML blocks across many files.
+- Costa Rica hours are corrected to:
+  - Mon–Fri: 7:00 am – 4:30 pm
+  - Sat: 9:00 am – 12:30 pm
+- The footer clearly represents:
+  - Sabana Norte
+  - Calle Blancos
+  - Miami, FL
+- Contact channels are clearly differentiated as:
+  - Phone: 4000-1114
+  - WhatsApp: +506-8979-4418
+  - Email: servicioalcliente@crbox.cr
+- Terms & Conditions and Privacy Policy no longer send users to the homepage and instead resolve to honest interim legal placeholder pages.
+- The footer looks consistent across public pages and portal pages.
+- Mobile layout feels intentionally designed: clear stacking, good spacing, touch-friendly, elegant, and easy to scan.
+- No unrelated sections of the site are changed.
+
+---
+
+## Out of scope
+- Header or navigation redesign
+- Changes to page body content outside the footer
+- Inventing real legal content
+- Backend changes
+- Social network destination decisions, unless already defined elsewhere
+- Contact-page redesign outside anything needed as a source of truth review
+
+---
+
+## Source of truth
+Before implementing the footer content, review contacto.html and use it as the source of truth for:
+- phone number
+- WhatsApp number
+- email
+- branch names
+- location naming
+- hours presentation
+- Miami distinction / timezone wording
+
+Do not guess when the Contact page already establishes the content model.
+
+---
+
+## Technical approach — centralize the footer
+Create a single reusable footer implementation.
+
+### Preferred approach
+Create js/footer.js that injects the full footer into a placeholder:
+html <div id="site-footer"></div> 
+
+Then replace all repeated static <footer>...</footer> blocks with that placeholder and include:
+html <script src="js/footer.js?v=1"></script> 
+near the end of each page.
+
+### Requirements
+- One source of footer markup
+- One source of footer behavior
+- Easy to update later without editing many files
+- Must work across both public pages and portal pages
+- Do not break existing page spacing; adjust wrapper spacing per page only if needed
+
+### Important
+Do not create two divergent footer systems unless there is a real structural reason.  
+Default to one shared implementation.
+
+---
+
+## Visual redesign direction
+Redesign the footer so it feels significantly more polished and better composed.
+
+### Improve:
+- spacing
+- hierarchy
+- typography
+- grouping
+- column balance
+- rhythm
+- link presentation
+- density
+- visual calm
+- perceived finish
+
+### Desired feeling:
+- premium
+- clean
+- calm
+- modern
+- editorial
+- intentional
+- on-brand
+
+### Avoid:
+- generic SaaS/template footer look
+- clutter
+- overdesigned effects
+- too much visual weight
+- random decorative elements
+- a footer that feels heavier than the rest of the page
+
+### Color / brand guidance
+Use CRBOX palette and keep the footer elegant and restrained.  
+A deep navy / charcoal base is acceptable if it fits the current CRBOX aesthetic, but do not make it feel like a random unrelated theme switch.
+
+---
+
+## Footer information architecture
+Use a clear structure, but keep it compact and elegant.
+
+### Recommended desktop structure
+A 4-column layout is acceptable, but balance it carefully.  
+Suggested structure:
+
+1. Brand / short descriptor
+   - CRBOX logo or wordmark treatment
+   - short value statement/tagline
+   - optional social icons only if already part of the current site structure
+
+2. Quick links
+   - key public links only
+   - do not overload this column
+
+3. Contact channels
+   - clearly labelled rows for:
+     - Teléfono
+     - WhatsApp
+     - Correo
+
+4. Locations + hours
+   - Sabana Norte
+   - Calle Blancos
+   - Miami, FL
+   - concise hours presentation
+
+### Bottom bar
+Include:
+- copyright
+- legal links
+
+Keep this area minimal and clean.
+
+---
+
+## Contact channels — explicit differentiation
+In the Contact column, present the channels clearly and explicitly.
+
+### Use:
+- Teléfono → 4000-1114
+- WhatsApp → +506-8979-4418
+- Correo → servicioalcliente@crbox.cr
+
+### Requirements
+- each channel must have a clear label
+- users should instantly understand what each one is for
+- do not visually blend phone and WhatsApp together
+- use appropriate icons
+- make links actionable:
+  - tel:
+  - https://wa.me/50689794418
+  - mailto:servicioalcliente@crbox.cr
+
+### Important
+Do not use ambiguous “Contacto” rows without labels.  
+The clarity of call vs WhatsApp vs email is part of the task.
+
+---
+
+## Locations + hours
+Represent the three real locations:
+
+- Sabana Norte
+- Calle Blancos
+- Miami, FL
+
+### Hours
+Use these corrected Costa Rica hours:
+- Mon–Fri: 7:00 am – 4:30 pm
+- Sat: 9:00 am – 12:30 pm
+
+For Miami:
+- keep it clearly distinct
+- show its own hours if present from the Contact page source of truth
+- include a concise timezone note such as:
+  - US Eastern Time
+  - or Hora del Este (ET)
+depending on language consistency
+
+### Important
+Do not clutter the footer with full long addresses unless they truly fit elegantly.  
+Compact representation is preferred.
+
+---
+
+## Legal links — honest placeholder pages
+Right now the legal links incorrectly route to the homepage. Fix that.
+
+### Create:
+- terminos.html
+- privacidad.html
+
+### These should be:
+- minimal
+- on-brand
+- honest
+- clearly marked as pending legal review / forthcoming
+- not fake finalized legal documents
+
+### Each placeholder page should include:
+- page title
+- short explanatory message that content is under legal review
+- contact email for questions
+- normal site chrome where appropriate
+- the new shared footer
+
+### Important
+Do not generate fake “official” legal text to fill the page.
+
+---
+
+## Mobile is a first-class requirement
+This footer must not simply collapse. It must feel intentionally designed for mobile.
+
+### Mobile requirements
+- stack sections in a clear and deliberate order
+- recommended order:
+  1. brand
+  2. quick links
+  3. contact
+  4. locations/hours
+  5. legal bottom area
+- generous vertical spacing between groups
+- comfortable touch targets
+- readable font sizes
+- no cramped lists
+- no horizontal overflow
+- legal links should not feel dropped awkwardly at the end
+- contact rows should be easy to tap and scan
+- location information should remain digestible on small screens
+
+### Success criteria on mobile
+It should feel like a footer designed for mobile, not a desktop footer that barely survived responsiveness.
+
+---
+
+## Portal consistency
+Apply the same redesigned footer to portal pages too.
+
+### Important
+It should still feel appropriate inside the client portal:
+- same design system
+- same quality
+- same content correctness
+- same footer source
+- no visual mismatch between public and portal surfaces
+
+If minor spacing adjustments are needed per portal page, that is fine.  
+But do not fork the footer design itself unless truly necessary.
+
+---
+
+## Implementation notes
+- Replace duplicated markup cleanly
+- Ensure footer injection works after DOM is ready
+- Use a cache-busted version query if needed
+- Keep the implementation simple and maintainable
+- Do not introduce unnecessary runtime complexity for a static footer
+
+---
+
+## Relevant files
+Public + portal pages that currently contain duplicated footer markup, including but not limited to:
+- index.html
+- calculadora.html
+- como-funciona.html
+- contacto.html
+- cotizar.html
+- tarifas.html
+- servicios.html
+- afiliate.html
+- login.html
+- 404.html
+- dashboard.html
+- mis-paquetes.html
+- mis-facturas.html
+- mi-cuenta.html
+- mis-solicitudes.html
+
+Also review:
+- contacto.html as source of truth
+- any shared nav/auth scripts only if needed for compatibility with shared footer injection
+
+---
+
+## Please report back with
+1. what technical approach you used to centralize the footer
+2. what visual/design changes you made
+3. how you updated the hours
+4. how you represented Sabana Norte, Calle Blancos, and Miami
+5. how you differentiated phone vs WhatsApp vs email
+6. what you did for Terms & Conditions / Privacy Policy and why
+7. confirmation that the same footer is now applied across public pages and portal pages
+8. what you specifically did to make the footer feel excellent on mobile, not just responsive
