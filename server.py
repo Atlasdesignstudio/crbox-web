@@ -94,7 +94,7 @@ _AI_CACHE_LOCK   = threading.Lock()
 
 _AI_RATE         = {}           # ip -> [ts, ...]
 _AI_RATE_LOCK    = threading.Lock()
-_AI_RATE_LIMIT   = 10           # calls per IP per hour
+_AI_RATE_LIMIT   = 30           # calls per IP per hour
 
 _CRBOX_CATEGORIES = (
     'celulares', 'computadora', 'consola_videojuegos', 'camara',
@@ -1117,16 +1117,18 @@ def _map_search_category(raw_cat):
 def _canonicalize_url(url):
     """Return a cleaner version of a URL to improve AI search accuracy.
 
-    For Amazon URLs: strips tracking parameters and rebuilds as
-    https://www.amazon.com/dp/{ASIN} so Gemini searches the exact product.
+    For Amazon URLs: strips tracking parameters but keeps the product slug
+    so Gemini has the product name as context alongside the ASIN.
+    Pattern: https://www.amazon.com/{slug}/dp/{ASIN}
     All other URLs are returned unchanged.
     """
     try:
         import re as _re
-        asin_match = _re.search(r'/(?:dp|product|gp/product)/([A-Z0-9]{10})', url)
-        if asin_match and 'amazon.' in url.lower():
-            asin = asin_match.group(1)
-            return f'https://www.amazon.com/dp/{asin}'
+        # Match optional slug + dp + ASIN
+        m = _re.search(r'amazon\.[^/]+(/[^?#]*?/(?:dp|product)/([A-Z0-9]{10}))', url)
+        if m:
+            path = m.group(1).rstrip('/')
+            return f'https://www.amazon.com{path}'
     except Exception:
         pass
     return url
@@ -1274,6 +1276,20 @@ def _build_search_fallback_result(data, url):
     if not name and price is None and not cat:
         return None  # complete failure
 
+    # Hallucination guard: if the URL has a descriptive slug and the returned
+    # product name shares no meaningful words with it, the result is likely wrong.
+    if name:
+        slug_match = re.search(r'amazon\.[^/]+/([A-Za-z][^/]{4,})/(?:dp|product)/', url)
+        if slug_match:
+            slug_words = set(
+                w.lower() for w in re.split(r'[-_\s]+', slug_match.group(1))
+                if len(w) > 3 and w.lower() not in {'with', 'from', 'that', 'this', 'your', 'just', 'bare'}
+            )
+            name_words = set(w.lower() for w in re.split(r'\W+', name) if len(w) > 3)
+            if slug_words and name_words and not slug_words.intersection(name_words):
+                print(f'[AI] search result rejected (slug={slug_words} vs name={name_words}) — likely hallucination')
+                return None
+
     filled = sum(1 for v in (name, price, cat, weight_kg, dims) if v is not None)
     partial = filled < 3
 
@@ -1317,7 +1333,9 @@ def _handle_ai_extract(handler):
     ip = (handler.headers.get('X-Forwarded-For') or
           handler.client_address[0] or '0.0.0.0').split(',')[0].strip()
 
+    print(f'[AI] extract request from {ip} for {url[:80]!r}')
     if not _ai_rate_check(ip):
+        print(f'[AI] rate limit hit for {ip}')
         handler._json_response(200, {'ok': False, 'error': 'rate_limit'})
         return
 
@@ -1376,14 +1394,22 @@ def _handle_ai_extract(handler):
                 try:
                     result = _normalize_ai_result(gemini_result, url)
                     result = _run_estimate_if_needed(result)
-                    _ai_cache_set(url_hash, result)  # only cache successful extractions
+                    # If Gemini read the page but got no product name, the page
+                    # likely served a login/captcha stub — fall through to search.
+                    pname_prov = result.get('fields', {}).get('product_name', {}).get('provenance', 'missing')
+                    if pname_prov == 'missing':
+                        print(f'[AI] Gemini got empty product name for {url!r} — trying search fallback')
+                        page_blocked = True
+                    else:
+                        _ai_cache_set(url_hash, result)  # only cache successful extractions
+                        handler._json_response(200, result)
+                        return
                 except Exception:
-                    result = {'page_readable': False, 'error': 'ai_parse_failed'}
-                handler._json_response(200, result)
-                return
-            # Gemini confirmed bot page — fall through to search
-            print(f'[AI] Gemini detected bot/captcha page for {url!r} — trying search fallback')
-            page_blocked = True
+                    page_blocked = True  # fall through to search
+            if not page_blocked:
+                # Gemini confirmed bot page — fall through to search
+                print(f'[AI] Gemini detected bot/captcha page for {url!r} — trying search fallback')
+                page_blocked = True
         else:
             # Gemini parse/call failed — try structured-data fallback first
             fallback = _build_fallback_from_structured(page_text, url)
