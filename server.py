@@ -3850,18 +3850,20 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
                 f'<button class="adm-upd-btn" type="submit">Actualizar estado</button>'
                 f'</form></div>'
             )
+        detail_url = f'/admin/solicitudes/{rid}?filter={filter_val}'
         card_rows += (
             f'<div class="adm-card" '
             f'data-name="{da_name}" data-email="{da_email}" '
             f'data-casillero="{da_casillero}" data-prod="{da_prod}" '
             f'data-status="{da_status}" data-svc="{da_svc}">\n'
+            f'<a href="{detail_url}" class="adm-card-link">\n'
             f'<div class="adm-card-top">\n'
             f'  <div>\n'
             f'    <span class="adm-card-id">{rid}</span>{empresa}\n'
             f'    <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;">{src_badge_html}{svc_pill}</div>\n'
             f'  </div>\n'
             f'  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">'
-            f'{badge_html}{ver_link}</div>\n'
+            f'{badge_html}</div>\n'
             f'</div>\n'
             f'<div class="adm-card-fields">\n'
             f'  <div class="adm-card-row"><span class="adm-card-lbl">Cliente</span>'
@@ -3877,6 +3879,8 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
             f'  <div class="adm-card-row"><span class="adm-card-lbl">Fecha</span>'
             f'<span class="adm-card-val">{date_str} &middot; {elapsed}</span></div>\n'
             f'</div>\n'
+            f'<div class="adm-card-tap-hint">Toca para ver detalle &#8594;</div>\n'
+            f'</a>\n'
             f'{card_form}\n'
             f'</div>\n'
         )
@@ -3942,19 +3946,26 @@ a{{color:inherit;text-decoration:none}}
 .adm-tab:hover{{color:#374151;background:#e2e8f0}}
 .adm-tab-active{{background:#fff;color:#FF6B00;border-color:#e2e8f0}}
 /* ── Search / filter row ────────────────────────────────────────────── */
-.adm-filter-bar{{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px;
-  border-bottom:1px solid #f1f5f9;background:#fafafa;align-items:center}}
+.adm-filter-bar{{padding:12px 16px;border-bottom:1px solid #f1f5f9;background:#fafafa}}
+.adm-filter-row1{{display:flex;gap:8px;align-items:center;margin-bottom:0}}
+.adm-filter-row2{{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}}
 .adm-filter-bar input,.adm-filter-bar select{{
   border:1.5px solid #e2e8f0;border-radius:7px;padding:7px 11px;font-size:13px;
   background:#fff;color:#374151;font-family:inherit;outline:none;transition:border-color .2s}}
 .adm-filter-bar input:focus,.adm-filter-bar select:focus{{border-color:#FF6B00}}
-.adm-filter-search{{flex:1;min-width:180px}}
+.adm-filter-search{{flex:1;min-width:0}}
 .adm-filter-status{{min-width:140px}}
 .adm-filter-svc{{min-width:110px}}
+.adm-filter-toggle{{padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;
+  background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .2s;font-family:inherit;white-space:nowrap;flex-shrink:0}}
+.adm-filter-toggle:hover,.adm-filter-toggle.active{{border-color:#FF6B00;color:#FF6B00;background:#fff7ed}}
 .adm-filter-clear{{padding:7px 13px;border:1.5px solid #e2e8f0;border-radius:7px;
   background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;
   transition:all .2s;font-family:inherit;white-space:nowrap}}
 .adm-filter-clear:hover{{border-color:#FF6B00;color:#FF6B00}}
+.adm-filter-row2{{display:none}}
+.adm-filter-row2.open{{display:flex}}
 /* ── Main container ─────────────────────────────────────────────────── */
 .adm-main{{padding:0 20px 48px}}
 .adm-panel{{background:#fff;border-radius:0 0 14px 14px;
@@ -4042,6 +4053,13 @@ a{{color:inherit;text-decoration:none}}
 #adm-toast.show{{transform:translateY(0);opacity:1}}
 #adm-toast.error{{background:#dc2626}}
 /* ── Responsive ─────────────────────────────────────────────────────── */
+/* ── Mobile card tap target ─────────────────────────────────────────── */
+.adm-card-link{{display:block;text-decoration:none;color:inherit;
+  border-radius:12px 12px 0 0;overflow:hidden}}
+.adm-card-link:hover .adm-card-top,
+.adm-card-link:hover .adm-card-fields{{background:#f8fafc}}
+.adm-card-tap-hint{{display:none;font-size:10px;color:#94a3b8;text-align:right;
+  padding:4px 10px 0;letter-spacing:.03em}}
 @media(max-width:720px){{
   .adm-header{{padding:0 12px;gap:8px}}
   .adm-header-title{{display:none}}
@@ -4055,9 +4073,13 @@ a{{color:inherit;text-decoration:none}}
   .adm-table-wrap{{display:none}}
   .adm-cards{{display:flex}}
   .adm-filter-bar{{padding:10px 12px}}
+  .adm-filter-toggle{{display:inline-flex}}
+  .adm-card-tap-hint{{display:block}}
 }}
 @media(min-width:721px){{
   .adm-table-wrap{{overflow-x:auto}}
+  .adm-filter-toggle{{display:none}}
+  .adm-filter-row2{{display:flex !important}}
 }}
 </style>
 </head>
@@ -4081,32 +4103,38 @@ a{{color:inherit;text-decoration:none}}
 <main class="adm-main">
 <div class="adm-panel">
 
-  <!-- Search + filter bar -->
+  <!-- Search + filter bar (row 1 always visible; row 2 collapsible on mobile) -->
   <div class="adm-filter-bar">
-    <input class="adm-filter-search" id="adm-search" type="search"
-           placeholder="Buscar por nombre, email, casillero, producto&hellip;"
-           autocomplete="off" oninput="admFilter()">
-    <select class="adm-filter-status" id="adm-flt-status" onchange="admFilter()">
-      <option value="">Todos los estados</option>
-      <option value="enviada">Enviada</option>
-      <option value="en_revision">En revisi&oacute;n</option>
-      <option value="respondida">Respondida</option>
-      <option value="pendiente_compra_crbox">Compra CRBOX</option>
-      <option value="pendiente_compra_cliente">Compra propia</option>
-      <option value="pagado_por_cliente">Pago confirmado</option>
-      <option value="comprado">Comprado</option>
-      <option value="listo_para_retiro">Listo para retiro</option>
-      <option value="completada">Completada</option>
-      <option value="cancelada">Cancelada</option>
-    </select>
-    <select class="adm-filter-svc" id="adm-flt-svc" onchange="admFilter()">
-      <option value="">Servicio</option>
-      <option value="aereo">A&eacute;reo</option>
-      <option value="maritimo">Mar&iacute;timo</option>
-    </select>
-    <button class="adm-filter-clear" onclick="admClearFilter()" type="button">&#10005; Limpiar</button>
-    <span class="adm-count" style="border:none;background:none;padding:0 4px;margin-left:auto;"
-          id="adm-count-label">{count_label}</span>
+    <div class="adm-filter-row1">
+      <input class="adm-filter-search" id="adm-search" type="search"
+             placeholder="Nombre, email, casillero, producto&hellip;"
+             autocomplete="off" oninput="admFilter()">
+      <button class="adm-filter-toggle" id="adm-flt-toggle"
+              onclick="admToggleFilters()" type="button">&#9881; Filtros</button>
+      <span style="font-size:12px;color:#94a3b8;white-space:nowrap;flex-shrink:0;"
+            id="adm-count-label">{count_label}</span>
+    </div>
+    <div class="adm-filter-row2" id="adm-filter-row2">
+      <select class="adm-filter-status" id="adm-flt-status" onchange="admFilter()">
+        <option value="">Todos los estados</option>
+        <option value="enviada">Enviada</option>
+        <option value="en_revision">En revisi&oacute;n</option>
+        <option value="respondida">Respondida</option>
+        <option value="pendiente_compra_crbox">Compra CRBOX</option>
+        <option value="pendiente_compra_cliente">Compra propia</option>
+        <option value="pagado_por_cliente">Pago confirmado</option>
+        <option value="comprado">Comprado</option>
+        <option value="listo_para_retiro">Listo para retiro</option>
+        <option value="completada">Completada</option>
+        <option value="cancelada">Cancelada</option>
+      </select>
+      <select class="adm-filter-svc" id="adm-flt-svc" onchange="admFilter()">
+        <option value="">Servicio</option>
+        <option value="aereo">A&eacute;reo</option>
+        <option value="maritimo">Mar&iacute;timo</option>
+      </select>
+      <button class="adm-filter-clear" onclick="admClearFilter()" type="button">&#10005; Limpiar</button>
+    </div>
   </div>
 
   <!-- Desktop table -->
@@ -4198,6 +4226,13 @@ function admClearFilter() {{
   document.getElementById('adm-flt-status').value = '';
   document.getElementById('adm-flt-svc').value = '';
   admFilter();
+}}
+function admToggleFilters() {{
+  var row2 = document.getElementById('adm-filter-row2');
+  var btn  = document.getElementById('adm-flt-toggle');
+  if (!row2) return;
+  var isOpen = row2.classList.toggle('open');
+  if (btn) btn.classList.toggle('active', isOpen);
 }}
 </script>
 </body>
