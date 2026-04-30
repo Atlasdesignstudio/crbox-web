@@ -17,6 +17,8 @@
   var _portalAiDataSource = 'manual';
   var _portalTomSelect    = null;
   var _portalAutoEstimate = null;
+  var _portalWeightToggle = null; // UnitConverter toggle for weight
+  var _portalDimToggle    = null; // UnitConverter toggle for dims
 
   // ── beforeunload: warn if panel has data and user navigates away ───────────
   window.addEventListener('beforeunload', function (e) {
@@ -425,7 +427,13 @@
       _setFormField('form-product-url', prefill.product_url);
       _setFormField('form-declared-value', prefill.declared_value_usd);
       _setSelectField('form-category', prefill.category);
+      // Ensure toggles are in canonical state when pre-filling from a duplicate
+      if (_portalWeightToggle) _portalWeightToggle.setUnit('kg');
+      if (_portalDimToggle)    _portalDimToggle.setUnit('cm');
       _setFormField('form-weight', prefill.weight_kg);
+      _setFormField('form-length', prefill.length_cm);
+      _setFormField('form-width',  prefill.width_cm);
+      _setFormField('form-height', prefill.height_cm);
       _setFormField('form-notes', prefill.customer_notes);
       _setSelectField('form-service-type', prefill.service_type);
     } else {
@@ -504,6 +512,9 @@
       if (aiBannerEl)  aiBannerEl.innerHTML = '';
       if (aiConfirmEl) { aiConfirmEl.style.display = 'none'; aiConfirmEl.style.outline = ''; }
     }
+    // Reset unit toggles to canonical defaults (kg, cm)
+    if (_portalWeightToggle) _portalWeightToggle.setUnit('kg');
+    if (_portalDimToggle)    _portalDimToggle.setUnit('cm');
   }
 
   function _setFormField(id, value) {
@@ -522,6 +533,7 @@
   // ─── Submit new request ────────────────────────────────────────────────────
   function submitNewRequest(formData) {
     var token = CRBOXAuth.getToken();
+    // formData.weight_kg / length_cm / width_cm / height_cm are already canonical (kg/cm)
     var payload = {
       customer_email: _userEmail,
       customer_name: _userName || '',
@@ -531,7 +543,10 @@
       product_url: formData.product_url || null,
       declared_value_usd: parseFloat(formData.declared_value_usd),
       category: formData.category || 'otros',
-      weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
+      weight_kg: (formData.weight_kg != null && formData.weight_kg > 0) ? formData.weight_kg : null,
+      length_cm: (formData.length_cm != null && formData.length_cm > 0) ? formData.length_cm : null,
+      width_cm:  (formData.width_cm  != null && formData.width_cm  > 0) ? formData.width_cm  : null,
+      height_cm: (formData.height_cm != null && formData.height_cm > 0) ? formData.height_cm : null,
       customer_notes: formData.customer_notes || null,
       service_type: formData.service_type || 'aereo',
       data_source: formData.data_source || 'manual'
@@ -599,7 +614,9 @@
   // ─── Portal draft save helpers ─────────────────────────────────────────────
   var _PORTAL_DRAFT_FIELD_IDS = [
     'form-product-name', 'form-product-url', 'form-declared-value',
-    'form-category', 'form-service-type', 'form-weight', 'form-notes',
+    'form-category', 'form-service-type', 'form-weight',
+    'form-length', 'form-width', 'form-height',
+    'form-notes',
   ];
   var _portalDraftTimer = null;
 
@@ -815,6 +832,43 @@
       }
     })();
 
+    // ── Unit toggles ─────────────────────────────────────────────────────────
+    (function () {
+      if (typeof UnitConverter === 'undefined') return;
+      var wToggleEl = document.getElementById('portal-weight-toggle');
+      var dToggleEl = document.getElementById('portal-dim-toggle');
+      if (wToggleEl) {
+        _portalWeightToggle = UnitConverter.setup({
+          container: wToggleEl,
+          inputs:    [{ el: document.getElementById('form-weight') }],
+          unitType:  'weight',
+          onChange:  function (u) {
+            var sfx = document.getElementById('portal-weight-suffix');
+            if (sfx) sfx.textContent = u;
+            _triggerPortalEstimate();
+          }
+        });
+      }
+      if (dToggleEl) {
+        _portalDimToggle = UnitConverter.setup({
+          container: dToggleEl,
+          inputs:    [
+            { el: document.getElementById('form-length') },
+            { el: document.getElementById('form-width')  },
+            { el: document.getElementById('form-height') }
+          ],
+          unitType:  'dim',
+          onChange:  function (u) {
+            ['portal-dim-suffix-l', 'portal-dim-suffix-w', 'portal-dim-suffix-h'].forEach(function (id) {
+              var sfx = document.getElementById(id);
+              if (sfx) sfx.textContent = u;
+            });
+            _triggerPortalEstimate();
+          }
+        });
+      }
+    })();
+
     // ── Live estimate ─────────────────────────────────────────────────────────
     function _triggerPortalEstimate() {
       var valEl  = document.getElementById('form-declared-value');
@@ -829,7 +883,20 @@
       var val = valEl ? parseFloat(valEl.value) : NaN;
       var cat = _portalTomSelect ? _portalTomSelect.getValue() : '';
       var svc = svcEl ? svcEl.value : 'aereo';
-      var wgt = wgtEl ? (parseFloat(wgtEl.value) || 0) : 0;
+
+      // Normalize weight to kg regardless of current toggle unit
+      var UC = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
+      var wUnit = _portalWeightToggle ? _portalWeightToggle.getUnit() : 'kg';
+      var wgt = wgtEl ? (UC ? (UC.toCanonical(wgtEl.value, 'weight', wUnit) || 0) : (parseFloat(wgtEl.value) || 0)) : 0;
+
+      // Normalize dims to cm
+      var dUnit = _portalDimToggle ? _portalDimToggle.getUnit() : 'cm';
+      var lEl = document.getElementById('form-length');
+      var wEl = document.getElementById('form-width');
+      var hEl = document.getElementById('form-height');
+      var lenCm = lEl ? (UC ? (UC.toCanonical(lEl.value, 'dim', dUnit) || 0) : (parseFloat(lEl.value) || 0)) : 0;
+      var widCm = wEl ? (UC ? (UC.toCanonical(wEl.value,  'dim', dUnit) || 0) : (parseFloat(wEl.value) || 0)) : 0;
+      var hgtCm = hEl ? (UC ? (UC.toCanonical(hEl.value,  'dim', dUnit) || 0) : (parseFloat(hEl.value) || 0)) : 0;
 
       var hasVal = !isNaN(val) && val > 0;
       var hasCat = !!cat;
@@ -864,6 +931,9 @@
             category:    cat,
             destination: 'sanjose'
           };
+          if (lenCm > 0) pkg.length = lenCm;
+          if (widCm > 0) pkg.width  = widCm;
+          if (hgtCm > 0) pkg.height = hgtCm;
           var result = CALCULATOR_ENGINE.calcSinglePackage(pkg);
           if (result && typeof result.total === 'number') {
             var freight  = result.freight  || 0;
@@ -910,6 +980,10 @@
     if (_fValEl) _fValEl.addEventListener('input', _triggerPortalEstimate);
     if (_fWgtEl) _fWgtEl.addEventListener('input', _triggerPortalEstimate);
     if (_fSvcEl) _fSvcEl.addEventListener('change', _triggerPortalEstimate);
+    ['form-length', 'form-width', 'form-height'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', _triggerPortalEstimate);
+    });
 
     // Portal duplicate warning dismiss button
     var btnPortalDupDismiss = document.getElementById('btn-portal-dup-dismiss');
@@ -957,11 +1031,18 @@
         var url = (fPortalUrl.value || '').trim();
         if (!url || !url.startsWith('http')) return;
         _portalAiActive = false;
+        // AI extractor writes canonical cm/kg — reset toggles first to avoid double-conversion
+        if (_portalWeightToggle) _portalWeightToggle.setUnit('kg');
+        if (_portalDimToggle)    _portalDimToggle.setUnit('cm');
         CRBOXAIExtractor.runExtraction(url, {
           bannerTarget:   aiBanner,
           fName:          fPortalName,
           fValue:         fPortalValue,
           fCategory:      fPortalCat,
+          fWeight:        document.getElementById('form-weight'),
+          fLength:        document.getElementById('form-length'),
+          fWidth:         document.getElementById('form-width'),
+          fHeight:        document.getElementById('form-height'),
           confirmWrapper: aiConfirm,
           categoryMap:    _PORTAL_CATEGORY_MAP,
         }).then(function () {
@@ -1062,12 +1143,24 @@
           }
         }
 
+        // Normalize physical values to canonical kg / cm
+        var _UCf   = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
+        var _wUnitF = _portalWeightToggle ? _portalWeightToggle.getUnit() : 'kg';
+        var _dUnitF = _portalDimToggle    ? _portalDimToggle.getUnit()    : 'cm';
+        var _rawWgt = form.querySelector('#form-weight') ? form.querySelector('#form-weight').value : '';
+        var _rawLen = form.querySelector('#form-length') ? form.querySelector('#form-length').value : '';
+        var _rawWid = form.querySelector('#form-width')  ? form.querySelector('#form-width').value  : '';
+        var _rawHgt = form.querySelector('#form-height') ? form.querySelector('#form-height').value : '';
+
         var formData = {
           product_name:      form.querySelector('#form-product-name').value.trim(),
           product_url:       form.querySelector('#form-product-url').value.trim(),
           declared_value_usd: form.querySelector('#form-declared-value').value,
           category:          form.querySelector('#form-category').value,
-          weight_kg:         form.querySelector('#form-weight').value,
+          weight_kg:         _UCf ? _UCf.toCanonical(_rawWgt, 'weight', _wUnitF) : (parseFloat(_rawWgt) || null),
+          length_cm:         _UCf ? _UCf.toCanonical(_rawLen, 'dim',    _dUnitF) : (parseFloat(_rawLen) || null),
+          width_cm:          _UCf ? _UCf.toCanonical(_rawWid, 'dim',    _dUnitF) : (parseFloat(_rawWid) || null),
+          height_cm:         _UCf ? _UCf.toCanonical(_rawHgt, 'dim',    _dUnitF) : (parseFloat(_rawHgt) || null),
           customer_notes:    form.querySelector('#form-notes').value.trim(),
           service_type:      form.querySelector('#form-service-type').value,
           data_source:       _portalAiActive ? (_portalAiDataSource || 'ai_extracted') : 'manual',

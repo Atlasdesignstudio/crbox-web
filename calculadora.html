@@ -255,6 +255,10 @@
         #btn-calculate { background-color: #FF6B00; color: #fff; border: none; }
         #btn-calculate:hover { background-color: #d45c00; }
         #btn-calculate:disabled { background-color: #FF6B00; color: #fff; opacity: .55; cursor: not-allowed; }
+        .unit-toggle-group { display:inline-flex; border:1px solid #e5e7eb; border-radius:.45rem; overflow:hidden; flex-shrink:0; }
+        .unit-btn { padding:.18rem .55rem; font-size:.72rem; font-weight:600; border:none; background:#fff; color:#6b7280; cursor:pointer; transition:background .15s,color .15s; line-height:1.5; }
+        .unit-btn-active { background:#FF6B00; color:#fff; }
+        .unit-btn:not(.unit-btn-active):hover { background:#f3f4f6; }
     </style>
 </head>
 
@@ -826,33 +830,45 @@
                         <span id="badge-value" class="badge-inferred mt-1 hidden"><i class="fas fa-wand-magic-sparkles text-xs"></i> Pre-llenado — confirmar</span>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Peso real (kg) *
-                            <span class="tip"><i class="fas fa-info-circle tip-icon text-xs"></i><span class="tip-box">El peso físico del paquete. 1 libra = 0.453 kg. Puedes encontrarlo en la descripción del producto.</span></span>
-                        </label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-sm font-medium text-gray-700">
+                                Peso real *
+                                <span class="tip"><i class="fas fa-info-circle tip-icon text-xs"></i><span class="tip-box">El peso físico del paquete. 1 libra ≈ 0.454 kg.</span></span>
+                            </label>
+                            <div class="unit-toggle-group" id="modal-weight-toggle">
+                                <button type="button" class="unit-btn unit-btn-active" data-unit="kg" aria-pressed="true">kg</button>
+                                <button type="button" class="unit-btn" data-unit="lb" aria-pressed="false">lb</button>
+                            </div>
+                        </div>
                         <div class="relative">
                             <input type="number" id="modal-weight" class="calc-input pr-10" placeholder="0.00" min="0" step="0.01">
-                            <span class="input-suffix">kg</span>
+                            <span class="input-suffix" id="modal-weight-suffix">kg</span>
                         </div>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Dimensiones del paquete (cm)
-                        <span class="tip"><i class="fas fa-info-circle tip-icon text-xs"></i><span class="tip-box">Si conoces las dimensiones del paquete, ingrésalas para calcular el peso volumétrico. El flete se cobra sobre el mayor entre peso real y volumétrico.</span></span>
-                    </label>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-sm font-medium text-gray-700">
+                            Dimensiones del paquete
+                            <span class="tip"><i class="fas fa-info-circle tip-icon text-xs"></i><span class="tip-box">Ingrésalas para calcular el peso volumétrico. El flete se cobra sobre el mayor entre peso real y volumétrico.</span></span>
+                        </label>
+                        <div class="unit-toggle-group" id="modal-dim-toggle">
+                            <button type="button" class="unit-btn unit-btn-active" data-unit="cm" aria-pressed="true">cm</button>
+                            <button type="button" class="unit-btn" data-unit="in" aria-pressed="false">in</button>
+                        </div>
+                    </div>
                     <div class="grid grid-cols-3 gap-2">
                         <div class="relative">
                             <input type="number" id="modal-length" class="calc-input pr-10" placeholder="Largo" min="0">
-                            <span class="input-suffix text-xs">cm</span>
+                            <span class="input-suffix text-xs" id="modal-dim-suffix-l">cm</span>
                         </div>
                         <div class="relative">
                             <input type="number" id="modal-width" class="calc-input pr-10" placeholder="Ancho" min="0">
-                            <span class="input-suffix text-xs">cm</span>
+                            <span class="input-suffix text-xs" id="modal-dim-suffix-w">cm</span>
                         </div>
                         <div class="relative">
                             <input type="number" id="modal-height" class="calc-input pr-10" placeholder="Alto" min="0">
-                            <span class="input-suffix text-xs">cm</span>
+                            <span class="input-suffix text-xs" id="modal-dim-suffix-h">cm</span>
                         </div>
                     </div>
                     <!-- Live volumetric preview -->
@@ -1257,6 +1273,7 @@
     <script src="js/tariff-adapter.js"></script>
     <script src="js/calculator-engine.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="js/unit-converter.js?v=1"></script>
 
     <script>
     /* ═══════════════════════════════════════════════════════════════════
@@ -1267,7 +1284,9 @@
         /* ── State ─────────────────────────────────────────────── */
         let items = [];       // array of item objects
         let editingIndex = -1; // -1 = new item
-        let modalCategoryTS = null; // TomSelect instance for category
+        let modalCategoryTS     = null; // TomSelect instance for category
+        let _modalWeightToggle  = null; // UnitConverter toggle handle for weight
+        let _modalDimToggle     = null; // UnitConverter toggle handle for dims
 
         /* ── Utility ───────────────────────────────────────────── */
         const $ = id => document.getElementById(id);
@@ -1485,10 +1504,14 @@
                 const item = items[editingIndex];
                 $('modal-name').value   = item.name   || '';
                 $('modal-value').value  = item.value  || '';
-                $('modal-weight').value = item.weight || '';
-                $('modal-length').value = item.length || '';
-                $('modal-width').value  = item.width  || '';
-                $('modal-height').value = item.height || '';
+                // Convert stored canonical kg/cm to current display unit
+                const wUnit = _modalWeightToggle ? _modalWeightToggle.getUnit() : 'kg';
+                const dUnit = _modalDimToggle    ? _modalDimToggle.getUnit()    : 'cm';
+                const UC = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
+                $('modal-weight').value = (UC && item.weight) ? UC.fromCanonical(item.weight, 'weight', wUnit) : (item.weight || '');
+                $('modal-length').value = (UC && item.length) ? UC.fromCanonical(item.length, 'dim',    dUnit) : (item.length || '');
+                $('modal-width').value  = (UC && item.width)  ? UC.fromCanonical(item.width,  'dim',    dUnit) : (item.width  || '');
+                $('modal-height').value = (UC && item.height) ? UC.fromCanonical(item.height, 'dim',    dUnit) : (item.height || '');
                 $('url-input').value    = item.url    || '';
                 if (modalCategoryTS) { modalCategoryTS.setValue(item.category || ''); }
             } else {
@@ -1520,14 +1543,24 @@
         $('modal-save-btn').addEventListener('click', function () {
             const name     = $('modal-name').value.trim();
             const value    = parseFloat($('modal-value').value) || 0;
-            const weight   = parseFloat($('modal-weight').value) || 0;
             const category = modalCategoryTS ? modalCategoryTS.getValue() : $('modal-category').value;
 
+            // Normalize physical values to canonical kg / cm
+            const UC     = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
+            const wUnit  = _modalWeightToggle ? _modalWeightToggle.getUnit() : 'kg';
+            const dUnit  = _modalDimToggle    ? _modalDimToggle.getUnit()    : 'cm';
+            const weight = UC
+                ? (UC.toCanonical($('modal-weight').value, 'weight', wUnit) || 0)
+                : (parseFloat($('modal-weight').value) || 0);
+            const rawL = UC ? (UC.toCanonical($('modal-length').value, 'dim', dUnit) || 0) : (parseFloat($('modal-length').value) || 0);
+            const rawW = UC ? (UC.toCanonical($('modal-width').value,  'dim', dUnit) || 0) : (parseFloat($('modal-width').value)  || 0);
+            const rawH = UC ? (UC.toCanonical($('modal-height').value, 'dim', dUnit) || 0) : (parseFloat($('modal-height').value) || 0);
+
             const errors = [];
-            if (!name)     errors.push('El nombre del producto es obligatorio.');
+            if (!name)      errors.push('El nombre del producto es obligatorio.');
             if (value <= 0) errors.push('El valor declarado debe ser mayor a $0.');
-            if (weight <= 0) errors.push('El peso real debe ser mayor a 0 kg.');
-            if (!category) errors.push('Selecciona una categoría de producto.');
+            if (weight <= 0) errors.push('El peso real debe ser mayor a 0.');
+            if (!category)  errors.push('Selecciona una categoría de producto.');
 
             if (errors.length) {
                 const errEl = $('modal-error');
@@ -1538,9 +1571,9 @@
 
             const itemData = {
                 name, value, weight, category,
-                length: parseFloat($('modal-length').value) || 0,
-                width:  parseFloat($('modal-width').value)  || 0,
-                height: parseFloat($('modal-height').value) || 0,
+                length: rawL,
+                width:  rawW,
+                height: rawH,
                 url:    ($('url-input').value || '').trim()
             };
 
@@ -1563,11 +1596,16 @@
 
         /* ── Volumetric live preview ──────────────────────────── */
         function updateVolPreview() {
-            const l = parseFloat($('modal-length').value) || 0;
-            const w = parseFloat($('modal-width').value)  || 0;
-            const h = parseFloat($('modal-height').value) || 0;
+            const UC    = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
+            const dUnit = _modalDimToggle    ? _modalDimToggle.getUnit()    : 'cm';
+            const wUnit = _modalWeightToggle ? _modalWeightToggle.getUnit() : 'kg';
+            const toKg  = v => UC ? (UC.toCanonical(v, 'weight', wUnit) || 0) : (parseFloat(v) || 0);
+            const toCm  = v => UC ? (UC.toCanonical(v, 'dim',    dUnit) || 0) : (parseFloat(v) || 0);
+            const l = toCm($('modal-length').value);
+            const w = toCm($('modal-width').value);
+            const h = toCm($('modal-height').value);
             const volKg = calcVol(l, w, h);
-            const realKg = parseFloat($('modal-weight').value) || 0;
+            const realKg = toKg($('modal-weight').value);
             const preview = $('vol-preview');
 
             if (l > 0 && w > 0 && h > 0) {
@@ -1599,6 +1637,38 @@
                 allowEmptyOption: true,
                 items: []
             });
+        }
+
+        /* ── Unit toggles for weight and dims ─────────────────── */
+        if (typeof UnitConverter !== 'undefined') {
+            const wToggleEl = $('modal-weight-toggle');
+            const dToggleEl = $('modal-dim-toggle');
+            if (wToggleEl) {
+                _modalWeightToggle = UnitConverter.setup({
+                    container: wToggleEl,
+                    inputs:    [{ el: $('modal-weight') }],
+                    unitType:  'weight',
+                    onChange:  function (u) {
+                        var sfx = $('modal-weight-suffix');
+                        if (sfx) sfx.textContent = u;
+                        updateVolPreview();
+                    }
+                });
+            }
+            if (dToggleEl) {
+                _modalDimToggle = UnitConverter.setup({
+                    container: dToggleEl,
+                    inputs:    [{ el: $('modal-length') }, { el: $('modal-width') }, { el: $('modal-height') }],
+                    unitType:  'dim',
+                    onChange:  function (u) {
+                        ['modal-dim-suffix-l', 'modal-dim-suffix-w', 'modal-dim-suffix-h'].forEach(function (id) {
+                            var sfx = $(id);
+                            if (sfx) sfx.textContent = u;
+                        });
+                        updateVolPreview();
+                    }
+                });
+            }
         }
 
         /* ── URL extraction (Open Graph / meta) ───────────────── */

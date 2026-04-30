@@ -1,0 +1,180 @@
+# Fix Miami ZIP code + keep portal secondary navbar fully visible on scroll
+
+## What & Why
+There are two targeted fixes needed across the client portal.
+
+### 1. Miami shipping address ZIP code is outdated
+A user reported that the Miami shipping address shown in the portal still displays the old ZIP code:
+
+- current incorrect ZIP: 33166
+- correct ZIP that should now be shown: 33195
+
+This Miami address is the shared CRBOX shipping address used across client accounts, so this is not a one-off per-user correction. It should be updated consistently wherever that shared Miami address is rendered in the client portal.
+
+### 2. Secondary portal navbar partially hides on scroll
+The secondary navbar inside the client portal — the one with:
+- Dashboard
+- Mis Paquetes
+- Mis Facturas
+- Cotizaciones
+- Mi Cuenta
+
+is currently not behaving correctly while scrolling.
+
+When the user scrolls down, it becomes partially hidden / clipped instead of remaining fully visible.
+
+This should be fixed across all client portal pages.
+
+The requirement is simple:
+- keep it fully visible
+- keep it fixed/sticky as intended
+- do not let it get partially covered
+- do not redesign it
+- do not change its visual style
+- do not alter spacing, hierarchy, or active-tab styling beyond what is strictly necessary to fix the bug
+
+This is a stability / layout fix, not a redesign.
+
+---
+
+## Done looks like
+
+### Miami address
+- The Miami address card now shows ZIP code 33195 instead of 33166
+- The update is applied consistently anywhere that shared Miami shipping address appears in the client portal
+- “Copiar dirección” uses the corrected ZIP too
+- No other Miami address field is unintentionally changed unless required by the same shared source of truth
+
+### Secondary portal navbar
+- On every client portal page, the secondary navbar remains fully visible while scrolling
+- It does not get clipped, tucked under the main header, or partially hidden
+- It does not jump, shift, collapse, or change height unexpectedly
+- Its current layout and visual design remain effectively the same
+- The fix works across desktop and mobile where applicable
+- No page content gets awkwardly overlapped because of the sticky/fixed behavior
+
+---
+
+## Out of scope
+- Redesigning the secondary navbar
+- Changing tab labels
+- Changing active/inactive styling
+- Altering the main top navigation
+- Reworking the portal page layout broadly
+- Any changes outside the client portal
+- Any changes to non-shared user-specific address data beyond the shared Miami shipping address
+
+---
+
+## Step 1 — Update the shared Miami ZIP code
+Inspect where the Miami shipping address is currently sourced from in the portal.
+
+Determine whether it is:
+- hardcoded in HTML
+- injected from JS
+- derived from a shared config object
+- built from API response mapping
+- or assembled in a copy-to-clipboard helper
+
+Update the ZIP code from:
+- 33166
+to:
+- 33195
+
+Apply this consistently anywhere the shared Miami address is shown or copied inside the client portal.
+
+### Important
+Do not make this a superficial visual-only change if the copy function or another rendering path still uses the old ZIP.
+
+The visible UI and the copied address must match.
+
+---
+
+## Step 2 — Fix the secondary portal navbar sticky/scroll behavior
+Inspect the secondary portal navbar across all portal pages and identify why it gets partially hidden on scroll.
+
+Likely causes may include:
+- wrong top offset
+- header height mismatch
+- stacking context / z-index issue
+- sticky container inside an overflow-clipped parent
+- page-specific wrapper differences
+- incorrect margin/padding compensation below the sticky element
+
+### Goal
+Keep the secondary navbar fully visible during scroll without changing its design.
+
+### Requirements
+- maintain the current visual appearance
+- maintain current width/alignment
+- maintain current tab structure
+- fix only the positioning/visibility bug
+- ensure it does not hide behind the main header
+- ensure it does not get clipped by a parent container
+- ensure it stays stable across all portal pages, not just one
+
+### Important
+If the root problem comes from how the sticky bar is implemented per page, unify the implementation so all portal pages behave the same way.
+
+Do not patch only one page.
+
+---
+
+## Pages to verify
+At minimum verify the fix across all client portal pages that use the secondary navbar, including:
+- Dashboard
+- Mis Paquetes
+- Mis Facturas
+- Cotizaciones
+- Mi Cuenta
+
+If there are additional portal pages using the same secondary nav pattern, include them too.
+
+---
+
+## Mobile / responsive requirement
+The fix must not break mobile behavior.
+
+If the secondary nav behaves differently on mobile:
+- preserve the intended mobile experience
+- ensure no clipping or overlap happens there either
+- do not force a desktop sticky pattern that harms mobile usability
+
+---
+
+## Implementation guidance
+Use the most robust fix, not a fragile page-specific hack.
+
+For the navbar:
+- inspect sticky/fixed positioning
+- inspect top values relative to the main header
+- inspect parent overflow: hidden/auto
+- inspect z-index
+- inspect whether content below needs top compensation
+
+For the Miami address:
+- prefer updating the real shared source of truth if one exists
+- avoid duplicated inconsistent address strings across the portal
+
+---
+
+## Relevant context
+The user-reported issue confirms the ZIP code is wrong in the Miami shipping address card currently shown as:
+- address: 8155 NW 68TH ST
+- city: Miami
+- state: Florida
+- ZIP currently shown: 33166
+- should now be: 33195
+
+The secondary navbar issue is visible across the client portal when scrolling: it becomes slightly hidden instead of remaining fully visible.
+
+---
+
+## Please report back with
+1. where the Miami address was actually sourced from
+2. what you changed so the ZIP is now 33195
+3. confirmation that the copied address also uses the corrected ZIP
+4. what was causing the secondary navbar to become partially hidden
+5. what technical fix you applied
+6. confirmation that the fix now works across all portal pages, not just one
+7. confirmation that mobile behavior was checked and not broken

@@ -474,6 +474,10 @@
 
         /* ── Nav active state ── */
         .nav-active { color: #FF6B00 !important; font-weight: 700; }
+        .unit-toggle-group { display:inline-flex; border:1px solid #e5e7eb; border-radius:.45rem; overflow:hidden; flex-shrink:0; }
+        .unit-btn { padding:.18rem .55rem; font-size:.72rem; font-weight:600; border:none; background:#fff; color:#6b7280; cursor:pointer; transition:background .15s,color .15s; line-height:1.5; }
+        .unit-btn-active { background:#FF6B00; color:#fff; }
+        .unit-btn:not(.unit-btn-active):hover { background:#f3f4f6; }
     </style>
 </head>
 
@@ -826,39 +830,52 @@
                             <label class="q-label">
                                 Datos físicos <span class="q-optional">(opcionales — ayudan a estimar el costo)</span>
                             </label>
-                            <div class="q-grid-2 mb-3">
-                                <div>
-                                    <div class="relative">
-                                        <input type="number" id="f-weight" class="q-input" placeholder="Peso" min="0" step="0.01" style="padding-right:2.75rem;">
-                                        <span style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">kg</span>
+                            <!-- Weight row with kg/lb toggle -->
+                            <div class="mb-3">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="q-hint" style="margin:0;">Peso aprox.</span>
+                                    <div class="unit-toggle-group" id="f-weight-toggle">
+                                        <button type="button" class="unit-btn unit-btn-active" data-unit="kg" aria-pressed="true">kg</button>
+                                        <button type="button" class="unit-btn" data-unit="lb" aria-pressed="false">lb</button>
                                     </div>
-                                    <div class="q-hint">Peso aprox.</div>
                                 </div>
-                                <div class="q-hint flex items-end pb-5" style="color:#6b7280;font-size:.8rem;">
-                                    Si no sabes el peso exacto, déjalo en blanco.
+                                <div class="relative">
+                                    <input type="number" id="f-weight" class="q-input" placeholder="Peso" min="0" step="0.01" style="padding-right:2.75rem;">
+                                    <span id="f-weight-suffix" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">kg</span>
                                 </div>
+                                <div class="q-hint" style="color:#6b7280;font-size:.78rem;margin-top:.25rem;">Si no sabes el peso exacto, déjalo en blanco.</div>
                             </div>
-                            <div class="q-grid-3">
-                                <div>
-                                    <div class="relative">
-                                        <input type="number" id="f-length" class="q-input" placeholder="Largo" min="0" step="0.1" style="padding-right:2.75rem;">
-                                        <span style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">cm</span>
+                            <!-- Dims row with cm/in toggle -->
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="q-hint" style="margin:0;">Dimensiones <span style="font-weight:400;color:#9ca3af;">(L × A × H)</span></span>
+                                    <div class="unit-toggle-group" id="f-dim-toggle">
+                                        <button type="button" class="unit-btn unit-btn-active" data-unit="cm" aria-pressed="true">cm</button>
+                                        <button type="button" class="unit-btn" data-unit="in" aria-pressed="false">in</button>
                                     </div>
-                                    <div class="q-hint">Largo</div>
                                 </div>
-                                <div>
-                                    <div class="relative">
-                                        <input type="number" id="f-width" class="q-input" placeholder="Ancho" min="0" step="0.1" style="padding-right:2.75rem;">
-                                        <span style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">cm</span>
+                                <div class="q-grid-3">
+                                    <div>
+                                        <div class="relative">
+                                            <input type="number" id="f-length" class="q-input" placeholder="Largo" min="0" step="0.1" style="padding-right:2.75rem;">
+                                            <span id="f-dim-suffix-l" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">cm</span>
+                                        </div>
+                                        <div class="q-hint">Largo</div>
                                     </div>
-                                    <div class="q-hint">Ancho</div>
-                                </div>
-                                <div>
-                                    <div class="relative">
-                                        <input type="number" id="f-height" class="q-input" placeholder="Alto" min="0" step="0.1" style="padding-right:2.75rem;">
-                                        <span style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">cm</span>
+                                    <div>
+                                        <div class="relative">
+                                            <input type="number" id="f-width" class="q-input" placeholder="Ancho" min="0" step="0.1" style="padding-right:2.75rem;">
+                                            <span id="f-dim-suffix-w" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">cm</span>
+                                        </div>
+                                        <div class="q-hint">Ancho</div>
                                     </div>
-                                    <div class="q-hint">Alto</div>
+                                    <div>
+                                        <div class="relative">
+                                            <input type="number" id="f-height" class="q-input" placeholder="Alto" min="0" step="0.1" style="padding-right:2.75rem;">
+                                            <span id="f-dim-suffix-h" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">cm</span>
+                                        </div>
+                                        <div class="q-hint">Alto</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1108,6 +1125,7 @@
     <script src="js/auth.js"></script>
     <script src="js/nav-auth.js?v=2" defer></script>
     <script src="js/analytics.js" defer></script>
+    <script src="js/unit-converter.js?v=1"></script>
     <script src="js/ai-extractor.js"></script>
     <script>
     (function () {
@@ -1167,8 +1185,10 @@
         let lastSubmitPayload = null;  // keep for WA fallback
         let _dupWarningDismissed = false;
         let _formSubmitted    = false;
-        let _aiActive         = false; // AI pre-filled ≥1 field
-        let _aiDataSource     = 'manual'; // 'manual' | 'ai_extracted' | 'ai_partial'
+        let _aiActive              = false; // AI pre-filled ≥1 field
+        let _aiDataSource          = 'manual'; // 'manual' | 'ai_extracted' | 'ai_partial'
+        let _cotizarWeightToggle   = null; // UnitConverter toggle for weight
+        let _cotizarDimToggle      = null; // UnitConverter toggle for dims
 
         // ── beforeunload draft warning ─────────────────────────
         window.addEventListener('beforeunload', function (e) {
@@ -1428,6 +1448,37 @@
             }
         });
 
+        // ── Unit toggles ─────────────────────────────────────────
+        (function () {
+            if (typeof UnitConverter === 'undefined') return;
+            var wToggleEl = document.getElementById('f-weight-toggle');
+            var dToggleEl = document.getElementById('f-dim-toggle');
+            if (wToggleEl) {
+                _cotizarWeightToggle = UnitConverter.setup({
+                    container: wToggleEl,
+                    inputs:    [{ el: fWeight }],
+                    unitType:  'weight',
+                    onChange:  function (u) {
+                        var sfx = document.getElementById('f-weight-suffix');
+                        if (sfx) sfx.textContent = u;
+                    }
+                });
+            }
+            if (dToggleEl) {
+                _cotizarDimToggle = UnitConverter.setup({
+                    container: dToggleEl,
+                    inputs:    [{ el: fLength }, { el: fWidth }, { el: fHeight }],
+                    unitType:  'dim',
+                    onChange:  function (u) {
+                        ['f-dim-suffix-l', 'f-dim-suffix-w', 'f-dim-suffix-h'].forEach(function (id) {
+                            var sfx = document.getElementById(id);
+                            if (sfx) sfx.textContent = u;
+                        });
+                    }
+                });
+            }
+        })();
+
         // ── AI extraction ────────────────────────────────────────
         const btnAiAnalizar = document.getElementById('btn-ai-analizar-cotizar');
 
@@ -1437,6 +1488,9 @@
             if (typeof CRBOXAIExtractor === 'undefined') return;
             _aiActive     = false;
             _aiDataSource = 'manual';
+            // AI extractor writes values in canonical cm/kg — reset toggles first to avoid double-conversion
+            if (_cotizarWeightToggle) _cotizarWeightToggle.setUnit('kg');
+            if (_cotizarDimToggle)    _cotizarDimToggle.setUnit('cm');
             CRBOXAIExtractor.runExtraction(url, {
                 bannerTarget:   aiExtractBanner,
                 fName:          fProductName,
@@ -1609,15 +1663,19 @@
             const productUrl = (fProductUrl.value || '').trim();
             if (productUrl) payload.product_url = productUrl;
 
-            const weight = parseFloat(fWeight.value);
-            if (!isNaN(weight) && weight > 0) payload.weight_kg = weight;
+            // Normalize to canonical kg / cm regardless of which unit the user selected
+            const _UC    = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
+            const _wUnit = _cotizarWeightToggle ? _cotizarWeightToggle.getUnit() : 'kg';
+            const _dUnit = _cotizarDimToggle    ? _cotizarDimToggle.getUnit()    : 'cm';
+            const weight = _UC ? _UC.toCanonical(fWeight.value, 'weight', _wUnit) : parseFloat(fWeight.value);
+            if (weight != null && weight > 0) payload.weight_kg = weight;
 
-            const length = parseFloat(fLength.value);
-            const width  = parseFloat(fWidth.value);
-            const height = parseFloat(fHeight.value);
-            if (!isNaN(length) && length > 0) payload.length_cm = length;
-            if (!isNaN(width) && width > 0)   payload.width_cm  = width;
-            if (!isNaN(height) && height > 0)  payload.height_cm = height;
+            const length = _UC ? _UC.toCanonical(fLength.value, 'dim', _dUnit) : parseFloat(fLength.value);
+            const width  = _UC ? _UC.toCanonical(fWidth.value,  'dim', _dUnit) : parseFloat(fWidth.value);
+            const height = _UC ? _UC.toCanonical(fHeight.value, 'dim', _dUnit) : parseFloat(fHeight.value);
+            if (length != null && length > 0) payload.length_cm = length;
+            if (width  != null && width  > 0) payload.width_cm  = width;
+            if (height != null && height > 0) payload.height_cm = height;
 
             const notes = (fNotes.value || '').trim();
             if (notes) payload.customer_notes = notes;
