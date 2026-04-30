@@ -664,6 +664,8 @@
                             <p id="ai-analizar-helper" style="display:none;font-size:.775rem;color:#6b7280;margin-top:.3rem;line-height:1.45;">
                                 <i class="fas fa-circle-notch fa-spin" style="margin-right:.3rem;color:#FF6B00;"></i>Estamos analizando el enlace y completando los datos del producto.
                             </p>
+                            <!-- AI compliance card mounts here (RESTRICTED / PROHIBITED) -->
+                            <div id="ai-compliance-card-cotizar"></div>
                             <!-- AI extraction banner mounts here -->
                             <div id="ai-extract-banner-cotizar"></div>
                         </div>
@@ -1180,8 +1182,9 @@
         const notesCharCount  = document.getElementById('notes-char-count');
         const serviceHintText = document.getElementById('service-hint-text');
 
-        const aiExtractBanner  = document.getElementById('ai-extract-banner-cotizar');
-        const aiConfirmWrapper = document.getElementById('ai-confirm-cotizar');
+        const aiExtractBanner    = document.getElementById('ai-extract-banner-cotizar');
+        const aiComplianceCard   = document.getElementById('ai-compliance-card-cotizar');
+        const aiConfirmWrapper   = document.getElementById('ai-confirm-cotizar');
         const aiConfirmChk     = document.getElementById('ai-confirm-chk-cotizar');
 
         // ── State ──────────────────────────────────────────────
@@ -1521,15 +1524,16 @@
             if (_cotizarWeightToggle) _cotizarWeightToggle.setUnit('kg');
             if (_cotizarDimToggle)    _cotizarDimToggle.setUnit('cm');
             CRBOXAIExtractor.runExtraction(url, {
-                bannerTarget:   aiExtractBanner,
-                fName:          fProductName,
-                fValue:         fDeclaredValue,
-                fCategory:      fCategory,
-                fWeight:        document.getElementById('f-weight'),
-                fLength:        document.getElementById('f-length'),
-                fWidth:         document.getElementById('f-width'),
-                fHeight:        document.getElementById('f-height'),
-                confirmWrapper: aiConfirmWrapper,
+                bannerTarget:     aiExtractBanner,
+                complianceTarget: aiComplianceCard,
+                fName:            fProductName,
+                fValue:           fDeclaredValue,
+                fCategory:        fCategory,
+                fWeight:          document.getElementById('f-weight'),
+                fLength:          document.getElementById('f-length'),
+                fWidth:           document.getElementById('f-width'),
+                fHeight:          document.getElementById('f-height'),
+                confirmWrapper:   aiConfirmWrapper,
             }).then(function (result) {
                 var banner = aiExtractBanner.querySelector('.ai-extract-banner');
                 if (banner && (banner.classList.contains('ai-banner-success') ||
@@ -1597,15 +1601,16 @@
             const url = (this.value || '').trim();
             if (!url && typeof CRBOXAIExtractor !== 'undefined') {
                 CRBOXAIExtractor.resetExtraction({
-                    bannerTarget:   aiExtractBanner,
-                    fName:          fProductName,
-                    fValue:         fDeclaredValue,
-                    fCategory:      fCategory,
-                    fWeight:        document.getElementById('f-weight'),
-                    fLength:        document.getElementById('f-length'),
-                    fWidth:         document.getElementById('f-width'),
-                    fHeight:        document.getElementById('f-height'),
-                    confirmWrapper: aiConfirmWrapper,
+                    bannerTarget:     aiExtractBanner,
+                    complianceTarget: aiComplianceCard,
+                    fName:            fProductName,
+                    fValue:           fDeclaredValue,
+                    fCategory:        fCategory,
+                    fWeight:          document.getElementById('f-weight'),
+                    fLength:          document.getElementById('f-length'),
+                    fWidth:           document.getElementById('f-width'),
+                    fHeight:          document.getElementById('f-height'),
+                    confirmWrapper:   aiConfirmWrapper,
                 });
                 _aiActive = false;
                 if (aiAnalizarHelper) aiAnalizarHelper.style.display = 'none';
@@ -1960,15 +1965,16 @@
             // Clear AI extraction state, badges, and physical note
             if (typeof CRBOXAIExtractor !== 'undefined') {
                 CRBOXAIExtractor.resetExtraction({
-                    bannerTarget:   aiExtractBanner,
-                    fName:          fProductName,
-                    fValue:         fDeclaredValue,
-                    fCategory:      fCategory,
-                    fWeight:        document.getElementById('f-weight'),
-                    fLength:        document.getElementById('f-length'),
-                    fWidth:         document.getElementById('f-width'),
-                    fHeight:        document.getElementById('f-height'),
-                    confirmWrapper: aiConfirmWrapper,
+                    bannerTarget:     aiExtractBanner,
+                    complianceTarget: aiComplianceCard,
+                    fName:            fProductName,
+                    fValue:           fDeclaredValue,
+                    fCategory:        fCategory,
+                    fWeight:          document.getElementById('f-weight'),
+                    fLength:          document.getElementById('f-length'),
+                    fWidth:           document.getElementById('f-width'),
+                    fHeight:          document.getElementById('f-height'),
+                    confirmWrapper:   aiConfirmWrapper,
                 });
             }
             _aiActive = false;

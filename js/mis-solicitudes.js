@@ -500,11 +500,12 @@
     _portalAiDataSource = 'manual';
     if (typeof CRBOXAIExtractor !== 'undefined') {
       CRBOXAIExtractor.resetExtraction({
-        bannerTarget:   document.getElementById('ai-extract-banner-portal'),
-        fName:          document.getElementById('form-product-name'),
-        fValue:         document.getElementById('form-declared-value'),
-        fCategory:      document.getElementById('form-category'),
-        confirmWrapper: document.getElementById('ai-confirm-portal'),
+        bannerTarget:     document.getElementById('ai-extract-banner-portal'),
+        complianceTarget: document.getElementById('ai-compliance-card-portal'),
+        fName:            document.getElementById('form-product-name'),
+        fValue:           document.getElementById('form-declared-value'),
+        fCategory:        document.getElementById('form-category'),
+        confirmWrapper:   document.getElementById('ai-confirm-portal'),
       });
     } else {
       var aiBannerEl  = document.getElementById('ai-extract-banner-portal');
@@ -1007,8 +1008,9 @@
       var fPortalName  = document.getElementById('form-product-name');
       var fPortalValue = document.getElementById('form-declared-value');
       var fPortalCat   = document.getElementById('form-category');
-      var aiBanner     = document.getElementById('ai-extract-banner-portal');
-      var aiConfirm    = document.getElementById('ai-confirm-portal');
+      var aiBanner          = document.getElementById('ai-extract-banner-portal');
+      var aiComplianceCard  = document.getElementById('ai-compliance-card-portal');
+      var aiConfirm         = document.getElementById('ai-confirm-portal');
 
       if (!fPortalUrl || typeof CRBOXAIExtractor === 'undefined') return;
 
@@ -1038,16 +1040,17 @@
         if (_portalWeightToggle) _portalWeightToggle.setUnit('kg');
         if (_portalDimToggle)    _portalDimToggle.setUnit('cm');
         CRBOXAIExtractor.runExtraction(url, {
-          bannerTarget:   aiBanner,
-          fName:          fPortalName,
-          fValue:         fPortalValue,
-          fCategory:      fPortalCat,
-          fWeight:        document.getElementById('form-weight'),
-          fLength:        document.getElementById('form-length'),
-          fWidth:         document.getElementById('form-width'),
-          fHeight:        document.getElementById('form-height'),
-          confirmWrapper: aiConfirm,
-          categoryMap:    _PORTAL_CATEGORY_MAP,
+          bannerTarget:     aiBanner,
+          complianceTarget: aiComplianceCard,
+          fName:            fPortalName,
+          fValue:           fPortalValue,
+          fCategory:        fPortalCat,
+          fWeight:          document.getElementById('form-weight'),
+          fLength:          document.getElementById('form-length'),
+          fWidth:           document.getElementById('form-width'),
+          fHeight:          document.getElementById('form-height'),
+          confirmWrapper:   aiConfirm,
+          categoryMap:      _PORTAL_CATEGORY_MAP,
         }).then(function () {
           var b = aiBanner ? aiBanner.querySelector('.ai-extract-banner') : null;
           if (b && (b.classList.contains('ai-banner-success') ||
@@ -1087,11 +1090,12 @@
         var url = (this.value || '').trim();
         if (!url) {
           CRBOXAIExtractor.resetExtraction({
-            bannerTarget:   aiBanner,
-            fName:          fPortalName,
-            fValue:         fPortalValue,
-            fCategory:      fPortalCat,
-            confirmWrapper: aiConfirm,
+            bannerTarget:     aiBanner,
+            complianceTarget: aiComplianceCard,
+            fName:            fPortalName,
+            fValue:           fPortalValue,
+            fCategory:        fPortalCat,
+            confirmWrapper:   aiConfirm,
           });
           _portalAiActive = false;
         }

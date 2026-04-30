@@ -125,10 +125,17 @@ JSON schema (return exactly this structure):
     "weight_kg":          {{"value": null, "confidence": 0.0, "provenance": "missing", "source_attribute": null}},
     "dimensions_cm":      {{"value": null, "confidence": 0.0, "provenance": "missing", "source_attribute": null}}
   }},
-  "extraction_warnings": []
+  "extraction_warnings": [],
+  "compliance": {{
+    "classification": "ALLOWED",
+    "risk_level": "LOW",
+    "reason": null,
+    "authority": null,
+    "verdict": "safe"
+  }}
 }}
 
-Rules:
+Extraction rules:
 1. "provenance" must be one of: "extracted" | "inferred" | "missing" | "needs_confirmation"
 2. declared_value_usd: extract the sale price in USD as a float. If multiple prices exist, use needs_confirmation. If the price is in another currency, convert to USD if an exchange rate is obvious, otherwise use needs_confirmation.
 3. category: choose from the list above. Use "inferred" provenance since it is always inferred from context.
@@ -136,10 +143,41 @@ Rules:
 5. dimensions_cm: extract product dimensions (L×W×H) in centimeters as a string like "30x20x10" or as an object {{"length": 30, "width": 20, "height": 10}}. Look in spec tables and product details sections. These are PRODUCT dimensions, not box/shipping dimensions. If found, use "extracted" provenance. If not found, use "missing" with null value. Do NOT guess.
 6. If the page is a login wall, CAPTCHA, error page, or you cannot determine a product name, set page_readable to false.
 7. Do not invent or guess values. Return "missing" rather than a guess.
-8. Return ONLY valid JSON — no markdown, no code fences, no explanation.
+
+Compliance rules (fill the "compliance" block):
+8. classification: classify this product for import to Costa Rica via Miami courier:
+   - "PROHIBITED": firearms, weapons, ammunition, explosives, fireworks, illegal drugs, counterfeit goods, protected wildlife products (ivory, CITES items), toxic/hazardous materials
+   - "RESTRICTED": supplements/protein powders, medicines, food/beverages/seeds, cosmetics/perfumes/skincare, drones/radio-controlled aircraft, telecom/radio devices, loose lithium batteries (not inside a device), power banks, chemicals/paints, automotive parts, plants/soil/organic materials — these require permits or sanitary registration
+   - "COURIER_RESTRICTED": perfume/cologne (liquid), very heavy/oversized items (>150 lb or >120 inches), extremely fragile items — legal but couriers may reject or charge extra
+   - "ALLOWED": clothing, shoes, standard electronics (laptop, phone, tablet, headphones, keyboard, mouse, TV, camera), books, accessories, toys, sporting goods, home goods
+9. risk_level: "LOW" for ALLOWED, "MEDIUM" for COURIER_RESTRICTED/borderline RESTRICTED, "HIGH" for RESTRICTED/PROHIBITED
+10. reason: write a plain-language explanation IN SPANISH (1 short sentence) of why it falls in that category. Null if ALLOWED.
+11. authority: which Costa Rican authority is involved — "Ministerio de Salud", "SFE", "SUTEL", "Aduana", or null for ALLOWED
+12. verdict: "safe" | "ship_with_permits" | "not_recommended" | "do_not_ship"
+
+Return ONLY valid JSON — no markdown, no code fences, no explanation.
 
 PAGE CONTENT:
 {content}
+"""
+
+_ESTIMATE_PROMPT = """\
+You are a logistics expert for a courier service shipping from Miami to Costa Rica.
+
+Product: {product_name}
+Category: {category}
+
+Using your knowledge of this product type, estimate the RETAIL BOX weight and dimensions a courier would handle.
+Be conservative (slightly round up). Return ONLY valid JSON — no markdown, no code fences:
+{{
+  "weight_kg": 0.0,
+  "dimensions_cm": {{"length": 0, "width": 0, "height": 0}}
+}}
+Rules:
+- weight_kg: total weight including retail packaging (float, kg). Think about what the product ships in.
+- dimensions_cm: retail box outer dimensions L×W×H in centimeters (object with length, width, height as floats).
+- If you truly cannot estimate (very unusual product), return null for that field.
+- Do NOT return null for common consumer products — always estimate.
 """
 
 
@@ -819,6 +857,100 @@ def _normalize_dimensions(raw_value):
     return None, None
 
 
+_VALID_CLASSIFICATIONS = ('ALLOWED', 'RESTRICTED', 'COURIER_RESTRICTED', 'PROHIBITED')
+_VALID_VERDICTS        = ('safe', 'ship_with_permits', 'not_recommended', 'do_not_ship')
+_VALID_RISK_LEVELS     = ('LOW', 'MEDIUM', 'HIGH')
+
+def _normalize_compliance(raw_compliance):
+    """Validate and normalise the compliance block returned by Gemini."""
+    if not isinstance(raw_compliance, dict):
+        return {'classification': 'ALLOWED', 'risk_level': 'LOW',
+                'reason': None, 'authority': None, 'verdict': 'safe'}
+    cls     = str(raw_compliance.get('classification') or 'ALLOWED').upper().strip()
+    risk    = str(raw_compliance.get('risk_level') or 'LOW').upper().strip()
+    verdict = str(raw_compliance.get('verdict') or 'safe').lower().strip()
+    if cls     not in _VALID_CLASSIFICATIONS: cls     = 'ALLOWED'
+    if risk    not in _VALID_RISK_LEVELS:     risk    = 'LOW'
+    if verdict not in _VALID_VERDICTS:        verdict = 'safe'
+    return {
+        'classification': cls,
+        'risk_level':     risk,
+        'reason':         (raw_compliance.get('reason') or None),
+        'authority':      (raw_compliance.get('authority') or None),
+        'verdict':        verdict,
+    }
+
+
+def _call_gemini_estimate(product_name, category):
+    """Ask Gemini to estimate retail-box weight and dimensions when exact data is missing."""
+    if not _GEMINI_API_KEY or not product_name:
+        return None, 'No API key or product name'
+    try:
+        from google import genai as _genai
+        client = _genai.Client(api_key=_GEMINI_API_KEY)
+        prompt = _ESTIMATE_PROMPT.format(
+            product_name=product_name,
+            category=category or 'otros',
+        )
+        from google.genai import types as _gtypes2
+        response = client.models.generate_content(
+            model=_GEMINI_MODEL,
+            contents=prompt,
+            config=_gtypes2.GenerateContentConfig(
+                temperature=0.1, max_output_tokens=256),
+        )
+        text = (response.text or '').strip()
+        if not text:
+            return None, 'Empty response'
+        if text.startswith('```'):
+            text = text.split('\n', 1)[-1] if '\n' in text else text[3:]
+        if text.endswith('```'):
+            text = text[:-3].rstrip()
+        return json.loads(text), None
+    except Exception as ex:
+        return None, f'Estimate error: {ex}'
+
+
+def _apply_estimate_to_result(result, estimate_data):
+    """Merge estimation data into result fields (only for missing fields)."""
+    if not estimate_data or not isinstance(estimate_data, dict):
+        return result
+    fields = result.get('fields', {})
+
+    def _mf(value, prov, src_unit=None):
+        return {'value': value, 'confidence': 0.55, 'provenance': prov,
+                'source_attribute': None, 'source_unit': src_unit}
+
+    # Weight — only fill if currently missing
+    if fields.get('weight_kg', {}).get('provenance') == 'missing':
+        w_raw = estimate_data.get('weight_kg')
+        if w_raw is not None:
+            try:
+                w_val = float(w_raw)
+                if w_val > 0:
+                    fields['weight_kg'] = _mf(round(w_val, 3), 'estimated')
+            except (TypeError, ValueError):
+                pass
+
+    # Dimensions — only fill if currently missing
+    if fields.get('dimensions_cm', {}).get('provenance') == 'missing':
+        d_raw = estimate_data.get('dimensions_cm')
+        if isinstance(d_raw, dict):
+            try:
+                parsed = {
+                    'length': float(d_raw.get('length') or 0) or None,
+                    'width':  float(d_raw.get('width')  or 0) or None,
+                    'height': float(d_raw.get('height') or 0) or None,
+                }
+                if any(v for v in parsed.values() if v):
+                    fields['dimensions_cm'] = _mf(parsed, 'estimated')
+            except (TypeError, ValueError):
+                pass
+
+    result['fields'] = fields
+    return result
+
+
 def _normalize_ai_result(raw, source_url):
     now_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
     out = {}
@@ -828,6 +960,7 @@ def _normalize_ai_result(raw, source_url):
     out['page_readable']      = bool(raw.get('page_readable', True))
     out['partial']            = bool(raw.get('partial', False))
     out['extraction_warnings'] = raw.get('extraction_warnings') or []
+    out['compliance']         = _normalize_compliance(raw.get('compliance'))
 
     raw_fields = raw.get('fields') or {}
     fields = {}
@@ -906,7 +1039,14 @@ Return ONLY a valid JSON object — no markdown, no code fences, no explanation:
   "price_usd": 0.0,
   "category": "one of: {categories}",
   "weight": "item weight with unit, e.g. '1.5 lbs' or '0.68 kg' — item weight NOT shipping weight",
-  "dimensions": "product dimensions as L x W x H with unit, e.g. '5.7 x 3.2 x 1.1 inches' or '14.5 x 8.1 x 2.8 cm'"
+  "dimensions": "product dimensions as L x W x H with unit, e.g. '5.7 x 3.2 x 1.1 inches' or '14.5 x 8.1 x 2.8 cm'",
+  "compliance": {{
+    "classification": "ALLOWED",
+    "risk_level": "LOW",
+    "reason": null,
+    "authority": null,
+    "verdict": "safe"
+  }}
 }}
 Rules:
 - product_name: exact product name as listed on the retailer site; null if not found
@@ -914,6 +1054,11 @@ Rules:
 - category: choose one CRBOX code from the list above; null if unsure
 - weight: item/product weight as a string with unit (lbs, oz, kg, g); null if not listed in specs
 - dimensions: product dimensions L x W x H with unit (inches or cm); null if not in specs
+- compliance.classification: "PROHIBITED" (weapons/drugs/fireworks/counterfeit), "RESTRICTED" (supplements/medicines/food/drones/perfume/power banks/chemicals/automotive parts), "COURIER_RESTRICTED" (liquids, oversized), or "ALLOWED" (clothing/electronics/books/accessories/toys)
+- compliance.risk_level: "LOW" for ALLOWED, "MEDIUM" for COURIER_RESTRICTED, "HIGH" for RESTRICTED or PROHIBITED
+- compliance.reason: one short sentence IN SPANISH explaining restriction; null if ALLOWED
+- compliance.authority: "Ministerio de Salud", "SFE", "SUTEL", "Aduana", or null
+- compliance.verdict: "safe" | "ship_with_permits" | "not_recommended" | "do_not_ship"
 - If you cannot find the product at all, return all fields as null
 """
 
@@ -1005,6 +1150,8 @@ def _build_search_fallback_result(data, url):
         return {'value': value, 'confidence': conf,
                 'provenance': prov, 'source_attribute': None, 'source_unit': src_unit}
 
+    compliance = _normalize_compliance(data.get('compliance'))
+
     name    = (data.get('product_name') or '').strip() or None
     cat_raw = data.get('category')
     cat     = _map_search_category(cat_raw)
@@ -1037,6 +1184,7 @@ def _build_search_fallback_result(data, url):
         'page_readable':       True,
         'partial':             partial,
         'extraction_warnings': ['Datos obtenidos mediante búsqueda web (página protegida).'],
+        'compliance':          compliance,
         'fields': {
             'product_name':       _mf(name,      0.85 if name      else 0.0,
                                       'search' if name      else 'missing'),
@@ -1082,6 +1230,29 @@ def _handle_ai_extract(handler):
         handler._json_response(200, cached)
         return
 
+    def _needs_estimate(res):
+        """Return True when weight or dimensions are still missing in the result."""
+        f = (res or {}).get('fields', {})
+        w_missing = f.get('weight_kg', {}).get('provenance') == 'missing'
+        d_missing = f.get('dimensions_cm', {}).get('provenance') == 'missing'
+        return w_missing or d_missing
+
+    def _run_estimate_if_needed(res):
+        """Run estimation and merge into result if weight/dims are missing."""
+        if not _needs_estimate(res):
+            return res
+        pname = (res.get('fields', {}).get('product_name', {}).get('value') or '')
+        cat   = (res.get('fields', {}).get('category', {}).get('value') or '')
+        if not pname:
+            return res
+        est_data, est_err = _call_gemini_estimate(pname, cat)
+        if est_data:
+            print(f'[AI] estimation succeeded for {url!r}')
+            res = _apply_estimate_to_result(res, est_data)
+        else:
+            print(f'[AI] estimation skipped for {url!r}: {est_err}')
+        return res
+
     # ── Step 1: try direct HTML fetch ────────────────────────────────────────
     page_text, fetch_err = _fetch_page(url)
     page_blocked = (not page_text) or _is_bot_blocked(page_text)
@@ -1103,6 +1274,7 @@ def _handle_ai_extract(handler):
             if gemini_result.get('page_readable') is not False and not captcha_in_warnings:
                 try:
                     result = _normalize_ai_result(gemini_result, url)
+                    result = _run_estimate_if_needed(result)
                 except Exception:
                     result = {'page_readable': False, 'error': 'ai_parse_failed'}
                 _ai_cache_set(url_hash, result)
@@ -1116,6 +1288,7 @@ def _handle_ai_extract(handler):
             fallback = _build_fallback_from_structured(page_text, url)
             if fallback is not None:
                 print(f'[AI] Gemini failed for {url!r} ({gemini_err}); using structured-data fallback')
+                fallback = _run_estimate_if_needed(fallback)
                 _ai_cache_set(url_hash, fallback)
                 handler._json_response(200, fallback)
                 return
@@ -1132,6 +1305,7 @@ def _handle_ai_extract(handler):
             search_result = _build_search_fallback_result(search_data, url)
             if search_result:
                 print(f'[AI] search fallback succeeded for {url!r}')
+                search_result = _run_estimate_if_needed(search_result)
                 _ai_cache_set(url_hash, search_result)
                 handler._json_response(200, search_result)
                 return

@@ -947,6 +947,94 @@ button.active {
     cursor: pointer;
 }
 
+/* ── AI estimated badge ───────────────────────────────────────── */
+.ai-badge-estimated {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+/* ── AI step loader ───────────────────────────────────────────── */
+.ai-step-loader {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    padding: .8rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: .6rem;
+    margin-bottom: .9rem;
+}
+.ai-step-row {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-size: .8rem;
+    font-weight: 500;
+    transition: color .25s;
+}
+.ai-step-icon { width: 1rem; text-align: center; flex-shrink: 0; }
+.ai-step-pending { color: #94a3b8; }
+.ai-step-active  { color: #0369a1; }
+.ai-step-done    { color: #16a34a; }
+
+/* ── AI compliance card ───────────────────────────────────────── */
+.ai-compliance-card {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    border-radius: .65rem;
+    padding: .85rem 1rem;
+    margin-bottom: 1rem;
+    border-width: 1.5px;
+    border-style: solid;
+}
+.ai-compliance-icon {
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    margin-top: .05rem;
+}
+.ai-compliance-body { flex: 1; }
+.ai-compliance-title {
+    font-weight: 700;
+    font-size: .855rem;
+    margin: 0 0 .25rem 0;
+    line-height: 1.35;
+}
+.ai-compliance-reason {
+    font-size: .8rem;
+    margin: 0 0 .3rem 0;
+    line-height: 1.5;
+    opacity: .85;
+}
+.ai-compliance-footer {
+    font-size: .775rem;
+    margin: 0;
+    opacity: .7;
+    line-height: 1.45;
+}
+/* RESTRICTED — amber */
+.ai-compliance-restricted {
+    background: #fffbeb;
+    border-color: #fcd34d;
+    color: #78350f;
+}
+.ai-compliance-restricted .ai-compliance-icon { color: #d97706; }
+/* COURIER_RESTRICTED — blue-slate info */
+.ai-compliance-courier {
+    background: #f0f9ff;
+    border-color: #7dd3fc;
+    color: #0c4a6e;
+}
+.ai-compliance-courier .ai-compliance-icon { color: #0369a1; }
+/* PROHIBITED — red */
+.ai-compliance-prohibited {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #7f1d1d;
+}
+.ai-compliance-prohibited .ai-compliance-icon { color: #dc2626; }
+
 /* ── Tarifas page: intro CTA button ── */
 .tarifas-cta-btn {
     background-color: #FF6B00;

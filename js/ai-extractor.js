@@ -3,10 +3,146 @@
 (function (global) {
 
     var EXTRACT_ENDPOINT  = '/api/ai/extract';
-    var CONFIDENCE_HIGH   = 0.90;   // amber Verificar, no action needed
-    var CONFIDENCE_MED    = 0.70;   // amber/red Confirmar, action required
+    var CONFIDENCE_HIGH   = 0.90;
+    var CONFIDENCE_MED    = 0.70;
 
-    // ── Label badge helpers ────────────────────────────────────────────────
+    // ── Step loader (replaces the simple spinner during analysis) ─────────────
+
+    var _stepTimers = [];
+
+    function _clearStepTimers() {
+        _stepTimers.forEach(function (t) { clearTimeout(t); });
+        _stepTimers = [];
+    }
+
+    function _advanceStep(loader, activeIdx) {
+        if (!loader) return;
+        loader.querySelectorAll('.ai-step-row').forEach(function (row, i) {
+            var icon = row.querySelector('.ai-step-icon i');
+            if (i < activeIdx) {
+                row.className = 'ai-step-row ai-step-done';
+                if (icon) { icon.className = 'fas fa-check'; }
+            } else if (i === activeIdx) {
+                row.className = 'ai-step-row ai-step-active';
+                if (icon) { icon.className = 'fas fa-circle-notch fa-spin'; }
+            } else {
+                row.className = 'ai-step-row ai-step-pending';
+                if (icon) { icon.className = 'fas fa-circle'; }
+            }
+        });
+    }
+
+    function _showStepLoader(container) {
+        if (!container) return null;
+        _removeStepLoader(container);
+        var steps = [
+            'Identificando el producto\u2026',
+            'Verificando restricciones de importaci\u00f3n\u2026',
+            'Completando datos del formulario\u2026'
+        ];
+        var loader = document.createElement('div');
+        loader.className = 'ai-step-loader';
+        steps.forEach(function (text, i) {
+            var row = document.createElement('div');
+            row.className = 'ai-step-row ai-step-pending';
+            row.dataset.step = i;
+            var icon = document.createElement('span');
+            icon.className = 'ai-step-icon';
+            icon.innerHTML = '<i class="fas fa-circle"></i>';
+            var label = document.createElement('span');
+            label.className = 'ai-step-label';
+            label.textContent = text;
+            row.appendChild(icon);
+            row.appendChild(label);
+            loader.appendChild(row);
+        });
+        container.insertBefore(loader, container.firstChild);
+        _advanceStep(loader, 0);
+        _stepTimers.push(setTimeout(function () { _advanceStep(loader, 1); }, 1300));
+        _stepTimers.push(setTimeout(function () { _advanceStep(loader, 2); }, 2600));
+        return loader;
+    }
+
+    function _removeStepLoader(container) {
+        _clearStepTimers();
+        if (!container) return;
+        var loader = container.querySelector('.ai-step-loader');
+        if (loader) loader.parentNode.removeChild(loader);
+    }
+
+    // ── Compliance card ────────────────────────────────────────────────────────
+
+    function _showComplianceCard(container, compliance) {
+        if (!container || !compliance) return null;
+        _removeComplianceCard(container);
+
+        var cls     = (compliance.classification || 'ALLOWED').toUpperCase();
+        var reason  = compliance.reason || '';
+        var verdict = compliance.verdict || 'safe';
+
+        if (cls === 'ALLOWED') return null;
+
+        var cfg = {
+            RESTRICTED: {
+                cardCls:  'ai-compliance-restricted',
+                icon:     'fas fa-exclamation-triangle',
+                title:    'Este producto requiere gesti\u00f3n especial',
+                footer:   'CRBOX verificar\u00e1 los requisitos contigo antes de proceder con el env\u00edo.',
+            },
+            COURIER_RESTRICTED: {
+                cardCls:  'ai-compliance-courier',
+                icon:     'fas fa-info-circle',
+                title:    'Restricci\u00f3n operativa del courier',
+                footer:   'Este tipo de art\u00edculo puede requerir manejo especial o generar cargos adicionales.',
+            },
+            PROHIBITED: {
+                cardCls:  'ai-compliance-prohibited',
+                icon:     'fas fa-ban',
+                title:    'Este producto no puede ser importado a Costa Rica',
+                footer:   'Si crees que es un error o tienes dudas, cont\u00e1ctanos antes de realizar tu compra.',
+            },
+        };
+
+        var c = cfg[cls] || cfg['RESTRICTED'];
+
+        var card = document.createElement('div');
+        card.className = 'ai-compliance-card ' + c.cardCls;
+
+        var iconWrap = document.createElement('div');
+        iconWrap.className = 'ai-compliance-icon';
+        iconWrap.innerHTML = '<i class="' + c.icon + '"></i>';
+
+        var body = document.createElement('div');
+        body.className = 'ai-compliance-body';
+
+        var titleEl = document.createElement('p');
+        titleEl.className = 'ai-compliance-title';
+        titleEl.textContent = c.title;
+
+        var reasonEl = document.createElement('p');
+        reasonEl.className = 'ai-compliance-reason';
+        reasonEl.textContent = reason;
+
+        var footerEl = document.createElement('p');
+        footerEl.className = 'ai-compliance-footer';
+        footerEl.textContent = c.footer;
+
+        body.appendChild(titleEl);
+        if (reason) body.appendChild(reasonEl);
+        body.appendChild(footerEl);
+        card.appendChild(iconWrap);
+        card.appendChild(body);
+        container.appendChild(card);
+        return card;
+    }
+
+    function _removeComplianceCard(container) {
+        if (!container) return;
+        var card = container.querySelector('.ai-compliance-card');
+        if (card) card.parentNode.removeChild(card);
+    }
+
+    // ── Label badge helpers ────────────────────────────────────────────────────
 
     function _findLabel(el) {
         if (!el || !el.id) return null;
@@ -25,10 +161,16 @@
         if (!labelEl) return;
         _removeBadgesFromLabel(labelEl);
         var badge = document.createElement('span');
-        badge.className = type === 'verify'
-            ? 'ai-badge ai-badge-verify'
-            : 'ai-badge ai-badge-confirm';
-        badge.textContent = type === 'verify' ? 'Verificar' : 'Confirmar';
+        if (type === 'verify') {
+            badge.className = 'ai-badge ai-badge-verify';
+            badge.textContent = 'Verificar';
+        } else if (type === 'estimated') {
+            badge.className = 'ai-badge ai-badge-estimated';
+            badge.textContent = 'Estimado';
+        } else {
+            badge.className = 'ai-badge ai-badge-confirm';
+            badge.textContent = 'Confirmar';
+        }
         labelEl.appendChild(badge);
     }
 
@@ -36,7 +178,7 @@
         _removeBadgesFromLabel(_findLabel(el));
     }
 
-    // ── Banner helpers ─────────────────────────────────────────────────────
+    // ── Banner helpers ─────────────────────────────────────────────────────────
 
     function _showBanner(container, type, message) {
         if (!container || !container.querySelector) return null;
@@ -67,10 +209,7 @@
         if (b) b.parentNode.removeChild(b);
     }
 
-    // ── Field-level confirm tracking ────────────────────────────────────────
-    // Each field that gets a red "Confirmar" badge is added here.
-    // The caller calls _allConfirmed() before submit.
-    // fieldId -> confirmed boolean
+    // ── Field-level confirm tracking ───────────────────────────────────────────
 
     function _makeConfirmTracker() {
         var state = {};
@@ -108,13 +247,10 @@
         };
     }
 
-    // Module-level tracker shared across extractions
     var _confirmTracker = _makeConfirmTracker();
-
-    // ── Last extraction result (for submission snapshot) ─────────────────
     var _lastExtractionResult = null;
 
-    // ── Public: clearExtractionBadges ─────────────────────────────────────
+    // ── Public: clearExtractionBadges ──────────────────────────────────────────
 
     function clearExtractionBadges(formFields) {
         var fields = formFields || {};
@@ -122,12 +258,12 @@
          fields.fLength, fields.fWidth, fields.fHeight].forEach(function (el) {
             if (!el) return;
             _removeBadge(el);
+            el.style.borderStyle = '';
             delete el.dataset.aiSuggested;
             delete el.dataset.aiField;
             delete el.dataset.aiConfirmed;
             el.style.color = '';
         });
-        // Remove any physical-data hint notes
         var _anchorEl = fields.fWeight || fields.fLength || null;
         if (_anchorEl) {
             var _container = _anchorEl.parentNode;
@@ -141,10 +277,11 @@
                 if (_note) _note.parentNode.removeChild(_note);
             }
         }
+        if (fields.complianceTarget) _removeComplianceCard(fields.complianceTarget);
         _confirmTracker.clear();
     }
 
-    // ── Field apply helpers ────────────────────────────────────────────────
+    // ── Field apply helpers ────────────────────────────────────────────────────
 
     function _applyProductName(el, fieldResult) {
         if (!el || !fieldResult) return false;
@@ -158,10 +295,7 @@
         el.dataset.aiSuggested = '1';
         el.dataset.aiField     = 'product_name';
 
-        // Spec 9.2-9.3: <0.70 or needs_confirmation => red Confirmar (require action)
-        //                >=0.70 extracted/inferred   => amber Verificar (visual only)
         var needsConfirm = (provenance === 'needs_confirmation' || confidence < CONFIDENCE_MED);
-
         el.style.color = needsConfirm ? '#9ca3af' : '';
         el.addEventListener('input', function onInput() {
             el.style.color = '';
@@ -208,17 +342,11 @@
         if (provenance === 'missing' || value === null || value === undefined) return false;
 
         var strVal = String(value);
-        if (categoryMap && categoryMap[strVal]) {
-            strVal = categoryMap[strVal];
-        }
+        if (categoryMap && categoryMap[strVal]) { strVal = categoryMap[strVal]; }
 
         var found = false;
         for (var i = 0; i < el.options.length; i++) {
-            if (el.options[i].value === strVal) {
-                el.value = strVal;
-                found = true;
-                break;
-            }
+            if (el.options[i].value === strVal) { el.value = strVal; found = true; break; }
         }
         if (!found) return false;
 
@@ -244,18 +372,24 @@
         var value      = fieldResult.value;
 
         if (provenance === 'missing' || value === null || value === undefined) return false;
-        if (confidence < CONFIDENCE_MED) return false;
+
+        var isEstimated = (provenance === 'estimated');
+        if (!isEstimated && confidence < CONFIDENCE_MED) return false;
 
         el.value = String(parseFloat(value).toFixed(2));
         el.dataset.aiSuggested = '1';
         el.dataset.aiField     = 'weight_kg';
         el.style.color = '#9ca3af';
+        if (isEstimated) {
+            el.style.borderStyle = 'dashed';
+        }
         el.addEventListener('input', function onInput() {
             el.style.color = '';
+            el.style.borderStyle = '';
             el.removeEventListener('input', onInput);
         });
-        _attachBadge(el, 'confirm');
-        _confirmTracker.require(el);
+        _attachBadge(el, isEstimated ? 'estimated' : 'confirm');
+        if (!isEstimated) _confirmTracker.require(el);
         return true;
     }
 
@@ -266,63 +400,39 @@
         var value      = fieldResult.value;
 
         if (provenance === 'missing' || value === null || value === undefined) return false;
-        if (confidence < CONFIDENCE_MED) return false;
 
-        // value should be {length, width, height}
+        var isEstimated = (provenance === 'estimated');
+        if (!isEstimated && confidence < CONFIDENCE_MED) return false;
+
         var dims = null;
-        if (typeof value === 'object' && !Array.isArray(value)) {
-            dims = value;
-        }
+        if (typeof value === 'object' && !Array.isArray(value)) { dims = value; }
         if (!dims) return false;
 
         var filled = false;
-        if (elLength && dims.length != null) {
-            elLength.value = String(parseFloat(dims.length).toFixed(1));
-            elLength.dataset.aiSuggested = '1';
-            elLength.dataset.aiField     = 'dimension_length';
-            elLength.style.color = '#9ca3af';
-            elLength.addEventListener('input', function onInput() {
-                elLength.style.color = '';
-                elLength.removeEventListener('input', onInput);
+        [[elLength, dims.length, 'dimension_length'],
+         [elWidth,  dims.width,  'dimension_width'],
+         [elHeight, dims.height, 'dimension_height']].forEach(function (triple) {
+            var el = triple[0], dimVal = triple[1], fieldName = triple[2];
+            if (!el || dimVal == null) return;
+            el.value = String(parseFloat(dimVal).toFixed(1));
+            el.dataset.aiSuggested = '1';
+            el.dataset.aiField     = fieldName;
+            el.style.color = '#9ca3af';
+            if (isEstimated) { el.style.borderStyle = 'dashed'; }
+            el.addEventListener('input', function onInput() {
+                el.style.color = '';
+                el.style.borderStyle = '';
+                el.removeEventListener('input', onInput);
             });
-            _attachBadge(elLength, 'confirm');
-            _confirmTracker.require(elLength);
+            _attachBadge(el, isEstimated ? 'estimated' : 'confirm');
+            if (!isEstimated) _confirmTracker.require(el);
             filled = true;
-        }
-        if (elWidth && dims.width != null) {
-            elWidth.value = String(parseFloat(dims.width).toFixed(1));
-            elWidth.dataset.aiSuggested = '1';
-            elWidth.dataset.aiField     = 'dimension_width';
-            elWidth.style.color = '#9ca3af';
-            elWidth.addEventListener('input', function onInput() {
-                elWidth.style.color = '';
-                elWidth.removeEventListener('input', onInput);
-            });
-            _attachBadge(elWidth, 'confirm');
-            _confirmTracker.require(elWidth);
-            filled = true;
-        }
-        if (elHeight && dims.height != null) {
-            elHeight.value = String(parseFloat(dims.height).toFixed(1));
-            elHeight.dataset.aiSuggested = '1';
-            elHeight.dataset.aiField     = 'dimension_height';
-            elHeight.style.color = '#9ca3af';
-            elHeight.addEventListener('input', function onInput() {
-                elHeight.style.color = '';
-                elHeight.removeEventListener('input', onInput);
-            });
-            _attachBadge(elHeight, 'confirm');
-            _confirmTracker.require(elHeight);
-            filled = true;
-        }
+        });
         return filled;
     }
 
-    // Show a small "from product page — confirm" note beneath the physical data section.
-    // Pass convertedFromUS=true when any field was converted from imperial units.
-    function _showPhysicalNote(anchorEl, convertedFromUS) {
+    function _showPhysicalNote(anchorEl, convertedFromUS, isEstimated) {
         if (!anchorEl) return;
-        // Walk up to find the mb-0 wrapper that contains all physical fields
         var container = anchorEl.parentNode;
         var limit = 8;
         while (container && limit-- > 0) {
@@ -335,23 +445,29 @@
         if (container.querySelector && container.querySelector('.ai-physical-note')) return;
         var note = document.createElement('p');
         note.className = 'ai-physical-note';
-        note.style.cssText = 'font-size:.74rem;color:#d97706;margin-top:.5rem;line-height:1.4;';
-        var text = 'Datos físicos extraídos de la página del producto — confirma antes de enviar.';
-        if (convertedFromUS) {
-            text += ' <strong>Convertido de unidades americanas (lbs/pulgadas) a kg/cm.</strong>';
+        var text, color;
+        if (isEstimated) {
+            color = '#6b7280';
+            text  = 'Peso y medidas <strong>estimados</strong> seg\u00fan el tipo de producto \u2014 actualiza cuando recibas el paquete.';
+        } else {
+            color = '#d97706';
+            text  = 'Datos f\u00edsicos extra\u00eddos de la p\u00e1gina del producto \u2014 confirma antes de enviar.';
+            if (convertedFromUS) {
+                text += ' <strong>Convertido de unidades americanas (lbs/pulgadas) a kg/cm.</strong>';
+            }
         }
+        note.style.cssText = 'font-size:.74rem;color:' + color + ';margin-top:.5rem;line-height:1.4;';
         note.innerHTML = '<i class="fas fa-info-circle" style="margin-right:.3rem;"></i>' + text;
         container.appendChild(note);
     }
 
-    // Returns true when the given field result carries a US source unit (lbs, oz, in).
     function _isUSUnit(fieldResult) {
         if (!fieldResult) return false;
         var u = (fieldResult.source_unit || '').toLowerCase();
         return u === 'lbs' || u === 'lb' || u === 'oz' || u === 'in';
     }
 
-    // ── Confirm checkbox helpers ─────────────────────────────────────────
+    // ── Confirm checkbox helpers ───────────────────────────────────────────────
 
     function _showConfirmCheckbox(wrapper) {
         if (!wrapper) return;
@@ -367,21 +483,23 @@
         if (chk) chk.checked = true;
     }
 
-    // ── Public: runExtraction ─────────────────────────────────────────────
+    // ── Public: runExtraction ──────────────────────────────────────────────────
 
     function runExtraction(url, formFields) {
-        var bannerTarget   = formFields.bannerTarget;
-        var fName          = formFields.fName;
-        var fValue         = formFields.fValue;
-        var fCategory      = formFields.fCategory;
-        var fWeight        = formFields.fWeight   || null;
-        var fLength        = formFields.fLength   || null;
-        var fWidth         = formFields.fWidth    || null;
-        var fHeight        = formFields.fHeight   || null;
-        var confirmWrapper = formFields.confirmWrapper;
-        var categoryMap    = formFields.categoryMap || null;
+        var bannerTarget      = formFields.bannerTarget;
+        var complianceTarget  = formFields.complianceTarget || null;
+        var fName             = formFields.fName;
+        var fValue            = formFields.fValue;
+        var fCategory         = formFields.fCategory;
+        var fWeight           = formFields.fWeight   || null;
+        var fLength           = formFields.fLength   || null;
+        var fWidth            = formFields.fWidth    || null;
+        var fHeight           = formFields.fHeight   || null;
+        var confirmWrapper    = formFields.confirmWrapper;
+        var categoryMap       = formFields.categoryMap || null;
 
-        _showBanner(bannerTarget, 'loading', 'Analizando el enlace del producto…');
+        _showStepLoader(bannerTarget);
+        if (complianceTarget) _removeComplianceCard(complianceTarget);
         clearExtractionBadges(formFields);
 
         return fetch(EXTRACT_ENDPOINT, {
@@ -391,18 +509,17 @@
         }).then(function (resp) {
             return resp.json();
         }).then(function (result) {
+            _removeStepLoader(bannerTarget);
 
-            // Rate limit — check before page_readable
             if (result && result.error === 'rate_limit') {
                 _showBanner(bannerTarget, 'neutral',
-                    'Límite de consultas alcanzado. Inténtalo más tarde.');
+                    'L\u00edmite de consultas alcanzado. Inténtalo más tarde.');
                 document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
                     detail: { url: url, result: result, filledCount: 0, dataSource: null }
                 }));
                 return result;
             }
 
-            // Unreadable page
             if (!result || result.page_readable === false) {
                 _lastExtractionResult = null;
                 _showBanner(bannerTarget, 'neutral',
@@ -413,25 +530,44 @@
                 return result;
             }
 
+            // Show compliance card (if not ALLOWED)
+            if (complianceTarget && result.compliance) {
+                _showComplianceCard(complianceTarget, result.compliance);
+            }
+
+            // Disable submit if PROHIBITED
+            if (result.compliance && result.compliance.verdict === 'do_not_ship') {
+                var submitBtns = document.querySelectorAll('[type=submit], #btn-submit-cotizar, #btn-submit-portal');
+                submitBtns.forEach(function (btn) {
+                    btn.disabled = true;
+                    btn.dataset.aiProhibited = '1';
+                });
+            }
+
             var fields      = result.fields || {};
             var filledCount = 0;
 
-            filledCount += _applyProductName(fName,   fields.product_name)       ? 1 : 0;
-            filledCount += _applyDeclaredValue(fValue, fields.declared_value_usd) ? 1 : 0;
+            filledCount += _applyProductName(fName,   fields.product_name)        ? 1 : 0;
+            filledCount += _applyDeclaredValue(fValue, fields.declared_value_usd)  ? 1 : 0;
             filledCount += _applyCategory(fCategory,  fields.category, categoryMap) ? 1 : 0;
 
-            var physicalFilled = false;
+            var physicalFilled    = false;
+            var physicalEstimated = false;
+
             if (_applyWeight(fWeight, fields.weight_kg)) {
                 filledCount += 1;
                 physicalFilled = true;
+                if ((fields.weight_kg || {}).provenance === 'estimated') physicalEstimated = true;
             }
             if (_applyDimensions(fLength, fWidth, fHeight, fields.dimensions_cm)) {
                 filledCount += 1;
                 physicalFilled = true;
+                if ((fields.dimensions_cm || {}).provenance === 'estimated') physicalEstimated = true;
             }
             if (physicalFilled) {
                 var convertedFromUS = _isUSUnit(fields.weight_kg) || _isUSUnit(fields.dimensions_cm);
-                _showPhysicalNote(fWeight || fLength || fWidth || fHeight, convertedFromUS);
+                _showPhysicalNote(fWeight || fLength || fWidth || fHeight,
+                                  convertedFromUS, physicalEstimated);
             }
 
             if (filledCount === 0) {
@@ -464,6 +600,7 @@
             return result;
 
         }).catch(function () {
+            _removeStepLoader(bannerTarget);
             _lastExtractionResult = null;
             _showBanner(bannerTarget, 'neutral',
                 'No pudimos completar los datos automáticamente. Puedes ingresarlos manualmente.');
@@ -474,28 +611,32 @@
         });
     }
 
-    // ── Public: allFieldsConfirmed ────────────────────────────────────────
-    // Returns {ok, unconfirmedIds} — call before submit to check per-field state.
+    // ── Public: allFieldsConfirmed ─────────────────────────────────────────────
 
     function allFieldsConfirmed() {
         return {
-            ok:            _confirmTracker.allConfirmed(),
+            ok:             _confirmTracker.allConfirmed(),
             unconfirmedIds: _confirmTracker.unconfirmedIds(),
         };
     }
 
-    // ── Public: resetExtraction ───────────────────────────────────────────
+    // ── Public: resetExtraction ────────────────────────────────────────────────
 
     function resetExtraction(formFields) {
         _lastExtractionResult = null;
+        _removeStepLoader(formFields.bannerTarget);
         _removeBanner(formFields.bannerTarget);
+        _removeComplianceCard(formFields.complianceTarget || null);
         clearExtractionBadges(formFields);
         _hideConfirmCheckbox(formFields.confirmWrapper);
+        // Re-enable any submit buttons that were disabled for prohibited items
+        document.querySelectorAll('[data-ai-prohibited]').forEach(function (btn) {
+            btn.disabled = false;
+            delete btn.dataset.aiProhibited;
+        });
     }
 
-    // ── Public: getLastResult ─────────────────────────────────────────────
-    // Returns the full AIExtractionResult from the most recent successful
-    // extraction, or null. Used by submission handlers to persist the snapshot.
+    // ── Public: getLastResult ──────────────────────────────────────────────────
 
     function getLastResult() {
         return _lastExtractionResult;
