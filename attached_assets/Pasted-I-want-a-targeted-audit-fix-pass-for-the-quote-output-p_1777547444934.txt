@@ -1,0 +1,156 @@
+I want a targeted audit + fix pass for the quote output paths after the recent unit-handling changes.
+
+This is specifically about the data that leaves the form and gets sent through:
+- WhatsApp
+- email
+
+The concern is that even after the cm/in and kg/lb normalization work, the outbound summary may still be wrong.
+
+---
+
+## What I need checked
+Please inspect the full output path for both:
+
+1. the WhatsApp quote message
+2. the email quote / sales submission
+
+I want to verify:
+- where each message is composed
+- what raw fields they use
+- whether they are using normalized values or raw display/input values
+- whether volumetric weight is being calculated correctly before those messages are generated
+- whether the recent unit-conversion fixes were actually applied to these outbound paths too
+
+---
+
+## The specific issue seen
+In the WhatsApp summary, this line is appearing wrong:
+
+- Dimensiones: 3×2×1 cm → peso vol: 0.00 kg
+
+That strongly suggests one of these is happening:
+- raw values are being used incorrectly
+- dimensions are still being interpreted in the wrong unit
+- volumetric weight is being calculated before normalization
+- or the WhatsApp formatter is using a separate legacy logic path that was not updated with the recent fixes
+
+This must be investigated properly.
+
+---
+
+## Goal
+Make sure both outbound channels:
+- WhatsApp
+- email
+
+use the same corrected physical-data pipeline as the updated forms.
+
+That means:
+- normalize first
+- then calculate
+- then compose the outgoing summary
+
+Not:
+- compose from raw inputs
+- or calculate from ambiguous values
+- or use stale parallel logic
+
+---
+
+## What needs to be verified
+Please inspect all relevant quote flows and answer clearly:
+
+### A. WhatsApp path
+- Where is the WhatsApp message string built?
+- Does it use raw entered values or normalized values?
+- Does it calculate volumetric weight itself?
+- Or does it consume a precomputed value?
+- Does it display truthful unit labels?
+
+### B. Email path
+- Where is the email summary composed?
+- Is it using the same physical values as the corrected UI flow?
+- Does it include dimensions / weight / volumetric weight?
+- If yes, are those values normalized correctly before formatting?
+- Does the email reflect the same correct data that the system uses internally?
+
+---
+
+## Required behavior
+For both WhatsApp and email:
+
+### 1. Use normalized physical values
+If the user entered:
+- inches
+- pounds
+
+the outbound summary must still be based on:
+- normalized cm
+- normalized kg
+
+### 2. Volumetric weight must be correct
+Volumetric weight must be derived from normalized cm dimensions using the real system logic.
+
+### 3. No misleading labels
+Do not show:
+- cm if the number came from unconverted inches
+- kg if the number came from unconverted pounds
+- peso vol: 0.00 kg if the calculation is actually broken
+
+### 4. No separate legacy formatter logic
+If WhatsApp or email currently use a separate formatting path with duplicated math, refactor them to consume the corrected normalized values instead of maintaining their own shadow logic.
+
+---
+
+## Important rule
+Do not invent a new pricing or volumetric formula.
+
+Reuse the same corrected logic already established in the unit-handling work.
+
+The outbound channels must match the real internal calculation path.
+
+---
+
+## Also verify destination and arrival format
+I also want you to verify:
+- where the WhatsApp message lands / how it opens
+- where the email is sent
+- what exact text structure arrives in each case
+- whether both outputs are operationally useful and internally consistent
+
+The goal is not just that the code runs, but that the receiving side gets the correct, usable information.
+
+---
+
+## Done looks like
+- WhatsApp quote summary uses corrected normalized values
+- WhatsApp volumetric weight is no longer wrong or zero due to broken unit handling
+- Email quote summary also uses corrected normalized values
+- Both outbound paths match the updated unit-conversion system
+- No raw inch/lb values silently corrupt the outgoing summaries
+- Unit labels are truthful
+- If the user enters product data in US units, the outbound summaries still remain correct and consistent
+
+---
+
+## Out of scope
+- redesigning the quote UI
+- changing tariff formulas
+- changing the overall quote flow
+- changing copy tone beyond what is necessary for correctness/clarity
+- adding new channels beyond WhatsApp and email
+
+---
+
+## Please report back with
+1. where the WhatsApp summary is composed
+2. where the email summary is composed
+3. whether each one was using raw or normalized values before the fix
+4. what exactly was wrong in the current path
+5. what you changed so both now use the corrected normalized pipeline
+6. whether volumetric weight is now correct in both outputs
+7. one concrete tested example showing the final outbound formatting for:
+   - dimensions
+   - weight
+   - volumetric weight
+   - units

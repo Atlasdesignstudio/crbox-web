@@ -142,6 +142,31 @@
         .unit-btn { padding:.18rem .55rem; font-size:.72rem; font-weight:600; border:none; background:#fff; color:#6b7280; cursor:pointer; transition:background .15s,color .15s; line-height:1.5; }
         .unit-btn-active { background:#FF6B00; color:#fff; }
         .unit-btn:not(.unit-btn-active):hover { background:#f3f4f6; }
+        /* ── Explainer cards — orange frosted glass ──────────────── */
+        .explainer-card {
+            background: rgba(255, 247, 237, 0.78);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 138, 46, 0.22);
+            box-shadow: 0 2px 12px rgba(255, 107, 0, 0.08), 0 1px 3px rgba(0,0,0,0.05);
+            transition: transform 0.32s cubic-bezier(0.34, 1.5, 0.64, 1),
+                        box-shadow 0.32s ease,
+                        border-color 0.2s ease,
+                        background 0.2s ease;
+        }
+        .explainer-card:hover {
+            transform: translateY(-8px) scale(1.03);
+            background: rgba(255, 247, 237, 0.95);
+            box-shadow: 0 22px 48px rgba(255, 107, 0, 0.16), 0 6px 16px rgba(0,0,0,0.07);
+            border-color: rgba(255, 120, 20, 0.42);
+        }
+        .explainer-icon-wrap {
+            background: rgba(255, 107, 0, 0.12);
+            box-shadow: 0 0 0 1px rgba(255, 107, 0, 0.2);
+        }
+        .explainer-step-num {
+            color: rgba(255, 107, 0, 0.28);
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -374,66 +399,66 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
                         <!-- Step 1 -->
-                        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-100 transition-all duration-200 px-6 py-6 flex flex-col gap-4">
+                        <div class="explainer-card rounded-2xl px-6 py-6 flex flex-col gap-4">
                             <div class="flex items-start justify-between">
-                                <div class="w-10 h-10 flex items-center justify-center rounded-2xl bg-orange-50 ring-1 ring-orange-100 flex-shrink-0">
-                                    <svg class="w-5 h-5 text-orange-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                <div class="explainer-icon-wrap w-10 h-10 flex items-center justify-center rounded-2xl flex-shrink-0">
+                                    <svg class="w-5 h-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-bold text-gray-200 tracking-wider mt-0.5">01</span>
+                                <span class="explainer-step-num text-xs font-bold tracking-wider mt-0.5">01</span>
                             </div>
                             <div>
                                 <p class="text-sm font-semibold text-gray-900 leading-snug">Comparte el producto</p>
-                                <p class="text-xs text-gray-500 mt-1.5 leading-relaxed">Agrega el nombre, enlace y detalles del artículo que quieres cotizar.</p>
+                                <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">Agrega el nombre, enlace y detalles del artículo que quieres cotizar.</p>
                             </div>
                         </div>
 
                         <!-- Step 2 -->
-                        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-100 transition-all duration-200 px-6 py-6 flex flex-col gap-4">
+                        <div class="explainer-card rounded-2xl px-6 py-6 flex flex-col gap-4">
                             <div class="flex items-start justify-between">
-                                <div class="w-10 h-10 flex items-center justify-center rounded-2xl bg-orange-50 ring-1 ring-orange-100 flex-shrink-0">
-                                    <svg class="w-5 h-5 text-orange-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                <div class="explainer-icon-wrap w-10 h-10 flex items-center justify-center rounded-2xl flex-shrink-0">
+                                    <svg class="w-5 h-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-bold text-gray-200 tracking-wider mt-0.5">02</span>
+                                <span class="explainer-step-num text-xs font-bold tracking-wider mt-0.5">02</span>
                             </div>
                             <div>
                                 <p class="text-sm font-semibold text-gray-900 leading-snug">CRBOX revisa tu solicitud</p>
-                                <p class="text-xs text-gray-500 mt-1.5 leading-relaxed">Nuestro equipo valida la información y el contexto de tu compra.</p>
+                                <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">Nuestro equipo valida la información y el contexto de tu compra.</p>
                             </div>
                         </div>
 
                         <!-- Step 3 -->
-                        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-100 transition-all duration-200 px-6 py-6 flex flex-col gap-4">
+                        <div class="explainer-card rounded-2xl px-6 py-6 flex flex-col gap-4">
                             <div class="flex items-start justify-between">
-                                <div class="w-10 h-10 flex items-center justify-center rounded-2xl bg-orange-50 ring-1 ring-orange-100 flex-shrink-0">
-                                    <svg class="w-5 h-5 text-orange-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                <div class="explainer-icon-wrap w-10 h-10 flex items-center justify-center rounded-2xl flex-shrink-0">
+                                    <svg class="w-5 h-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-bold text-gray-200 tracking-wider mt-0.5">03</span>
+                                <span class="explainer-step-num text-xs font-bold tracking-wider mt-0.5">03</span>
                             </div>
                             <div>
                                 <p class="text-sm font-semibold text-gray-900 leading-snug">Recibe orientación y cotización</p>
-                                <p class="text-xs text-gray-500 mt-1.5 leading-relaxed">Te contactamos con los próximos pasos y el detalle de costos.</p>
+                                <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">Te contactamos con los próximos pasos y el detalle de costos.</p>
                             </div>
                         </div>
 
                         <!-- Step 4 -->
-                        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-orange-100 transition-all duration-200 px-6 py-6 flex flex-col gap-4">
+                        <div class="explainer-card rounded-2xl px-6 py-6 flex flex-col gap-4">
                             <div class="flex items-start justify-between">
-                                <div class="w-10 h-10 flex items-center justify-center rounded-2xl bg-orange-50 ring-1 ring-orange-100 flex-shrink-0">
-                                    <svg class="w-5 h-5 text-orange-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
+                                <div class="explainer-icon-wrap w-10 h-10 flex items-center justify-center rounded-2xl flex-shrink-0">
+                                    <svg class="w-5 h-5 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                                     </svg>
                                 </div>
-                                <span class="text-xs font-bold text-gray-200 tracking-wider mt-0.5">04</span>
+                                <span class="explainer-step-num text-xs font-bold tracking-wider mt-0.5">04</span>
                             </div>
                             <div>
                                 <p class="text-sm font-semibold text-gray-900 leading-snug">¿Más de un artículo?</p>
-                                <p class="text-xs text-gray-500 mt-1.5 leading-relaxed">Cada solicitud cubre un producto. Si necesitas cotizar más, crea una solicitud por artículo.</p>
+                                <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">Cada solicitud cubre un producto. Si necesitas cotizar más, crea una solicitud por artículo.</p>
                             </div>
                         </div>
 
