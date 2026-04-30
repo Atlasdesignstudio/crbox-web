@@ -118,6 +118,7 @@ JSON schema (return exactly this structure):
 {{
   "page_readable": true,
   "partial": false,
+  "customs_description": null,
   "fields": {{
     "product_name":       {{"value": null, "confidence": 0.0, "provenance": "missing", "source_attribute": null}},
     "declared_value_usd": {{"value": null, "confidence": 0.0, "provenance": "missing", "source_attribute": null}},
@@ -143,9 +144,10 @@ Extraction rules:
 5. dimensions_cm: extract product dimensions (L×W×H) in centimeters as a string like "30x20x10" or as an object {{"length": 30, "width": 20, "height": 10}}. Look in spec tables and product details sections. These are PRODUCT dimensions, not box/shipping dimensions. If found, use "extracted" provenance. If not found, use "missing" with null value. Do NOT guess.
 6. If the page is a login wall, CAPTCHA, error page, or you cannot determine a product name, set page_readable to false.
 7. Do not invent or guess values. Return "missing" rather than a guess.
+8. customs_description: write ONE concise plain-language English sentence describing the product for a commercial invoice / customs declaration. It must include: what it is, its primary function, and any key regulatory detail (e.g. "contains lithium battery", "is a dietary supplement", "is a radio-frequency device"). Example: "Wireless in-ear Bluetooth earbuds with active noise cancellation, containing lithium batteries built into equipment." Keep it under 25 words. Return null if the product name is unknown.
 
 Compliance rules (fill the "compliance" block):
-8. classification: classify this product for import to Costa Rica via Miami courier:
+9. classification: classify this product for import to Costa Rica via Miami courier:
    - "PROHIBITED": firearms, weapons, ammunition, explosives, fireworks, illegal drugs, counterfeit goods, protected wildlife products (ivory, CITES items), toxic/hazardous materials
    - "RESTRICTED": supplements/protein powders, medicines, food/beverages/seeds, cosmetics/perfumes/skincare, drones/radio-controlled aircraft, telecom/radio devices, loose lithium batteries (not inside a device), power banks, chemicals/paints, automotive parts, plants/soil/organic materials — these require permits or sanitary registration
    - "COURIER_RESTRICTED": perfume/cologne (liquid), very heavy/oversized items (>150 lb or >120 inches), extremely fragile items — legal but couriers may reject or charge extra
@@ -959,8 +961,10 @@ def _normalize_ai_result(raw, source_url):
     out['model']              = _GEMINI_MODEL
     out['page_readable']      = bool(raw.get('page_readable', True))
     out['partial']            = bool(raw.get('partial', False))
-    out['extraction_warnings'] = raw.get('extraction_warnings') or []
-    out['compliance']         = _normalize_compliance(raw.get('compliance'))
+    out['extraction_warnings']  = raw.get('extraction_warnings') or []
+    out['compliance']           = _normalize_compliance(raw.get('compliance'))
+    raw_customs = (raw.get('customs_description') or '').strip()
+    out['customs_description']  = raw_customs if raw_customs else None
 
     raw_fields = raw.get('fields') or {}
     fields = {}
@@ -1040,6 +1044,7 @@ Return ONLY a valid JSON object — no markdown, no code fences, no explanation:
   "category": "one of: {categories}",
   "weight": "item weight with unit, e.g. '1.5 lbs' or '0.68 kg' — item weight NOT shipping weight",
   "dimensions": "product dimensions as L x W x H with unit, e.g. '5.7 x 3.2 x 1.1 inches' or '14.5 x 8.1 x 2.8 cm'",
+  "customs_description": null,
   "compliance": {{
     "classification": "ALLOWED",
     "risk_level": "LOW",
@@ -1054,6 +1059,7 @@ Rules:
 - category: choose one CRBOX code from the list above; null if unsure
 - weight: item/product weight as a string with unit (lbs, oz, kg, g); null if not listed in specs
 - dimensions: product dimensions L x W x H with unit (inches or cm); null if not in specs
+- customs_description: ONE concise plain-language English sentence for customs/commercial invoice. Include what it is, primary function, and key regulatory detail (battery, supplement, RF device, etc.). E.g. "Wireless in-ear Bluetooth earbuds with active noise cancellation, containing lithium batteries built into equipment." Max 25 words; null if product unknown.
 - compliance.classification: "PROHIBITED" (weapons/drugs/fireworks/counterfeit), "RESTRICTED" (supplements/medicines/food/drones/perfume/power banks/chemicals/automotive parts), "COURIER_RESTRICTED" (liquids, oversized), or "ALLOWED" (clothing/electronics/books/accessories/toys)
 - compliance.risk_level: "LOW" for ALLOWED, "MEDIUM" for COURIER_RESTRICTED, "HIGH" for RESTRICTED or PROHIBITED
 - compliance.reason: one short sentence IN SPANISH explaining restriction; null if ALLOWED
@@ -1151,6 +1157,8 @@ def _build_search_fallback_result(data, url):
                 'provenance': prov, 'source_attribute': None, 'source_unit': src_unit}
 
     compliance = _normalize_compliance(data.get('compliance'))
+    raw_customs = (data.get('customs_description') or '').strip()
+    customs_desc = raw_customs if raw_customs else None
 
     name    = (data.get('product_name') or '').strip() or None
     cat_raw = data.get('category')
@@ -1184,6 +1192,7 @@ def _build_search_fallback_result(data, url):
         'page_readable':       True,
         'partial':             partial,
         'extraction_warnings': ['Datos obtenidos mediante búsqueda web (página protegida).'],
+        'customs_description': customs_desc,
         'compliance':          compliance,
         'fields': {
             'product_name':       _mf(name,      0.85 if name      else 0.0,
@@ -1459,6 +1468,10 @@ def _init_db():
             conn.execute('ALTER TABLE quote_requests ADD COLUMN customer_reminder_sent_at TEXT')
             conn.commit()
             print('[SOLICITUDES] Added customer_reminder_sent_at column to quote_requests')
+        if 'customs_description' not in existing_cols:
+            conn.execute('ALTER TABLE quote_requests ADD COLUMN customs_description TEXT')
+            conn.commit()
+            print('[SOLICITUDES] Added customs_description column to quote_requests')
         # Legacy migration: extend consultas_generales (FAQ path) with extra columns.
         # New general contact intake now uses the separate general_inquiries table.
         cg_cols = [row[1] for row in
@@ -1678,7 +1691,8 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
                              declared_value_usd, category, weight_kg, length_cm,
                              width_cm, height_cm, data_source, service_type,
                              destination_zone, estimate_usd, customer_notes,
-                             weight_input=None, weight_unit=None, dimension_unit=None):
+                             weight_input=None, weight_unit=None, dimension_unit=None,
+                             customs_description=None):
     def f(v, default='No especificado'):
         return str(v) if v is not None and str(v).strip() != '' else default
 
@@ -1721,6 +1735,8 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
     estimate_val = f'${estimate_usd:,.2f} USD (ESTIMADO — sujeto a confirmación)' if estimate_usd is not None else 'No calculado (peso no proporcionado)'
     notes_val = f(customer_notes, 'Ninguna')
 
+    customs_val = customs_description.strip() if customs_description else None
+
     plain = (
         f'SOLICITUD DE COMPRA CRBOX\n'
         f'─────────────────────────\n'
@@ -1735,7 +1751,8 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
         f'─────────────────────────\n'
         f'DATOS DEL PRODUCTO\n'
         f'Nombre del producto: {product_name}\n'
-        f'URL: {url_val}\n'
+        + (f'Descripción para aduana: {customs_val}\n' if customs_val else '')
+        + f'URL: {url_val}\n'
         f'Valor declarado: ${declared_value_usd:,.2f} USD\n'
         f'Categoría: {category}\n'
         f'Datos físicos: {_phys_line}\n'
@@ -1792,11 +1809,15 @@ def _plain_to_sales_html(body_text, scb_id, account_type):
                 '<table style="width:100%;border-collapse:collapse;margin-bottom:8px;">'
             )
             for lbl, val in rows:
+                is_customs = lbl.strip() == 'Descripción para aduana'
+                row_bg     = 'background:#fffbeb;' if is_customs else ''
+                lbl_color  = '#92400e' if is_customs else '#6b7280'
+                val_extra  = 'font-weight:600;color:#78350f;' if is_customs else ''
                 html_parts.append(
-                    f'<tr>'
-                    f'<td style="padding:6px 8px;color:#6b7280;font-size:13px;'
+                    f'<tr style="{row_bg}">'
+                    f'<td style="padding:6px 8px;color:{lbl_color};font-size:13px;'
                     f'width:38%;vertical-align:top;border-bottom:1px solid #f3f4f6;">{esc(lbl)}</td>'
-                    f'<td style="padding:6px 8px;color:#111;font-size:13px;'
+                    f'<td style="padding:6px 8px;{val_extra}color:#111;font-size:13px;'
                     f'border-bottom:1px solid #f3f4f6;">{esc(val)}</td>'
                     f'</tr>'
                 )
@@ -1805,7 +1826,7 @@ def _plain_to_sales_html(body_text, scb_id, account_type):
 
     sections = {
         'DATOS DEL CLIENTE': ['Nombre:', 'Email:', 'Casillero:', 'Tipo de cuenta:'],
-        'DATOS DEL PRODUCTO': ['Nombre del producto:', 'URL:', 'Valor declarado:', 'Categoría:', 'Datos físicos:', 'Origen del datos:'],
+        'DATOS DEL PRODUCTO': ['Nombre del producto:', 'Descripción para aduana:', 'URL:', 'Valor declarado:', 'Categoría:', 'Datos físicos:', 'Origen del datos:'],
         'ENVÍO': ['Servicio:', 'Destino:', 'Estimado de envío:'],
     }
 
@@ -1925,7 +1946,8 @@ def _send_sales_submission(scb_id, customer_email, customer_name,
                             data_source, service_type, destination_zone,
                             estimate_usd, customer_notes,
                             weight_input=None, weight_unit=None, dimension_unit=None,
-                            submitted_display=None, smtp_user=None):
+                            submitted_display=None, smtp_user=None,
+                            customs_description=None):
     empresa_tag = '[EMPRESA] ' if account_type == 'business' else ''
     subject = f'[{scb_id}] {empresa_tag}Solicitud de compra — {product_name} — {customer_email}'
     body_text = _build_sales_email_body(
@@ -1934,7 +1956,8 @@ def _send_sales_submission(scb_id, customer_email, customer_name,
         declared_value_usd, category, weight_kg, length_cm, width_cm,
         height_cm, data_source, service_type, destination_zone,
         estimate_usd, customer_notes,
-        weight_input=weight_input, weight_unit=weight_unit, dimension_unit=dimension_unit
+        weight_input=weight_input, weight_unit=weight_unit, dimension_unit=dimension_unit,
+        customs_description=customs_description,
     )
     msg = email.mime.multipart.MIMEMultipart('alternative')
     msg['Subject'] = subject
@@ -3268,9 +3291,21 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     dims_str  = (f'{l_cm} &times; {w_cm} &times; {h_cm} cm'
                  if l_cm and w_cm and h_cm else '—')
     wt_str    = f"{row['weight_kg']} kg" if row.get('weight_kg') is not None else '—'
-    notes_str = esc(row.get('customer_notes') or '—')
-    svc_labels = {'aereo': 'Aéreo', 'maritimo': 'Marítimo'}
-    svc_str   = svc_labels.get(row.get('service_type') or 'aereo', 'Aéreo')
+    notes_str    = esc(row.get('customer_notes') or '—')
+    customs_desc = (row.get('customs_description') or '').strip()
+    svc_labels   = {'aereo': 'Aéreo', 'maritimo': 'Marítimo'}
+    svc_str      = svc_labels.get(row.get('service_type') or 'aereo', 'Aéreo')
+
+    customs_row_html = ''
+    if customs_desc:
+        customs_row_html = (
+            f'<div class="adm-detail-row" style="background:#fffbeb;border-radius:.4rem;'
+            f'padding:.4rem .6rem;margin:.25rem 0;">'
+            f'<span class="adm-detail-label" style="color:#92400e;">&#128196; Desc. aduana</span>'
+            f'<span class="adm-detail-val" style="font-weight:600;color:#78350f;font-style:italic;">'
+            f'{esc(customs_desc)}</span>'
+            f'</div>'
+        )
 
     product_html = f'''<div class="adm-detail-section">
   <div class="adm-detail-section-title">&#128230; Producto</div>
@@ -3279,6 +3314,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       <span class="adm-detail-label">Nombre</span>
       <span class="adm-detail-val" style="font-weight:600;">{esc(row.get('product_name') or '—')}</span>
     </div>
+    {customs_row_html}
     <div class="adm-detail-row">
       <span class="adm-detail-label">Valor declarado</span>
       <span class="adm-detail-val" style="font-weight:600;">{esc(val_str)}</span>
@@ -5336,6 +5372,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             if 'ai_extraction_result' in data and ai_extraction_result is not None
             else None
         )
+        # Pull customs_description from the AI result if present
+        customs_description = None
+        if isinstance(ai_extraction_result, dict):
+            cd = (ai_extraction_result.get('customs_description') or '').strip()
+            customs_description = cd if cd else None
 
         try:
             weight_kg = float(weight_kg) if weight_kg is not None else None
@@ -5358,13 +5399,15 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                         product_name, product_url, declared_value_usd, category,
                         weight_kg, length_cm, width_cm, height_cm, customer_notes,
                         service_type, destination_zone, estimate_usd, estimate_breakdown,
-                        data_source, ai_extraction_json, status, submitted_at, expires_at)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
+                        data_source, ai_extraction_json, customs_description,
+                        status, submitted_at, expires_at)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
                     (scb_id, casillero_id, customer_email, customer_name, account_type,
                      product_name, product_url, declared_value_usd, category,
                      weight_kg, length_cm, width_cm, height_cm, customer_notes,
                      service_type, destination_zone, estimate_usd, estimate_breakdown_json,
-                     data_source, ai_extraction_json, 'enviada', now_iso, expires_iso)
+                     data_source, ai_extraction_json, customs_description,
+                     'enviada', now_iso, expires_iso)
                 )
                 conn.execute(
                     '''INSERT INTO quote_status_history
@@ -5402,7 +5445,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 weight_kg, length_cm, width_cm, height_cm, data_source,
                 service_type, destination_zone, estimate_usd, customer_notes,
                 weight_input, weight_unit, dimension_unit,
-                now_disp, smtp_user
+                now_disp, smtp_user,
+                customs_description=customs_description,
             )
             print(f'[SOLICITUDES] Sales email sent to {QUOTE_RECIPIENT}')
         except Exception as exc:
