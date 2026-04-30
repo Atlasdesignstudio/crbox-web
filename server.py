@@ -3807,13 +3807,13 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
         # Ver → link
         ver_link = f'<a href="/admin/solicitudes/{rid}?filter={filter_val}" class="adm-ver-link">Ver&nbsp;&#8594;</a>'
 
-        # Search data attributes (lowercased for case-insensitive matching)
-        da_name      = (r['customer_name'] or '').lower()
-        da_email     = (r['customer_email'] or '').lower()
-        da_casillero = (r.get('casillero_id') or '').lower()
-        da_prod      = (r.get('product_name') or '').lower()
-        da_status    = status
-        da_svc       = svc_raw
+        # Search data attributes (lowercased + HTML-escaped for safe attribute injection)
+        da_name      = esc((r['customer_name'] or '').lower())
+        da_email     = esc((r['customer_email'] or '').lower())
+        da_casillero = esc((r.get('casillero_id') or '').lower())
+        da_prod      = esc((r.get('product_name') or '').lower())
+        da_status    = esc(status)
+        da_svc       = esc(svc_raw)
 
         # Table row
         table_rows += (
@@ -4217,9 +4217,9 @@ def _build_admin_consultas_html(rows):
         email_sent = r.get('email_sent', 0)
         date_str   = _admin_format_date(r.get('submitted_at'))
         elapsed    = _admin_elapsed(r.get('submitted_at'))
-        da_name    = (r.get('nombre') or '').lower()
-        da_email   = (r.get('correo') or '').lower()
-        da_asunto  = (r.get('asunto') or '').lower()
+        da_name    = esc((r.get('nombre') or '').lower())
+        da_email   = esc((r.get('correo') or '').lower())
+        da_asunto  = esc((r.get('asunto') or '').lower())
         if email_sent:
             email_badge = '<span class="adm-badge" style="background:#F0FDF4;color:#15803D;border-color:#BBF7D0;">&#10003; Enviado</span>'
         else:
