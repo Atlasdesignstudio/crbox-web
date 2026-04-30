@@ -4576,6 +4576,367 @@ function togglePwd() {{
 </html>'''
 
 
+def _build_admin_dashboard_html(all_rows, counts):
+    """Build the admin dashboard home page with KPIs, charts, and kanban."""
+    import json as _json
+    esc = _html.escape
+
+    # ── Calculations ──────────────────────────────────────────────────────
+    total = len(all_rows)
+    nuevas       = counts.get('enviada', 0)
+    en_revision  = counts.get('en_revision', 0)
+    respondidas  = counts.get('respondida', 0)
+    completadas  = counts.get('completada', 0)
+    canceladas   = counts.get('cancelada', 0)
+    en_proceso   = (counts.get('pendiente_compra_crbox', 0) +
+                    counts.get('pendiente_compra_cliente', 0) +
+                    counts.get('pagado_por_cliente', 0) +
+                    counts.get('comprado', 0) +
+                    counts.get('listo_para_retiro', 0))
+
+    total_valor  = sum(r.get('declared_value_usd') or 0 for r in all_rows)
+    pendientes   = nuevas + en_revision
+
+    # Last 7 days activity
+    import datetime as _dt
+    today = _dt.date.today()
+    day_labels, day_counts = [], []
+    for i in range(6, -1, -1):
+        d = today - _dt.timedelta(days=i)
+        day_labels.append(d.strftime('%d/%m'))
+        cnt = sum(1 for r in all_rows if (r.get('submitted_at') or '').startswith(str(d)))
+        day_counts.append(cnt)
+
+    # Pie chart data
+    pie_labels = ['Nuevas', 'En Revisión', 'Respondidas', 'En Proceso', 'Completadas', 'Canceladas']
+    pie_data   = [nuevas, en_revision, respondidas, en_proceso, completadas, canceladas]
+    pie_colors = ['#EA580C', '#2563EB', '#16A34A', '#D97706', '#6B7280', '#DC2626']
+
+    # Kanban columns
+    status_groups = {
+        'Nuevas':       ('#EA580C', '#FFF7ED', [r for r in all_rows if r['status'] == 'enviada']),
+        'En Revisión':  ('#2563EB', '#EFF6FF', [r for r in all_rows if r['status'] == 'en_revision']),
+        'Respondidas':  ('#16A34A', '#F0FDF4', [r for r in all_rows if r['status'] == 'respondida']),
+        'En Proceso':   ('#D97706', '#FFFBEB', [r for r in all_rows if r['status'] in
+                          ('pendiente_compra_crbox','pendiente_compra_cliente',
+                           'pagado_por_cliente','comprado','listo_para_retiro')]),
+        'Completadas':  ('#6B7280', '#F9FAFB', [r for r in all_rows if r['status'] == 'completada']),
+    }
+
+    def _kanban_col(title, color, bg, rows_col):
+        count  = len(rows_col)
+        cards  = ''
+        for r in rows_col[:4]:
+            rid     = esc(r.get('id',''))
+            name    = esc((r.get('customer_name') or r.get('customer_email') or '—')[:22])
+            product = esc((r.get('product_name') or '—')[:30])
+            val     = r.get('declared_value_usd') or 0
+            val_s   = f'${val:,.0f}' if val else '—'
+            cards  += f'''<a href="/admin/solicitudes/{rid}" class="db-kcard">
+  <div class="db-kcard-id">{rid}</div>
+  <div class="db-kcard-name">{name}</div>
+  <div class="db-kcard-prod">{product}</div>
+  <div class="db-kcard-val">{val_s}</div>
+</a>'''
+        more_link = ''
+        if count > 4:
+            extra = count - 4
+            more_link = f'<a href="/admin/solicitudes" class="db-kmore">+{extra} más →</a>'
+        return f'''<div class="db-kcol">
+  <div class="db-kcol-head" style="border-top:3px solid {color};background:{bg}">
+    <span class="db-kcol-title" style="color:{color}">{title}</span>
+    <span class="db-kcol-badge" style="background:{color}">{count}</span>
+  </div>
+  <div class="db-kcol-body">{cards}{more_link}
+    {"<div class='db-kempty'>Sin solicitudes</div>" if not rows_col else ""}
+  </div>
+</div>'''
+
+    kanban_cols = ''.join(_kanban_col(t, c, bg, r) for t, (c, bg, r) in status_groups.items())
+
+    chart_data_json = _json.dumps({
+        'pie': {'labels': pie_labels, 'data': pie_data, 'colors': pie_colors},
+        'bar': {'labels': day_labels, 'data': day_counts},
+    })
+
+    # Recent activity (last 5)
+    recent_rows = all_rows[:5]
+    recent_html = ''
+    status_badges = {
+        'enviada': ('#EA580C','#FFF7ED','Enviada'),
+        'en_revision': ('#2563EB','#EFF6FF','En Revisión'),
+        'respondida': ('#16A34A','#F0FDF4','Respondida'),
+        'completada': ('#6B7280','#F9FAFB','Completada'),
+        'cancelada': ('#DC2626','#FEF2F2','Cancelada'),
+        'pendiente_compra_crbox': ('#D97706','#FFFBEB','Compra CRBOX'),
+        'pendiente_compra_cliente': ('#D97706','#FFFBEB','Compra propia'),
+        'pagado_por_cliente': ('#D97706','#FFFBEB','Pago recibido'),
+        'comprado': ('#0284C7','#F0F9FF','Comprado'),
+        'listo_para_retiro': ('#0284C7','#F0F9FF','Listo retiro'),
+    }
+    for r in recent_rows:
+        rid  = esc(r.get('id',''))
+        name = esc((r.get('customer_name') or r.get('customer_email') or '—')[:25])
+        prod = esc((r.get('product_name') or '—')[:35])
+        val  = r.get('declared_value_usd') or 0
+        st   = r.get('status','')
+        sc, sbg, slbl = status_badges.get(st, ('#64748B','#F1F5F9', st))
+        date_str = (r.get('submitted_at') or '')[:10]
+        recent_html += f'''<tr>
+  <td><a href="/admin/solicitudes/{rid}" class="db-rid">{rid}</a></td>
+  <td class="db-recname">{name}</td>
+  <td class="db-recprod">{prod}</td>
+  <td style="font-weight:600;white-space:nowrap">${val:,.2f}</td>
+  <td><span class="db-sbadge" style="color:{sc};background:{sbg}">{slbl}</span></td>
+  <td style="color:#94a3b8;font-size:12px">{date_str}</td>
+</tr>'''
+
+    success_rate = f'{(completadas/total*100):.0f}%' if total else '—'
+
+    return f'''<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CRBOX — Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+:root{{
+  --navy:#0F172A;--navy2:#1E293B;--orange:#FF6B00;--orange-lt:#FFF7ED;
+  --slate50:#F8FAFC;--slate100:#F1F5F9;--slate200:#E2E8F0;--slate400:#94A3B8;
+  --slate500:#64748B;--slate700:#374151;--slate900:#0F172A;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --r:10px;--rs:6px;
+}}
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:var(--font);background:var(--slate100);color:var(--slate900);min-height:100vh}}
+a{{color:inherit;text-decoration:none}}
+/* Header */
+.db-header{{background:var(--navy);padding:0 24px;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:30;height:52px;box-shadow:0 2px 10px rgba(0,0,0,.25)}}
+.db-logo{{color:var(--orange);font-weight:800;font-size:19px;letter-spacing:-.5px}}
+.db-sep{{color:#334155;font-size:18px}}
+.db-title{{color:#cbd5e1;font-size:13px;font-weight:500;flex:1}}
+.db-nav{{display:flex;align-items:center;gap:6px}}
+.db-nav a{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:var(--rs);
+  border:1px solid #334155;transition:all .18s}}
+.db-nav a:hover{{color:#fff;background:#1e293b;border-color:#475569}}
+.db-nav a.active{{color:var(--orange);border-color:var(--orange);background:rgba(255,107,0,.08)}}
+/* Page body */
+.db-body{{max-width:1400px;margin:0 auto;padding:28px 24px 60px}}
+.db-section-title{{font-size:11px;font-weight:700;color:var(--slate400);text-transform:uppercase;
+  letter-spacing:.08em;margin-bottom:14px}}
+/* KPI row */
+.db-kpis{{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}}
+@media(max-width:900px){{.db-kpis{{grid-template-columns:repeat(2,1fr)}}}}
+@media(max-width:480px){{.db-kpis{{grid-template-columns:1fr}}}}
+.db-kpi{{background:#fff;border-radius:var(--r);padding:20px 22px;
+  box-shadow:0 1px 6px rgba(0,0,0,.07);border:1px solid var(--slate200);
+  display:flex;flex-direction:column;gap:6px;transition:transform .15s,box-shadow .15s;
+  cursor:default}}
+.db-kpi:hover{{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1)}}
+.db-kpi-icon{{font-size:22px;margin-bottom:4px}}
+.db-kpi-val{{font-size:32px;font-weight:900;letter-spacing:-.03em;line-height:1}}
+.db-kpi-lbl{{font-size:12px;color:var(--slate500);font-weight:500}}
+.db-kpi-sub{{font-size:11px;color:var(--slate400)}}
+/* Charts row */
+.db-charts{{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}}
+@media(max-width:800px){{.db-charts{{grid-template-columns:1fr}}}}
+.db-card{{background:#fff;border-radius:var(--r);padding:22px;
+  box-shadow:0 1px 6px rgba(0,0,0,.07);border:1px solid var(--slate200)}}
+.db-card-title{{font-size:13px;font-weight:700;color:var(--slate700);margin-bottom:16px;
+  display:flex;align-items:center;gap:8px}}
+.db-chart-wrap{{position:relative;height:200px}}
+/* Kanban */
+.db-kanban{{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;margin-bottom:28px;
+  scrollbar-width:thin;scrollbar-color:var(--slate200) transparent}}
+.db-kanban::-webkit-scrollbar{{height:5px}}
+.db-kanban::-webkit-scrollbar-track{{background:transparent}}
+.db-kanban::-webkit-scrollbar-thumb{{background:var(--slate200);border-radius:99px}}
+.db-kcol{{flex-shrink:0;width:230px;border-radius:var(--r);overflow:hidden;
+  border:1px solid var(--slate200);background:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.06)}}
+.db-kcol-head{{padding:12px 14px;display:flex;align-items:center;justify-content:space-between}}
+.db-kcol-title{{font-size:12px;font-weight:700}}
+.db-kcol-badge{{display:inline-flex;align-items:center;justify-content:center;
+  border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;color:#fff;min-width:24px}}
+.db-kcol-body{{padding:8px;display:flex;flex-direction:column;gap:7px}}
+.db-kcard{{display:block;background:var(--slate50);border:1px solid var(--slate200);
+  border-radius:var(--rs);padding:10px 12px;transition:all .15s;cursor:pointer}}
+.db-kcard:hover{{background:var(--orange-lt);border-color:#FED7AA;transform:translateY(-1px);
+  box-shadow:0 3px 8px rgba(255,107,0,.12)}}
+.db-kcard-id{{font-size:10px;font-weight:700;color:var(--orange);margin-bottom:3px}}
+.db-kcard-name{{font-size:12px;font-weight:600;color:var(--slate700);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}}
+.db-kcard-prod{{font-size:11px;color:var(--slate500);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;margin-top:2px}}
+.db-kcard-val{{font-size:11px;font-weight:600;color:var(--slate700);margin-top:4px}}
+.db-kmore{{display:block;text-align:center;font-size:11px;color:var(--orange);
+  padding:8px;font-weight:600;border-top:1px solid var(--slate100);
+  background:var(--orange-lt);transition:background .15s}}
+.db-kmore:hover{{background:#FED7AA}}
+.db-kempty{{text-align:center;font-size:12px;color:var(--slate400);padding:16px 8px}}
+/* Recent table */
+.db-rec-table{{width:100%;border-collapse:collapse;font-size:13px}}
+.db-rec-table th{{text-align:left;font-size:10px;font-weight:700;color:var(--slate400);
+  text-transform:uppercase;letter-spacing:.07em;padding:8px 14px;
+  border-bottom:1px solid var(--slate200);background:var(--slate50)}}
+.db-rec-table td{{padding:11px 14px;border-bottom:1px solid var(--slate100);vertical-align:middle}}
+.db-rec-table tr:last-child td{{border-bottom:none}}
+.db-rec-table tr:hover td{{background:var(--slate50)}}
+.db-rid{{color:var(--orange);font-weight:700;font-size:12px}}
+.db-rid:hover{{text-decoration:underline}}
+.db-recname{{font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+.db-recprod{{color:var(--slate500);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+.db-sbadge{{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap}}
+.db-cta{{display:inline-flex;align-items:center;gap:6px;margin-top:16px;
+  background:var(--orange);color:#fff;padding:10px 20px;border-radius:var(--rs);
+  font-weight:700;font-size:13px;transition:all .18s}}
+.db-cta:hover{{background:#e05a00;transform:translateY(-1px);box-shadow:0 4px 12px rgba(255,107,0,.35)}}
+</style>
+</head>
+<body>
+<header class="db-header">
+  <div class="db-logo">CRBOX</div>
+  <div class="db-sep">|</div>
+  <div class="db-title">Panel de ventas</div>
+  <nav class="db-nav">
+    <a href="/admin/dashboard" class="active">Dashboard</a>
+    <a href="/admin/solicitudes">Solicitudes</a>
+    <a href="/admin/consultas">Consultas</a>
+    <a href="/admin/logout">Salir</a>
+  </nav>
+</header>
+
+<div class="db-body">
+
+  <!-- KPI Cards -->
+  <div class="db-section-title">Resumen general</div>
+  <div class="db-kpis">
+    <div class="db-kpi">
+      <div class="db-kpi-icon">📦</div>
+      <div class="db-kpi-val">{total}</div>
+      <div class="db-kpi-lbl">Total solicitudes</div>
+      <div class="db-kpi-sub">Todas las categorías</div>
+    </div>
+    <div class="db-kpi" style="border-top:3px solid #EA580C">
+      <div class="db-kpi-icon">🔔</div>
+      <div class="db-kpi-val" style="color:#EA580C">{pendientes}</div>
+      <div class="db-kpi-lbl">Requieren atención</div>
+      <div class="db-kpi-sub">{nuevas} nuevas · {en_revision} en revisión</div>
+    </div>
+    <div class="db-kpi" style="border-top:3px solid #16A34A">
+      <div class="db-kpi-icon">✅</div>
+      <div class="db-kpi-val" style="color:#16A34A">{success_rate}</div>
+      <div class="db-kpi-lbl">Tasa de completadas</div>
+      <div class="db-kpi-sub">{completadas} completadas · {canceladas} canceladas</div>
+    </div>
+    <div class="db-kpi" style="border-top:3px solid #FF6B00">
+      <div class="db-kpi-icon">💰</div>
+      <div class="db-kpi-val" style="color:#FF6B00;font-size:24px">${total_valor:,.0f}</div>
+      <div class="db-kpi-lbl">Valor total declarado</div>
+      <div class="db-kpi-sub">USD · todas las solicitudes</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="db-section-title">Análisis visual</div>
+  <div class="db-charts">
+    <div class="db-card">
+      <div class="db-card-title">🥧 Distribución por estado</div>
+      <div class="db-chart-wrap"><canvas id="pieChart"></canvas></div>
+    </div>
+    <div class="db-card">
+      <div class="db-card-title">📅 Solicitudes — últimos 7 días</div>
+      <div class="db-chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Kanban -->
+  <div class="db-section-title">Vista kanban · pipeline activo</div>
+  <div class="db-kanban">
+    {kanban_cols}
+  </div>
+
+  <!-- Recent activity -->
+  <div class="db-section-title">Actividad reciente</div>
+  <div class="db-card" style="padding:0;overflow:hidden">
+    <table class="db-rec-table">
+      <thead>
+        <tr>
+          <th>ID</th><th>Cliente</th><th>Producto</th>
+          <th>Valor</th><th>Estado</th><th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>{recent_html}</tbody>
+    </table>
+  </div>
+  <a href="/admin/solicitudes" class="db-cta" style="margin-top:20px">
+    Ver todas las solicitudes →
+  </a>
+
+</div>
+
+<script>
+(function(){{
+  var data = {chart_data_json};
+
+  // Donut / Pie chart
+  var pieCtx = document.getElementById('pieChart');
+  if (pieCtx) {{
+    new Chart(pieCtx, {{
+      type: 'doughnut',
+      data: {{
+        labels: data.pie.labels,
+        datasets: [{{ data: data.pie.data, backgroundColor: data.pie.colors,
+          borderWidth: 2, borderColor: '#fff', hoverOffset: 6 }}]
+      }},
+      options: {{
+        responsive: true, maintainAspectRatio: false, cutout: '62%',
+        plugins: {{
+          legend: {{ position: 'right', labels: {{ font: {{ size: 11 }}, padding: 10, boxWidth: 12 }} }},
+          tooltip: {{ callbacks: {{ label: function(ctx) {{
+            var total = ctx.dataset.data.reduce(function(a,b){{return a+b;}},0);
+            var pct = total ? Math.round(ctx.parsed/total*100) : 0;
+            return ' ' + ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
+          }}}}}}
+        }}
+      }}
+    }});
+  }}
+
+  // Bar chart
+  var barCtx = document.getElementById('barChart');
+  if (barCtx) {{
+    new Chart(barCtx, {{
+      type: 'bar',
+      data: {{
+        labels: data.bar.labels,
+        datasets: [{{ label: 'Solicitudes', data: data.bar.data,
+          backgroundColor: 'rgba(255,107,0,0.85)', borderRadius: 6,
+          borderSkipped: false }}]
+      }},
+      options: {{
+        responsive: true, maintainAspectRatio: false,
+        plugins: {{ legend: {{ display: false }},
+          tooltip: {{ callbacks: {{ label: function(ctx) {{
+            return ' ' + ctx.parsed.y + ' solicitud' + (ctx.parsed.y===1?'':'es');
+          }}}}}}
+        }},
+        scales: {{
+          y: {{ beginAtZero: true, ticks: {{ stepSize: 1, font: {{ size: 11 }} }},
+               grid: {{ color: 'rgba(0,0,0,.05)' }} }},
+          x: {{ ticks: {{ font: {{ size: 11 }} }}, grid: {{ display: false }} }}
+        }}
+      }}
+    }});
+  }}
+}})();
+</script>
+</body>
+</html>'''
+
+
 def _build_admin_solicitudes_html(rows, filter_val, counts):
     esc = _html.escape
     svc_labels_map = {'aereo': 'Aéreo', 'maritimo': 'Marítimo'}
@@ -4915,7 +5276,7 @@ a{{color:inherit;text-decoration:none}}
 .adm-table thead th{{background:var(--clr-slate50);padding:10px 14px;text-align:left;
   font-size:10px;font-weight:700;color:var(--clr-slate400);text-transform:uppercase;
   letter-spacing:.07em;border-bottom:1px solid var(--clr-slate200);white-space:nowrap;
-  position:sticky;top:52px;z-index:5}}
+  position:sticky;top:115px;z-index:5}}
 .adm-table td{{padding:13px 14px;border-bottom:1px solid var(--clr-slate100);vertical-align:top}}
 .adm-table .adm-tr:last-child td{{border-bottom:none}}
 .adm-table .adm-tr{{transition:background .12s}}
@@ -5074,6 +5435,7 @@ a{{color:inherit;text-decoration:none}}
   <span class="adm-header-sep">|</span>
   <span class="adm-header-title">Panel de ventas</span>
   <nav class="adm-header-nav">
+    <a href="/admin/dashboard" class="adm-header-link">Dashboard</a>
     <a href="/admin/consultas" class="adm-header-link">Consultas</a>
     <a href="/admin/logout" class="adm-logout">Salir</a>
   </nav>
@@ -5232,12 +5594,22 @@ a{{color:inherit;text-decoration:none}}
     document.getElementById('adm-flt-svc').value = '';
     admFilter();
   }};
+  function _syncStickyThead() {{
+    var bar = document.querySelector('.adm-filter-bar');
+    var ths = document.querySelectorAll('.adm-table thead th');
+    if (!bar || !ths.length) return;
+    var top = bar.offsetTop + bar.offsetHeight;
+    ths.forEach(function(th) {{ th.style.top = top + 'px'; }});
+  }}
+  window.addEventListener('load', _syncStickyThead);
+
   window.admToggleFilters = function() {{
     var row2 = document.getElementById('adm-filter-row2');
     var btn  = document.getElementById('adm-flt-toggle');
     if (!row2) return;
     var isOpen = row2.classList.toggle('open');
     if (btn) btn.classList.toggle('active', isOpen);
+    setTimeout(_syncStickyThead, 50);
   }};
 
   var params = new URLSearchParams(window.location.search);
@@ -5395,7 +5767,7 @@ a{{color:inherit;text-decoration:none}}
 .adm-table thead th{{background:var(--clr-slate50);padding:10px 14px;text-align:left;
   font-size:10px;font-weight:700;color:var(--clr-slate400);text-transform:uppercase;
   letter-spacing:.07em;border-bottom:1px solid var(--clr-slate200);white-space:nowrap;
-  position:sticky;top:52px;z-index:5}}
+  position:sticky;top:115px;z-index:5}}
 .adm-table td{{padding:13px 14px;border-bottom:1px solid var(--clr-slate100);vertical-align:top}}
 .adm-table .adm-ctr:last-child td{{border-bottom:none}}
 .adm-table .adm-ctr{{transition:background .12s}}
@@ -5733,6 +6105,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_admin_login_get()
             elif path_no_qs == '/admin/portal-login':
                 self._handle_admin_portal_login()
+            elif path_no_qs in ('/admin', '/admin/dashboard'):
+                self._handle_admin_dashboard_get()
             elif path_no_qs == '/admin/solicitudes':
                 self._handle_admin_solicitudes_get()
             elif path_no_qs == '/admin/consultas':
@@ -7191,7 +7565,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 f'Path=/; Max-Age={_ADMIN_SESSION_TTL}{secure_flag}'
             )
             self._admin_redirect(
-                '/admin/solicitudes',
+                '/admin/dashboard',
                 extra_headers=[('Set-Cookie', cookie)]
             )
         else:
@@ -7279,6 +7653,44 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             rows = all_rows
 
         html = _build_admin_solicitudes_html(rows, filter_val, counts)
+        self._admin_html_response(html)
+
+    # ── GET /admin/dashboard ───────────────────────────────────────────────
+    def _handle_admin_dashboard_get(self):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._admin_redirect('/admin/login?msg=expired')
+            return
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                all_rows = conn.execute(
+                    'SELECT * FROM quote_requests ORDER BY submitted_at DESC'
+                ).fetchall()
+                conn.close()
+        except Exception as exc:
+            print(f'[ADMIN] Dashboard DB error: {exc}')
+            self._admin_html_response('<h1>Error interno</h1>', status=500)
+            return
+        all_rows = [dict(r) for r in all_rows]
+        def _cnt(st):
+            return sum(1 for r in all_rows if r['status'] == st)
+        counts = {
+            'all': len(all_rows),
+            'enviada': _cnt('enviada'),
+            'en_revision': _cnt('en_revision'),
+            'respondida': _cnt('respondida'),
+            'pendiente_compra_crbox': _cnt('pendiente_compra_crbox'),
+            'pendiente_compra_cliente': _cnt('pendiente_compra_cliente'),
+            'pagado_por_cliente': _cnt('pagado_por_cliente'),
+            'comprado': _cnt('comprado'),
+            'listo_para_retiro': _cnt('listo_para_retiro'),
+            'completada': _cnt('completada'),
+            'cancelada': _cnt('cancelada'),
+        }
+        html = _build_admin_dashboard_html(all_rows, counts)
         self._admin_html_response(html)
 
     # ── GET /admin/consultas ───────────────────────────────────────────────
