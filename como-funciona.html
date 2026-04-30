@@ -201,7 +201,7 @@
             .step-editorial-card {
                 background: #fff;
                 border-radius: 16px;
-                padding: 2.5rem;
+                padding: 2.5rem 7rem 2.5rem 2.5rem;
                 box-shadow: 0 2px 16px rgba(0, 0, 0, 0.07);
                 display: flex;
                 flex-direction: column;
@@ -219,9 +219,16 @@
                 position: absolute;
                 top: 0;
                 right: 0;
-                width: 120px;
+                width: 90px;
+                height: 115px;
+                overflow: hidden;
                 pointer-events: none;
                 user-select: none;
+            }
+            .step-num-bg img {
+                width: 100%;
+                height: auto;
+                display: block;
             }
             .step-icon-wrap {
                 width: 56px;
@@ -318,7 +325,7 @@
                     margin: 0 auto;
                 }
                 .step-editorial-card {
-                    padding: 1.75rem;
+                    padding: 1.75rem 6.5rem 1.75rem 1.75rem;
                 }
             }
 
@@ -976,7 +983,7 @@
                 <div class="steps-grid">
                     <!-- Step 1 -->
                     <div class="step-editorial-card">
-                        <img class="step-num-bg" src="img/mascot-1.png" alt="" aria-hidden="true">
+                        <div class="step-num-bg" aria-hidden="true"><img src="img/mascot-1.png" alt=""></div>
                         <div class="step-icon-wrap">
                             <i class="fas fa-user-plus"></i>
                         </div>
@@ -1003,7 +1010,7 @@
 
                     <!-- Step 2 -->
                     <div class="step-editorial-card step-stagger">
-                        <img class="step-num-bg" src="img/mascot-2.png" alt="" aria-hidden="true">
+                        <div class="step-num-bg" aria-hidden="true"><img src="img/mascot-2.png" alt=""></div>
                         <div class="step-icon-wrap">
                             <i class="fas fa-shopping-cart"></i>
                         </div>
@@ -1030,7 +1037,7 @@
 
                     <!-- Step 3 -->
                     <div class="step-editorial-card">
-                        <img class="step-num-bg" src="img/mascot-3.png" alt="" aria-hidden="true">
+                        <div class="step-num-bg" aria-hidden="true"><img src="img/mascot-3.png" alt=""></div>
                         <div class="step-icon-wrap">
                             <i class="fas fa-bell"></i>
                         </div>
@@ -1054,7 +1061,7 @@
 
                     <!-- Step 4 -->
                     <div class="step-editorial-card step-stagger">
-                        <img class="step-num-bg" src="img/mascot-4.png" alt="" aria-hidden="true">
+                        <div class="step-num-bg" aria-hidden="true"><img src="img/mascot-4.png" alt=""></div>
                         <div class="step-icon-wrap">
                             <i class="fas fa-box"></i>
                         </div>
