@@ -1,0 +1,217 @@
+I want a targeted UX/content enhancement for the Mis Cotizaciones page inside the client portal.
+
+This is not a redesign of the page.  
+Do not break or rework the existing logic, layout structure, quote creation flow, or history accordion.
+
+The task is to add one new support/explainer section that makes the page more understandable and helpful for users.
+
+---
+
+## Context
+Right now the page mainly shows:
+- page title
+- “Nueva cotización” CTA
+- “Historial” accordion/dropdown
+
+Functionally that is fine, but the page feels too empty and does not guide the user enough.
+
+A user arriving here should better understand:
+- what CRBOX can quote for them
+- how the quote process works
+- what kind of products / purchases they can submit
+- what to do if they want to quote more than one product
+- how CRBOX helps after the request is sent
+
+I do not want a text-heavy explanation block.  
+I want something much more visual, friendly, and easy to scan.
+
+---
+
+## Goal
+Add a compact visual guide / explainer section to the page that helps the user understand the quote process in a clean, elegant, low-friction way.
+
+It should feel:
+- useful
+- lightweight
+- premium
+- visual
+- reassuring
+- not overly instructional
+- not dense
+- not like a wall of text
+
+---
+
+## Placement
+Add this new section below the current quote area / history area, without disturbing what already exists.
+
+In other words:
+- keep the current top of the page intact
+- keep “Nueva cotización” intact
+- keep “Historial” intact
+- then add this new explanatory/support section underneath
+
+Do not move major elements around unless it is strictly necessary for spacing.
+
+---
+
+## What the new section should communicate
+The section should help explain, at a glance:
+
+### 1. What can be quoted
+Examples:
+- products from online stores
+- products from Amazon / eBay / other stores
+- one item or multiple items
+- purchases that need shipping estimation / assistance
+
+### 2. How the process works
+Explain the CRBOX flow in a simple way, for example:
+- submit the product / link / details
+- CRBOX reviews it
+- CRBOX sends back pricing / guidance
+- the user confirms next steps
+
+### 3. If the user wants to quote more than one item
+This should be very clear:
+- they can include multiple products
+- or they can create another quote if needed
+- or whatever matches the current real logic
+
+Do not invent operational behavior that does not exist.  
+Reflect the real supported flow.
+
+### 4. How CRBOX helps
+Communicate that CRBOX can help with:
+- reviewing the request
+- validating details
+- guiding the customer on next steps
+- helping with the quote / shipping process
+
+This should feel supportive and confidence-building.
+
+---
+
+## UX / design direction
+This should not be a big prose section.
+
+### Preferred format
+Something like:
+- 3 or 4 visual cards
+- or a short icon-based step row
+- or a hybrid layout with:
+  - one short intro
+  - then 3 or 4 mini explainers with icons
+
+### It should feel:
+- very scannable
+- visually light
+- elegant
+- consistent with the portal design system
+- useful even if the user only glances at it
+
+### Avoid
+- long paragraphs
+- FAQ-style heavy blocks
+- oversized illustrations
+- anything that feels like marketing copy pasted into the portal
+- anything that competes too much with the quote CTA
+- anything that looks like a redesign of the full page
+
+---
+
+## Content style
+Tone should be:
+- clear
+- friendly
+- supportive
+- trustworthy
+- concise
+
+The copy should feel like product UX copy, not like a campaign page.
+
+---
+
+## Suggested structure
+Use judgment, but a strong direction would be:
+
+### Small intro heading
+Something like:
+- “¿Cómo funciona?”
+- “Antes de cotizar”
+- “Te ayudamos a cotizar mejor”
+- or similar
+
+### Then 3–4 visual mini-blocks, for example:
+1. Comparte el producto
+   - agrega nombre, enlace y detalles
+2. CRBOX revisa tu solicitud
+   - validamos información y contexto
+3. Recibe orientación y cotización
+   - te contactamos con el siguiente paso
+4. ¿Más de un artículo?
+   - puedes incluir varios o crear otra cotización según corresponda
+
+This is only directional.  
+Adapt the copy to the real product flow.
+
+---
+
+## Important truthfulness rule
+Do not invent capabilities or promises that the system/team does not actually support.
+
+For example:
+- do not imply instant automated pricing if that is not true
+- do not imply live chat if it does not exist here
+- do not imply full order automation if the flow is manual/reviewed
+- do not imply bundling logic that does not exist
+
+Everything in this section must match the real quote flow.
+
+---
+
+## Responsiveness
+This section must be fully responsive and look very good on:
+- desktop
+- tablet
+- mobile
+
+### Mobile requirements
+- stacked cleanly
+- no crowded cards
+- no tiny icons
+- no text overflow
+- clear spacing between items
+- still visually helpful, not collapsed into clutter
+
+It should feel intentionally designed for portal mobile use.
+
+---
+
+## Constraints
+- do not redesign the page
+- do not break existing quote logic
+- do not alter the history accordion behavior
+- do not change the quote form logic
+- do not remove the current CTA
+- do not make the page much longer than necessary
+- do not add dense text blocks
+
+---
+
+## Done looks like
+- Mis Cotizaciones still keeps its current logic and main structure
+- a new visual explainer/support section exists below the current quote/history area
+- users can quickly understand what CRBOX can quote, how the process works, and what to do with multiple items
+- the section is visual, elegant, and concise
+- the section feels native to the portal design system
+- it works well on mobile and desktop
+
+---
+
+## Please report back with
+1. what structure you chose for the new explainer section
+2. what copy you used
+3. how you ensured it stayed truthful to the real quote flow
+4. confirmation that no existing quote/history logic was changed
+5. confirmation that it is fully responsive

@@ -1,0 +1,352 @@
+#281 - Unit Handling Across Quote + Calculator Flows
+
+## What & Why
+Users frequently copy product dimensions and weights from US retailer pages (Amazon, Walmart, etc.) that display measurements in inches and pounds. All three product-entry surfaces:
+
+- the public Cotizar form
+- the public Calculadora “Agregar artículo” modal
+- the portal Nueva cotización slide-over
+
+currently assume all input is in cm and kg, with no way to switch.
+
+This creates a real product issue:
+- users often paste inch/lb values verbatim
+- the system silently interprets them as cm/kg
+- downstream calculations become wrong
+- volumetric weight becomes unreliable
+- sales/internal quote context is polluted with incorrect physical data
+
+This task adds unit-flexible input while keeping the backend and all pricing logic normalized and safe.
+
+---
+
+## Current state confirmed during inspection
+
+### Cotizar
+- has a weight_kg field labeled in kg
+- currently has no L/W/H dimension fields
+- backend payload already includes optional weight_kg
+- no volumetric weight is currently calculated here
+- AI extraction may provide physical data from product URL
+
+### Calculadora
+- has L/W/H dimension fields and a weight field
+- currently assumes dimensions are in cm
+- currently assumes weight is in kg
+- volumetric formula uses (L × W × H) / 6000, which is only correct if dimensions are in cm
+- AI extractor already normalizes detected US-unit values into cm/kg before populating the modal
+- manual entry has no unit choice, so users can easily corrupt the calculation
+
+### Portal → Nueva cotización
+- has a weight_kg field labeled in kg
+- currently has no L/W/H dimension fields
+- real-time estimate calls the calculator engine
+- without dimensions, volumetric weight cannot participate
+- backend payload includes optional weight_kg
+
+---
+
+## Canonical internal units
+Confirmed internal canonical units remain:
+
+- cm for dimensions
+- kg for weight
+
+Nothing downstream should switch away from that.
+
+This task must not create a parallel pricing logic by unit.  
+The UI becomes flexible, but the internal model stays normalized.
+
+---
+
+## Core principle
+Accept flexible units in the UI, but normalize everything before:
+- calculation
+- volumetric weight logic
+- payload construction
+- email composition
+- storage / internal request handling
+
+The backend should continue to receive safe normalized values.
+
+---
+
+## Done looks like
+- Public Cotizar has new L/W/H dimension fields with a cm/in toggle and the existing weight field upgraded with a kg/lb toggle.
+- Public Calculadora “Agregar artículo” modal has cm/in and kg/lb toggles.
+- Portal Nueva cotización has new L/W/H dimension fields with a cm/in toggle and its weight field upgraded with a kg/lb toggle.
+- All three surfaces normalize values to cm/kg before any calculation or payload construction.
+- Volumetric weight is always derived from normalized cm values.
+- AI-extracted values are not double-converted; when AI populates fields, the visible unit state resets to cm/kg.
+- The backend continues consuming weight_kg exactly as before.
+- Optional additive fields length_cm, width_cm, height_cm may be sent safely where useful.
+- A single shared conversion utility is the only source of truth.
+- Validation prevents partial/broken physical entries.
+- The UX remains simple and elegant, not technical-looking.
+
+---
+
+## Out of scope
+- redesigning the full Cotizar / Calculadora / Portal pages
+- changing tariff formulas
+- building a separate engine per unit system
+- changing maritime logic
+- changing DB schema beyond safe additive handling
+- inventing new estimate behavior that does not already exist in the current engine
+
+---
+
+## Shared conversion utility
+Create:
+
+js/unit-converter.js
+
+Expose it as:
+
+window.UnitConverter
+
+### Required API
+- convertInToCm(v) → v * 2.54
+- convertLbToKg(v) → v * 0.45359237
+- normalizePhysicalInputs({ length, width, height, weight, dimensionUnit, weightUnit })
+
+### normalizePhysicalInputs should return:
+- length_cm
+- width_cm
+- height_cm
+- weight_kg
+- length_input
+- width_input
+- height_input
+- weight_input
+- dimension_unit
+- weight_unit
+
+This keeps:
+- canonical normalized values for system logic
+- original entered values for human-readable context if needed
+
+---
+
+## Important UX behavior for unit toggles
+This needs to be explicit.
+
+### If the user changes a unit toggle after entering values:
+Do not silently reinterpret old values as the new unit.
+
+Use one of these two behaviors consistently:
+1. either convert the currently entered visible values immediately when switching unit
+2. or clear the affected inputs and require fresh entry
+
+Preferred behavior:
+- convert the currently visible values when the toggle changes, so the user does not lose work
+
+Example:
+- user typed 10 in
+- switches to cm
+- visible field becomes 25.4
+
+Do this consistently for:
+- the dimension group
+- the weight field
+
+### AI-extracted values
+Because AI values are already normalized, when AI populates the form:
+- set dimension toggle to cm
+- set weight toggle to kg
+- populate visible fields in those canonical units
+
+This avoids double-conversion and avoids confusing the user.
+
+---
+
+## Calculadora — add toggles to existing modal
+In the Agregar artículo modal:
+
+### Add
+- one shared cm/in segmented toggle for dimensions
+- one kg/lb toggle for weight
+
+### Store
+When the user saves the item:
+- normalize through UnitConverter.normalizePhysicalInputs(...)
+- persist normalized fields on the item object:
+  - length_cm
+  - width_cm
+  - height_cm
+  - weight_kg
+
+### Use
+All downstream calls to the calculator engine must use normalized values only.
+
+### Important
+Do not leave any path where the engine reads raw visible inch values directly.
+
+### Helper text
+Add short helper copy such as:
+- “Puedes ingresar dimensiones en cm o pulgadas.”
+- “Puedes ingresar peso en kg o lb.”
+
+Keep it lightweight.
+
+---
+
+## Cotizar — add dimensions + toggles
+In Cotizar:
+
+### Add
+A compact “Dimensiones del producto” group with:
+- Largo
+- Ancho
+- Alto
+- shared cm/in toggle
+
+### Upgrade
+Add kg/lb toggle to the existing weight field.
+
+### Keep optional
+These physical fields should remain optional unless current flow requires otherwise.
+
+### Submit behavior
+On submit:
+- normalize through UnitConverter.normalizePhysicalInputs(...)
+- send weight_kg
+- if dimensions are present, also send:
+  - length_cm
+  - width_cm
+  - height_cm
+
+### Summary/email behavior
+If physical data appears in the outgoing summary/email:
+- do not present ambiguous unitless values
+- preserve original entered unit where useful for human readability
+- also surface normalized values where operationally useful
+
+Keep the summary concise, not bloated.
+
+### Validation
+If any one dimension is filled:
+- require all three
+- reject zero or negative values
+- reject non-numeric entries
+
+---
+
+## Portal — Nueva cotización
+In Portal → Cotizaciones → Nueva cotización:
+
+### Add
+- L/W/H fields
+- shared cm/in toggle
+- kg/lb toggle for weight
+
+### Reuse same UX pattern
+Make the unit UI visually consistent with Cotizar / Calculadora.
+
+### Estimation
+Normalize physical inputs before calling the estimate logic.
+
+If the current engine already uses dimensional weight logic, let the live estimate benefit from the new normalized dimensions.
+
+### Important
+Do not invent a new estimate formula here.
+Use the existing calculator engine behavior as source of truth.
+
+If the current engine already determines the billable weight from normalized inputs, reuse that exactly.
+If it currently does not, report it clearly instead of improvising new pricing rules.
+
+---
+
+## Volumetric weight safety
+Review the current engine behavior and ensure volumetric weight is always calculated from:
+- normalized length_cm
+- normalized width_cm
+- normalized height_cm
+
+Never from raw UI values.
+
+If the engine’s current behavior is:
+- compute volumetric weight
+- compare it against real weight
+- use the greater one
+
+keep that behavior exactly as-is, just ensure the inputs are normalized before they reach that step.
+
+Do not rewrite engine business rules unless a bug absolutely forces it.
+
+---
+
+## Validation rules
+Validation must exist across all three surfaces.
+
+### Enforce:
+- numeric-only values
+- no zero or negative physical values
+- no partial dimensions
+- clean handling of blank optional fields
+- no malformed converted values
+
+### UX requirement
+Validation should feel polished:
+- inline and clear
+- not harsh
+- not technically worded
+- no ugly broken-state UI
+
+---
+
+## Backend safety check
+In server.py verify:
+
+- weight_kg continues to be consumed exactly as today
+- optional length_cm, width_cm, height_cm are accepted harmlessly if present
+- current submissions that omit dimensions still work unchanged
+- outgoing sales email / request summary can surface dimensions if present
+- no existing parser breaks when the new optional fields are absent
+
+This must remain a safe additive extension.
+
+---
+
+## Script loading
+Load unit-converter.js on all relevant pages before page-specific scripts that use it:
+
+- cotizar.html
+- calculadora.html
+- mis-solicitudes.html
+
+Use:
+html <script src="/js/unit-converter.js?v=1"></script> 
+
+---
+
+## Relevant files
+- cotizar.html
+- calculadora.html
+- mis-solicitudes.html
+- js/calculator-engine.js
+- js/ai-extractor.js
+- js/mis-solicitudes.js
+- server.py
+
+Also inspect any page-specific JS that:
+- composes quote payloads
+- builds email summaries
+- stores calculator items
+- renders estimate context
+
+---
+
+## Please report back with
+1. whether Cotizar currently assumes cm/kg internally
+2. whether Calculadora currently assumes cm/kg internally
+3. whether Portal Cotizaciones currently assumes cm/kg internally
+4. what canonical internal units were kept
+5. what shared conversion utility was implemented
+6. what exact unit-toggle UX was added on each surface
+7. how unit switching behaves after values are already typed
+8. how AI-populated values avoid double-conversion
+9. how volumetric weight is now safely calculated
+10. how backend payloads remain normalized and safe
+11. whether original entered units are preserved anywhere for human-readable context
+12. confirmation that the same normalization approach is reused across all three flows
