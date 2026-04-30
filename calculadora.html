@@ -1548,7 +1548,13 @@
             const value    = parseFloat($('modal-value').value) || 0;
             const category = modalCategoryTS ? modalCategoryTS.getValue() : $('modal-category').value;
 
-            // Normalize physical values to canonical kg / cm via normalizePhysicalInputs
+            // Normalize physical values to canonical kg / cm via normalizePhysicalInputs.
+            // UC === null fallback: unit-converter.js is loaded synchronously before this
+            // inline script (see script tags above), so UnitConverter is always defined in
+            // normal operation. The null branch would only be reached if the file fails to
+            // load entirely (network error / missing file), in which case dimension values
+            // fall back to raw parseFloat of the display strings — no unit conversion occurs
+            // and stored values would be in the user's selected unit rather than canonical cm/kg.
             const UC    = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
             const wUnit = _modalWeightToggle ? _modalWeightToggle.getUnit() : 'kg';
             const dUnit = _modalDimToggle    ? _modalDimToggle.getUnit()    : 'cm';
@@ -2003,6 +2009,15 @@
             // Determine which view the user was looking at when they clicked send
             const viewMode = $('dossier-tab-consolidated').classList.contains('active') ? 'Consolidado' : 'Por separado';
 
+            // Display-layer precision helper — strictly a formatter for quote output.
+            // Uses 2 decimal places by default; steps up to 3 only when the value is
+            // positive but would round to "0.00" at 2 places (e.g. 0.004 kg → "0.004").
+            // Never modifies stored item values, normalized values, or calculator inputs.
+            function fmtPhys(n) {
+                if (n <= 0) return (0).toFixed(2);
+                return parseFloat(n.toFixed(2)) === 0 ? n.toFixed(3) : n.toFixed(2);
+            }
+
             const lines = [];
             lines.push('Solicitud de cotización — CRBOX');
             lines.push('================================');
@@ -2015,10 +2030,16 @@
             snapshotItems.forEach((item, i) => {
                 lines.push(`${i+1}. ${item.name}`);
                 lines.push(`   Valor declarado: $${parseFloat(item.value||0).toFixed(2)}`);
-                lines.push(`   Peso real: ${parseFloat(item.weight||0).toFixed(2)} kg`);
+                lines.push(`   Peso real: ${fmtPhys(parseFloat(item.weight||0))} kg`);
                 const volKg = CALCULATOR_ENGINE.volumetricWeight(item.length||0, item.width||0, item.height||0);
-                if (volKg > 0) {
-                    lines.push(`   Dimensiones: ${item.length}×${item.width}×${item.height} cm → peso vol: ${volKg.toFixed(2)} kg`);
+                // Only emit the dimensions line when volKg is still non-zero at maximum
+                // display precision (3 dp). This avoids a "peso vol: 0.000 kg" line for
+                // truly negligible packages (< 0.0005 kg vol weight, i.e. < 3 cm³).
+                if (volKg > 0 && parseFloat(volKg.toFixed(3)) > 0) {
+                    const l = parseFloat(item.length||0).toFixed(2);
+                    const w = parseFloat(item.width||0).toFixed(2);
+                    const h = parseFloat(item.height||0).toFixed(2);
+                    lines.push(`   Dimensiones: ${l}×${w}×${h} cm → peso vol: ${fmtPhys(volKg)} kg`);
                 }
                 lines.push(`   Categoría: ${getCategoryLabel(item.category)}`);
                 if (item.url) lines.push(`   URL del producto: ${item.url}`);
