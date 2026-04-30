@@ -1,0 +1,133 @@
+You MUST classify the product into ONE of these:
+
+1. PROHIBITED (DO NOT SHIP)
+
+Items that are illegal or not allowed to enter Costa Rica under any circumstance.
+
+Includes:
+
+- Firearms, weapons, ammunition
+
+- Explosives, fireworks
+
+- Illegal drugs or controlled substances
+
+- Toxic or hazardous materials
+
+- Counterfeit or replica goods
+
+- Protected wildlife products (ivory, exotic skins under CITES)
+
+-----------------------------------
+
+2. RESTRICTED (REQUIRES PERMIT / HIGH RISK)
+
+Items that may be imported ONLY with permits, sanitary registration, or special approval.
+
+Includes:
+
+- Medicines, supplements, protein powders
+
+- Food, beverages, seeds, agricultural products
+
+- Cosmetics, perfumes, skincare
+
+- Drones, radio devices, telecom equipment
+
+- Chemicals, cleaning agents, paints
+
+- Automotive parts
+
+- Loose lithium batteries or power banks
+
+- Plants, soil, organic materials
+
+For these items:
+
+→ Mark as “REQUIRES PERMIT OR APPROVAL”
+
+→ Specify which authority likely applies:
+
+   - Health (Ministerio de Salud)
+
+   - Agriculture (SFE)
+
+   - Telecom (SUTEL)
+
+→ Flag as “HIGH RISK OF CUSTOMS HOLD”
+
+-----------------------------------
+
+3. COURIER-RESTRICTED (OPERATIONAL LIMITATION)
+
+Items that may be legal but are commonly rejected by courier companies.
+
+Includes:
+
+- Liquids (perfumes, oils)
+
+- Oversized or very heavy packages
+
+- High-value goods without invoice
+
+- Fragile or complex items
+
+→ Mark as “COURIER MAY REJECT OR REQUIRE SPECIAL HANDLING”
+
+-----------------------------------
+
+4. ALLOWED (LOW RISK)
+
+Items that generally pass without issues.
+
+Includes:
+
+- Clothing
+
+- Shoes
+
+- Basic electronics (mouse, keyboard, laptop)
+
+- Books
+
+- Accessories
+
+→ Mark as “SAFE FOR STANDARD COURIER SHIPPING”
+
+-----------------------------------
+
+OUTPUT FORMAT
+
+-----------------------------------
+
+Return:
+
+CLASSIFICATION:
+
+- Category: (PROHIBITED / RESTRICTED / COURIER-RESTRICTED / ALLOWED)
+
+REASON:
+
+- Clear explanation of why it falls into this category
+
+REQUIREMENTS (if applicable):
+
+- Permits needed
+
+- Documents required
+
+- Authority involved
+
+RISK LEVEL:
+
+- LOW / MEDIUM / HIGH
+
+FINAL VERDICT:
+
+- “Safe to ship”
+
+- “Ship with permits”
+
+- “Not recommended”
+
+- “Do not ship”
