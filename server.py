@@ -1035,7 +1035,8 @@ _SEARCH_FALLBACK_PROMPT = """\
 A customer wants to import a product from the US to Costa Rica using CRBOX courier.
 They shared this product URL: {url}
 
-The page cannot be scraped directly (bot protection). Use Google Search to find the product at that URL.
+The page cannot be scraped directly (bot protection). Use Google Search to find the product at that exact URL.
+If this is an Amazon URL, search for the exact ASIN in the URL to find the specific product listing and its price.
 Look at the product listing and its technical specifications to find ALL of the following.
 Return ONLY a valid JSON object — no markdown, no code fences, no explanation:
 {{
@@ -1055,7 +1056,7 @@ Return ONLY a valid JSON object — no markdown, no code fences, no explanation:
 }}
 Rules:
 - product_name: exact product name as listed on the retailer site; null if not found
-- price_usd: current sale price as a plain number (no $ symbol), e.g. 49.99; null if not found
+- price_usd: the current listed price for THIS specific product URL/ASIN as a plain number (no $ symbol), e.g. 49.99. If the product has multiple configurations, use the price shown on the default listing for this ASIN. null if not found
 - category: choose one CRBOX code from the list above; null if unsure
 - weight: item/product weight as a string with unit (lbs, oz, kg, g); null if not listed in specs
 - dimensions: product dimensions L x W x H with unit (inches or cm); null if not in specs
@@ -1111,6 +1112,24 @@ def _map_search_category(raw_cat):
         if keyword in lower:
             return code
     return None
+
+
+def _canonicalize_url(url):
+    """Return a cleaner version of a URL to improve AI search accuracy.
+
+    For Amazon URLs: strips tracking parameters and rebuilds as
+    https://www.amazon.com/dp/{ASIN} so Gemini searches the exact product.
+    All other URLs are returned unchanged.
+    """
+    try:
+        import re as _re
+        asin_match = _re.search(r'/(?:dp|product|gp/product)/([A-Z0-9]{10})', url)
+        if asin_match and 'amazon.' in url.lower():
+            asin = asin_match.group(1)
+            return f'https://www.amazon.com/dp/{asin}'
+    except Exception:
+        pass
+    return url
 
 
 def _call_gemini_search_fallback(url):
@@ -1337,8 +1356,11 @@ def _handle_ai_extract(handler):
     # ── Step 2: Google Search fallback (page blocked or all else failed) ────
     if page_blocked:
         reason = fetch_err or 'bot_blocked'
+        canonical = _canonicalize_url(url)
+        if canonical != url:
+            print(f'[AI] canonicalized URL for search: {canonical!r}')
         print(f'[AI] using search fallback for {url!r} (reason: {reason})')
-        search_data, search_err = _call_gemini_search_fallback(url)
+        search_data, search_err = _call_gemini_search_fallback(canonical)
         if search_data:
             search_result = _build_search_fallback_result(search_data, url)
             if search_result:
