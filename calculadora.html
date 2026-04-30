@@ -1107,29 +1107,74 @@
                 </div>
             </div>
 
-            <div class="mt-12 max-w-5xl mx-auto bg-gray-50 p-8 rounded-xl shadow-sm">
-                <h3 class="text-2xl font-semibold mb-6 text-center">Información Importante</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-green-50 p-6 rounded-xl border-l-4 border-green-500 info-panel panel-includes">
-                        <h4 class="font-semibold text-green-800 text-lg mb-3">¿Qué incluye nuestro servicio?</h4>
-                        <ul class="space-y-3">
-                            <li class="flex items-start"><i class="fas fa-check text-green-600 mt-1 mr-3"></i><span class="text-green-800">Recepción y manejo en Miami</span></li>
-                            <li class="flex items-start"><i class="fas fa-check text-green-600 mt-1 mr-3"></i><span class="text-green-800">Transporte aéreo a Costa Rica</span></li>
-                            <li class="flex items-start"><i class="fas fa-check text-green-600 mt-1 mr-3"></i><span class="text-green-800">Trámites aduanales básicos</span></li>
-                            <li class="flex items-start"><i class="fas fa-check text-green-600 mt-1 mr-3"></i><span class="text-green-800">Impuestos de aduana</span></li>
-                            <li class="flex items-start"><i class="fas fa-check text-green-600 mt-1 mr-3"></i><span class="text-green-800">Entrega a domicilio</span></li>
-                            <li class="flex items-start"><i class="fas fa-check text-green-600 mt-1 mr-3"></i><span class="text-green-800">Seguimiento del envío</span></li>
+            <div class="mt-12 max-w-5xl mx-auto">
+                <h3 class="text-2xl font-bold mb-8 text-center text-gray-800">Información Importante</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- Includes card -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-green-100 info-panel panel-includes">
+                        <div class="flex items-center gap-3 px-6 py-5" style="background:linear-gradient(135deg,#16a34a,#22c55e)">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,0.2)">
+                                <i class="fas fa-check-circle text-white text-xl"></i>
+                            </div>
+                            <h4 class="font-bold text-white text-lg leading-tight">¿Qué incluye nuestro servicio?</h4>
+                        </div>
+                        <ul class="px-6 py-5 space-y-3">
+                            <li class="flex items-center gap-3">
+                                <span class="flex-shrink-0 w-7 h-7 rounded-full bg-green-100 flex items-center justify-center"><i class="fas fa-check text-green-600 text-xs"></i></span>
+                                <span class="text-gray-700">Recepción y manejo en Miami</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <span class="flex-shrink-0 w-7 h-7 rounded-full bg-green-100 flex items-center justify-center"><i class="fas fa-check text-green-600 text-xs"></i></span>
+                                <span class="text-gray-700">Transporte aéreo a Costa Rica</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <span class="flex-shrink-0 w-7 h-7 rounded-full bg-green-100 flex items-center justify-center"><i class="fas fa-check text-green-600 text-xs"></i></span>
+                                <span class="text-gray-700">Trámites aduanales básicos</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <span class="flex-shrink-0 w-7 h-7 rounded-full bg-green-100 flex items-center justify-center"><i class="fas fa-check text-green-600 text-xs"></i></span>
+                                <span class="text-gray-700">Impuestos de aduana</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <span class="flex-shrink-0 w-7 h-7 rounded-full bg-green-100 flex items-center justify-center"><i class="fas fa-check text-green-600 text-xs"></i></span>
+                                <span class="text-gray-700">Entrega a domicilio</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <span class="flex-shrink-0 w-7 h-7 rounded-full bg-green-100 flex items-center justify-center"><i class="fas fa-check text-green-600 text-xs"></i></span>
+                                <span class="text-gray-700">Seguimiento del envío</span>
+                            </li>
                         </ul>
                     </div>
-                    <div class="bg-yellow-50 p-6 rounded-xl border-l-4 border-yellow-500 info-panel panel-excludes">
-                        <h4 class="font-semibold text-yellow-800 text-lg mb-3">¿Qué NO incluye?</h4>
-                        <ul class="space-y-3">
-                            <li class="flex items-start"><i class="fas fa-times text-yellow-600 mt-1 mr-3"></i><span class="text-yellow-800">Trámites para permisos especiales</span></li>
-                            <li class="flex items-start"><i class="fas fa-times text-yellow-600 mt-1 mr-3"></i><span class="text-yellow-800">Costos por inspecciones adicionales</span></li>
-                            <li class="flex items-start"><i class="fas fa-times text-yellow-600 mt-1 mr-3"></i><span class="text-yellow-800">Servicios de compra por encargo (salvo solicitud)</span></li>
-                            <li class="flex items-start"><i class="fas fa-times text-yellow-600 mt-1 mr-3"></i><span class="text-yellow-800">Seguro opcional (disponible por separado)</span></li>
+
+                    <!-- Excludes card -->
+                    <div class="bg-white rounded-2xl overflow-hidden shadow-lg border border-orange-100 info-panel panel-excludes">
+                        <div class="flex items-center gap-3 px-6 py-5" style="background:linear-gradient(135deg,#ea580c,#FF6B00)">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,0.2)">
+                                <i class="fas fa-times-circle text-white text-xl"></i>
+                            </div>
+                            <h4 class="font-bold text-white text-lg leading-tight">¿Qué NO incluye?</h4>
+                        </div>
+                        <ul class="px-6 py-5 space-y-3">
+                            <li class="flex items-center gap-3">
+                                <span class="flex-shrink-0 w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center"><i class="fas fa-times text-orange-500 text-xs"></i></span>
+                                <span class="text-gray-700">Trámites para permisos especiales</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <span class="flex-shrink-0 w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center"><i class="fas fa-times text-orange-500 text-xs"></i></span>
+                                <span class="text-gray-700">Costos por inspecciones adicionales</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <span class="flex-shrink-0 w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center"><i class="fas fa-times text-orange-500 text-xs"></i></span>
+                                <span class="text-gray-700">Servicios de compra por encargo (salvo solicitud)</span>
+                            </li>
+                            <li class="flex items-center gap-3">
+                                <span class="flex-shrink-0 w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center"><i class="fas fa-times text-orange-500 text-xs"></i></span>
+                                <span class="text-gray-700">Seguro opcional (disponible por separado)</span>
+                            </li>
                         </ul>
                     </div>
+
                 </div>
             </div>
         </div>
