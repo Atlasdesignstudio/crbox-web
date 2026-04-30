@@ -297,7 +297,7 @@
             <!-- Tabs con diseño mejorado -->
 <div class="mb-8">
     <div class="flex flex-wrap justify-center gap-2" id="tarifas-tab-nav">
-        <button onclick="showTab('tab-peso')" class="px-4 md:px-6 py-3 rounded-lg border-2 font-medium flex items-center transition-all bg-orange-600 text-white" id="tab-peso-btn">
+        <button onclick="showTab('tab-peso')" class="px-4 md:px-6 py-3 rounded-lg border-2 font-medium flex items-center transition-all bg-gray-800 text-white border-gray-800" id="tab-peso-btn">
             <i class="fas fa-weight-hanging mr-2"></i>Tarifas por Peso
         </button>
         <button onclick="showTab('tab-manejo')" class="px-4 md:px-6 py-3 rounded-lg border-2 border-gray-300 bg-white text-gray-700 font-medium flex items-center transition-all hover:bg-gray-50" id="tab-manejo-btn">
@@ -1033,9 +1033,9 @@ function showTab(tabId) {
     const selectedBtn = document.getElementById(tabId + '-btn');
     if (selectedBtn) {
         // Aplicar estilos de activo
-        selectedBtn.style.backgroundColor = '#FF6B00'; // bg-orange-600
+        selectedBtn.style.backgroundColor = '#1e293b'; // slate-800 secondary
         selectedBtn.style.color = 'white';
-        selectedBtn.style.borderColor = '#FF6B00';
+        selectedBtn.style.borderColor = '#1e293b';
     }
     
     console.log('Tab cambiado a:', tabId);
