@@ -3002,26 +3002,29 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
             '<p style="color:#9ca3af;font-size:12px;margin-bottom:10px;">'
             'Los datos de extracci&oacute;n no fueron almacenados para esta solicitud.</p>'
         ) if not ai_json_raw else ''
-        ai_section_html = f'''<div class="adm-detail-section">
-  <div class="adm-detail-section-title" style="justify-content:space-between;">
+        ai_section_html = f'''<details class="adm-ai-details">
+  <summary class="adm-ai-summary">
     <span>&#129302; Extracci&oacute;n AI</span>
-    <span class="adm-src-badge adm-src-ai">{src_lbl}</span>
+    <span class="adm-src-badge adm-src-ai" style="margin-left:auto;">{src_lbl}</span>
+    <span class="adm-ai-chevron">&#9660;</span>
+  </summary>
+  <div class="adm-ai-body">
+    <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">Instant&aacute;nea de los datos extra&iacute;dos autom&aacute;ticamente al momento del env&iacute;o. Solo lectura.</p>
+    {no_data_note}<div class="adm-table-wrap" style="margin-bottom:0;">
+    <table class="adm-ai-table">
+      <thead>
+        <tr>
+          <th class="ai-fn">Campo</th>
+          <th class="ai-fv">Valor extra&iacute;do</th>
+          <th class="ai-fp">Proveniencia</th>
+          <th class="ai-fc">Confianza</th>
+        </tr>
+      </thead>
+      <tbody>{rows_html}</tbody>
+    </table>
+    </div>
   </div>
-  <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">Instant&aacute;nea de los datos extra&iacute;dos autom&aacute;ticamente al momento del env&iacute;o. Solo lectura.</p>
-  {no_data_note}<div class="adm-table-wrap" style="margin-bottom:0;">
-  <table class="adm-ai-table">
-    <thead>
-      <tr>
-        <th class="ai-fn">Campo</th>
-        <th class="ai-fv">Valor extra&iacute;do</th>
-        <th class="ai-fp">Proveniencia</th>
-        <th class="ai-fc">Confianza</th>
-      </tr>
-    </thead>
-    <tbody>{rows_html}</tbody>
-  </table>
-  </div>
-</div>'''
+</details>'''
 
     # ── response_json (parse once, used for composer and read-only block) ───
     resp_data = {}
@@ -3543,6 +3546,16 @@ a{{color:inherit;text-decoration:none}}
 .adm-link{{color:#FF6B00;text-decoration:underline;text-underline-offset:2px}}
 .adm-link:hover{{color:#E05A00}}
 .adm-table-wrap{{overflow-x:auto}}
+/* Collapsible AI section */
+.adm-ai-details{{border-radius:10px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:0}}
+.adm-ai-summary{{display:flex;align-items:center;gap:10px;padding:13px 16px;
+  background:#fafafa;cursor:pointer;list-style:none;font-weight:700;font-size:13px;
+  color:#374151;user-select:none;transition:background .15s}}
+.adm-ai-summary::-webkit-details-marker{{display:none}}
+.adm-ai-summary:hover{{background:#f1f5f9}}
+.adm-ai-chevron{{font-size:11px;color:#94a3b8;transition:transform .2s;margin-left:4px}}
+details.adm-ai-details[open] .adm-ai-chevron{{transform:rotate(180deg)}}
+.adm-ai-body{{padding:14px 16px;border-top:1px solid #e2e8f0}}
 .adm-ai-table{{width:100%;border-collapse:collapse}}
 .adm-ai-table th{{background:#f9fafb;padding:8px 10px;text-align:left;font-size:11px;
   font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;
@@ -3696,6 +3709,8 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,s
 
 def _build_admin_solicitudes_html(rows, filter_val, counts):
     esc = _html.escape
+    svc_labels_map = {'aereo': 'Aéreo', 'maritimo': 'Marítimo'}
+
     # ── Filter tabs ────────────────────────────────────────────────────────
     tab_defs = [
         ('all',        f'Todas ({counts["all"]})'),
@@ -3705,28 +3720,56 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
     ]
     tabs_html = ''
     for key, label in tab_defs:
-        active = 'adm-tab-active' if key == filter_val else ''
+        active_cls = 'adm-tab-active' if key == filter_val else ''
         tabs_html += (
             f'<a href="/admin/solicitudes?filter={key}" '
-            f'class="adm-tab {active}">{label}</a>\n'
+            f'class="adm-tab {active_cls}">{label}</a>\n'
+        )
+
+    # ── Stats summary tiles ────────────────────────────────────────────────
+    stat_tiles = [
+        ('🔴', 'Nuevas',          counts.get('enviada', 0),         '#FFF7ED', '#C2410C', '#FDBA74'),
+        ('🔵', 'En revisión',     counts.get('en_revision', 0),     '#EFF6FF', '#1D4ED8', '#BFDBFE'),
+        ('🟢', 'Respondidas',     counts.get('respondida', 0),      '#F0FDF4', '#15803D', '#BBF7D0'),
+        ('🟠', 'En proceso',      (counts.get('pendiente_compra_crbox', 0) +
+                                   counts.get('pendiente_compra_cliente', 0) +
+                                   counts.get('pagado_por_cliente', 0) +
+                                   counts.get('comprado', 0) +
+                                   counts.get('listo_para_retiro', 0)),
+                                   '#FFF7ED', '#9A3412', '#FED7AA'),
+        ('✅', 'Completadas',     counts.get('completada', 0),      '#F9FAFB', '#374151', '#D1D5DB'),
+        ('❌', 'Canceladas',      counts.get('cancelada', 0),       '#FEF2F2', '#991B1B', '#FECACA'),
+    ]
+    stats_html = ''
+    for icon, label, val, bg, fg, bdr in stat_tiles:
+        if val == 0:
+            fg = '#9ca3af'; bg = '#f9fafb'; bdr = '#e5e7eb'
+        stats_html += (
+            f'<div class="adm-stat-tile" style="background:{bg};border-color:{bdr};">'
+            f'<div class="adm-stat-num" style="color:{fg};">{val}</div>'
+            f'<div class="adm-stat-lbl" style="color:{fg if val > 0 else "#9ca3af"};">{icon} {label}</div>'
+            f'</div>'
         )
 
     # ── Table rows + card rows ─────────────────────────────────────────────
     table_rows = ''
     card_rows  = ''
     for r in rows:
-        rid      = esc(r['id'])
-        name     = esc(r['customer_name'] or '—')
-        email_v  = esc(r['customer_email'])
-        acct     = r['account_type'] or 'anonymous'
-        empresa  = '<span class="adm-empresa">EMPRESA</span>' if acct == 'business' else ''
-        prod     = esc((r['product_name'] or '')[:50])
-        cat      = esc(r['category'] or '')
-        val      = f"${r['declared_value_usd']:,.2f}" if r['declared_value_usd'] else '—'
-        date_str = _admin_format_date(r['submitted_at'])
-        elapsed  = _admin_elapsed(r['submitted_at'])
-        status   = r['status']
-        transitions = _ADMIN_LEGAL_TRANSITIONS.get(status, set())
+        rid        = esc(r['id'])
+        name       = esc(r['customer_name'] or '—')
+        email_v    = esc(r['customer_email'] or '—')
+        casillero  = esc(r.get('casillero_id') or '—')
+        acct       = r['account_type'] or 'anonymous'
+        empresa    = '<span class="adm-empresa">EMPRESA</span>' if acct == 'business' else ''
+        prod       = esc((r['product_name'] or '')[:50])
+        cat        = esc(r['category'] or '')
+        val        = f"${r['declared_value_usd']:,.2f}" if r['declared_value_usd'] else '—'
+        svc_raw    = r.get('service_type') or 'aereo'
+        svc_str    = svc_labels_map.get(svc_raw, 'Aéreo')
+        date_str   = _admin_format_date(r['submitted_at'])
+        elapsed    = _admin_elapsed(r['submitted_at'])
+        status     = r['status']
+        transitions     = _ADMIN_LEGAL_TRANSITIONS.get(status, set())
         has_transitions = bool(transitions)
 
         # Status badge
@@ -3734,12 +3777,18 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
 
         # Data-source badge
         src_badges = {
-            'manual':       ('<span class="adm-src-badge adm-src-manual">Manual</span>'),
-            'ai_extracted': ('<span class="adm-src-badge adm-src-ai">AI — completo</span>'),
-            'ai_partial':   ('<span class="adm-src-badge adm-src-ai-partial">AI — parcial</span>'),
+            'manual':       '<span class="adm-src-badge adm-src-manual">Manual</span>',
+            'ai_extracted': '<span class="adm-src-badge adm-src-ai">AI — completo</span>',
+            'ai_partial':   '<span class="adm-src-badge adm-src-ai-partial">AI — parcial</span>',
         }
-        data_source = r.get('data_source') or 'manual'
+        data_source    = r.get('data_source') or 'manual'
         src_badge_html = src_badges.get(data_source, src_badges['manual'])
+
+        # Service pill
+        svc_pill_color = '#2563eb' if svc_raw == 'aereo' else '#0891b2'
+        svc_pill = (f'<span style="display:inline-block;padding:2px 7px;border-radius:999px;'
+                    f'font-size:10px;font-weight:700;background:#eff6ff;color:{svc_pill_color};'
+                    f'border:1px solid #bfdbfe;">{svc_str}</span>')
 
         # Update controls
         if has_transitions:
@@ -3753,27 +3802,43 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
                 f'</form>'
             )
         else:
-            update_html = '<span style="color:#9ca3af;font-size:12px;">—</span>'
+            update_html = '<span style="color:#d1d5db;font-size:12px;">Terminal</span>'
 
         # Ver → link
         ver_link = f'<a href="/admin/solicitudes/{rid}?filter={filter_val}" class="adm-ver-link">Ver&nbsp;&#8594;</a>'
 
-        # Table row
-        table_rows += f'''<tr data-id="{rid}">
-<td class="td-id"><span style="color:#FF6B00;font-weight:700;font-size:13px;">{rid}</span><br>{src_badge_html}</td>
-<td><div style="font-weight:600;font-size:13px;">{name}{empresa}</div>
-    <div style="color:#6b7280;font-size:12px;margin-top:2px;">{email_v}</div></td>
-<td><div style="font-size:13px;font-weight:500;">{prod}</div>
-    <div style="color:#9ca3af;font-size:11px;margin-top:2px;">{cat}</div></td>
-<td style="font-size:13px;white-space:nowrap;">{val}</td>
-<td><div style="font-size:13px;white-space:nowrap;">{date_str}</div>
-    <div style="color:#9ca3af;font-size:11px;margin-top:2px;">{elapsed}</div></td>
-<td>{badge_html}</td>
-<td class="td-upd">{update_html}</td>
-<td class="td-ver">{ver_link}</td>
-</tr>\n'''
+        # Search data attributes (lowercased for case-insensitive matching)
+        da_name      = (r['customer_name'] or '').lower()
+        da_email     = (r['customer_email'] or '').lower()
+        da_casillero = (r.get('casillero_id') or '').lower()
+        da_prod      = (r.get('product_name') or '').lower()
+        da_status    = status
+        da_svc       = svc_raw
 
-        # Card (mobile)
+        # Table row
+        table_rows += (
+            f'<tr class="adm-tr" '
+            f'data-name="{da_name}" data-email="{da_email}" '
+            f'data-casillero="{da_casillero}" data-prod="{da_prod}" '
+            f'data-status="{da_status}" data-svc="{da_svc}">\n'
+            f'<td class="td-id"><span class="adm-rid">{rid}</span><br>'
+            f'<div style="margin-top:5px;">{src_badge_html}</div></td>\n'
+            f'<td><div class="adm-name-line">{name}{empresa}</div>'
+            f'<div class="adm-sub">{email_v}</div>'
+            f'<div class="adm-sub" style="margin-top:2px;">Casillero: <b>{casillero}</b></div></td>\n'
+            f'<td><div style="font-size:13px;font-weight:500;">{prod}</div>'
+            f'<div class="adm-sub">{cat}</div>'
+            f'<div style="margin-top:4px;">{svc_pill}</div></td>\n'
+            f'<td class="td-val">{val}</td>\n'
+            f'<td class="td-date"><div style="white-space:nowrap;">{date_str}</div>'
+            f'<div class="adm-sub">{elapsed}</div></td>\n'
+            f'<td>{badge_html}</td>\n'
+            f'<td class="td-upd">{update_html}</td>\n'
+            f'<td class="td-ver">{ver_link}</td>\n'
+            f'</tr>\n'
+        )
+
+        # Card (mobile) — richer with casillero + service
         card_form = ''
         if has_transitions:
             card_form = (
@@ -3782,34 +3847,49 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
                 f'<input type="hidden" name="filter" value="{filter_val}">'
                 f'<select class="adm-select" name="status">{_admin_status_options_html(status)}</select>'
                 f'<textarea class="adm-note" name="note" placeholder="Nota interna (opcional)" rows="2"></textarea>'
-                f'<button class="adm-upd-btn" type="submit">Actualizar</button>'
+                f'<button class="adm-upd-btn" type="submit">Actualizar estado</button>'
                 f'</form></div>'
             )
-        card_rows += f'''<div class="adm-card" data-id="{rid}">
-<div class="adm-card-top">
-  <div>
-    <span class="adm-card-id">{rid}</span>{empresa}
-    <div style="margin-top:4px;">{src_badge_html}</div>
-  </div>
-  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">{badge_html}{ver_link}</div>
-</div>
-<div class="adm-card-fields">
-  <div class="adm-card-row"><span class="adm-card-lbl">Cliente</span><span class="adm-card-val">{name}</span></div>
-  <div class="adm-card-row"><span class="adm-card-lbl">Email</span><span class="adm-card-val" style="font-size:11px;">{email_v}</span></div>
-  <div class="adm-card-row"><span class="adm-card-lbl">Producto</span><span class="adm-card-val">{prod}</span></div>
-  <div class="adm-card-row"><span class="adm-card-lbl">Valor</span><span class="adm-card-val">{val}</span></div>
-  <div class="adm-card-row"><span class="adm-card-lbl">Fecha</span><span class="adm-card-val">{date_str} &middot; {elapsed}</span></div>
-</div>
-{card_form}
-</div>\n'''
+        card_rows += (
+            f'<div class="adm-card" '
+            f'data-name="{da_name}" data-email="{da_email}" '
+            f'data-casillero="{da_casillero}" data-prod="{da_prod}" '
+            f'data-status="{da_status}" data-svc="{da_svc}">\n'
+            f'<div class="adm-card-top">\n'
+            f'  <div>\n'
+            f'    <span class="adm-card-id">{rid}</span>{empresa}\n'
+            f'    <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;">{src_badge_html}{svc_pill}</div>\n'
+            f'  </div>\n'
+            f'  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">'
+            f'{badge_html}{ver_link}</div>\n'
+            f'</div>\n'
+            f'<div class="adm-card-fields">\n'
+            f'  <div class="adm-card-row"><span class="adm-card-lbl">Cliente</span>'
+            f'<span class="adm-card-val adm-card-val-bold">{name}</span></div>\n'
+            f'  <div class="adm-card-row"><span class="adm-card-lbl">Casillero</span>'
+            f'<span class="adm-card-val adm-card-val-bold">{casillero}</span></div>\n'
+            f'  <div class="adm-card-row"><span class="adm-card-lbl">Email</span>'
+            f'<span class="adm-card-val" style="font-size:11px;">{email_v}</span></div>\n'
+            f'  <div class="adm-card-row"><span class="adm-card-lbl">Producto</span>'
+            f'<span class="adm-card-val">{prod}</span></div>\n'
+            f'  <div class="adm-card-row"><span class="adm-card-lbl">Valor</span>'
+            f'<span class="adm-card-val">{val}</span></div>\n'
+            f'  <div class="adm-card-row"><span class="adm-card-lbl">Fecha</span>'
+            f'<span class="adm-card-val">{date_str} &middot; {elapsed}</span></div>\n'
+            f'</div>\n'
+            f'{card_form}\n'
+            f'</div>\n'
+        )
 
     # ── Empty state ────────────────────────────────────────────────────────
     if not rows:
-        empty_html = '''<div class="adm-empty">
-<div style="font-size:36px;margin-bottom:12px;">📭</div>
-<h3>Sin solicitudes en esta vista</h3>
-<p>No hay solicitudes que coincidan con el filtro seleccionado.</p>
-</div>'''
+        empty_html = (
+            '<div class="adm-empty">'
+            '<div style="font-size:40px;margin-bottom:14px;">📭</div>'
+            '<h3>Sin solicitudes en esta vista</h3>'
+            '<p>No hay solicitudes que coincidan con el filtro seleccionado.</p>'
+            '</div>'
+        )
         table_body_html = f'<tr><td colspan="8">{empty_html}</td></tr>'
         cards_html      = empty_html
     else:
@@ -3817,7 +3897,7 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
         cards_html      = card_rows
 
     n = len(rows)
-    count_label = f'{n} solicitud{"es" if n != 1 else ""}'
+    count_label = f'<span id="adm-result-count">{n}</span> de {n} solicitud{"es" if n != 1 else ""}'
 
     return f'''<!DOCTYPE html>
 <html lang="es">
@@ -3828,107 +3908,153 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
 <title>Panel de ventas — CRBOX</title>
 <style>
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
-  background:#f3f4f6;color:#111;min-height:100vh}}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:#f1f5f9;color:#111;min-height:100vh}}
 a{{color:inherit;text-decoration:none}}
-/* Header */
-.adm-header{{background:#1f2937;padding:12px 20px;display:flex;align-items:center;gap:14px;
-  position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.18)}}
-.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:18px;letter-spacing:-.5px}}
-.adm-header-title{{color:#fff;font-size:14px;font-weight:600}}
-.adm-header-sep{{color:#4b5563;font-size:16px}}
-.adm-header-link{{color:#9ca3af;font-size:13px;padding:6px 12px;
-  border-radius:6px;border:1px solid #374151;transition:all .2s}}
-.adm-header-link:hover{{color:#fff;border-color:#6b7280}}
-.adm-logout{{margin-left:auto;color:#9ca3af;font-size:13px;padding:6px 12px;
-  border-radius:6px;border:1px solid #374151;transition:all .2s}}
-.adm-logout:hover{{color:#fff;border-color:#6b7280}}
-/* Filter tabs */
-.adm-tabs{{display:flex;gap:4px;padding:14px 20px 0;flex-wrap:wrap;background:#f3f4f6}}
-.adm-tab{{padding:7px 16px;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;
-  color:#6b7280;border:1px solid transparent;border-bottom:none;
-  transition:all .15s;cursor:pointer}}
-.adm-tab:hover{{color:#374151;background:#e5e7eb}}
-.adm-tab-active{{background:#fff;color:#FF6B00;border-color:#e5e7eb;
-  box-shadow:0 -1px 4px rgba(0,0,0,.04)}}
-/* Main */
-.adm-main{{padding:0 20px 40px}}
-.adm-panel{{background:#fff;border-radius:0 0 12px 12px;
-  box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}}
-.adm-count{{padding:12px 16px;font-size:13px;color:#6b7280;
-  border-bottom:1px solid #f3f4f6;background:#fafafa}}
-/* Table */
+/* ── Header ─────────────────────────────────────────────────────────── */
+.adm-header{{background:#1e293b;padding:0 20px;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.22);height:52px}}
+.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:19px;letter-spacing:-.5px;flex-shrink:0}}
+.adm-header-sep{{color:#334155;font-size:18px;flex-shrink:0}}
+.adm-header-title{{color:#cbd5e1;font-size:13px;font-weight:500;flex:1;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}}
+.adm-header-nav{{display:flex;align-items:center;gap:8px;flex-shrink:0}}
+.adm-header-link{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:6px;
+  border:1px solid #334155;transition:all .2s;white-space:nowrap}}
+.adm-header-link:hover{{color:#fff;border-color:#64748b;background:#334155}}
+.adm-logout{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:6px;
+  border:1px solid #334155;transition:all .2s;white-space:nowrap}}
+.adm-logout:hover{{color:#fff;border-color:#64748b;background:#334155}}
+/* ── Stats bar ──────────────────────────────────────────────────────── */
+.adm-stats{{display:flex;gap:10px;padding:16px 20px;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}}
+.adm-stats::-webkit-scrollbar{{display:none}}
+.adm-stat-tile{{flex-shrink:0;min-width:88px;border-radius:10px;border:1px solid;
+  padding:10px 14px;text-align:center}}
+.adm-stat-num{{font-size:24px;font-weight:800;line-height:1;margin-bottom:4px}}
+.adm-stat-lbl{{font-size:10px;font-weight:600;letter-spacing:.03em}}
+/* ── Filter tabs ────────────────────────────────────────────────────── */
+.adm-tabs{{display:flex;gap:3px;padding:0 20px;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;background:#f1f5f9}}
+.adm-tabs::-webkit-scrollbar{{display:none}}
+.adm-tab{{flex-shrink:0;padding:7px 16px;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;
+  color:#64748b;border:1px solid transparent;border-bottom:none;transition:all .15s;cursor:pointer}}
+.adm-tab:hover{{color:#374151;background:#e2e8f0}}
+.adm-tab-active{{background:#fff;color:#FF6B00;border-color:#e2e8f0}}
+/* ── Search / filter row ────────────────────────────────────────────── */
+.adm-filter-bar{{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px;
+  border-bottom:1px solid #f1f5f9;background:#fafafa;align-items:center}}
+.adm-filter-bar input,.adm-filter-bar select{{
+  border:1.5px solid #e2e8f0;border-radius:7px;padding:7px 11px;font-size:13px;
+  background:#fff;color:#374151;font-family:inherit;outline:none;transition:border-color .2s}}
+.adm-filter-bar input:focus,.adm-filter-bar select:focus{{border-color:#FF6B00}}
+.adm-filter-search{{flex:1;min-width:180px}}
+.adm-filter-status{{min-width:140px}}
+.adm-filter-svc{{min-width:110px}}
+.adm-filter-clear{{padding:7px 13px;border:1.5px solid #e2e8f0;border-radius:7px;
+  background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .2s;font-family:inherit;white-space:nowrap}}
+.adm-filter-clear:hover{{border-color:#FF6B00;color:#FF6B00}}
+/* ── Main container ─────────────────────────────────────────────────── */
+.adm-main{{padding:0 20px 48px}}
+.adm-panel{{background:#fff;border-radius:0 0 14px 14px;
+  box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden}}
+.adm-count{{padding:10px 16px;font-size:12px;color:#94a3b8;
+  border-bottom:1px solid #f1f5f9;background:#fafafa;letter-spacing:.02em}}
+/* ── Table ──────────────────────────────────────────────────────────── */
 .adm-table{{width:100%;border-collapse:collapse}}
-.adm-table th{{background:#f9fafb;padding:10px 14px;text-align:left;
-  font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;
-  letter-spacing:.06em;border-bottom:1px solid #e5e7eb;white-space:nowrap}}
-.adm-table td{{padding:13px 14px;border-bottom:1px solid #f3f4f6;
-  vertical-align:top;font-size:13px}}
-.adm-table tr:last-child td{{border-bottom:none}}
-.adm-table tr:hover td{{background:#fafafa}}
-.td-id{{white-space:nowrap}}
+.adm-table thead th{{background:#f8fafc;padding:10px 14px;text-align:left;
+  font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;
+  letter-spacing:.07em;border-bottom:1px solid #e2e8f0;white-space:nowrap;
+  position:sticky;top:52px;z-index:5}}
+.adm-table td{{padding:13px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top}}
+.adm-table .adm-tr:last-child td{{border-bottom:none}}
+.adm-table .adm-tr{{transition:background .12s;cursor:default}}
+.adm-table .adm-tr:hover td{{background:#f8fafc}}
+.adm-rid{{color:#FF6B00;font-weight:700;font-size:12px}}
+.adm-name-line{{font-weight:600;font-size:13px}}
+.adm-sub{{color:#94a3b8;font-size:11px;margin-top:2px}}
+.td-id{{white-space:nowrap;min-width:80px}}
+.td-val{{font-size:13px;white-space:nowrap;font-weight:600}}
+.td-date{{min-width:100px}}
 .td-upd{{min-width:160px}}
-.td-ver{{white-space:nowrap;text-align:center;vertical-align:middle}}
-/* Source badges */
-.adm-src-badge{{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid;margin-top:4px}}
-.adm-src-manual{{background:#f3f4f6;color:#374151;border-color:#e5e7eb}}
+.td-ver{{white-space:nowrap;text-align:center;vertical-align:middle;min-width:60px}}
+/* ── Source badges ──────────────────────────────────────────────────── */
+.adm-src-badge{{display:inline-block;padding:2px 7px;border-radius:999px;
+  font-size:10px;font-weight:700;border:1px solid}}
+.adm-src-manual{{background:#f1f5f9;color:#475569;border-color:#e2e8f0}}
 .adm-src-ai{{background:#fffbeb;color:#92400e;border-color:#fde68a}}
 .adm-src-ai-partial{{background:#fff7ed;color:#c2410c;border-color:#fdba74}}
-/* Ver link */
-.adm-ver-link{{display:inline-block;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;color:#FF6B00;border:1px solid #fdba74;background:#fff7ed;transition:all .2s;white-space:nowrap}}
+/* ── Ver link ───────────────────────────────────────────────────────── */
+.adm-ver-link{{display:inline-flex;align-items:center;justify-content:center;
+  padding:6px 12px;border-radius:7px;font-size:12px;font-weight:700;
+  color:#FF6B00;border:1.5px solid #fdba74;background:#fff7ed;
+  transition:all .2s;white-space:nowrap;min-height:34px}}
 .adm-ver-link:hover{{background:#FF6B00;color:#fff;border-color:#FF6B00}}
-/* Badges */
+/* ── Status badges ──────────────────────────────────────────────────── */
 .adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
   font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
 .adm-empresa{{display:inline-block;background:#fff7ed;color:#c2410c;
   font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;
   border:1px solid #fdba74;vertical-align:middle;margin-left:4px}}
-/* Update controls */
-.adm-select{{display:block;width:100%;border:1.5px solid #e5e7eb;border-radius:6px;
-  padding:6px 10px;font-size:12px;background:#fff;margin-bottom:6px;cursor:pointer;
-  font-family:inherit;color:#374151}}
-.adm-note{{display:block;width:100%;border:1.5px solid #e5e7eb;border-radius:6px;
-  padding:6px 10px;font-size:12px;resize:vertical;font-family:inherit;
-  color:#374151;margin-bottom:6px}}
+/* ── Update controls ────────────────────────────────────────────────── */
+.adm-select{{display:block;width:100%;border:1.5px solid #e2e8f0;border-radius:7px;
+  padding:7px 10px;font-size:12px;background:#fff;margin-bottom:6px;cursor:pointer;
+  font-family:inherit;color:#374151;transition:border-color .2s}}
+.adm-select:focus{{outline:none;border-color:#FF6B00}}
+.adm-note{{display:block;width:100%;border:1.5px solid #e2e8f0;border-radius:7px;
+  padding:7px 10px;font-size:12px;resize:vertical;font-family:inherit;
+  color:#374151;margin-bottom:6px;transition:border-color .2s}}
+.adm-note:focus{{outline:none;border-color:#FF6B00}}
 .adm-upd-btn{{display:block;width:100%;background:#FF6B00;color:#fff;border:none;
-  border-radius:6px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;
-  transition:background .2s;font-family:inherit}}
-.adm-upd-btn:hover{{background:#E05A00}}
-.adm-upd-btn:disabled{{background:#9ca3af;cursor:not-allowed}}
-/* Cards (mobile) */
-.adm-cards{{display:none;flex-direction:column;gap:10px;padding:12px}}
-.adm-card{{background:#fff;border-radius:10px;padding:16px;
-  box-shadow:0 1px 6px rgba(0,0,0,.06)}}
+  border-radius:7px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;
+  transition:background .2s;font-family:inherit;min-height:36px}}
+.adm-upd-btn:hover{{background:#e05a00}}
+.adm-upd-btn:disabled{{background:#cbd5e1;cursor:not-allowed}}
+/* ── Mobile cards ───────────────────────────────────────────────────── */
+.adm-cards{{display:none;flex-direction:column;gap:12px;padding:12px}}
+.adm-card{{background:#fff;border-radius:12px;padding:16px;
+  border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05)}}
 .adm-card-top{{display:flex;justify-content:space-between;align-items:flex-start;
-  margin-bottom:10px}}
-.adm-card-id{{font-size:14px;font-weight:700;color:#111}}
-.adm-card-fields{{margin-bottom:10px}}
+  margin-bottom:12px}}
+.adm-card-id{{font-size:15px;font-weight:800;color:#FF6B00}}
+.adm-card-fields{{margin-bottom:10px;border:1px solid #f1f5f9;border-radius:8px;overflow:hidden}}
 .adm-card-row{{display:flex;justify-content:space-between;align-items:baseline;
-  padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:13px}}
+  padding:7px 10px;border-bottom:1px solid #f1f5f9;font-size:13px}}
 .adm-card-row:last-child{{border-bottom:none}}
-.adm-card-lbl{{color:#9ca3af;font-size:12px;min-width:60px}}
-.adm-card-val{{color:#111;font-size:12px;text-align:right;word-break:break-all;max-width:60%}}
-.adm-card-actions{{margin-top:10px;padding-top:10px;border-top:1px solid #f3f4f6}}
-/* Empty state */
-.adm-empty{{text-align:center;padding:48px 20px;color:#9ca3af}}
-.adm-empty h3{{font-size:16px;font-weight:600;color:#6b7280;margin-bottom:6px}}
+.adm-card-lbl{{color:#94a3b8;font-size:11px;font-weight:600;min-width:68px;flex-shrink:0}}
+.adm-card-val{{color:#111;font-size:12px;text-align:right;word-break:break-all;max-width:65%}}
+.adm-card-val-bold{{font-weight:700;color:#1e293b}}
+.adm-card-actions{{margin-top:12px;padding-top:12px;border-top:1px solid #f1f5f9}}
+/* ── Empty state ────────────────────────────────────────────────────── */
+.adm-empty{{text-align:center;padding:56px 20px;color:#94a3b8}}
+.adm-empty h3{{font-size:16px;font-weight:700;color:#64748b;margin-bottom:8px}}
 .adm-empty p{{font-size:13px}}
-/* Toast */
+/* ── No results (filter) ────────────────────────────────────────────── */
+.adm-no-results{{display:none;text-align:center;padding:40px 20px;color:#94a3b8}}
+.adm-no-results.visible{{display:block}}
+/* ── Toast ──────────────────────────────────────────────────────────── */
 #adm-toast{{position:fixed;bottom:24px;right:24px;padding:12px 20px;
-  border-radius:8px;font-size:13px;font-weight:600;color:#fff;
-  background:#16a34a;box-shadow:0 4px 16px rgba(0,0,0,.15);
+  border-radius:9px;font-size:13px;font-weight:600;color:#fff;
+  background:#16a34a;box-shadow:0 4px 18px rgba(0,0,0,.18);
   transform:translateY(80px);opacity:0;transition:all .3s;z-index:100;
   pointer-events:none}}
 #adm-toast.show{{transform:translateY(0);opacity:1}}
 #adm-toast.error{{background:#dc2626}}
-/* Responsive */
+/* ── Responsive ─────────────────────────────────────────────────────── */
 @media(max-width:720px){{
-  .adm-header{{padding:10px 14px}}
-  .adm-tabs{{padding:10px 12px 0}}
-  .adm-main{{padding:0 0 40px}}
+  .adm-header{{padding:0 12px;gap:8px}}
+  .adm-header-title{{display:none}}
+  .adm-header-sep{{display:none}}
+  .adm-stats{{padding:12px 12px}}
+  .adm-stat-tile{{min-width:76px;padding:8px 10px}}
+  .adm-stat-num{{font-size:20px}}
+  .adm-tabs{{padding:0 12px}}
+  .adm-main{{padding:0 0 48px}}
   .adm-panel{{border-radius:0}}
   .adm-table-wrap{{display:none}}
   .adm-cards{{display:flex}}
+  .adm-filter-bar{{padding:10px 12px}}
 }}
 @media(min-width:721px){{
   .adm-table-wrap{{overflow-x:auto}}
@@ -3940,34 +4066,140 @@ a{{color:inherit;text-decoration:none}}
   <span class="adm-header-logo">CRBOX</span>
   <span class="adm-header-sep">|</span>
   <span class="adm-header-title">Panel de ventas</span>
-  <a href="/admin/consultas" class="adm-header-link">Consultas Generales</a>
-  <a href="/admin/logout" class="adm-logout">Salir</a>
+  <nav class="adm-header-nav">
+    <a href="/admin/consultas" class="adm-header-link">Consultas</a>
+    <a href="/admin/logout" class="adm-logout">Salir</a>
+  </nav>
 </header>
 
-<div class="adm-tabs">
-{tabs_html}
-</div>
+<!-- Stats summary -->
+<div class="adm-stats">{stats_html}</div>
+
+<!-- Filter tabs -->
+<div class="adm-tabs">{tabs_html}</div>
 
 <main class="adm-main">
 <div class="adm-panel">
-  <div class="adm-count">{count_label}</div>
+
+  <!-- Search + filter bar -->
+  <div class="adm-filter-bar">
+    <input class="adm-filter-search" id="adm-search" type="search"
+           placeholder="Buscar por nombre, email, casillero, producto&hellip;"
+           autocomplete="off" oninput="admFilter()">
+    <select class="adm-filter-status" id="adm-flt-status" onchange="admFilter()">
+      <option value="">Todos los estados</option>
+      <option value="enviada">Enviada</option>
+      <option value="en_revision">En revisi&oacute;n</option>
+      <option value="respondida">Respondida</option>
+      <option value="pendiente_compra_crbox">Compra CRBOX</option>
+      <option value="pendiente_compra_cliente">Compra propia</option>
+      <option value="pagado_por_cliente">Pago confirmado</option>
+      <option value="comprado">Comprado</option>
+      <option value="listo_para_retiro">Listo para retiro</option>
+      <option value="completada">Completada</option>
+      <option value="cancelada">Cancelada</option>
+    </select>
+    <select class="adm-filter-svc" id="adm-flt-svc" onchange="admFilter()">
+      <option value="">Servicio</option>
+      <option value="aereo">A&eacute;reo</option>
+      <option value="maritimo">Mar&iacute;timo</option>
+    </select>
+    <button class="adm-filter-clear" onclick="admClearFilter()" type="button">&#10005; Limpiar</button>
+    <span class="adm-count" style="border:none;background:none;padding:0 4px;margin-left:auto;"
+          id="adm-count-label">{count_label}</span>
+  </div>
+
   <!-- Desktop table -->
-  <div class="adm-table-wrap">
+  <div class="adm-table-wrap" id="adm-table-wrap">
   <table class="adm-table">
     <thead>
       <tr>
-        <th>ID / Fuente</th><th>Cliente</th><th>Producto</th>
-        <th>Valor</th><th>Fecha</th><th>Estado</th><th>Actualizar</th><th></th>
+        <th>ID / Fuente</th>
+        <th>Cliente &amp; Casillero</th>
+        <th>Producto</th>
+        <th>Valor</th>
+        <th>Fecha</th>
+        <th>Estado</th>
+        <th>Actualizar</th>
+        <th></th>
       </tr>
     </thead>
-    <tbody>{table_body_html}</tbody>
+    <tbody id="adm-tbody">{table_body_html}</tbody>
   </table>
+  <div class="adm-no-results" id="adm-no-results-tbl">
+    <div style="font-size:32px;margin-bottom:10px;">🔍</div>
+    <strong>Sin resultados</strong><br>
+    <span style="font-size:12px;">Prueba con otro término o limpia los filtros.</span>
   </div>
+  </div>
+
   <!-- Mobile cards -->
-  <div class="adm-cards">{cards_html}</div>
+  <div class="adm-cards" id="adm-cards">{cards_html}</div>
+  <div class="adm-no-results" id="adm-no-results-cards">
+    <div style="font-size:32px;margin-bottom:10px;">🔍</div>
+    <strong>Sin resultados</strong><br>
+    <span style="font-size:12px;">Prueba con otro término o limpia los filtros.</span>
+  </div>
+
 </div>
 </main>
 
+<div id="adm-toast"></div>
+
+<script>
+var _totalRows = {n};
+function admFilter() {{
+  var q    = (document.getElementById('adm-search').value || '').toLowerCase().trim();
+  var fSt  = document.getElementById('adm-flt-status').value;
+  var fSvc = document.getElementById('adm-flt-svc').value;
+
+  // Table rows
+  var trs = document.querySelectorAll('#adm-tbody .adm-tr');
+  // Cards
+  var cards = document.querySelectorAll('#adm-cards .adm-card');
+
+  var visibleTbl = 0, visibleCard = 0;
+
+  function matches(el) {{
+    var name = el.dataset.name || '';
+    var email = el.dataset.email || '';
+    var cas = el.dataset.casillero || '';
+    var prod = el.dataset.prod || '';
+    var st = el.dataset.status || '';
+    var svc = el.dataset.svc || '';
+    var textOk = !q || name.includes(q) || email.includes(q) || cas.includes(q) || prod.includes(q);
+    var stOk = !fSt || st === fSt;
+    var svcOk = !fSvc || svc === fSvc;
+    return textOk && stOk && svcOk;
+  }}
+
+  trs.forEach(function(tr) {{
+    var show = matches(tr);
+    tr.style.display = show ? '' : 'none';
+    if (show) visibleTbl++;
+  }});
+  cards.forEach(function(c) {{
+    var show = matches(c);
+    c.style.display = show ? '' : 'none';
+    if (show) visibleCard++;
+  }});
+
+  var visible = Math.max(visibleTbl, visibleCard);
+  var lbl = document.getElementById('adm-count-label');
+  if (lbl) lbl.innerHTML = '<span>' + visible + '</span> de ' + _totalRows + ' solicitud' + (_totalRows !== 1 ? 'es' : '');
+
+  var noTbl = document.getElementById('adm-no-results-tbl');
+  var noCard = document.getElementById('adm-no-results-cards');
+  if (noTbl) noTbl.classList.toggle('visible', visibleTbl === 0 && _totalRows > 0);
+  if (noCard) noCard.classList.toggle('visible', visibleCard === 0 && _totalRows > 0);
+}}
+function admClearFilter() {{
+  document.getElementById('adm-search').value = '';
+  document.getElementById('adm-flt-status').value = '';
+  document.getElementById('adm-flt-svc').value = '';
+  admFilter();
+}}
+</script>
 </body>
 </html>'''
 
@@ -3977,53 +4209,64 @@ def _build_admin_consultas_html(rows):
     table_rows = ''
     card_rows  = ''
     for r in rows:
-        rid      = str(r['id'])
-        nombre   = esc(r.get('nombre') or '—')
-        correo   = esc(r.get('correo') or '—')
-        asunto   = esc(r.get('asunto') or '—')
-        source   = esc(r.get('source') or '—')
+        rid        = str(r['id'])
+        nombre     = esc(r.get('nombre') or '—')
+        correo     = esc(r.get('correo') or '—')
+        asunto     = esc(r.get('asunto') or '—')
+        source     = esc(r.get('source') or '—')
         email_sent = r.get('email_sent', 0)
-        date_str = _admin_format_date(r.get('submitted_at'))
-        elapsed  = _admin_elapsed(r.get('submitted_at'))
-        # Email delivery badge
+        date_str   = _admin_format_date(r.get('submitted_at'))
+        elapsed    = _admin_elapsed(r.get('submitted_at'))
+        da_name    = (r.get('nombre') or '').lower()
+        da_email   = (r.get('correo') or '').lower()
+        da_asunto  = (r.get('asunto') or '').lower()
         if email_sent:
-            email_badge = '<span class="adm-badge" style="background:#F0FDF4;color:#15803D;border-color:#BBF7D0;">Enviado</span>'
+            email_badge = '<span class="adm-badge" style="background:#F0FDF4;color:#15803D;border-color:#BBF7D0;">&#10003; Enviado</span>'
         else:
-            email_badge = '<span class="adm-badge" style="background:#FFF7ED;color:#C2410C;border-color:#FDBA74;">Fallido</span>'
-        ver_link = f'<a href="/admin/consultas/{rid}" style="color:#FF6B00;font-weight:600;font-size:12px;white-space:nowrap;">Ver&nbsp;&#8594;</a>'
-        table_rows += f'''<tr>
-<td style="white-space:nowrap;color:#FF6B00;font-weight:700;font-size:13px;">{rid}</td>
-<td><div style="font-weight:600;font-size:13px;">{nombre}</div>
-    <div style="color:#6b7280;font-size:12px;margin-top:2px;">{correo}</div></td>
-<td style="font-size:13px;color:#374151;">{asunto}</td>
-<td><div style="font-size:13px;white-space:nowrap;">{date_str}</div>
-    <div style="color:#9ca3af;font-size:11px;margin-top:2px;">{elapsed}</div></td>
-<td>{email_badge}</td>
-<td>{ver_link}</td>
-</tr>\n'''
-        card_rows += f'''<div class="adm-card">
-<div class="adm-card-top">
-  <div><span class="adm-card-id">#{rid}</span></div>
-  <div>{email_badge}</div>
-</div>
-<div class="adm-card-fields">
-  <div class="adm-card-row"><span class="adm-card-lbl">Nombre</span><span class="adm-card-val">{nombre}</span></div>
-  <div class="adm-card-row"><span class="adm-card-lbl">Correo</span><span class="adm-card-val" style="font-size:11px;">{correo}</span></div>
-  <div class="adm-card-row"><span class="adm-card-lbl">Asunto</span><span class="adm-card-val">{asunto}</span></div>
-  <div class="adm-card-row"><span class="adm-card-lbl">Fuente</span><span class="adm-card-val">{source}</span></div>
-  <div class="adm-card-row"><span class="adm-card-lbl">Fecha</span><span class="adm-card-val">{date_str} &middot; {elapsed}</span></div>
-</div>
-<a href="/admin/consultas/{rid}" style="display:block;text-align:center;margin-top:8px;padding:8px;background:#f9fafb;border-radius:6px;color:#FF6B00;font-size:13px;font-weight:600;">Ver detalle &#8594;</a>
-</div>\n'''
+            email_badge = '<span class="adm-badge" style="background:#FFF7ED;color:#C2410C;border-color:#FDBA74;">&#10005; Fallido</span>'
+        ver_link = (f'<a href="/admin/consultas/{rid}" class="adm-ver-link">Ver&nbsp;&#8594;</a>')
+        table_rows += (
+            f'<tr class="adm-ctr" data-name="{da_name}" data-email="{da_email}" data-asunto="{da_asunto}">\n'
+            f'<td><span class="adm-rid">#{rid}</span></td>\n'
+            f'<td><div class="adm-name-line">{nombre}</div>'
+            f'<div class="adm-sub">{correo}</div></td>\n'
+            f'<td style="font-size:13px;color:#374151;max-width:260px;">{asunto}</td>\n'
+            f'<td><div style="white-space:nowrap;font-size:13px;">{date_str}</div>'
+            f'<div class="adm-sub">{elapsed}</div></td>\n'
+            f'<td>{email_badge}</td>\n'
+            f'<td class="td-ver">{ver_link}</td>\n'
+            f'</tr>\n'
+        )
+        card_rows += (
+            f'<div class="adm-ccard" data-name="{da_name}" data-email="{da_email}" data-asunto="{da_asunto}">\n'
+            f'<div class="adm-card-top">'
+            f'<span class="adm-card-id">#{rid}</span>'
+            f'{email_badge}</div>\n'
+            f'<div class="adm-card-fields">\n'
+            f'  <div class="adm-card-row"><span class="adm-card-lbl">Nombre</span>'
+            f'<span class="adm-card-val adm-card-val-bold">{nombre}</span></div>\n'
+            f'  <div class="adm-card-row"><span class="adm-card-lbl">Correo</span>'
+            f'<span class="adm-card-val" style="font-size:11px;">{correo}</span></div>\n'
+            f'  <div class="adm-card-row"><span class="adm-card-lbl">Asunto</span>'
+            f'<span class="adm-card-val">{asunto}</span></div>\n'
+            f'  <div class="adm-card-row"><span class="adm-card-lbl">Fuente</span>'
+            f'<span class="adm-card-val">{source}</span></div>\n'
+            f'  <div class="adm-card-row"><span class="adm-card-lbl">Fecha</span>'
+            f'<span class="adm-card-val">{date_str} &middot; {elapsed}</span></div>\n'
+            f'</div>\n'
+            f'<a href="/admin/consultas/{rid}" class="adm-card-detail-link">Ver detalle &#8594;</a>\n'
+            f'</div>\n'
+        )
 
     n = len(rows)
-    count_label = f'{n} consulta{"s" if n != 1 else ""} generales'
     if not rows:
-        empty_html = '''<div class="adm-empty">
-<div style="font-size:36px;margin-bottom:12px;">📬</div>
-<h3>Sin consultas aún</h3>
-<p>Las consultas del formulario de contacto aparecerán aquí.</p>
-</div>'''
+        empty_html = (
+            '<div class="adm-empty">'
+            '<div style="font-size:40px;margin-bottom:14px;">📬</div>'
+            '<h3>Sin consultas aún</h3>'
+            '<p>Las consultas del formulario de contacto aparecerán aquí.</p>'
+            '</div>'
+        )
         table_body_html = f'<tr><td colspan="6">{empty_html}</td></tr>'
         cards_html      = empty_html
     else:
@@ -4039,52 +4282,83 @@ def _build_admin_consultas_html(rows):
 <title>Consultas Generales — CRBOX</title>
 <style>
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;
-  background:#f3f4f6;color:#111;min-height:100vh}}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:#f1f5f9;color:#111;min-height:100vh}}
 a{{color:inherit;text-decoration:none}}
-.adm-header{{background:#1f2937;padding:12px 20px;display:flex;align-items:center;gap:14px;
-  position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.18)}}
-.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:18px;letter-spacing:-.5px}}
-.adm-header-title{{color:#fff;font-size:14px;font-weight:600}}
-.adm-header-sep{{color:#4b5563;font-size:16px}}
-.adm-header-link{{color:#9ca3af;font-size:13px;padding:6px 12px;border-radius:6px;
-  border:1px solid #374151;transition:all .2s}}
-.adm-header-link:hover{{color:#fff;border-color:#6b7280}}
-.adm-logout{{margin-left:auto;color:#9ca3af;font-size:13px;padding:6px 12px;
-  border-radius:6px;border:1px solid #374151;transition:all .2s}}
-.adm-logout:hover{{color:#fff;border-color:#6b7280}}
-.adm-main{{padding:20px}}
-.adm-panel{{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}}
-.adm-count{{padding:12px 16px;font-size:13px;color:#6b7280;
-  border-bottom:1px solid #f3f4f6;background:#fafafa}}
+.adm-header{{background:#1e293b;padding:0 20px;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.22);height:52px}}
+.adm-header-logo{{color:#FF6B00;font-weight:800;font-size:19px;letter-spacing:-.5px;flex-shrink:0}}
+.adm-header-sep{{color:#334155;font-size:18px;flex-shrink:0}}
+.adm-header-title{{color:#cbd5e1;font-size:13px;font-weight:500;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.adm-header-nav{{display:flex;align-items:center;gap:8px;flex-shrink:0}}
+.adm-header-link{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:6px;
+  border:1px solid #334155;transition:all .2s;white-space:nowrap}}
+.adm-header-link:hover{{color:#fff;border-color:#64748b;background:#334155}}
+.adm-logout{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:6px;
+  border:1px solid #334155;transition:all .2s;white-space:nowrap}}
+.adm-logout:hover{{color:#fff;border-color:#64748b;background:#334155}}
+.adm-main{{padding:20px 20px 48px}}
+.adm-page-header{{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;flex-wrap:wrap;gap:8px}}
+.adm-page-h1{{font-size:18px;font-weight:800;color:#1e293b}}
+.adm-page-count{{font-size:12px;color:#94a3b8;font-weight:500}}
+.adm-filter-bar{{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}}
+.adm-filter-bar input{{flex:1;min-width:200px;border:1.5px solid #e2e8f0;border-radius:7px;
+  padding:8px 12px;font-size:13px;background:#fff;color:#374151;font-family:inherit;
+  outline:none;transition:border-color .2s}}
+.adm-filter-bar input:focus{{border-color:#FF6B00}}
+.adm-filter-clear{{padding:8px 13px;border:1.5px solid #e2e8f0;border-radius:7px;
+  background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .2s;font-family:inherit;white-space:nowrap}}
+.adm-filter-clear:hover{{border-color:#FF6B00;color:#FF6B00}}
+.adm-panel{{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden}}
 .adm-table{{width:100%;border-collapse:collapse}}
-.adm-table th{{background:#f9fafb;padding:10px 14px;text-align:left;
-  font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;
-  letter-spacing:.06em;border-bottom:1px solid #e5e7eb;white-space:nowrap}}
-.adm-table td{{padding:13px 14px;border-bottom:1px solid #f3f4f6;
-  vertical-align:top;font-size:13px}}
-.adm-table tr:last-child td{{border-bottom:none}}
-.adm-table tr:hover td{{background:#fafafa}}
+.adm-table thead th{{background:#f8fafc;padding:10px 14px;text-align:left;
+  font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;
+  letter-spacing:.07em;border-bottom:1px solid #e2e8f0;white-space:nowrap}}
+.adm-table td{{padding:13px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top}}
+.adm-table .adm-ctr:last-child td{{border-bottom:none}}
+.adm-table .adm-ctr:hover td{{background:#f8fafc}}
+.adm-rid{{color:#FF6B00;font-weight:700;font-size:12px}}
+.adm-name-line{{font-weight:600;font-size:13px}}
+.adm-sub{{color:#94a3b8;font-size:11px;margin-top:2px}}
+.td-ver{{white-space:nowrap;text-align:center;vertical-align:middle}}
 .adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
   font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
+.adm-ver-link{{display:inline-flex;align-items:center;justify-content:center;
+  padding:6px 12px;border-radius:7px;font-size:12px;font-weight:700;
+  color:#FF6B00;border:1.5px solid #fdba74;background:#fff7ed;
+  transition:all .2s;white-space:nowrap;min-height:34px}}
+.adm-ver-link:hover{{background:#FF6B00;color:#fff;border-color:#FF6B00}}
 .adm-table-wrap{{overflow-x:auto}}
-.adm-cards{{display:none;flex-direction:column;gap:10px;padding:12px}}
-.adm-card{{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,.06)}}
-.adm-card-top{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}}
-.adm-card-id{{font-size:14px;font-weight:700;color:#111}}
-.adm-card-fields{{margin-bottom:10px}}
+.adm-cards{{display:none;flex-direction:column;gap:12px;padding:12px}}
+.adm-ccard{{background:#fff;border-radius:12px;padding:16px;
+  border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.05)}}
+.adm-card-top{{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}}
+.adm-card-id{{font-size:15px;font-weight:800;color:#FF6B00}}
+.adm-card-fields{{margin-bottom:10px;border:1px solid #f1f5f9;border-radius:8px;overflow:hidden}}
 .adm-card-row{{display:flex;justify-content:space-between;align-items:baseline;
-  padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:13px}}
+  padding:7px 10px;border-bottom:1px solid #f1f5f9;font-size:13px}}
 .adm-card-row:last-child{{border-bottom:none}}
-.adm-card-lbl{{color:#9ca3af;font-size:12px;min-width:60px}}
-.adm-card-val{{color:#111;font-size:12px;text-align:right;word-break:break-all;max-width:70%}}
-.adm-empty{{text-align:center;padding:48px 20px;color:#9ca3af}}
-.adm-empty h3{{font-size:16px;font-weight:600;color:#6b7280;margin-bottom:6px}}
+.adm-card-lbl{{color:#94a3b8;font-size:11px;font-weight:600;min-width:60px;flex-shrink:0}}
+.adm-card-val{{color:#111;font-size:12px;text-align:right;word-break:break-word;max-width:65%}}
+.adm-card-val-bold{{font-weight:700;color:#1e293b}}
+.adm-card-detail-link{{display:block;text-align:center;margin-top:10px;padding:10px;
+  background:#fff7ed;border-radius:8px;color:#FF6B00;font-size:13px;font-weight:700;
+  border:1.5px solid #fdba74;transition:all .2s}}
+.adm-card-detail-link:hover{{background:#FF6B00;color:#fff;border-color:#FF6B00}}
+.adm-empty{{text-align:center;padding:56px 20px;color:#94a3b8}}
+.adm-empty h3{{font-size:16px;font-weight:700;color:#64748b;margin-bottom:8px}}
 .adm-empty p{{font-size:13px}}
+.adm-no-results{{display:none;text-align:center;padding:40px 20px;color:#94a3b8}}
+.adm-no-results.visible{{display:block}}
 @media(max-width:720px){{
-  .adm-header{{padding:10px 14px}}
-  .adm-main{{padding:0 0 40px}}
-  .adm-panel{{border-radius:0}}
+  .adm-header{{padding:0 12px;gap:8px}}
+  .adm-header-title{{display:none}}
+  .adm-header-sep{{display:none}}
+  .adm-main{{padding:12px 12px 48px}}
+  .adm-panel{{border-radius:12px}}
   .adm-table-wrap{{display:none}}
   .adm-cards{{display:flex}}
 }}
@@ -4098,12 +4372,22 @@ a{{color:inherit;text-decoration:none}}
   <span class="adm-header-logo">CRBOX</span>
   <span class="adm-header-sep">|</span>
   <span class="adm-header-title">Consultas Generales</span>
-  <a href="/admin/solicitudes" class="adm-header-link">Cotizaciones</a>
-  <a href="/admin/logout" class="adm-logout">Salir</a>
+  <nav class="adm-header-nav">
+    <a href="/admin/solicitudes" class="adm-header-link">Cotizaciones</a>
+    <a href="/admin/logout" class="adm-logout">Salir</a>
+  </nav>
 </header>
 <main class="adm-main">
+<div class="adm-page-header">
+  <h1 class="adm-page-h1">Consultas Generales</h1>
+  <span class="adm-page-count" id="adm-ccount">{n} consulta{"s" if n != 1 else ""}</span>
+</div>
+<div class="adm-filter-bar">
+  <input type="search" id="adm-csearch" placeholder="Buscar por nombre, correo o asunto&hellip;"
+         autocomplete="off" oninput="cFilter()">
+  <button class="adm-filter-clear" onclick="cClear()" type="button">&#10005; Limpiar</button>
+</div>
 <div class="adm-panel">
-  <div class="adm-count">{count_label}</div>
   <div class="adm-table-wrap">
   <table class="adm-table">
     <thead>
@@ -4111,12 +4395,46 @@ a{{color:inherit;text-decoration:none}}
         <th>#</th><th>Contacto</th><th>Asunto</th><th>Fecha</th><th>Email</th><th></th>
       </tr>
     </thead>
-    <tbody>{table_body_html}</tbody>
+    <tbody id="adm-ctbody">{table_body_html}</tbody>
   </table>
+  <div class="adm-no-results" id="adm-no-results-tbl">
+    <div style="font-size:32px;margin-bottom:10px;">🔍</div>
+    <strong>Sin resultados</strong><br>
+    <span style="font-size:12px;">Prueba con otro término o limpia el filtro.</span>
   </div>
-  <div class="adm-cards">{cards_html}</div>
+  </div>
+  <div class="adm-cards" id="adm-ccards">{cards_html}</div>
+  <div class="adm-no-results" id="adm-no-results-cards">
+    <div style="font-size:32px;margin-bottom:10px;">🔍</div>
+    <strong>Sin resultados</strong><br>
+    <span style="font-size:12px;">Prueba con otro término o limpia el filtro.</span>
+  </div>
 </div>
 </main>
+
+<script>
+var _cTotal = {n};
+function cFilter() {{
+  var q = (document.getElementById('adm-csearch').value || '').toLowerCase().trim();
+  var trs = document.querySelectorAll('#adm-ctbody .adm-ctr');
+  var cards = document.querySelectorAll('#adm-ccards .adm-ccard');
+  var vT = 0, vC = 0;
+  function ok(el) {{
+    return !q || (el.dataset.name||'').includes(q) ||
+                 (el.dataset.email||'').includes(q) ||
+                 (el.dataset.asunto||'').includes(q);
+  }}
+  trs.forEach(function(tr) {{ var s=ok(tr); tr.style.display=s?'':'none'; if(s)vT++; }});
+  cards.forEach(function(c) {{ var s=ok(c); c.style.display=s?'':'none'; if(s)vC++; }});
+  var v = Math.max(vT, vC);
+  var el = document.getElementById('adm-ccount');
+  if (el) el.textContent = v + ' de ' + _cTotal + ' consulta' + (_cTotal!==1?'s':'');
+  var nT=document.getElementById('adm-no-results-tbl'), nC=document.getElementById('adm-no-results-cards');
+  if(nT) nT.classList.toggle('visible', vT===0 && _cTotal>0);
+  if(nC) nC.classList.toggle('visible', vC===0 && _cTotal>0);
+}}
+function cClear() {{ document.getElementById('adm-csearch').value=''; cFilter(); }}
+</script>
 </body>
 </html>'''
 
@@ -5770,11 +6088,23 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         responded = [r for r in all_rows if r['status'] in responded_statuses]
         archived  = [r for r in all_rows if r['status'] in archived_statuses]
 
+        def _cnt(st):
+            return sum(1 for r in all_rows if r['status'] == st)
         counts = {
             'all':         len(all_rows),
             'activas':     len(active),
             'respondidas': len(responded),
             'archivadas':  len(archived),
+            'enviada':                            _cnt('enviada'),
+            'en_revision':                        _cnt('en_revision'),
+            'respondida':                         _cnt('respondida'),
+            'pendiente_compra_crbox':             _cnt('pendiente_compra_crbox'),
+            'pendiente_compra_cliente':           _cnt('pendiente_compra_cliente'),
+            'pagado_por_cliente':                 _cnt('pagado_por_cliente'),
+            'comprado':                           _cnt('comprado'),
+            'listo_para_retiro':                  _cnt('listo_para_retiro'),
+            'completada':                         _cnt('completada'),
+            'cancelada':                          _cnt('cancelada'),
         }
 
         if filter_val == 'activas':
