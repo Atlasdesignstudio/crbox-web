@@ -1169,7 +1169,8 @@ def _call_gemini_search_fallback(url):
                 pass
 
         if not text:
-            # Log candidate details to help diagnose empty responses
+            # Log candidate details, then retry WITHOUT the search tool so Gemini
+            # answers from training knowledge (avoids the "grounded but empty" bug).
             try:
                 cand = response.candidates[0] if response.candidates else None
                 reason = str(getattr(cand, 'finish_reason', 'unknown')) if cand else 'no candidates'
@@ -1177,10 +1178,43 @@ def _call_gemini_search_fallback(url):
                 if cand and hasattr(cand, 'content') and cand.content:
                     for p in (cand.content.parts or []):
                         parts_info.append(str(type(p).__name__) + ':' + repr(str(p))[:80])
-                print(f'[AI] search fallback empty — finish_reason={reason} parts={parts_info}')
+                print(f'[AI] search fallback empty — finish_reason={reason} parts={parts_info} — retrying without search tool')
             except Exception as _diag_ex:
-                print(f'[AI] search fallback empty — diag error: {_diag_ex}')
-            return None, 'Empty response from search fallback'
+                print(f'[AI] search fallback empty — diag error: {_diag_ex} — retrying without search tool')
+
+            # Retry: no search grounding, rely on training knowledge
+            try:
+                response2 = client.models.generate_content(
+                    model=_GEMINI_MODEL,
+                    contents=prompt,
+                    config=_gtypes.GenerateContentConfig(
+                        temperature=0.1,
+                        max_output_tokens=1024,
+                    ),
+                )
+                try:
+                    text = (response2.text or '').strip()
+                except Exception:
+                    text = ''
+                    try:
+                        cand2 = response2.candidates[0] if response2.candidates else None
+                        if cand2 and hasattr(cand2, 'content') and cand2.content:
+                            text = ''.join(
+                                getattr(p, 'text', '') or ''
+                                for p in (cand2.content.parts or [])
+                            ).strip()
+                    except Exception:
+                        pass
+                if text:
+                    print(f'[AI] search fallback retry (no-search) succeeded')
+                else:
+                    print(f'[AI] search fallback retry also empty')
+            except Exception as _retry_ex:
+                print(f'[AI] search fallback retry error: {_retry_ex}')
+                text = ''
+
+            if not text:
+                return None, 'Empty response from search fallback'
         if text.startswith('```'):
             text = re.sub(r'^```[a-z]*\n?', '', text)
         if text.endswith('```'):
