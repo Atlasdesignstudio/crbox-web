@@ -1093,7 +1093,8 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
                              casillero_id, account_type, product_name, product_url,
                              declared_value_usd, category, weight_kg, length_cm,
                              width_cm, height_cm, data_source, service_type,
-                             destination_zone, estimate_usd, customer_notes):
+                             destination_zone, estimate_usd, customer_notes,
+                             weight_input=None, weight_unit=None, dimension_unit=None):
     def f(v, default='No especificado'):
         return str(v) if v is not None and str(v).strip() != '' else default
 
@@ -1101,10 +1102,20 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
     url_val = f(product_url, 'No proporcionada')
     cas_val = f(casillero_id, 'Sin casillero (público)')
     name_val = f(customer_name, 'Anónimo')
-    weight_val = f'{weight_kg} kg' if weight_kg is not None else 'No especificado'
 
+    # Weight: show canonical kg value + note if user entered in lb
+    if weight_kg is not None:
+        weight_val = f'{weight_kg} kg'
+        if weight_input and weight_unit and weight_unit == 'lb':
+            weight_val += f' (entrado: {weight_input} lb)'
+    else:
+        weight_val = 'No especificado'
+
+    # Dimensions: show canonical cm values + note if user entered in inches
     if length_cm is not None and width_cm is not None and height_cm is not None:
-        dims_val = f'L{length_cm} × W{width_cm} × H{height_cm} cm'
+        dims_val = f'{length_cm} × {width_cm} × {height_cm} cm'
+        if dimension_unit and dimension_unit == 'in':
+            dims_val += ' (entrado en pulgadas)'
     else:
         dims_val = 'No especificadas'
 
@@ -1319,7 +1330,9 @@ def _send_sales_submission(scb_id, customer_email, customer_name,
                             product_name, product_url, declared_value_usd,
                             category, weight_kg, length_cm, width_cm, height_cm,
                             data_source, service_type, destination_zone,
-                            estimate_usd, customer_notes, submitted_display, smtp_user):
+                            estimate_usd, customer_notes,
+                            weight_input=None, weight_unit=None, dimension_unit=None,
+                            submitted_display=None, smtp_user=None):
     empresa_tag = '[EMPRESA] ' if account_type == 'business' else ''
     subject = f'[{scb_id}] {empresa_tag}Solicitud de compra — {product_name} — {customer_email}'
     body_text = _build_sales_email_body(
@@ -1327,7 +1340,8 @@ def _send_sales_submission(scb_id, customer_email, customer_name,
         casillero_id, account_type, product_name, product_url,
         declared_value_usd, category, weight_kg, length_cm, width_cm,
         height_cm, data_source, service_type, destination_zone,
-        estimate_usd, customer_notes
+        estimate_usd, customer_notes,
+        weight_input=weight_input, weight_unit=weight_unit, dimension_unit=dimension_unit
     )
     msg = email.mime.multipart.MIMEMultipart('alternative')
     msg['Subject'] = subject
@@ -4325,6 +4339,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         length_cm = data.get('length_cm')
         width_cm = data.get('width_cm')
         height_cm = data.get('height_cm')
+        weight_input   = (data.get('weight_input')   or '').strip() or None
+        weight_unit    = (data.get('weight_unit')    or '').strip() or None
+        dimension_unit = (data.get('dimension_unit') or '').strip() or None
         customer_notes = (data.get('customer_notes') or '').strip()[:500] or None
         service_type = data.get('service_type', 'aereo')
         if service_type not in ('aereo', 'maritimo'):
@@ -4406,6 +4423,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 product_name, product_url, declared_value_usd, category,
                 weight_kg, length_cm, width_cm, height_cm, data_source,
                 service_type, destination_zone, estimate_usd, customer_notes,
+                weight_input, weight_unit, dimension_unit,
                 now_disp, smtp_user
             )
             print(f'[SOLICITUDES] Sales email sent to {QUOTE_RECIPIENT}')

@@ -843,7 +843,7 @@
                                     <input type="number" id="f-weight" class="q-input" placeholder="Peso" min="0" step="0.01" style="padding-right:2.75rem;">
                                     <span id="f-weight-suffix" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">kg</span>
                                 </div>
-                                <div class="q-hint" style="color:#6b7280;font-size:.78rem;margin-top:.25rem;">Si no sabes el peso exacto, déjalo en blanco.</div>
+                                <div class="q-hint" style="color:#6b7280;font-size:.78rem;margin-top:.25rem;">Puedes ingresar en kg o lb. Si no sabes el peso exacto, déjalo en blanco.</div>
                             </div>
                             <!-- Dims row with cm/in toggle -->
                             <div>
@@ -877,6 +877,8 @@
                                         <div class="q-hint">Alto</div>
                                     </div>
                                 </div>
+                                <div id="err-dims" class="q-error hidden" style="margin-top:.35rem;"></div>
+                                <div class="q-hint" style="color:#6b7280;font-size:.78rem;margin-top:.35rem;">Puedes ingresar en cm o pulgadas. Si no tienes las dimensiones, déjalas en blanco.</div>
                             </div>
                         </div>
                     </div>
@@ -1125,7 +1127,7 @@
     <script src="js/auth.js"></script>
     <script src="js/nav-auth.js?v=2" defer></script>
     <script src="js/analytics.js" defer></script>
-    <script src="js/unit-converter.js?v=1"></script>
+    <script src="js/unit-converter.js?v=2"></script>
     <script src="js/ai-extractor.js"></script>
     <script>
     (function () {
@@ -1631,10 +1633,27 @@
                 }
             }
 
+            // Validate dimensions: all three or none — validate before blocking submit
+            const errDims = document.getElementById('err-dims');
+            const _UC_v   = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
+            const _wUnitV = _cotizarWeightToggle ? _cotizarWeightToggle.getUnit() : 'kg';
+            const _dUnitV = _cotizarDimToggle    ? _cotizarDimToggle.getUnit()    : 'cm';
+            const _lv = _UC_v ? _UC_v.toCanonical(fLength.value, 'dim', _dUnitV) : parseFloat(fLength.value);
+            const _wv = _UC_v ? _UC_v.toCanonical(fWidth.value,  'dim', _dUnitV) : parseFloat(fWidth.value);
+            const _hv = _UC_v ? _UC_v.toCanonical(fHeight.value, 'dim', _dUnitV) : parseFloat(fHeight.value);
+            const _anyDim = ((_lv != null && _lv > 0) || (_wv != null && _wv > 0) || (_hv != null && _hv > 0));
+            const _allDim = ((_lv != null && _lv > 0) && (_wv != null && _wv > 0) && (_hv != null && _hv > 0));
+            if (_anyDim && !_allDim) {
+                if (errDims) { errDims.textContent = 'Si ingresas dimensiones, completa los tres campos (largo, ancho y alto).'; errDims.classList.remove('hidden'); }
+                valid = false;
+            } else {
+                if (errDims) errDims.classList.add('hidden');
+            }
+
             if (!valid) {
                 // Scroll to first error
                 if (!(_aiActive && aiConfirmWrapper && !aiConfirmChk.checked)) {
-                    const firstErr = form.querySelector('.q-error');
+                    const firstErr = form.querySelector('.q-error:not(.hidden)');
                     if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
                 return;
@@ -1663,19 +1682,40 @@
             const productUrl = (fProductUrl.value || '').trim();
             if (productUrl) payload.product_url = productUrl;
 
-            // Normalize to canonical kg / cm regardless of which unit the user selected
+            // Normalize to canonical kg / cm using normalizePhysicalInputs
             const _UC    = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
             const _wUnit = _cotizarWeightToggle ? _cotizarWeightToggle.getUnit() : 'kg';
             const _dUnit = _cotizarDimToggle    ? _cotizarDimToggle.getUnit()    : 'cm';
-            const weight = _UC ? _UC.toCanonical(fWeight.value, 'weight', _wUnit) : parseFloat(fWeight.value);
-            if (weight != null && weight > 0) payload.weight_kg = weight;
+            const _phys  = _UC ? _UC.normalizePhysicalInputs({
+                length:        fLength.value,
+                width:         fWidth.value,
+                height:        fHeight.value,
+                weight:        fWeight.value,
+                dimensionUnit: _dUnit,
+                weightUnit:    _wUnit,
+            }) : null;
 
-            const length = _UC ? _UC.toCanonical(fLength.value, 'dim', _dUnit) : parseFloat(fLength.value);
-            const width  = _UC ? _UC.toCanonical(fWidth.value,  'dim', _dUnit) : parseFloat(fWidth.value);
-            const height = _UC ? _UC.toCanonical(fHeight.value, 'dim', _dUnit) : parseFloat(fHeight.value);
-            if (length != null && length > 0) payload.length_cm = length;
-            if (width  != null && width  > 0) payload.width_cm  = width;
-            if (height != null && height > 0) payload.height_cm = height;
+            if (_phys) {
+                if (_phys.weight_kg != null && _phys.weight_kg > 0) {
+                    payload.weight_kg    = _phys.weight_kg;
+                    payload.weight_input = _phys.weight_input;
+                    payload.weight_unit  = _phys.weight_unit;
+                }
+                if (_phys.length_cm != null && _phys.length_cm > 0 &&
+                    _phys.width_cm  != null && _phys.width_cm  > 0 &&
+                    _phys.height_cm != null && _phys.height_cm > 0) {
+                    payload.length_cm      = _phys.length_cm;
+                    payload.width_cm       = _phys.width_cm;
+                    payload.height_cm      = _phys.height_cm;
+                    payload.dimension_unit = _phys.dimension_unit;
+                }
+            } else {
+                // Fallback if UnitConverter unavailable
+                const weight = parseFloat(fWeight.value);
+                if (!isNaN(weight) && weight > 0) payload.weight_kg = weight;
+                const length = parseFloat(fLength.value), width = parseFloat(fWidth.value), height = parseFloat(fHeight.value);
+                if (length > 0 && width > 0 && height > 0) { payload.length_cm = length; payload.width_cm = width; payload.height_cm = height; }
+            }
 
             const notes = (fNotes.value || '').trim();
             if (notes) payload.customer_notes = notes;

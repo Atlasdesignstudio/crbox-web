@@ -15,17 +15,17 @@
 
   function convertLbToKg(val) {
     var v = parseFloat(val);
-    return isNaN(v) ? 0 : +(v * 0.453592).toFixed(3);
+    return isNaN(v) ? 0 : +(v * 0.45359237).toFixed(3);
   }
 
   function convertKgToLb(val) {
     var v = parseFloat(val);
-    return isNaN(v) ? 0 : +(v / 0.453592).toFixed(3);
+    return isNaN(v) ? 0 : +(v / 0.45359237).toFixed(3);
   }
 
   // Convert a displayed value from `unit` to canonical storage unit (kg or cm).
   // unitType: 'weight' → canonical kg; 'dim' → canonical cm
-  // Returns null when val is empty/zero.
+  // Returns null when val is empty/zero/negative.
   function toCanonical(val, unitType, unit) {
     var v = parseFloat(val);
     if (isNaN(v) || v <= 0) return null;
@@ -49,6 +49,40 @@
       return unit === 'in' ? String(convertCmToIn(v)) : String(v);
     }
     return String(v);
+  }
+
+  // Normalize all physical inputs to canonical units in one call.
+  //
+  // opts.length, opts.width, opts.height  — raw display strings (cm or in)
+  // opts.weight                           — raw display string (kg or lb)
+  // opts.dimensionUnit                    — 'cm' | 'in'
+  // opts.weightUnit                       — 'kg' | 'lb'
+  //
+  // Returns:
+  //   length_cm, width_cm, height_cm, weight_kg  — canonical numbers (null when blank)
+  //   length_input, width_input, height_input, weight_input — original display strings
+  //   dimension_unit, weight_unit  — the unit that was active
+  function normalizePhysicalInputs(opts) {
+    var dimUnit = opts.dimensionUnit || 'cm';
+    var wgtUnit = opts.weightUnit    || 'kg';
+
+    var lengthRaw  = opts.length  != null ? String(opts.length)  : '';
+    var widthRaw   = opts.width   != null ? String(opts.width)   : '';
+    var heightRaw  = opts.height  != null ? String(opts.height)  : '';
+    var weightRaw  = opts.weight  != null ? String(opts.weight)  : '';
+
+    return {
+      length_cm:      toCanonical(lengthRaw,  'dim',    dimUnit),
+      width_cm:       toCanonical(widthRaw,   'dim',    dimUnit),
+      height_cm:      toCanonical(heightRaw,  'dim',    dimUnit),
+      weight_kg:      toCanonical(weightRaw,  'weight', wgtUnit),
+      length_input:   lengthRaw,
+      width_input:    widthRaw,
+      height_input:   heightRaw,
+      weight_input:   weightRaw,
+      dimension_unit: dimUnit,
+      weight_unit:    wgtUnit,
+    };
   }
 
   // Wire up a unit toggle container.
@@ -112,12 +146,13 @@
   }
 
   window.UnitConverter = {
-    convertInToCm:  convertInToCm,
-    convertCmToIn:  convertCmToIn,
-    convertLbToKg:  convertLbToKg,
-    convertKgToLb:  convertKgToLb,
-    toCanonical:    toCanonical,
-    fromCanonical:  fromCanonical,
-    setup:          setupUnitToggle,
+    convertInToCm:           convertInToCm,
+    convertCmToIn:           convertCmToIn,
+    convertLbToKg:           convertLbToKg,
+    convertKgToLb:           convertKgToLb,
+    toCanonical:             toCanonical,
+    fromCanonical:           fromCanonical,
+    normalizePhysicalInputs: normalizePhysicalInputs,
+    setup:                   setupUnitToggle,
   };
 })();

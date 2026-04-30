@@ -844,6 +844,7 @@
                             <input type="number" id="modal-weight" class="calc-input pr-10" placeholder="0.00" min="0" step="0.01">
                             <span class="input-suffix" id="modal-weight-suffix">kg</span>
                         </div>
+                        <p class="text-xs text-gray-400 mt-1">Puedes ingresar peso en kg o lb.</p>
                     </div>
                 </div>
                 <div>
@@ -871,6 +872,8 @@
                             <span class="input-suffix text-xs" id="modal-dim-suffix-h">cm</span>
                         </div>
                     </div>
+                    <p class="text-xs text-gray-400 mt-1">Puedes ingresar dimensiones en cm o pulgadas.</p>
+                    <div id="modal-dim-error" class="hidden mt-1 text-sm text-red-600"></div>
                     <!-- Live volumetric preview -->
                     <div id="vol-preview" class="hidden mt-2 text-sm text-orange-700 bg-orange-50 rounded-lg px-3 py-2"></div>
                 </div>
@@ -1273,7 +1276,7 @@
     <script src="js/tariff-adapter.js"></script>
     <script src="js/calculator-engine.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-    <script src="js/unit-converter.js?v=1"></script>
+    <script src="js/unit-converter.js?v=2"></script>
 
     <script>
     /* ═══════════════════════════════════════════════════════════════════
@@ -1545,22 +1548,39 @@
             const value    = parseFloat($('modal-value').value) || 0;
             const category = modalCategoryTS ? modalCategoryTS.getValue() : $('modal-category').value;
 
-            // Normalize physical values to canonical kg / cm
-            const UC     = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
-            const wUnit  = _modalWeightToggle ? _modalWeightToggle.getUnit() : 'kg';
-            const dUnit  = _modalDimToggle    ? _modalDimToggle.getUnit()    : 'cm';
-            const weight = UC
-                ? (UC.toCanonical($('modal-weight').value, 'weight', wUnit) || 0)
-                : (parseFloat($('modal-weight').value) || 0);
-            const rawL = UC ? (UC.toCanonical($('modal-length').value, 'dim', dUnit) || 0) : (parseFloat($('modal-length').value) || 0);
-            const rawW = UC ? (UC.toCanonical($('modal-width').value,  'dim', dUnit) || 0) : (parseFloat($('modal-width').value)  || 0);
-            const rawH = UC ? (UC.toCanonical($('modal-height').value, 'dim', dUnit) || 0) : (parseFloat($('modal-height').value) || 0);
+            // Normalize physical values to canonical kg / cm via normalizePhysicalInputs
+            const UC    = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
+            const wUnit = _modalWeightToggle ? _modalWeightToggle.getUnit() : 'kg';
+            const dUnit = _modalDimToggle    ? _modalDimToggle.getUnit()    : 'cm';
+            const phys  = UC ? UC.normalizePhysicalInputs({
+                length:        $('modal-length').value,
+                width:         $('modal-width').value,
+                height:        $('modal-height').value,
+                weight:        $('modal-weight').value,
+                dimensionUnit: dUnit,
+                weightUnit:    wUnit,
+            }) : null;
+            const weight = phys ? (phys.weight_kg || 0) : (parseFloat($('modal-weight').value) || 0);
+            const rawL   = phys ? (phys.length_cm || 0) : (parseFloat($('modal-length').value) || 0);
+            const rawW   = phys ? (phys.width_cm  || 0) : (parseFloat($('modal-width').value)  || 0);
+            const rawH   = phys ? (phys.height_cm || 0) : (parseFloat($('modal-height').value) || 0);
+
+            // Partial dimension validation
+            const dimErrEl = $('modal-dim-error');
+            const anyDim = rawL > 0 || rawW > 0 || rawH > 0;
+            const allDim = rawL > 0 && rawW > 0 && rawH > 0;
+            const dimError = anyDim && !allDim;
+            if (dimErrEl) {
+                if (dimError) { dimErrEl.textContent = 'Si ingresas dimensiones, completa largo, ancho y alto.'; dimErrEl.classList.remove('hidden'); }
+                else          { dimErrEl.classList.add('hidden'); }
+            }
 
             const errors = [];
             if (!name)      errors.push('El nombre del producto es obligatorio.');
             if (value <= 0) errors.push('El valor declarado debe ser mayor a $0.');
             if (weight <= 0) errors.push('El peso real debe ser mayor a 0.');
             if (!category)  errors.push('Selecciona una categoría de producto.');
+            if (dimError)   errors.push('Si ingresas dimensiones, completa los tres campos.');
 
             if (errors.length) {
                 const errEl = $('modal-error');

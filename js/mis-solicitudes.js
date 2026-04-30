@@ -543,10 +543,13 @@
       product_url: formData.product_url || null,
       declared_value_usd: parseFloat(formData.declared_value_usd),
       category: formData.category || 'otros',
-      weight_kg: (formData.weight_kg != null && formData.weight_kg > 0) ? formData.weight_kg : null,
-      length_cm: (formData.length_cm != null && formData.length_cm > 0) ? formData.length_cm : null,
-      width_cm:  (formData.width_cm  != null && formData.width_cm  > 0) ? formData.width_cm  : null,
-      height_cm: (formData.height_cm != null && formData.height_cm > 0) ? formData.height_cm : null,
+      weight_kg:      (formData.weight_kg != null && formData.weight_kg > 0) ? formData.weight_kg : null,
+      length_cm:      (formData.length_cm != null && formData.length_cm > 0) ? formData.length_cm : null,
+      width_cm:       (formData.width_cm  != null && formData.width_cm  > 0) ? formData.width_cm  : null,
+      height_cm:      (formData.height_cm != null && formData.height_cm > 0) ? formData.height_cm : null,
+      weight_input:   formData.weight_input   || null,
+      weight_unit:    formData.weight_unit    || null,
+      dimension_unit: formData.dimension_unit || null,
       customer_notes: formData.customer_notes || null,
       service_type: formData.service_type || 'aereo',
       data_source: formData.data_source || 'manual'
@@ -1143,24 +1146,49 @@
           }
         }
 
-        // Normalize physical values to canonical kg / cm
-        var _UCf   = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
+        // Normalize physical values to canonical kg / cm via normalizePhysicalInputs
+        var _UCf    = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
         var _wUnitF = _portalWeightToggle ? _portalWeightToggle.getUnit() : 'kg';
         var _dUnitF = _portalDimToggle    ? _portalDimToggle.getUnit()    : 'cm';
         var _rawWgt = form.querySelector('#form-weight') ? form.querySelector('#form-weight').value : '';
         var _rawLen = form.querySelector('#form-length') ? form.querySelector('#form-length').value : '';
         var _rawWid = form.querySelector('#form-width')  ? form.querySelector('#form-width').value  : '';
         var _rawHgt = form.querySelector('#form-height') ? form.querySelector('#form-height').value : '';
+        var _physF  = _UCf ? _UCf.normalizePhysicalInputs({
+          length:        _rawLen,
+          width:         _rawWid,
+          height:        _rawHgt,
+          weight:        _rawWgt,
+          dimensionUnit: _dUnitF,
+          weightUnit:    _wUnitF,
+        }) : null;
+
+        // Partial dimension validation
+        var _lF = _physF ? _physF.length_cm : parseFloat(_rawLen);
+        var _wF = _physF ? _physF.width_cm  : parseFloat(_rawWid);
+        var _hF = _physF ? _physF.height_cm : parseFloat(_rawHgt);
+        var _anyDimF = ((_lF != null && _lF > 0) || (_wF != null && _wF > 0) || (_hF != null && _hF > 0));
+        var _allDimF = ((_lF != null && _lF > 0) && (_wF != null && _wF > 0) && (_hF != null && _hF > 0));
+        if (_anyDimF && !_allDimF) {
+          if (errorMsg) {
+            errorMsg.textContent = 'Si ingresas dimensiones, completa los tres campos: largo, ancho y alto.';
+            errorMsg.classList.remove('hidden');
+          }
+          return;
+        }
 
         var formData = {
           product_name:      form.querySelector('#form-product-name').value.trim(),
           product_url:       form.querySelector('#form-product-url').value.trim(),
           declared_value_usd: form.querySelector('#form-declared-value').value,
           category:          form.querySelector('#form-category').value,
-          weight_kg:         _UCf ? _UCf.toCanonical(_rawWgt, 'weight', _wUnitF) : (parseFloat(_rawWgt) || null),
-          length_cm:         _UCf ? _UCf.toCanonical(_rawLen, 'dim',    _dUnitF) : (parseFloat(_rawLen) || null),
-          width_cm:          _UCf ? _UCf.toCanonical(_rawWid, 'dim',    _dUnitF) : (parseFloat(_rawWid) || null),
-          height_cm:         _UCf ? _UCf.toCanonical(_rawHgt, 'dim',    _dUnitF) : (parseFloat(_rawHgt) || null),
+          weight_kg:         _physF ? _physF.weight_kg : (parseFloat(_rawWgt) || null),
+          length_cm:         _physF ? _physF.length_cm : (parseFloat(_rawLen) || null),
+          width_cm:          _physF ? _physF.width_cm  : (parseFloat(_rawWid) || null),
+          height_cm:         _physF ? _physF.height_cm : (parseFloat(_rawHgt) || null),
+          weight_input:      _physF ? _physF.weight_input  : _rawWgt,
+          weight_unit:       _physF ? _physF.weight_unit   : _wUnitF,
+          dimension_unit:    _physF ? _physF.dimension_unit : _dUnitF,
           customer_notes:    form.querySelector('#form-notes').value.trim(),
           service_type:      form.querySelector('#form-service-type').value,
           data_source:       _portalAiActive ? (_portalAiDataSource || 'ai_extracted') : 'manual',
