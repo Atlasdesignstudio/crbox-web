@@ -89,12 +89,12 @@ def _verify_gemini_model_at_startup():
         print(f'[AI] WARNING: model verification failed ({_ex}); AI may not work')
 
 _AI_CACHE        = {}           # sha256(url) -> (result_dict, expires_ts)
-_AI_CACHE_TTL    = 900          # 15 minutes
+_AI_CACHE_TTL    = 7200         # 2 hours — repeat URLs served from cache
 _AI_CACHE_LOCK   = threading.Lock()
 
 _AI_RATE         = {}           # ip -> [ts, ...]
 _AI_RATE_LOCK    = threading.Lock()
-_AI_RATE_LIMIT   = 30           # calls per IP per hour
+_AI_RATE_LIMIT   = 200          # calls per IP per hour (Gemini API is the real throttle)
 
 _CRBOX_CATEGORIES = (
     'celulares', 'computadora', 'consola_videojuegos', 'camara',
@@ -1343,7 +1343,9 @@ def _handle_ai_extract(handler):
         handler._json_response(200, {'page_readable': False, 'error': 'invalid_url'})
         return
 
-    url_hash = hashlib.sha256(url.encode()).hexdigest()
+    # Use the canonical URL as cache key so tracking-param variants share the same entry
+    canonical_for_cache = _canonicalize_url(url)
+    url_hash = hashlib.sha256(canonical_for_cache.encode()).hexdigest()
     cached = _ai_cache_get(url_hash)
     if cached is not None:
         handler._json_response(200, cached)
@@ -1426,7 +1428,7 @@ def _handle_ai_extract(handler):
     # ── Step 2: Google Search fallback (page blocked or all else failed) ────
     if page_blocked:
         reason = fetch_err or 'bot_blocked'
-        canonical = _canonicalize_url(url)
+        canonical = canonical_for_cache  # already computed above
         if canonical != url:
             print(f'[AI] canonicalized URL for search: {canonical!r}')
         print(f'[AI] using search fallback for {url!r} (reason: {reason})')
