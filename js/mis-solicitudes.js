@@ -1163,15 +1163,20 @@
           weightUnit:    _wUnitF,
         }) : null;
 
-        // Partial dimension validation
-        var _lF = _physF ? _physF.length_cm : parseFloat(_rawLen);
-        var _wF = _physF ? _physF.width_cm  : parseFloat(_rawWid);
-        var _hF = _physF ? _physF.height_cm : parseFloat(_rawHgt);
-        var _anyDimF = ((_lF != null && _lF > 0) || (_wF != null && _wF > 0) || (_hF != null && _hF > 0));
-        var _allDimF = ((_lF != null && _lF > 0) && (_wF != null && _wF > 0) && (_hF != null && _hF > 0));
-        if (_anyDimF && !_allDimF) {
+        // Partial dimension validation — raw-presence + strict positivity
+        var _lPresF = (_rawLen.trim() !== ''), _wPresF = (_rawWid.trim() !== ''), _hPresF = (_rawHgt.trim() !== '');
+        var _anyPresF = _lPresF || _wPresF || _hPresF;
+        var _allPresF = _lPresF && _wPresF && _hPresF;
+        var _lNumF = parseFloat(_rawLen), _wNumF = parseFloat(_rawWid), _hNumF = parseFloat(_rawHgt);
+        var _dimErrF = '';
+        if (_anyPresF && !_allPresF) {
+          _dimErrF = 'Si ingresas dimensiones, completa los tres campos: largo, ancho y alto.';
+        } else if (_allPresF && (isNaN(_lNumF) || _lNumF <= 0 || isNaN(_wNumF) || _wNumF <= 0 || isNaN(_hNumF) || _hNumF <= 0)) {
+          _dimErrF = 'Las dimensiones deben ser números mayores a cero.';
+        }
+        if (_dimErrF) {
           if (errorMsg) {
-            errorMsg.textContent = 'Si ingresas dimensiones, completa los tres campos: largo, ancho y alto.';
+            errorMsg.textContent = _dimErrF;
             errorMsg.classList.remove('hidden');
           }
           return;

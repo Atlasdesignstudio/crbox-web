@@ -1633,18 +1633,21 @@
                 }
             }
 
-            // Validate dimensions: all three or none — validate before blocking submit
+            // Validate dimensions: all three or none; each must be a positive number if provided
             const errDims = document.getElementById('err-dims');
-            const _UC_v   = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
-            const _wUnitV = _cotizarWeightToggle ? _cotizarWeightToggle.getUnit() : 'kg';
-            const _dUnitV = _cotizarDimToggle    ? _cotizarDimToggle.getUnit()    : 'cm';
-            const _lv = _UC_v ? _UC_v.toCanonical(fLength.value, 'dim', _dUnitV) : parseFloat(fLength.value);
-            const _wv = _UC_v ? _UC_v.toCanonical(fWidth.value,  'dim', _dUnitV) : parseFloat(fWidth.value);
-            const _hv = _UC_v ? _UC_v.toCanonical(fHeight.value, 'dim', _dUnitV) : parseFloat(fHeight.value);
-            const _anyDim = ((_lv != null && _lv > 0) || (_wv != null && _wv > 0) || (_hv != null && _hv > 0));
-            const _allDim = ((_lv != null && _lv > 0) && (_wv != null && _wv > 0) && (_hv != null && _hv > 0));
-            if (_anyDim && !_allDim) {
-                if (errDims) { errDims.textContent = 'Si ingresas dimensiones, completa los tres campos (largo, ancho y alto).'; errDims.classList.remove('hidden'); }
+            const _lRaw = (fLength.value || '').trim(), _wRaw = (fWidth.value || '').trim(), _hRaw = (fHeight.value || '').trim();
+            const _lPresent = _lRaw !== '', _wPresent = _wRaw !== '', _hPresent = _hRaw !== '';
+            const _anyPresent = _lPresent || _wPresent || _hPresent;
+            const _allPresent = _lPresent && _wPresent && _hPresent;
+            const _lNum = parseFloat(_lRaw), _wNum = parseFloat(_wRaw), _hNum = parseFloat(_hRaw);
+            let dimErrMsg = '';
+            if (_anyPresent && !_allPresent) {
+                dimErrMsg = 'Si ingresas dimensiones, completa los tres campos (largo, ancho y alto).';
+            } else if (_allPresent && (isNaN(_lNum) || _lNum <= 0 || isNaN(_wNum) || _wNum <= 0 || isNaN(_hNum) || _hNum <= 0)) {
+                dimErrMsg = 'Las dimensiones deben ser números mayores a cero.';
+            }
+            if (dimErrMsg) {
+                if (errDims) { errDims.textContent = dimErrMsg; errDims.classList.remove('hidden'); }
                 valid = false;
             } else {
                 if (errDims) errDims.classList.add('hidden');

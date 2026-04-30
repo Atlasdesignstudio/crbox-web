@@ -1565,22 +1565,30 @@
             const rawW   = phys ? (phys.width_cm  || 0) : (parseFloat($('modal-width').value)  || 0);
             const rawH   = phys ? (phys.height_cm || 0) : (parseFloat($('modal-height').value) || 0);
 
-            // Partial dimension validation
+            // Partial dimension validation — raw-presence check
             const dimErrEl = $('modal-dim-error');
-            const anyDim = rawL > 0 || rawW > 0 || rawH > 0;
-            const allDim = rawL > 0 && rawW > 0 && rawH > 0;
-            const dimError = anyDim && !allDim;
+            const _dimLRaw = ($('modal-length').value || '').trim();
+            const _dimWRaw = ($('modal-width').value  || '').trim();
+            const _dimHRaw = ($('modal-height').value || '').trim();
+            const _dimAny = _dimLRaw !== '' || _dimWRaw !== '' || _dimHRaw !== '';
+            const _dimAll = _dimLRaw !== '' && _dimWRaw !== '' && _dimHRaw !== '';
+            let dimErrMsg = '';
+            if (_dimAny && !_dimAll) {
+                dimErrMsg = 'Si ingresas dimensiones, completa largo, ancho y alto.';
+            } else if (_dimAll && (rawL <= 0 || rawW <= 0 || rawH <= 0)) {
+                dimErrMsg = 'Las dimensiones deben ser números mayores a cero.';
+            }
             if (dimErrEl) {
-                if (dimError) { dimErrEl.textContent = 'Si ingresas dimensiones, completa largo, ancho y alto.'; dimErrEl.classList.remove('hidden'); }
-                else          { dimErrEl.classList.add('hidden'); }
+                if (dimErrMsg) { dimErrEl.textContent = dimErrMsg; dimErrEl.classList.remove('hidden'); }
+                else           { dimErrEl.classList.add('hidden'); }
             }
 
             const errors = [];
-            if (!name)      errors.push('El nombre del producto es obligatorio.');
-            if (value <= 0) errors.push('El valor declarado debe ser mayor a $0.');
+            if (!name)       errors.push('El nombre del producto es obligatorio.');
+            if (value <= 0)  errors.push('El valor declarado debe ser mayor a $0.');
             if (weight <= 0) errors.push('El peso real debe ser mayor a 0.');
-            if (!category)  errors.push('Selecciona una categoría de producto.');
-            if (dimError)   errors.push('Si ingresas dimensiones, completa los tres campos.');
+            if (!category)   errors.push('Selecciona una categoría de producto.');
+            if (dimErrMsg)   errors.push(dimErrMsg);
 
             if (errors.length) {
                 const errEl = $('modal-error');

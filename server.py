@@ -1103,21 +1103,31 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
     cas_val = f(casillero_id, 'Sin casillero (público)')
     name_val = f(customer_name, 'Anónimo')
 
-    # Weight: show canonical kg value + note if user entered in lb
-    if weight_kg is not None:
-        weight_val = f'{weight_kg} kg'
-        if weight_input and weight_unit and weight_unit == 'lb':
-            weight_val += f' (entrado: {weight_input} lb)'
-    else:
-        weight_val = 'No especificado'
+    # Build a single concise physical-data line, e.g. "30 × 20 × 15 cm / 2.5 kg"
+    # with a brief parenthetical when the user entered non-canonical units.
+    has_dims = length_cm is not None and width_cm is not None and height_cm is not None
+    has_wgt  = weight_kg is not None
+    _dims_in_inches = dimension_unit == 'in' if dimension_unit else False
+    _wgt_in_lb      = weight_unit == 'lb' if weight_unit else False
 
-    # Dimensions: show canonical cm values + note if user entered in inches
-    if length_cm is not None and width_cm is not None and height_cm is not None:
-        dims_val = f'{length_cm} × {width_cm} × {height_cm} cm'
-        if dimension_unit and dimension_unit == 'in':
-            dims_val += ' (entrado en pulgadas)'
+    if has_dims and has_wgt:
+        _phys_line = f'{length_cm} × {width_cm} × {height_cm} cm / {weight_kg} kg'
+        if _dims_in_inches and _wgt_in_lb:
+            _phys_line += ' (entrado en pulgadas y lb)'
+        elif _dims_in_inches:
+            _phys_line += ' (entrado en pulgadas)'
+        elif _wgt_in_lb:
+            _phys_line += ' (entrado en lb)'
+    elif has_dims:
+        _phys_line = f'{length_cm} × {width_cm} × {height_cm} cm'
+        if _dims_in_inches:
+            _phys_line += ' (entrado en pulgadas)'
+    elif has_wgt:
+        _phys_line = f'{weight_kg} kg'
+        if _wgt_in_lb:
+            _phys_line += ' (entrado en lb)'
     else:
-        dims_val = 'No especificadas'
+        _phys_line = 'No especificado'
 
     ds_label = {'manual': 'Manual', 'ai_extracted': 'AI-extraído (verificado por usuario)',
                 'ai_partial': 'AI-parcial (verificado por usuario)'}.get(data_source, 'Manual')
@@ -1144,8 +1154,7 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
         f'URL: {url_val}\n'
         f'Valor declarado: ${declared_value_usd:,.2f} USD\n'
         f'Categoría: {category}\n'
-        f'Peso aproximado: {weight_val}\n'
-        f'Dimensiones: {dims_val}\n'
+        f'Datos físicos: {_phys_line}\n'
         f'Origen del datos: {ds_label}\n'
         f'─────────────────────────\n'
         f'ENVÍO\n'
@@ -1212,7 +1221,7 @@ def _plain_to_sales_html(body_text, scb_id, account_type):
 
     sections = {
         'DATOS DEL CLIENTE': ['Nombre:', 'Email:', 'Casillero:', 'Tipo de cuenta:'],
-        'DATOS DEL PRODUCTO': ['Nombre del producto:', 'URL:', 'Valor declarado:', 'Categoría:', 'Peso aproximado:', 'Dimensiones:', 'Origen del datos:'],
+        'DATOS DEL PRODUCTO': ['Nombre del producto:', 'URL:', 'Valor declarado:', 'Categoría:', 'Datos físicos:', 'Origen del datos:'],
         'ENVÍO': ['Servicio:', 'Destino:', 'Estimado de envío:'],
     }
 
