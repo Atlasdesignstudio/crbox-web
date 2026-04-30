@@ -1,0 +1,269 @@
+I want a full UI/UX modernization pass on the internal sales / quote admin panel — the panel where incoming cotizaciones arrive and where the internal team reviews, updates, and responds to them.
+
+## Very important constraint
+This is not a backend rewrite and not a logic redesign.
+
+I want:
+- the existing logic preserved
+- the existing data preserved
+- the existing actions and workflows preserved
+- the existing states preserved
+- the existing quote-response functionality preserved
+
+But I want the UI/UX layer to be significantly modernized so the panel stops feeling like a raw color-coded spreadsheet and becomes a much more usable, readable, operational internal tool.
+
+Think:
+- same logic
+- much better interface
+- much better information hierarchy
+- much better internal usability
+
+---
+
+## Core objective
+Transform the current quote admin panel from a basic, Excel-like table into a more modern internal operations dashboard for the CRBOX sales/quoting team.
+
+It should feel:
+- clearer
+- more modern
+- more structured
+- more searchable
+- more scannable
+- more operationally useful
+- more trustworthy for day-to-day internal use
+
+This applies to:
+
+1. the main quotes list / sales panel
+2. the individual quote detail / response page
+3. the internal quote handling experience overall
+
+---
+
+## What I want improved
+
+### 1. Main sales panel / quote list view
+Right now it feels too much like a raw spreadsheet.
+
+I want it to become a much more user-friendly internal dashboard.
+
+### It should include:
+- a clearer page structure
+- better hierarchy
+- cleaner table design
+- easier scanning
+- better use of whitespace
+- better filtering/search
+- clearer states/statuses
+- stronger visual grouping
+
+### Important operational improvements:
+I want the team to be able to search/filter quotes more easily by things like:
+- casillero number
+- customer name
+- email
+- status
+- date / recency
+- maybe service type if that already exists in the data
+
+Do not invent fake filters if the data does not exist, but if the data is already there, surface it much better.
+
+---
+
+### 2. Dashboard-like summary at the top
+I want the panel to feel more like a true internal workspace.
+
+So above the table/list, add a compact but useful summary layer that helps the team understand what is happening operationally.
+
+Examples of what I mean:
+- total quotes
+- new / pending quotes
+- in review
+- answered
+- closed / completed
+- any other real states that already exist in the logic
+
+This should not be fake analytics.  
+It should be based on the real quote data and real statuses already present in the system.
+
+The goal is that an internal user can instantly understand:
+- how many quotes exist
+- what state they are in
+- what needs attention
+
+This should feel like a modern internal ops dashboard, not a spreadsheet header.
+
+---
+
+### 3. Better table / list UX
+The main quotes table/list must become significantly easier to use.
+
+I want:
+- better column hierarchy
+- cleaner row spacing
+- clearer status treatment
+- clearer primary info vs secondary info
+- better readability
+- less visual noise
+- more intentional use of color
+
+The current panel should stop looking like “an Excel with colors”.
+
+### Make sure:
+- important fields stand out
+- less important metadata is visually quieter
+- statuses are easy to read
+- rows feel like operational records, not raw raw data dumps
+
+### Good direction:
+- modern admin / ops UI
+- soft cards/table wrappers
+- clean status badges
+- improved header row
+- sticky table header if useful
+- hover state for rows
+- better row/action affordances
+
+---
+
+### 4. Search + filtering must feel native
+This is important.
+
+I want the quote panel to feel easy to operate, not like a dump of rows.
+
+So improve:
+- search box
+- filters
+- active filter visibility
+- reset/clear filters behavior
+- result count feedback
+
+### Search examples to support if possible from existing fields:
+- casillero
+- customer name
+- email
+- quote number / ID
+- maybe product / article reference if already present
+
+If global search already exists, improve its usability and clarity.
+If it does not exist but the data is already available client-side/server-side, add it in a way that fits the existing logic.
+
+---
+
+### 5. Individual quote detail page / response view
+This is equally important.
+
+Once someone opens a quote, the quote detail page and the internal response area should feel much more modern and usable.
+
+Right now I want this whole area to feel:
+- clearer
+- more premium
+- more structured
+- less old-school admin
+- easier to read and act on
+
+### Improve:
+- information hierarchy
+- customer info block
+- product / quote request block
+- internal response section
+- quote status section
+- action buttons
+- spacing and layout rhythm
+
+### The internal user should quickly understand:
+- who sent the quote
+- what they want
+- key request details
+- what has already been done
+- what status it is in
+- what action should be taken next
+
+---
+
+### 6. Keep all existing functionality
+Again, very important:
+
+Do not break or redesign the underlying logic.
+
+This is a UI/UX modernization, not a workflow rewrite.
+
+That means:
+- no backend contract changes unless strictly necessary for presentation
+- no status model rewrite
+- no action rewrite
+- no response-flow rewrite
+- no hidden functional regressions
+
+If something must be slightly reorganized visually, that is fine.  
+But the tool should still do exactly what it already does — only much better.
+
+---
+
+## Design direction
+The internal sales panel should feel like a modern operational interface.
+
+Not flashy.  
+Not consumer-facing.  
+Not a marketing page.
+
+But also not ugly, raw, or spreadsheet-like.
+
+### I want:
+- modern internal admin aesthetic
+- strong clarity
+- soft but professional cards
+- clean dashboards
+- subtle shadows / borders
+- good typography hierarchy
+- clear status badges
+- modern controls
+- consistent spacing
+- responsive structure where relevant
+
+### Avoid:
+- overdesigned visuals
+- fake dashboard widgets
+- unnecessary charts if they do not help
+- aggressive color overload
+- clutter
+- redesigning for the sake of redesigning
+
+---
+
+## Scope
+Apply this modernization to the full quote sales panel experience, from top-level list view to individual quote detail view.
+
+This is specifically for the internal quote logistics / sales handling workflow.
+
+---
+
+## Deliverable expectation
+I want you to:
+1. inspect the current internal quote panel structure
+2. identify what can be modernized without touching logic
+3. redesign the UI layer in a modern, operationally useful way
+4. preserve all existing behaviors
+5. make it significantly more user-friendly for the internal CRBOX team
+
+---
+
+## Done looks like
+- the sales quote admin panel no longer feels like a colored spreadsheet
+- the top area gives a quick real operational overview
+- searching and filtering are much easier
+- statuses are much clearer
+- the main list/table is cleaner and more modern
+- the quote detail page is much more structured and easier to use
+- the internal response area feels modern and intentional
+- everything still works exactly as before at the logic level
+
+---
+
+## Please report back with
+1. what parts of the current panel were preserved exactly
+2. what UI/UX improvements were made to the main list view
+3. what search/filter improvements were added
+4. what real dashboard/summary layer was added
+5. what was improved in the quote detail / response page
+6. confirmation that no core logic/workflow was broken
