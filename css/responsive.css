@@ -610,9 +610,6 @@
 @media (max-width: 768px) {
 
   /* ---- Portal tab strip: equal-width, stacked icon+label on mobile ---- */
-  .sticky.top-16.z-30 {
-    top: 56px !important;
-  }
   .sticky.top-16.z-30 .flex.overflow-x-auto {
     overflow-x: visible;
   }

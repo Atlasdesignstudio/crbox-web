@@ -186,7 +186,7 @@
 </header>
 
     <!-- Dashboard Navigation Tabs -->
-    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-16 z-30">
+    <div class="bg-white border-b border-gray-200 shadow-sm sticky z-30" style="top: var(--portal-header-h, 64px)">
         <nav class="portal-tab-nav" aria-label="Portal navigation">
             <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
             <a href="mis-paquetes.html" aria-current="page"><i class="fas fa-box"></i><span class="tab-prefix">Mis </span>Paquetes</a>
@@ -1604,7 +1604,7 @@
             const copyAddressBtn = document.getElementById('copy-address-btn');
             if (copyAddressBtn) {
                 copyAddressBtn.addEventListener('click', function() {
-                    const address = (_cachedFullName || 'CRBOX Cliente') + "\n8155 NW 68TH ST\nMiami, FL 33166\nUSA\nCasillero: " + (_cachedCasilleroNum || '');
+                    const address = (_cachedFullName || 'CRBOX Cliente') + "\n8155 NW 68TH ST\nMiami, FL 33195\nUSA\nCasillero: " + (_cachedCasilleroNum || '');
                     copyToClipboard(address);
                     showToast('Dirección completa copiada al portapapeles', 'success');
                 });
@@ -3321,5 +3321,6 @@
       };
     }());
     </script>
+    <script src="js/portal-nav-offset.js"></script>
 </body>
 </html>

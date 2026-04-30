@@ -402,7 +402,7 @@ function initCopyFunctions() {
             const address = "8155 NW 68TH ST";
             const city = "Miami";
             const state = "Florida";
-            const zip = "33166";
+            const zip = "33195";
             const phone = "305 882 1718";
 
             const fullAddress = `${name}\n${address}\n${city}, ${state} ${zip}\n${phone}` + (casillero ? `\nCasillero: ${casillero}` : '');
