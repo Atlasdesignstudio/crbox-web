@@ -3683,6 +3683,14 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,s
   background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}}
 .adl-alert-block{{background:#FFF7ED;color:#C2410C;border-color:#FDBA74}}
 .adl-alert-expired{{background:#EFF6FF;color:#1E40AF;border:1px solid #BFDBFE}}
+.adl-pwd-wrap{{position:relative}}
+.adl-pwd-wrap .adl-input{{padding-right:46px}}
+.adl-eye{{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;padding:4px;color:#9ca3af;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:4px;transition:color .2s}}
+.adl-eye:hover{{color:#FF6B00}}
+.adl-eye svg{{width:20px;height:20px;display:block}}
 </style>
 </head>
 <body>
@@ -3696,13 +3704,37 @@ body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,s
     <form method="POST" action="/admin/login">
       <input type="text" name="username" value="admin" autocomplete="username" style="display:none" aria-hidden="true">
       <label class="adl-label" for="pwd">Contraseña</label>
-      <input class="adl-input" type="password" id="pwd" name="password"
-             autofocus required placeholder="Ingresa la contraseña" maxlength="200"
-             autocomplete="current-password">
+      <div class="adl-pwd-wrap">
+        <input class="adl-input" type="password" id="pwd" name="password"
+               autofocus required placeholder="Ingresa la contraseña" maxlength="200"
+               autocomplete="current-password">
+        <button class="adl-eye" type="button" id="adl-toggle-eye"
+                onclick="togglePwd()" aria-label="Mostrar u ocultar contraseña">
+          <svg id="adl-eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
       <button class="adl-btn" type="submit">Ingresar</button>
     </form>
   </div>
 </div>
+<script>
+function togglePwd() {{
+  var inp = document.getElementById('pwd');
+  var icon = document.getElementById('adl-eye-icon');
+  var showing = inp.type === 'text';
+  inp.type = showing ? 'password' : 'text';
+  icon.innerHTML = showing
+    ? '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'
+    : '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>'
+      + '<path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>'
+      + '<line x1="1" y1="1" x2="23" y2="23"/>';
+}}
+</script>
 </body>
 </html>'''
 
