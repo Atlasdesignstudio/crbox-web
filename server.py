@@ -1131,16 +1131,45 @@ def _call_gemini_search_fallback(url):
             config=_gtypes.GenerateContentConfig(
                 tools=[_gtypes.Tool(google_search=_gtypes.GoogleSearch())],
                 temperature=0.1,
-                max_output_tokens=512,
+                max_output_tokens=1024,
             ),
         )
-        text = (response.text or '').strip()
+        try:
+            text = (response.text or '').strip()
+        except Exception:
+            # response.text raises ValueError when there are no text parts; try reading parts directly
+            text = ''
+            try:
+                cand = response.candidates[0] if response.candidates else None
+                if cand and hasattr(cand, 'content') and cand.content:
+                    text = ''.join(
+                        getattr(p, 'text', '') or ''
+                        for p in (cand.content.parts or [])
+                    ).strip()
+            except Exception:
+                pass
+
         if not text:
+            # Log candidate details to help diagnose empty responses
+            try:
+                cand = response.candidates[0] if response.candidates else None
+                reason = str(getattr(cand, 'finish_reason', 'unknown')) if cand else 'no candidates'
+                parts_info = []
+                if cand and hasattr(cand, 'content') and cand.content:
+                    for p in (cand.content.parts or []):
+                        parts_info.append(str(type(p).__name__) + ':' + repr(str(p))[:80])
+                print(f'[AI] search fallback empty — finish_reason={reason} parts={parts_info}')
+            except Exception as _diag_ex:
+                print(f'[AI] search fallback empty — diag error: {_diag_ex}')
             return None, 'Empty response from search fallback'
         if text.startswith('```'):
-            text = text.split('\n', 1)[-1] if '\n' in text else text[3:]
+            text = re.sub(r'^```[a-z]*\n?', '', text)
         if text.endswith('```'):
             text = text[:-3].rstrip()
+        # Strip anything before first '{' in case the model prepended text
+        brace = text.find('{')
+        if brace > 0:
+            text = text[brace:]
         return json.loads(text), None
     except json.JSONDecodeError as ex:
         return None, f'JSON parse error in search fallback: {ex}'
