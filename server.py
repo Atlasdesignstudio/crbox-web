@@ -6516,7 +6516,7 @@ _CSP_POLICY = (
     "connect-src 'self' https://clients.crbox.cr "
     "https://generativelanguage.googleapis.com "
     "https://www.googletagmanager.com https://www.google-analytics.com; "
-    "frame-src 'none'; "
+    "frame-src https://www.googletagmanager.com https://maps.google.com https://www.google.com; "
     "frame-ancestors 'none'; "
     "object-src 'none'"
 )
