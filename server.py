@@ -5511,8 +5511,7 @@ a{{color:inherit;text-decoration:none}}
 .adm-table{{width:100%;border-collapse:collapse}}
 .adm-table thead th{{background:var(--clr-slate50);padding:10px 14px;text-align:left;
   font-size:10px;font-weight:700;color:var(--clr-slate400);text-transform:uppercase;
-  letter-spacing:.07em;border-bottom:1px solid var(--clr-slate200);white-space:nowrap;
-  position:sticky;top:52px;z-index:5}}
+  letter-spacing:.07em;border-bottom:1px solid var(--clr-slate200);white-space:nowrap}}
 .adm-table td{{padding:13px 14px;border-bottom:1px solid var(--clr-slate100);vertical-align:top}}
 .adm-table .adm-tr:last-child td{{border-bottom:none}}
 .adm-table .adm-tr{{transition:background .12s}}
@@ -5835,7 +5834,6 @@ a{{color:inherit;text-decoration:none}}
       if (el) el.style.display = v === view ? '' : 'none';
       if (btn) btn.classList.toggle('active', v === view);
     }});
-    _syncStickyThead();
   }};
   setView(_currentView);
 
@@ -5904,18 +5902,6 @@ a{{color:inherit;text-decoration:none}}
     row.hidden = !isOpen;
     if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
   }};
-
-  /* ── Sticky thead sync ── */
-  function _syncStickyThead() {{
-    var outer = document.querySelector('.adm-filter-outer');
-    var ths = document.querySelectorAll('.adm-table thead th');
-    if (!ths.length) return;
-    var outerH = outer ? outer.offsetHeight : 0;
-    var top = 52 + outerH;
-    ths.forEach(function(th) {{ th.style.top = top + 'px'; }});
-  }}
-  window.addEventListener('load', _syncStickyThead);
-  window.addEventListener('resize', _syncStickyThead);
 
   /* ── URL param handling ── */
   var params = new URLSearchParams(window.location.search);
