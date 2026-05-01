@@ -328,6 +328,25 @@
       '</div>' +
     '</div>';
 
+    /* ── Card-level amber banner when any grouped package changed status ── */
+    if (!isReadOnly && cnt > 0) {
+      var changedPkgs = (group.packages || []).filter(function (p) {
+        var livePkg = _liveLookup[_pid(p.idwarehousereceipt)];
+        var sid = livePkg ? livePkg.statusId : p.statusId;
+        return (sid !== undefined && sid !== null && sid !== 1);
+      });
+      if (changedPkgs.length > 0) {
+        html += '<div style="margin:0 1.25rem 0.75rem;background:#fffbeb;border:1px solid #fbbf24;' +
+          'border-radius:0.6rem;padding:0.6rem 0.9rem;display:flex;align-items:flex-start;gap:0.6rem;">' +
+          '<i class="fas fa-exclamation-triangle" style="color:#d97706;flex-shrink:0;margin-top:0.15rem"></i>' +
+          '<div style="font-size:0.82rem;color:#92400e;">' +
+            '<strong>' + changedPkgs.length + (changedPkgs.length === 1 ? ' paquete' : ' paquetes') + ' cambió de estado.</strong> ' +
+            'Uno o más paquetes en este grupo ya no están en Miami. Verifica con CRBOX antes de continuar.' +
+          '</div>' +
+        '</div>';
+      }
+    }
+
     /* ── Packages in group ── */
     if (cnt > 0) {
       html += '<div class="ej-pkg-list"' + (isExpanded ? '' : ' style="display:none"') + '>';
