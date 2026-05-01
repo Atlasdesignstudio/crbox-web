@@ -303,6 +303,43 @@
 #crbox-chat-send:disabled { background: #e5e7eb; cursor: not-allowed; }
 #crbox-chat-send:focus-visible { box-shadow: 0 0 0 3px rgba(255,107,0,.35); }
 
+/* ── FAQ quick-tap pills ──────────────────────────────────────────────────── */
+#crbox-faq-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  padding: .1rem 0 .25rem;
+  animation: crbox-msg-in .3s ease both;
+}
+.crbox-faq-pill {
+  background: #fff;
+  border: 1.5px solid #fed7aa;
+  color: #c2410c;
+  border-radius: 999px;
+  padding: .42rem .85rem;
+  font-size: .8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  line-height: 1.35;
+  transition: background .15s, border-color .15s, transform .1s;
+  text-align: left;
+  outline: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.crbox-faq-pill:hover {
+  background: #fff7ed;
+  border-color: #FF6B00;
+}
+.crbox-faq-pill:active {
+  transform: scale(.95);
+  background: #ffedd5;
+}
+.crbox-faq-pill:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255,107,0,.3);
+}
+
 /* ── Inline calculator widget ─────────────────────────────────────────────── */
 .crbox-widget-calc {
   background: #fff;

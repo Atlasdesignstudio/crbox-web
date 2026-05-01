@@ -150,6 +150,39 @@
     if (dot) dot.classList.remove('visible');
   }
 
+  // ── FAQ pills ─────────────────────────────────────────────────────────────
+  var FAQ_PILLS = [
+    '¿Cuánto cuesta un envío?',
+    '¿Cómo funciona el casillero?',
+    '¿Cuánto tarda en llegar?',
+    '¿Cómo rastreo mi paquete?'
+  ];
+
+  function _removeFAQPills() {
+    var existing = document.getElementById('crbox-faq-pills');
+    if (existing) existing.parentNode.removeChild(existing);
+  }
+
+  function _appendFAQPills() {
+    _removeFAQPills();
+    var wrap = document.createElement('div');
+    wrap.id = 'crbox-faq-pills';
+    FAQ_PILLS.forEach(function (q) {
+      var btn = document.createElement('button');
+      btn.className = 'crbox-faq-pill';
+      btn.textContent = q;
+      btn.type = 'button';
+      btn.addEventListener('click', function () {
+        _removeFAQPills();
+        $input.value = q;
+        _sendMessage();
+      });
+      wrap.appendChild(btn);
+    });
+    $messages.insertBefore(wrap, $typing);
+    _scrollBottom();
+  }
+
   // ── Greeting — uses CRBOX_KNOWLEDGE.page_map when available ─────────────
   function _scheduleGreeting() {
     setTimeout(function () {
@@ -159,6 +192,7 @@
       var msg = _greetingForPage(slug);
       if (!_open) _showDot();
       _appendAIMessage(msg);
+      _appendFAQPills();
     }, GREETING_DELAY);
   }
 
@@ -294,6 +328,7 @@
     var text = $input.value.trim();
     if (!text || _pending) return;
 
+    _removeFAQPills();
     _openPanel();
     _appendUserMessage(text);
     _history.push({ role: 'user', text: text });
