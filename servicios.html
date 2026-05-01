@@ -299,11 +299,43 @@
         @media (prefers-reduced-motion:reduce) {
             .logistics-flow, .logistics-pt-pulse, .logistics-dest-ring { animation:none !important; }
         }
+
+        /* ── Tablet & mobile: map card on top, copy below ── */
+        @media (max-width:1023px) {
+            .global-logistics-copy { order:2; }
+            .global-logistics-right { order:1; }
+        }
+
+        /* ── Phone ≤640px ── */
         @media (max-width:640px) {
-            .global-logistics-section { padding:52px 0; }
-            .route-chips-wrap { flex-wrap:nowrap; overflow-x:auto; padding-bottom:10px; }
-            .route-chips-wrap::-webkit-scrollbar { height:2px; }
-            .route-chips-wrap::-webkit-scrollbar-thumb { background:rgba(255,107,0,.4); border-radius:1px; }
+            .global-logistics-section { padding:44px 0; }
+
+            /* Full-width CTAs for easy tapping */
+            .global-logistics-ctas { flex-direction:column; gap:10px; margin:22px 0 16px; }
+            .gl-btn-primary, .gl-btn-secondary {
+                justify-content:center; width:100%; padding:13px 20px; font-size:.92rem;
+            }
+
+            /* Chips: wrap naturally (2–3 per row) instead of horizontal scroll */
+            .route-chips-wrap {
+                flex-wrap:wrap; overflow-x:visible;
+                padding:10px 12px; gap:6px;
+            }
+            .route-chip { font-size:11px; padding:5px 10px; }
+
+            /* Detail panel: no enforced min-height, tighter padding */
+            .route-detail-panel { min-height:auto; padding:12px 14px; }
+            .rdp-title { font-size:12.5px; }
+            .rdp-desc  { font-size:11.5px; }
+
+            /* Map labels: too small to read at phone scale — hide them.
+               The Costa Rica label (no class) stays visible. */
+            .logistics-label { opacity:0; pointer-events:none; }
+
+            /* Slightly larger origin dots for finger-friendliness */
+            .logistics-pt-dot  { r:4px; }
+            .logistics-pt-ring { r:6px; }
+            .logistics-pt-pulse{ r:5px; }
         }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
