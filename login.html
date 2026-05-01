@@ -158,27 +158,7 @@
                             
                             <!-- Error message placeholder -->
                             <div id="error-container" class="hidden bg-red-100 text-red-700 p-3 rounded mb-4"></div>
-                            
-                            <!-- Separador -->
-                            <div class="my-6 flex items-center">
-                                <div class="flex-grow border-t border-gray-300"></div>
-                                <span class="px-4 text-sm text-gray-500">O continúa con</span>
-                                <div class="flex-grow border-t border-gray-300"></div>
-                            </div>
-                            
-                            <!-- Botones de social login -->
-                            <div class="grid grid-cols-3 gap-4 mb-6">
-                                <button type="button" class="social-login-btn flex items-center justify-center py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors group">
-                                    <img src="img/google-icon.svg" alt="Google" class="h-5 w-5">
-                                </button>
-                                <button type="button" class="social-login-btn flex items-center justify-center py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors group">
-                                    <i class="fab fa-facebook-f text-blue-600"></i>
-                                </button>
-                                <button type="button" class="social-login-btn flex items-center justify-center py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors group">
-                                    <i class="fab fa-apple text-gray-800"></i>
-                                </button>
-                            </div>
-                            
+
                             <!-- Enlace a registro -->
                             <div class="text-center">
                                 <p class="text-gray-600">¿No tienes una cuenta? <a href="afiliate.html" class="text-orange-600 font-semibold hover:text-orange-800">Regístrate ahora</a></p>
@@ -507,29 +487,6 @@
             });
         }
         
-        // Manejo de login social
-        const socialButtons = document.querySelectorAll('.grid.grid-cols-3.gap-4 button, .px-4.py-2.flex.space-x-2 button, .social-login-btn');
-        socialButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Determinar el proveedor de login
-                let provider = 'desconocido';
-                if (this.querySelector('.fab.fa-facebook-f')) provider = 'facebook';
-                else if (this.querySelector('.fab.fa-apple')) provider = 'apple';
-                else if (this.querySelector('img[alt="Google"]')) provider = 'google';
-                
-                // Simular tiempo de carga
-                const originalHTML = this.innerHTML;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                this.disabled = true;
-                
-                // Redirigir a dashboard después de una breve pausa
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
-            });
-        });
         
         // Cierre del modal al hacer clic fuera
         window.addEventListener('click', function(e) {
