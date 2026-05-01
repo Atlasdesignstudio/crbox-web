@@ -217,6 +217,8 @@
     ];
     var order = steps.map(function (s) { return s.key; });
     var activeIdx = order.indexOf(currentStatus);
+    var stepNum  = activeIdx + 1;
+    var totalSteps = steps.length;
     var html = '<div class="ej-steps">';
     steps.forEach(function (s, i) {
       var isDone   = i < activeIdx;
@@ -228,7 +230,12 @@
         '</div>';
       if (i < steps.length - 1) html += '<div class="ej-step-connector"></div>';
     });
+    // Explicit "Paso X de Y" counter below the step strip
     html += '</div>';
+    if (activeIdx >= 0) {
+      html += '<p style="text-align:right;font-size:0.72rem;color:#7c3aed;font-weight:600;' +
+        'margin:-0.25rem 1.25rem 0.25rem;opacity:0.8">Paso ' + stepNum + ' de ' + totalSteps + '</p>';
+    }
     return html;
   }
 
@@ -295,9 +302,12 @@
           '<p class="ej-success-desc">Enviamos el detalle de este grupo a CRBOX. Nuestro equipo revisará las facturas y procesará los paquetes según disponibilidad operativa.</p>' +
           '<p class="text-xs text-green-600 mt-2">Enviado el ' + _fmtTs(group.confirmedAt) + '</p>' +
         '</div>' +
-        '<div class="mt-3 flex gap-2 justify-center">' +
+        '<div class="mt-3 flex gap-2 justify-center flex-wrap">' +
           '<button class="ej-btn ej-btn-outline ej-btn-sm ej-btn-view-summary" data-gid="' + _esc(group.id) + '">' +
             '<i class="fas fa-list"></i> <span class="ej-btn-label">Ver resumen</span>' +
+          '</button>' +
+          '<button class="ej-btn ej-btn-purple ej-btn-sm ej-btn-create-new">' +
+            '<i class="fas fa-plus"></i> <span class="ej-btn-label">Crear nuevo grupo</span>' +
           '</button>' +
         '</div>' +
       '</div>';
@@ -383,6 +393,7 @@
     var container = _el('ej-group-list-container');
     if (!container) return;
     var groups = getAllGroups();
+    var active  = getActiveGroups();
     if (groups.length === 0) {
       container.innerHTML =
         '<div class="ej-empty-state">' +
@@ -396,10 +407,32 @@
       var emptyBtn = _el('ej-create-btn-empty');
       if (emptyBtn) emptyBtn.addEventListener('click', openCreateModal);
     } else {
-      var html = '<div class="ej-group-list">';
+      // Summary bar: group count + shortcut when at least one active group exists
+      var summaryBar = '';
+      if (active.length > 0) {
+        summaryBar =
+          '<div class="ej-groups-summary-bar" style="display:flex;align-items:center;justify-content:space-between;' +
+            'padding:0.55rem 1.25rem;background:#f5f3ff;border-bottom:1px solid #ede9fe;font-size:0.85rem;">' +
+            '<span style="color:#5b21b6;font-weight:600;">' +
+              '<i class="fas fa-layer-group mr-1"></i> ' +
+              active.length + (active.length === 1 ? ' grupo activo' : ' grupos activos') +
+            '</span>' +
+            '<button class="ej-btn ej-btn-outline ej-btn-sm" id="ej-ver-mis-grupos-btn" style="font-size:0.78rem;padding:0.2rem 0.7rem">' +
+              '<i class="fas fa-chevron-down mr-1"></i>Ver mis grupos' +
+            '</button>' +
+          '</div>';
+      }
+      var html = summaryBar + '<div class="ej-group-list">';
       groups.forEach(function (g) { html += _renderGroupCard(g); });
       html += '</div>';
       container.innerHTML = html;
+      var verBtn = _el('ej-ver-mis-grupos-btn');
+      if (verBtn) {
+        verBtn.addEventListener('click', function () {
+          var firstCard = container.querySelector('.ej-group-card');
+          if (firstCard) firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
     }
     _updateDashboardCard();
   }
@@ -910,6 +943,9 @@
       /* View summary */
       btn = e.target.closest('.ej-btn-view-summary');
       if (btn) { openSummaryModal(btn.dataset.gid); return; }
+      /* Create new group (from confirmed card CTA) */
+      btn = e.target.closest('.ej-btn-create-new');
+      if (btn) { openCreateModal(); return; }
       /* Expand / collapse card package list */
       btn = e.target.closest('.ej-btn-toggle-card');
       if (btn) {
