@@ -5,6 +5,7 @@
     "phone": "+506-8979-4418",
     "whatsapp": "https://wa.me/50689794418",
     "email": "ventas@crbox.cr",
+    "facturas_email": "facturas@crbox.cr",
     "website": "https://crbox.cr",
     "experience_years": 20,
     "clients": 33000,
@@ -149,12 +150,31 @@
     "Regístrate gratis en crbox.cr y obtén tu dirección en Miami al instante",
     "Compra en cualquier tienda de USA (Amazon, Walmart, BestBuy, Target, Apple, Temu…)",
     "CRBOX te notifica cuando el paquete llega a la bodega en Miami",
+    "Sube la factura de compra en el portal del cliente en la sección 'Mis Paquetes', o envíala a facturas@crbox.cr — la factura es requerida por Aduanas",
     "El paquete llega a Costa Rica en 2–4 días hábiles después de salir de Miami"
   ],
   "faq": [
     {"q": "¿Cuánto cuesta el casillero?", "a": "Es 100% GRATIS. Sin cuota mensual ni costo de afiliación."},
-    {"q": "¿Puedo consolidar paquetes?", "a": "Sí. Puedes esperar varios paquetes y enviarlos juntos para ahorrar en flete."},
-    {"q": "¿Necesito factura?", "a": "Sí. La factura es requerida por Aduanas. CRBOX te la solicita."},
+    {
+      "q": "Mi paquete ya está en Miami / ya llegó a la bodega, ¿qué tengo que hacer?",
+      "a": "Si ya tienes cuenta en CRBOX (por ejemplo ya hiciste una solicitud de compra por encargo), entra al portal del cliente y sube la factura en la sección 'Mis Paquetes'. También puedes enviar la factura directamente a facturas@crbox.cr. La factura es obligatoria para que Aduanas autorice el ingreso a Costa Rica. Una vez que tenemos la factura, coordinamos el envío."
+    },
+    {
+      "q": "¿Cómo subo la factura de mi compra?",
+      "a": "Tienes dos opciones: 1) Entra al portal del cliente (crbox.cr), ve a 'Mis Paquetes' y adjunta la factura directamente en tu paquete. 2) Envía la factura por correo a facturas@crbox.cr indicando tu nombre y número de casillero."
+    },
+    {
+      "q": "¿Puedo consolidar varios paquetes? / Quiero enviar 5 paquetes juntos",
+      "a": "¡Sin problema! Si vas a recibir varios paquetes, no tienes que hacer nada especial de inmediato. Espera a que todos los paquetes lleguen a la bodega en Miami y aparezcan confirmados en tu portal (sección 'Mis Paquetes'). Una vez que todos estén registrados en el sistema, sube las facturas de todos al mismo tiempo. Así los consolidamos en un solo envío y ahorras en flete."
+    },
+    {
+      "q": "¿Puedo consolidar paquetes?",
+      "a": "Sí. Espera a que todos los paquetes estén confirmados en tu portal ('Mis Paquetes') y luego sube todas las facturas juntas. CRBOX los consolida en un solo envío para que ahorres en el costo de flete."
+    },
+    {
+      "q": "¿Necesito factura?",
+      "a": "Sí, la factura es obligatoria por requerimiento de Aduanas de Costa Rica. Puedes subirla en el portal del cliente en 'Mis Paquetes' o enviarla a facturas@crbox.cr."
+    },
     {"q": "¿Cuál es el valor máximo por paquete?", "a": "$1,000 para envíos aéreos estándar. Valores mayores requieren manejo especial."},
     {"q": "¿Puedo pagar en colones?", "a": "Sí. El pago se puede realizar en colones al tipo de cambio vigente."},
     {"q": "¿Cómo funciona la compra por encargo?", "a": "Llenas el formulario en cotizar.html con tu nombre, email y el link del producto. CRBOX te contacta con precio y pasos a seguir."},
