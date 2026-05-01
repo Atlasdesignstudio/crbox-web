@@ -1,0 +1,174 @@
+{
+  "company": {
+    "name": "CRBOX",
+    "tagline": "Tu casillero virtual gratuito en Miami",
+    "phone": "+506-8979-4418",
+    "whatsapp": "https://wa.me/50689794418",
+    "email": "ventas@crbox.cr",
+    "website": "https://crbox.cr",
+    "experience_years": 20,
+    "clients": 33000,
+    "shipments": 586000
+  },
+  "branches": [
+    {
+      "name": "Sabana Norte (oficina principal)",
+      "address": "50m al Oeste del ICE, Torres del Parque, planta baja, Local #6, Sabana Norte, San José",
+      "hours_weekday": "Lunes–Viernes 7:00–16:30",
+      "hours_saturday": "Sábado 9:00–12:30"
+    },
+    {
+      "name": "Calle Blancos",
+      "address": "Calle Blancos, San José, Costa Rica",
+      "hours_weekday": "Consultar por WhatsApp"
+    }
+  ],
+  "services": {
+    "casillero": {
+      "name": "Casillero Virtual",
+      "description": "Dirección física permanente en Miami. 100% GRATIS — sin cuota mensual ni costo de inscripción. Recibe notificaciones cuando llega un paquete.",
+      "cost": "GRATIS",
+      "url": "servicios.html#casillero"
+    },
+    "compras_encargo": {
+      "name": "Compras por Encargo",
+      "description": "CRBOX realiza la compra en cualquier tienda de USA. No necesitas tarjeta internacional.",
+      "url": "servicios.html#compras",
+      "quote_url": "cotizar.html"
+    },
+    "carga_aerea": {
+      "name": "Carga Aérea",
+      "description": "Envíos express Miami→Costa Rica. Tiempo: 2–4 días hábiles.",
+      "transit_days": "2–4 días hábiles",
+      "url": "servicios.html#carga-aerea"
+    },
+    "carga_maritima": {
+      "name": "Carga Marítima",
+      "description": "Envíos económicos para cargas grandes o pesadas. Tiempo: 6–7 días hábiles.",
+      "transit_days": "6–7 días hábiles",
+      "url": "servicios.html#carga-maritima"
+    }
+  },
+  "air_rates_usd": {
+    "table": [
+      {"kg": 0.5, "usd": 5},
+      {"kg": 1,   "usd": 7},
+      {"kg": 2,   "usd": 11},
+      {"kg": 3,   "usd": 15},
+      {"kg": 4,   "usd": 19},
+      {"kg": 5,   "usd": 23},
+      {"kg": 6,   "usd": 27},
+      {"kg": 7,   "usd": 32},
+      {"kg": 8,   "usd": 36},
+      {"kg": 9,   "usd": 40},
+      {"kg": 10,  "usd": 44},
+      {"kg": 11,  "usd": 48},
+      {"kg": 12,  "usd": 52},
+      {"kg": 13,  "usd": 56},
+      {"kg": 14,  "usd": 60},
+      {"kg": 15,  "usd": 64},
+      {"kg": 20,  "usd": 84}
+    ],
+    "over_20kg": "$84 + $3/kg sobre 20",
+    "over_100kg": "tarifa especial — consultar",
+    "fuel_surcharge_pct": 19,
+    "insurance_per_100_usd": 1,
+    "volumetric_formula": "(largo × ancho × alto cm) / 6000 — se cobra el mayor entre peso real y volumétrico"
+  },
+  "handling_fees_usd": [
+    {"value_from": 0,    "value_to": 20,   "fee": 1.50},
+    {"value_from": 20,   "value_to": 30,   "fee": 3.50},
+    {"value_from": 30,   "value_to": 50,   "fee": 5.50},
+    {"value_from": 50,   "value_to": 100,  "fee": 7.00},
+    {"value_from": 100,  "value_to": 200,  "fee": 14.00},
+    {"value_from": 200,  "value_to": 250,  "fee": 25.00},
+    {"value_from": 250,  "value_to": 500,  "fee": 35.00},
+    {"value_from": 500,  "value_to": 1000, "fee": 45.00},
+    {"value_from": 1000, "value_to": 2500, "fee": 100.00},
+    {"value_from": 2500, "value_to": null, "fee": "ver tarifas.html"}
+  ],
+  "delivery_fees_usd": {
+    "san_jose_heredia_alajuela": [
+      {"max_kg": 10, "fee": 5},
+      {"max_kg": 20, "fee": 7},
+      {"max_kg": 50, "fee": 12},
+      {"max_kg": null,"fee": 15}
+    ],
+    "cartago": [
+      {"max_kg": 10, "fee": 10},
+      {"max_kg": 20, "fee": 15},
+      {"max_kg": 50, "fee": 18},
+      {"max_kg": null,"fee": 20}
+    ],
+    "provinces_remote": [
+      {"max_kg": 10, "fee": 15},
+      {"max_kg": 20, "fee": 20},
+      {"max_kg": 50, "fee": 25},
+      {"max_kg": null,"fee": 30}
+    ],
+    "pickup_free": true,
+    "pickup_note": "Retiro gratuito en sucursales de Sabana Norte y Calle Blancos"
+  },
+  "compliance": {
+    "prohibited": [
+      "Armas de fuego, municiones, explosivos",
+      "Fuegos artificiales",
+      "Drogas ilegales",
+      "Mercancía falsificada / piratería",
+      "Vida silvestre protegida (marfil, especies CITES)",
+      "Materiales tóxicos o peligrosos sin etiqueta"
+    ],
+    "restricted": [
+      {"item": "Suplementos / proteína en polvo", "note": "Requiere registro sanitario del Ministerio de Salud", "agency": "Ministerio de Salud"},
+      {"item": "Medicamentos / fármacos", "note": "Requiere receta médica + registro sanitario", "agency": "Ministerio de Salud"},
+      {"item": "Alimentos, bebidas, semillas", "note": "Requiere permiso fitosanitario", "agency": "SFE"},
+      {"item": "Cosméticos, perfumes, cremas", "note": "Requiere registro sanitario; grandes volúmenes de líquido pueden rechazarse", "agency": "Ministerio de Salud"},
+      {"item": "Drones / aeronaves radio-controladas", "note": "Requiere permiso SUTEL/DGAC", "agency": "SUTEL/DGAC"},
+      {"item": "Equipos de telecomunicaciones / radio", "note": "Requiere homologación SUTEL", "agency": "SUTEL"},
+      {"item": "Baterías de litio sueltas / power banks", "note": "IATA restringido; dentro del dispositivo es aceptable", "agency": "IATA"},
+      {"item": "Químicos, pinturas, solventes", "note": "Pueden ser materiales peligrosos", "agency": "Aduanas CR"},
+      {"item": "Repuestos de vehículos", "note": "Altas tarifas aduaneras 42–49%", "agency": "DGA"},
+      {"item": "Plantas, tierra, materia orgánica", "note": "Requiere permiso fitosanitario SFE", "agency": "SFE"}
+    ],
+    "allowed_examples": [
+      "Ropa y calzado",
+      "Teléfonos celulares y accesorios",
+      "Laptops y tablets",
+      "Audífonos y parlantes",
+      "Televisores y electrónicos",
+      "Cámaras y fotografía",
+      "Juguetes y artículos para bebés",
+      "Libros",
+      "Artículos deportivos",
+      "Herramientas",
+      "Artículos de hogar",
+      "Consolas de videojuegos"
+    ]
+  },
+  "how_it_works": [
+    "Regístrate gratis en crbox.cr y obtén tu dirección en Miami al instante",
+    "Compra en cualquier tienda de USA (Amazon, Walmart, BestBuy, Target, Apple, Temu…)",
+    "CRBOX te notifica cuando el paquete llega a la bodega en Miami",
+    "El paquete llega a Costa Rica en 2–4 días hábiles después de salir de Miami"
+  ],
+  "faq": [
+    {"q": "¿Cuánto cuesta el casillero?", "a": "Es 100% GRATIS. Sin cuota mensual ni costo de afiliación."},
+    {"q": "¿Puedo consolidar paquetes?", "a": "Sí. Puedes esperar varios paquetes y enviarlos juntos para ahorrar en flete."},
+    {"q": "¿Necesito factura?", "a": "Sí. La factura es requerida por Aduanas. CRBOX te la solicita."},
+    {"q": "¿Cuál es el valor máximo por paquete?", "a": "$1,000 para envíos aéreos estándar. Valores mayores requieren manejo especial."},
+    {"q": "¿Puedo pagar en colones?", "a": "Sí. El pago se puede realizar en colones al tipo de cambio vigente."},
+    {"q": "¿Cómo funciona la compra por encargo?", "a": "Llenas el formulario en cotizar.html con tu nombre, email y el link del producto. CRBOX te contacta con precio y pasos a seguir."},
+    {"q": "¿Puedo traer perfumes?", "a": "Los perfumes son líquidos y pueden ser restringidos en cantidades grandes. Consulta antes de comprar."},
+    {"q": "¿Puedo traer suplementos?", "a": "Los suplementos son RESTRINGIDOS. Requieren registro sanitario. CRBOX puede intentar el proceso pero no garantiza el ingreso."},
+    {"q": "¿Puedo traer medicamentos?", "a": "Los medicamentos son RESTRINGIDOS. Necesitan prescripción y registro sanitario."}
+  ],
+  "page_map": {
+    "index":         {"url": "index.html",         "label": "Inicio",       "greeting": "¡Hola! Soy el Asistente CRBox. Puedo resolver tus dudas sobre envíos, tarifas y servicios. ¿En qué te ayudo?"},
+    "servicios":     {"url": "servicios.html",     "label": "Servicios",    "greeting": "¡Hola! Estoy aquí para explicarte cualquiera de nuestros servicios. ¿En qué te ayudo?"},
+    "tarifas":       {"url": "tarifas.html",       "label": "Tarifas",      "greeting": "¡Hola! Veo que estás revisando las tarifas. ¿Quieres que calcule el costo de tu envío?"},
+    "calculadora":   {"url": "calculadora.html",   "label": "Calculadora",  "greeting": "¡Hola! Puedo ayudarte a entender el resultado de la calculadora o responder preguntas sobre tu envío."},
+    "cotizar":       {"url": "cotizar.html",       "label": "Cotizar",      "greeting": "¡Hola! ¿Necesitas ayuda para completar tu solicitud de compra por encargo?"},
+    "como-funciona": {"url": "como-funciona.html", "label": "Cómo Funciona","greeting": "¡Hola! ¿Tienes alguna duda sobre el proceso de envío de CRBOX?"},
+    "contacto":      {"url": "contacto.html",      "label": "Contacto",     "greeting": "¡Hola! ¿Puedo ayudarte antes de que escribas al equipo?"}
+  }
+}

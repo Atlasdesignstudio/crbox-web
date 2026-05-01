@@ -6515,6 +6515,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_send_quote()
         elif self.path == '/api/ai/extract':
             _handle_ai_extract(self)
+        elif self.path == '/api/chat':
+            _handle_ai_chat(self)
         elif self.path == '/api/solicitudes':
             self._handle_solicitudes_post()
         elif self.path == '/api/consultas':
@@ -8859,6 +8861,333 @@ def _invoice_cleanup_loop():
 def _start_invoice_cleanup():
     t = threading.Thread(target=_invoice_cleanup_loop, daemon=True)
     t.start()
+
+
+_CHAT_RATE         = {}
+_CHAT_RATE_LOCK    = threading.Lock()
+_CHAT_RATE_LIMIT   = 60    # calls per IP per hour
+
+def _load_crbox_kb():
+    """Load the canonical CRBox knowledge base from knowledge/crbox-kb.json."""
+    kb_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'knowledge', 'crbox-kb.json')
+    try:
+        with open(kb_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f'[CHAT] Warning: could not load crbox-kb.json: {e}')
+        return {}
+
+
+def _build_chat_system_prompt(kb):
+    """Build the Gemini system prompt from the loaded knowledge base dict."""
+    c = kb.get('company', {})
+    branches = kb.get('branches', [])
+    svcs = kb.get('services', {})
+    rates = kb.get('air_rates_usd', {})
+    handling = kb.get('handling_fees_usd', [])
+    delivery = kb.get('delivery_fees_usd', {})
+    comp = kb.get('compliance', {})
+    how = kb.get('how_it_works', [])
+    faq = kb.get('faq', [])
+    page_map = kb.get('page_map', {})
+
+    rate_lines = ' | '.join(f"{r['kg']} kg=${r['usd']}" for r in rates.get('table', []))
+    handling_lines = ' | '.join(
+        f"${h['value_from']}–${h['value_to'] or '+'}→${h['fee']}"
+        for h in handling
+    )
+    br_text = '\n'.join(
+        f"  - {b['name']}: {b.get('hours_weekday','')} {b.get('hours_saturday','')}"
+        for b in branches
+    )
+    svc_text = '\n'.join(
+        f"  {i+1}. {s.get('name','')}: {s.get('description','')}"
+        for i, s in enumerate(svcs.values())
+    )
+    prohibited_text = '; '.join(comp.get('prohibited', []))
+    restricted_text = '\n'.join(
+        f"  - {r['item']} → {r['note']}"
+        for r in comp.get('restricted', [])
+    )
+    allowed_text = ', '.join(comp.get('allowed_examples', []))
+    how_text = '\n'.join(f"  {i+1}. {step}" for i, step in enumerate(how))
+    faq_text = '\n'.join(f"  Q: {f['q']}\n  A: {f['a']}" for f in faq)
+    page_text = ' | '.join(
+        f"{v.get('label','')}: {k}.html"
+        for k, v in page_map.items()
+    )
+    deliv = delivery.get('san_jose_heredia_alajuela', [])
+    deliv_sj = ' | '.join(
+        f"≤{r['max_kg']}kg=${r['fee']}" if r['max_kg'] else f">50kg=${r['fee']}"
+        for r in deliv
+    )
+    deliv_cart = delivery.get('cartago', [])
+    deliv_cart_text = ' | '.join(
+        f"≤{r['max_kg']}kg=${r['fee']}" if r['max_kg'] else f">50kg=${r['fee']}"
+        for r in deliv_cart
+    )
+    deliv_remote = delivery.get('provinces_remote', [])
+    deliv_remote_text = ' | '.join(
+        f"≤{r['max_kg']}kg=${r['fee']}" if r['max_kg'] else f">50kg=${r['fee']}"
+        for r in deliv_remote
+    )
+
+    return f"""\
+You are the friendly, knowledgeable customer support assistant for CRBox (crbox.cr), \
+a Costa Rica courier and virtual mailbox company. \
+You speak in the same language the user writes (Spanish or English). \
+You are concise, warm, and helpful — never cold or robotic. \
+You NEVER reveal raw JSON, code, or internal details.
+
+=== CRBOX COMPANY INFO ===
+Name: {c.get('name','CRBox')} | Website: {c.get('website','crbox.cr')}
+Phone/WhatsApp: {c.get('phone','+506-8979-4418')} | Email: {c.get('email','ventas@crbox.cr')}
+{c.get('experience_years',20)}+ years experience | {c.get('clients',33000):,}+ active clients | {c.get('shipments',586000):,}+ completed shipments
+Branches:
+{br_text}
+
+=== SERVICES ===
+{svc_text}
+
+=== AIR FREIGHT RATES (USD) ===
+{rate_lines}
+{rates.get('over_20kg','')} | {rates.get('over_100kg','')}
+Fuel surcharge: {rates.get('fuel_surcharge_pct',19)}% on freight.
+Insurance: ${rates.get('insurance_per_100_usd',1)} per $100 declared value.
+Volumetric weight: {rates.get('volumetric_formula','')}
+
+=== HANDLING FEES (USD) ===
+{handling_lines}
+
+=== DELIVERY FEES (Costa Rica, USD) ===
+San José/Heredia/Alajuela: {deliv_sj}
+Cartago: {deliv_cart_text}
+Provincias remotas: {deliv_remote_text}
+{delivery.get('pickup_note','Retiro gratis en sucursales')}
+
+=== COMPLIANCE — PROHIBITED ===
+{prohibited_text}
+
+=== COMPLIANCE — RESTRICTED (need permits) ===
+{restricted_text}
+
+=== ALLOWED EXAMPLES ===
+{allowed_text}
+
+=== HOW IT WORKS ===
+{how_text}
+
+=== PAGE MAP ===
+{page_text}
+
+=== FAQ ===
+{faq_text}
+
+=== YOUR BEHAVIOR RULES ===
+1. Always respond in the same language the user writes. Default to Spanish if unclear.
+2. Be warm and conversational, not formal or robotic.
+3. When the user asks about shipping cost / weight / price → respond with a helpful estimate AND include a JSON signal to show the calculator widget.
+4. When the user asks to order/buy/quote a product → respond helpfully AND include a JSON signal for the quote-form widget.
+5. When the user asks if an item is legal/allowed/restricted → give a clear answer AND include a JSON signal for the compliance widget.
+6. When relevant, add a "deeplink" (relative path only) to guide the user to the right page.
+7. NEVER make up facts not in this knowledge base. If unsure, say "Te recomiendo contactarnos directamente" and give the phone/email.
+8. Keep responses SHORT (2–4 sentences max for text part). Widgets carry the detail.
+9. NEVER show raw JSON in the visible text response.
+
+=== OUTPUT FORMAT ===
+Your response MUST be a JSON object (no markdown, no code fences) with this exact structure:
+{{
+  "reply": "<your friendly text response>",
+  "widget": null | {{ "type": "calculator"|"quote-form"|"compliance", "data": {{ ... }} }},
+  "deeplink": null | {{ "url": "<relative_path_starting_with_/>", "label": "<short link text>" }}
+}}
+
+Widget data shapes:
+- calculator: {{ "weight": 1.5, "category": "celulares" }}  (weight and category are optional hints)
+- quote-form: {{ "url": "" }}
+- compliance: {{ "item": "Suplementos", "classification": "restricted"|"allowed"|"prohibited", "reason": "...", "note": "..." }}
+"""
+
+
+_CRBOX_KB = _load_crbox_kb()
+_CRBOX_CHAT_SYSTEM_PROMPT = _build_chat_system_prompt(_CRBOX_KB)
+
+
+def _chat_rate_check(ip):
+    now = time.time()
+    with _CHAT_RATE_LOCK:
+        timestamps = _CHAT_RATE.get(ip, [])
+        timestamps = [t for t in timestamps if now - t < 3600]
+        if len(timestamps) >= _CHAT_RATE_LIMIT:
+            return False
+        timestamps.append(now)
+        _CHAT_RATE[ip] = timestamps
+    return True
+
+
+def _sanitize_deeplink(deeplink):
+    """Allow only same-origin relative paths in deeplinks from AI output."""
+    if not isinstance(deeplink, dict):
+        return None
+    url = str(deeplink.get('url') or '').strip()
+    label = str(deeplink.get('label') or '').strip()
+    if not url or not label:
+        return None
+    if re.match(r'^/[^/\\]', url) or re.match(r'^[a-zA-Z0-9_\-]+\.html(\?[^<>"]*)?$', url):
+        return {'url': url, 'label': label}
+    return None
+
+
+def _kb_validate_compliance(widget, kb):
+    """
+    Post-process an AI compliance widget against the canonical KB.
+    If the item clearly matches a prohibited or restricted entry,
+    override the model's classification with the KB-authoritative one.
+    """
+    if not isinstance(widget, dict) or widget.get('type') != 'compliance':
+        return widget
+    data = widget.get('data') or {}
+    item_name = str(data.get('item') or '').lower()
+    if not item_name:
+        return widget
+
+    comp = kb.get('compliance', {})
+    prohibited = comp.get('prohibited', [])
+    restricted  = comp.get('restricted', [])
+
+    # Check prohibited first
+    for p in prohibited:
+        if any(keyword in item_name for keyword in p.lower().split()[:3]):
+            data = dict(data)
+            data['classification'] = 'prohibited'
+            data['reason'] = f'Artículo PROHIBIDO según la base de conocimiento de CRBOX: {p}'
+            return {'type': 'compliance', 'data': data}
+
+    # Check restricted
+    for r in restricted:
+        r_item = str(r.get('item', '')).lower()
+        r_keywords = [w for w in r_item.split() if len(w) > 3]
+        if r_keywords and any(kw in item_name for kw in r_keywords):
+            data = dict(data)
+            data['classification'] = 'restricted'
+            if not data.get('reason'):
+                data['reason'] = r.get('note', '')
+            if not data.get('note'):
+                data['note'] = f'Agencia: {r.get("agency","")}'
+            return {'type': 'compliance', 'data': data}
+
+    return widget
+
+
+def _handle_ai_chat(handler):
+    try:
+        length = int(handler.headers.get('Content-Length', 0))
+        body   = json.loads(handler.rfile.read(length)) if length else {}
+    except Exception:
+        handler._json_response(400, {'error': 'bad_request'})
+        return
+
+    ip = (handler.headers.get('X-Forwarded-For') or
+          handler.client_address[0] or '0.0.0.0').split(',')[0].strip()
+
+    if not _chat_rate_check(ip):
+        handler._json_response(429, {'error': 'rate_limit', 'reply': 'Demasiadas solicitudes. Por favor espera un momento.'})
+        return
+
+    if not _GEMINI_SDK_OK or not _GEMINI_API_KEY:
+        handler._json_response(200, {
+            'reply': 'El asistente no está disponible en este momento. Contáctanos directamente: +506-8979-4418 o ventas@crbox.cr.',
+            'widget': None, 'deeplink': None,
+        })
+        return
+
+    history = body.get('history', [])
+    page    = (body.get('page') or 'index')[:50]
+    context = body.get('context') or {}
+
+    page_map  = _CRBOX_KB.get('page_map', {})
+    page_info = page_map.get(page, {})
+    page_label = page_info.get('label') or page
+
+    page_context = f'El usuario está en la página "{page_label}" ({page}.html). '
+    if isinstance(context, dict) and context.get('greeting'):
+        page_context += f'Contexto de página: {context.get("greeting")} '
+
+    if len(history) > 20:
+        history = history[-20:]
+
+    contents = []
+    for turn in history[:-1]:
+        role = 'user' if turn.get('role') == 'user' else 'model'
+        contents.append({'role': role, 'parts': [{'text': turn.get('text', '')}]})
+
+    last_user = next((t for t in reversed(history) if t.get('role') == 'user'), None)
+    if not last_user:
+        handler._json_response(400, {'error': 'no_message'})
+        return
+
+    user_text = last_user.get('text', '').strip()[:600]
+    if not user_text:
+        handler._json_response(400, {'error': 'empty_message'})
+        return
+
+    contents.append({'role': 'user', 'parts': [{'text': page_context + user_text}]})
+
+    try:
+        from google import genai as _gv
+        client = _gv.Client(api_key=_GEMINI_API_KEY)
+        resp = client.models.generate_content(
+            model=_GEMINI_MODEL,
+            contents=contents,
+            config={
+                'system_instruction': _CRBOX_CHAT_SYSTEM_PROMPT,
+                'temperature': 0.4,
+                'max_output_tokens': 400,
+            },
+        )
+        raw_text = resp.text.strip()
+    except Exception as ex:
+        print(f'[CHAT] Gemini error: {ex}')
+        handler._json_response(200, {
+            'reply': 'Hubo un error al procesar tu consulta. Contáctanos: +506-8979-4418.',
+            'widget': None, 'deeplink': None,
+        })
+        return
+
+    parsed = None
+    try:
+        fence_stripped = raw_text
+        if fence_stripped.startswith('```'):
+            fence_stripped = re.sub(r'^```[a-z]*\n?', '', fence_stripped)
+            fence_stripped = re.sub(r'\n?```$', '', fence_stripped.strip())
+        parsed = json.loads(fence_stripped)
+    except Exception:
+        try:
+            m = re.search(r'\{[\s\S]+\}', raw_text)
+            if m:
+                parsed = json.loads(m.group(0))
+        except Exception:
+            pass
+
+    if not parsed or not isinstance(parsed, dict):
+        parsed = {'reply': raw_text, 'widget': None, 'deeplink': None}
+
+    safe_reply = str(parsed.get('reply') or '').strip() or 'Lo siento, no pude generar una respuesta. Contáctanos directamente.'
+    safe_widget = parsed.get('widget') if isinstance(parsed.get('widget'), dict) else None
+    safe_deeplink = parsed.get('deeplink') if isinstance(parsed.get('deeplink'), dict) else None
+
+    if safe_widget and safe_widget.get('type') not in ('calculator', 'quote-form', 'compliance'):
+        safe_widget = None
+
+    safe_deeplink = _sanitize_deeplink(safe_deeplink)
+    if safe_widget and safe_widget.get('type') == 'compliance':
+        safe_widget = _kb_validate_compliance(safe_widget, _CRBOX_KB)
+
+    handler._json_response(200, {
+        'reply': safe_reply,
+        'widget': safe_widget,
+        'deeplink': safe_deeplink,
+    })
 
 
 if __name__ == "__main__":
