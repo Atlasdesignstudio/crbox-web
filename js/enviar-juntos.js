@@ -63,6 +63,10 @@
   /* ─── Package global pool (set by page after API load) ─── */
   var _allPackages = [];   // raw mapped packages from portal-api
 
+  /* ─── UI state ─── */
+  var _expandedCards  = {};  // groupId → true/false; default = expanded
+  var _postCreatePkg  = null; // package to auto-add after creating a group from the add-to-group row flow
+
   /* ─── Package ID normalizer — always returns a string ─── */
   function _pid(x) { return String(x == null ? '' : x); }
 
@@ -251,6 +255,13 @@
     var statusCls   = STATUS_CLASS[group.status] || 'ej-status-waiting';
     var statusIcon  = STATUS_ICON[group.status]  || 'fa-circle';
 
+    /* Build a live status lookup so we can detect post-addition status changes */
+    var _liveLookup = {};
+    _allPackages.forEach(function (p) { _liveLookup[_pid(p.idwarehousereceipt)] = p; });
+
+    /* Expand/collapse state — default expanded */
+    var isExpanded = (_expandedCards[group.id] !== false);
+
     var html = '<div class="ej-group-card' + (isReadOnly ? ' ej-confirmed' : '') + '" id="ej-card-' + _esc(group.id) + '">';
 
     /* Step indicator */
@@ -263,9 +274,16 @@
         '<p class="ej-group-meta">Creado ' + _fmtDate(group.createdAt) +
           (group.notes ? ' · <em>' + _esc(group.notes) + '</em>' : '') + '</p>' +
       '</div>' +
-      '<span class="ej-group-status-badge ' + statusCls + '">' +
-        '<i class="fas ' + statusIcon + '"></i> ' + _esc(statusLabel) +
-      '</span>' +
+      '<div style="display:flex;align-items:center;gap:0.5rem;">' +
+        '<span class="ej-group-status-badge ' + statusCls + '">' +
+          '<i class="fas ' + statusIcon + '"></i> ' + _esc(statusLabel) +
+        '</span>' +
+        (cnt > 0 ?
+          '<button class="ej-btn-toggle-card" aria-label="' + (isExpanded ? 'Colapsar' : 'Expandir') + '" ' +
+            'data-gid="' + _esc(group.id) + '" style="background:none;border:none;cursor:pointer;color:#6b7280;padding:0.2rem 0.4rem;line-height:1">' +
+            '<i class="fas ' + (isExpanded ? 'fa-chevron-up' : 'fa-chevron-down') + '"></i>' +
+          '</button>' : '') +
+      '</div>' +
     '</div>';
 
     /* ── SUCCESS state ── */
@@ -302,9 +320,13 @@
 
     /* ── Packages in group ── */
     if (cnt > 0) {
-      html += '<div class="ej-pkg-list">';
+      html += '<div class="ej-pkg-list"' + (isExpanded ? '' : ' style="display:none"') + '>';
       (group.packages || []).forEach(function (p) {
-        var warn = (p.statusId && p.statusId !== 1); // changed from MIAMI
+        // Reconcile stored statusId against live pool; fall back to snapshot if package
+        // has not yet been loaded (first render before API returns)
+        var livePkg   = _liveLookup[_pid(p.idwarehousereceipt)];
+        var liveStatusId = livePkg ? livePkg.statusId : p.statusId;
+        var warn = (liveStatusId !== undefined && liveStatusId !== null && liveStatusId !== 1);
         html += '<div class="ej-pkg-row' + (warn ? ' ej-pkg-warn' : '') + '">' +
           '<span class="status-badge status-badge-blue" style="font-size:0.7rem;padding:0.15rem 0.5rem">MIAMI</span>' +
           '<div class="flex-1 min-w-0">' +
@@ -422,7 +444,20 @@
     if (!name) { if (errEl) errEl.textContent = 'Escribe un nombre para el grupo.'; return; }
     if (!cnt || cnt < 1) { if (errEl) errEl.textContent = 'Indica cuántos paquetes esperas.'; return; }
     var notes = notesEl ? notesEl.value.trim() : '';
-    createGroup(name, cnt, notes);
+    var newGroup = createGroup(name, cnt, notes);
+    // Auto-attach package carried over from the "add-to-group" row button flow
+    if (_postCreatePkg && newGroup) {
+      addPackagesToGroup(newGroup.id, [{
+        idwarehousereceipt: _postCreatePkg.idwarehousereceipt,
+        trackingNumber:     _postCreatePkg.trackingNumber,
+        number:             _postCreatePkg.number,
+        carrierName:        _postCreatePkg.carrierName,
+        bestDate:           _postCreatePkg.bestDate,
+        statusId:           _postCreatePkg.statusId,
+        invoicesCount:      _postCreatePkg.invoicesCount
+      }]);
+      _postCreatePkg = null;
+    }
     _closeModal(_el('ej-create-modal-overlay'));
     renderSection();
     _showToast('Grupo "' + name + '" creado correctamente.', 'success');
@@ -875,6 +910,25 @@
       /* View summary */
       btn = e.target.closest('.ej-btn-view-summary');
       if (btn) { openSummaryModal(btn.dataset.gid); return; }
+      /* Expand / collapse card package list */
+      btn = e.target.closest('.ej-btn-toggle-card');
+      if (btn) {
+        var togGid = btn.dataset.gid;
+        var isNowExpanded = (_expandedCards[togGid] !== false);
+        _expandedCards[togGid] = !isNowExpanded;
+        // Toggle inline without full re-render for smooth UX
+        var card = _el('ej-card-' + togGid);
+        if (card) {
+          var pkgList = card.querySelector('.ej-pkg-list');
+          if (pkgList) pkgList.style.display = _expandedCards[togGid] ? '' : 'none';
+          var icon = btn.querySelector('i');
+          if (icon) {
+            icon.className = _expandedCards[togGid] ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
+          }
+          btn.setAttribute('aria-label', _expandedCards[togGid] ? 'Colapsar' : 'Expandir');
+        }
+        return;
+      }
     });
   }
 
@@ -913,10 +967,12 @@
       selBtn.addEventListener('click', _handleSelectorConfirm);
     }
 
-    /* Add-to-group: create new group option */
+    /* Add-to-group: create new group option — carries the pending package forward */
     var addtoNewBtn = _el('ej-addto-create-new-btn');
     if (addtoNewBtn) {
       addtoNewBtn.addEventListener('click', function () {
+        _postCreatePkg = _pendingPkg;  // carry package into create flow
+        _pendingPkg = null;
         _closeModal(_el('ej-addto-modal-overlay'));
         openCreateModal();
       });
