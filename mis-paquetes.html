@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="css/styles.css?v=6">
     <link rel="stylesheet" href="css/responsive.css?v=15">
     <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/enviar-juntos.css?v=1">
     
     <!-- Prefetch para mejorar rendimiento -->
     <link rel="prefetch" href="dashboard.html">
@@ -503,41 +504,30 @@
             <div id="grid-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 hidden">
             </div>
 
-            <!-- Sección inferior con consolidación y consejos -->
+            <!-- Sección inferior: Enviar juntos + consejos -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                <!-- Consolidation Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all transform hover:shadow-md col-span-1 lg:col-span-2">
-                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white">
-                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                            <span class="bg-purple-100 text-purple-600 p-2 rounded-lg mr-3">
-                                <i class="fas fa-boxes"></i>
-                            </span>
-                            Consolidación de Paquetes
-                        </h2>
-                        <span class="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                            Próximamente
-                        </span>
-                    </div>
-                    <div class="p-6">
-                        <div class="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-md mb-6">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <i class="fas fa-lightbulb text-purple-600"></i>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm text-purple-700">Consolidar varios paquetes en un solo envío puede reducir el costo total. Pronto podrás solicitarlo desde el portal.</p>
-                                </div>
-                            </div>
+                <!-- ══ Enviar paquetes juntos ══ -->
+                <div id="enviar-juntos-section" class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-lg col-span-1 lg:col-span-2" style="scroll-margin-top:80px">
+                    <div class="ej-section-header">
+                        <div class="ej-section-title">
+                            <span class="ej-section-icon"><i class="fas fa-layer-group"></i></span>
+                            Enviar paquetes juntos
                         </div>
-
-                        <div class="text-center py-8">
-                            <div class="w-16 h-16 mx-auto bg-purple-50 rounded-full flex items-center justify-center text-purple-400 mb-3">
-                                <i class="fas fa-tools text-2xl"></i>
-                            </div>
-                            <p class="text-base font-semibold text-gray-700 mb-1">Próximamente</p>
-                            <p class="text-sm text-gray-500 max-w-md mx-auto">La consolidación en línea estará disponible pronto. Mientras tanto, contáctanos para coordinar tu envío consolidado.</p>
+                        <div class="flex items-center gap-2">
+                            <button id="ej-create-btn" class="ej-btn ej-btn-purple ej-btn-sm">
+                                <i class="fas fa-plus"></i>
+                                <span class="ej-btn-label">Crear grupo</span>
+                            </button>
                         </div>
                     </div>
+                    <div class="px-5 py-3">
+                        <div class="ej-info-note">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Agrupa paquetes que ya llegaron a Miami y avísanos cuándo están listos para procesarlos juntos. CRBOX revisará las facturas y coordinará el envío.</span>
+                        </div>
+                    </div>
+                    <!-- Group list rendered by enviar-juntos.js -->
+                    <div id="ej-group-list-container"></div>
                 </div>
                 
                 <!-- Consejos Rápidos y Casillero -->
@@ -2281,9 +2271,17 @@
           '<td class="px-4 py-4 text-sm text-gray-700 max-w-xs">' + _esc(_orDash(pkg.descripcion)) + '</td>' +
           '<td class="px-4 py-4 whitespace-nowrap text-center sticky-col-factura">' + _renderInvoiceAction(pkg) + '</td>' +
           '<td class="px-4 py-4 text-center whitespace-nowrap sticky-col-actions">' +
+            '<div class="flex items-center justify-center gap-1">' +
+            (pkg.statusId === 1
+              ? '<button class="btn-group-add ej-tooltip" title="Agregar a grupo de envío" aria-label="Agregar a grupo">' +
+                  '<i class="fas fa-layer-group"></i>' +
+                  '<span class="ej-tooltip-text">Agregar a grupo</span>' +
+                '</button>'
+              : '') +
             '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" aria-label="Ver detalles">' +
               '<i class="fas fa-eye"></i>' +
             '</button>' +
+            '</div>' +
           '</td>' +
         '</tr>';
       }
@@ -2340,7 +2338,13 @@
             '</div>' +
             '<div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">' +
               '<div>' + _renderInvoiceAction(pkg) + '</div>' +
-              '<div class="flex space-x-1">' +
+              '<div class="flex space-x-1 items-center">' +
+                (pkg.statusId === 1
+                  ? '<button class="btn-group-add ej-tooltip" title="Agregar a grupo de envío" aria-label="Agregar a grupo">' +
+                      '<i class="fas fa-layer-group"></i>' +
+                      '<span class="ej-tooltip-text">Agregar a grupo</span>' +
+                    '</button>'
+                  : '') +
                 '<button class="btn-detail p-1.5 rounded-full text-blue-600 hover:text-blue-800 hover:bg-blue-50" title="Ver detalles" aria-label="Ver detalles">' +
                   '<i class="fas fa-eye"></i>' +
                 '</button>' +
@@ -2663,6 +2667,11 @@
           var raw = Array.isArray(data) ? data : (data.packages || data.Packages || []);
           var packages = raw.map(function (r) { return CRBOXPortalAPI.mapPackage(r); });
           _cachedPackages = packages;
+          // Pass package pool to the grouping flow so selector can show MIAMI packages
+          if (window.CRBOXEnviarJuntos) {
+            CRBOXEnviarJuntos.setPackages(packages);
+            CRBOXEnviarJuntos.renderSection();
+          }
 
           // ?receipt= deep-link: client-side filter on warehouse receipt number.
           // Consumed once; cleared so subsequent filter changes show all packages.
@@ -3205,6 +3214,18 @@
           }
           return;
         }
+
+        // "Agregar a grupo" button — opens the add-to-group modal
+        var groupAddBtn = e.target.closest('.btn-group-add');
+        if (groupAddBtn && window.CRBOXEnviarJuntos) {
+          var grow = groupAddBtn.closest('[data-pkg-idx]');
+          if (grow) {
+            var gidx = parseInt(grow.getAttribute('data-pkg-idx'), 10);
+            var gpkg = _renderedPackages[gidx];
+            if (gpkg) CRBOXEnviarJuntos.openAddToGroupModal(gpkg);
+          }
+          return;
+        }
       });
 
       function _initPage() {
@@ -3228,6 +3249,23 @@
             var idConsignee = _applyHeader(info);
             _cachedConsigneeId = idConsignee;
             if (idConsignee) _loadPackages(idConsignee);
+
+            // Init "Enviar paquetes juntos" grouping flow
+            if (window.CRBOXEnviarJuntos) {
+              // Cache user data for the confirmation email
+              var _ejNameEl  = document.getElementById('ej-user-name-cache');
+              var _ejLockEl  = document.getElementById('ej-locker-cache');
+              if (_ejNameEl)  _ejNameEl.textContent  = _cachedFullName     || '';
+              if (_ejLockEl)  _ejLockEl.textContent  = _cachedCasilleroNum || '';
+              CRBOXEnviarJuntos.init();
+            }
+            // Scroll to #enviar-juntos if that hash is present
+            if (window.location.hash === '#enviar-juntos') {
+              setTimeout(function () {
+                var sec = document.getElementById('enviar-juntos-section');
+                if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 300);
+            }
 
             // Wire filter inputs
             var searchInput   = document.getElementById('search-input');
@@ -3320,5 +3358,187 @@
     }());
     </script>
     <script src="js/portal-nav-offset.js"></script>
+    <script src="js/enviar-juntos.js?v=1"></script>
+
+    <!-- Hidden user data cache for enviar-juntos.js -->
+    <span id="ej-user-name-cache" class="hidden" aria-hidden="true"></span>
+    <span id="ej-locker-cache"    class="hidden" aria-hidden="true"></span>
+
+    <!-- ══════════════════════════════════════════════════════
+         ENVIAR JUNTOS — MODALS
+         ══════════════════════════════════════════════════════ -->
+
+    <!-- ① Create Group Modal -->
+    <div id="ej-create-modal-overlay" class="ej-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ej-create-modal-title">
+      <div class="ej-modal">
+        <div class="ej-modal-header">
+          <span class="ej-modal-title" id="ej-create-modal-title">
+            <i class="fas fa-layer-group text-purple-600 mr-2"></i>Crear grupo de envío
+          </span>
+          <button class="ej-modal-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="ej-create-form" novalidate>
+          <div class="ej-modal-body">
+            <div class="ej-field-group">
+              <label class="ej-label" for="ej-create-group-name">Nombre del grupo <span class="text-red-500">*</span></label>
+              <input id="ej-create-group-name" class="ej-input" type="text" placeholder="Ej. Pedido Amazon Mayo" maxlength="80" required autocomplete="off">
+            </div>
+            <div class="ej-field-group">
+              <label class="ej-label" for="ej-create-group-count">Cantidad de paquetes esperados <span class="text-red-500">*</span></label>
+              <input id="ej-create-group-count" class="ej-input" type="number" min="1" max="99" placeholder="Ej. 7" required>
+            </div>
+            <div class="ej-field-group">
+              <label class="ej-label" for="ej-create-group-notes">Notas para CRBOX <span class="text-gray-400 font-normal">(opcional)</span></label>
+              <textarea id="ej-create-group-notes" class="ej-textarea" placeholder="Ej. Todos son artículos electrónicos, manejo con cuidado."></textarea>
+            </div>
+            <p id="ej-create-error" class="text-red-500 text-sm mt-1"></p>
+          </div>
+          <div class="ej-modal-footer">
+            <button type="button" class="ej-btn ej-btn-outline ej-modal-close">Cancelar</button>
+            <button type="submit" class="ej-btn ej-btn-purple">
+              <span class="ej-spinner"></span>
+              <span class="ej-btn-label"><i class="fas fa-plus mr-1"></i>Crear grupo</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ② Package Selector Modal -->
+    <div id="ej-selector-modal-overlay" class="ej-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ej-selector-modal-title">
+      <div class="ej-modal ej-modal-lg">
+        <div class="ej-modal-header">
+          <span class="ej-modal-title" id="ej-selector-modal-title">
+            <i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>Paquetes en Miami disponibles
+          </span>
+          <button class="ej-modal-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="ej-modal-body">
+          <p class="text-sm text-gray-500 mb-3">Selecciona los paquetes que quieres incluir en este grupo. Solo se muestran paquetes con estado <strong>MIAMI</strong> que no pertenecen a otro grupo activo.</p>
+          <div id="ej-selector-list" class="ej-selector-list"></div>
+        </div>
+        <div class="ej-modal-footer">
+          <button class="ej-btn ej-btn-outline ej-modal-close">Cancelar</button>
+          <button id="ej-selector-confirm-btn" class="ej-btn ej-btn-purple" disabled>
+            <span class="ej-spinner"></span>
+            <span class="ej-btn-label"><i class="fas fa-check mr-1"></i>Agregar seleccionados</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ Add-to-Group Modal (from table row) -->
+    <div id="ej-addto-modal-overlay" class="ej-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ej-addto-modal-title">
+      <div class="ej-modal ej-modal-sm">
+        <div class="ej-modal-header">
+          <span class="ej-modal-title" id="ej-addto-modal-title">
+            <i class="fas fa-layer-group text-purple-600 mr-2"></i>Agregar a grupo
+          </span>
+          <button class="ej-modal-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="ej-modal-body">
+          <p class="text-sm text-gray-600 mb-3">Elige a qué grupo quieres agregar este paquete:</p>
+          <div id="ej-addto-group-list" class="flex flex-col gap-2"></div>
+          <hr class="ej-divider mt-3">
+          <button id="ej-addto-create-new-btn" class="ej-btn ej-btn-outline w-full mt-2">
+            <i class="fas fa-plus text-purple-600 mr-1"></i> Crear nuevo grupo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ Prepare Group Warning Modal -->
+    <div id="ej-prepare-modal-overlay" class="ej-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ej-prepare-modal-title">
+      <div class="ej-modal ej-modal-sm">
+        <div class="ej-modal-header">
+          <span class="ej-modal-title" id="ej-prepare-modal-title">
+            <i class="fas fa-clipboard-check text-orange-500 mr-2"></i>Preparar grupo
+          </span>
+          <button class="ej-modal-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="ej-modal-body">
+          <div id="ej-prepare-modal-body"></div>
+        </div>
+        <div class="ej-modal-footer">
+          <button id="ej-prepare-wait-btn" class="ej-btn ej-btn-outline">
+            <i class="fas fa-clock mr-1"></i>Esperar otro paquete
+          </button>
+          <button id="ej-prepare-continue-btn" class="ej-btn ej-btn-primary">
+            <span class="ej-spinner"></span>
+            <span class="ej-btn-label">Continuar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑤ Invoice Guidance & Confirm Modal -->
+    <div id="ej-invoice-modal-overlay" class="ej-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ej-invoice-modal-title">
+      <div class="ej-modal ej-modal-lg">
+        <div class="ej-modal-header">
+          <span class="ej-modal-title" id="ej-invoice-modal-title">
+            <i class="fas fa-file-invoice text-orange-500 mr-2"></i>Facturas y confirmación
+          </span>
+          <button class="ej-modal-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="ej-invoice-steps"></div>
+        <div class="ej-modal-body">
+          <p class="text-sm text-gray-600 mb-3">Verifica que hayas subido la factura correspondiente a cada paquete antes de confirmar.</p>
+          <div id="ej-invoice-list" class="flex flex-col gap-2 mb-4"></div>
+          <div class="ej-big-check-wrap">
+            <input type="checkbox" id="ej-invoice-confirm-check">
+            <label for="ej-invoice-confirm-check" class="ej-big-check-label">
+              Confirmo que subí todas las facturas correspondientes a los paquetes de este grupo.
+            </label>
+          </div>
+          <div id="ej-invoice-error"></div>
+        </div>
+        <div class="ej-modal-footer">
+          <button class="ej-btn ej-btn-outline ej-modal-close">Cancelar</button>
+          <button id="ej-invoice-send-btn" class="ej-btn ej-btn-primary" disabled>
+            <span class="ej-spinner"></span>
+            <span class="ej-btn-label"><i class="fas fa-paper-plane mr-1"></i>Enviar confirmación a CRBOX</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑥ Delete / Cancel Group Confirmation Modal -->
+    <div id="ej-delete-modal-overlay" class="ej-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ej-delete-modal-title">
+      <div class="ej-modal ej-modal-sm">
+        <div class="ej-modal-header">
+          <span class="ej-modal-title" id="ej-delete-modal-title">
+            <i class="fas fa-trash-alt text-red-500 mr-2"></i>Cancelar grupo
+          </span>
+          <button class="ej-modal-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="ej-modal-body">
+          <div id="ej-delete-body"></div>
+        </div>
+        <div class="ej-modal-footer">
+          <button class="ej-btn ej-btn-outline ej-modal-close">Volver</button>
+          <button id="ej-delete-confirm-btn" class="ej-btn ej-btn-danger-outline" style="font-size:0.9rem;padding:0.55rem 1.1rem">
+            <i class="fas fa-trash-alt mr-1"></i>Sí, cancelar grupo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑦ Confirmation Summary Modal (read-only) -->
+    <div id="ej-summary-modal-overlay" class="ej-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ej-summary-modal-title">
+      <div class="ej-modal">
+        <div class="ej-modal-header">
+          <span class="ej-modal-title" id="ej-summary-modal-title">
+            <i class="fas fa-check-circle text-green-500 mr-2"></i>Resumen del grupo
+          </span>
+          <button class="ej-modal-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="ej-modal-body">
+          <div id="ej-summary-body"></div>
+        </div>
+        <div class="ej-modal-footer">
+          <button class="ej-btn ej-btn-outline ej-modal-close">Cerrar</button>
+        </div>
+      </div>
+    </div>
 </body>
 </html>

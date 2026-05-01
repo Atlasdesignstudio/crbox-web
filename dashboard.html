@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="css/styles.css?v=6">
     <link rel="stylesheet" href="css/responsive.css?v=15">
     <link rel="stylesheet" href="css/dashboard.css?v=6">
+    <link rel="stylesheet" href="css/enviar-juntos.css?v=1">
     
     <!-- Opcional: Añadir Swiper para carruseles -->
     <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css" integrity="sha384-OVtDJ2WfU22geHR8xWErSSHJMaH21QOP9w33a+A2MzyE4uxDS2/5rhIw9YZkWv5R" crossorigin="anonymous">
@@ -408,22 +409,27 @@
                 </div>
             </div>
             
-            <!-- Stat 3: Paquetes Consolidados (reemplazando Descuento) -->
+            <!-- Stat 3: Enviar paquetes juntos -->
             <div class="stat-card bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:shadow-lg hover:border-purple-200 relative overflow-hidden">
                 <div class="absolute right-0 top-0 w-24 h-24 bg-purple-50 rounded-bl-3xl opacity-80"></div>
                 <div class="flex items-center relative">
                     <div class="flex-shrink-0 w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mr-4 shadow-inner">
-                        <i class="fas fa-boxes text-purple-500 text-2xl"></i>
+                        <i class="fas fa-layer-group text-purple-600 text-2xl"></i>
                     </div>
                     <div>
-                        <h3 class="text-gray-500 text-sm mb-1 uppercase tracking-wider font-medium">Paquetes Consolidados</h3>
-                        <p class="text-base font-medium text-gray-400">Próximamente</p>
+                        <h3 class="text-gray-500 text-sm mb-1 uppercase tracking-wider font-medium">Enviar juntos</h3>
+                        <p class="text-base font-semibold text-gray-800" id="ej-dash-group-count">—</p>
                     </div>
                 </div>
                 <div class="mt-4 pt-4 border-t border-gray-100 relative">
-                    <div class="flex items-center text-gray-400 text-xs">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        <span>Esta función estará disponible próximamente.</span>
+                    <p class="text-xs text-gray-500 mb-2">Agrupa paquetes en Miami y avísanos cuando estén listos.</p>
+                    <div class="ej-dash-card-actions">
+                        <a href="mis-paquetes.html#enviar-juntos" class="ej-dash-link ej-dash-link-primary">
+                            <i class="fas fa-plus"></i> Crear grupo
+                        </a>
+                        <a href="mis-paquetes.html#enviar-juntos" class="ej-dash-link ej-dash-link-ghost">
+                            <i class="fas fa-list"></i> Ver grupos
+                        </a>
                     </div>
                 </div>
             </div>
@@ -698,6 +704,21 @@
 <script src="js/nav-auth.js?v=2"></script>
 <script src="js/main.js?v=6"></script>
 <script src="js/dashboard.js?v=2"></script>
+<script src="js/enviar-juntos.js?v=1"></script>
+<script>
+  // Initialize dashboard "Enviar juntos" card counter
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.CRBOXEnviarJuntos) {
+      var active = CRBOXEnviarJuntos.getActiveGroups();
+      var el = document.getElementById('ej-dash-group-count');
+      if (el) {
+        el.textContent = active.length === 0
+          ? 'Sin grupos activos'
+          : active.length + (active.length === 1 ? ' grupo activo' : ' grupos activos');
+      }
+    }
+  });
+</script>
 <script>
 (function () {
   'use strict';

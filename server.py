@@ -6762,6 +6762,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_api_consultas_post()
         elif self.path == '/api/faq-pregunta':
             self._handle_faq_pregunta_post()
+        elif self.path == '/api/package-group-confirm':
+            self._handle_package_group_confirm()
         elif self.path == '/api/solicitudes/link-guest':
             self._handle_link_guest()
         elif self.path == '/api/solicitudes/check-duplicate':
@@ -8348,6 +8350,159 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         self._json_response(200, {'ok': True})
 
     # ── POST /api/faq-pregunta ─────────────────────────────────────────────
+    def _handle_package_group_confirm(self):
+        """POST /api/package-group-confirm
+        Requires: Authorization: Bearer <token>  +  X-Casillero-Email header.
+        Accepts JSON body with package group details, sends a structured email
+        to facturas@crbox.cr via the existing SMTP infrastructure.
+        Returns: {"ok": true} or {"ok": false, "error": "..."}
+        """
+        auth_header  = self.headers.get('Authorization', '')
+        email_header = self.headers.get('X-Casillero-Email', '').strip()
+        if not auth_header.startswith('Bearer ') or len(auth_header) < 10:
+            self._json_response(401, {'ok': False, 'error': 'Sesión requerida.'})
+            return
+        try:
+            raw = self._read_body(_MAX_BODY_REGULAR)
+            if raw is None:
+                self._json_response(413, {'ok': False, 'error': 'Payload demasiado grande.'})
+                return
+            data = json.loads(raw.decode('utf-8'))
+        except Exception:
+            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            return
+
+        group_name    = str(data.get('groupName') or '').strip()
+        exp_count     = int(data.get('expectedPackageCount') or 0)
+        actual_count  = len(data.get('packages') or [])
+        notes         = str(data.get('notes') or '').strip()
+        locker        = str(data.get('lockerNumber') or '—').strip()
+        client_name   = str(data.get('clientName') or '').strip()
+        client_email  = str(data.get('clientEmail') or email_header).strip()
+        phone         = str(data.get('phone') or '—').strip()
+        confirmed_at  = str(data.get('confirmedAt') or '').strip()
+        packages      = data.get('packages') or []
+
+        if not group_name:
+            self._json_response(400, {'ok': False, 'error': 'Nombre de grupo requerido.'})
+            return
+
+        esc = _html.escape
+        FACTURAS_RECIPIENT = 'facturas@crbox.cr'
+
+        # ── Build plain-text body ──
+        pkg_lines = '\n'.join(
+            '  - Tracking: {tr}  |  Recibo: {nb}  |  Carrier: {cr}  |  Fecha: {dt}  |  Factura: {inv}'.format(
+                tr  = p.get('trackingNumber') or '—',
+                nb  = p.get('number') or '—',
+                cr  = p.get('carrierName') or '—',
+                dt  = str(p.get('bestDate') or '—')[:10],
+                inv = ('Subida' if (p.get('invoicesCount') or 0) > 0 else
+                       'Pendiente' if p.get('invoicesCount') is not None else 'Desconocido')
+            )
+            for p in packages
+        ) or '  (sin paquetes)'
+
+        plain = (
+            'Un cliente ha confirmado que desea enviar los siguientes paquetes juntos.\n\n'
+            f'Cliente: {client_name}\n'
+            f'Casillero: {locker}\n'
+            f'Correo: {client_email}\n'
+            f'Teléfono: {phone}\n\n'
+            f'Grupo: {group_name}\n'
+            f'Paquetes esperados: {exp_count}\n'
+            f'Paquetes en el grupo: {actual_count}\n'
+            f'Notas: {notes or "Ninguna"}\n'
+            f'Confirmado el: {confirmed_at}\n\n'
+            f'Paquetes:\n{pkg_lines}\n\n'
+            '---\nEnviado automáticamente desde el portal CRBOX.\n'
+            'Por favor revisar las facturas y procesar según disponibilidad operativa.'
+        )
+
+        # ── Build HTML body ──
+        def _pkg_row_html(p):
+            inv_cnt = p.get('invoicesCount')
+            if inv_cnt is not None and int(inv_cnt) > 0:
+                inv_html = '<span style="color:#16a34a;font-weight:600;">✓ Subida</span>'
+            elif inv_cnt is not None:
+                inv_html = '<span style="color:#b45309;font-weight:600;">⚠ Pendiente</span>'
+            else:
+                inv_html = '<span style="color:#6b7280;">?</span>'
+            return (
+                '<tr>'
+                f'<td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{esc(str(p.get("trackingNumber") or "—"))}</td>'
+                f'<td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{esc(str(p.get("number") or "—"))}</td>'
+                f'<td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{esc(str(p.get("carrierName") or "—"))}</td>'
+                f'<td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{esc(str(p.get("bestDate") or "—")[:10])}</td>'
+                f'<td style="padding:6px 8px;border-bottom:1px solid #f3f4f6;">{inv_html}</td>'
+                '</tr>'
+            )
+
+        pkg_rows_html = ''.join(_pkg_row_html(p) for p in packages) or (
+            '<tr><td colspan="5" style="padding:8px;color:#6b7280;">(sin paquetes)</td></tr>'
+        )
+
+        html_body = f'''
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1f2937;max-width:640px;margin:0 auto;">
+  <div style="background:linear-gradient(135deg,#7c3aed,#a855f7);padding:24px 32px;border-radius:12px 12px 0 0;">
+    <h1 style="color:#fff;margin:0;font-size:20px;">Solicitud: Enviar paquetes juntos</h1>
+    <p style="color:rgba(255,255,255,0.85);margin:6px 0 0;font-size:13px;">CRBOX Portal del Cliente</p>
+  </div>
+  <div style="background:#fff;padding:24px 32px;border:1px solid #e9d5ff;border-top:none;border-radius:0 0 12px 12px;">
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      <tr><td style="padding:5px 0;color:#6b7280;width:42%;">Cliente</td><td style="font-weight:600;">{esc(client_name)}</td></tr>
+      <tr><td style="padding:5px 0;color:#6b7280;">Casillero</td><td style="font-weight:600;">{esc(locker)}</td></tr>
+      <tr><td style="padding:5px 0;color:#6b7280;">Correo</td><td><a href="mailto:{esc(client_email)}" style="color:#7c3aed;">{esc(client_email)}</a></td></tr>
+      <tr><td style="padding:5px 0;color:#6b7280;">Teléfono</td><td style="font-weight:600;">{esc(phone)}</td></tr>
+      <tr><td style="padding:5px 0;color:#6b7280;">Grupo</td><td style="font-weight:700;color:#7c3aed;">{esc(group_name)}</td></tr>
+      <tr><td style="padding:5px 0;color:#6b7280;">Paquetes esperados</td><td style="font-weight:600;">{exp_count}</td></tr>
+      <tr><td style="padding:5px 0;color:#6b7280;">Paquetes en el grupo</td><td style="font-weight:600;">{actual_count}</td></tr>
+      <tr><td style="padding:5px 0;color:#6b7280;">Notas</td><td>{esc(notes or "Ninguna")}</td></tr>
+      <tr><td style="padding:5px 0;color:#6b7280;">Confirmado el</td><td style="font-size:12px;">{esc(confirmed_at)}</td></tr>
+    </table>
+    <h3 style="font-size:14px;font-weight:700;color:#374151;margin:0 0 10px;">Paquetes en el grupo</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #e9d5ff;border-radius:8px;overflow:hidden;">
+      <thead>
+        <tr style="background:#ede9fe;">
+          <th style="padding:8px;text-align:left;color:#5b21b6;">Tracking</th>
+          <th style="padding:8px;text-align:left;color:#5b21b6;">Recibo</th>
+          <th style="padding:8px;text-align:left;color:#5b21b6;">Carrier</th>
+          <th style="padding:8px;text-align:left;color:#5b21b6;">Fecha</th>
+          <th style="padding:8px;text-align:left;color:#5b21b6;">Factura</th>
+        </tr>
+      </thead>
+      <tbody>{pkg_rows_html}</tbody>
+    </table>
+    <p style="margin-top:20px;font-size:12px;color:#9ca3af;border-top:1px solid #f3f4f6;padding-top:16px;">
+      El cliente ha confirmado que subió las facturas correspondientes a estos paquetes.<br>
+      Por favor revisar y procesar según disponibilidad operativa.
+    </p>
+  </div>
+</div>
+'''
+
+        try:
+            settings  = _smtp_settings()
+            smtp_user = settings[2] if settings else 'noreply@crbox.cr'
+            import email.mime.multipart as _mime_mp, email.mime.text as _mime_txt
+            msg = _mime_mp.MIMEMultipart('alternative')
+            msg['Subject'] = f'Cliente solicita enviar paquetes juntos — Casillero {locker} — {group_name}'
+            msg['From']    = f'CRBOX Portal <{smtp_user}>'
+            msg['To']      = FACTURAS_RECIPIENT
+            if client_email:
+                msg['Reply-To'] = client_email
+            msg.attach(_mime_txt.MIMEText(plain, 'plain', 'utf-8'))
+            msg.attach(_mime_txt.MIMEText(html_body, 'html', 'utf-8'))
+            _send_smtp(msg, [FACTURAS_RECIPIENT])
+            print(f'[PKG-GROUP] Confirmation email sent for group "{group_name}" (locker {locker})')
+            self._json_response(200, {'ok': True})
+        except Exception as exc:
+            print(f'[PKG-GROUP] Email send failed: {exc}')
+            self._json_response(500, {
+                'ok': False,
+                'error': 'No pudimos enviar el correo. Puedes escribirnos directamente a facturas@crbox.cr.'
+            })
+
     def _handle_faq_pregunta_post(self):
         try:
             raw = self._read_body(_MAX_BODY_REGULAR)
