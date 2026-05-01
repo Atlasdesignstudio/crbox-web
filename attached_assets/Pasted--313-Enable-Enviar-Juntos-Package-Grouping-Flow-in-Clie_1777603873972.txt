@@ -1,0 +1,379 @@
+#313 - Enable “Enviar Juntos” Package Grouping Flow in Client Portal
+
+## What & Why
+
+Enable the existing “Paquetes consolidados / Próximamente” area in the CRBOX client portal by turning it into a user-facing package grouping flow called “Enviar paquetes juntos”.
+
+This is not a backend consolidation engine and must not pretend to change CRBOX’s internal logistics backend.
+
+The purpose is to let clients organize packages that are already in MIAMI into a group they want CRBOX to process together. The portal should capture the client’s intent, guide them to upload invoices, and then send a structured confirmation email to facturas@crbox.cr with the group details.
+
+Current operational reality:
+CRBOX processes packages based on package status and invoice upload. Clients who want to send several packages together are currently expected to wait until all desired packages arrive in Miami and then upload the invoices. This feature should make that process clearer, more visual, and easier for the client.
+
+## Core Product Rule
+
+This feature is a client-side / portal workflow layer for grouping intent.
+
+Do not claim the packages are officially consolidated.
+Do not mark packages as consolidated in the backend unless a real backend endpoint exists.
+Do not change package status values.
+Do not modify CRBOX’s internal admin or logistics backend.
+Do not create fake admin-side visibility.
+
+Use honest language:
+- “Enviar juntos”
+- “Grupo de paquetes”
+- “Confirmación enviada a CRBOX”
+- “El equipo revisará la solicitud”
+
+Avoid overclaiming:
+- Do not say “Consolidación completada”
+- Do not say “Paquetes consolidados oficialmente”
+- Do not say “Garantizamos que viajarán juntos”
+
+## User-Facing Name
+
+Use:
+“Enviar paquetes juntos”
+
+Object name:
+“Grupo de paquetes” or “Grupo de envío”
+
+Internal variable names can use:
+packageGroup
+shipmentGroup
+groupedShipmentRequest
+
+## Pages / Areas Involved
+
+Primary:
+- dashboard.html
+- mis-paquetes.html
+
+Potential JS/CSS:
+- dashboard.js
+- dashboard.css
+- any existing package page JS file
+
+Do not modify:
+- Public marketing pages
+- Admin panel
+- Backend package status logic
+
+## Dashboard Update
+
+Replace the current card:
+
+“Paquetes consolidados — Próximamente”
+
+with:
+
+Title:
+“Enviar paquetes juntos”
+
+Description:
+“Agrupa paquetes que ya llegaron a Miami y avísanos cuando estén listos para procesarlos juntos.”
+
+Primary CTA:
+“Crear grupo de envío”
+
+Secondary CTA:
+“Ver mis grupos”
+
+The card should use the existing dashboard visual system and should no longer look disabled/proximamente.
+
+## Mis Paquetes Update
+
+In the Mis Paquetes page, add an “Enviar juntos” section or tab near the current consolidation area.
+
+The section should allow the user to:
+1. Create a package group.
+2. Define how many packages they are expecting.
+3. Add packages that are currently in status MIAMI.
+4. Track progress, for example: “3 de 7 paquetes agregados”.
+5. Prepare the group once the client decides the packages are ready.
+6. Guide the client to upload invoices.
+7. Confirm that invoices were uploaded.
+8. Send a structured confirmation email to facturas@crbox.cr.
+
+## Eligible Packages
+
+Only packages with status MIAMI are eligible to be added to a group.
+
+Packages should be identified using the visible real package data already available in the portal:
+- tracking number
+- recibo
+- carrier
+- received date
+- status
+- invoice status if available
+
+Do not invent package data.
+
+If no MIAMI packages exist, show an empty state:
+“No tienes paquetes en Miami disponibles para agrupar.”
+
+## Package Group Creation
+
+Create group fields:
+- groupName
+- expectedPackageCount
+- notes optional
+- createdAt
+- status
+- packages[]
+
+Suggested group statuses:
+- waiting_for_packages
+- ready_to_prepare
+- invoices_pending
+- ready_to_confirm
+- confirmation_sent
+- closed
+
+User-facing labels:
+- Esperando paquetes
+- Listo para preparar
+- Facturas pendientes
+- Listo para confirmar
+- Confirmación enviada
+- Cerrado
+
+## Flow
+
+### 1. Create group
+
+User clicks:
+“Crear grupo de envío”
+
+Modal or panel opens.
+
+Fields:
+- Nombre del grupo
+  Placeholder: “Pedido Amazon Mayo”
+- Cantidad de paquetes esperados
+  Placeholder: “7”
+- Notas para CRBOX
+  Optional
+
+CTA:
+“Crear grupo”
+
+After creation:
+Show the group card with progress:
+“0 de 7 paquetes agregados”
+
+### 2. Add packages
+
+Inside the group:
+CTA:
+“Agregar paquetes en Miami”
+
+Show selectable list of packages with status MIAMI that are not already assigned to another active group.
+
+Each package row/card should show:
+- status badge MIAMI
+- tracking
+- recibo
+- carrier
+- received date
+- invoice status if available
+
+Allow multi-select.
+
+CTA:
+“Agregar seleccionados”
+
+After adding:
+Update progress:
+“3 de 7 paquetes agregados”
+
+### 3. Package-level action
+
+On the main packages table, for packages in MIAMI, add an action:
+“Agregar a grupo”
+
+Clicking opens a modal:
+- Add to existing group
+- Or create new group
+
+Do not show this action for non-MIAMI packages.
+
+### 4. Prepare group
+
+When the user is ready:
+CTA:
+“Preparar grupo”
+
+If package count is lower than expected:
+Show warning:
+“Este grupo tiene 6 de 7 paquetes esperados. Puedes esperar el paquete restante o continuar con los paquetes actuales.”
+
+Buttons:
+- “Esperar otro paquete”
+- “Continuar con 6 paquetes”
+
+If package count equals or exceeds expected:
+Proceed to invoice step.
+
+### 5. Invoice guidance
+
+Show all packages in the group with invoice status.
+
+For each package:
+- If invoice is missing:
+  CTA: “Subir factura”
+- If invoice exists:
+  CTA: “Ver factura”
+
+If invoice status cannot be reliably detected:
+Show manual confirmation copy:
+“Antes de confirmar, asegúrate de haber subido la factura correspondiente a cada paquete.”
+
+Checkbox:
+“Confirmo que subí todas las facturas correspondientes a estos paquetes.”
+
+CTA:
+“Enviar confirmación a CRBOX”
+
+### 6. Email confirmation
+
+When user confirms, send an email to:
+facturas@crbox.cr
+
+Subject:
+Cliente solicita enviar paquetes juntos — Casillero {{lockerNumber}} — {{groupName}}
+
+Email body should include:
+- Client name
+- Locker number
+- Client email
+- Phone if available
+- Group name
+- Expected package count
+- Actual package count
+- Notes
+- Confirmation timestamp
+- Package list:
+  - tracking
+  - recibo
+  - carrier
+  - status
+  - received date
+  - invoice status if available
+
+Important:
+If no email endpoint exists, do not fake success. Instead:
+- Save/display the confirmation summary.
+- Show a clear message that email sending requires backend connection.
+- Provide a mailto fallback only if necessary:
+  mailto:facturas@crbox.cr with prefilled subject/body.
+
+Preferred:
+Use a real backend endpoint if available.
+If not available, create a clearly scoped TODO and do not pretend email was sent.
+
+### 7. Success state
+
+After real confirmation is sent:
+Show:
+“Confirmación enviada”
+
+Copy:
+“Hemos enviado el detalle de este grupo a CRBOX. Nuestro equipo revisará las facturas y procesará los paquetes según disponibilidad operativa.”
+
+The group becomes read-only.
+
+Available actions:
+- Ver resumen
+- Reenviar confirmación, only if supported
+- Crear nuevo grupo
+
+## Corner Cases
+
+Handle these cases:
+
+1. User expected 7 packages but only 6 arrived.
+Allow continuing with warning.
+
+2. User adds the wrong package.
+Allow removing packages before confirmation.
+
+3. Package already belongs to another active group.
+Disable it and show:
+“Este paquete ya pertenece a otro grupo.”
+
+4. Package changes status after being added.
+Show warning:
+“Este paquete cambió de estado y puede que ya no esté disponible para enviarse junto con este grupo.”
+
+5. User wants multiple active groups.
+Allow multiple groups, but each package can only belong to one active group.
+
+6. User confirms without invoices.
+Block confirmation if invoice status is reliably known and missing.
+If invoice status is not reliably known, require manual confirmation checkbox.
+
+7. User has no Miami packages.
+Show empty state.
+
+8. User cancels group.
+Allow cancelling/deleting only before confirmation.
+
+## Data Persistence
+
+Use the best available persistence pattern in the current project.
+
+If there is no backend endpoint for groups:
+- Use localStorage only as a temporary front-end persistence layer.
+- Make the limitation clear in code comments.
+- Do not present localStorage data as official CRBOX backend data.
+- Do not fake admin visibility.
+
+Recommended localStorage key:
+crbox_package_groups_v1
+
+Stored object:
+{
+  id,
+  groupName,
+  expectedPackageCount,
+  notes,
+  status,
+  packages,
+  createdAt,
+  updatedAt,
+  confirmedAt
+}
+
+## UI Quality Bar
+
+The experience should feel like a real portal workflow, not a placeholder.
+
+It should be:
+- clear
+- guided
+- honest
+- operationally realistic
+- responsive
+- consistent with current dashboard UI
+- not overly complex
+
+Do not use the word “Próximamente” anymore for this feature.
+
+## Done Looks Like
+
+- Dashboard card no longer says “Próximamente”.
+- User can create a package group.
+- User can add MIAMI packages to the group.
+- User sees progress like “3 de 7 paquetes agregados”.
+- User can prepare the group even if fewer packages arrived, with warning.
+- User is guided to upload/verify invoices.
+- User can confirm that invoices were uploaded.
+- A structured email is sent to facturas@crbox.cr if backend support exists.
+- If email backend does not exist, the UI does not fake success and provides a truthful fallback.
+- Confirmed groups become read-only.
+- No package statuses are modified.
+- No admin panel changes are made.
+- No fake consolidation claims are made.
