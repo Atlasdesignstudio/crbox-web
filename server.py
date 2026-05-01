@@ -1587,6 +1587,16 @@ def _init_db():
                 submitted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
                 email_sent   INTEGER NOT NULL DEFAULT 0
             );
+
+            CREATE TABLE IF NOT EXISTS package_groups (
+                pk           INTEGER PRIMARY KEY AUTOINCREMENT,
+                casillero_id TEXT NOT NULL,
+                id           TEXT NOT NULL,
+                group_data   TEXT NOT NULL,
+                created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                updated_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                UNIQUE(casillero_id, id)
+            );
         ''')
         conn.commit()
         # Safe migration: add reminder_sent_at if it doesn't exist yet.
@@ -1633,6 +1643,27 @@ def _init_db():
             conn.execute('ALTER TABLE consultas_generales ADD COLUMN email_sent INTEGER NOT NULL DEFAULT 0')
             conn.commit()
             print('[CONSULTAS] Added email_sent column to consultas_generales')
+        # Migrate package_groups: if the old schema (TEXT PRIMARY KEY on id, no pk column)
+        # is detected, drop and recreate so that ownership is correctly keyed to
+        # (casillero_id, id). This is safe because the feature was only just introduced
+        # and there is no existing user data to preserve.
+        pg_cols = [row[1] for row in
+                   conn.execute('PRAGMA table_info(package_groups)').fetchall()]
+        if pg_cols and 'pk' not in pg_cols:
+            conn.execute('DROP TABLE package_groups')
+            conn.execute('''
+                CREATE TABLE package_groups (
+                    pk           INTEGER PRIMARY KEY AUTOINCREMENT,
+                    casillero_id TEXT NOT NULL,
+                    id           TEXT NOT NULL,
+                    group_data   TEXT NOT NULL,
+                    created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                    updated_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                    UNIQUE(casillero_id, id)
+                )
+            ''')
+            conn.commit()
+            print('[PACKAGE_GROUPS] Recreated table with per-user ownership schema')
         conn.close()
     print('[SOLICITUDES] SQLite schema initialised OK')
 
@@ -6544,14 +6575,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             if allowed and origin == allowed:
                 self.send_header("Access-Control-Allow-Origin", allowed)
                 self.send_header("Access-Control-Allow-Methods",
-                                 "GET, POST, PUT, DELETE, OPTIONS")
+                                 "GET, POST, PUT, PATCH, DELETE, OPTIONS")
                 self.send_header("Access-Control-Allow-Headers",
                                  "Content-Type, Authorization, X-Casillero-Email")
                 self.send_header("Access-Control-Max-Age", "86400")
             elif not allowed and not _is_prod():
                 self.send_header("Access-Control-Allow-Origin", origin)
                 self.send_header("Access-Control-Allow-Methods",
-                                 "GET, POST, PUT, DELETE, OPTIONS")
+                                 "GET, POST, PUT, PATCH, DELETE, OPTIONS")
                 self.send_header("Access-Control-Allow-Headers",
                                  "Content-Type, Authorization, X-Casillero-Email")
                 self.send_header("Access-Control-Max-Age", "86400")
@@ -6652,6 +6683,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 else:
                     self.send_response(404)
                     self.end_headers()
+        elif self.path == '/api/package-groups':
+            self._handle_package_groups_get()
         elif self.path.startswith('/api/solicitudes'):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/api/solicitudes':
@@ -6690,11 +6723,34 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             except Exception:
                 pass
 
-    def _do_delete_inner(self):
-        """DELETE /api/invoice-upload/<filename>
-        Removes an orphaned invoice file.  Requires the same portal auth as the
-        upload endpoint so only the authenticated owner can delete."""
+    def do_PATCH(self):
+        try:
+            self._do_patch_inner()
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            try:
+                self._json_response(500, {'error': 'An unexpected error occurred'})
+            except Exception:
+                pass
+
+    def _do_patch_inner(self):
         if self._cors_reject():
+            return
+        m = re.match(r'^/api/package-groups/([^/]+)$', self.path)
+        if m:
+            self._handle_package_group_patch(m.group(1))
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def _do_delete_inner(self):
+        """DELETE /api/invoice-upload/<filename> or /api/package-groups/<id>"""
+        if self._cors_reject():
+            return
+        m_pkg_group = re.match(r'^/api/package-groups/([^/]+)$', self.path)
+        if m_pkg_group:
+            self._handle_package_group_delete(m_pkg_group.group(1))
             return
         import re as _re
         m = _re.match(r'^/api/invoice-upload/([a-f0-9\-]{36}\.[a-z]{2,4})$', self.path)
@@ -6762,6 +6818,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_api_consultas_post()
         elif self.path == '/api/faq-pregunta':
             self._handle_faq_pregunta_post()
+        elif self.path == '/api/package-groups':
+            self._handle_package_groups_post()
         elif self.path == '/api/package-group-confirm':
             self._handle_package_group_confirm()
         elif self.path == '/api/solicitudes/link-guest':
@@ -8350,6 +8408,131 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         self._json_response(200, {'ok': True})
 
     # ── POST /api/faq-pregunta ─────────────────────────────────────────────
+    # ── GET /api/package-groups ────────────────────────────────────────────
+    def _handle_package_groups_get(self):
+        """GET /api/package-groups
+        Returns ALL groups (all statuses) stored server-side for the authenticated
+        user, ordered by most-recently-updated first. The client is responsible
+        for filtering active vs. closed groups client-side via getActiveGroups().
+        Requires: Authorization: Bearer <token>  +  X-Casillero-Email header.
+        Returns: {"ok": true, "groups": [...]}
+        """
+        casillero_id, _ = self._portal_auth_full()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
+            return
+        with _DB_LOCK:
+            conn = _get_db()
+            rows = conn.execute(
+                'SELECT group_data FROM package_groups WHERE casillero_id = ? ORDER BY updated_at DESC',
+                (casillero_id,)
+            ).fetchall()
+            conn.close()
+        groups = []
+        for row in rows:
+            try:
+                groups.append(json.loads(row['group_data']))
+            except Exception:
+                pass
+        self._json_response(200, {'ok': True, 'groups': groups})
+
+    # ── POST /api/package-groups ───────────────────────────────────────────
+    def _handle_package_groups_post(self):
+        """POST /api/package-groups
+        Creates (or replaces) a group for the authenticated user.
+        Requires: Authorization: Bearer <token>  +  X-Casillero-Email header.
+        Body: full group JSON object.
+        Returns: {"ok": true, "group": {...}}
+        """
+        casillero_id, _ = self._portal_auth_full()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
+            return
+        try:
+            raw = self._read_body(_MAX_BODY_REGULAR)
+            if raw is None:
+                self._json_response(413, {'ok': False, 'error': 'Payload demasiado grande.'})
+                return
+            group = json.loads(raw.decode('utf-8'))
+        except Exception:
+            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            return
+        gid = str(group.get('id') or '').strip()
+        if not gid:
+            self._json_response(400, {'ok': False, 'error': 'ID de grupo requerido.'})
+            return
+        now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+        with _DB_LOCK:
+            conn = _get_db()
+            conn.execute(
+                'INSERT INTO package_groups (casillero_id, id, group_data, created_at, updated_at) '
+                'VALUES (?, ?, ?, ?, ?) '
+                'ON CONFLICT(casillero_id, id) DO UPDATE SET '
+                'group_data = excluded.group_data, updated_at = excluded.updated_at',
+                (casillero_id, gid, json.dumps(group), now, now)
+            )
+            conn.commit()
+            conn.close()
+        self._json_response(200, {'ok': True, 'group': group})
+
+    # ── PATCH /api/package-groups/<id> ────────────────────────────────────
+    def _handle_package_group_patch(self, group_id):
+        """PATCH /api/package-groups/<id>
+        Replaces a group's stored data for the authenticated user.
+        Requires: Authorization: Bearer <token>  +  X-Casillero-Email header.
+        Body: full updated group JSON object.
+        Returns: {"ok": true, "group": {...}}
+        """
+        casillero_id, _ = self._portal_auth_full()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
+            return
+        try:
+            raw = self._read_body(_MAX_BODY_REGULAR)
+            if raw is None:
+                self._json_response(413, {'ok': False, 'error': 'Payload demasiado grande.'})
+                return
+            updated_group = json.loads(raw.decode('utf-8'))
+        except Exception:
+            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            return
+        now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+        with _DB_LOCK:
+            conn = _get_db()
+            cursor = conn.execute(
+                'UPDATE package_groups SET group_data = ?, updated_at = ? '
+                'WHERE id = ? AND casillero_id = ?',
+                (json.dumps(updated_group), now, group_id, casillero_id)
+            )
+            conn.commit()
+            affected = cursor.rowcount
+            conn.close()
+        if affected == 0:
+            self._json_response(404, {'ok': False, 'error': 'Grupo no encontrado.'})
+            return
+        self._json_response(200, {'ok': True, 'group': updated_group})
+
+    # ── DELETE /api/package-groups/<id> ───────────────────────────────────
+    def _handle_package_group_delete(self, group_id):
+        """DELETE /api/package-groups/<id>
+        Removes a group for the authenticated user.
+        Requires: Authorization: Bearer <token>  +  X-Casillero-Email header.
+        Returns: {"ok": true}
+        """
+        casillero_id, _ = self._portal_auth_full()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
+            return
+        with _DB_LOCK:
+            conn = _get_db()
+            conn.execute(
+                'DELETE FROM package_groups WHERE id = ? AND casillero_id = ?',
+                (group_id, casillero_id)
+            )
+            conn.commit()
+            conn.close()
+        self._json_response(200, {'ok': True})
+
     def _handle_package_group_confirm(self):
         """POST /api/package-group-confirm
         Requires: Authorization: Bearer <token>  +  X-Casillero-Email header.

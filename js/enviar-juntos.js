@@ -1,10 +1,19 @@
 /**
  * enviar-juntos.js — CRBOX "Enviar paquetes juntos" grouping flow
  *
- * Data is stored client-side in localStorage (key: crbox_package_groups_v1).
- * NOTE: This is NOT official CRBOX backend data. Groups are a client-side
- * workflow aid. The only server interaction is sending a confirmation email
- * via POST /api/package-group-confirm when the user finalises a group.
+ * Groups are stored server-side (per authenticated user) via:
+ *   GET    /api/package-groups         — load on init
+ *   POST   /api/package-groups         — create group
+ *   PATCH  /api/package-groups/<id>    — update group
+ *   DELETE /api/package-groups/<id>    — delete group
+ *
+ * An in-memory cache (_groups) is kept for synchronous reads.
+ * Writes are optimistic: the cache is updated immediately and the API
+ * call happens in the background. On failure a toast is shown and the
+ * cache is reloaded from the server.
+ *
+ * localStorage (key: crbox_package_groups_v1) is used only as a
+ * one-time fallback when the server is unreachable on first load.
  *
  * Group schema:
  * {
@@ -22,16 +31,41 @@
 (function (global) {
   'use strict';
 
-  /* ─── Storage ───────────────────────────────────────────── */
-  var STORAGE_KEY = 'crbox_package_groups_v1';
+  /* ─── In-memory cache (populated from server on init) ───── */
+  var STORAGE_KEY = 'crbox_package_groups_v1';  // kept for fallback read only
+  var _groups = [];
 
-  function _load() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-    catch (_) { return []; }
+  function _load() { return _groups; }
+  function _save(groups) { _groups = groups; }
+
+  /* ─── Auth headers (mirror pattern from _handleSendConfirmation) ─── */
+  function _apiHeaders() {
+    var email = (window.CRBOXAuth && CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '') || '';
+    var token = (window.CRBOXAuth && CRBOXAuth.getToken ? CRBOXAuth.getToken() : '') || '';
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token,
+      'X-Casillero-Email': email
+    };
   }
-  function _save(groups) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(groups));
+
+  /* ─── Generic API call helper ───────────────────────────── */
+  function _apiCall(method, path, body) {
+    var opts = { method: method, headers: _apiHeaders() };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    return fetch(path, opts).then(function (res) { return res.json(); });
   }
+
+  /* ─── Reload cache from server then re-render ───────────── */
+  function _reloadFromServer() {
+    _apiCall('GET', '/api/package-groups').then(function (data) {
+      if (data && data.ok && Array.isArray(data.groups)) {
+        _groups = data.groups;
+        renderSection();
+      }
+    }).catch(function () {});
+  }
+
   function _uuid() {
     return 'grp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   }
@@ -122,6 +156,16 @@
     };
     groups.unshift(g);
     _save(groups);
+    /* Persist to server in background (optimistic UI already updated) */
+    _apiCall('POST', '/api/package-groups', g).then(function (data) {
+      if (!data || !data.ok) {
+        _showToast('No se pudo guardar el grupo en el servidor.', 'error');
+        _reloadFromServer();
+      }
+    }).catch(function () {
+      _showToast('No se pudo guardar el grupo. Verifica tu conexión.', 'error');
+      _reloadFromServer();
+    });
     return g;
   }
 
@@ -131,7 +175,18 @@
     if (idx < 0) return null;
     Object.assign(groups[idx], patch, { updatedAt: _now() });
     _save(groups);
-    return groups[idx];
+    var updated = groups[idx];
+    /* Persist to server in background (optimistic UI already updated) */
+    _apiCall('PATCH', '/api/package-groups/' + id, updated).then(function (data) {
+      if (!data || !data.ok) {
+        _showToast('No se pudo guardar el cambio en el servidor.', 'error');
+        _reloadFromServer();
+      }
+    }).catch(function () {
+      _showToast('No se pudo guardar el cambio. Verifica tu conexión.', 'error');
+      _reloadFromServer();
+    });
+    return updated;
   }
 
   function addPackagesToGroup(groupId, pkgObjs) {
@@ -153,6 +208,16 @@
 
   function deleteGroup(groupId) {
     _save(_load().filter(function (g) { return g.id !== groupId; }));
+    /* Remove from server in background */
+    _apiCall('DELETE', '/api/package-groups/' + groupId).then(function (data) {
+      if (!data || !data.ok) {
+        _showToast('No se pudo cancelar el grupo en el servidor.', 'error');
+        _reloadFromServer();
+      }
+    }).catch(function () {
+      _showToast('No se pudo cancelar el grupo. Verifica tu conexión.', 'error');
+      _reloadFromServer();
+    });
   }
 
   function advanceToInvoices(groupId) {
@@ -1064,8 +1129,27 @@
     /* Bind section-level events */
     _bindSectionEvents();
 
-    /* Initial render */
-    renderSection();
+    /* Load groups from server, then render.
+     * Falls back to localStorage if the request fails (e.g. not logged in yet
+     * or network error), so the section still renders with whatever was cached.
+     */
+    _apiCall('GET', '/api/package-groups')
+      .then(function (data) {
+        if (data && data.ok && Array.isArray(data.groups)) {
+          _groups = data.groups;
+        } else {
+          /* Server responded but not OK — fall back to localStorage */
+          try { _groups = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+          catch (_e) { _groups = []; }
+        }
+      }, function () {
+        /* Network / auth failure — fall back to localStorage */
+        try { _groups = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+        catch (_e) { _groups = []; }
+      })
+      .then(function () {
+        renderSection();
+      });
   }
 
   /* ─── Public API ─────────────────────────────────────────── */
