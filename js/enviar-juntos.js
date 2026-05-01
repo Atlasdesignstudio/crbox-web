@@ -717,11 +717,12 @@
       }
     }
 
-    /* Reset checkbox + button */
+    /* Restore checkbox state: pre-check if group is already in ready_to_confirm */
     var chk = _el('ej-invoice-confirm-check');
-    if (chk) chk.checked = false;
+    var alreadyReady = group.status === 'ready_to_confirm';
+    if (chk) chk.checked = alreadyReady;
     var sendBtn = _el('ej-invoice-send-btn');
-    if (sendBtn) sendBtn.disabled = true;
+    if (sendBtn) sendBtn.disabled = !alreadyReady;
 
     /* Error area reset */
     var errEl = _el('ej-invoice-error');
@@ -737,7 +738,16 @@
   function _handleInvoiceCheckChange() {
     var chk = _el('ej-invoice-confirm-check');
     var btn = _el('ej-invoice-send-btn');
-    if (chk && btn) btn.disabled = !chk.checked;
+    if (!chk || !btn) return;
+    btn.disabled = !chk.checked;
+    // Advance group status to reflect checkbox state (enables "Enviar confirmación" CTA in card)
+    if (_invoiceGroupId) {
+      var nextStatus = chk.checked ? 'ready_to_confirm' : 'invoices_pending';
+      _updateGroup(_invoiceGroupId, { status: nextStatus });
+      // Update the step display inside the modal without closing it
+      var stepsEl = _el('ej-invoice-steps');
+      if (stepsEl) stepsEl.innerHTML = _stepsHTML(nextStatus);
+    }
   }
 
   /* ─── Confirmation email POST ────────────────────────────── */
@@ -977,12 +987,19 @@
     var createBtn = _el('ej-create-btn');
     if (createBtn) createBtn.addEventListener('click', function () { openCreateModal(); });
 
-    /* Bind all modal close buttons */
-    document.querySelectorAll('.ej-modal-close, .ej-modal-overlay').forEach(function (el) {
-      el.addEventListener('click', function (e) {
-        if (e.target === el) _closeModal(el.closest('.ej-modal-overlay') || el);
+    /* Bind all modal close buttons (any child click — icon or button itself) */
+    document.querySelectorAll('.ej-modal-close').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        _closeModal(btn.closest('.ej-modal-overlay'));
       });
     });
+    /* Clicking the dark overlay backdrop closes the modal */
+    document.querySelectorAll('.ej-modal-overlay').forEach(function (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) _closeModal(overlay);
+      });
+    });
+    /* Prevent clicks inside the modal card from bubbling up to the overlay */
     document.querySelectorAll('.ej-modal').forEach(function (m) {
       m.addEventListener('click', function (e) { e.stopPropagation(); });
     });
