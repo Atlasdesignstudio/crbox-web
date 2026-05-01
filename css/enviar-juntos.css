@@ -391,11 +391,9 @@
   background: linear-gradient(90deg, #d97706, #f59e0b);
 }
 .ej-progress-checkmark {
-  display: none;
   color: #10b981;
   font-size: 0.9rem;
 }
-.ej-progress-fill.ej-complete ~ .ej-progress-label .ej-progress-checkmark { display: inline; }
 
 /* ── Group actions bar ───────────────────────────────────── */
 .ej-group-actions {

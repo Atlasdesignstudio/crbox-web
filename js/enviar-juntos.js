@@ -470,7 +470,7 @@
   }
 
   /* ─── Create Group modal ─────────────────────────────────── */
-  function openCreateModal(targetGroupId) {
+  function openCreateModal() {
     var overlay = _el('ej-create-modal-overlay');
     if (!overlay) return;
     // Reset form
@@ -478,8 +478,6 @@
     if (form) form.reset();
     var errEl = _el('ej-create-error');
     if (errEl) errEl.textContent = '';
-    // Pre-fill target group for add-to-group flow (when groupId passed)
-    overlay.dataset.addToGroup = targetGroupId || '';
     _openModal(overlay);
     setTimeout(function () {
       var inp = _el('ej-create-group-name');
