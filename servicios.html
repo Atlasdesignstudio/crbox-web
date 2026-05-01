@@ -821,13 +821,8 @@
       function bindChips() {
         document.querySelectorAll('.route-chip').forEach(function(chip) {
           var k = chip.dataset.route;
-          chip.addEventListener('click',      function(){ current=k; setActive(k); applyMap(k); });
-          chip.addEventListener('mouseenter', function(){ applyMap(k); });
-          chip.addEventListener('mouseleave', function(){ applyMap(current); });
-          chip.addEventListener('focus',      function(){ applyMap(k); });
-          chip.addEventListener('blur',       function(){ applyMap(current); });
+          chip.addEventListener('click', function(){ current=k; setActive(k); applyMap(k); });
         });
-        /* Panel starts with "Todos" text/modes shown (set inline HTML — fine since D3 async) */
         applyMap('todos');
       }
 
