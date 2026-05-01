@@ -1,0 +1,216 @@
+Continue task #312 with strict preservation of the existing chat functionality.
+
+The goal is not to rebuild the CRBOX assistant. The goal is to replace the old circular orange chat bubble with a modern floating AI prompt bar while keeping the existing /api/chat backend, js/chat-panel.js behavior, conversation history, knowledge-base context, and assistant response rendering intact.
+
+Do not introduce fake responses, placeholder AI logic, or a second chat system.
+
+Implementation priority:
+1. Preserve existing chat backend integration.
+2. Preserve existing chat panel rendering and response handling.
+3. Replace only the trigger / entry point UX.
+4. Make the new prompt bar feel premium, modern, and native to CRBOX.
+
+Key requirement:
+The old #crbox-chat-bubble should no longer be visible on public pages, but the existing chat panel logic must still work through the new horizontal prompt bar.
+
+Public pages to update:
+- index.html
+- servicios.html
+- como-funciona.html
+- tarifas.html
+- calculadora.html
+- contacto.html
+- afiliate.html
+- login.html only if it does not visually conflict with the login card
+
+Do not update:
+- dashboard.html
+- mis-paquetes.html
+- mis-facturas.html
+- mi-cuenta.html
+
+Files to inspect before editing:
+- js/chat-panel.js
+- js/crbox-knowledge.js
+- css/chat-panel.css
+- css/styles.css
+- css/responsive.css
+- index.html
+- servicios.html
+- como-funciona.html
+- tarifas.html
+- calculadora.html
+- contacto.html
+- afiliate.html
+- login.html
+
+Important:
+Before changing markup, inspect how #crbox-chat-bubble currently opens the chat panel. Reuse that same open/close pathway as much as possible. Do not duplicate backend submission logic unless absolutely necessary.
+
+Desired UX:
+Replace the round floating chat bubble with a bottom-center horizontal AI prompt bar.
+
+Collapsed state:
+- Bottom-center, fixed position.
+- Pill-shaped white/light surface.
+- Soft border and shadow.
+- Left icon: sparkles, message, or assistant icon.
+- Placeholder text: “Pregúntanos lo que quieras”
+- Right circular arrow/send button in CRBOX orange #FF6B00.
+- Desktop max-width around 640–720px.
+- Mobile width: calc(100% - 32px), with safe margins.
+- Should sit just above the bottom viewport edge and not cover key CTAs too aggressively.
+
+Expanded state:
+- Clicking or focusing the prompt bar expands the assistant panel upward.
+- The expanded panel should include:
+  - Title: “Asistente CRBOX”
+  - Supporting text: “Haz una pregunta o elige una opción para encontrar rápidamente lo que necesitas.”
+  - Quick prompt chips
+  - Existing chat messages / conversation area
+  - Existing chat input and submit behavior, visually adapted if needed
+  - Close/minimize button
+- The expansion should feel like the bar transforms into a polished assistant composer/panel, not like a third-party popup.
+
+Quick prompt chips:
+Use these nine chips:
+1. ¿Cómo funciona CRBOX?
+2. ¿Cuánto cuesta traer un paquete?
+3. ¿Cuáles son las tarifas?
+4. ¿Cómo uso mi casillero?
+5. ¿Dónde está mi paquete?
+6. ¿Qué puedo comprar en USA?
+7. ¿Qué productos requieren permisos?
+8. Quiero cotizar un envío internacional
+9. Quiero afiliarme gratis
+
+Behavior for chips:
+- Chips should be real <button type="button"> elements.
+- Clicking a chip should fill the existing chat input with the chip text.
+- Then submit through the existing chat submission logic to /api/chat.
+- Do not hardcode fake answers.
+- If the current system already supports suggestion prompts, adapt/reuse it instead of creating parallel logic.
+- If there is a known intent-routing layer in chat-panel.js, preserve it.
+- Only route directly to a page if the existing logic already does that or if the system has no backend response path for that action.
+- Do not create new pages.
+
+Accessibility:
+- The collapsed prompt bar trigger must have aria-expanded and aria-controls.
+- The expanded panel must have an id connected to aria-controls.
+- Buttons need accessible labels.
+- Escape key closes the expanded panel.
+- Clicking outside closes the panel only when the input is empty.
+- Focus styles must be visible.
+- The input must remain keyboard usable.
+- Do not trap focus unless the existing chat panel already does so.
+
+Motion:
+- Use smooth opacity/transform transitions.
+- Respect prefers-reduced-motion by disabling non-essential transitions and animations.
+- Avoid excessive bouncing, mascot motion, or fake typing indicators.
+
+Back-to-top button:
+- Reposition the existing back-to-top button so it does not overlap the new prompt bar.
+- Prefer moving it higher or slightly left on desktop.
+- On mobile, ensure it does not sit on top of the prompt bar.
+
+CSS instructions:
+Update css/chat-panel.css first.
+- Hide/remove old circular bubble styles:
+  #crbox-chat-bubble should not render as a visible circular orange button.
+- Add scoped styles:
+  .ai-prompt-shell
+  .ai-prompt-bar
+  .ai-prompt-bar__icon
+  .ai-prompt-bar__text
+  .ai-prompt-bar__send
+  .ai-prompt-panel
+  .ai-prompt-panel.is-open
+  .ai-prompt-chip
+  .ai-prompt-chips
+- Avoid broad selectors that can affect the rest of the site.
+- Keep the CRBOX visual language:
+  - Orange #FF6B00
+  - Navy #0F172A where needed
+  - White/light-gray surfaces
+  - Soft borders
+  - Rounded 999px pill for collapsed bar
+  - Rounded-xl/2xl panel
+  - Soft shadow
+- Do not rewrite unrelated CSS.
+
+HTML snippet:
+Replace the old bubble markup on public pages with one identical reusable snippet near the closing </body> tag.
+
+Suggested structure, adapt class/id names only if needed to preserve existing JS hooks:
+
+<div class="ai-prompt-shell" id="crbox-ai-prompt-shell">
+  <button
+    type="button"
+    class="ai-prompt-bar"
+    id="crbox-ai-prompt-bar"
+    aria-expanded="false"
+    aria-controls="crbox-chat-panel"
+    aria-label="Abrir asistente CRBOX"
+  >
+    <span class="ai-prompt-bar__icon" aria-hidden="true">
+      <i class="fas fa-sparkles"></i>
+    </span>
+    <span class="ai-prompt-bar__text">Pregúntanos lo que quieras</span>
+    <span class="ai-prompt-bar__send" aria-hidden="true">
+      <i class="fas fa-arrow-right"></i>
+    </span>
+  </button>
+
+  Keep or move the existing chat panel markup here.
+  Do not delete existing message list, chat input, or submit button if chat-panel.js depends on them.
+
+  Add quick prompt chips inside the expanded panel, preferably above the conversation area:
+  <div class="ai-prompt-chips" aria-label="Preguntas rápidas">
+    <button type="button" class="ai-prompt-chip" data-prompt="¿Cómo funciona CRBOX?">¿Cómo funciona CRBOX?</button>
+    ...
+  </div>
+</div>
+
+Important:
+The exact final markup should match what js/chat-panel.js expects. If the existing JS depends on IDs like #crbox-chat-panel, #crbox-chat-input, #crbox-chat-messages, #crbox-chat-send, preserve those IDs.
+
+JavaScript instructions:
+Update js/chat-panel.js carefully.
+- Locate the current bubble click listener.
+- Replace or extend it so #crbox-ai-prompt-bar opens the same panel.
+- Keep existing sendMessage / submitMessage / fetch('/api/chat') flow intact.
+- Add chip click handling:
+  - read data-prompt
+  - set existing input value
+  - open panel
+  - call the same submit handler used by the send button/form
+- Add Escape close behavior.
+- Add outside-click close behavior only when chat input is empty.
+- Update aria-expanded when opening/closing.
+- Add/remove open classes on .ai-prompt-shell and .ai-prompt-panel.
+- Avoid global event conflicts with mobile menu, calculator, registration forms, or existing page interactions.
+
+No-JS fallback:
+- If JS fails, the bar should remain visible and not block the page.
+- The site should still function normally.
+- Do not leave an empty overlay blocking clicks.
+
+Validation checklist:
+After implementation, verify:
+- Old circular orange bubble is gone from all public pages.
+- Prompt bar appears bottom-center on every public page.
+- Clicking the prompt bar opens the existing CRBOX assistant.
+- Existing /api/chat submission still works.
+- Quick prompt chips submit to the same backend.
+- Existing conversation rendering still works.
+- Escape closes the panel.
+- Outside click closes only if input is empty.
+- Back-to-top button does not overlap.
+- Mobile layout is clean and usable.
+- No dashboard/private pages were modified.
+- No console errors.
+- Existing calculators, forms, nav menus, and page interactions still work.
+
+Quality bar:
+The final result should feel like an AI-native assistant entry point, not a customer-service bubble. It should look integrated, useful, premium, and modern while keeping the real CRBOX assistant functionality untouched.

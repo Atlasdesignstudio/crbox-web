@@ -215,9 +215,12 @@
             box-shadow:0 24px 64px rgba(15,23,42,.38),0 4px 16px rgba(0,0,0,.18); overflow:hidden;
         }
         .global-map-svg { width:100%; height:auto; display:block; }
-        .logistics-continent { fill:#1e3058; stroke:#2a4a78; stroke-width:.6; }
-        .logistics-grid-h,.logistics-grid-v { stroke:rgba(255,255,255,.05); stroke-width:.5; fill:none; }
-        .logistics-equator { stroke:rgba(255,255,255,.1); stroke-width:.5; fill:none; stroke-dasharray:4 6; }
+        .logistics-sphere   { fill:#0a1628; }
+        .logistics-graticule{ fill:none; stroke:rgba(255,255,255,.07); stroke-width:.4; }
+        .logistics-country  { fill:#1a3060; stroke:#1d3a70; stroke-width:.35; }
+        .logistics-flow-dot { }
+        .logistics-flow-dot.dim  { opacity:0 !important; }
+        .logistics-flow-dot.glow { }
 
         /* Route arc lines */
         .logistics-route {
@@ -514,134 +517,30 @@
             <p class="global-logistics-note"><i class="fas fa-info-circle mr-1"></i>Cada requerimiento se cotiza según origen, destino, tipo de carga, volumen y urgencia del envío.</p>
           </div>
 
-          <!-- ── RIGHT: Map card ── -->
+          <!-- ── RIGHT: Map card (D3 + Natural Earth projection) ── -->
           <div class="global-logistics-right">
             <div class="global-map-card">
 
-              <!-- SVG World Map -->
-              <svg class="global-map-svg" viewBox="0 0 700 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa de rutas logísticas internacionales de CRBOX">
+              <!-- D3 Natural Earth Map — filled by JS after topojson fetch -->
+              <svg id="gl-map-svg" class="global-map-svg" viewBox="0 0 700 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa de rutas logísticas internacionales de CRBOX">
                 <defs>
                   <pattern id="gl-dotgrid" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
-                    <circle cx="9" cy="9" r=".7" fill="rgba(255,255,255,.07)"/>
+                    <circle cx="9" cy="9" r=".65" fill="rgba(255,255,255,.06)"/>
                   </pattern>
-                  <radialGradient id="gl-glow-cr" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="#FF6B00" stop-opacity=".6"/>
-                    <stop offset="100%" stop-color="#FF6B00" stop-opacity="0"/>
-                  </radialGradient>
                 </defs>
-
-                <!-- Background -->
-                <rect width="700" height="380" fill="#0c1628"/>
+                <rect width="700" height="380" fill="#0a1628"/>
                 <rect width="700" height="380" fill="url(#gl-dotgrid)"/>
-
-                <!-- Grid lines -->
-                <!-- Horizontals -->
-                <line class="logistics-grid-h" x1="0" y1="95"  x2="700" y2="95"/>
-                <line class="logistics-equator"                 x1="0" y1="190" x2="700" y2="190"/>
-                <line class="logistics-grid-h" x1="0" y1="285" x2="700" y2="285"/>
-                <!-- Verticals -->
-                <line class="logistics-grid-v" x1="117" y1="0" x2="117" y2="380"/>
-                <line class="logistics-grid-v" x1="233" y1="0" x2="233" y2="380"/>
-                <line class="logistics-grid-v" x1="350" y1="0" x2="350" y2="380"/>
-                <line class="logistics-grid-v" x1="467" y1="0" x2="467" y2="380"/>
-                <line class="logistics-grid-v" x1="583" y1="0" x2="583" y2="380"/>
-
-                <!-- Continent fills -->
-                <!-- Greenland -->
-                <polygon class="logistics-continent" points="255,8 298,5 322,18 320,38 302,50 273,54 251,44 251,22"/>
-                <!-- Iceland -->
-                <polygon class="logistics-continent" points="283,38 304,33 316,42 314,52 298,56 281,48"/>
-                <!-- North America + Central America -->
-                <polygon class="logistics-continent" points="40,30 82,10 150,6 208,12 252,24 254,68 256,110 245,138 230,150 216,158 200,164 190,178 180,188 165,180 152,168 138,170 126,158 116,128 96,132 80,144 70,132 55,104 44,70"/>
-                <!-- UK blob -->
-                <polygon class="logistics-continent" points="335,56 348,50 356,58 355,72 342,74 333,64"/>
-                <!-- Europe -->
-                <polygon class="logistics-continent" points="310,18 358,10 402,16 440,30 448,50 442,74 424,92 398,100 368,102 342,92 320,78 310,50"/>
-                <!-- Africa -->
-                <polygon class="logistics-continent" points="312,108 360,102 414,108 458,128 480,154 486,192 483,233 473,275 458,325 434,362 402,378 370,374 337,353 313,325 303,293 302,255 308,218 311,175 312,140"/>
-                <!-- South America -->
-                <polygon class="logistics-continent" points="178,188 205,182 235,196 265,218 288,248 302,282 294,320 278,352 252,378 225,379 196,368 178,348 164,320 160,288 162,254 167,224 174,204"/>
-                <!-- Asia main -->
-                <polygon class="logistics-continent" points="450,10 532,5 618,10 670,30 696,58 696,120 678,158 650,175 620,190 572,190 532,177 499,160 462,150 450,128 450,96 452,62"/>
-                <!-- Japan -->
-                <polygon class="logistics-continent" points="616,108 628,104 642,116 638,130 622,128"/>
-                <!-- SE Asia peninsula -->
-                <polygon class="logistics-continent" points="555,175 580,175 588,195 578,218 558,218 545,200"/>
-                <!-- Australia -->
-                <polygon class="logistics-continent" points="575,252 625,245 675,253 696,278 698,318 680,350 648,362 606,360 578,338 558,312 558,283 565,263"/>
-                <!-- NZ -->
-                <polygon class="logistics-continent" points="672,330 682,326 690,338 688,350 677,348 670,340"/>
-
-                <!-- ── ROUTE ARCS (track layer) ── -->
-                <!-- Each path has pathLength="100" so we can use percentage-based dasharray -->
-                <path id="route-usa"     class="logistics-route" pathLength="100" d="M 192,130 Q 162,90 187,169"/>
-                <path id="route-mexico"  class="logistics-route" pathLength="100" d="M 155,148 Q 138,108 187,169"/>
-                <path id="route-cam"     class="logistics-route" pathLength="100" d="M 173,158 Q 155,135 187,169"/>
-                <path id="route-panama"  class="logistics-route" pathLength="100" d="M 200,174 Q 220,192 187,169"/>
-                <path id="route-sam"     class="logistics-route" pathLength="100" d="M 248,252 Q 196,218 187,169"/>
-                <path id="route-europe"  class="logistics-route" pathLength="100" d="M 348,80 Q 258,22 187,169"/>
-                <path id="route-mideast" class="logistics-route" pathLength="100" d="M 440,135 Q 308,38 187,169"/>
-                <path id="route-fareast" class="logistics-route" pathLength="100" d="M 575,128 Q 378,16 187,169"/>
-
-                <!-- ── FLOW DOTS (cargo moving along routes) ── -->
-                <path id="flow-usa"     class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:0s"    d="M 192,130 Q 162,90 187,169"/>
-                <path id="flow-mexico"  class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:.5s"   d="M 155,148 Q 138,108 187,169"/>
-                <path id="flow-cam"     class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:1s"    d="M 173,158 Q 155,135 187,169"/>
-                <path id="flow-panama"  class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:1.5s"  d="M 200,174 Q 220,192 187,169"/>
-                <path id="flow-sam"     class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:2s"    d="M 248,252 Q 196,218 187,169"/>
-                <path id="flow-europe"  class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:2.5s"  d="M 348,80 Q 258,22 187,169"/>
-                <path id="flow-mideast" class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:3s"    d="M 440,135 Q 308,38 187,169"/>
-                <path id="flow-fareast" class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:3.5s"  d="M 575,128 Q 378,16 187,169"/>
-
-                <!-- ── ORIGIN POINTS ── -->
-                <!-- USA/Miami -->
-                <circle id="pulse-usa"    class="logistics-pt-pulse" cx="192" cy="130" r="4" stroke="rgba(255,255,255,.35)"/>
-                <circle id="ring-usa"     class="logistics-pt-ring"  cx="192" cy="130" r="5" stroke="rgba(255,255,255,.4)"/>
-                <circle id="dot-usa"      class="logistics-pt-dot"   cx="192" cy="130" r="3" fill="rgba(255,255,255,.8)"/>
-                <text  id="lbl-usa"       class="logistics-label" x="196" y="124" text-anchor="start">EE.UU.</text>
-                <!-- Mexico -->
-                <circle id="pulse-mexico"  class="logistics-pt-pulse" cx="155" cy="148" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:.4s"/>
-                <circle id="ring-mexico"   class="logistics-pt-ring"  cx="155" cy="148" r="5" stroke="rgba(255,255,255,.4)"/>
-                <circle id="dot-mexico"    class="logistics-pt-dot"   cx="155" cy="148" r="3" fill="rgba(255,255,255,.8)"/>
-                <text  id="lbl-mexico"     class="logistics-label" x="148" y="143" text-anchor="end">México</text>
-                <!-- Central America -->
-                <circle id="pulse-cam"   class="logistics-pt-pulse" cx="173" cy="158" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:.8s"/>
-                <circle id="ring-cam"    class="logistics-pt-ring"  cx="173" cy="158" r="5" stroke="rgba(255,255,255,.4)"/>
-                <circle id="dot-cam"     class="logistics-pt-dot"   cx="173" cy="158" r="3" fill="rgba(255,255,255,.8)"/>
-                <text  id="lbl-cam"      class="logistics-label" x="163" y="153" text-anchor="end">C.América</text>
-                <!-- Panama -->
-                <circle id="pulse-panama"  class="logistics-pt-pulse" cx="200" cy="174" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:1.2s"/>
-                <circle id="ring-panama"   class="logistics-pt-ring"  cx="200" cy="174" r="5" stroke="rgba(255,255,255,.4)"/>
-                <circle id="dot-panama"    class="logistics-pt-dot"   cx="200" cy="174" r="3" fill="rgba(255,255,255,.8)"/>
-                <text  id="lbl-panama"     class="logistics-label" x="206" y="178" text-anchor="start">Panamá</text>
-                <!-- South America -->
-                <circle id="pulse-sam"    class="logistics-pt-pulse" cx="248" cy="252" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:1.6s"/>
-                <circle id="ring-sam"     class="logistics-pt-ring"  cx="248" cy="252" r="5" stroke="rgba(255,255,255,.4)"/>
-                <circle id="dot-sam"      class="logistics-pt-dot"   cx="248" cy="252" r="3" fill="rgba(255,255,255,.8)"/>
-                <text  id="lbl-sam"       class="logistics-label" x="255" y="256" text-anchor="start">Sur América</text>
-                <!-- Europe -->
-                <circle id="pulse-europe"  class="logistics-pt-pulse" cx="348" cy="80" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:2s"/>
-                <circle id="ring-europe"   class="logistics-pt-ring"  cx="348" cy="80" r="5" stroke="rgba(255,255,255,.4)"/>
-                <circle id="dot-europe"    class="logistics-pt-dot"   cx="348" cy="80" r="3" fill="rgba(255,255,255,.8)"/>
-                <text  id="lbl-europe"     class="logistics-label" x="348" y="72" text-anchor="middle">Europa</text>
-                <!-- Middle East -->
-                <circle id="pulse-mideast"  class="logistics-pt-pulse" cx="440" cy="135" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:2.4s"/>
-                <circle id="ring-mideast"   class="logistics-pt-ring"  cx="440" cy="135" r="5" stroke="rgba(255,255,255,.4)"/>
-                <circle id="dot-mideast"    class="logistics-pt-dot"   cx="440" cy="135" r="3" fill="rgba(255,255,255,.8)"/>
-                <text  id="lbl-mideast"     class="logistics-label" x="440" y="128" text-anchor="middle">M.Oriente</text>
-                <!-- Far East -->
-                <circle id="pulse-fareast"  class="logistics-pt-pulse" cx="575" cy="128" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:2.8s"/>
-                <circle id="ring-fareast"   class="logistics-pt-ring"  cx="575" cy="128" r="5" stroke="rgba(255,255,255,.4)"/>
-                <circle id="dot-fareast"    class="logistics-pt-dot"   cx="575" cy="128" r="3" fill="rgba(255,255,255,.8)"/>
-                <text  id="lbl-fareast"     class="logistics-label" x="575" y="121" text-anchor="middle">Asia</text>
-
-                <!-- ── COSTA RICA DESTINATION ── -->
-                <circle class="logistics-dest-ring" cx="187" cy="169" r="8"/>
-                <circle class="logistics-dest-ring" cx="187" cy="169" r="8" style="animation-delay:.7s"/>
-                <circle cx="187" cy="169" r="9" fill="rgba(255,107,0,.15)"/>
-                <circle cx="187" cy="169" r="5.5" fill="#FF6B00"/>
-                <circle cx="187" cy="169" r="2.5" fill="#fff"/>
-                <text x="187" y="181" class="logistics-label" text-anchor="middle" style="fill:#FF6B00;font-size:7px;font-weight:800;">Costa Rica</text>
+                <!-- D3 layers — populated by script -->
+                <g id="gl-g-sphere"></g>
+                <g id="gl-g-graticule"></g>
+                <g id="gl-g-countries"></g>
+                <g id="gl-g-routes"></g>
+                <g id="gl-g-dots"></g>
+                <g id="gl-g-points"></g>
+                <g id="gl-g-labels"></g>
+                <!-- Loading placeholder -->
+                <text id="gl-map-loading" x="350" y="192" text-anchor="middle" dominant-baseline="middle"
+                  font-family="system-ui,-apple-system,sans-serif" font-size="12" fill="rgba(255,255,255,.22)">Cargando mapa…</text>
               </svg>
 
               <!-- Route Chips -->
@@ -676,88 +575,232 @@
       </div><!-- /container -->
     </section>
 
+    <!-- D3.js + TopoJSON from CDN (MIT / ISC license, no attribution required) -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
     <script>
     (function () {
       'use strict';
+
+      /* ── Route metadata ── */
       var ALL_IDS = ['usa','mexico','cam','panama','sam','europe','mideast','fareast'];
-      var ICON = {plane:'fas fa-plane',ship:'fas fa-ship',truck:'fas fa-truck',globe:'fas fa-globe'};
+      var ICON    = {plane:'fas fa-plane',ship:'fas fa-ship',truck:'fas fa-truck',globe:'fas fa-globe'};
+
+      /* Geographic origins  [lon, lat] */
+      var ORIGINS = {
+        usa:     { coord:[-80.2, 25.8],  label:'EE.UU.',      ax:'start',  dx:7,  dy:-5 },
+        mexico:  { coord:[-99.1, 19.4],  label:'México',      ax:'end',    dx:-7, dy:-5 },
+        cam:     { coord:[-90.5, 14.6],  label:'C.América',   ax:'end',    dx:-7, dy:-5 },
+        panama:  { coord:[-79.5,  9.0],  label:'Panamá',      ax:'start',  dx:7,  dy: 9 },
+        sam:     { coord:[-58.4,-34.6],  label:'Sur América', ax:'start',  dx:7,  dy: 4 },
+        europe:  { coord:[ -3.7, 40.4],  label:'Europa',      ax:'middle', dx:0,  dy:-9 },
+        mideast: { coord:[ 46.7, 24.7],  label:'M.Oriente',   ax:'middle', dx:0,  dy:-9 },
+        fareast: { coord:[116.4, 39.9],  label:'Asia',        ax:'middle', dx:0,  dy:-9 }
+      };
+      var CR = [-84.1, 9.9]; /* Costa Rica */
+
       var ROUTES = {
-        todos:   { title:'Todos los destinos', icon:'globe',  svgIds:ALL_IDS,
+        todos:   { title:'Todos los destinos',    icon:'globe',  svgIds:ALL_IDS,
           desc:'CRBOX coordina soluciones logísticas internacionales desde múltiples regiones hacia Costa Rica, combinando transporte aéreo, marítimo, terrestre, carga consolidada, LCL, FCL, contenedor completo y courier de exportación según el requerimiento.',
           modes:['Aéreo','Marítimo','Terrestre','Consolidado','FCL','LCL'] },
-        usa:     { title:'Estados Unidos', icon:'plane', svgIds:['usa'],
+        usa:     { title:'Estados Unidos',         icon:'plane',  svgIds:['usa'],
           desc:'Manejo de carga aérea y marítima desde Miami, en consolidado y contenedor completo, así como desde el resto de Estados Unidos.',
           modes:['Aéreo','Marítimo','Consolidado','Contenedor completo'] },
-        fareast: { title:'Lejano Oriente', icon:'ship',  svgIds:['fareast'],
+        fareast: { title:'Lejano Oriente',         icon:'ship',   svgIds:['fareast'],
           desc:'Servicio completo de carga aérea y marítima, tanto FCL como LCL, desde China, Indonesia, Taiwán, Japón, Korea, Vietnam, entre otros.',
           modes:['Aéreo','Marítimo','FCL','LCL'] },
-        mexico:  { title:'México', icon:'truck', svgIds:['mexico'],
+        mexico:  { title:'México',                 icon:'truck',  svgIds:['mexico'],
           desc:'Transporte terrestre consolidado, marítimo en contenedor completo y consolidado, aéreo de carga general y paquetería empresarial.',
           modes:['Terrestre','Marítimo','Aéreo','Consolidado'] },
-        cam:     { title:'Centroamérica', icon:'truck', svgIds:['cam'],
+        cam:     { title:'Centroamérica',          icon:'truck',  svgIds:['cam'],
           desc:'Servicio de exportación en carga consolidada terrestre y carga aérea hacia la región centroamericana.',
           modes:['Terrestre','Aéreo','Exportación'] },
-        panama:  { title:'Panamá', icon:'truck', svgIds:['panama'],
+        panama:  { title:'Panamá',                 icon:'truck',  svgIds:['panama'],
           desc:'Carga consolidada terrestre desde Zona Libre hacia San José.',
           modes:['Terrestre','Consolidado'] },
-        sam:     { title:'Sur América', icon:'ship', svgIds:['sam'],
+        sam:     { title:'Sur América',            icon:'ship',   svgIds:['sam'],
           desc:'Consolidado marítimo y contenedor completo desde Argentina, Chile, Brazil, Perú, Colombia y Uruguay.',
           modes:['Marítimo','Consolidado','Contenedor completo'] },
-        europe:  { title:'Europa y Medio Oriente', icon:'plane', svgIds:['europe','mideast'],
+        europe:  { title:'Europa y Medio Oriente', icon:'plane',  svgIds:['europe','mideast'],
           desc:'Soluciones logísticas desde España, Inglaterra, Italia, Francia, Alemania, Bélgica, Suiza, Hungría, Dinamarca, Finlandia, República Checa, Portugal, Egipto, Turquía, Israel, entre otros.',
           modes:['Aéreo','Marítimo','Internacional'] }
       };
 
       var current = 'todos';
-      var hovering = null;
+      var W = 700, H = 380;
+      var NS  = 'http://www.w3.org/2000/svg';
+      var XL  = 'http://www.w3.org/1999/xlink';
 
-      function svgEl(id) { return document.getElementById(id); }
+      /* ── D3 projection: Natural Earth (no distortion, clean continents) ── */
+      var projection = d3.geoNaturalEarth1().fitSize([W, H], {type:'Sphere'});
+      var geoPath    = d3.geoPath(projection);
+
+      /* ── Render map after fetching world atlas ── */
+      d3.json('/data/world-110m.json')
+        .then(function(world) {
+          /* Hide loader */
+          var loader = document.getElementById('gl-map-loading');
+          if (loader) loader.style.display = 'none';
+
+          /* Sphere (ocean) */
+          d3.select('#gl-g-sphere').append('path')
+            .datum({type:'Sphere'})
+            .attr('class','logistics-sphere')
+            .attr('d', geoPath);
+
+          /* Graticule grid */
+          d3.select('#gl-g-graticule').append('path')
+            .datum(d3.geoGraticule()())
+            .attr('class','logistics-graticule')
+            .attr('d', geoPath);
+
+          /* Countries */
+          var countries = topojson.feature(world, world.objects.countries);
+          d3.select('#gl-g-countries').selectAll('path')
+            .data(countries.features)
+            .join('path')
+            .attr('class','logistics-country')
+            .attr('d', geoPath);
+
+          /* Route arcs + animated cargo dots */
+          ALL_IDS.forEach(function(id, i) {
+            var origin = ORIGINS[id].coord;
+            var arcGeo = {type:'LineString', coordinates:[origin, CR]};
+            var arcD   = geoPath(arcGeo);
+            if (!arcD) return;
+
+            /* Arc track */
+            d3.select('#gl-g-routes').append('path')
+              .attr('id','route-'+id)
+              .attr('class','logistics-route')
+              .attr('d', arcD);
+
+            /* Moving cargo dot via animateMotion + mpath */
+            var circle = document.createElementNS(NS, 'circle');
+            circle.setAttribute('id',    'flow-'+id);
+            circle.setAttribute('class', 'logistics-flow-dot');
+            circle.setAttribute('r',     '3');
+            circle.setAttribute('fill',  'rgba(255,255,255,.78)');
+
+            var anim = document.createElementNS(NS, 'animateMotion');
+            anim.setAttribute('dur',         '4s');
+            anim.setAttribute('repeatCount', 'indefinite');
+            anim.setAttribute('begin',       (i*0.45)+'s');
+            anim.setAttribute('calcMode',    'linear');
+
+            var mpath = document.createElementNS(NS, 'mpath');
+            mpath.setAttribute('href', '#route-'+id);           /* modern */
+            mpath.setAttributeNS(XL,   'xlink:href','#route-'+id); /* legacy */
+            anim.appendChild(mpath);
+            circle.appendChild(anim);
+            document.getElementById('gl-g-dots').appendChild(circle);
+
+            /* Origin point group */
+            var pt = projection(origin);
+            var gp = d3.select('#gl-g-points');
+            gp.append('circle').attr('id','pulse-'+id).attr('class','logistics-pt-pulse')
+              .attr('cx',pt[0]).attr('cy',pt[1]).attr('r',4)
+              .attr('stroke','rgba(255,255,255,.35)')
+              .style('animation-delay',(i*0.35)+'s');
+            gp.append('circle').attr('id','ring-'+id).attr('class','logistics-pt-ring')
+              .attr('cx',pt[0]).attr('cy',pt[1]).attr('r',5)
+              .attr('stroke','rgba(255,255,255,.42)');
+            gp.append('circle').attr('id','dot-'+id).attr('class','logistics-pt-dot')
+              .attr('cx',pt[0]).attr('cy',pt[1]).attr('r',3)
+              .attr('fill','rgba(255,255,255,.88)');
+          });
+
+          /* Origin labels */
+          ALL_IDS.forEach(function(id) {
+            var o  = ORIGINS[id];
+            var pt = projection(o.coord);
+            d3.select('#gl-g-labels').append('text')
+              .attr('id','lbl-'+id)
+              .attr('class','logistics-label')
+              .attr('x', pt[0]+o.dx).attr('y', pt[1]+o.dy)
+              .attr('text-anchor', o.ax)
+              .text(o.label);
+          });
+
+          /* Costa Rica destination marker */
+          var crPt = projection(CR);
+          var gDst = d3.select('#gl-g-points');
+          gDst.append('circle').attr('class','logistics-dest-ring')
+            .attr('cx',crPt[0]).attr('cy',crPt[1]).attr('r',8);
+          gDst.append('circle').attr('class','logistics-dest-ring')
+            .attr('cx',crPt[0]).attr('cy',crPt[1]).attr('r',8)
+            .style('animation-delay','.7s');
+          gDst.append('circle')
+            .attr('cx',crPt[0]).attr('cy',crPt[1]).attr('r',9)
+            .attr('fill','rgba(255,107,0,.15)');
+          gDst.append('circle')
+            .attr('cx',crPt[0]).attr('cy',crPt[1]).attr('r',5.5)
+            .attr('fill','#FF6B00');
+          gDst.append('circle')
+            .attr('cx',crPt[0]).attr('cy',crPt[1]).attr('r',2.5)
+            .attr('fill','#fff');
+          d3.select('#gl-g-labels').append('text')
+            .attr('x',crPt[0]).attr('y',crPt[1]+13)
+            .attr('text-anchor','middle')
+            .attr('fill','#FF6B00')
+            .attr('font-size','7.5px')
+            .attr('font-weight','800')
+            .attr('font-family','system-ui,-apple-system,sans-serif')
+            .text('Costa Rica');
+
+          /* Apply default state */
+          applyMap('todos');
+        })
+        .catch(function() {
+          var loader = document.getElementById('gl-map-loading');
+          if (loader) { loader.textContent = '— mapa no disponible —'; loader.style.display = ''; }
+        });
+
+      /* ── Chip interactivity ── */
+      function gel(id) { return document.getElementById(id); }
 
       function applyMap(key) {
-        var data = ROUTES[key] || ROUTES.todos;
+        var data   = ROUTES[key] || ROUTES.todos;
         var active = data.svgIds;
-        var isAll = (key === 'todos');
-        ALL_IDS.forEach(function (id) {
+        var isAll  = (key === 'todos');
+
+        ALL_IDS.forEach(function(id) {
           var on = isAll || active.indexOf(id) !== -1;
-          var r = svgEl('route-' + id);
-          var f = svgEl('flow-' + id);
-          var ring = svgEl('ring-' + id);
-          var dot  = svgEl('dot-' + id);
-          var pulse = svgEl('pulse-' + id);
-          var lbl  = svgEl('lbl-' + id);
-          [r,f].forEach(function(el){ if(el){ el.classList.toggle('dim',!on); el.classList.toggle('glow',on&&!isAll); }});
-          [ring,dot].forEach(function(el){ if(el){ el.classList.toggle('dim',!on); el.classList.toggle('glow',on&&!isAll); }});
-          if(pulse){ pulse.classList.toggle('dim',!on); pulse.classList.toggle('glow',on&&!isAll); }
-          if(lbl){   lbl.classList.toggle('dim',!on);   lbl.classList.toggle('glow',on&&!isAll); }
+          ['route-'+id, 'flow-'+id, 'ring-'+id, 'dot-'+id, 'pulse-'+id, 'lbl-'+id].forEach(function(eid) {
+            var el = gel(eid);
+            if (!el) return;
+            el.classList.toggle('dim',  !on);
+            el.classList.toggle('glow',  on && !isAll);
+          });
         });
-        var panel = data;
-        var titleEl = svgEl('gl-rdp-title');
-        var descEl  = svgEl('gl-rdp-desc');
-        var modesEl = svgEl('gl-rdp-modes');
-        var iconEl  = svgEl('gl-route-panel') && svgEl('gl-route-panel').querySelector('.rdp-title i');
-        if(titleEl) titleEl.textContent = panel.title;
-        if(descEl)  descEl.textContent  = panel.desc;
-        if(modesEl) modesEl.innerHTML   = panel.modes.map(function(m){ return '<span class="rdp-mode-tag">'+m+'</span>'; }).join('');
-        if(iconEl)  iconEl.className    = ICON[panel.icon] || ICON.globe;
+
+        var tEl = gel('gl-rdp-title'), dEl = gel('gl-rdp-desc'), mEl = gel('gl-rdp-modes');
+        var iEl = document.querySelector('#gl-route-panel .rdp-title i');
+        if (tEl) tEl.textContent = data.title;
+        if (dEl) dEl.textContent = data.desc;
+        if (mEl) mEl.innerHTML   = data.modes.map(function(m){ return '<span class="rdp-mode-tag">'+m+'</span>'; }).join('');
+        if (iEl) iEl.className   = ICON[data.icon] || ICON.globe;
       }
 
-      function setChipActive(key) {
-        document.querySelectorAll('.route-chip').forEach(function(c){ c.classList.toggle('active', c.dataset.route === key); });
+      function setActive(key) {
+        document.querySelectorAll('.route-chip').forEach(function(c){ c.classList.toggle('active', c.dataset.route===key); });
       }
 
-      function init() {
-        document.querySelectorAll('.route-chip').forEach(function (chip) {
-          var key = chip.dataset.route;
-          chip.addEventListener('click', function () { current = key; hovering = null; setChipActive(key); applyMap(key); });
-          chip.addEventListener('mouseenter', function () { hovering = key; applyMap(key); });
-          chip.addEventListener('mouseleave', function () { hovering = null; applyMap(current); });
-          chip.addEventListener('focus',      function () { hovering = key; applyMap(key); });
-          chip.addEventListener('blur',       function () { hovering = null; applyMap(current); });
+      function bindChips() {
+        document.querySelectorAll('.route-chip').forEach(function(chip) {
+          var k = chip.dataset.route;
+          chip.addEventListener('click',      function(){ current=k; setActive(k); applyMap(k); });
+          chip.addEventListener('mouseenter', function(){ applyMap(k); });
+          chip.addEventListener('mouseleave', function(){ applyMap(current); });
+          chip.addEventListener('focus',      function(){ applyMap(k); });
+          chip.addEventListener('blur',       function(){ applyMap(current); });
         });
+        /* Panel starts with "Todos" text/modes shown (set inline HTML — fine since D3 async) */
         applyMap('todos');
       }
 
-      if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+      if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', bindChips); }
+      else { bindChips(); }
     })();
     </script>
 
