@@ -8357,10 +8357,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         to facturas@crbox.cr via the existing SMTP infrastructure.
         Returns: {"ok": true} or {"ok": false, "error": "..."}
         """
-        auth_header  = self.headers.get('Authorization', '')
-        email_header = self.headers.get('X-Casillero-Email', '').strip()
-        if not auth_header.startswith('Bearer ') or len(auth_header) < 10:
-            self._json_response(401, {'ok': False, 'error': 'Sesión requerida.'})
+        # Validate session via CRBOX API — rejects invalid/expired tokens
+        casillero_id, verified_email = self._portal_auth_full()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
             return
         try:
             raw = self._read_body(_MAX_BODY_REGULAR)
@@ -8378,7 +8378,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         notes         = str(data.get('notes') or '').strip()
         locker        = str(data.get('lockerNumber') or '—').strip()
         client_name   = str(data.get('clientName') or '').strip()
-        client_email  = str(data.get('clientEmail') or email_header).strip()
+        # Use server-verified email; fall back to payload value only as label
+        client_email  = verified_email or str(data.get('clientEmail') or '').strip()
         phone         = str(data.get('phone') or '—').strip()
         confirmed_at  = str(data.get('confirmedAt') or '').strip()
         packages      = data.get('packages') or []

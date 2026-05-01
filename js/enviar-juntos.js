@@ -63,6 +63,9 @@
   /* ─── Package global pool (set by page after API load) ─── */
   var _allPackages = [];   // raw mapped packages from portal-api
 
+  /* ─── Package ID normalizer — always returns a string ─── */
+  function _pid(x) { return String(x == null ? '' : x); }
+
   /* ─── DOM helpers ───────────────────────────────────────── */
   function _esc(s) {
     return String(s || '')
@@ -130,8 +133,8 @@
   function addPackagesToGroup(groupId, pkgObjs) {
     var g = _load().find(function (x) { return x.id === groupId; });
     if (!g) return null;
-    var existingIds = new Set(g.packages.map(function (p) { return p.idwarehousereceipt; }));
-    var toAdd = pkgObjs.filter(function (p) { return !existingIds.has(p.idwarehousereceipt); });
+    var existingIds = new Set(g.packages.map(function (p) { return _pid(p.idwarehousereceipt); }));
+    var toAdd = pkgObjs.filter(function (p) { return !existingIds.has(_pid(p.idwarehousereceipt)); });
     var updated = (g.packages || []).concat(toAdd);
     return _updateGroup(groupId, { packages: updated });
   }
@@ -140,7 +143,7 @@
     var g = _load().find(function (x) { return x.id === groupId; });
     if (!g) return;
     _updateGroup(groupId, {
-      packages: g.packages.filter(function (p) { return p.idwarehousereceipt !== pkgId; })
+      packages: g.packages.filter(function (p) { return _pid(p.idwarehousereceipt) !== _pid(pkgId); })
     });
   }
 
@@ -165,7 +168,7 @@
     var locked = new Set();
     getActiveGroups().forEach(function (g) {
       (g.packages || []).forEach(function (p) {
-        if (p.idwarehousereceipt) locked.add(p.idwarehousereceipt);
+        if (p.idwarehousereceipt) locked.add(_pid(p.idwarehousereceipt));
       });
     });
     return locked;
@@ -441,7 +444,7 @@
     if (!listEl) return;
     var locked = getLockedPackageIds();
     var group  = getAllGroups().find(function (g) { return g.id === _selectorGroupId; });
-    var ownIds = new Set(group ? (group.packages || []).map(function (p) { return p.idwarehousereceipt; }) : []);
+    var ownIds = new Set(group ? (group.packages || []).map(function (p) { return _pid(p.idwarehousereceipt); }) : []);
 
     var miamiPkgs = _allPackages.filter(function (p) { return p.statusId === 1; });
 
@@ -457,13 +460,13 @@
 
     var html = '';
     miamiPkgs.forEach(function (p) {
-      var pid = p.idwarehousereceipt;
+      var pid = _pid(p.idwarehousereceipt);  // always a string
       var isOwn      = ownIds.has(pid);
       var isLocked   = !isOwn && locked.has(pid);
       var isSelected = _selectedPkgIds.has(pid);
       var disabledCls = isLocked ? ' ej-disabled' : '';
       var selectedCls = isSelected ? ' ej-selected' : '';
-      html += '<div class="ej-sel-row' + disabledCls + selectedCls + '" data-pid="' + _esc(String(pid)) + '">';
+      html += '<div class="ej-sel-row' + disabledCls + selectedCls + '" data-pid="' + _esc(pid) + '">';
       if (isLocked) {
         html += '<div class="ej-sel-lock ej-tooltip"><i class="fas fa-lock"></i>' +
           '<span class="ej-tooltip-text">Este paquete ya pertenece a otro grupo.</span></div>';
@@ -498,7 +501,7 @@
   function _handleSelectorConfirm() {
     if (!_selectorGroupId || _selectedPkgIds.size === 0) return;
     var toAdd = _allPackages.filter(function (p) {
-      return _selectedPkgIds.has(p.idwarehousereceipt);
+      return _selectedPkgIds.has(_pid(p.idwarehousereceipt));
     }).map(function (p) {
       return {
         idwarehousereceipt: p.idwarehousereceipt,
@@ -520,6 +523,11 @@
   var _pendingPkg = null;
 
   function openAddToGroupModal(pkg) {
+    // Block if package already belongs to an active group
+    if (pkg && getLockedPackageIds().has(_pid(pkg.idwarehousereceipt))) {
+      _showToast('Este paquete ya pertenece a otro grupo activo.', 'warning');
+      return;
+    }
     _pendingPkg = pkg;
     var el = _el('ej-addto-group-list');
     if (!el) return;
@@ -552,6 +560,13 @@
 
   function _doAddToGroup(groupId) {
     if (!_pendingPkg) return;
+    // Safety-net: reject if package is already locked to another group
+    if (getLockedPackageIds().has(_pid(_pendingPkg.idwarehousereceipt))) {
+      _pendingPkg = null;
+      _closeModal(_el('ej-addto-modal-overlay'));
+      _showToast('Este paquete ya pertenece a otro grupo activo.', 'warning');
+      return;
+    }
     addPackagesToGroup(groupId, [{
       idwarehousereceipt: _pendingPkg.idwarehousereceipt,
       trackingNumber:     _pendingPkg.trackingNumber,
@@ -801,12 +816,14 @@
     var colors = {
       success: 'bg-green-500',
       info:    'bg-blue-500',
-      error:   'bg-red-500'
+      error:   'bg-red-500',
+      warning: 'bg-amber-500'
     };
     var icons = {
       success: 'fa-check-circle',
       info:    'fa-info-circle',
-      error:   'fa-times-circle'
+      error:   'fa-times-circle',
+      warning: 'fa-exclamation-triangle'
     };
     var div = document.createElement('div');
     div.className = 'flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ' +
