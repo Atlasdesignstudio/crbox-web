@@ -6414,8 +6414,36 @@ a{{color:inherit;text-decoration:none}}
 
 
 def _allowed_origin():
-    """Return the single allowed CORS origin from env, or None to skip CORS."""
-    return os.environ.get('ALLOWED_ORIGIN', '').strip() or None
+    """Return the single allowed CORS origin from env, or None to skip CORS.
+
+    Falls back to REPLIT_DOMAINS when ALLOWED_ORIGIN is not explicitly set,
+    so Replit deployments work without extra configuration.
+    """
+    explicit = os.environ.get('ALLOWED_ORIGIN', '').strip()
+    if explicit:
+        return explicit
+    replit_domains = os.environ.get('REPLIT_DOMAINS', '').strip()
+    if replit_domains:
+        first = replit_domains.split(',')[0].strip()
+        if first:
+            return 'https://' + first
+    return None
+
+
+def _effective_sales_token():
+    """Return the effective SALES_TOKEN.
+
+    If SALES_TOKEN is explicitly set to a non-dev value, use it.
+    Otherwise auto-derive a stable token from ADMIN_PASSWORD so the
+    endpoint stays protected even without a separate secret.
+    """
+    explicit = os.environ.get('SALES_TOKEN', '').strip()
+    if explicit and explicit != _DEV_SALES_TOKEN:
+        return explicit
+    admin_pw = os.environ.get('ADMIN_PASSWORD', '').strip()
+    if admin_pw:
+        return hashlib.sha256(('crbox-sales-' + admin_pw).encode()).hexdigest()[:48]
+    return _DEV_SALES_TOKEN
 
 
 def _is_prod():
@@ -6443,11 +6471,12 @@ def _validate_env():
     elif admin_pw.lower() in _DEV_ADMIN_PASSWORD_PLACEHOLDERS:
         errors.append(f'ADMIN_PASSWORD uses an insecure placeholder: "{admin_pw}".')
 
+    # SALES_TOKEN: auto-derived from ADMIN_PASSWORD when not explicitly set,
+    # so this is only an error if both SALES_TOKEN and ADMIN_PASSWORD are absent.
     sales_tok = os.environ.get('SALES_TOKEN', '').strip()
-    if not sales_tok:
-        errors.append('SALES_TOKEN is not set.')
-    elif sales_tok == _DEV_SALES_TOKEN:
+    if sales_tok == _DEV_SALES_TOKEN:
         errors.append('SALES_TOKEN is still the dev placeholder — set a strong random value.')
+    # (If sales_tok is empty, _effective_sales_token() derives it from ADMIN_PASSWORD — no error)
 
     gemini_key = os.environ.get('GEMINI_API_KEY', '').strip()
     if not gemini_key:
@@ -6457,11 +6486,11 @@ def _validate_env():
         if not os.environ.get(var, '').strip():
             errors.append(f'{var} is not set — email features will fail.')
 
-    allowed_origin = os.environ.get('ALLOWED_ORIGIN', '').strip()
-    if not allowed_origin:
+    # ALLOWED_ORIGIN: auto-resolved from REPLIT_DOMAINS in Replit deployments.
+    if not _allowed_origin():
         errors.append(
-            'ALLOWED_ORIGIN is not set. '
-            'Cross-origin browser requests will be denied in production. '
+            'ALLOWED_ORIGIN is not set and REPLIT_DOMAINS is unavailable. '
+            'Cross-origin browser requests will be denied. '
             'Set ALLOWED_ORIGIN=https://your-domain.com to allow the front-end origin.'
         )
 
@@ -7055,7 +7084,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
     # ── POST /api/solicitudes/:id/status ───────────────────────────────────
     def _handle_solicitudes_status(self, scb_id):
-        sales_token = os.environ.get('SALES_TOKEN', _DEV_SALES_TOKEN).strip()
+        sales_token = _effective_sales_token()
         provided_token = self.headers.get('X-Sales-Token', '').strip()
         if not provided_token or provided_token != sales_token:
             self._json_response(401, {'ok': False, 'error': 'Token inválido o faltante.'})
