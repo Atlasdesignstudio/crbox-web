@@ -426,21 +426,22 @@
       var emptyBtn = _el('ej-create-btn-empty');
       if (emptyBtn) emptyBtn.addEventListener('click', openCreateModal);
     } else {
-      // Summary bar: group count + shortcut when at least one active group exists
-      var summaryBar = '';
-      if (active.length > 0) {
-        summaryBar =
-          '<div class="ej-groups-summary-bar" style="display:flex;align-items:center;justify-content:space-between;' +
-            'padding:0.55rem 1.25rem;background:#f5f3ff;border-bottom:1px solid #ede9fe;font-size:0.85rem;">' +
-            '<span style="color:#5b21b6;font-weight:600;">' +
-              '<i class="fas fa-layer-group mr-1"></i> ' +
-              active.length + (active.length === 1 ? ' grupo activo' : ' grupos activos') +
-            '</span>' +
-            '<button class="ej-btn ej-btn-outline ej-btn-sm" id="ej-ver-mis-grupos-btn" style="font-size:0.78rem;padding:0.2rem 0.7rem">' +
-              '<i class="fas fa-chevron-down mr-1"></i>Ver mis grupos' +
-            '</button>' +
-          '</div>';
-      }
+      // Summary bar: always shown when any groups exist
+      var totalActive = active.length;
+      var totalGroups = groups.length;
+      var summaryBar =
+        '<div class="ej-groups-summary-bar" style="display:flex;align-items:center;justify-content:space-between;' +
+          'padding:0.55rem 1.25rem;background:#f5f3ff;border-bottom:1px solid #ede9fe;font-size:0.85rem;">' +
+          '<span style="color:#5b21b6;font-weight:600;">' +
+            '<i class="fas fa-layer-group mr-1"></i> ' +
+            (totalActive > 0
+              ? totalActive + (totalActive === 1 ? ' grupo activo' : ' grupos activos')
+              : totalGroups + (totalGroups === 1 ? ' grupo en total' : ' grupos en total')) +
+          '</span>' +
+          '<button class="ej-btn ej-btn-outline ej-btn-sm" id="ej-ver-mis-grupos-btn" style="font-size:0.78rem;padding:0.2rem 0.7rem">' +
+            '<i class="fas fa-chevron-down mr-1"></i>Ver mis grupos' +
+          '</button>' +
+        '</div>';
       var html = summaryBar + '<div class="ej-group-list">';
       groups.forEach(function (g) { html += _renderGroupCard(g); });
       html += '</div>';
@@ -560,11 +561,12 @@
       } else {
         html += '<div class="ej-check-ring"><i class="fas fa-check"></i></div>';
       }
-      html += '<div class="ej-sel-info">' +
-        '<div class="ej-sel-tracking">' + _esc(p.trackingNumber || '—') + '</div>' +
-        '<div class="ej-sel-sub">' + _esc([p.number, p.carrierName].filter(Boolean).join(' · ')) + '</div>' +
-      '</div>' +
-      '<div class="ej-sel-date">' + _fmtDate(p.bestDate) + '</div>' +
+      html += '<span class="status-badge status-badge-blue" style="font-size:0.68rem;padding:0.1rem 0.45rem;flex-shrink:0">MIAMI</span>' +
+        '<div class="ej-sel-info">' +
+          '<div class="ej-sel-tracking">' + _esc(p.trackingNumber || '—') + '</div>' +
+          '<div class="ej-sel-sub">' + _esc([p.number, p.carrierName].filter(Boolean).join(' · ')) + '</div>' +
+        '</div>' +
+        '<div class="ej-sel-date">' + _fmtDate(p.bestDate) + '</div>' +
       '</div>';
     });
     listEl.innerHTML = html;
