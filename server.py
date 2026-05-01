@@ -5361,20 +5361,78 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
     n = len(rows)
     count_label = f'<span id="adm-result-count">{n}</span> de {n} solicitud{"es" if n != 1 else ""}'
 
+    # ── Kanban HTML ────────────────────────────────────────────────────────
+    _KCOLS = [
+        ('Nuevas',      ['enviada'],
+         '#EA580C', '#FFF7ED'),
+        ('En Revisión', ['en_revision'],
+         '#2563EB', '#EFF6FF'),
+        ('Respondidas', ['respondida'],
+         '#16A34A', '#F0FDF4'),
+        ('En Proceso',  ['pendiente_compra_crbox','pendiente_compra_cliente',
+                         'pagado_por_cliente','comprado','listo_para_retiro'],
+         '#D97706', '#FFFBEB'),
+        ('Completadas', ['completada'],
+         '#6B7280', '#F9FAFB'),
+        ('Canceladas',  ['cancelada'],
+         '#DC2626', '#FEF2F2'),
+    ]
+    def _kcard(r):
+        krid   = esc(r['id'])
+        kname  = esc((r['customer_name'] or r['customer_email'] or '—')[:20])
+        kprod  = esc((r['product_name'] or '—')[:28])
+        kval   = f"${r['declared_value_usd']:,.0f}" if r.get('declared_value_usd') else '—'
+        kdate  = (r.get('submitted_at') or '')[:10]
+        dan    = esc((r['customer_name'] or '').lower())
+        dae    = esc((r['customer_email'] or '').lower())
+        dac    = esc((r.get('casillero_id') or '').lower())
+        dap    = esc((r.get('product_name') or '').lower())
+        dst    = esc(r['status'])
+        dsv    = esc(r.get('service_type') or 'aereo')
+        kbadge = _admin_badge_html(r['status'], krid)
+        return (
+            f'<a href="/admin/solicitudes/{krid}?filter={filter_val}" class="adm-kcard" '
+            f'data-name="{dan}" data-email="{dae}" data-casillero="{dac}" '
+            f'data-prod="{dap}" data-status="{dst}" data-svc="{dsv}">'
+            f'<div class="adm-kcard-top"><span class="adm-kcard-rid">{krid}</span>{kbadge}</div>'
+            f'<div class="adm-kcard-name">{kname}</div>'
+            f'<div class="adm-kcard-prod">{kprod}</div>'
+            f'<div class="adm-kcard-foot">'
+            f'<span class="adm-kcard-val">{kval}</span>'
+            f'<span class="adm-kcard-date">{kdate}</span>'
+            f'</div></a>'
+        )
+    kanban_html = ''
+    for _kcol_title, _kcol_sts, _kcol_clr, _kcol_bg in _KCOLS:
+        _kcol_rows  = [r for r in rows if r['status'] in _kcol_sts]
+        _kcol_cnt   = len(_kcol_rows)
+        _kcol_cards = ''.join(_kcard(r) for r in _kcol_rows)
+        _kcol_empty = '<div class="adm-kcol-empty">Sin solicitudes</div>' if not _kcol_rows else ''
+        _kcol_data_sts = ','.join(_kcol_sts)
+        kanban_html += (
+            f'<div class="adm-kcol" data-col-sts="{_kcol_data_sts}">'
+            f'<div class="adm-kcol-head" style="border-top:3px solid {_kcol_clr};background:{_kcol_bg}">'
+            f'<span class="adm-kcol-title" style="color:{_kcol_clr}">{_kcol_title}</span>'
+            f'<span class="adm-kcol-badge" style="background:{_kcol_clr}">{_kcol_cnt}</span>'
+            f'</div>'
+            f'<div class="adm-kcol-body">{_kcol_cards}{_kcol_empty}</div>'
+            f'</div>'
+        )
+
     return f'''<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Panel de ventas — CRBOX</title>
+<title>Solicitudes — CRBOX Admin</title>
 <style>
 /* ── Design tokens ──────────────────────────────────────────────────── */
 :root{{
   --clr-orange:#FF6B00;--clr-orange-dk:#E05A00;--clr-orange-lt:#fff7ed;
-  --clr-navy:#1e293b;--clr-navy2:#334155;
+  --clr-navy:#0F172A;--clr-navy2:#1E293B;--clr-navy3:#334155;
   --clr-slate50:#f8fafc;--clr-slate100:#f1f5f9;--clr-slate200:#e2e8f0;
-  --clr-slate400:#94a3b8;--clr-slate500:#64748b;--clr-slate700:#374151;--clr-slate900:#111;
+  --clr-slate400:#94a3b8;--clr-slate500:#64748b;--clr-slate700:#374151;--clr-slate900:#0f172a;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   --radius-sm:6px;--radius:10px;--radius-lg:14px;
 }}
@@ -5383,78 +5441,78 @@ body{{font-family:var(--font);background:var(--clr-slate100);color:var(--clr-sla
 a{{color:inherit;text-decoration:none}}
 /* ── Header ─────────────────────────────────────────────────────────── */
 .adm-header{{background:var(--clr-navy);padding:0 20px;display:flex;align-items:center;gap:12px;
-  position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.22);height:52px}}
+  position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(0,0,0,.28);height:52px}}
 .adm-header-logo{{color:var(--clr-orange);font-weight:800;font-size:19px;letter-spacing:-.5px;flex-shrink:0}}
-.adm-header-sep{{color:var(--clr-navy2);font-size:18px;flex-shrink:0}}
+.adm-header-sep{{color:#334155;font-size:18px;flex-shrink:0}}
 .adm-header-title{{color:#cbd5e1;font-size:13px;font-weight:500;flex:1;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}}
-.adm-header-nav{{display:flex;align-items:center;gap:8px;flex-shrink:0}}
+.adm-header-nav{{display:flex;align-items:center;gap:6px;flex-shrink:0}}
 .adm-header-link,.adm-logout{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:var(--radius-sm);
-  border:1px solid var(--clr-navy2);transition:all .2s;white-space:nowrap}}
-.adm-header-link:hover,.adm-logout:hover{{color:#fff;border-color:#64748b;background:var(--clr-navy2)}}
-.adm-header-link:focus-visible,.adm-logout:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
-/* ── Stats bar ──────────────────────────────────────────────────────── */
-.adm-stats{{display:flex;gap:10px;padding:16px 20px;overflow-x:auto;
-  -webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--clr-navy);
-  border-bottom:1px solid rgba(255,255,255,.06)}}
-.adm-stats::-webkit-scrollbar{{display:none}}
-.adm-stat-tile{{flex-shrink:0;min-width:100px;border-radius:var(--radius);border:1px solid;
-  padding:10px 14px;text-align:center;transition:transform .15s,box-shadow .15s}}
-.adm-stat-tile:hover{{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.1)}}
+  border:1px solid #1e293b;transition:all .18s;white-space:nowrap}}
+.adm-header-link:hover{{color:#f1f5f9;border-color:#475569;background:#1e293b}}
+.adm-header-link.active{{color:#fff;background:var(--clr-orange);border-color:var(--clr-orange)}}
+.adm-logout:hover{{color:#fca5a5;border-color:#7f1d1d}}
+/* ── Stats row (KPI cards) ──────────────────────────────────────────── */
+.adm-stats-row{{display:flex;gap:10px;padding:16px 20px 0;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}}
+.adm-stats-row::-webkit-scrollbar{{display:none}}
+.adm-stat-tile{{flex-shrink:0;min-width:108px;border-radius:var(--radius);border:1px solid;
+  padding:12px 14px;text-align:center;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);transition:transform .15s,box-shadow .15s}}
+.adm-stat-tile:hover{{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.10)}}
 .adm-stat-tile-link{{display:block;text-decoration:none;color:inherit}}
 .adm-stat-tile-link:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px;border-radius:4px}}
-.adm-stat-icon{{display:flex;justify-content:center;margin-bottom:4px}}
-.adm-stat-icon svg{{opacity:.7}}
-.adm-stat-num{{font-size:22px;font-weight:900;line-height:1;margin-bottom:3px;letter-spacing:-.02em}}
-.adm-stat-lbl{{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}}
+.adm-stat-icon{{display:flex;justify-content:center;margin-bottom:5px;opacity:.8}}
+.adm-stat-num{{font-size:24px;font-weight:900;line-height:1;margin-bottom:3px;letter-spacing:-.03em}}
+.adm-stat-lbl{{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.7}}
 /* ── Filter tabs ────────────────────────────────────────────────────── */
-.adm-tabs{{display:flex;gap:3px;padding:0 20px;overflow-x:auto;
-  -webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--clr-slate100)}}
+.adm-tabs{{display:flex;gap:4px;padding:12px 20px 0;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}}
 .adm-tabs::-webkit-scrollbar{{display:none}}
-.adm-tab{{flex-shrink:0;padding:7px 16px;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;
-  color:var(--clr-slate500);border:1px solid transparent;border-bottom:none;transition:all .15s;cursor:pointer}}
-.adm-tab:hover{{color:var(--clr-slate700);background:#e2e8f0}}
-.adm-tab:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:-2px}}
-.adm-tab-active{{background:#fff;color:var(--clr-orange);border-color:#e2e8f0}}
-/* ── Search / filter row ────────────────────────────────────────────── */
-.adm-filter-bar{{padding:12px 20px;background:transparent}}
-.adm-filter-row1{{display:flex;gap:8px;align-items:center;margin-bottom:0}}
-.adm-filter-row2{{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}}
+.adm-tab{{flex-shrink:0;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;
+  color:var(--clr-slate500);background:#fff;border:1.5px solid var(--clr-slate200);
+  transition:all .15s;cursor:pointer;text-decoration:none}}
+.adm-tab:hover{{color:var(--clr-slate700);border-color:var(--clr-slate400)}}
+.adm-tab-active{{background:var(--clr-orange);color:#fff;border-color:var(--clr-orange)}}
+/* ── Filter outer (sticky wrapper) ─────────────────────────────────── */
+.adm-filter-outer{{position:sticky;top:52px;z-index:15;background:var(--clr-slate100);
+  border-bottom:1px solid var(--clr-slate200);box-shadow:0 1px 6px rgba(0,0,0,.06)}}
+.adm-filter-bar{{padding:10px 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}}
 .adm-filter-bar input,.adm-filter-bar select{{
-  border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);padding:8px 11px;
+  border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);padding:7px 11px;
   font-size:13px;background:#fff;color:var(--clr-slate700);font-family:var(--font);
-  outline:none;transition:border-color .2s;min-height:38px}}
+  outline:none;transition:border-color .2s;min-height:36px}}
 .adm-filter-bar input:focus,.adm-filter-bar select:focus{{border-color:var(--clr-orange);
-  outline:2px solid rgba(255,107,0,.15);outline-offset:-1px}}
-.adm-filter-search{{flex:1;min-width:0}}
-.adm-filter-status{{min-width:140px}}
+  box-shadow:0 0 0 3px rgba(255,107,0,.12)}}
+.adm-filter-search{{flex:1;min-width:160px}}
+.adm-filter-status{{min-width:150px}}
 .adm-filter-svc{{min-width:110px}}
-.adm-filter-toggle{{padding:8px 12px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
+.adm-filter-clear{{padding:7px 13px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
   background:#fff;color:var(--clr-slate500);font-size:12px;font-weight:600;cursor:pointer;
-  transition:all .2s;font-family:var(--font);white-space:nowrap;flex-shrink:0;
-  display:flex;align-items:center;gap:5px;min-height:38px}}
-.adm-filter-toggle:hover,.adm-filter-toggle.active{{border-color:var(--clr-orange);color:var(--clr-orange);background:var(--clr-orange-lt)}}
-.adm-filter-clear{{padding:8px 13px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
-  background:#fff;color:var(--clr-slate500);font-size:12px;font-weight:600;cursor:pointer;
-  transition:all .2s;font-family:var(--font);white-space:nowrap;min-height:38px}}
+  transition:all .2s;font-family:var(--font);white-space:nowrap;min-height:36px}}
 .adm-filter-clear:hover{{border-color:var(--clr-orange);color:var(--clr-orange)}}
-.adm-filter-row2{{display:none}}
-.adm-filter-row2.open{{display:flex}}
-/* ── Filter bar outer (sticky wrapper outside panel) ────────────────── */
-.adm-filter-outer{{position:sticky;top:52px;z-index:15;background:#f8fafc;
-  border-bottom:1px solid var(--clr-slate200);box-shadow:0 1px 4px rgba(0,0,0,.06)}}
-/* ── Main container ─────────────────────────────────────────────────── */
-.adm-main{{padding:0 20px 48px}}
+.adm-count-lbl{{font-size:11px;color:var(--clr-slate400);white-space:nowrap;margin-left:auto}}
+/* ── View toggle ────────────────────────────────────────────────────── */
+.adm-view-toggle{{display:flex;gap:0;border-radius:var(--radius-sm);overflow:hidden;
+  border:1.5px solid var(--clr-slate200);flex-shrink:0}}
+.adm-vbtn{{padding:6px 12px;background:#fff;border:none;border-right:1px solid var(--clr-slate200);
+  font-size:12px;font-weight:600;color:var(--clr-slate500);cursor:pointer;
+  font-family:var(--font);display:flex;align-items:center;gap:5px;transition:all .15s;
+  white-space:nowrap;min-height:34px}}
+.adm-vbtn:last-child{{border-right:none}}
+.adm-vbtn:hover{{background:var(--clr-slate50);color:var(--clr-slate700)}}
+.adm-vbtn.active{{background:var(--clr-orange);color:#fff}}
+/* ── Main content area ──────────────────────────────────────────────── */
+.adm-main{{padding:12px 20px 48px}}
 .adm-panel{{background:#fff;border-radius:var(--radius-lg);
-  box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:clip;margin-top:0}}
-.adm-count{{padding:10px 16px;font-size:12px;color:var(--clr-slate400);
-  border-bottom:1px solid var(--clr-slate100);background:#fafafa;letter-spacing:.02em}}
+  box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:clip}}
 /* ── Table ──────────────────────────────────────────────────────────── */
+.adm-table-wrap{{overflow-x:auto}}
 .adm-table{{width:100%;border-collapse:collapse}}
 .adm-table thead th{{background:var(--clr-slate50);padding:10px 14px;text-align:left;
   font-size:10px;font-weight:700;color:var(--clr-slate400);text-transform:uppercase;
   letter-spacing:.07em;border-bottom:1px solid var(--clr-slate200);white-space:nowrap;
-  position:sticky;top:115px;z-index:5}}
+  position:sticky;top:52px;z-index:5}}
 .adm-table td{{padding:13px 14px;border-bottom:1px solid var(--clr-slate100);vertical-align:top}}
 .adm-table .adm-tr:last-child td{{border-bottom:none}}
 .adm-table .adm-tr{{transition:background .12s}}
@@ -5475,18 +5533,17 @@ a{{color:inherit;text-decoration:none}}
 .adm-src-ai-partial{{background:#fff7ed;color:#c2410c;border-color:#fdba74}}
 /* ── Ver link ───────────────────────────────────────────────────────── */
 .adm-ver-link{{display:inline-flex;align-items:center;justify-content:center;
-  padding:6px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;
+  padding:5px 11px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;
   color:var(--clr-orange);border:1.5px solid #fdba74;background:var(--clr-orange-lt);
-  transition:all .2s;white-space:nowrap;min-height:36px}}
+  transition:all .2s;white-space:nowrap;min-height:32px}}
 .adm-ver-link:hover{{background:var(--clr-orange);color:#fff;border-color:var(--clr-orange)}}
-.adm-ver-link:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
 /* ── Status badges ──────────────────────────────────────────────────── */
 .adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
   font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
 .adm-empresa{{display:inline-block;background:#fff7ed;color:#c2410c;
   font-size:10px;font-weight:700;padding:1px 7px;border-radius:999px;
   border:1px solid #fdba74;vertical-align:middle;margin-left:4px}}
-/* ── Update controls (list inline expandable) ───────────────────────── */
+/* ── Update controls ────────────────────────────────────────────────── */
 .adm-select{{display:block;width:100%;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
   padding:7px 10px;font-size:12px;background:#fff;margin-bottom:6px;cursor:pointer;
   font-family:var(--font);color:var(--clr-slate700);transition:border-color .2s}}
@@ -5500,75 +5557,95 @@ a{{color:inherit;text-decoration:none}}
   transition:background .2s;font-family:var(--font);min-height:36px}}
 .adm-upd-btn:hover{{background:var(--clr-orange-dk)}}
 .adm-upd-btn:disabled{{background:#cbd5e1;cursor:not-allowed}}
-.adm-upd-btn:focus-visible{{outline:2px solid var(--clr-orange-dk);outline-offset:2px}}
-/* ── Expandable sub-row (desktop) ───────────────────────────────────── */
 .adm-upd-toggle{{padding:6px 12px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
   background:#fff;color:var(--clr-slate500);font-size:12px;font-weight:600;cursor:pointer;
-  font-family:var(--font);transition:all .2s;white-space:nowrap;min-height:36px}}
+  font-family:var(--font);transition:all .2s;white-space:nowrap;min-height:34px}}
 .adm-upd-toggle:hover{{border-color:var(--clr-orange);color:var(--clr-orange)}}
 .adm-upd-toggle[aria-expanded="true"]{{border-color:var(--clr-orange);color:var(--clr-orange);background:var(--clr-orange-lt)}}
-.adm-upd-toggle:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
 .adm-terminal-chip{{display:inline-block;padding:3px 9px;border-radius:999px;
   font-size:11px;font-weight:600;color:var(--clr-slate400);background:var(--clr-slate100);border:1px solid var(--clr-slate200)}}
 .adm-expand-row{{background:#fafafa}}
-.adm-expand-row td{{padding:0}}
 .adm-expand-td{{padding:0 !important}}
 .adm-expand-inner{{padding:14px 20px;border-top:2px solid var(--clr-orange-lt);
-  border-bottom:1px solid var(--clr-slate200);display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}}
+  display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}}
 .adm-inline-upd-form{{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;width:100%}}
 .adm-select-inline{{max-width:240px;min-width:180px;margin-bottom:0}}
-.adm-note-inline{{max-width:320px;min-width:200px;margin-bottom:0;rows:2}}
+.adm-note-inline{{max-width:320px;min-width:200px;margin-bottom:0}}
 .adm-expand-actions{{display:flex;gap:8px;align-items:center;flex-shrink:0}}
 .adm-upd-btn-sm{{width:auto;padding:8px 16px}}
 .adm-cancel-btn{{padding:8px 14px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
   background:#fff;color:var(--clr-slate500);font-size:12px;font-weight:600;cursor:pointer;
-  font-family:var(--font);transition:all .2s;min-height:36px}}
+  font-family:var(--font);transition:all .2s;min-height:34px}}
 .adm-cancel-btn:hover{{border-color:var(--clr-slate400);color:var(--clr-slate700)}}
-/* ── Mobile details/summary accordion ───────────────────────────────── */
-.adm-card-actions-details{{margin-top:8px;border-top:1px solid var(--clr-slate100)}}
-.adm-card-actions-toggle{{list-style:none;padding:10px 0 6px;font-size:12px;font-weight:700;
+/* ── Kanban ─────────────────────────────────────────────────────────── */
+.adm-kanban-wrap{{display:flex;gap:12px;padding:16px;overflow-x:auto;
+  align-items:flex-start;min-height:300px;-webkit-overflow-scrolling:touch}}
+.adm-kcol{{flex-shrink:0;width:220px;border-radius:var(--radius);
+  border:1px solid var(--clr-slate200);overflow:hidden;background:var(--clr-slate50)}}
+.adm-kcol-head{{padding:10px 12px;display:flex;align-items:center;justify-content:space-between}}
+.adm-kcol-title{{font-size:12px;font-weight:700;letter-spacing:.03em}}
+.adm-kcol-badge{{padding:1px 7px;border-radius:999px;font-size:11px;font-weight:700;
+  color:#fff;min-width:22px;text-align:center}}
+.adm-kcol-body{{display:flex;flex-direction:column;gap:8px;padding:8px;
+  max-height:calc(100vh - 260px);overflow-y:auto}}
+.adm-kcol-body::-webkit-scrollbar{{width:4px}}
+.adm-kcol-body::-webkit-scrollbar-thumb{{background:var(--clr-slate200);border-radius:2px}}
+.adm-kcol-empty{{text-align:center;padding:20px 8px;color:var(--clr-slate400);
+  font-size:11px;font-style:italic}}
+.adm-kcard{{display:block;background:#fff;border-radius:var(--radius-sm);
+  border:1px solid var(--clr-slate200);padding:10px 11px;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);transition:all .15s;text-decoration:none;color:inherit}}
+.adm-kcard:hover{{border-color:var(--clr-orange);box-shadow:0 3px 10px rgba(255,107,0,.12);
+  transform:translateY(-1px)}}
+.adm-kcard-top{{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}}
+.adm-kcard-rid{{font-size:10px;font-weight:700;color:var(--clr-orange)}}
+.adm-kcard-name{{font-size:12px;font-weight:600;color:var(--clr-slate900);margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.adm-kcard-prod{{font-size:11px;color:var(--clr-slate500);margin-bottom:6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.adm-kcard-foot{{display:flex;justify-content:space-between;align-items:center}}
+.adm-kcard-val{{font-size:12px;font-weight:700;color:var(--clr-slate900)}}
+.adm-kcard-date{{font-size:10px;color:var(--clr-slate400)}}
+/* ── Cards grid (Tarjetas view) ─────────────────────────────────────── */
+.adm-cards-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:12px;padding:16px}}
+.adm-card{{background:#fff;border-radius:var(--radius);padding:0;
+  border:1px solid var(--clr-slate200);box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden}}
+.adm-card-link{{display:block;text-decoration:none;color:inherit;padding:14px 16px}}
+.adm-card-link:hover{{background:var(--clr-slate50)}}
+.adm-card-top{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}}
+.adm-badge-row{{margin-top:5px;display:flex;gap:5px;flex-wrap:wrap}}
+.adm-flex-col-end{{display:flex;flex-direction:column;align-items:flex-end;gap:8px}}
+.adm-card-id{{font-size:14px;font-weight:800;color:var(--clr-orange)}}
+.adm-card-fields{{border-top:1px solid var(--clr-slate100)}}
+.adm-card-row{{display:flex;justify-content:space-between;align-items:baseline;
+  padding:6px 0;border-bottom:1px solid var(--clr-slate100);font-size:13px}}
+.adm-card-row:last-child{{border-bottom:none}}
+.adm-card-lbl{{color:var(--clr-slate400);font-size:11px;font-weight:600;min-width:64px;flex-shrink:0}}
+.adm-card-val{{color:var(--clr-slate900);font-size:12px;text-align:right;word-break:break-all;max-width:65%}}
+.adm-card-val-bold{{font-weight:700}}
+.adm-card-tap-hint{{font-size:10px;color:var(--clr-slate400);padding:4px 16px 8px;letter-spacing:.03em}}
+.adm-card-actions-details{{border-top:1px solid var(--clr-slate100)}}
+.adm-card-actions-toggle{{list-style:none;padding:10px 16px 6px;font-size:12px;font-weight:700;
   color:var(--clr-slate500);cursor:pointer;user-select:none}}
 .adm-card-actions-toggle::-webkit-details-marker{{display:none}}
 .adm-card-actions-toggle::before{{content:"⋮ ";color:var(--clr-orange)}}
-.adm-card-actions{{padding-top:8px}}
-/* ── Mobile cards ───────────────────────────────────────────────────── */
-.adm-cards{{display:none;flex-direction:column;gap:12px;padding:12px}}
-.adm-card{{background:#fff;border-radius:var(--radius);padding:16px;
-  border:1px solid var(--clr-slate200);box-shadow:0 1px 4px rgba(0,0,0,.05)}}
-.adm-card-top{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}}
-.adm-badge-row{{margin-top:5px;display:flex;gap:5px;flex-wrap:wrap}}
-.adm-flex-col-end{{display:flex;flex-direction:column;align-items:flex-end;gap:8px}}
+.adm-card-actions{{padding:8px 16px 14px}}
+/* ── Misc helpers ───────────────────────────────────────────────────── */
 .adm-prod-name{{font-size:13px;font-weight:500}}
 .adm-casillero-row{{margin-top:2px}}
 .adm-pill-wrap{{margin-top:5px}}
 .adm-td-date{{white-space:nowrap}}
-.adm-empty-icon{{font-size:32px;margin-bottom:10px}}
-.adm-empty-hint{{font-size:12px}}
-.adm-card-id{{font-size:15px;font-weight:800;color:var(--clr-orange)}}
-.adm-card-fields{{margin-bottom:10px;border:1px solid var(--clr-slate100);border-radius:8px;overflow:hidden}}
-.adm-card-row{{display:flex;justify-content:space-between;align-items:baseline;
-  padding:7px 10px;border-bottom:1px solid var(--clr-slate100);font-size:13px}}
-.adm-card-row:last-child{{border-bottom:none}}
-.adm-card-lbl{{color:var(--clr-slate400);font-size:11px;font-weight:600;min-width:68px;flex-shrink:0}}
-.adm-card-val{{color:var(--clr-slate900);font-size:12px;text-align:right;word-break:break-all;max-width:65%}}
-.adm-card-val-bold{{font-weight:700;color:#1e293b}}
-.adm-card-actions{{margin-top:12px;padding-top:12px;border-top:1px solid var(--clr-slate100)}}
-.adm-card-link{{display:block;text-decoration:none;color:inherit;border-radius:var(--radius) var(--radius) 0 0;overflow:hidden}}
-.adm-card-link:hover .adm-card-top,.adm-card-link:hover .adm-card-fields{{background:var(--clr-slate50)}}
-.adm-card-tap-hint{{display:none;font-size:10px;color:var(--clr-slate400);text-align:right;
-  padding:4px 10px 0;letter-spacing:.03em}}
-/* ── Empty state ────────────────────────────────────────────────────── */
+/* ── Empty / no-results ─────────────────────────────────────────────── */
 .adm-empty{{text-align:center;padding:56px 20px;color:var(--clr-slate400)}}
 .adm-empty-icon{{font-size:40px;margin-bottom:14px}}
-.adm-empty-hint{{font-size:12px}}
 .adm-empty h3{{font-size:16px;font-weight:700;color:var(--clr-slate500);margin-bottom:8px}}
 .adm-empty p{{font-size:13px}}
 .adm-empty-cta{{display:inline-block;margin-top:14px;padding:8px 16px;border-radius:var(--radius-sm);
   background:var(--clr-orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;border:none;
   font-family:var(--font);transition:background .2s}}
 .adm-empty-cta:hover{{background:var(--clr-orange-dk)}}
-/* ── No results (filter) ────────────────────────────────────────────── */
-.adm-no-results{{display:none;text-align:center;padding:40px 20px;color:var(--clr-slate400)}}
+.adm-no-results{{display:none;text-align:center;padding:36px 20px;color:var(--clr-slate400)}}
 .adm-no-results.visible{{display:block}}
 /* ── Toast stack ────────────────────────────────────────────────────── */
 #adm-toast-stack{{position:fixed;top:68px;right:20px;z-index:9000;
@@ -5584,26 +5661,21 @@ a{{color:inherit;text-decoration:none}}
   transition:color .15s;min-width:20px;text-align:center;font-family:var(--font)}}
 .adm-toast-close:hover{{color:#fff}}
 /* ── Responsive ─────────────────────────────────────────────────────── */
-@media(max-width:720px){{
+@media(max-width:800px){{
   .adm-header{{padding:0 12px;gap:8px}}
   .adm-header-title,.adm-header-sep{{display:none}}
-  .adm-stats{{padding:12px}}
-  .adm-stat-tile{{min-width:80px;padding:8px 10px}}
+  .adm-stats-row{{padding:12px 12px 0}}
+  .adm-stat-tile{{min-width:88px;padding:10px 10px}}
   .adm-stat-num{{font-size:20px}}
-  .adm-tabs{{padding:0 12px}}
-  .adm-main{{padding:0 0 48px}}
+  .adm-tabs{{padding:10px 12px 0}}
+  .adm-filter-bar{{padding:8px 12px}}
+  .adm-main{{padding:8px 0 48px}}
   .adm-panel{{border-radius:0}}
-  .adm-table-wrap{{display:none}}
-  .adm-cards{{display:flex}}
-  .adm-filter-bar{{padding:10px 12px}}
-  .adm-filter-toggle{{display:inline-flex}}
-  .adm-card-tap-hint{{display:block}}
+  .adm-cards-grid{{grid-template-columns:1fr;padding:10px}}
   #adm-toast-stack{{right:10px;left:10px;max-width:none;top:60px}}
 }}
-@media(min-width:721px){{
+@media(min-width:801px){{
   .adm-table-wrap{{overflow-x:auto}}
-  .adm-filter-toggle{{display:none}}
-  .adm-filter-row2{{display:flex !important}}
 }}
 </style>
 </head>
@@ -5611,154 +5683,219 @@ a{{color:inherit;text-decoration:none}}
 <header class="adm-header">
   <span class="adm-header-logo">CRBOX</span>
   <span class="adm-header-sep">|</span>
-  <span class="adm-header-title">Panel de ventas</span>
+  <span class="adm-header-title">Solicitudes</span>
   <nav class="adm-header-nav">
     <a href="/admin/dashboard" class="adm-header-link">Dashboard</a>
+    <a href="/admin/solicitudes" class="adm-header-link active">Solicitudes</a>
     <a href="/admin/consultas" class="adm-header-link">Consultas</a>
     <a href="/admin/logout" class="adm-logout">Salir</a>
   </nav>
 </header>
 
-<!-- Stats summary -->
-<div class="adm-stats">{stats_html}</div>
+<!-- Stats KPI row -->
+<div class="adm-stats-row">{stats_html}</div>
 
 <!-- Filter tabs -->
 <div class="adm-tabs">{tabs_html}</div>
 
-<!-- Filter bar (sticky, outside panel so overflow:clip doesn't break it) -->
+<!-- Sticky filter bar + view toggle -->
 <div class="adm-filter-outer">
   <div class="adm-filter-bar">
-    <div class="adm-filter-row1">
-      <input class="adm-filter-search" id="adm-search" type="search"
-             placeholder="Nombre, email, casillero, producto&hellip;"
-             autocomplete="off" oninput="admFilter()">
-      <button class="adm-filter-toggle" id="adm-flt-toggle"
-              onclick="admToggleFilters()" type="button">&#9881; Filtros</button>
-      <span class="adm-text-muted-sm" id="adm-count-label">{count_label}</span>
-    </div>
-    <div class="adm-filter-row2" id="adm-filter-row2">
-      <select class="adm-filter-status" id="adm-flt-status" onchange="admFilter()">
-        <option value="">Todos los estados</option>
-        <option value="enviada">Enviada</option>
-        <option value="en_revision">En revisi&oacute;n</option>
-        <option value="respondida">Respondida</option>
-        <option value="pendiente_compra_crbox">Compra CRBOX</option>
-        <option value="pendiente_compra_cliente">Compra propia</option>
-        <option value="pagado_por_cliente">Pago confirmado</option>
-        <option value="comprado">Comprado</option>
-        <option value="listo_para_retiro">Listo para retiro</option>
-        <option value="completada">Completada</option>
-        <option value="cancelada">Cancelada</option>
-      </select>
-      <select class="adm-filter-svc" id="adm-flt-svc" onchange="admFilter()">
-        <option value="">Servicio</option>
-        <option value="aereo">A&eacute;reo</option>
-        <option value="maritimo">Mar&iacute;timo</option>
-      </select>
-      <button class="adm-filter-clear" onclick="admClearFilter()" type="button">&#10005; Limpiar</button>
+    <input class="adm-filter-search" id="adm-search" type="search"
+           placeholder="Nombre, email, casillero, producto&hellip;"
+           autocomplete="off" oninput="admFilter()">
+    <select class="adm-filter-status" id="adm-flt-status" onchange="admFilter()">
+      <option value="">Todos los estados</option>
+      <option value="enviada">Enviada</option>
+      <option value="en_revision">En revisi&oacute;n</option>
+      <option value="respondida">Respondida</option>
+      <option value="pendiente_compra_crbox">Compra CRBOX</option>
+      <option value="pendiente_compra_cliente">Compra propia</option>
+      <option value="pagado_por_cliente">Pago confirmado</option>
+      <option value="comprado">Comprado</option>
+      <option value="listo_para_retiro">Listo para retiro</option>
+      <option value="completada">Completada</option>
+      <option value="cancelada">Cancelada</option>
+    </select>
+    <select class="adm-filter-svc" id="adm-flt-svc" onchange="admFilter()">
+      <option value="">Servicio</option>
+      <option value="aereo">A&eacute;reo</option>
+      <option value="maritimo">Mar&iacute;timo</option>
+    </select>
+    <button class="adm-filter-clear" onclick="admClearFilter()" type="button">&#10005; Limpiar</button>
+    <span class="adm-count-lbl" id="adm-count-label">{count_label}</span>
+    <div class="adm-view-toggle" role="group" aria-label="Vista">
+      <button class="adm-vbtn active" id="vbtn-tabla"
+              onclick="setView('tabla')" type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg>
+        Tabla
+      </button>
+      <button class="adm-vbtn" id="vbtn-kanban"
+              onclick="setView('kanban')" type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
+        Kanban
+      </button>
+      <button class="adm-vbtn" id="vbtn-tarjetas"
+              onclick="setView('tarjetas')" type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+        Tarjetas
+      </button>
     </div>
   </div>
 </div>
 
 <main class="adm-main">
-<div class="adm-panel">
 
-  <!-- Desktop table -->
-  <div class="adm-table-wrap" id="adm-table-wrap">
-  <table class="adm-table">
-    <thead>
-      <tr>
-        <th>ID / Fuente</th>
-        <th>Cliente &amp; Casillero</th>
-        <th>Producto</th>
-        <th>Valor</th>
-        <th>Fecha</th>
-        <th>Estado</th>
-        <th>Actualizar</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody id="adm-tbody">{table_body_html}</tbody>
-  </table>
-  <div class="adm-no-results" id="adm-no-results-tbl" role="status">
-    <div class="adm-empty-icon">&#128269;</div>
-    <strong>Sin resultados</strong><br>
-    <span class="adm-empty-hint">Prueba con otro t&eacute;rmino o limpia los filtros.</span>
+  <!-- ── Tabla view ─────────────────────────────────────────────────── -->
+  <div id="view-tabla">
+  <div class="adm-panel">
+    <div class="adm-table-wrap">
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>ID / Fuente</th>
+          <th>Cliente &amp; Casillero</th>
+          <th>Producto</th>
+          <th>Valor</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Actualizar</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="adm-tbody">{table_body_html}</tbody>
+    </table>
+    <div class="adm-no-results" id="adm-no-results-tbl" role="status">
+      <div class="adm-empty-icon">&#128269;</div>
+      <strong>Sin resultados</strong><br>
+      <span>Prueba con otro t&eacute;rmino o limpia los filtros.</span>
+    </div>
+    </div>
   </div>
   </div>
 
-  <!-- Mobile cards -->
-  <div class="adm-cards" id="adm-cards">{cards_html}</div>
-  <div class="adm-no-results" id="adm-no-results-cards">
-    <div class="adm-empty-icon">&#128269;</div>
-    <strong>Sin resultados</strong><br>
-    <span class="adm-empty-hint">Prueba con otro t&eacute;rmino o limpia los filtros.</span>
-    <br><button class="adm-empty-cta" onclick="admClearFilter()" style="margin-top:12px;">Limpiar filtros</button>
+  <!-- ── Kanban view ────────────────────────────────────────────────── -->
+  <div id="view-kanban" style="display:none">
+  <div class="adm-panel">
+    <div class="adm-kanban-wrap" id="adm-kanban-wrap">
+      {kanban_html}
+    </div>
+    <div class="adm-no-results" id="adm-no-results-kanban">
+      <div class="adm-empty-icon">&#128269;</div>
+      <strong>Sin resultados en kanban</strong><br>
+      <span>Limpia los filtros para ver todas las solicitudes.</span>
+      <br><button class="adm-empty-cta" onclick="admClearFilter()" style="margin-top:12px;">Limpiar filtros</button>
+    </div>
+  </div>
   </div>
 
-</div>
+  <!-- ── Tarjetas view ──────────────────────────────────────────────── -->
+  <div id="view-tarjetas" style="display:none">
+  <div class="adm-panel">
+    <div class="adm-cards-grid" id="adm-cards">
+      {cards_html}
+    </div>
+    <div class="adm-no-results" id="adm-no-results-cards">
+      <div class="adm-empty-icon">&#128269;</div>
+      <strong>Sin resultados</strong><br>
+      <span>Prueba con otro t&eacute;rmino o limpia los filtros.</span>
+      <br><button class="adm-empty-cta" onclick="admClearFilter()" style="margin-top:12px;">Limpiar filtros</button>
+    </div>
+  </div>
+  </div>
+
 </main>
 
 <div id="adm-toast-stack" role="region" aria-live="polite" aria-label="Notificaciones"></div>
 
 <script>
 (function() {{
+  /* ── Toast ── */
   function admToast(msg, type) {{
-    type = type || 'success';
     var stack = document.getElementById('adm-toast-stack');
     if (!stack) return;
     var t = document.createElement('div');
-    t.className = 'adm-toast adm-toast-' + type;
+    t.className = 'adm-toast adm-toast-' + (type || 'success');
     t.setAttribute('role', 'alert');
     t.innerHTML = '<span style="flex:1">' + msg + '</span>'
       + '<button class="adm-toast-close" onclick="this.parentElement.remove()" aria-label="Cerrar">&times;</button>';
     stack.appendChild(t);
     requestAnimationFrame(function() {{ t.classList.add('show'); }});
-    setTimeout(function() {{
-      t.classList.remove('show');
-      setTimeout(function() {{ t.remove(); }}, 300);
-    }}, 4000);
+    setTimeout(function() {{ t.classList.remove('show'); setTimeout(function() {{ t.remove(); }}, 300); }}, 4000);
   }}
 
-  var _totalRows = {n};
+  /* ── View toggle ── */
+  var _currentView = localStorage.getItem('crbox_sol_view') || 'tabla';
+  window.setView = function(view) {{
+    _currentView = view;
+    localStorage.setItem('crbox_sol_view', view);
+    ['tabla','kanban','tarjetas'].forEach(function(v) {{
+      var el = document.getElementById('view-' + v);
+      var btn = document.getElementById('vbtn-' + v);
+      if (el) el.style.display = v === view ? '' : 'none';
+      if (btn) btn.classList.toggle('active', v === view);
+    }});
+    _syncStickyThead();
+  }};
+  setView(_currentView);
 
+  /* ── Filter (all three views) ── */
+  var _totalRows = {n};
   function admFilter() {{
     var q    = (document.getElementById('adm-search').value || '').toLowerCase().trim();
     var fSt  = document.getElementById('adm-flt-status').value;
     var fSvc = document.getElementById('adm-flt-svc').value;
-    var trs = document.querySelectorAll('#adm-tbody .adm-tr');
-    var cards = document.querySelectorAll('#adm-cards .adm-card');
-    var visibleTbl = 0, visibleCard = 0;
     function matches(el) {{
-      var name = el.dataset.name || '';
-      var email = el.dataset.email || '';
-      var cas = el.dataset.casillero || '';
-      var prod = el.dataset.prod || '';
-      var st = el.dataset.status || '';
-      var svc = el.dataset.svc || '';
-      var textOk = !q || name.includes(q) || email.includes(q) || cas.includes(q) || prod.includes(q);
-      return textOk && (!fSt || st === fSt) && (!fSvc || svc === fSvc);
+      var textOk = !q || (el.dataset.name||'').includes(q) || (el.dataset.email||'').includes(q)
+                      || (el.dataset.casillero||'').includes(q) || (el.dataset.prod||'').includes(q);
+      return textOk && (!fSt || el.dataset.status === fSt) && (!fSvc || el.dataset.svc === fSvc);
     }}
+    /* tabla */
+    var trs = document.querySelectorAll('#adm-tbody .adm-tr');
+    var visT = 0;
     trs.forEach(function(tr) {{
-      var s=matches(tr);
-      tr.style.display=s?'':'none';
-      if(s) visibleTbl++;
-      var next = tr.nextElementSibling;
-      if (next && next.classList.contains('adm-expand-row')) {{
-        if (!s) {{ next.hidden = true; var tb = tr.querySelector('.adm-upd-toggle'); if(tb) tb.setAttribute('aria-expanded','false'); }}
-        next.style.display = s ? '' : 'none';
+      var s = matches(tr);
+      tr.style.display = s ? '' : 'none';
+      if (s) visT++;
+      var nx = tr.nextElementSibling;
+      if (nx && nx.classList.contains('adm-expand-row')) {{
+        if (!s) {{ nx.hidden = true; var tb = tr.querySelector('.adm-upd-toggle'); if(tb) tb.setAttribute('aria-expanded','false'); }}
+        nx.style.display = s ? '' : 'none';
       }}
     }});
-    cards.forEach(function(c) {{ var s=matches(c); c.style.display=s?'':'none'; if(s)visibleCard++; }});
-    var visible = Math.max(visibleTbl, visibleCard);
+    /* kanban */
+    var kcards = document.querySelectorAll('.adm-kcard');
+    var visK = 0;
+    kcards.forEach(function(c) {{ var s = matches(c); c.style.display = s ? '' : 'none'; if(s) visK++; }});
+    /* hide empty kanban cols */
+    document.querySelectorAll('.adm-kcol').forEach(function(col) {{
+      var any = Array.from(col.querySelectorAll('.adm-kcard')).some(function(c) {{ return c.style.display !== 'none'; }});
+      col.style.display = any ? '' : 'none';
+    }});
+    /* tarjetas */
+    var cards = document.querySelectorAll('#adm-cards .adm-card');
+    var visC = 0;
+    cards.forEach(function(c) {{ var s = matches(c); c.style.display = s ? '' : 'none'; if(s) visC++; }});
+    /* count label */
+    var vis = visT || visK || visC;
     var lbl = document.getElementById('adm-count-label');
-    if (lbl) lbl.innerHTML = '<span>' + visible + '</span> de ' + _totalRows + ' solicitud' + (_totalRows !== 1 ? 'es' : '');
-    var noTbl = document.getElementById('adm-no-results-tbl');
-    var noCard = document.getElementById('adm-no-results-cards');
-    if (noTbl) noTbl.classList.toggle('visible', visibleTbl === 0 && _totalRows > 0);
-    if (noCard) noCard.classList.toggle('visible', visibleCard === 0 && _totalRows > 0);
+    if (lbl) lbl.textContent = vis + ' de ' + _totalRows + ' solicitud' + (_totalRows !== 1 ? 'es' : '');
+    /* no-results banners */
+    var noT = document.getElementById('adm-no-results-tbl');
+    var noK = document.getElementById('adm-no-results-kanban');
+    var noC = document.getElementById('adm-no-results-cards');
+    if (noT) noT.classList.toggle('visible', visT === 0 && _totalRows > 0);
+    if (noK) noK.classList.toggle('visible', visK === 0 && _totalRows > 0);
+    if (noC) noC.classList.toggle('visible', visC === 0 && _totalRows > 0);
   }}
   window.admFilter = admFilter;
+
+  window.admClearFilter = function() {{
+    document.getElementById('adm-search').value = '';
+    document.getElementById('adm-flt-status').value = '';
+    document.getElementById('adm-flt-svc').value = '';
+    admFilter();
+  }};
 
   window.admToggleExpand = function(btn, expandId) {{
     var row = document.getElementById(expandId);
@@ -5768,17 +5905,11 @@ a{{color:inherit;text-decoration:none}}
     if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
   }};
 
-  window.admClearFilter = function() {{
-    document.getElementById('adm-search').value = '';
-    document.getElementById('adm-flt-status').value = '';
-    document.getElementById('adm-flt-svc').value = '';
-    admFilter();
-  }};
+  /* ── Sticky thead sync ── */
   function _syncStickyThead() {{
     var outer = document.querySelector('.adm-filter-outer');
     var ths = document.querySelectorAll('.adm-table thead th');
     if (!ths.length) return;
-    // filter-outer sticks at top:52px; add its rendered height
     var outerH = outer ? outer.offsetHeight : 0;
     var top = 52 + outerH;
     ths.forEach(function(th) {{ th.style.top = top + 'px'; }});
@@ -5786,15 +5917,7 @@ a{{color:inherit;text-decoration:none}}
   window.addEventListener('load', _syncStickyThead);
   window.addEventListener('resize', _syncStickyThead);
 
-  window.admToggleFilters = function() {{
-    var row2 = document.getElementById('adm-filter-row2');
-    var btn  = document.getElementById('adm-flt-toggle');
-    if (!row2) return;
-    var isOpen = row2.classList.toggle('open');
-    if (btn) btn.classList.toggle('active', isOpen);
-    setTimeout(_syncStickyThead, 60);
-  }};
-
+  /* ── URL param handling ── */
   var params = new URLSearchParams(window.location.search);
   if (params.get('updated') === '1') {{
     admToast('Estado actualizado correctamente', 'success');
@@ -5809,10 +5932,7 @@ a{{color:inherit;text-decoration:none}}
     var fltSel = document.getElementById('adm-flt-status');
     if (fltSel) {{
       var opt = Array.from(fltSel.options).find(function(o) {{ return o.value === initStatus; }});
-      if (opt) {{
-        fltSel.value = initStatus;
-        admFilter();
-      }}
+      if (opt) {{ fltSel.value = initStatus; admFilter(); }}
     }}
   }}
 }})();
@@ -5856,6 +5976,7 @@ def _build_admin_consultas_html(rows):
         )
         card_rows += (
             f'<div class="adm-ccard" data-name="{da_name}" data-email="{da_email}" data-asunto="{da_asunto}">\n'
+            f'<div class="adm-ccard-body">\n'
             f'<div class="adm-card-top">'
             f'<span class="adm-card-id">#{rid}</span>'
             f'{email_badge}</div>\n'
@@ -5871,7 +5992,8 @@ def _build_admin_consultas_html(rows):
             f'  <div class="adm-card-row"><span class="adm-card-lbl">Fecha</span>'
             f'<span class="adm-card-val">{date_str} &middot; {elapsed}</span></div>\n'
             f'</div>\n'
-            f'<a href="/admin/consultas/{rid}" class="adm-card-detail-link">Ver detalle &#8594;</a>\n'
+            f'</div>\n'
+            f'<a href="/admin/consultas/{rid}" class="adm-ccard-link">Ver detalle &#8594;</a>\n'
             f'</div>\n'
         )
 
@@ -5896,56 +6018,59 @@ def _build_admin_consultas_html(rows):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Consultas Generales — CRBOX</title>
+<title>Consultas — CRBOX Admin</title>
 <style>
-/* ── Design tokens ──────────────────────────────────────────────────── */
 :root{{
   --clr-orange:#FF6B00;--clr-orange-dk:#E05A00;--clr-orange-lt:#fff7ed;
-  --clr-navy:#1e293b;--clr-navy2:#334155;
+  --clr-navy:#0F172A;--clr-navy2:#1E293B;--clr-navy3:#334155;
   --clr-slate50:#f8fafc;--clr-slate100:#f1f5f9;--clr-slate200:#e2e8f0;
-  --clr-slate400:#94a3b8;--clr-slate500:#64748b;--clr-slate700:#374151;
+  --clr-slate400:#94a3b8;--clr-slate500:#64748b;--clr-slate700:#374151;--clr-slate900:#0f172a;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   --radius-sm:6px;--radius:10px;--radius-lg:14px;
 }}
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-body{{font-family:var(--font);background:var(--clr-slate100);color:#111;min-height:100vh}}
+body{{font-family:var(--font);background:var(--clr-slate100);color:var(--clr-slate900);min-height:100vh}}
 a{{color:inherit;text-decoration:none}}
-/* ── Header ─────────────────────────────────────────────────────────── */
 .adm-header{{background:var(--clr-navy);padding:0 20px;display:flex;align-items:center;gap:12px;
-  position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.22);height:52px}}
+  position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(0,0,0,.28);height:52px}}
 .adm-header-logo{{color:var(--clr-orange);font-weight:800;font-size:19px;letter-spacing:-.5px;flex-shrink:0}}
-.adm-header-sep{{color:var(--clr-navy2);font-size:18px;flex-shrink:0}}
-.adm-header-title{{color:#cbd5e1;font-size:13px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
-.adm-header-nav{{display:flex;align-items:center;gap:8px;flex-shrink:0}}
+.adm-header-sep{{color:#334155;font-size:18px;flex-shrink:0}}
+.adm-header-title{{color:#cbd5e1;font-size:13px;font-weight:500;flex:1;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}}
+.adm-header-nav{{display:flex;align-items:center;gap:6px;flex-shrink:0}}
 .adm-header-link,.adm-logout{{color:#94a3b8;font-size:12px;padding:5px 11px;border-radius:var(--radius-sm);
-  border:1px solid var(--clr-navy2);transition:all .2s;white-space:nowrap}}
-.adm-header-link:hover,.adm-logout:hover{{color:#fff;border-color:#64748b;background:var(--clr-navy2)}}
-.adm-header-link:focus-visible,.adm-logout:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
-/* ── Breadcrumb header ──────────────────────────────────────────────── */
-.adm-page-topbar{{background:var(--clr-navy);border-bottom:1px solid rgba(255,255,255,.06);
-  padding:10px 20px;display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8}}
-.adm-bc-link{{color:#94a3b8;text-decoration:none;transition:color .15s}}
-.adm-bc-link:hover{{color:#fff}}
-.adm-bc-sep{{color:#475569}}
-/* ── Main ───────────────────────────────────────────────────────────── */
-.adm-main{{padding:24px 20px 56px}}
-.adm-page-header{{display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:16px;flex-wrap:wrap;gap:8px}}
-.adm-page-h1{{font-size:18px;font-weight:800;color:var(--clr-navy)}}
-.adm-page-count{{font-size:12px;color:var(--clr-slate400);font-weight:500}}
-/* ── Filter bar ─────────────────────────────────────────────────────── */
-.adm-filter-bar{{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}}
+  border:1px solid #1e293b;transition:all .18s;white-space:nowrap}}
+.adm-header-link:hover{{color:#f1f5f9;border-color:#475569;background:#1e293b}}
+.adm-header-link.active{{color:#fff;background:var(--clr-orange);border-color:var(--clr-orange)}}
+.adm-logout:hover{{color:#fca5a5;border-color:#7f1d1d}}
+/* filter outer */
+.adm-filter-outer{{position:sticky;top:52px;z-index:15;background:var(--clr-slate100);
+  border-bottom:1px solid var(--clr-slate200);box-shadow:0 1px 6px rgba(0,0,0,.06)}}
+.adm-filter-bar{{padding:10px 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}}
 .adm-filter-bar input{{flex:1;min-width:200px;border:1.5px solid var(--clr-slate200);
-  border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;background:#fff;
-  color:var(--clr-slate700);font-family:var(--font);outline:none;transition:border-color .2s;min-height:38px}}
-.adm-filter-bar input:focus{{border-color:var(--clr-orange);outline:2px solid rgba(255,107,0,.15);outline-offset:-1px}}
-.adm-filter-clear{{padding:8px 13px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
+  border-radius:var(--radius-sm);padding:7px 11px;font-size:13px;background:#fff;
+  color:var(--clr-slate700);font-family:var(--font);outline:none;transition:border-color .2s;min-height:36px}}
+.adm-filter-bar input:focus{{border-color:var(--clr-orange);box-shadow:0 0 0 3px rgba(255,107,0,.12)}}
+.adm-filter-clear{{padding:7px 13px;border:1.5px solid var(--clr-slate200);border-radius:var(--radius-sm);
   background:#fff;color:var(--clr-slate500);font-size:12px;font-weight:600;cursor:pointer;
-  transition:all .2s;font-family:var(--font);white-space:nowrap;min-height:38px}}
+  transition:all .2s;font-family:var(--font);white-space:nowrap;min-height:36px}}
 .adm-filter-clear:hover{{border-color:var(--clr-orange);color:var(--clr-orange)}}
-/* ── Panel ──────────────────────────────────────────────────────────── */
+.adm-count-lbl{{font-size:11px;color:var(--clr-slate400);white-space:nowrap;margin-left:auto}}
+/* view toggle */
+.adm-view-toggle{{display:flex;border-radius:var(--radius-sm);overflow:hidden;
+  border:1.5px solid var(--clr-slate200);flex-shrink:0}}
+.adm-vbtn{{padding:6px 12px;background:#fff;border:none;border-right:1px solid var(--clr-slate200);
+  font-size:12px;font-weight:600;color:var(--clr-slate500);cursor:pointer;
+  font-family:var(--font);display:flex;align-items:center;gap:5px;transition:all .15s;
+  white-space:nowrap;min-height:34px}}
+.adm-vbtn:last-child{{border-right:none}}
+.adm-vbtn:hover{{background:var(--clr-slate50);color:var(--clr-slate700)}}
+.adm-vbtn.active{{background:var(--clr-orange);color:#fff}}
+/* main */
+.adm-main{{padding:12px 20px 48px}}
 .adm-panel{{background:#fff;border-radius:var(--radius-lg);box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:clip}}
-/* ── Table ──────────────────────────────────────────────────────────── */
+/* table */
+.adm-table-wrap{{overflow-x:auto}}
 .adm-table{{width:100%;border-collapse:collapse}}
 .adm-table thead th{{background:var(--clr-slate50);padding:10px 14px;text-align:left;
   font-size:10px;font-weight:700;color:var(--clr-slate400);text-transform:uppercase;
@@ -5959,45 +6084,45 @@ a{{color:inherit;text-decoration:none}}
 .adm-name-line{{font-weight:600;font-size:13px}}
 .adm-sub{{color:var(--clr-slate400);font-size:11px;margin-top:2px}}
 .td-ver{{white-space:nowrap;text-align:center;vertical-align:middle}}
-.adm-td-asunto{{font-size:13px;color:#374151;max-width:260px}}
+.adm-td-asunto{{font-size:13px;color:var(--clr-slate700);max-width:260px}}
 .adm-td-date{{white-space:nowrap;font-size:13px}}
 .adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
   font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
 .adm-badge-success{{background:#F0FDF4;color:#15803D;border-color:#BBF7D0}}
 .adm-badge-warn{{background:#FFF7ED;color:#C2410C;border-color:#FDBA74}}
 .adm-ver-link{{display:inline-flex;align-items:center;justify-content:center;
-  padding:6px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;
+  padding:5px 11px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;
   color:var(--clr-orange);border:1.5px solid #fdba74;background:var(--clr-orange-lt);
-  transition:all .2s;white-space:nowrap;min-height:36px}}
+  transition:all .2s;white-space:nowrap;min-height:32px}}
 .adm-ver-link:hover{{background:var(--clr-orange);color:#fff;border-color:var(--clr-orange)}}
-.adm-ver-link:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
-.adm-table-wrap{{overflow-x:auto}}
-/* ── Mobile cards ───────────────────────────────────────────────────── */
-.adm-cards{{display:none;flex-direction:column;gap:12px;padding:12px}}
-.adm-ccard{{background:#fff;border-radius:var(--radius);padding:16px;
-  border:1px solid var(--clr-slate200);box-shadow:0 1px 4px rgba(0,0,0,.05)}}
-.adm-card-top{{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}}
-.adm-card-id{{font-size:15px;font-weight:800;color:var(--clr-orange)}}
-.adm-card-fields{{margin-bottom:10px;border:1px solid var(--clr-slate100);border-radius:8px;overflow:hidden}}
+/* cards grid */
+.adm-cards-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:12px;padding:16px}}
+.adm-ccard{{background:#fff;border-radius:var(--radius);border:1px solid var(--clr-slate200);
+  box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;transition:box-shadow .15s}}
+.adm-ccard:hover{{box-shadow:0 4px 14px rgba(0,0,0,.10)}}
+.adm-ccard-body{{padding:14px 16px}}
+.adm-card-top{{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}}
+.adm-card-id{{font-size:14px;font-weight:800;color:var(--clr-orange)}}
+.adm-card-fields{{border-top:1px solid var(--clr-slate100)}}
 .adm-card-row{{display:flex;justify-content:space-between;align-items:baseline;
-  padding:7px 10px;border-bottom:1px solid var(--clr-slate100);font-size:13px}}
+  padding:6px 0;border-bottom:1px solid var(--clr-slate100);font-size:13px}}
 .adm-card-row:last-child{{border-bottom:none}}
 .adm-card-lbl{{color:var(--clr-slate400);font-size:11px;font-weight:600;min-width:60px;flex-shrink:0}}
-.adm-card-val{{color:#111;font-size:12px;text-align:right;word-break:break-word;max-width:65%}}
-.adm-card-val-bold{{font-weight:700;color:var(--clr-navy)}}
-.adm-card-detail-link{{display:block;text-align:center;margin-top:10px;padding:10px;
-  background:var(--clr-orange-lt);border-radius:8px;color:var(--clr-orange);font-size:13px;font-weight:700;
-  border:1.5px solid #fdba74;transition:all .2s}}
-.adm-card-detail-link:hover{{background:var(--clr-orange);color:#fff;border-color:var(--clr-orange)}}
-/* ── Empty / no-results ─────────────────────────────────────────────── */
+.adm-card-val{{color:var(--clr-slate900);font-size:12px;text-align:right;word-break:break-word;max-width:65%}}
+.adm-card-val-bold{{font-weight:700}}
+.adm-ccard-link{{display:block;margin:12px 16px 14px;padding:9px;text-align:center;
+  background:var(--clr-orange-lt);border-radius:var(--radius-sm);color:var(--clr-orange);
+  font-size:13px;font-weight:700;border:1.5px solid #fdba74;transition:all .2s}}
+.adm-ccard-link:hover{{background:var(--clr-orange);color:#fff;border-color:var(--clr-orange)}}
+/* empty / no-results */
 .adm-empty{{text-align:center;padding:56px 20px;color:var(--clr-slate400)}}
 .adm-empty-icon{{font-size:40px;margin-bottom:14px}}
-.adm-empty-hint{{font-size:12px}}
 .adm-empty h3{{font-size:16px;font-weight:700;color:var(--clr-slate500);margin-bottom:8px}}
 .adm-empty p{{font-size:13px}}
-.adm-no-results{{display:none;text-align:center;padding:40px 20px;color:var(--clr-slate400)}}
+.adm-no-results{{display:none;text-align:center;padding:36px 20px;color:var(--clr-slate400)}}
 .adm-no-results.visible{{display:block}}
-/* ── Toast stack ────────────────────────────────────────────────────── */
+/* toast */
 #adm-toast-stack{{position:fixed;top:68px;right:20px;z-index:9000;
   display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:340px}}
 .adm-toast{{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;
@@ -6010,18 +6135,14 @@ a{{color:inherit;text-decoration:none}}
   padding:0;font-size:16px;line-height:1;flex-shrink:0;margin-left:auto;
   transition:color .15s;min-width:20px;text-align:center;font-family:var(--font)}}
 .adm-toast-close:hover{{color:#fff}}
-/* ── Responsive ─────────────────────────────────────────────────────── */
-@media(max-width:720px){{
+@media(max-width:800px){{
   .adm-header{{padding:0 12px;gap:8px}}
   .adm-header-title,.adm-header-sep{{display:none}}
-  .adm-main{{padding:16px 12px 56px}}
-  .adm-panel{{border-radius:var(--radius)}}
-  .adm-table-wrap{{display:none}}
-  .adm-cards{{display:flex}}
+  .adm-filter-bar{{padding:8px 12px}}
+  .adm-main{{padding:8px 0 48px}}
+  .adm-panel{{border-radius:0}}
+  .adm-cards-grid{{grid-template-columns:1fr;padding:10px}}
   #adm-toast-stack{{right:10px;left:10px;max-width:none;top:60px}}
-}}
-@media(min-width:721px){{
-  .adm-table-wrap{{overflow-x:auto}}
 }}
 </style>
 </head>
@@ -6029,73 +6150,122 @@ a{{color:inherit;text-decoration:none}}
 <header class="adm-header">
   <span class="adm-header-logo">CRBOX</span>
   <span class="adm-header-sep">|</span>
-  <span class="adm-header-title">Consultas Generales</span>
+  <span class="adm-header-title">Consultas</span>
   <nav class="adm-header-nav">
     <a href="/admin/dashboard" class="adm-header-link">Dashboard</a>
-    <a href="/admin/solicitudes" class="adm-header-link">Cotizaciones</a>
+    <a href="/admin/solicitudes" class="adm-header-link">Solicitudes</a>
+    <a href="/admin/consultas" class="adm-header-link active">Consultas</a>
     <a href="/admin/logout" class="adm-logout">Salir</a>
   </nav>
 </header>
-<div class="adm-page-topbar">
-  <a href="/admin/dashboard" class="adm-bc-link">Dashboard</a>
-  <span class="adm-bc-sep">&#8250;</span>
-  <span>Consultas</span>
+
+<!-- Sticky filter + view toggle -->
+<div class="adm-filter-outer">
+  <div class="adm-filter-bar">
+    <input type="search" id="adm-csearch" placeholder="Buscar por nombre, correo o asunto&hellip;"
+           autocomplete="off" oninput="cFilter()" aria-label="Buscar consultas">
+    <button class="adm-filter-clear" onclick="cClear()" type="button">&#10005; Limpiar</button>
+    <span class="adm-count-lbl" id="adm-ccount">{n} consulta{"s" if n != 1 else ""}</span>
+    <div class="adm-view-toggle" role="group" aria-label="Vista">
+      <button class="adm-vbtn active" id="cvbtn-tabla"
+              onclick="setCView('tabla')" type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></svg>
+        Tabla
+      </button>
+      <button class="adm-vbtn" id="cvbtn-tarjetas"
+              onclick="setCView('tarjetas')" type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+        Tarjetas
+      </button>
+    </div>
+  </div>
 </div>
+
 <main class="adm-main">
-<div class="adm-page-header">
-  <h1 class="adm-page-h1">Consultas Generales</h1>
-  <span class="adm-page-count" id="adm-ccount">{n} consulta{"s" if n != 1 else ""}</span>
-</div>
-<div class="adm-filter-bar">
-  <input type="search" id="adm-csearch" placeholder="Buscar por nombre, correo o asunto&hellip;"
-         autocomplete="off" oninput="cFilter()" aria-label="Buscar consultas">
-  <button class="adm-filter-clear" onclick="cClear()" type="button">&#10005; Limpiar</button>
-</div>
-<div class="adm-panel">
-  <div class="adm-table-wrap">
-  <table class="adm-table" aria-label="Lista de consultas">
-    <thead>
-      <tr>
-        <th>#</th><th>Contacto</th><th>Asunto</th><th>Fecha</th><th>Email</th><th></th>
-      </tr>
-    </thead>
-    <tbody id="adm-ctbody">{table_body_html}</tbody>
-  </table>
-  <div class="adm-no-results" id="adm-no-results-tbl" role="status">
-    <div class="adm-empty-icon">&#128269;</div>
-    <strong>Sin resultados</strong><br>
-    <span class="adm-empty-hint">Prueba con otro t&eacute;rmino o limpia el filtro.</span>
+
+  <!-- Tabla view -->
+  <div id="cview-tabla">
+  <div class="adm-panel">
+    <div class="adm-table-wrap">
+    <table class="adm-table" aria-label="Lista de consultas">
+      <thead>
+        <tr>
+          <th>#</th><th>Contacto</th><th>Asunto</th><th>Fecha</th><th>Email</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="adm-ctbody">{table_body_html}</tbody>
+    </table>
+    <div class="adm-no-results" id="adm-no-results-tbl" role="status">
+      <div class="adm-empty-icon">&#128269;</div>
+      <strong>Sin resultados</strong><br>
+      <span>Prueba con otro t&eacute;rmino o limpia el filtro.</span>
+    </div>
+    </div>
   </div>
   </div>
-  <div class="adm-cards" id="adm-ccards">{cards_html}</div>
-  <div class="adm-no-results" id="adm-no-results-cards" role="status">
-    <div class="adm-empty-icon">&#128269;</div>
-    <strong>Sin resultados</strong><br>
-    <span class="adm-empty-hint">Prueba con otro t&eacute;rmino o limpia el filtro.</span>
+
+  <!-- Tarjetas view -->
+  <div id="cview-tarjetas" style="display:none">
+  <div class="adm-panel">
+    <div class="adm-cards-grid" id="adm-ccards">{cards_html}</div>
+    <div class="adm-no-results" id="adm-no-results-cards" role="status">
+      <div class="adm-empty-icon">&#128269;</div>
+      <strong>Sin resultados</strong><br>
+      <span>Prueba con otro t&eacute;rmino o limpia el filtro.</span>
+    </div>
   </div>
-</div>
+  </div>
+
 </main>
 
 <div id="adm-toast-stack" role="region" aria-live="polite" aria-label="Notificaciones"></div>
 
 <script>
 (function() {{
+  /* view toggle */
+  var _cv = localStorage.getItem('crbox_con_view') || 'tabla';
+  window.setCView = function(view) {{
+    _cv = view;
+    localStorage.setItem('crbox_con_view', view);
+    ['tabla','tarjetas'].forEach(function(v) {{
+      var el = document.getElementById('cview-' + v);
+      var btn = document.getElementById('cvbtn-' + v);
+      if (el) el.style.display = v === view ? '' : 'none';
+      if (btn) btn.classList.toggle('active', v === view);
+    }});
+    _syncThead();
+  }};
+  setCView(_cv);
+
+  /* sticky thead */
+  function _syncThead() {{
+    var outer = document.querySelector('.adm-filter-outer');
+    var ths = document.querySelectorAll('.adm-table thead th');
+    if (!ths.length) return;
+    var outerH = outer ? outer.offsetHeight : 0;
+    ths.forEach(function(th) {{ th.style.top = (52 + outerH) + 'px'; }});
+  }}
+  window.addEventListener('load', _syncThead);
+  window.addEventListener('resize', _syncThead);
+
+  /* filter */
   var _cTotal = {n};
   function cFilter() {{
     var q = (document.getElementById('adm-csearch').value || '').toLowerCase().trim();
-    var trs = document.querySelectorAll('#adm-ctbody .adm-ctr');
-    var cards = document.querySelectorAll('#adm-ccards .adm-ccard');
-    var vT = 0, vC = 0;
     function ok(el) {{
       return !q || (el.dataset.name||'').includes(q) ||
                    (el.dataset.email||'').includes(q) ||
                    (el.dataset.asunto||'').includes(q);
     }}
+    var trs = document.querySelectorAll('#adm-ctbody .adm-ctr');
+    var vT = 0;
     trs.forEach(function(tr) {{ var s=ok(tr); tr.style.display=s?'':'none'; if(s)vT++; }});
+    var cards = document.querySelectorAll('#adm-ccards .adm-ccard');
+    var vC = 0;
     cards.forEach(function(c) {{ var s=ok(c); c.style.display=s?'':'none'; if(s)vC++; }});
-    var v = Math.max(vT, vC);
-    var el = document.getElementById('adm-ccount');
-    if (el) el.textContent = v + ' de ' + _cTotal + ' consulta' + (_cTotal!==1?'s':'');
+    var v = vT || vC;
+    var lbl = document.getElementById('adm-ccount');
+    if (lbl) lbl.textContent = v + ' de ' + _cTotal + ' consulta' + (_cTotal!==1?'s':'');
     var nT=document.getElementById('adm-no-results-tbl'), nC=document.getElementById('adm-no-results-cards');
     if(nT) nT.classList.toggle('visible', vT===0 && _cTotal>0);
     if(nC) nC.classList.toggle('visible', vC===0 && _cTotal>0);
