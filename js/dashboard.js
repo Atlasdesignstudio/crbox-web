@@ -3,6 +3,15 @@
  * Enhanced dashboard functionality with modern UX features
  */
 
+function _escHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize all dashboard components
@@ -275,12 +284,12 @@ function initNotifications() {
             </div>
             <div class="flex-1">
                 <div class="flex justify-between items-start mb-1">
-                    <h3 class="font-semibold ${style.titleColor}">${title}</h3>
+                    <h3 class="font-semibold ${style.titleColor}">${_escHtml(title)}</h3>
                     <span class="text-xs ${style.badgeColor} ${style.badgeBg} px-2 py-1 rounded-full">Nuevo</span>
                 </div>
-                <p class="${style.textColor} mb-2">${message}</p>
+                <p class="${style.textColor} mb-2">${_escHtml(message)}</p>
                 <div class="flex justify-between items-center mt-3">
-                    <span class="text-xs ${style.badgeColor}">Publicado: ${formattedDate}</span>
+                    <span class="text-xs ${style.badgeColor}">Publicado: ${_escHtml(formattedDate)}</span>
                     <button class="text-xs flex items-center ${style.titleColor} hover:${style.iconColor} notification-close">
                         <i class="fas fa-check-circle mr-1"></i>
                         Marcar como leído
@@ -650,7 +659,7 @@ function showToast(message, type = 'success') {
     toast.className = `${bgColor} ${textColor} px-4 py-3 rounded-lg shadow-lg flex items-center opacity-0 transform translate-x-full transition-all duration-300`;
     toast.innerHTML = `
         ${icon}
-        <span>${message}</span>
+        <span>${_escHtml(message)}</span>
         <button class="ml-auto text-white focus:outline-none" aria-label="Cerrar notificación">
             <i class="fas fa-times"></i>
         </button>

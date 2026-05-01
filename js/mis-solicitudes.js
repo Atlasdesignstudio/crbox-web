@@ -610,7 +610,7 @@
       : 'bg-gray-900 text-white';
     var el = document.createElement('div');
     el.className = 'flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium ' + colors + ' animate-fade-in-up';
-    el.innerHTML = msg;
+    el.textContent = msg;
     container.appendChild(el);
     setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 4000);
   }

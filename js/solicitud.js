@@ -66,7 +66,7 @@
       '<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold border ' +
       c.bg + ' ' + c.text + ' ' + c.border + '">' +
       '<span class="w-2 h-2 rounded-full flex-shrink-0 ' + c.dot + '"></span>' +
-      label + '</span>'
+      esc(label) + '</span>'
     );
   }
 
@@ -236,7 +236,7 @@
     var urlEl = document.getElementById('sol-url');
     if (urlEl) {
       if (sol.product_url) {
-        urlEl.innerHTML = '<a href="' + esc(sol.product_url) + '" target="_blank" rel="noopener" class="text-blue-600 hover:text-blue-800 underline break-all text-sm">' + esc(sol.product_url.replace(/https?:\/\//i, '').substring(0, 60)) + (sol.product_url.length > 60 ? '…' : '') + '</a>';
+        urlEl.innerHTML = '<a href="' + esc(sol.product_url) + '" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline break-all text-sm">' + esc(sol.product_url.replace(/https?:\/\//i, '').substring(0, 60)) + (sol.product_url.length > 60 ? '…' : '') + '</a>';
       } else {
         urlEl.textContent = 'No proporcionada';
         urlEl.className = 'text-gray-400 text-sm';

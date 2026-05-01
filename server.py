@@ -3221,8 +3221,8 @@ _admin_brute_lock    = threading.Lock()
 
 _ADMIN_SESSION_TTL  = 8 * 3600     # 8 hours
 _ADMIN_BRUTE_MAX    = 5
-_ADMIN_BRUTE_WINDOW = 600           # 10-minute failure window
-_ADMIN_BRUTE_BLOCK  = 600           # 10-minute block
+_ADMIN_BRUTE_WINDOW = 900           # 15-minute failure window
+_ADMIN_BRUTE_BLOCK  = 900           # 15-minute lockout
 
 
 def _admin_password():
@@ -6413,17 +6413,190 @@ a{{color:inherit;text-decoration:none}}
 </html>'''
 
 
+def _allowed_origin():
+    """Return the single allowed CORS origin from env, or None to skip CORS."""
+    return os.environ.get('ALLOWED_ORIGIN', '').strip() or None
+
+
+def _is_prod():
+    """True when running in a production-like environment (non-dev)."""
+    return os.environ.get('REPLIT_DEPLOYMENT', '') == '1' or \
+           os.environ.get('ENV', '').lower() in ('production', 'prod')
+
+
+def _validate_env():
+    """Startup check: abort if required env vars are missing or use known dev defaults.
+
+    Prints a clear error and exits with code 1 so the process manager can
+    alert operators rather than silently running with weak credentials.
+    Only enforced when ENV=production or REPLIT_DEPLOYMENT=1.
+    """
+    if not _is_prod():
+        return
+
+    errors = []
+    _DEV_ADMIN_PASSWORD_PLACEHOLDERS = {'', 'admin', 'password', 'secret', 'changeme'}
+
+    admin_pw = os.environ.get('ADMIN_PASSWORD', '').strip()
+    if not admin_pw:
+        errors.append('ADMIN_PASSWORD is not set.')
+    elif admin_pw.lower() in _DEV_ADMIN_PASSWORD_PLACEHOLDERS:
+        errors.append(f'ADMIN_PASSWORD uses an insecure placeholder: "{admin_pw}".')
+
+    sales_tok = os.environ.get('SALES_TOKEN', '').strip()
+    if not sales_tok:
+        errors.append('SALES_TOKEN is not set.')
+    elif sales_tok == _DEV_SALES_TOKEN:
+        errors.append('SALES_TOKEN is still the dev placeholder — set a strong random value.')
+
+    gemini_key = os.environ.get('GEMINI_API_KEY', '').strip()
+    if not gemini_key:
+        errors.append('GEMINI_API_KEY is not set (AI features will be disabled).')
+
+    for var in ('SMTP_HOST', 'SMTP_USER', 'SMTP_PASS'):
+        if not os.environ.get(var, '').strip():
+            errors.append(f'{var} is not set — email features will fail.')
+
+    allowed_origin = os.environ.get('ALLOWED_ORIGIN', '').strip()
+    if not allowed_origin:
+        errors.append(
+            'ALLOWED_ORIGIN is not set. '
+            'Cross-origin browser requests will be denied in production. '
+            'Set ALLOWED_ORIGIN=https://your-domain.com to allow the front-end origin.'
+        )
+
+    if errors:
+        print('[SECURITY] Startup validation failed — refusing to start with insecure configuration:')
+        for e in errors:
+            print(f'  ✗ {e}')
+        import sys
+        sys.exit(1)
+
+
+_CSP_POLICY = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline' "
+    "https://www.googletagmanager.com https://www.google-analytics.com "
+    "https://cdn.jsdelivr.net https://unpkg.com; "
+    "style-src 'self' 'unsafe-inline' "
+    "https://cdnjs.cloudflare.com "
+    "https://cdn.jsdelivr.net https://unpkg.com; "
+    "img-src 'self' data: https:; "
+    "font-src 'self' https://cdnjs.cloudflare.com "
+    "https://cdn.jsdelivr.net; "
+    "connect-src 'self' https://clients.crbox.cr "
+    "https://generativelanguage.googleapis.com "
+    "https://www.googletagmanager.com https://www.google-analytics.com; "
+    "frame-src 'none'; "
+    "frame-ancestors 'none'; "
+    "object-src 'none'"
+)
+
+_MAX_BODY_REGULAR  = 512 * 1024      # 512 KB for regular endpoints
+_MAX_BODY_UPLOAD   = 2 * 1024 * 1024   # 2 MB for file-upload endpoints
+
+
 class NoCacheHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
         self.send_header("Pragma", "no-cache")
         self.send_header("Expires", "0")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        self.send_header("Permissions-Policy",
+                         "geolocation=(), microphone=(), camera=()")
+        self.send_header("Strict-Transport-Security",
+                         "max-age=31536000; includeSubDomains")
+        self.send_header("Content-Security-Policy", _CSP_POLICY)
+        origin = self.headers.get('Origin', '')
+        allowed = _allowed_origin()
+        if origin:
+            if allowed and origin == allowed:
+                self.send_header("Access-Control-Allow-Origin", allowed)
+                self.send_header("Access-Control-Allow-Methods",
+                                 "GET, POST, PUT, DELETE, OPTIONS")
+                self.send_header("Access-Control-Allow-Headers",
+                                 "Content-Type, Authorization, X-Casillero-Email")
+                self.send_header("Access-Control-Max-Age", "86400")
+            elif not allowed and not _is_prod():
+                self.send_header("Access-Control-Allow-Origin", origin)
+                self.send_header("Access-Control-Allow-Methods",
+                                 "GET, POST, PUT, DELETE, OPTIONS")
+                self.send_header("Access-Control-Allow-Headers",
+                                 "Content-Type, Authorization, X-Casillero-Email")
+                self.send_header("Access-Control-Max-Age", "86400")
         super().end_headers()
+
+    def _cors_reject(self):
+        """Return 403 if the request Origin does not match the allowlist.
+
+        Fail-closed: when ALLOWED_ORIGIN is unset in production every browser
+        cross-origin request is denied (Origin header present but no allowlist
+        is configured → we cannot verify it is safe, so reject).  In development
+        the absence of ALLOWED_ORIGIN is accepted permissively so local
+        front-end workflows keep working.
+        """
+        origin = self.headers.get('Origin', '')
+        if not origin:
+            return False
+        allowed = _allowed_origin()
+        if not allowed:
+            if _is_prod():
+                self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
+                return True
+            return False
+        if origin != allowed:
+            self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
+            return True
+        return False
+
+    def _read_body(self, max_bytes):
+        """Read the request body up to max_bytes; return None if exceeded."""
+        content_length = int(self.headers.get('Content-Length', 0) or 0)
+        if content_length > max_bytes:
+            return None
+        to_read = content_length if content_length > 0 else 0
+        data = b''
+        chunk_size = 65536
+        while len(data) < to_read:
+            remaining = to_read - len(data)
+            chunk = self.rfile.read(min(chunk_size, remaining))
+            if not chunk:
+                break
+            data += chunk
+            if len(data) > max_bytes:
+                return None
+        return data
+
+    def do_OPTIONS(self):
+        """Handle CORS preflight requests. Reject if origin not allowlisted."""
+        origin = self.headers.get('Origin', '')
+        allowed = _allowed_origin()
+        if origin and allowed and origin != allowed:
+            self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
+            return
+        if origin and not allowed and _is_prod():
+            self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
+            return
+        self.send_response(204)
+        self.end_headers()
 
     def log_message(self, format, *args):
         super().log_message(format, *args)
 
     def do_GET(self):
+        try:
+            self._do_get_inner()
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            try:
+                self._json_response(500, {'error': 'An unexpected error occurred'})
+            except Exception:
+                pass
+
+    def _do_get_inner(self):
         if self.path == '/health':
             self._handle_health()
         elif self.path.startswith('/admin'):
@@ -6464,11 +6637,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                     self.send_response(404)
                     self.end_headers()
         elif self.path.rstrip('/') == '/uploads' or self.path.rstrip('/') == '/uploads/invoices':
-            # Block directory listing for the uploads folder
             self.send_response(403)
             self.end_headers()
         else:
-            # Clean-URL support: /servicios → /servicios.html
             clean_path = self.path.split('?')[0].rstrip('/')
             if clean_path and '.' not in os.path.basename(clean_path):
                 html_file = clean_path.lstrip('/') + '.html'
@@ -6480,9 +6651,22 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             super().do_GET()
 
     def do_DELETE(self):
+        try:
+            self._do_delete_inner()
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            try:
+                self._json_response(500, {'error': 'An unexpected error occurred'})
+            except Exception:
+                pass
+
+    def _do_delete_inner(self):
         """DELETE /api/invoice-upload/<filename>
         Removes an orphaned invoice file.  Requires the same portal auth as the
         upload endpoint so only the authenticated owner can delete."""
+        if self._cors_reject():
+            return
         import re as _re
         m = _re.match(r'^/api/invoice-upload/([a-f0-9\-]{36}\.[a-z]{2,4})$', self.path)
         if not m:
@@ -6507,6 +6691,32 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(500, {'error': 'No se pudo eliminar el archivo.'})
 
     def do_POST(self):
+        try:
+            self._do_post_inner()
+        except Exception as _exc:
+            import traceback
+            traceback.print_exc()
+            try:
+                self._json_response(500, {'error': 'An unexpected error occurred'})
+            except Exception:
+                pass
+
+    def _do_post_inner(self):
+        if self._cors_reject():
+            return
+        client_ip = self.client_address[0]
+        _global_rate_exempt = {'/api/chat'}
+        if not self.path.startswith('/admin') and self.path not in _global_rate_exempt:
+            if not _check_rate_limit(client_ip):
+                self._json_response(429, {'error': 'Demasiadas solicitudes. Espera un momento e intenta de nuevo.'})
+                return
+        is_upload = self.path in ('/api/invoice-upload', '/api/proxy/saveBill')
+        max_body = _MAX_BODY_UPLOAD if is_upload else _MAX_BODY_REGULAR
+        content_length = int(self.headers.get('Content-Length', 0) or 0)
+        if content_length > max_body:
+            self._json_response(413, {'error': 'Payload too large'})
+            return
+
         if self.path == '/admin/login':
             self._handle_admin_login_post()
         elif self.path == '/crbox-svc-token':
@@ -6595,10 +6805,6 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     # ── /send-quote ────────────────────────────────────────────────────────
     def _handle_send_quote(self):
         client_ip = self.client_address[0]
-        if not _check_rate_limit(client_ip):
-            _log_quote_submission('', '', '', 'failed', 'rate_limit_exceeded', ip=client_ip)
-            self._json_response(429, {'ok': False, 'error': 'Demasiadas solicitudes. Espera un momento e intenta de nuevo.'})
-            return
 
         smtp_host = os.environ.get('SMTP_HOST', '').strip()
         smtp_port = os.environ.get('SMTP_PORT', '587').strip()
@@ -6682,9 +6888,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def _handle_solicitudes_post(self):
         client_ip = self.client_address[0]
         try:
-            length = int(self.headers.get('Content-Length', 0))
-            raw = self.rfile.read(length).decode('utf-8')
-            data = json.loads(raw)
+            raw = self._read_body(_MAX_BODY_REGULAR)
+            if raw is None:
+                self._json_error(413, 'Payload too large')
+                return
+            data = json.loads(raw.decode('utf-8'))
         except Exception:
             self._json_error(400, 'Solicitud inválida.')
             return
@@ -7176,9 +7384,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     # ── POST /api/solicitudes/check-duplicate ─────────────────────────────
     def _handle_check_duplicate(self):
         try:
-            length = int(self.headers.get('Content-Length', 0))
-            raw = self.rfile.read(length).decode('utf-8')
-            data = json.loads(raw)
+            raw = self._read_body(_MAX_BODY_REGULAR)
+            if raw is None:
+                self._json_response(413, {'ok': False, 'error': 'Payload too large'})
+                return
+            data = json.loads(raw.decode('utf-8'))
         except Exception:
             self._json_response(400, {'ok': False, 'error': 'Solicitud inválida.'})
             return
@@ -7266,7 +7476,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     # WordPress, then relays the response back — no CORS restrictions apply
     # to server-to-server requests.
     _SAVEBILL_WP_URL = 'https://crbox.cr/wp-json/crbox/v1/saveBill'
-    _SAVEBILL_MAX    = 12 * 1024 * 1024  # 12 MB hard ceiling
+    _SAVEBILL_MAX    = _MAX_BODY_UPLOAD  # hard ceiling aligned with upload cap
 
     def _handle_proxy_savebill(self):
         import base64 as _b64
@@ -7323,14 +7533,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         except Exception as exc:
             print(f'[PROXY/saveBill] Unexpected error: {exc}')
-            self._json_response(502, {'error': f'Error de proxy: {exc}'})
+            self._json_response(502, {'error': 'Error de comunicación con el servicio externo.'})
 
     # ── POST /api/invoice-upload ───────────────────────────────────────────
     # Stores the invoice file locally and returns a public URL so the client
     # can pass it as FileLocation to createPurchaseBill without depending on
     # the WordPress saveBill endpoint (which requires WP auth we don't have).
     _INVOICE_UPLOAD_DIR  = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads', 'invoices')
-    _INVOICE_MAX_BYTES   = 12 * 1024 * 1024  # 12 MB
+    _INVOICE_MAX_BYTES   = _MAX_BODY_UPLOAD  # aligned with upload cap
     _INVOICE_ALLOW_TYPES = {
         'application/pdf':  '.pdf',
         'image/jpeg':       '.jpg',
@@ -7673,11 +7883,6 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         # Security is preserved by: (1) rate limiting below, (2) service credentials
         # kept exclusively in server env vars, (3) the endpoint only returns a
         # short-lived token usable only for the registration call.
-        client_ip = self.client_address[0]
-        if not _check_rate_limit(client_ip):
-            self._json_error(429, 'Too many requests. Please wait a moment and try again.')
-            return
-
         svc_email = os.environ.get('CRBOX_SVC_EMAIL', '')
         svc_pass  = os.environ.get('CRBOX_SVC_PASSWORD', '')
 
@@ -7870,9 +8075,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         client_ip = self.client_address[0]
         blocked, remaining = _admin_brute_blocked(client_ip)
         if blocked:
-            self._admin_html_response(
-                _build_admin_login_html(blocked_secs=remaining), status=429
-            )
+            body = _build_admin_login_html(blocked_secs=remaining).encode('utf-8')
+            self.send_response(429)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(body)))
+            self.send_header('Retry-After', str(remaining))
+            self.end_headers()
+            self.wfile.write(body)
             return
         try:
             length = int(self.headers.get('Content-Length', 0))
@@ -7885,6 +8094,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             )
             return
         if pwd == _admin_password():
+            with _admin_brute_lock:
+                _admin_brute_state.pop(client_ip, None)
             token = _admin_create_session()
             is_https = (self.headers.get('X-Forwarded-Proto', '') == 'https'
                         or self.headers.get('X-Forwarded-Ssl', '') == 'on')
@@ -7899,6 +8110,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             )
         else:
             _admin_brute_record_fail(client_ip)
+            print(f'[ADMIN] Failed login attempt from {client_ip} at {time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}')
             self._admin_html_response(
                 _build_admin_login_html(error='Contraseña incorrecta.'), status=401
             )
@@ -8078,8 +8290,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         the DB save succeeds, regardless of email outcome.
         """
         try:
-            length = int(self.headers.get('Content-Length', 0))
-            raw    = self.rfile.read(length) if length > 0 else b''
+            raw = self._read_body(_MAX_BODY_REGULAR)
+            if raw is None:
+                self._json_response(413, {'ok': False, 'error': 'Payload too large'})
+                return
             data   = json.loads(raw.decode('utf-8'))
         except Exception:
             self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
@@ -8107,8 +8321,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     # ── POST /api/faq-pregunta ─────────────────────────────────────────────
     def _handle_faq_pregunta_post(self):
         try:
-            length = int(self.headers.get('Content-Length', 0))
-            raw    = self.rfile.read(length) if length > 0 else b''
+            raw = self._read_body(_MAX_BODY_REGULAR)
+            if raw is None:
+                self._json_response(413, {'ok': False, 'error': 'Payload too large'})
+                return
             data   = json.loads(raw.decode('utf-8'))
         except Exception:
             self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
@@ -8741,7 +8957,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         draft, err = _call_gemini_draft(context)
         if err or draft is None:
             print(f'[ADMIN] suggest-draft Gemini error for {scb_id}: {err}')
-            self._json_response(502, {'error': f'No se pudo generar el borrador: {err}'})
+            self._json_response(502, {'error': 'No se pudo generar el borrador. Intenta de nuevo.'})
             return
 
         # Enforce blank difference_explanation when conditions require it
@@ -8863,9 +9079,10 @@ def _start_invoice_cleanup():
     t.start()
 
 
-_CHAT_RATE         = {}
-_CHAT_RATE_LOCK    = threading.Lock()
-_CHAT_RATE_LIMIT   = 60    # calls per IP per hour
+_CHAT_RATE          = {}
+_CHAT_RATE_LOCK     = threading.Lock()
+_CHAT_RATE_LIMIT_HOUR   = 200   # calls per IP per hour
+_CHAT_RATE_LIMIT_MINUTE = 20    # calls per IP per minute (prompt-flood prevention)
 
 def _load_crbox_kb():
     """Load the canonical CRBox knowledge base from knowledge/crbox-kb.json."""
@@ -9018,7 +9235,10 @@ def _chat_rate_check(ip):
     with _CHAT_RATE_LOCK:
         timestamps = _CHAT_RATE.get(ip, [])
         timestamps = [t for t in timestamps if now - t < 3600]
-        if len(timestamps) >= _CHAT_RATE_LIMIT:
+        per_minute = sum(1 for t in timestamps if now - t < 60)
+        if per_minute >= _CHAT_RATE_LIMIT_MINUTE:
+            return False
+        if len(timestamps) >= _CHAT_RATE_LIMIT_HOUR:
             return False
         timestamps.append(now)
         _CHAT_RATE[ip] = timestamps
@@ -9091,7 +9311,7 @@ def _handle_ai_chat(handler):
           handler.client_address[0] or '0.0.0.0').split(',')[0].strip()
 
     if not _chat_rate_check(ip):
-        handler._json_response(429, {'error': 'rate_limit', 'reply': 'Demasiadas solicitudes. Por favor espera un momento.'})
+        handler._json_response(429, {'error': 'rate_limit', 'reply': 'Por favor espera un momento antes de enviar otro mensaje.'})
         return
 
     if not _GEMINI_SDK_OK or not _GEMINI_API_KEY:
@@ -9191,6 +9411,7 @@ def _handle_ai_chat(handler):
 
 
 if __name__ == "__main__":
+    _validate_env()
     _init_db()
     _verify_gemini_model_at_startup()
     _start_health_monitor()
