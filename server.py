@@ -4597,15 +4597,59 @@ def _build_admin_dashboard_html(all_rows, counts):
     total_valor  = sum(r.get('declared_value_usd') or 0 for r in all_rows)
     pendientes   = nuevas + en_revision
 
-    # Last 7 days activity
+    # Historical data — build per-day dict for last 90 days
     import datetime as _dt
     today = _dt.date.today()
-    day_labels, day_counts = [], []
-    for i in range(6, -1, -1):
-        d = today - _dt.timedelta(days=i)
-        day_labels.append(d.strftime('%d/%m'))
-        cnt = sum(1 for r in all_rows if (r.get('submitted_at') or '').startswith(str(d)))
-        day_counts.append(cnt)
+
+    def _day_count(days_back_start, days_back_end):
+        """Count rows submitted in [today-days_back_start, today-days_back_end]."""
+        d0 = str(today - _dt.timedelta(days=days_back_start))
+        d1 = str(today - _dt.timedelta(days=days_back_end - 1))
+        return sum(1 for r in all_rows if d0 <= (r.get('submitted_at') or '')[:10] <= d1)
+
+    # Build day-label/count arrays for each time window
+    def _build_period(n_days, fmt='%d/%m'):
+        labels, counts_arr = [], []
+        for i in range(n_days - 1, -1, -1):
+            d = today - _dt.timedelta(days=i)
+            labels.append(d.strftime(fmt))
+            counts_arr.append(sum(1 for r in all_rows if (r.get('submitted_at') or '').startswith(str(d))))
+        return labels, counts_arr
+
+    # Pre-build each period
+    labels_1d,  counts_1d  = _build_period(1)
+    labels_7d,  counts_7d  = _build_period(7)
+    labels_30d, counts_30d = _build_period(30, '%d/%m')
+    labels_90d, counts_90d = _build_period(90, '%d/%m')
+
+    # Trend KPIs: last 7d vs previous 7d
+    last7  = sum(counts_7d)
+    prev7  = _day_count(13, 7)  # 7 days before the last 7
+    trend_pct = round((last7 - prev7) / prev7 * 100) if prev7 else (100 if last7 else 0)
+    trend_up  = trend_pct >= 0
+
+    # Value trends
+    def _val_in_days(n):
+        d0 = str(today - _dt.timedelta(days=n))
+        return sum(r.get('declared_value_usd') or 0
+                   for r in all_rows if (r.get('submitted_at') or '')[:10] >= d0)
+
+    valor_7d   = _val_in_days(7)
+    valor_prev = sum(r.get('declared_value_usd') or 0
+                     for r in all_rows
+                     if str(today - _dt.timedelta(days=14)) <= (r.get('submitted_at') or '')[:10]
+                        < str(today - _dt.timedelta(days=7)))
+    valor_trend_pct = round((valor_7d - valor_prev) / valor_prev * 100) if valor_prev else (100 if valor_7d else 0)
+
+    # Top 5 products by value
+    from collections import Counter as _Counter
+    prod_vals = {}
+    for r in all_rows:
+        name = (r.get('product_name') or '').strip()[:30]
+        if name:
+            prod_vals[name] = prod_vals.get(name, 0) + (r.get('declared_value_usd') or 0)
+    top_products = sorted(prod_vals.items(), key=lambda x: -x[1])[:5]
+    max_val = max((v for _, v in top_products), default=1)
 
     # Pie chart data
     pie_labels = ['Nuevas', 'En Revisión', 'Respondidas', 'En Proceso', 'Completadas', 'Canceladas']
@@ -4656,7 +4700,14 @@ def _build_admin_dashboard_html(all_rows, counts):
 
     chart_data_json = _json.dumps({
         'pie': {'labels': pie_labels, 'data': pie_data, 'colors': pie_colors},
-        'bar': {'labels': day_labels, 'data': day_counts},
+        'periods': {
+            '1d':  {'labels': labels_1d,  'data': counts_1d},
+            '7d':  {'labels': labels_7d,  'data': counts_7d},
+            '30d': {'labels': labels_30d, 'data': counts_30d},
+            '90d': {'labels': labels_90d, 'data': counts_90d},
+        },
+        'trend': {'pct': trend_pct, 'up': trend_up},
+        'valor_trend': {'pct': valor_trend_pct, 'up': valor_trend_pct >= 0},
     })
 
     # Recent activity (last 5)
@@ -4692,6 +4743,48 @@ def _build_admin_dashboard_html(all_rows, counts):
 </tr>'''
 
     success_rate = f'{(completadas/total*100):.0f}%' if total else '—'
+
+    # Top products HTML
+    top_products_html = ''
+    if top_products:
+        for pname, pval in top_products:
+            pct = int(pval / max_val * 100) if max_val else 0
+            top_products_html += (
+                f'<div class="db-prod-row">'
+                f'<div class="db-prod-name" title="{esc(pname)}">{esc(pname)}</div>'
+                f'<div class="db-prod-bar-wrap"><div class="db-prod-bar" style="width:{pct}%"></div></div>'
+                f'<div class="db-prod-val">${pval:,.0f}</div>'
+                f'</div>'
+            )
+    else:
+        top_products_html = '<div style="color:#94a3b8;font-size:13px;padding:16px 0">Sin datos aún</div>'
+
+    # Mini recent (for side card, only 5 rows, fewer columns)
+    status_badges = {
+        'enviada': ('#EA580C','#FFF7ED','Enviada'),
+        'en_revision': ('#2563EB','#EFF6FF','En Revisión'),
+        'respondida': ('#16A34A','#F0FDF4','Respondida'),
+        'completada': ('#6B7280','#F9FAFB','Completada'),
+        'cancelada': ('#DC2626','#FEF2F2','Cancelada'),
+        'pendiente_compra_crbox': ('#D97706','#FFFBEB','Compra CRBOX'),
+        'pendiente_compra_cliente': ('#D97706','#FFFBEB','Compra propia'),
+        'pagado_por_cliente': ('#D97706','#FFFBEB','Pago recibido'),
+        'comprado': ('#0284C7','#F0F9FF','Comprado'),
+        'listo_para_retiro': ('#0284C7','#F0F9FF','Listo retiro'),
+    }
+    recent_mini_html = ''
+    for r in all_rows[:5]:
+        rid  = esc(r.get('id',''))
+        name = esc((r.get('customer_name') or r.get('customer_email') or '—')[:18])
+        st   = r.get('status','')
+        sc, sbg, slbl = status_badges.get(st, ('#64748B','#F1F5F9', st))
+        date_str = (r.get('submitted_at') or '')[:10]
+        recent_mini_html += (
+            f'<tr><td><a href="/admin/solicitudes/{rid}" class="db-rid">{rid}</a></td>'
+            f'<td class="db-recname">{name}</td>'
+            f'<td><span class="db-sbadge" style="color:{sc};background:{sbg}">{slbl}</span></td>'
+            f'<td style="color:#94a3b8;font-size:12px">{date_str}</td></tr>'
+        )
 
     return f'''<!DOCTYPE html>
 <html lang="es">
@@ -4776,6 +4869,30 @@ a{{color:inherit;text-decoration:none}}
   background:var(--orange-lt);transition:background .15s}}
 .db-kmore:hover{{background:#FED7AA}}
 .db-kempty{{text-align:center;font-size:12px;color:var(--slate400);padding:16px 8px}}
+/* KPI trend badge */
+.db-kpi-trend{{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;
+  padding:2px 7px;border-radius:99px;margin-top:2px;width:fit-content}}
+.db-trend-up{{color:#15803D;background:#F0FDF4}}
+.db-trend-dn{{color:#DC2626;background:#FEF2F2}}
+.db-trend-neu{{color:var(--slate500);background:var(--slate100)}}
+/* Chart chips */
+.db-chips{{display:flex;gap:6px;margin-left:auto}}
+.db-chip{{padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;
+  border:1.5px solid var(--slate200);color:var(--slate500);background:#fff;
+  cursor:pointer;transition:all .15s;font-family:var(--font)}}
+.db-chip:hover{{border-color:var(--orange);color:var(--orange)}}
+.db-chip.active{{background:var(--orange);color:#fff;border-color:var(--orange)}}
+/* Top products bar */
+.db-prod-row{{display:flex;align-items:center;gap:10px;margin-bottom:10px}}
+.db-prod-row:last-child{{margin-bottom:0}}
+.db-prod-name{{font-size:12px;color:var(--slate700);min-width:0;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+.db-prod-bar-wrap{{width:120px;height:8px;background:var(--slate100);border-radius:99px;flex-shrink:0}}
+.db-prod-bar{{height:8px;background:var(--orange);border-radius:99px;transition:width .4s}}
+.db-prod-val{{font-size:11px;font-weight:700;color:var(--slate500);white-space:nowrap;min-width:50px;text-align:right}}
+/* Bottom 2-col layout */
+.db-bottom-grid{{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}}
+@media(max-width:800px){{.db-bottom-grid{{grid-template-columns:1fr}}}}
 /* Recent table */
 .db-rec-table{{width:100%;border-collapse:collapse;font-size:13px}}
 .db-rec-table th{{text-align:left;font-size:10px;font-weight:700;color:var(--slate400);
@@ -4817,7 +4934,9 @@ a{{color:inherit;text-decoration:none}}
       <div class="db-kpi-icon">📦</div>
       <div class="db-kpi-val">{total}</div>
       <div class="db-kpi-lbl">Total solicitudes</div>
-      <div class="db-kpi-sub">Todas las categorías</div>
+      <div class="db-kpi-trend {"db-trend-up" if trend_up else "db-trend-dn"}">
+        {"▲" if trend_up else "▼"} {abs(trend_pct)}% vs sem. anterior
+      </div>
     </div>
     <div class="db-kpi" style="border-top:3px solid #EA580C">
       <div class="db-kpi-icon">🔔</div>
@@ -4835,7 +4954,9 @@ a{{color:inherit;text-decoration:none}}
       <div class="db-kpi-icon">💰</div>
       <div class="db-kpi-val" style="color:#FF6B00;font-size:24px">${total_valor:,.0f}</div>
       <div class="db-kpi-lbl">Valor total declarado</div>
-      <div class="db-kpi-sub">USD · todas las solicitudes</div>
+      <div class="db-kpi-trend {"db-trend-up" if valor_trend_pct >= 0 else "db-trend-dn"}">
+        {"▲" if valor_trend_pct >= 0 else "▼"} {abs(valor_trend_pct)}% últimos 7 días
+      </div>
     </div>
   </div>
 
@@ -4847,19 +4968,48 @@ a{{color:inherit;text-decoration:none}}
       <div class="db-chart-wrap"><canvas id="pieChart"></canvas></div>
     </div>
     <div class="db-card">
-      <div class="db-card-title">📅 Solicitudes — últimos 7 días</div>
+      <div class="db-card-title" style="display:flex;align-items:center">
+        <span>📅 Solicitudes por período</span>
+        <div class="db-chips" id="db-period-chips">
+          <button class="db-chip" onclick="dbSetPeriod('1d',this)">Hoy</button>
+          <button class="db-chip active" onclick="dbSetPeriod('7d',this)">7 días</button>
+          <button class="db-chip" onclick="dbSetPeriod('30d',this)">30 días</button>
+          <button class="db-chip" onclick="dbSetPeriod('90d',this)">90 días</button>
+        </div>
+      </div>
       <div class="db-chart-wrap"><canvas id="barChart"></canvas></div>
     </div>
   </div>
 
-  <!-- Kanban -->
+  <!-- Bottom: Kanban + Top Products -->
   <div class="db-section-title">Vista kanban · pipeline activo</div>
   <div class="db-kanban">
     {kanban_cols}
   </div>
 
-  <!-- Recent activity -->
-  <div class="db-section-title">Actividad reciente</div>
+  <!-- Top products + Recent activity -->
+  <div class="db-bottom-grid">
+    <div class="db-card">
+      <div class="db-card-title">🏆 Top productos por valor declarado</div>
+      {top_products_html}
+    </div>
+    <div class="db-card" style="padding:0;overflow:hidden">
+      <div style="padding:22px 22px 0;font-size:13px;font-weight:700;color:#374151">
+        🕐 Actividad reciente
+      </div>
+      <table class="db-rec-table" style="margin-top:12px">
+        <thead>
+          <tr>
+            <th>ID</th><th>Cliente</th><th>Estado</th><th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>{recent_mini_html}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Full recent activity -->
+  <div class="db-section-title">Historial completo reciente</div>
   <div class="db-card" style="padding:0;overflow:hidden">
     <table class="db-rec-table">
       <thead>
@@ -4881,7 +5031,7 @@ a{{color:inherit;text-decoration:none}}
 (function(){{
   var data = {chart_data_json};
 
-  // Donut / Pie chart
+  // ── Donut chart ───────────────────────────────────────────────────────
   var pieCtx = document.getElementById('pieChart');
   if (pieCtx) {{
     new Chart(pieCtx, {{
@@ -4896,8 +5046,8 @@ a{{color:inherit;text-decoration:none}}
         plugins: {{
           legend: {{ position: 'right', labels: {{ font: {{ size: 11 }}, padding: 10, boxWidth: 12 }} }},
           tooltip: {{ callbacks: {{ label: function(ctx) {{
-            var total = ctx.dataset.data.reduce(function(a,b){{return a+b;}},0);
-            var pct = total ? Math.round(ctx.parsed/total*100) : 0;
+            var t = ctx.dataset.data.reduce(function(a,b){{return a+b;}},0);
+            var pct = t ? Math.round(ctx.parsed/t*100) : 0;
             return ' ' + ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
           }}}}}}
         }}
@@ -4905,32 +5055,58 @@ a{{color:inherit;text-decoration:none}}
     }});
   }}
 
-  // Bar chart
+  // ── Bar chart with period chips ───────────────────────────────────────
   var barCtx = document.getElementById('barChart');
-  if (barCtx) {{
-    new Chart(barCtx, {{
+  var barChart = null;
+  var _curPeriod = '7d';
+
+  function _buildBarChart(period) {{
+    var pd = data.periods[period] || data.periods['7d'];
+    var cfg = {{
       type: 'bar',
       data: {{
-        labels: data.bar.labels,
-        datasets: [{{ label: 'Solicitudes', data: data.bar.data,
-          backgroundColor: 'rgba(255,107,0,0.85)', borderRadius: 6,
-          borderSkipped: false }}]
+        labels: pd.labels,
+        datasets: [{{
+          label: 'Solicitudes', data: pd.data,
+          backgroundColor: function(ctx) {{
+            var v = ctx.parsed ? ctx.parsed.y : 0;
+            return v > 0 ? 'rgba(255,107,0,0.85)' : 'rgba(148,163,184,0.35)';
+          }},
+          borderRadius: period === '90d' ? 2 : 6,
+          borderSkipped: false
+        }}]
       }},
       options: {{
         responsive: true, maintainAspectRatio: false,
-        plugins: {{ legend: {{ display: false }},
+        animation: {{ duration: 300 }},
+        plugins: {{
+          legend: {{ display: false }},
           tooltip: {{ callbacks: {{ label: function(ctx) {{
-            return ' ' + ctx.parsed.y + ' solicitud' + (ctx.parsed.y===1?'':'es');
+            return ' ' + ctx.parsed.y + ' solicitud' + (ctx.parsed.y === 1 ? '' : 'es');
           }}}}}}
         }},
         scales: {{
-          y: {{ beginAtZero: true, ticks: {{ stepSize: 1, font: {{ size: 11 }} }},
+          y: {{ beginAtZero: true, ticks: {{ stepSize: 1, font: {{ size: 11 }}, maxTicksLimit: 6 }},
                grid: {{ color: 'rgba(0,0,0,.05)' }} }},
-          x: {{ ticks: {{ font: {{ size: 11 }} }}, grid: {{ display: false }} }}
+          x: {{ ticks: {{ font: {{ size: period === '90d' ? 9 : 11 }},
+                maxRotation: period === '90d' ? 45 : 0,
+                autoSkip: true, maxTicksLimit: period === '90d' ? 15 : 31 }},
+               grid: {{ display: false }} }}
         }}
       }}
-    }});
+    }};
+    if (barChart) {{ barChart.destroy(); }}
+    barChart = new Chart(barCtx, cfg);
   }}
+
+  window.dbSetPeriod = function(period, btn) {{
+    _curPeriod = period;
+    document.querySelectorAll('.db-chip').forEach(function(b) {{ b.classList.remove('active'); }});
+    if (btn) btn.classList.add('active');
+    _buildBarChart(period);
+  }};
+
+  if (barCtx) {{ _buildBarChart('7d'); }}
 }})();
 </script>
 </body>
@@ -5240,9 +5416,8 @@ a{{color:inherit;text-decoration:none}}
 .adm-tab:hover{{color:var(--clr-slate700);background:#e2e8f0}}
 .adm-tab:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:-2px}}
 .adm-tab-active{{background:#fff;color:var(--clr-orange);border-color:#e2e8f0}}
-/* ── Search / filter row (sticky) ──────────────────────────────────── */
-.adm-filter-bar{{padding:12px 16px;border-bottom:1px solid var(--clr-slate100);background:#fafafa;
-  position:sticky;top:52px;z-index:15;box-shadow:0 1px 4px rgba(0,0,0,.06)}}
+/* ── Search / filter row ────────────────────────────────────────────── */
+.adm-filter-bar{{padding:12px 20px;background:transparent}}
 .adm-filter-row1{{display:flex;gap:8px;align-items:center;margin-bottom:0}}
 .adm-filter-row2{{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}}
 .adm-filter-bar input,.adm-filter-bar select{{
@@ -5265,10 +5440,13 @@ a{{color:inherit;text-decoration:none}}
 .adm-filter-clear:hover{{border-color:var(--clr-orange);color:var(--clr-orange)}}
 .adm-filter-row2{{display:none}}
 .adm-filter-row2.open{{display:flex}}
+/* ── Filter bar outer (sticky wrapper outside panel) ────────────────── */
+.adm-filter-outer{{position:sticky;top:52px;z-index:15;background:#f8fafc;
+  border-bottom:1px solid var(--clr-slate200);box-shadow:0 1px 4px rgba(0,0,0,.06)}}
 /* ── Main container ─────────────────────────────────────────────────── */
 .adm-main{{padding:0 20px 48px}}
-.adm-panel{{background:#fff;border-radius:0 0 var(--radius-lg) var(--radius-lg);
-  box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden}}
+.adm-panel{{background:#fff;border-radius:var(--radius-lg);
+  box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:clip;margin-top:0}}
 .adm-count{{padding:10px 16px;font-size:12px;color:var(--clr-slate400);
   border-bottom:1px solid var(--clr-slate100);background:#fafafa;letter-spacing:.02em}}
 /* ── Table ──────────────────────────────────────────────────────────── */
@@ -5447,10 +5625,8 @@ a{{color:inherit;text-decoration:none}}
 <!-- Filter tabs -->
 <div class="adm-tabs">{tabs_html}</div>
 
-<main class="adm-main">
-<div class="adm-panel">
-
-  <!-- Search + filter bar (row 1 always visible; row 2 collapsible on mobile) -->
+<!-- Filter bar (sticky, outside panel so overflow:clip doesn't break it) -->
+<div class="adm-filter-outer">
   <div class="adm-filter-bar">
     <div class="adm-filter-row1">
       <input class="adm-filter-search" id="adm-search" type="search"
@@ -5482,6 +5658,10 @@ a{{color:inherit;text-decoration:none}}
       <button class="adm-filter-clear" onclick="admClearFilter()" type="button">&#10005; Limpiar</button>
     </div>
   </div>
+</div>
+
+<main class="adm-main">
+<div class="adm-panel">
 
   <!-- Desktop table -->
   <div class="adm-table-wrap" id="adm-table-wrap">
@@ -5595,13 +5775,16 @@ a{{color:inherit;text-decoration:none}}
     admFilter();
   }};
   function _syncStickyThead() {{
-    var bar = document.querySelector('.adm-filter-bar');
+    var outer = document.querySelector('.adm-filter-outer');
     var ths = document.querySelectorAll('.adm-table thead th');
-    if (!bar || !ths.length) return;
-    var top = bar.offsetTop + bar.offsetHeight;
+    if (!ths.length) return;
+    // filter-outer sticks at top:52px; add its rendered height
+    var outerH = outer ? outer.offsetHeight : 0;
+    var top = 52 + outerH;
     ths.forEach(function(th) {{ th.style.top = top + 'px'; }});
   }}
   window.addEventListener('load', _syncStickyThead);
+  window.addEventListener('resize', _syncStickyThead);
 
   window.admToggleFilters = function() {{
     var row2 = document.getElementById('adm-filter-row2');
@@ -5609,7 +5792,7 @@ a{{color:inherit;text-decoration:none}}
     if (!row2) return;
     var isOpen = row2.classList.toggle('open');
     if (btn) btn.classList.toggle('active', isOpen);
-    setTimeout(_syncStickyThead, 50);
+    setTimeout(_syncStickyThead, 60);
   }};
 
   var params = new URLSearchParams(window.location.search);
@@ -5761,13 +5944,13 @@ a{{color:inherit;text-decoration:none}}
   transition:all .2s;font-family:var(--font);white-space:nowrap;min-height:38px}}
 .adm-filter-clear:hover{{border-color:var(--clr-orange);color:var(--clr-orange)}}
 /* ── Panel ──────────────────────────────────────────────────────────── */
-.adm-panel{{background:#fff;border-radius:var(--radius-lg);box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:hidden}}
+.adm-panel{{background:#fff;border-radius:var(--radius-lg);box-shadow:0 2px 12px rgba(0,0,0,.07);overflow:clip}}
 /* ── Table ──────────────────────────────────────────────────────────── */
 .adm-table{{width:100%;border-collapse:collapse}}
 .adm-table thead th{{background:var(--clr-slate50);padding:10px 14px;text-align:left;
   font-size:10px;font-weight:700;color:var(--clr-slate400);text-transform:uppercase;
   letter-spacing:.07em;border-bottom:1px solid var(--clr-slate200);white-space:nowrap;
-  position:sticky;top:115px;z-index:5}}
+  position:sticky;top:52px;z-index:5}}
 .adm-table td{{padding:13px 14px;border-bottom:1px solid var(--clr-slate100);vertical-align:top}}
 .adm-table .adm-ctr:last-child td{{border-bottom:none}}
 .adm-table .adm-ctr{{transition:background .12s}}
@@ -5848,12 +6031,13 @@ a{{color:inherit;text-decoration:none}}
   <span class="adm-header-sep">|</span>
   <span class="adm-header-title">Consultas Generales</span>
   <nav class="adm-header-nav">
+    <a href="/admin/dashboard" class="adm-header-link">Dashboard</a>
     <a href="/admin/solicitudes" class="adm-header-link">Cotizaciones</a>
     <a href="/admin/logout" class="adm-logout">Salir</a>
   </nav>
 </header>
 <div class="adm-page-topbar">
-  <a href="/admin/solicitudes" class="adm-bc-link">Panel</a>
+  <a href="/admin/dashboard" class="adm-bc-link">Dashboard</a>
   <span class="adm-bc-sep">&#8250;</span>
   <span>Consultas</span>
 </div>
