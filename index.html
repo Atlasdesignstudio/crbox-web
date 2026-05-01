@@ -1,799 +1,1390 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-5WD8N53F');</script>
-    <!-- End Google Tag Manager -->
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com; frame-src https://www.googletagmanager.com;">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRBOX | Casillero Virtual y Courier en Costa Rica | Compras en USA</title>
-    <meta name="description" content="CRBOX, tu casillero virtual en Miami para compras en USA. Servicio de courier confiable con entrega rápida en Costa Rica. ¡Afíliate gratis!">
-    <link rel="canonical" href="https://crbox.cr/">
-    <meta name="theme-color" content="#FF6B00">
+    <head>
+        <!-- Google Tag Manager -->
+        <script>
+            (function (w, d, s, l, i) {
+                w[l] = w[l] || [];
+                w[l].push({
+                    "gtm.start": new Date().getTime(),
+                    event: "gtm.js",
+                });
+                var f = d.getElementsByTagName(s)[0],
+                    j = d.createElement(s),
+                    dl = l != "dataLayer" ? "&l=" + l : "";
+                j.async = true;
+                j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+                f.parentNode.insertBefore(j, f);
+            })(window, document, "script", "dataLayer", "GTM-5WD8N53F");
+        </script>
+        <!-- End Google Tag Manager -->
+        <meta charset="UTF-8" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com; frame-src https://www.googletagmanager.com;"
+        />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            CRBOX | Casillero Virtual y Courier en Costa Rica | Compras en USA
+        </title>
+        <meta
+            name="description"
+            content="CRBOX, tu casillero virtual en Miami para compras en USA. Servicio de courier confiable con entrega rápida en Costa Rica. ¡Afíliate gratis!"
+        />
+        <link rel="canonical" href="https://crbox.cr/" />
+        <meta name="theme-color" content="#FF6B00" />
 
-    <!-- Favicons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="img/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
-    <link rel="manifest" href="img/favicon/site.webmanifest">
+        <!-- Favicons -->
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="img/favicon/apple-touch-icon.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="img/favicon/favicon-32x32.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="img/favicon/favicon-16x16.png"
+        />
+        <link rel="manifest" href="img/favicon/site.webmanifest" />
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://crbox.cr/">
-    <meta property="og:title" content="CRBOX | Tu Casillero Virtual en Miami">
-    <meta property="og:description" content="Compra en USA y recibe en Costa Rica. Casillero 100% gratuito, servicio profesional y tarifas transparentes.">
-    <meta property="og:image" content="https://crbox.cr/img/fotoindex.png">
-    <meta property="og:locale" content="es_CR">
-    <meta property="og:site_name" content="CRBOX">
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://crbox.cr/" />
+        <meta
+            property="og:title"
+            content="CRBOX | Tu Casillero Virtual en Miami"
+        />
+        <meta
+            property="og:description"
+            content="Compra en USA y recibe en Costa Rica. Casillero 100% gratuito, servicio profesional y tarifas transparentes."
+        />
+        <meta
+            property="og:image"
+            content="https://crbox.cr/img/fotoindex.png"
+        />
+        <meta property="og:locale" content="es_CR" />
+        <meta property="og:site_name" content="CRBOX" />
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://crbox.cr/">
-    <meta name="twitter:title" content="CRBOX | Tu Casillero Virtual en Miami">
-    <meta name="twitter:description" content="Compra en USA y recibe en Costa Rica. Casillero 100% gratuito, servicio profesional y tarifas transparentes.">
-    <meta name="twitter:image" content="https://crbox.cr/img/fotoindex.png">
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://crbox.cr/" />
+        <meta
+            name="twitter:title"
+            content="CRBOX | Tu Casillero Virtual en Miami"
+        />
+        <meta
+            name="twitter:description"
+            content="Compra en USA y recibe en Costa Rica. Casillero 100% gratuito, servicio profesional y tarifas transparentes."
+        />
+        <meta
+            name="twitter:image"
+            content="https://crbox.cr/img/fotoindex.png"
+        />
 
-    <!-- GEO targeting -->
-    <meta name="geo.region" content="CR-SJ">
-    <meta name="geo.placename" content="San José, Costa Rica">
-    <meta name="geo.position" content="9.9281;-84.0907">
-    <meta name="ICBM" content="9.9281, -84.0907">
+        <!-- GEO targeting -->
+        <meta name="geo.region" content="CR-SJ" />
+        <meta name="geo.placename" content="San José, Costa Rica" />
+        <meta name="geo.position" content="9.9281;-84.0907" />
+        <meta name="ICBM" content="9.9281, -84.0907" />
 
-    <!-- Preconnect -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+        <!-- Preconnect -->
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
 
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+            integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg"
+            crossorigin="anonymous"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+            integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7"
+            crossorigin="anonymous"
+        />
+        <link rel="stylesheet" href="css/styles.css?v=4" />
+        <link rel="stylesheet" href="css/responsive.css?v=12" />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/styles.css?v=4">
-    <link rel="stylesheet" href="css/responsive.css?v=12">
-
-    <!-- Structured Data: Organization + LocalBusiness + WebSite -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "Organization",
-          "@id": "https://crbox.cr/#organization",
-          "name": "CRBOX",
-          "url": "https://crbox.cr/",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://crbox.cr/img/crbox-logo.png"
-          },
-          "description": "Casillero virtual en Miami y servicio de courier para compras en USA con entrega en Costa Rica.",
-          "telephone": "+506-8979-4418",
-          "email": "ventas@crbox.cr",
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "50 metros al Oeste del ICE, Edificio Torres del Parque, planta baja, Local #6",
-            "addressLocality": "Sabana Norte",
-            "addressRegion": "San José",
-            "addressCountry": "CR"
-          },
-          "areaServed": "CR",
-          "contactPoint": [
+        <!-- Structured Data: Organization + LocalBusiness + WebSite -->
+        <script type="application/ld+json">
             {
-              "@type": "ContactPoint",
-              "telephone": "+506-8979-4418",
-              "contactType": "customer service",
-              "availableLanguage": "Spanish",
-              "areaServed": "CR"
+                "@context": "https://schema.org",
+                "@graph": [
+                    {
+                        "@type": "Organization",
+                        "@id": "https://crbox.cr/#organization",
+                        "name": "CRBOX",
+                        "url": "https://crbox.cr/",
+                        "logo": {
+                            "@type": "ImageObject",
+                            "url": "https://crbox.cr/img/crbox-logo.png"
+                        },
+                        "description": "Casillero virtual en Miami y servicio de courier para compras en USA con entrega en Costa Rica.",
+                        "telephone": "+506-8979-4418",
+                        "email": "ventas@crbox.cr",
+                        "address": {
+                            "@type": "PostalAddress",
+                            "streetAddress": "50 metros al Oeste del ICE, Edificio Torres del Parque, planta baja, Local #6",
+                            "addressLocality": "Sabana Norte",
+                            "addressRegion": "San José",
+                            "addressCountry": "CR"
+                        },
+                        "areaServed": "CR",
+                        "contactPoint": [
+                            {
+                                "@type": "ContactPoint",
+                                "telephone": "+506-8979-4418",
+                                "contactType": "customer service",
+                                "availableLanguage": "Spanish",
+                                "areaServed": "CR"
+                            }
+                        ],
+                        "sameAs": []
+                    },
+                    {
+                        "@type": "LocalBusiness",
+                        "@id": "https://crbox.cr/#localbusiness",
+                        "name": "CRBOX",
+                        "url": "https://crbox.cr/",
+                        "image": "https://crbox.cr/img/fotoindex.png",
+                        "logo": "https://crbox.cr/img/crbox-logo.png",
+                        "description": "Casillero virtual en Miami y servicio de courier para compras en USA con entrega en Costa Rica.",
+                        "telephone": "+506-8979-4418",
+                        "email": "ventas@crbox.cr",
+                        "address": {
+                            "@type": "PostalAddress",
+                            "streetAddress": "50 metros al Oeste del ICE, Edificio Torres del Parque, planta baja, Local #6",
+                            "addressLocality": "Sabana Norte",
+                            "addressRegion": "San José",
+                            "addressCountry": "CR"
+                        },
+                        "openingHoursSpecification": [
+                            {
+                                "@type": "OpeningHoursSpecification",
+                                "dayOfWeek": [
+                                    "Monday",
+                                    "Tuesday",
+                                    "Wednesday",
+                                    "Thursday",
+                                    "Friday"
+                                ],
+                                "opens": "07:00",
+                                "closes": "16:30"
+                            },
+                            {
+                                "@type": "OpeningHoursSpecification",
+                                "dayOfWeek": ["Saturday"],
+                                "opens": "09:00",
+                                "closes": "12:30"
+                            }
+                        ]
+                    },
+                    {
+                        "@type": "WebSite",
+                        "@id": "https://crbox.cr/#website",
+                        "url": "https://crbox.cr/",
+                        "name": "CRBOX",
+                        "description": "Casillero virtual en Miami y courier para compras en USA con entrega en Costa Rica.",
+                        "publisher": { "@id": "https://crbox.cr/#organization" }
+                    }
+                ]
             }
-          ],
-          "sameAs": []
-        },
-        {
-          "@type": "LocalBusiness",
-          "@id": "https://crbox.cr/#localbusiness",
-          "name": "CRBOX",
-          "url": "https://crbox.cr/",
-          "image": "https://crbox.cr/img/fotoindex.png",
-          "logo": "https://crbox.cr/img/crbox-logo.png",
-          "description": "Casillero virtual en Miami y servicio de courier para compras en USA con entrega en Costa Rica.",
-          "telephone": "+506-8979-4418",
-          "email": "ventas@crbox.cr",
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "50 metros al Oeste del ICE, Edificio Torres del Parque, planta baja, Local #6",
-            "addressLocality": "Sabana Norte",
-            "addressRegion": "San José",
-            "addressCountry": "CR"
-          },
-          "openingHoursSpecification": [
-            {
-              "@type": "OpeningHoursSpecification",
-              "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
-              "opens": "07:00",
-              "closes": "16:30"
-            },
-            {
-              "@type": "OpeningHoursSpecification",
-              "dayOfWeek": ["Saturday"],
-              "opens": "09:00",
-              "closes": "12:30"
-            }
-          ]
-        },
-        {
-          "@type": "WebSite",
-          "@id": "https://crbox.cr/#website",
-          "url": "https://crbox.cr/",
-          "name": "CRBOX",
-          "description": "Casillero virtual en Miami y courier para compras en USA con entrega en Costa Rica.",
-          "publisher": { "@id": "https://crbox.cr/#organization" }
-        }
-      ]
-    }
-    </script>
-    <link rel="stylesheet" href="css/chat-panel.css">
-</head>
-<body class="bg-gray-50">
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5WD8N53F" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-orange-600 text-white px-4 py-2 rounded-md z-50">Saltar al contenido principal</a>
-    <!-- Header -->
-    <header class="bg-white shadow-sm sticky-header">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex flex-row justify-between items-center">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <a href="index.html">
-                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-7 w-auto">
-                    </a>
-                </div>
-    
-                <!-- Menú navegación (escritorio) -->
-                <nav class="hidden md:flex space-x-6">
-                    <a href="servicios.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Servicios</a>
-                    <a href="como-funciona.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cómo Funciona</a>
-                    <a href="tarifas.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Tarifas</a>
-                    <a href="calculadora.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Calculadora</a>
-                    <a href="cotizar.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Cotizar</a>
-                    <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
-                </nav>
-    
-                <!-- Botones acción (escritorio) -->
-<div class="hidden md:flex items-center space-x-4">
-    <a href="calculadora.html" class="primary-btn">Calcular Envío</a>
-    <a href="afiliate.html" class="secondary-btn">Afíliate Gratis</a>
-    <!-- Nuevo dropdown de usuario con más margen -->
-    <div class="relative ml-3" id="user-dropdown">
-        <button class="flex items-center justify-center w-11 h-11 rounded-full bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-orange-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-sm" id="user-menu-button" aria-expanded="false">
-            <i class="fas fa-user-circle text-2xl text-gray-500 hover:text-orange-600 transition-colors duration-300"></i>
-        </button>
-        <!-- Dropdown elegante (inicialmente oculto) -->
-        <div class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 py-1 focus:outline-none divide-y divide-gray-100 transform opacity-0 scale-95 pointer-events-none transition duration-200 ease-in-out z-50" id="user-dropdown-menu">
-            <div class="py-2 px-4">
-                <a href="login.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
-                    <i class="fas fa-sign-in-alt mr-3 text-orange-500"></i>
-                    <span>Iniciar Sesión</span>
-                </a>
-            </div>
-            <div class="py-2 px-4">
-                <a href="afiliate.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">
-                    <i class="fas fa-user-plus mr-3 text-orange-500"></i>
-                    <span>Crear Cuenta</span>
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-    
-                <!-- Botón menú móvil -->
-                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
-            </div>
-    
-            <!-- Menú móvil -->
-<div class="md:hidden mt-4" id="mobile-menu">
-    <div class="py-3 space-y-3">
-        <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Servicios</a>
-        <a href="como-funciona.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Cómo Funciona</a>
-        <a href="tarifas.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Tarifas</a>
-        <a href="calculadora.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Calculadora</a>
-        <a href="cotizar.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Cotizar</a>
-        <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors">Contacto</a>
-        <div class="flex flex-col space-y-2 pt-2">
-            <a href="calculadora.html" class="inline-block primary-btn text-center">Calcular Envío</a>
-            <a href="afiliate.html" class="inline-block secondary-btn text-center">Afíliate Gratis</a>
-            <!-- Opciones de usuario en móvil -->
-            <div class="border-t border-gray-200 mt-2 pt-2">
-                <p class="text-sm text-gray-500 mb-2">Cuenta de usuario</p>
-                <div class="flex space-x-2">
-                    <a href="login.html" class="flex-1 flex items-center justify-center py-2 px-4 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 transition-colors duration-200">
-                        <i class="fas fa-sign-in-alt mr-2"></i>
-                        <span>Iniciar Sesión</span>
-                    </a>
-                    <a href="afiliate.html" class="flex-1 flex items-center justify-center py-2 px-4 bg-orange-100 text-orange-700 border border-orange-200 rounded-md hover:bg-orange-200 transition-colors duration-200">
-                        <i class="fas fa-user-plus mr-2"></i>
-                        <span>Crear Cuenta</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-        </div>
-    </header>
+        </script>
+        <link rel="stylesheet" href="css/chat-panel.css" />
+    </head>
+    <body class="bg-gray-50">
+        <!-- Google Tag Manager (noscript) -->
+        <noscript
+            ><iframe
+                src="https://www.googletagmanager.com/ns.html?id=GTM-5WD8N53F"
+                height="0"
+                width="0"
+                style="display: none; visibility: hidden"
+            ></iframe
+        ></noscript>
+        <!-- End Google Tag Manager (noscript) -->
+        <a
+            href="#main-content"
+            class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-orange-600 text-white px-4 py-2 rounded-md z-50"
+            >Saltar al contenido principal</a
+        >
+        <!-- Header -->
+        <header class="bg-white shadow-sm sticky-header">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex flex-row justify-between items-center">
+                    <!-- Logo -->
+                    <div class="flex items-center">
+                        <a href="index.html">
+                            <img
+                                src="img/crbox-logo.png"
+                                alt="CRBOX Logo"
+                                class="h-7 w-auto"
+                            />
+                        </a>
+                    </div>
 
-    <!-- Hero Section -->
-<section id="main-content" class="py-16 md:py-24 bg-white">
-    <div class="container mx-auto px-4 flex flex-wrap items-center">
-        <div class="w-full md:w-1/2 mobile-center mb-8 md:mb-0 mobile-order-2 md:order-1">
-            <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">Tu casillero virtual <span class="text-orange-600">gratuito</span> en Miami</h1>
-            <p class="text-xl text-gray-600 mb-8">Compra en cualquier tienda de USA y recibe tus paquetes en la puerta de tu casa en Costa Rica. Servicio rápido, seguro y con tarifas transparentes.</p>
-            
-            <div class="flex flex-col sm:flex-row gap-4 mb-8">
-                <a href="afiliate.html" class="primary-btn text-center">Afíliate Gratis</a>
-                <a href="como-funciona.html" class="secondary-btn text-center">¿Cómo Funciona?</a>
-            </div>
-            
-            <!-- Trust badge: experiencia -->
-            <div class="hero-trust-badge">
-                <div class="htb-years">
-                    <span class="htb-num">+20</span>
-                    <span class="htb-unit">años</span>
+                    <!-- Menú navegación (escritorio) -->
+                    <nav class="hidden md:flex space-x-6">
+                        <a
+                            href="servicios.html"
+                            class="text-gray-700 hover:text-orange-600 font-medium transition-colors"
+                            >Servicios</a
+                        >
+                        <a
+                            href="como-funciona.html"
+                            class="text-gray-700 hover:text-orange-600 font-medium transition-colors"
+                            >Cómo Funciona</a
+                        >
+                        <a
+                            href="tarifas.html"
+                            class="text-gray-700 hover:text-orange-600 font-medium transition-colors"
+                            >Tarifas</a
+                        >
+                        <a
+                            href="calculadora.html"
+                            class="text-gray-700 hover:text-orange-600 font-medium transition-colors"
+                            >Calculadora</a
+                        >
+                        <a
+                            href="cotizar.html"
+                            class="text-gray-700 hover:text-orange-600 font-medium transition-colors"
+                            >Cotizar</a
+                        >
+                        <a
+                            href="contacto.html"
+                            class="text-gray-700 hover:text-orange-600 font-medium transition-colors"
+                            >Contacto</a
+                        >
+                    </nav>
+
+                    <!-- Botones acción (escritorio) -->
+                    <div class="hidden md:flex items-center space-x-4">
+                        <a href="calculadora.html" class="primary-btn"
+                            >Calcular Envío</a
+                        >
+                        <a href="afiliate.html" class="secondary-btn"
+                            >Afíliate Gratis</a
+                        >
+                        <!-- Nuevo dropdown de usuario con más margen -->
+                        <div class="relative ml-3" id="user-dropdown">
+                            <button
+                                class="flex items-center justify-center w-11 h-11 rounded-full bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-orange-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-sm"
+                                id="user-menu-button"
+                                aria-expanded="false"
+                            >
+                                <i
+                                    class="fas fa-user-circle text-2xl text-gray-500 hover:text-orange-600 transition-colors duration-300"
+                                ></i>
+                            </button>
+                            <!-- Dropdown elegante (inicialmente oculto) -->
+                            <div
+                                class="origin-top-right absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 py-1 focus:outline-none divide-y divide-gray-100 transform opacity-0 scale-95 pointer-events-none transition duration-200 ease-in-out z-50"
+                                id="user-dropdown-menu"
+                            >
+                                <div class="py-2 px-4">
+                                    <a
+                                        href="login.html"
+                                        class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150"
+                                    >
+                                        <i
+                                            class="fas fa-sign-in-alt mr-3 text-orange-500"
+                                        ></i>
+                                        <span>Iniciar Sesión</span>
+                                    </a>
+                                </div>
+                                <div class="py-2 px-4">
+                                    <a
+                                        href="afiliate.html"
+                                        class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150"
+                                    >
+                                        <i
+                                            class="fas fa-user-plus mr-3 text-orange-500"
+                                        ></i>
+                                        <span>Crear Cuenta</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón menú móvil -->
+                    <button
+                        class="md:hidden text-gray-700 focus:outline-none"
+                        id="mobile-menu-button"
+                    >
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
                 </div>
-                <div class="htb-divider"></div>
-                <div class="htb-body">
-                    <p class="htb-headline">El casillero de confianza de Costa Rica</p>
-                    <div class="htb-perks">
-                        <span><i class="fas fa-check-circle"></i> Sin cuota mensual</span>
-                        <span><i class="fas fa-check-circle"></i> Soporte 24/7</span>
-                        <span><i class="fas fa-check-circle"></i> Entrega a domicilio</span>
+
+                <!-- Menú móvil -->
+                <div class="md:hidden mt-4" id="mobile-menu">
+                    <div class="py-3 space-y-3">
+                        <a
+                            href="servicios.html"
+                            class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors"
+                            >Servicios</a
+                        >
+                        <a
+                            href="como-funciona.html"
+                            class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors"
+                            >Cómo Funciona</a
+                        >
+                        <a
+                            href="tarifas.html"
+                            class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors"
+                            >Tarifas</a
+                        >
+                        <a
+                            href="calculadora.html"
+                            class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors"
+                            >Calculadora</a
+                        >
+                        <a
+                            href="cotizar.html"
+                            class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors"
+                            >Cotizar</a
+                        >
+                        <a
+                            href="contacto.html"
+                            class="block text-gray-700 hover:text-orange-600 font-medium py-2 transition-colors"
+                            >Contacto</a
+                        >
+                        <div class="flex flex-col space-y-2 pt-2">
+                            <a
+                                href="calculadora.html"
+                                class="inline-block primary-btn text-center"
+                                >Calcular Envío</a
+                            >
+                            <a
+                                href="afiliate.html"
+                                class="inline-block secondary-btn text-center"
+                                >Afíliate Gratis</a
+                            >
+                            <!-- Opciones de usuario en móvil -->
+                            <div class="border-t border-gray-200 mt-2 pt-2">
+                                <p class="text-sm text-gray-500 mb-2">
+                                    Cuenta de usuario
+                                </p>
+                                <div class="flex space-x-2">
+                                    <a
+                                        href="login.html"
+                                        class="flex-1 flex items-center justify-center py-2 px-4 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 transition-colors duration-200"
+                                    >
+                                        <i class="fas fa-sign-in-alt mr-2"></i>
+                                        <span>Iniciar Sesión</span>
+                                    </a>
+                                    <a
+                                        href="afiliate.html"
+                                        class="flex-1 flex items-center justify-center py-2 px-4 bg-orange-100 text-orange-700 border border-orange-200 rounded-md hover:bg-orange-200 transition-colors duration-200"
+                                    >
+                                        <i class="fas fa-user-plus mr-2"></i>
+                                        <span>Crear Cuenta</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="w-full md:w-1/2 flex justify-center mobile-order-1 md:order-2">
-            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md cta-shadow border border-gray-100">
-                <!-- Contenedor de imagen -->
-                <div class="rounded-lg overflow-hidden bg-gray-50 mb-6 h-48 md:h-80 flex items-center justify-center">
-                    <img 
-                        src="img/character.png" 
-                        alt="CRBOX Delivery" 
-                        class="h-full w-auto object-contain"
+        </header>
+
+        <!-- Hero Section -->
+        <section id="main-content" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4 flex flex-wrap items-center">
+                <div
+                    class="w-full md:w-1/2 mobile-center mb-8 md:mb-0 mobile-order-2 md:order-1"
+                >
+                    <h1
+                        class="text-4xl md:text-5xl font-bold mb-6 leading-tight"
+                    >
+                        Tu casillero virtual
+                        <span class="text-orange-600">gratuito</span> en Miami
+                    </h1>
+                    <p class="text-xl text-gray-600 mb-8">
+                        Compra en cualquier tienda de USA y recibe tus paquetes
+                        en la puerta de tu casa en Costa Rica. Servicio rápido,
+                        seguro y con tarifas transparentes.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-4 mb-8">
+                        <a href="afiliate.html" class="primary-btn text-center"
+                            >Afíliate Gratis</a
+                        >
+                        <a
+                            href="como-funciona.html"
+                            class="secondary-btn text-center"
+                            >¿Cómo Funciona?</a
+                        >
+                    </div>
+
+                    <!-- Trust badge: experiencia -->
+                    <div class="hero-trust-badge">
+                        <div class="htb-years">
+                            <span class="htb-num">+20</span>
+                            <span class="htb-unit">años</span>
+                        </div>
+                        <div class="htb-divider"></div>
+                        <div class="htb-body">
+                            <p class="htb-headline">
+                                El casillero de confianza de Costa Rica
+                            </p>
+                            <div class="htb-perks">
+                                <span
+                                    ><i class="fas fa-check-circle"></i> Sin
+                                    cuota mensual</span
+                                >
+                                <span
+                                    ><i class="fas fa-check-circle"></i> Soporte
+                                    24/7</span
+                                >
+                                <span
+                                    ><i class="fas fa-check-circle"></i> Entrega
+                                    a domicilio</span
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="w-full md:w-1/2 flex justify-center mobile-order-1 md:order-2"
+                >
+                    <div
+                        class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md cta-shadow border border-gray-100"
+                    >
+                        <!-- Contenedor de imagen -->
+                        <div
+                            class="rounded-lg overflow-hidden bg-gray-50 mb-6 h-48 md:h-80 flex items-center justify-center"
+                        >
+                            <img
+                                src="img/character.png"
+                                alt="CRBOX Delivery"
+                                class="h-full w-auto object-contain"
+                            />
+                        </div>
+
+                        <!-- Mensaje de confianza -->
+                        <div class="text-center mb-4">
+                            <h3 class="text-2xl font-bold text-gray-900">
+                                ¡CONFIANZA TOTAL!
+                            </h3>
+                        </div>
+
+                        <!-- Información de registro -->
+                        <div
+                            class="flex items-center border-t border-gray-200 pt-4 mt-4"
+                        >
+                            <div class="bg-green-100 rounded-full p-2 mr-3">
+                                <i class="fas fa-shield-alt text-green-600"></i>
+                            </div>
+                            <p class="text-sm text-gray-600">
+                                Empresa registrada ante Aduanas como Courier y
+                                Consolidadora de Carga
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <style>
+            /* Estilos existentes */
+            .primary-btn {
+                background-color: #ff6b00;
+                color: white;
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                display: inline-block;
+                text-align: center;
+            }
+
+            .primary-btn:hover {
+                background-color: #e05a00;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .secondary-btn {
+                background-color: white;
+                color: #ff6b00;
+                border: 2px solid #ff6b00;
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                display: inline-block;
+                text-align: center;
+            }
+
+            .secondary-btn:hover {
+                background-color: #f5f7fa;
+                color: #e05a00;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .cta-shadow {
+                box-shadow:
+                    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+
+            /* Media queries */
+            @media (max-width: 768px) {
+                .mobile-center {
+                    text-align: center;
+                }
+
+                .mobile-order-1 {
+                    order: 1;
+                }
+
+                .mobile-order-2 {
+                    order: 2;
+                }
+            }
+        </style>
+
+        <!-- Statistics Section -->
+        <section id="stats" class="py-16 md:py-20 gradient-bg relative">
+            <div class="absolute inset-0 bg-pattern opacity-10"></div>
+            <div class="container mx-auto px-4 relative z-10">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+                    <!-- Stat 1 -->
+                    <div class="p-6">
+                        <div
+                            class="text-4xl md:text-5xl font-bold text-white mb-2"
+                        >
+                            <span class="counter" data-target="33000">0</span
+                            ><span>+</span>
+                        </div>
+                        <p class="text-white text-lg opacity-90">
+                            Clientes Activos
+                        </p>
+                    </div>
+
+                    <!-- Stat 2 -->
+                    <div class="p-6">
+                        <div
+                            class="text-4xl md:text-5xl font-bold text-white mb-2"
+                        >
+                            <span class="counter" data-target="20">0</span
+                            ><span>+</span>
+                        </div>
+                        <p class="text-white text-lg opacity-90">
+                            Años de experiencia
+                        </p>
+                    </div>
+
+                    <!-- Stat 3 -->
+                    <div class="p-6">
+                        <div
+                            class="text-4xl md:text-5xl font-bold text-white mb-2"
+                        >
+                            2-4
+                        </div>
+                        <p class="text-white text-lg opacity-90">
+                            Días de Entrega
+                        </p>
+                    </div>
+
+                    <!-- Stat 4 -->
+                    <div class="p-6">
+                        <div
+                            class="text-4xl md:text-5xl font-bold text-white mb-2"
+                        >
+                            <span class="counter" data-target="586000">0</span
+                            ><span>+</span>
+                        </div>
+                        <p class="text-white text-lg opacity-90">
+                            Envíos Completados
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <script>
+            const counters = document.querySelectorAll(".counter");
+
+            counters.forEach((counter) => {
+                const updateCount = () => {
+                    const target = +counter.getAttribute("data-target");
+                    const current = +counter.innerText.replace(/,/g, "");
+                    const increment = target / 80;
+
+                    if (current < target) {
+                        const newCount = Math.ceil(current + increment);
+                        counter.innerText = newCount.toLocaleString();
+                        requestAnimationFrame(updateCount);
+                    } else {
+                        counter.innerText = target.toLocaleString();
+                    }
+                };
+
+                updateCount();
+            });
+        </script>
+
+        <!-- Trusted By -->
+        <section class="py-10 bg-gray-50 border-t border-b border-gray-200">
+            <div class="container mx-auto px-4">
+                <h3 class="text-center text-lg text-gray-600 mb-8">
+                    Compra en tus tiendas favoritas
+                </h3>
+                <div
+                    class="flex flex-wrap justify-center items-center gap-8 md:gap-16"
+                >
+                    <div class="text-center">
+                        <img
+                            src="img/amazon.png"
+                            alt="Amazon logo"
+                            class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition"
+                        />
+                    </div>
+                    <div class="text-center">
+                        <img
+                            src="img/Temu-Logo.png"
+                            alt="Temu logo"
+                            class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition"
+                        />
+                    </div>
+                    <div class="text-center">
+                        <img
+                            src="img/Walmart_logo.png"
+                            alt="Walmart logo"
+                            class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition"
+                        />
+                    </div>
+                    <div class="text-center">
+                        <img
+                            src="img/bestbuy.png"
+                            alt="BestBuy logo"
+                            class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition"
+                        />
+                    </div>
+                    <div class="text-center">
+                        <img
+                            src="img/target.svg"
+                            alt="Target logo"
+                            class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition"
+                        />
+                    </div>
+                    <div class="text-center">
+                        <img
+                            src="img/apple.png"
+                            alt="Apple logo"
+                            class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition"
+                        />
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Summary -->
+        <section id="servicios" class="py-16 md:py-24">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-8 md:mb-16">
+                    <span
+                        class="text-orange-600 font-semibold mb-2 inline-block"
+                        >NUESTRAS SOLUCIONES</span
+                    >
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                        Servicios Adaptados a Tus Necesidades
+                    </h2>
+                    <p
+                        class="hidden md:block text-lg text-gray-600 max-w-3xl mx-auto"
+                    >
+                        Soluciones completas para tus compras y envíos
+                        internacionales. En CRBOX ofrecemos servicios adaptados
+                        específicamente a lo que necesitas.
+                    </p>
+                </div>
+
+                <div
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+                >
+                    <!-- Service 1 -->
+                    <a
+                        href="servicios.html#casillero"
+                        class="bg-white shadow-md rounded-xl overflow-hidden feature-card block"
+                    >
+                        <div class="h-48">
+                            <img
+                                src="img/servicio1.png"
+                                alt="Casillero Virtual"
+                                class="w-full h-full object-cover"
+                            />
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">
+                                Casillero Virtual
+                            </h3>
+                            <p class="text-gray-600 mb-4">
+                                Tu dirección en Miami totalmente gratis para tus
+                                compras en USA.
+                            </p>
+                            <div
+                                class="flex items-center text-orange-600 font-medium"
+                            >
+                                Ver Más
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Service 2 -->
+                    <a
+                        href="servicios.html#compras"
+                        class="bg-white shadow-md rounded-xl overflow-hidden feature-card block"
+                    >
+                        <div class="h-48">
+                            <img
+                                src="img/servicio2.png"
+                                alt="Compras por Encargo"
+                                class="w-full h-full object-cover"
+                            />
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">
+                                Compras por Encargo
+                            </h3>
+                            <p class="text-gray-600 mb-4">
+                                Realizamos tus compras en cualquier tienda de
+                                Estados Unidos.
+                            </p>
+                            <div
+                                class="flex items-center text-orange-600 font-medium"
+                            >
+                                Ver Más
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Service 3 -->
+                    <a
+                        href="servicios.html#carga-aerea"
+                        class="bg-white shadow-md rounded-xl overflow-hidden feature-card block"
+                    >
+                        <div class="h-48">
+                            <img
+                                src="img/servicio3.png"
+                                alt="Carga Aérea"
+                                class="w-full h-full object-cover"
+                            />
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">Carga Aérea</h3>
+                            <p class="text-gray-600 mb-4">
+                                Envíos express con entrega en 2-4 días hábiles.
+                            </p>
+                            <div
+                                class="flex items-center text-orange-600 font-medium"
+                            >
+                                Ver Más
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Service 4 -->
+                    <a
+                        href="servicios.html#carga-maritima"
+                        class="bg-white shadow-md rounded-xl overflow-hidden feature-card block"
+                    >
+                        <div class="h-48">
+                            <img
+                                src="img/servicio4.png"
+                                alt="Carga Marítima"
+                                class="w-full h-full object-cover"
+                            />
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">
+                                Carga Marítima
+                            </h3>
+                            <p class="text-gray-600 mb-4">
+                                Solución económica para cargas de mayor volumen
+                                o peso.
+                            </p>
+                            <div
+                                class="flex items-center text-orange-600 font-medium"
+                            >
+                                Ver Más
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <a href="servicios.html" class="primary-btn inline-block"
+                        >Ver todos los servicios</a
                     >
                 </div>
-                
-                <!-- Mensaje de confianza -->
-                <div class="text-center mb-4">
-                    <h3 class="text-2xl font-bold text-gray-900">¡CONFIANZA TOTAL!</h3>
-                </div>
-                
-                <!-- Información de registro -->
-                <div class="flex items-center border-t border-gray-200 pt-4 mt-4">
-                    <div class="bg-green-100 rounded-full p-2 mr-3">
-                        <i class="fas fa-shield-alt text-green-600"></i>
-                    </div>
-                    <p class="text-sm text-gray-600">Empresa registrada ante Aduanas como Courier y Consolidadora de Carga</p>
-                </div>
             </div>
-        </div>
-    </div>
-</section>
+        </section>
 
-<style>
-/* Estilos existentes */
-.primary-btn {
-    background-color: #FF6B00;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    display: inline-block;
-    text-align: center;
-}
-
-.primary-btn:hover {
-    background-color: #E05A00;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.secondary-btn {
-    background-color: white;
-    color: #FF6B00;
-    border: 2px solid #FF6B00;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    display: inline-block;
-    text-align: center;
-}
-
-.secondary-btn:hover {
-    background-color: #F5F7FA;
-    color: #E05A00;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.cta-shadow {
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* Media queries */
-@media (max-width: 768px) {
-    .mobile-center {
-        text-align: center;
-    }
-    
-    .mobile-order-1 {
-        order: 1;
-    }
-    
-    .mobile-order-2 {
-        order: 2;
-    }
-}
-</style>
-
-<!-- Statistics Section -->
-<section id="stats" class="py-16 md:py-20 gradient-bg relative">
-    <div class="absolute inset-0 bg-pattern opacity-10"></div>
-    <div class="container mx-auto px-4 relative z-10">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <!-- Stat 1 -->
-            <div class="p-6">
-                <div class="text-4xl md:text-5xl font-bold text-white mb-2">
-                    <span class="counter" data-target="33000">0</span><span>+</span>
-                </div>
-                <p class="text-white text-lg opacity-90">Clientes Activos</p>
-            </div>
-
-            <!-- Stat 2 -->
-            <div class="p-6">
-                <div class="text-4xl md:text-5xl font-bold text-white mb-2">
-                    <span class="counter" data-target="20">0</span><span>+</span>
-                </div>
-                <p class="text-white text-lg opacity-90">Años de experiencia</p>
-            </div>
-
-            <!-- Stat 3 -->
-            <div class="p-6">
-                <div class="text-4xl md:text-5xl font-bold text-white mb-2">2-4</div>
-                <p class="text-white text-lg opacity-90">Días de Entrega</p>
-            </div>
-
-            <!-- Stat 4 -->
-            <div class="p-6">
-                <div class="text-4xl md:text-5xl font-bold text-white mb-2">
-                    <span class="counter" data-target="586000">0</span><span>+</span>
-                </div>
-                <p class="text-white text-lg opacity-90">Envíos Completados</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<script>
-    const counters = document.querySelectorAll('.counter');
-  
-    counters.forEach(counter => {
-      const updateCount = () => {
-        const target = +counter.getAttribute('data-target');
-        const current = +counter.innerText.replace(/,/g, '');
-        const increment = target / 80;
-  
-        if (current < target) {
-          const newCount = Math.ceil(current + increment);
-          counter.innerText = newCount.toLocaleString();
-          requestAnimationFrame(updateCount);
-        } else {
-          counter.innerText = target.toLocaleString();
-        }
-      };
-  
-      updateCount();
-    });
-  </script>
-
-    <!-- Trusted By -->
-    <section class="py-10 bg-gray-50 border-t border-b border-gray-200">
-        <div class="container mx-auto px-4">
-            <h3 class="text-center text-lg text-gray-600 mb-8">Compra en tus tiendas favoritas</h3>
-            <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16">
-                <div class="text-center">
-                    <img src="img/amazon.png" alt="Amazon logo" class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition">
-                </div>
-                <div class="text-center">
-                    <img src="img/Temu-Logo.png" alt="Temu logo" class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition">
-                </div>
-                <div class="text-center">
-                    <img src="img/Walmart_logo.png" alt="Walmart logo" class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition">
-                </div>
-                <div class="text-center">
-                    <img src="img/bestbuy.png" alt="BestBuy logo" class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition">
-                </div>
-                <div class="text-center">
-                    <img src="img/target.svg" alt="Target logo" class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition">
-                </div>
-                <div class="text-center">
-                    <img src="img/apple.png" alt="Apple logo" class="h-6 md:h-8 mx-auto grayscale hover:grayscale-0 transition">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Services Summary -->
-    <section id="servicios" class="py-16 md:py-24">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-8 md:mb-16">
-                <span class="text-orange-600 font-semibold mb-2 inline-block">NUESTRAS SOLUCIONES</span>
-                <h2 class="text-3xl md:text-4xl font-bold mb-4">Servicios Adaptados a Tus Necesidades</h2>
-                <p class="hidden md:block text-lg text-gray-600 max-w-3xl mx-auto">Soluciones completas para tus compras y envíos internacionales. En CRBOX ofrecemos servicios adaptados específicamente a lo que necesitas.</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <!-- Service 1 -->
-                <a href="servicios.html#casillero" class="bg-white shadow-md rounded-xl overflow-hidden feature-card block">
-                    <div class="h-48">
-                        <img src="img/servicio1.png" alt="Casillero Virtual" class="w-full h-full object-cover">
+        <!-- Why Choose Us -->
+        <section class="py-16 md:py-24 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-wrap items-center">
+                    <div class="w-full md:w-1/2 mb-10 md:mb-0 pr-0 md:pr-12">
+                        <img
+                            src="img/fotoindex.png"
+                            alt="Centro logístico CRBOX"
+                            class="rounded-lg shadow-lg w-full"
+                        />
                     </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold mb-2">Casillero Virtual</h3>
-                        <p class="text-gray-600 mb-4">Tu dirección en Miami totalmente gratis para tus compras en USA.</p>
-                        <div class="flex items-center text-orange-600 font-medium">
-                            Ver Más
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </div>
-                    </div>
-                </a>
+                    <div class="w-full md:w-1/2">
+                        <span
+                            class="text-orange-600 font-semibold mb-2 inline-block"
+                            >¿POR QUÉ CRBOX?</span
+                        >
+                        <h2 class="text-3xl md:text-4xl font-bold mb-6">
+                            La mejor opción para tus envíos
+                        </h2>
+                        <p class="text-lg text-gray-600 mb-8">
+                            Somos una empresa debidamente registrada ante
+                            Aduanas como empresa Courier y Consolidadora de
+                            Carga, brindando un servicio profesional y
+                            confiable.
+                        </p>
 
-                <!-- Service 2 -->
-                <a href="servicios.html#compras" class="bg-white shadow-md rounded-xl overflow-hidden feature-card block">
-                    <div class="h-48">
-                        <img src="img/servicio2.png" alt="Compras por Encargo" class="w-full h-full object-cover">
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold mb-2">Compras por Encargo</h3>
-                        <p class="text-gray-600 mb-4">Realizamos tus compras en cualquier tienda de Estados Unidos.</p>
-                        <div class="flex items-center text-orange-600 font-medium">
-                            Ver Más
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Service 3 -->
-                <a href="servicios.html#carga-aerea" class="bg-white shadow-md rounded-xl overflow-hidden feature-card block">
-                    <div class="h-48">
-                        <img src="img/servicio3.png" alt="Carga Aérea" class="w-full h-full object-cover">
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold mb-2">Carga Aérea</h3>
-                        <p class="text-gray-600 mb-4">Envíos express con entrega en 2-4 días hábiles.</p>
-                        <div class="flex items-center text-orange-600 font-medium">
-                            Ver Más
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Service 4 -->
-                <a href="servicios.html#carga-maritima" class="bg-white shadow-md rounded-xl overflow-hidden feature-card block">
-                    <div class="h-48">
-                        <img src="img/servicio4.png" alt="Carga Marítima" class="w-full h-full object-cover">
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold mb-2">Carga Marítima</h3>
-                        <p class="text-gray-600 mb-4">Solución económica para cargas de mayor volumen o peso.</p>
-                        <div class="flex items-center text-orange-600 font-medium">
-                            Ver Más
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="mt-6 text-center">
-                <a href="servicios.html" class="primary-btn inline-block">Ver todos los servicios</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Why Choose Us -->
-    <section class="py-16 md:py-24 bg-gray-50">
-        <div class="container mx-auto px-4">
-            <div class="flex flex-wrap items-center">
-                <div class="w-full md:w-1/2 mb-10 md:mb-0 pr-0 md:pr-12">
-                    <img src="img/fotoindex.png" alt="Centro logístico CRBOX" class="rounded-lg shadow-lg w-full">
-                </div>
-                <div class="w-full md:w-1/2">
-                    <span class="text-orange-600 font-semibold mb-2 inline-block">¿POR QUÉ CRBOX?</span>
-                    <h2 class="text-3xl md:text-4xl font-bold mb-6">La mejor opción para tus envíos</h2>
-                    <p class="text-lg text-gray-600 mb-8">Somos una empresa debidamente registrada ante Aduanas como empresa Courier y Consolidadora de Carga, brindando un servicio profesional y confiable.</p>
-                    
-                    <div class="space-y-6">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <div class="flex items-center justify-center h-12 w-12 rounded-md bg-orange-100 text-orange-600">
-                                    <i class="fas fa-shield-alt text-xl"></i>
+                        <div class="space-y-6">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div
+                                        class="flex items-center justify-center h-12 w-12 rounded-md bg-orange-100 text-orange-600"
+                                    >
+                                        <i
+                                            class="fas fa-shield-alt text-xl"
+                                        ></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-xl font-semibold mb-1">
+                                        Seguridad Garantizada
+                                    </h3>
+                                    <p class="text-gray-600">
+                                        Empresa formalmente inscrita ante
+                                        Aduanas como Courier y Consolidadora de
+                                        Carga.
+                                    </p>
                                 </div>
                             </div>
-                            <div class="ml-4">
-                                <h3 class="text-xl font-semibold mb-1">Seguridad Garantizada</h3>
-                                <p class="text-gray-600">Empresa formalmente inscrita ante Aduanas como Courier y Consolidadora de Carga.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <div class="flex items-center justify-center h-12 w-12 rounded-md bg-orange-100 text-orange-600">
-                                    <i class="fas fa-dollar-sign text-xl"></i>
+
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div
+                                        class="flex items-center justify-center h-12 w-12 rounded-md bg-orange-100 text-orange-600"
+                                    >
+                                        <i
+                                            class="fas fa-dollar-sign text-xl"
+                                        ></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-xl font-semibold mb-1">
+                                        Tarifas Transparentes
+                                    </h3>
+                                    <p class="text-gray-600">
+                                        Sin costos ocultos ni sorpresas. Conoce
+                                        el costo exacto antes de realizar tu
+                                        envío.
+                                    </p>
                                 </div>
                             </div>
-                            <div class="ml-4">
-                                <h3 class="text-xl font-semibold mb-1">Tarifas Transparentes</h3>
-                                <p class="text-gray-600">Sin costos ocultos ni sorpresas. Conoce el costo exacto antes de realizar tu envío.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <div class="flex items-center justify-center h-12 w-12 rounded-md bg-orange-100 text-orange-600">
-                                    <i class="fas fa-truck text-xl"></i>
+
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <div
+                                        class="flex items-center justify-center h-12 w-12 rounded-md bg-orange-100 text-orange-600"
+                                    >
+                                        <i class="fas fa-truck text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-xl font-semibold mb-1">
+                                        Entrega a Domicilio
+                                    </h3>
+                                    <p class="text-gray-600">
+                                        Servicio de entrega en Sabana Norte,
+                                        Calle Blancos y a domicilio en todo el
+                                        país.
+                                    </p>
                                 </div>
                             </div>
-                            <div class="ml-4">
-                                <h3 class="text-xl font-semibold mb-1">Entrega a Domicilio</h3>
-                                <p class="text-gray-600">Servicio de entrega en Sabana Norte, Calle Blancos, Guachipelín y a domicilio en todo el país.</p>
-                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="mt-8">
-                        <a href="afiliate.html" class="primary-btn inline-block">Comienza Ahora</a>
+
+                        <div class="mt-8">
+                            <a
+                                href="afiliate.html"
+                                class="primary-btn inline-block"
+                                >Comienza Ahora</a
+                            >
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- CTA Section -->
-    <section id="cta-afiliate" class="py-16 md:py-20 gradient-bg">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">Compra en USA con total confianza</h2>
-            <p class="text-xl text-white text-opacity-90 mb-8 max-w-3xl mx-auto">Más de 20 años siendo el casillero de confianza de Costa Rica. Regístrate gratis y recibe tus paquetes con total seguridad.</p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="afiliate.html" class="primary-btn bg-white text-orange-600 hover:bg-gray-100">Crear Mi Casillero</a>
-                <a href="calculadora.html" class="secondary-btn border-white text-white hover:bg-orange-700 hover:text-white">Calcular un Envío</a>
+        <!-- CTA Section -->
+        <section id="cta-afiliate" class="py-16 md:py-20 gradient-bg">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6 text-white">
+                    Compra en USA con total confianza
+                </h2>
+                <p
+                    class="text-xl text-white text-opacity-90 mb-8 max-w-3xl mx-auto"
+                >
+                    Más de 20 años siendo el casillero de confianza de Costa
+                    Rica. Regístrate gratis y recibe tus paquetes con total
+                    seguridad.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a
+                        href="afiliate.html"
+                        class="primary-btn bg-white text-orange-600 hover:bg-gray-100"
+                        >Crear Mi Casillero</a
+                    >
+                    <a
+                        href="calculadora.html"
+                        class="secondary-btn border-white text-white hover:bg-orange-700 hover:text-white"
+                        >Calcular un Envío</a
+                    >
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Testimonials Section -->
-<section class="py-16 md:py-24 bg-gray-50" id="testimonios">
-    <div class="container mx-auto px-4">
-        <div class="text-center mb-12">
-            <span class="text-orange-600 font-semibold mb-2 inline-block">TESTIMONIOS</span>
-            <h2 class="text-3xl md:text-4xl font-bold mb-4">Lo Que Dicen Nuestros Clientes</h2>
-            <p class="text-gray-600 max-w-2xl mx-auto">Descubre por qué cientos de costarricenses confían en CRBOX para sus compras internacionales</p>
-        </div>
+        <!-- Testimonials Section -->
+        <section class="py-16 md:py-24 bg-gray-50" id="testimonios">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <span
+                        class="text-orange-600 font-semibold mb-2 inline-block"
+                        >TESTIMONIOS</span
+                    >
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                        Lo Que Dicen Nuestros Clientes
+                    </h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        Descubre por qué cientos de costarricenses confían en
+                        CRBOX para sus compras internacionales
+                    </p>
+                </div>
 
-        <!-- Carousel wrapper -->
-        <div class="testimonials-carousel">
-            <button class="testimonials-arrow testimonials-arrow--prev" id="testimonialsArrowPrev" aria-label="Anterior" disabled>
-                <i class="fas fa-chevron-left"></i>
-            </button>
+                <!-- Carousel wrapper -->
+                <div class="testimonials-carousel">
+                    <button
+                        class="testimonials-arrow testimonials-arrow--prev"
+                        id="testimonialsArrowPrev"
+                        aria-label="Anterior"
+                        disabled
+                    >
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
 
-            <div class="testimonials-overflow" id="testimonialsOverflow">
-                <div class="testimonials-track" id="testimonialsTrack">
+                    <div
+                        class="testimonials-overflow"
+                        id="testimonialsOverflow"
+                    >
+                        <div class="testimonials-track" id="testimonialsTrack">
+                            <!-- Testimonial 1 -->
+                            <div
+                                class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <div class="mb-4 text-yellow-400">
+                                    <i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i>
+                                </div>
+                                <p class="text-gray-600 mb-6">
+                                    "He utilizado CRBOX para más de 30 compras y
+                                    siempre ha sido una experiencia impecable.
+                                    El servicio al cliente es excelente y los
+                                    tiempos de entrega son muy rápidos."
+                                </p>
+                                <div class="flex items-center">
+                                    <div
+                                        class="h-11 w-11 rounded-full bg-yellow-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                    >
+                                        MA
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-semibold text-gray-900">
+                                            María Álvarez
+                                        </h4>
+                                        <p class="text-sm text-gray-400">
+                                            Cliente desde 2020
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <!-- Testimonial 1 -->
-                    <div class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="mb-4 text-yellow-400">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <p class="text-gray-600 mb-6">"He utilizado CRBOX para más de 30 compras y siempre ha sido una experiencia impecable. El servicio al cliente es excelente y los tiempos de entrega son muy rápidos."</p>
-                        <div class="flex items-center">
-                            <div class="h-11 w-11 rounded-full bg-yellow-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">MA</div>
-                            <div class="ml-3">
-                                <h4 class="font-semibold text-gray-900">María Álvarez</h4>
-                                <p class="text-sm text-gray-400">Cliente desde 2020</p>
+                            <!-- Testimonial 2 -->
+                            <div
+                                class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <div class="mb-4 text-yellow-400">
+                                    <i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i>
+                                </div>
+                                <p class="text-gray-600 mb-6">
+                                    "Como emprendedor, necesito que mis
+                                    productos lleguen rápido y en perfectas
+                                    condiciones. Con CRBOX nunca he tenido
+                                    problemas. Su sistema de seguimiento es
+                                    increíble, siempre sé exactamente dónde está
+                                    mi paquete."
+                                </p>
+                                <div class="flex items-center">
+                                    <div
+                                        class="h-11 w-11 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                    >
+                                        JM
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-semibold text-gray-900">
+                                            Juan Mora
+                                        </h4>
+                                        <p class="text-sm text-gray-400">
+                                            Cliente desde 2021
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Testimonial 3 -->
+                            <div
+                                class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <div class="mb-4 text-yellow-400">
+                                    <i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star-half-alt"></i>
+                                </div>
+                                <p class="text-gray-600 mb-6">
+                                    "Comparé varios servicios de casilleros y
+                                    CRBOX ofrece, por mucho, las mejores
+                                    tarifas. Además, su proceso de afiliación
+                                    fue súper sencillo. Lo recomiendo a todos
+                                    mis amigos que quieren comprar en USA."
+                                </p>
+                                <div class="flex items-center">
+                                    <div
+                                        class="h-11 w-11 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                    >
+                                        CS
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-semibold text-gray-900">
+                                            Carolina Solís
+                                        </h4>
+                                        <p class="text-sm text-gray-400">
+                                            Cliente desde 2022
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Testimonial 4 -->
+                            <div
+                                class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <div class="mb-4 text-yellow-400">
+                                    <i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i>
+                                </div>
+                                <p class="text-gray-600 mb-6">
+                                    "La consolidación de paquetes me ha ahorrado
+                                    muchísimo dinero. Compré en 3 tiendas
+                                    diferentes y CRBOX lo juntó todo en un solo
+                                    envío. El descuento del 20% en mi primer
+                                    flete fue un excelente incentivo para
+                                    probarlos."
+                                </p>
+                                <div class="flex items-center">
+                                    <div
+                                        class="h-11 w-11 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                    >
+                                        RC
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-semibold text-gray-900">
+                                            Roberto Castro
+                                        </h4>
+                                        <p class="text-sm text-gray-400">
+                                            Cliente desde 2022
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Testimonial 5 -->
+                            <div
+                                class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <div class="mb-4 text-yellow-400">
+                                    <i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i>
+                                </div>
+                                <p class="text-gray-600 mb-6">
+                                    "Como madre de familia, valoro la seguridad
+                                    y confiabilidad. CRBOX ha entregado todos
+                                    mis pedidos de Amazon y Target directamente
+                                    a mi puerta sin complicaciones. ¡El servicio
+                                    al cliente siempre responde en minutos!"
+                                </p>
+                                <div class="flex items-center">
+                                    <div
+                                        class="h-11 w-11 rounded-full bg-pink-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                    >
+                                        LV
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-semibold text-gray-900">
+                                            Laura Vargas
+                                        </h4>
+                                        <p class="text-sm text-gray-400">
+                                            Cliente desde 2021
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Testimonial 6 -->
+                            <div
+                                class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <div class="mb-4 text-yellow-400">
+                                    <i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i
+                                    ><i class="fas fa-star"></i>
+                                </div>
+                                <p class="text-gray-600 mb-6">
+                                    "Soy fanático de la tecnología y siempre
+                                    estoy comprando gadgets nuevos. CRBOX maneja
+                                    mis productos con muchísimo cuidado y los
+                                    trámites aduaneros son transparentes. Nunca
+                                    más usaré otro courier."
+                                </p>
+                                <div class="flex items-center">
+                                    <div
+                                        class="h-11 w-11 rounded-full bg-yellow-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                    >
+                                        AG
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-semibold text-gray-900">
+                                            Andrés Gutiérrez
+                                        </h4>
+                                        <p class="text-sm text-gray-400">
+                                            Cliente desde 2020
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        <!-- /testimonials-track -->
                     </div>
+                    <!-- /testimonials-overflow -->
 
-                    <!-- Testimonial 2 -->
-                    <div class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="mb-4 text-yellow-400">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <p class="text-gray-600 mb-6">"Como emprendedor, necesito que mis productos lleguen rápido y en perfectas condiciones. Con CRBOX nunca he tenido problemas. Su sistema de seguimiento es increíble, siempre sé exactamente dónde está mi paquete."</p>
-                        <div class="flex items-center">
-                            <div class="h-11 w-11 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">JM</div>
-                            <div class="ml-3">
-                                <h4 class="font-semibold text-gray-900">Juan Mora</h4>
-                                <p class="text-sm text-gray-400">Cliente desde 2021</p>
-                            </div>
-                        </div>
-                    </div>
+                    <button
+                        class="testimonials-arrow testimonials-arrow--next"
+                        id="testimonialsArrowNext"
+                        aria-label="Siguiente"
+                    >
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <!-- /testimonials-carousel -->
 
-                    <!-- Testimonial 3 -->
-                    <div class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="mb-4 text-yellow-400">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-                        </div>
-                        <p class="text-gray-600 mb-6">"Comparé varios servicios de casilleros y CRBOX ofrece, por mucho, las mejores tarifas. Además, su proceso de afiliación fue súper sencillo. Lo recomiendo a todos mis amigos que quieren comprar en USA."</p>
-                        <div class="flex items-center">
-                            <div class="h-11 w-11 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">CS</div>
-                            <div class="ml-3">
-                                <h4 class="font-semibold text-gray-900">Carolina Solís</h4>
-                                <p class="text-sm text-gray-400">Cliente desde 2022</p>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Dot indicators -->
+                <div
+                    class="testimonials-dots"
+                    id="testimonialsDots"
+                    aria-hidden="true"
+                >
+                    <span class="testimonials-dot active" data-index="0"></span>
+                    <span class="testimonials-dot" data-index="1"></span>
+                    <span class="testimonials-dot" data-index="2"></span>
+                    <span class="testimonials-dot" data-index="3"></span>
+                </div>
+            </div>
+        </section>
 
-                    <!-- Testimonial 4 -->
-                    <div class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="mb-4 text-yellow-400">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <p class="text-gray-600 mb-6">"La consolidación de paquetes me ha ahorrado muchísimo dinero. Compré en 3 tiendas diferentes y CRBOX lo juntó todo en un solo envío. El descuento del 20% en mi primer flete fue un excelente incentivo para probarlos."</p>
-                        <div class="flex items-center">
-                            <div class="h-11 w-11 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">RC</div>
-                            <div class="ml-3">
-                                <h4 class="font-semibold text-gray-900">Roberto Castro</h4>
-                                <p class="text-sm text-gray-400">Cliente desde 2022</p>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Footer -->
+        <div id="site-footer"></div>
+        <script src="/js/footer.js?v=1"></script>
 
-                    <!-- Testimonial 5 -->
-                    <div class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="mb-4 text-yellow-400">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <p class="text-gray-600 mb-6">"Como madre de familia, valoro la seguridad y confiabilidad. CRBOX ha entregado todos mis pedidos de Amazon y Target directamente a mi puerta sin complicaciones. ¡El servicio al cliente siempre responde en minutos!"</p>
-                        <div class="flex items-center">
-                            <div class="h-11 w-11 rounded-full bg-pink-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">LV</div>
-                            <div class="ml-3">
-                                <h4 class="font-semibold text-gray-900">Laura Vargas</h4>
-                                <p class="text-sm text-gray-400">Cliente desde 2021</p>
-                            </div>
-                        </div>
-                    </div>
+        <script src="js/cr-locations.js"></script>
+        <script src="js/auth.js"></script>
+        <script src="js/nav-auth.js?v=2"></script>
+        <script src="js/main.js?v=6"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Referencias
+                const userMenuButton =
+                    document.getElementById("user-menu-button");
+                const userDropdownMenu =
+                    document.getElementById("user-dropdown-menu");
+                const mobileMenuButton =
+                    document.getElementById("mobile-menu-button");
+                const mobileMenu = document.getElementById("mobile-menu");
 
-                    <!-- Testimonial 6 -->
-                    <div class="testimonial-card p-8 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="mb-4 text-yellow-400">
-                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                        </div>
-                        <p class="text-gray-600 mb-6">"Soy fanático de la tecnología y siempre estoy comprando gadgets nuevos. CRBOX maneja mis productos con muchísimo cuidado y los trámites aduaneros son transparentes. Nunca más usaré otro courier."</p>
-                        <div class="flex items-center">
-                            <div class="h-11 w-11 rounded-full bg-yellow-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">AG</div>
-                            <div class="ml-3">
-                                <h4 class="font-semibold text-gray-900">Andrés Gutiérrez</h4>
-                                <p class="text-sm text-gray-400">Cliente desde 2020</p>
-                            </div>
-                        </div>
-                    </div>
+                // Toggle del menú móvil
+                if (mobileMenuButton && mobileMenu) {
+                    mobileMenuButton.addEventListener("click", function () {
+                        mobileMenu.classList.toggle("hidden");
+                    });
+                }
 
-                </div><!-- /testimonials-track -->
-            </div><!-- /testimonials-overflow -->
+                // Toggle del dropdown de usuario
+                if (userMenuButton && userDropdownMenu) {
+                    console.log("User menu button and dropdown found");
 
-            <button class="testimonials-arrow testimonials-arrow--next" id="testimonialsArrowNext" aria-label="Siguiente">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        </div><!-- /testimonials-carousel -->
+                    userMenuButton.addEventListener("click", function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
 
-        <!-- Dot indicators -->
-        <div class="testimonials-dots" id="testimonialsDots" aria-hidden="true">
-            <span class="testimonials-dot active" data-index="0"></span>
-            <span class="testimonials-dot" data-index="1"></span>
-            <span class="testimonials-dot" data-index="2"></span>
-            <span class="testimonials-dot" data-index="3"></span>
-        </div>
+                        console.log("User menu button clicked");
 
-    </div>
-</section>
+                        // Toggle clases para animación suave
+                        if (
+                            userDropdownMenu.classList.contains(
+                                "pointer-events-none",
+                            )
+                        ) {
+                            // Mostrar menú
+                            userDropdownMenu.classList.remove(
+                                "opacity-0",
+                                "scale-95",
+                                "pointer-events-none",
+                            );
+                            userDropdownMenu.classList.add(
+                                "opacity-100",
+                                "scale-100",
+                                "pointer-events-auto",
+                            );
+                            userMenuButton.setAttribute(
+                                "aria-expanded",
+                                "true",
+                            );
+                            userMenuButton.classList.add(
+                                "bg-orange-50",
+                                "border-orange-200",
+                            );
 
-    <!-- Footer -->
-    <div id="site-footer"></div>
-    <script src="/js/footer.js?v=1"></script>
+                            // Asegurarse de que el ícono cambie color
+                            const icon = userMenuButton.querySelector("i");
+                            if (icon) {
+                                icon.classList.add("text-orange-600");
+                            }
+                        } else {
+                            // Ocultar menú
+                            userDropdownMenu.classList.add(
+                                "opacity-0",
+                                "scale-95",
+                                "pointer-events-none",
+                            );
+                            userDropdownMenu.classList.remove(
+                                "opacity-100",
+                                "scale-100",
+                                "pointer-events-auto",
+                            );
+                            userMenuButton.setAttribute(
+                                "aria-expanded",
+                                "false",
+                            );
+                            userMenuButton.classList.remove(
+                                "bg-orange-50",
+                                "border-orange-200",
+                            );
 
-
-    <script src="js/cr-locations.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/nav-auth.js?v=2"></script>
-    <script src="js/main.js?v=6"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Referencias
-            const userMenuButton = document.getElementById('user-menu-button');
-            const userDropdownMenu = document.getElementById('user-dropdown-menu');
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-            
-            // Toggle del menú móvil
-            if (mobileMenuButton && mobileMenu) {
-                mobileMenuButton.addEventListener('click', function() {
-                    mobileMenu.classList.toggle('hidden');
-                });
-            }
-            
-            // Toggle del dropdown de usuario
-            if (userMenuButton && userDropdownMenu) {
-                console.log('User menu button and dropdown found');
-                
-                userMenuButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    console.log('User menu button clicked');
-                    
-                    // Toggle clases para animación suave
-                    if (userDropdownMenu.classList.contains('pointer-events-none')) {
-                        // Mostrar menú
-                        userDropdownMenu.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-                        userDropdownMenu.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
-                        userMenuButton.setAttribute('aria-expanded', 'true');
-                        userMenuButton.classList.add('bg-orange-50', 'border-orange-200');
-                        
-                        // Asegurarse de que el ícono cambie color
-                        const icon = userMenuButton.querySelector('i');
-                        if (icon) {
-                            icon.classList.add('text-orange-600');
+                            // Devolver el ícono a su color original
+                            const icon = userMenuButton.querySelector("i");
+                            if (icon) {
+                                icon.classList.remove("text-orange-600");
+                            }
                         }
-                    } else {
-                        // Ocultar menú
-                        userDropdownMenu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-                        userDropdownMenu.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
-                        userMenuButton.setAttribute('aria-expanded', 'false');
-                        userMenuButton.classList.remove('bg-orange-50', 'border-orange-200');
-                        
-                        // Devolver el ícono a su color original
-                        const icon = userMenuButton.querySelector('i');
-                        if (icon) {
-                            icon.classList.remove('text-orange-600');
+                    });
+
+                    // Cerrar al hacer clic fuera
+                    document.addEventListener("click", function (e) {
+                        if (
+                            userMenuButton &&
+                            userDropdownMenu &&
+                            !userMenuButton.contains(e.target) &&
+                            !userDropdownMenu.contains(e.target)
+                        ) {
+                            userDropdownMenu.classList.add(
+                                "opacity-0",
+                                "scale-95",
+                                "pointer-events-none",
+                            );
+                            userDropdownMenu.classList.remove(
+                                "opacity-100",
+                                "scale-100",
+                                "pointer-events-auto",
+                            );
+                            userMenuButton.setAttribute(
+                                "aria-expanded",
+                                "false",
+                            );
+                            userMenuButton.classList.remove(
+                                "bg-orange-50",
+                                "border-orange-200",
+                            );
+
+                            const icon = userMenuButton.querySelector("i");
+                            if (icon) {
+                                icon.classList.remove("text-orange-600");
+                            }
                         }
-                    }
-                });
-                
-                // Cerrar al hacer clic fuera
-                document.addEventListener('click', function(e) {
-                    if (userMenuButton && userDropdownMenu &&
-                        !userMenuButton.contains(e.target) && 
-                        !userDropdownMenu.contains(e.target)) {
-                        
-                        userDropdownMenu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-                        userDropdownMenu.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
-                        userMenuButton.setAttribute('aria-expanded', 'false');
-                        userMenuButton.classList.remove('bg-orange-50', 'border-orange-200');
-                        
-                        const icon = userMenuButton.querySelector('i');
-                        if (icon) {
-                            icon.classList.remove('text-orange-600');
-                        }
-                    }
-                });
-                
-                // Prevenir cierre al hacer clic dentro del dropdown
-                userDropdownMenu.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                });
-            } else {
-                console.log('User menu button or dropdown not found');
-            }
-        });
-    </script>
-    <script src="js/seo-config.js" defer></script>
-    <script src="js/analytics.js" defer></script>
-    <script src="js/tariff-adapter.js"></script>
-    <script src="js/calculator-engine.js"></script>
-    <script src="js/crbox-knowledge.js"></script>
-    <script src="js/chat-calculator.js"></script>
-    <script src="js/chat-quote.js"></script>
-    <script src="js/chat-panel.js"></script>
-</body>
+                    });
+
+                    // Prevenir cierre al hacer clic dentro del dropdown
+                    userDropdownMenu.addEventListener("click", function (e) {
+                        e.stopPropagation();
+                    });
+                } else {
+                    console.log("User menu button or dropdown not found");
+                }
+            });
+        </script>
+        <script src="js/seo-config.js" defer></script>
+        <script src="js/analytics.js" defer></script>
+        <script src="js/tariff-adapter.js"></script>
+        <script src="js/calculator-engine.js"></script>
+        <script src="js/crbox-knowledge.js"></script>
+        <script src="js/chat-calculator.js"></script>
+        <script src="js/chat-quote.js"></script>
+        <script src="js/chat-panel.js"></script>
+    </body>
 </html>

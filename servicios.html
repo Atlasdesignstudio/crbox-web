@@ -180,8 +180,127 @@
             transition: transform 0.3s ease;
         }
         
-        .benefit-item:hover {
-            transform: translateY(-3px);
+        .benefit-item:hover { transform: translateY(-3px); }
+
+        /* ══ Global Logistics Section ══════════════════════════════════ */
+        .global-logistics-section { padding:80px 0; background:#f1f5f9; overflow:hidden; }
+        .global-logistics-eyebrow {
+            display:inline-block; font-size:11px; font-weight:800; letter-spacing:.16em;
+            color:#FF6B00; text-transform:uppercase; margin-bottom:14px;
+        }
+        .global-logistics-headline {
+            font-size:clamp(1.55rem,3vw,2.2rem); font-weight:800; color:#0F172A;
+            line-height:1.2; margin-bottom:20px;
+        }
+        .global-logistics-para { color:#475569; font-size:.95rem; line-height:1.78; margin-bottom:14px; }
+        .global-logistics-ctas { display:flex; flex-wrap:wrap; gap:12px; margin:28px 0 20px; }
+        .gl-btn-primary {
+            display:inline-flex; align-items:center; gap:8px; background:#FF6B00; color:#fff;
+            font-weight:700; font-size:.9rem; padding:12px 26px; border-radius:10px;
+            text-decoration:none; transition:background .18s,transform .15s,box-shadow .18s;
+            box-shadow:0 4px 14px rgba(255,107,0,.35);
+        }
+        .gl-btn-primary:hover { background:#e05500; transform:translateY(-1px); box-shadow:0 6px 18px rgba(255,107,0,.45); color:#fff; }
+        .gl-btn-secondary {
+            display:inline-flex; align-items:center; gap:8px; background:#fff; color:#128C7E;
+            font-weight:700; font-size:.9rem; padding:12px 26px; border-radius:10px;
+            text-decoration:none; border:2px solid #25D366; transition:background .18s,transform .15s,border-color .18s;
+        }
+        .gl-btn-secondary:hover { background:#f0fdf4; transform:translateY(-1px); border-color:#128C7E; color:#128C7E; }
+        .global-logistics-note { font-size:.78rem; color:#94a3b8; font-style:italic; line-height:1.55; }
+
+        /* Map card */
+        .global-map-card {
+            background:#0F172A; border-radius:20px;
+            box-shadow:0 24px 64px rgba(15,23,42,.38),0 4px 16px rgba(0,0,0,.18); overflow:hidden;
+        }
+        .global-map-svg { width:100%; height:auto; display:block; }
+        .logistics-continent { fill:#1e3058; stroke:#2a4a78; stroke-width:.6; }
+        .logistics-grid-h,.logistics-grid-v { stroke:rgba(255,255,255,.05); stroke-width:.5; fill:none; }
+        .logistics-equator { stroke:rgba(255,255,255,.1); stroke-width:.5; fill:none; stroke-dasharray:4 6; }
+
+        /* Route arc lines */
+        .logistics-route {
+            fill:none; stroke:rgba(255,255,255,.2); stroke-width:1.5; stroke-linecap:round;
+            transition:stroke .3s,stroke-width .3s,opacity .3s;
+        }
+        .logistics-route.dim  { stroke:rgba(255,255,255,.05); opacity:.4; }
+        .logistics-route.glow { stroke:#FF6B00; stroke-width:2.5; filter:drop-shadow(0 0 5px rgba(255,107,0,.5)); }
+
+        /* Moving cargo dot along route */
+        @keyframes gl-flow { from { stroke-dashoffset:0; } to { stroke-dashoffset:-100; } }
+        .logistics-flow {
+            fill:none; stroke:rgba(255,255,255,.6); stroke-width:2; stroke-linecap:round;
+            animation:gl-flow 3.2s linear infinite;
+        }
+        .logistics-flow.dim  { opacity:0; animation-play-state:paused; }
+        .logistics-flow.glow { stroke:#fff; stroke-width:3; }
+
+        /* Origin point dots */
+        .logistics-pt-ring { fill:none; stroke-width:1; transition:stroke .3s,opacity .3s; }
+        .logistics-pt-ring.dim  { opacity:.08; }
+        .logistics-pt-ring.glow { stroke:#FF6B00 !important; opacity:1; }
+        .logistics-pt-dot { transition:fill .3s; }
+        .logistics-pt-dot.dim  { fill:rgba(255,255,255,.15) !important; }
+        .logistics-pt-dot.glow { fill:#FF6B00 !important; }
+        @keyframes gl-pt-pulse { 0%{r:4;opacity:.9;} 100%{r:11;opacity:0;} }
+        .logistics-pt-pulse { fill:none; stroke-width:1; animation:gl-pt-pulse 2.5s ease-out infinite; }
+        .logistics-pt-pulse.dim  { opacity:0; animation-play-state:paused; }
+        .logistics-pt-pulse.glow { stroke:rgba(255,107,0,.55) !important; }
+        .logistics-label {
+            font-size:6.5px; font-family:system-ui,-apple-system,sans-serif;
+            fill:rgba(255,255,255,.5); font-weight:700; pointer-events:none;
+            transition:fill .3s,opacity .3s;
+        }
+        .logistics-label.dim  { opacity:.12; }
+        .logistics-label.glow { fill:#fff; opacity:1; }
+
+        /* Destination Costa Rica */
+        @keyframes gl-dest { 0%{r:8;opacity:.8;} 100%{r:22;opacity:0;} }
+        .logistics-dest-ring { fill:none; stroke:#FF6B00; stroke-width:1.5; animation:gl-dest 2.2s ease-out infinite; }
+
+        /* Route chips */
+        .route-chips-wrap {
+            display:flex; flex-wrap:wrap; gap:7px;
+            padding:13px 16px 11px; background:#090f1c;
+        }
+        .route-chip {
+            display:inline-flex; align-items:center; gap:5px; padding:5px 12px;
+            border-radius:20px; border:1.5px solid rgba(255,255,255,.15); background:transparent;
+            color:rgba(255,255,255,.5); font-size:11.5px; font-weight:600; cursor:pointer;
+            transition:border-color .18s,color .18s,background .18s; font-family:inherit;
+            white-space:nowrap; line-height:1.3;
+        }
+        .route-chip i { font-size:10px; }
+        .route-chip:hover { border-color:rgba(255,107,0,.55); color:rgba(255,255,255,.85); }
+        .route-chip:focus-visible { outline:2px solid #FF6B00; outline-offset:2px; }
+        .route-chip.active { border-color:#FF6B00; color:#FF6B00; background:rgba(255,107,0,.1); }
+
+        /* Detail panel */
+        .route-detail-panel {
+            background:#090f1c; border-top:1px solid rgba(255,255,255,.06);
+            padding:15px 18px; border-radius:0 0 20px 20px; min-height:120px;
+            transition:opacity .2s;
+        }
+        .rdp-title { font-size:13px; font-weight:700; color:#fff; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+        .rdp-title i { color:#FF6B00; font-size:12px; }
+        .rdp-desc { font-size:12px; color:rgba(255,255,255,.58); line-height:1.65; margin-bottom:10px; }
+        .rdp-modes { display:flex; flex-wrap:wrap; gap:5px; }
+        .rdp-mode-tag {
+            display:inline-flex; align-items:center; gap:4px; padding:3px 10px;
+            border-radius:12px; background:rgba(255,107,0,.12); color:#FF6B00;
+            font-size:10px; font-weight:700; text-transform:uppercase;
+            letter-spacing:.05em; border:1px solid rgba(255,107,0,.2);
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+            .logistics-flow, .logistics-pt-pulse, .logistics-dest-ring { animation:none !important; }
+        }
+        @media (max-width:640px) {
+            .global-logistics-section { padding:52px 0; }
+            .route-chips-wrap { flex-wrap:nowrap; overflow-x:auto; padding-bottom:10px; }
+            .route-chips-wrap::-webkit-scrollbar { height:2px; }
+            .route-chips-wrap::-webkit-scrollbar-thumb { background:rgba(255,107,0,.4); border-radius:1px; }
         }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
@@ -376,6 +495,271 @@
             </div>
         </div>
     </section>
+
+    <!-- ═══════════════ LOGÍSTICA INTERNACIONAL ═══════════════ -->
+    <section class="global-logistics-section" aria-labelledby="gl-headline">
+      <div class="container mx-auto px-4 lg:px-8" style="max-width:1200px">
+        <div class="grid lg:grid-cols-2 gap-10 lg:gap-14 items-start">
+
+          <!-- ── LEFT: Copy ── -->
+          <div class="global-logistics-copy lg:pt-4">
+            <span class="global-logistics-eyebrow">Alcance Global</span>
+            <h2 id="gl-headline" class="global-logistics-headline">Logística internacional conectada con Costa Rica</h2>
+            <p class="global-logistics-para">Le brindamos un servicio integral de transporte de exportación aérea y marítima a cualquier parte del mundo, además de soluciones terrestres hacia Centroamérica.</p>
+            <p class="global-logistics-para">Desde Miami, México, Panamá, Sur América, Europa, Medio Oriente y Lejano Oriente, CRBOX coordina rutas logísticas adaptadas a cada tipo de carga: courier, carga consolidada, LCL, FCL, contenedor completo y transporte empresarial.</p>
+            <div class="global-logistics-ctas">
+              <a href="cotizar.html" class="gl-btn-primary"><i class="fas fa-box-open"></i> Solicitar cotización</a>
+              <a href="https://wa.me/50689794418" class="gl-btn-secondary" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> Contactar por WhatsApp</a>
+            </div>
+            <p class="global-logistics-note"><i class="fas fa-info-circle mr-1"></i>Cada requerimiento se cotiza según origen, destino, tipo de carga, volumen y urgencia del envío.</p>
+          </div>
+
+          <!-- ── RIGHT: Map card ── -->
+          <div class="global-logistics-right">
+            <div class="global-map-card">
+
+              <!-- SVG World Map -->
+              <svg class="global-map-svg" viewBox="0 0 700 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa de rutas logísticas internacionales de CRBOX">
+                <defs>
+                  <pattern id="gl-dotgrid" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
+                    <circle cx="9" cy="9" r=".7" fill="rgba(255,255,255,.07)"/>
+                  </pattern>
+                  <radialGradient id="gl-glow-cr" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#FF6B00" stop-opacity=".6"/>
+                    <stop offset="100%" stop-color="#FF6B00" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+
+                <!-- Background -->
+                <rect width="700" height="380" fill="#0c1628"/>
+                <rect width="700" height="380" fill="url(#gl-dotgrid)"/>
+
+                <!-- Grid lines -->
+                <!-- Horizontals -->
+                <line class="logistics-grid-h" x1="0" y1="95"  x2="700" y2="95"/>
+                <line class="logistics-equator"                 x1="0" y1="190" x2="700" y2="190"/>
+                <line class="logistics-grid-h" x1="0" y1="285" x2="700" y2="285"/>
+                <!-- Verticals -->
+                <line class="logistics-grid-v" x1="117" y1="0" x2="117" y2="380"/>
+                <line class="logistics-grid-v" x1="233" y1="0" x2="233" y2="380"/>
+                <line class="logistics-grid-v" x1="350" y1="0" x2="350" y2="380"/>
+                <line class="logistics-grid-v" x1="467" y1="0" x2="467" y2="380"/>
+                <line class="logistics-grid-v" x1="583" y1="0" x2="583" y2="380"/>
+
+                <!-- Continent fills -->
+                <!-- Greenland -->
+                <polygon class="logistics-continent" points="255,8 298,5 322,18 320,38 302,50 273,54 251,44 251,22"/>
+                <!-- Iceland -->
+                <polygon class="logistics-continent" points="283,38 304,33 316,42 314,52 298,56 281,48"/>
+                <!-- North America + Central America -->
+                <polygon class="logistics-continent" points="40,30 82,10 150,6 208,12 252,24 254,68 256,110 245,138 230,150 216,158 200,164 190,178 180,188 165,180 152,168 138,170 126,158 116,128 96,132 80,144 70,132 55,104 44,70"/>
+                <!-- UK blob -->
+                <polygon class="logistics-continent" points="335,56 348,50 356,58 355,72 342,74 333,64"/>
+                <!-- Europe -->
+                <polygon class="logistics-continent" points="310,18 358,10 402,16 440,30 448,50 442,74 424,92 398,100 368,102 342,92 320,78 310,50"/>
+                <!-- Africa -->
+                <polygon class="logistics-continent" points="312,108 360,102 414,108 458,128 480,154 486,192 483,233 473,275 458,325 434,362 402,378 370,374 337,353 313,325 303,293 302,255 308,218 311,175 312,140"/>
+                <!-- South America -->
+                <polygon class="logistics-continent" points="178,188 205,182 235,196 265,218 288,248 302,282 294,320 278,352 252,378 225,379 196,368 178,348 164,320 160,288 162,254 167,224 174,204"/>
+                <!-- Asia main -->
+                <polygon class="logistics-continent" points="450,10 532,5 618,10 670,30 696,58 696,120 678,158 650,175 620,190 572,190 532,177 499,160 462,150 450,128 450,96 452,62"/>
+                <!-- Japan -->
+                <polygon class="logistics-continent" points="616,108 628,104 642,116 638,130 622,128"/>
+                <!-- SE Asia peninsula -->
+                <polygon class="logistics-continent" points="555,175 580,175 588,195 578,218 558,218 545,200"/>
+                <!-- Australia -->
+                <polygon class="logistics-continent" points="575,252 625,245 675,253 696,278 698,318 680,350 648,362 606,360 578,338 558,312 558,283 565,263"/>
+                <!-- NZ -->
+                <polygon class="logistics-continent" points="672,330 682,326 690,338 688,350 677,348 670,340"/>
+
+                <!-- ── ROUTE ARCS (track layer) ── -->
+                <!-- Each path has pathLength="100" so we can use percentage-based dasharray -->
+                <path id="route-usa"     class="logistics-route" pathLength="100" d="M 192,130 Q 162,90 187,169"/>
+                <path id="route-mexico"  class="logistics-route" pathLength="100" d="M 155,148 Q 138,108 187,169"/>
+                <path id="route-cam"     class="logistics-route" pathLength="100" d="M 173,158 Q 155,135 187,169"/>
+                <path id="route-panama"  class="logistics-route" pathLength="100" d="M 200,174 Q 220,192 187,169"/>
+                <path id="route-sam"     class="logistics-route" pathLength="100" d="M 248,252 Q 196,218 187,169"/>
+                <path id="route-europe"  class="logistics-route" pathLength="100" d="M 348,80 Q 258,22 187,169"/>
+                <path id="route-mideast" class="logistics-route" pathLength="100" d="M 440,135 Q 308,38 187,169"/>
+                <path id="route-fareast" class="logistics-route" pathLength="100" d="M 575,128 Q 378,16 187,169"/>
+
+                <!-- ── FLOW DOTS (cargo moving along routes) ── -->
+                <path id="flow-usa"     class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:0s"    d="M 192,130 Q 162,90 187,169"/>
+                <path id="flow-mexico"  class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:.5s"   d="M 155,148 Q 138,108 187,169"/>
+                <path id="flow-cam"     class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:1s"    d="M 173,158 Q 155,135 187,169"/>
+                <path id="flow-panama"  class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:1.5s"  d="M 200,174 Q 220,192 187,169"/>
+                <path id="flow-sam"     class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:2s"    d="M 248,252 Q 196,218 187,169"/>
+                <path id="flow-europe"  class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:2.5s"  d="M 348,80 Q 258,22 187,169"/>
+                <path id="flow-mideast" class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:3s"    d="M 440,135 Q 308,38 187,169"/>
+                <path id="flow-fareast" class="logistics-flow" pathLength="100" stroke-dasharray="5 95" style="animation-delay:3.5s"  d="M 575,128 Q 378,16 187,169"/>
+
+                <!-- ── ORIGIN POINTS ── -->
+                <!-- USA/Miami -->
+                <circle id="pulse-usa"    class="logistics-pt-pulse" cx="192" cy="130" r="4" stroke="rgba(255,255,255,.35)"/>
+                <circle id="ring-usa"     class="logistics-pt-ring"  cx="192" cy="130" r="5" stroke="rgba(255,255,255,.4)"/>
+                <circle id="dot-usa"      class="logistics-pt-dot"   cx="192" cy="130" r="3" fill="rgba(255,255,255,.8)"/>
+                <text  id="lbl-usa"       class="logistics-label" x="196" y="124" text-anchor="start">EE.UU.</text>
+                <!-- Mexico -->
+                <circle id="pulse-mexico"  class="logistics-pt-pulse" cx="155" cy="148" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:.4s"/>
+                <circle id="ring-mexico"   class="logistics-pt-ring"  cx="155" cy="148" r="5" stroke="rgba(255,255,255,.4)"/>
+                <circle id="dot-mexico"    class="logistics-pt-dot"   cx="155" cy="148" r="3" fill="rgba(255,255,255,.8)"/>
+                <text  id="lbl-mexico"     class="logistics-label" x="148" y="143" text-anchor="end">México</text>
+                <!-- Central America -->
+                <circle id="pulse-cam"   class="logistics-pt-pulse" cx="173" cy="158" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:.8s"/>
+                <circle id="ring-cam"    class="logistics-pt-ring"  cx="173" cy="158" r="5" stroke="rgba(255,255,255,.4)"/>
+                <circle id="dot-cam"     class="logistics-pt-dot"   cx="173" cy="158" r="3" fill="rgba(255,255,255,.8)"/>
+                <text  id="lbl-cam"      class="logistics-label" x="163" y="153" text-anchor="end">C.América</text>
+                <!-- Panama -->
+                <circle id="pulse-panama"  class="logistics-pt-pulse" cx="200" cy="174" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:1.2s"/>
+                <circle id="ring-panama"   class="logistics-pt-ring"  cx="200" cy="174" r="5" stroke="rgba(255,255,255,.4)"/>
+                <circle id="dot-panama"    class="logistics-pt-dot"   cx="200" cy="174" r="3" fill="rgba(255,255,255,.8)"/>
+                <text  id="lbl-panama"     class="logistics-label" x="206" y="178" text-anchor="start">Panamá</text>
+                <!-- South America -->
+                <circle id="pulse-sam"    class="logistics-pt-pulse" cx="248" cy="252" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:1.6s"/>
+                <circle id="ring-sam"     class="logistics-pt-ring"  cx="248" cy="252" r="5" stroke="rgba(255,255,255,.4)"/>
+                <circle id="dot-sam"      class="logistics-pt-dot"   cx="248" cy="252" r="3" fill="rgba(255,255,255,.8)"/>
+                <text  id="lbl-sam"       class="logistics-label" x="255" y="256" text-anchor="start">Sur América</text>
+                <!-- Europe -->
+                <circle id="pulse-europe"  class="logistics-pt-pulse" cx="348" cy="80" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:2s"/>
+                <circle id="ring-europe"   class="logistics-pt-ring"  cx="348" cy="80" r="5" stroke="rgba(255,255,255,.4)"/>
+                <circle id="dot-europe"    class="logistics-pt-dot"   cx="348" cy="80" r="3" fill="rgba(255,255,255,.8)"/>
+                <text  id="lbl-europe"     class="logistics-label" x="348" y="72" text-anchor="middle">Europa</text>
+                <!-- Middle East -->
+                <circle id="pulse-mideast"  class="logistics-pt-pulse" cx="440" cy="135" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:2.4s"/>
+                <circle id="ring-mideast"   class="logistics-pt-ring"  cx="440" cy="135" r="5" stroke="rgba(255,255,255,.4)"/>
+                <circle id="dot-mideast"    class="logistics-pt-dot"   cx="440" cy="135" r="3" fill="rgba(255,255,255,.8)"/>
+                <text  id="lbl-mideast"     class="logistics-label" x="440" y="128" text-anchor="middle">M.Oriente</text>
+                <!-- Far East -->
+                <circle id="pulse-fareast"  class="logistics-pt-pulse" cx="575" cy="128" r="4" stroke="rgba(255,255,255,.35)" style="animation-delay:2.8s"/>
+                <circle id="ring-fareast"   class="logistics-pt-ring"  cx="575" cy="128" r="5" stroke="rgba(255,255,255,.4)"/>
+                <circle id="dot-fareast"    class="logistics-pt-dot"   cx="575" cy="128" r="3" fill="rgba(255,255,255,.8)"/>
+                <text  id="lbl-fareast"     class="logistics-label" x="575" y="121" text-anchor="middle">Asia</text>
+
+                <!-- ── COSTA RICA DESTINATION ── -->
+                <circle class="logistics-dest-ring" cx="187" cy="169" r="8"/>
+                <circle class="logistics-dest-ring" cx="187" cy="169" r="8" style="animation-delay:.7s"/>
+                <circle cx="187" cy="169" r="9" fill="rgba(255,107,0,.15)"/>
+                <circle cx="187" cy="169" r="5.5" fill="#FF6B00"/>
+                <circle cx="187" cy="169" r="2.5" fill="#fff"/>
+                <text x="187" y="181" class="logistics-label" text-anchor="middle" style="fill:#FF6B00;font-size:7px;font-weight:800;">Costa Rica</text>
+              </svg>
+
+              <!-- Route Chips -->
+              <div class="route-chips-wrap" role="group" aria-label="Seleccionar región de origen">
+                <button type="button" class="route-chip active" data-route="todos"><i class="fas fa-globe"></i> Todos</button>
+                <button type="button" class="route-chip" data-route="usa"><i class="fas fa-plane"></i> Estados Unidos</button>
+                <button type="button" class="route-chip" data-route="fareast"><i class="fas fa-ship"></i> Lejano Oriente</button>
+                <button type="button" class="route-chip" data-route="mexico"><i class="fas fa-truck"></i> México</button>
+                <button type="button" class="route-chip" data-route="cam"><i class="fas fa-truck"></i> Centroamérica</button>
+                <button type="button" class="route-chip" data-route="panama"><i class="fas fa-truck"></i> Panamá</button>
+                <button type="button" class="route-chip" data-route="sam"><i class="fas fa-ship"></i> Sur América</button>
+                <button type="button" class="route-chip" data-route="europe"><i class="fas fa-plane"></i> Europa y M.Oriente</button>
+              </div>
+
+              <!-- Route Detail Panel -->
+              <div class="route-detail-panel" id="gl-route-panel">
+                <div class="rdp-title"><i class="fas fa-globe"></i> <span id="gl-rdp-title">Todos los destinos</span></div>
+                <p class="rdp-desc" id="gl-rdp-desc">CRBOX coordina soluciones logísticas internacionales desde múltiples regiones hacia Costa Rica, combinando transporte aéreo, marítimo, terrestre, carga consolidada, LCL, FCL, contenedor completo y courier de exportación según el requerimiento.</p>
+                <div class="rdp-modes" id="gl-rdp-modes">
+                  <span class="rdp-mode-tag">Aéreo</span>
+                  <span class="rdp-mode-tag">Marítimo</span>
+                  <span class="rdp-mode-tag">Terrestre</span>
+                  <span class="rdp-mode-tag">Consolidado</span>
+                  <span class="rdp-mode-tag">FCL</span>
+                  <span class="rdp-mode-tag">LCL</span>
+                </div>
+              </div>
+
+            </div><!-- /global-map-card -->
+          </div><!-- /global-logistics-right -->
+        </div><!-- /grid -->
+      </div><!-- /container -->
+    </section>
+
+    <script>
+    (function () {
+      'use strict';
+      var ALL_IDS = ['usa','mexico','cam','panama','sam','europe','mideast','fareast'];
+      var ICON = {plane:'fas fa-plane',ship:'fas fa-ship',truck:'fas fa-truck',globe:'fas fa-globe'};
+      var ROUTES = {
+        todos:   { title:'Todos los destinos', icon:'globe',  svgIds:ALL_IDS,
+          desc:'CRBOX coordina soluciones logísticas internacionales desde múltiples regiones hacia Costa Rica, combinando transporte aéreo, marítimo, terrestre, carga consolidada, LCL, FCL, contenedor completo y courier de exportación según el requerimiento.',
+          modes:['Aéreo','Marítimo','Terrestre','Consolidado','FCL','LCL'] },
+        usa:     { title:'Estados Unidos', icon:'plane', svgIds:['usa'],
+          desc:'Manejo de carga aérea y marítima desde Miami, en consolidado y contenedor completo, así como desde el resto de Estados Unidos.',
+          modes:['Aéreo','Marítimo','Consolidado','Contenedor completo'] },
+        fareast: { title:'Lejano Oriente', icon:'ship',  svgIds:['fareast'],
+          desc:'Servicio completo de carga aérea y marítima, tanto FCL como LCL, desde China, Indonesia, Taiwán, Japón, Korea, Vietnam, entre otros.',
+          modes:['Aéreo','Marítimo','FCL','LCL'] },
+        mexico:  { title:'México', icon:'truck', svgIds:['mexico'],
+          desc:'Transporte terrestre consolidado, marítimo en contenedor completo y consolidado, aéreo de carga general y paquetería empresarial.',
+          modes:['Terrestre','Marítimo','Aéreo','Consolidado'] },
+        cam:     { title:'Centroamérica', icon:'truck', svgIds:['cam'],
+          desc:'Servicio de exportación en carga consolidada terrestre y carga aérea hacia la región centroamericana.',
+          modes:['Terrestre','Aéreo','Exportación'] },
+        panama:  { title:'Panamá', icon:'truck', svgIds:['panama'],
+          desc:'Carga consolidada terrestre desde Zona Libre hacia San José.',
+          modes:['Terrestre','Consolidado'] },
+        sam:     { title:'Sur América', icon:'ship', svgIds:['sam'],
+          desc:'Consolidado marítimo y contenedor completo desde Argentina, Chile, Brazil, Perú, Colombia y Uruguay.',
+          modes:['Marítimo','Consolidado','Contenedor completo'] },
+        europe:  { title:'Europa y Medio Oriente', icon:'plane', svgIds:['europe','mideast'],
+          desc:'Soluciones logísticas desde España, Inglaterra, Italia, Francia, Alemania, Bélgica, Suiza, Hungría, Dinamarca, Finlandia, República Checa, Portugal, Egipto, Turquía, Israel, entre otros.',
+          modes:['Aéreo','Marítimo','Internacional'] }
+      };
+
+      var current = 'todos';
+      var hovering = null;
+
+      function svgEl(id) { return document.getElementById(id); }
+
+      function applyMap(key) {
+        var data = ROUTES[key] || ROUTES.todos;
+        var active = data.svgIds;
+        var isAll = (key === 'todos');
+        ALL_IDS.forEach(function (id) {
+          var on = isAll || active.indexOf(id) !== -1;
+          var r = svgEl('route-' + id);
+          var f = svgEl('flow-' + id);
+          var ring = svgEl('ring-' + id);
+          var dot  = svgEl('dot-' + id);
+          var pulse = svgEl('pulse-' + id);
+          var lbl  = svgEl('lbl-' + id);
+          [r,f].forEach(function(el){ if(el){ el.classList.toggle('dim',!on); el.classList.toggle('glow',on&&!isAll); }});
+          [ring,dot].forEach(function(el){ if(el){ el.classList.toggle('dim',!on); el.classList.toggle('glow',on&&!isAll); }});
+          if(pulse){ pulse.classList.toggle('dim',!on); pulse.classList.toggle('glow',on&&!isAll); }
+          if(lbl){   lbl.classList.toggle('dim',!on);   lbl.classList.toggle('glow',on&&!isAll); }
+        });
+        var panel = data;
+        var titleEl = svgEl('gl-rdp-title');
+        var descEl  = svgEl('gl-rdp-desc');
+        var modesEl = svgEl('gl-rdp-modes');
+        var iconEl  = svgEl('gl-route-panel') && svgEl('gl-route-panel').querySelector('.rdp-title i');
+        if(titleEl) titleEl.textContent = panel.title;
+        if(descEl)  descEl.textContent  = panel.desc;
+        if(modesEl) modesEl.innerHTML   = panel.modes.map(function(m){ return '<span class="rdp-mode-tag">'+m+'</span>'; }).join('');
+        if(iconEl)  iconEl.className    = ICON[panel.icon] || ICON.globe;
+      }
+
+      function setChipActive(key) {
+        document.querySelectorAll('.route-chip').forEach(function(c){ c.classList.toggle('active', c.dataset.route === key); });
+      }
+
+      function init() {
+        document.querySelectorAll('.route-chip').forEach(function (chip) {
+          var key = chip.dataset.route;
+          chip.addEventListener('click', function () { current = key; hovering = null; setChipActive(key); applyMap(key); });
+          chip.addEventListener('mouseenter', function () { hovering = key; applyMap(key); });
+          chip.addEventListener('mouseleave', function () { hovering = null; applyMap(current); });
+          chip.addEventListener('focus',      function () { hovering = key; applyMap(key); });
+          chip.addEventListener('blur',       function () { hovering = null; applyMap(current); });
+        });
+        applyMap('todos');
+      }
+
+      if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+    })();
+    </script>
 
    <!-- Casillero Virtual -->
    <section id="casillero" class="py-16 md:py-24 bg-white">
