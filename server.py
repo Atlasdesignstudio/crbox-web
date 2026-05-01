@@ -8373,7 +8373,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return
 
         group_name    = str(data.get('groupName') or '').strip()
-        exp_count     = int(data.get('expectedPackageCount') or 0)
+        try:
+            exp_count = int(data.get('expectedPackageCount') or 0)
+        except (ValueError, TypeError):
+            exp_count = 0
         actual_count  = len(data.get('packages') or [])
         notes         = str(data.get('notes') or '').strip()
         locker        = str(data.get('lockerNumber') or '—').strip()
@@ -8392,14 +8395,22 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         FACTURAS_RECIPIENT = 'facturas@crbox.cr'
 
         # ── Build plain-text body ──
+        def _inv_label(raw):
+            """Return 'Subida', 'Pendiente', or 'Desconocido' for an invoicesCount value."""
+            if raw is None:
+                return 'Desconocido'
+            try:
+                return 'Subida' if int(raw) > 0 else 'Pendiente'
+            except (ValueError, TypeError):
+                return 'Pendiente'
+
         pkg_lines = '\n'.join(
             '  - Tracking: {tr}  |  Recibo: {nb}  |  Carrier: {cr}  |  Fecha: {dt}  |  Factura: {inv}'.format(
                 tr  = p.get('trackingNumber') or '—',
                 nb  = p.get('number') or '—',
                 cr  = p.get('carrierName') or '—',
                 dt  = str(p.get('bestDate') or '—')[:10],
-                inv = ('Subida' if (p.get('invoicesCount') or 0) > 0 else
-                       'Pendiente' if p.get('invoicesCount') is not None else 'Desconocido')
+                inv = _inv_label(p.get('invoicesCount'))
             )
             for p in packages
         ) or '  (sin paquetes)'
@@ -8422,10 +8433,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         # ── Build HTML body ──
         def _pkg_row_html(p):
-            inv_cnt = p.get('invoicesCount')
-            if inv_cnt is not None and int(inv_cnt) > 0:
+            label = _inv_label(p.get('invoicesCount'))
+            if label == 'Subida':
                 inv_html = '<span style="color:#16a34a;font-weight:600;">✓ Subida</span>'
-            elif inv_cnt is not None:
+            elif label == 'Pendiente':
                 inv_html = '<span style="color:#b45309;font-weight:600;">⚠ Pendiente</span>'
             else:
                 inv_html = '<span style="color:#6b7280;">?</span>'

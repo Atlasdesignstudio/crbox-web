@@ -523,6 +523,9 @@
   function openPackageSelector(groupId) {
     _selectorGroupId = groupId;
     _selectedPkgIds = new Set();
+    // Always reset confirm button to disabled on each open
+    var selBtn = _el('ej-selector-confirm-btn');
+    if (selBtn) selBtn.disabled = true;
     _renderSelectorList();
     _openModal(_el('ej-selector-modal-overlay'));
   }
