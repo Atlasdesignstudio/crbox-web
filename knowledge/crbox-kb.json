@@ -146,6 +146,75 @@
       "Consolas de videojuegos"
     ]
   },
+  "free_delivery_zones": {
+    "description": "CRBOX ofrece entrega local GRATUITA para empleados de empresas en Zonas Francas y Oficentros. No tiene costo adicional.",
+    "oficentros": [
+      "Oficentro la Sabana",
+      "Ofimall en Mall San Pedro",
+      "Terra Campus Corporativo",
+      "San Antonio Business Park",
+      "Oficentro Plaza Aeropuerto",
+      "Forum 1 y 2",
+      "Plaza Murano",
+      "Ofiplaza del Este",
+      "Plaza Roble",
+      "El Cafetal",
+      "Eurocenter"
+    ],
+    "zonas_francas": [
+      "Zona Franca el Coyol",
+      "Zona Franca Z",
+      "Zona Franca Bes",
+      "Bodegas del Este",
+      "Metropark",
+      "Global Park",
+      "Ultra Park",
+      "Ultra Lag",
+      "Saret"
+    ]
+  },
+  "international_logistics": {
+    "description": "CRBOX ofrece servicio integral de logística internacional: exportación e importación aérea, marítima y terrestre.",
+    "contact": "ventas@crbox.cr o WhatsApp",
+    "services": [
+      {
+        "name": "Importación aérea, terrestre y marítima (LCL y FCL)",
+        "detail": "Solicitar a ventas@crbox.cr o WhatsApp"
+      },
+      {
+        "name": "Courier de exportación",
+        "detail": "Servicio diario de envío de paquetería al resto del mundo"
+      },
+      {
+        "name": "Carga desde Estados Unidos",
+        "detail": "Aérea y marítima desde Miami (consolidado y contenedor completo) y desde el resto de EE.UU."
+      },
+      {
+        "name": "Lejano Oriente",
+        "detail": "Carga aérea y marítima FCL y LCL. China, Indonesia, Taiwán, Japón, Korea, Vietnam, entre otros"
+      },
+      {
+        "name": "México",
+        "detail": "Terrestre consolidado, marítimo (FCL y LCL), aéreo carga general y paquetería empresarial"
+      },
+      {
+        "name": "Centroamérica",
+        "detail": "Exportación en carga consolidada terrestre y carga aérea"
+      },
+      {
+        "name": "Panamá",
+        "detail": "Carga consolidada terrestre Zona Libre a San José"
+      },
+      {
+        "name": "Suramérica",
+        "detail": "Consolidado marítimo y contenedor completo desde Argentina, Chile, Brasil, Perú, Colombia, Uruguay"
+      },
+      {
+        "name": "Europa y Medio Oriente",
+        "detail": "España, Inglaterra, Italia, Francia, Alemania, Bélgica, Suiza, Hungría, Dinamarca, Finlandia, República Checa, Portugal, Egipto, Turquía, Israel, entre otros"
+      }
+    ]
+  },
   "how_it_works": [
     "Regístrate gratis en crbox.cr y obtén tu dirección en Miami al instante",
     "Compra en cualquier tienda de USA (Amazon, Walmart, BestBuy, Target, Apple, Temu…)",
@@ -155,6 +224,34 @@
   ],
   "faq": [
     {"q": "¿Cuánto cuesta el casillero?", "a": "Es 100% GRATIS. Sin cuota mensual ni costo de afiliación."},
+    {
+      "q": "¿Qué hacer si se me olvida el número de mi casillero o la clave de mi cuenta?",
+      "a": "Para ver tu número de casillero: ingresa con tu correo y contraseña en crbox.cr y lo encontrarás en tu cuenta. Si olvidaste tu contraseña, haz clic en '¿Olvidó su clave?' en la página de inicio — el sistema te enviará una clave provisional que podrás cambiar cuando quieras. Si necesitas más ayuda escríbenos a servicioalcliente@crbox.cr."
+    },
+    {
+      "q": "¿El servicio se cobra por peso o por volumen?",
+      "a": "Se cobra por peso o por volumen según lo que sea mayor. La fórmula volumétrica es: largo × ancho × alto (en cm) ÷ 6000. CRBOX compara el peso real con el volumétrico y cobra el mayor."
+    },
+    {
+      "q": "¿Cuánto tarda un paquete en llegar una vez que está en Miami?",
+      "a": "El tiempo promedio es de 2 a 3 días hábiles desde que el paquete sale de Miami. No se cuentan atrasos por mal tiempo, revisión aleatoria de Aduana o fechas de alto movimiento como Navidad."
+    },
+    {
+      "q": "¿Puedo rastrear mi paquete?",
+      "a": "Sí. Todo paquete que llega debidamente identificado se ingresa al sistema. Puedes ver el estado en tu cuenta en crbox.cr. Además, recibirás notificaciones por correo cada vez que el paquete cambie de estado, hasta que esté listo para retiro o entrega."
+    },
+    {
+      "q": "¿Mis paquetes pagan impuestos?",
+      "a": "Sí. Todo paquete pasa por un proceso de aduana y puede pagar impuestos según su valor y categoría. CRBOX gestiona el proceso aduanero."
+    },
+    {
+      "q": "¿CRBOX hace entregas en Zonas Francas y Oficentros?",
+      "a": "Sí. CRBOX ofrece entrega local GRATUITA en varias Zonas Francas y Oficentros. Si trabajas en alguno de estos lugares, puedes usar este beneficio sin costo adicional. Los lugares incluyen: Oficentro la Sabana, Ofimall (Mall San Pedro), Terra Campus, San Antonio Business Park, Plaza Aeropuerto, Forum 1 y 2, Plaza Murano, Ofiplaza del Este, Plaza Roble, El Cafetal, Eurocenter; y Zonas Francas: El Coyol, Z, Bes, Bodegas del Este, Metropark, Global Park, Ultra Park, Ultra Lag y Saret."
+    },
+    {
+      "q": "¿CRBOX hace logística internacional / exportaciones / importaciones?",
+      "a": "Sí. CRBOX ofrece servicios completos de logística internacional: importación y exportación aérea, marítima (LCL y FCL) y terrestre. Cubrimos EE.UU., Centroamérica, México, Panamá, Suramérica (Argentina, Chile, Brasil, Perú, Colombia, Uruguay), Lejano Oriente (China, Japón, Korea, Taiwan, Vietnam) y Europa/Medio Oriente. Escríbenos a ventas@crbox.cr o por WhatsApp para coordinar tu requerimiento."
+    },
     {
       "q": "Mi paquete ya está en Miami / ya llegó a la bodega, ¿qué tengo que hacer?",
       "a": "Si ya tienes cuenta en CRBOX (por ejemplo ya hiciste una solicitud de compra por encargo), entra al portal del cliente y sube la factura en la sección 'Mis Paquetes'. También puedes enviar la factura directamente a facturas@crbox.cr. La factura es obligatoria para que Aduanas autorice el ingreso a Costa Rica. Una vez que tenemos la factura, coordinamos el envío."
