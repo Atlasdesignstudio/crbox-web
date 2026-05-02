@@ -102,6 +102,20 @@
     closed:               'fa-lock'
   };
 
+  /* ─── CRBOX package statusId → human-readable Spanish label ─ */
+  var _STATUS_ID_LABEL = {
+    1:  'En Miami',
+    2:  'En tránsito a CR',
+    3:  'En aduana',
+    4:  'Entregado',
+    5:  'Retenido en aduana',
+    6:  'Devuelto al remitente',
+    7:  'En bodega CR',
+    8:  'Listo para entrega',
+    9:  'En camino a Costa Rica',
+    10: 'Procesado'
+  };
+
   /* ─── Carrier color map for selector pill badges ─────────── */
   var _CARRIER_COLORS = {
     'UPS':    { bg: '#5C3B1E', color: '#fff' },
@@ -136,7 +150,8 @@
   var _allPackages = [];   // raw mapped packages from portal-api
 
   /* ─── UI state ─── */
-  var _expandedCards  = {};  // groupId → true/false; default = expanded
+  var _expandedCards      = {};  // groupId → true/false; default = expanded
+  var _driftDetailExpanded = {};  // groupId → true/false; drift detail panel
   var _historyExpanded = false; // "Historial de envíos" section collapsed by default
   var _postCreatePkg  = null; // package to auto-add after creating a group from the add-to-group row flow
 
@@ -393,6 +408,14 @@
     var _liveLookup = {};
     _allPackages.forEach(function (p) { _liveLookup[_pid(p.idwarehousereceipt)] = p; });
 
+    /* Detect packages that have drifted away from Miami (statusId !== 1) */
+    var changedPkgs = (!isReadOnly && cnt > 0) ? (group.packages || []).filter(function (p) {
+      var livePkg = _liveLookup[_pid(p.idwarehousereceipt)];
+      var sid = livePkg ? livePkg.statusId : p.statusId;
+      return (sid !== undefined && sid !== null && sid !== 1);
+    }) : [];
+    var hasDrift = changedPkgs.length > 0;
+
     /* Expand/collapse state — default expanded */
     var isExpanded = (_expandedCards[group.id] !== false);
 
@@ -524,23 +547,54 @@
       '</div>';
     }
 
-    /* ── Card-level amber banner when any grouped package changed status ── */
-    if (!isReadOnly && cnt > 0) {
-      var changedPkgs = (group.packages || []).filter(function (p) {
+    /* ── Card-level drift banner when any grouped package changed status ── */
+    if (hasDrift) {
+      /* Collect unique new status names for the header line */
+      var _driftedSids = {};
+      changedPkgs.forEach(function (p) {
         var livePkg = _liveLookup[_pid(p.idwarehousereceipt)];
         var sid = livePkg ? livePkg.statusId : p.statusId;
-        return (sid !== undefined && sid !== null && sid !== 1);
+        if (sid !== undefined && sid !== null) _driftedSids[sid] = true;
       });
-      if (changedPkgs.length > 0) {
-        html += '<div style="margin:0 1.25rem 0.75rem;background:#fffbeb;border:1px solid #fbbf24;' +
-          'border-radius:0.6rem;padding:0.6rem 0.9rem;display:flex;align-items:flex-start;gap:0.6rem;">' +
-          '<i class="fas fa-exclamation-triangle" style="color:#d97706;flex-shrink:0;margin-top:0.15rem"></i>' +
-          '<div style="font-size:0.82rem;color:#92400e;">' +
-            '<strong>' + changedPkgs.length + (changedPkgs.length === 1 ? ' paquete' : ' paquetes') + ' cambió de estado.</strong> ' +
-            'Uno o más paquetes en este grupo ya no están en Miami. Verifica con CRBOX antes de continuar.' +
+      var _driftStatusNames = Object.keys(_driftedSids).map(function (sid) {
+        return _STATUS_ID_LABEL[sid] || ('Estado ' + sid);
+      });
+      var _statusDesc = _driftStatusNames.length === 1
+        ? '\u201c' + _driftStatusNames[0] + '\u201d'
+        : _driftStatusNames.map(function (n) { return '\u201c' + n + '\u201d'; }).join(', ');
+      var _isDetailExpanded = !!_driftDetailExpanded[group.id];
+
+      html += '<div class="ej-drift-banner" data-gid="' + _esc(group.id) + '">' +
+        '<div class="ej-drift-header">' +
+          '<i class="fas fa-exclamation-triangle ej-drift-icon"></i>' +
+          '<div class="ej-drift-msg">' +
+            '<strong>' + changedPkgs.length +
+              (changedPkgs.length === 1 ? ' paquete ahora está en ' : ' paquetes ahora están en ') +
+              _statusDesc + '</strong>' +
+            ' — ' + (changedPkgs.length === 1 ? 'puede haber sido procesado' : 'pueden haber sido procesados') + ' por separado.' +
           '</div>' +
+        '</div>' +
+        '<div class="ej-drift-actions">' +
+          '<button class="ej-btn ej-btn-sm ej-btn-danger-outline ej-btn-drift-remove" data-gid="' + _esc(group.id) + '">' +
+            '<i class="fas fa-times-circle"></i> Quitar paquetes cambiados' +
+          '</button>' +
+          '<button class="ej-btn ej-btn-sm ej-btn-ghost ej-btn-drift-detail" data-gid="' + _esc(group.id) + '">' +
+            '<i class="fas ' + (_isDetailExpanded ? 'fa-chevron-up' : 'fa-chevron-down') + '"></i> Ver detalle' +
+          '</button>' +
+        '</div>' +
+        '<div class="ej-drift-detail" id="ej-drift-detail-' + _esc(group.id) + '"' +
+          (_isDetailExpanded ? '' : ' style="display:none"') + '>';
+      changedPkgs.forEach(function (p) {
+        var livePkg = _liveLookup[_pid(p.idwarehousereceipt)];
+        var sid = livePkg ? livePkg.statusId : p.statusId;
+        var sName = (sid !== undefined && sid !== null) ? (_STATUS_ID_LABEL[sid] || ('Estado ' + sid)) : 'Desconocido';
+        html += '<div class="ej-drift-detail-row">' +
+          '<span class="ej-drift-detail-tracking">' + _esc(p.trackingNumber || p.number || '—') + '</span>' +
+          '<span class="ej-drift-detail-status">' + _esc(sName) + '</span>' +
         '</div>';
-      }
+      });
+      html += '</div>' + // close ej-drift-detail
+      '</div>'; // close ej-drift-banner
     }
 
     /* ── Packages in group ── */
@@ -573,24 +627,29 @@
     /* ── Action buttons per status ── */
     html += '<div class="ej-group-actions">';
 
+    var _driftTitle = hasDrift ? ' title="Hay paquetes que cambiaron de estado \u2014 resu\u00e9lvelo antes de continuar"' : '';
+
     if (group.status === 'waiting_for_packages') {
       html += '<button class="ej-btn ej-btn-purple ej-btn-sm ej-btn-add-pkgs" data-gid="' + _esc(group.id) + '">' +
         '<i class="fas fa-plus"></i> <span class="ej-btn-label">Agregar paquetes en Miami</span></button>';
       if (cnt > 0) {
-        html += '<button class="ej-btn ej-btn-outline ej-btn-sm ej-btn-prepare" data-gid="' + _esc(group.id) + '">' +
+        html += '<button class="ej-btn ej-btn-outline ej-btn-sm ej-btn-prepare" data-gid="' + _esc(group.id) + '"' +
+          (hasDrift ? ' disabled' + _driftTitle : '') + '>' +
           '<i class="fas fa-clipboard-check"></i> <span class="ej-btn-label">Preparar grupo</span></button>';
       }
     }
 
     if (group.status === 'invoices_pending') {
-      html += '<button class="ej-btn ej-btn-primary ej-btn-sm ej-btn-invoice-step" data-gid="' + _esc(group.id) + '">' +
+      html += '<button class="ej-btn ej-btn-primary ej-btn-sm ej-btn-invoice-step" data-gid="' + _esc(group.id) + '"' +
+        (hasDrift ? ' disabled' + _driftTitle : '') + '>' +
         '<i class="fas fa-file-invoice"></i> <span class="ej-btn-label">Verificar facturas</span></button>';
       html += '<button class="ej-btn ej-btn-ghost ej-btn-sm ej-btn-back-add" data-gid="' + _esc(group.id) + '">' +
         '<i class="fas fa-arrow-left"></i> <span class="ej-btn-label">Agregar más</span></button>';
     }
 
     if (group.status === 'ready_to_confirm') {
-      html += '<button class="ej-btn ej-btn-primary ej-btn-sm ej-btn-invoice-step" data-gid="' + _esc(group.id) + '">' +
+      html += '<button class="ej-btn ej-btn-primary ej-btn-sm ej-btn-invoice-step" data-gid="' + _esc(group.id) + '"' +
+        (hasDrift ? ' disabled' + _driftTitle : '') + '>' +
         '<i class="fas fa-paper-plane"></i> <span class="ej-btn-label">Enviar confirmación</span></button>';
     }
 
@@ -1720,6 +1779,51 @@
           _saveAmbiguous();
           openAddToGroupModal(firstAmbigPkg);
         }
+        return;
+      }
+
+      /* Drift: remove all changed packages */
+      btn = e.target.closest('.ej-btn-drift-remove');
+      if (btn) {
+        var driftGid = btn.dataset.gid;
+        var driftGroup = getAllGroups().find(function (g) { return g.id === driftGid; });
+        if (!driftGroup) return;
+        var driftLiveLookup = {};
+        _allPackages.forEach(function (p) { driftLiveLookup[_pid(p.idwarehousereceipt)] = p; });
+        var driftedPkgs = (driftGroup.packages || []).filter(function (p) {
+          var livePkg = driftLiveLookup[_pid(p.idwarehousereceipt)];
+          var sid = livePkg ? livePkg.statusId : p.statusId;
+          return (sid !== undefined && sid !== null && sid !== 1);
+        });
+        if (driftedPkgs.length === 0) return;
+        var removedTrackings = driftedPkgs.map(function (p) { return p.trackingNumber || p.number || '?'; });
+        var removedPkgsCopy = driftedPkgs.slice();
+        var removedIds = new Set(driftedPkgs.map(function (p) { return _pid(p.idwarehousereceipt); }));
+        /* Single update instead of one PATCH per package */
+        _updateGroup(driftGid, {
+          packages: (driftGroup.packages || []).filter(function (p) { return !removedIds.has(_pid(p.idwarehousereceipt)); })
+        });
+        delete _driftDetailExpanded[driftGid];
+        renderSection();
+        var undoLabel = removedPkgsCopy.length === 1
+          ? '1 paquete quitado: ' + removedTrackings[0]
+          : removedPkgsCopy.length + ' paquetes quitados: ' + removedTrackings.slice(0, 2).join(', ') + (removedTrackings.length > 2 ? ' y más' : '');
+        _showUndoToast(undoLabel, function () {
+          addPackagesToGroup(driftGid, removedPkgsCopy);
+          renderSection();
+        });
+        return;
+      }
+
+      /* Drift: toggle detail expand/collapse */
+      btn = e.target.closest('.ej-btn-drift-detail');
+      if (btn) {
+        var detailGid = btn.dataset.gid;
+        _driftDetailExpanded[detailGid] = !_driftDetailExpanded[detailGid];
+        var detailEl = document.getElementById('ej-drift-detail-' + detailGid);
+        var detailIcon = btn.querySelector('i');
+        if (detailEl) detailEl.style.display = _driftDetailExpanded[detailGid] ? '' : 'none';
+        if (detailIcon) detailIcon.className = 'fas ' + (_driftDetailExpanded[detailGid] ? 'fa-chevron-up' : 'fa-chevron-down');
         return;
       }
 
