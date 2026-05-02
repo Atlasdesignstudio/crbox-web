@@ -1090,6 +1090,61 @@
   margin: 0 auto 0.5rem;
 }
 
+/* ── Auto-added in-card notification strip ───────────────── */
+.ej-auto-added-strip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0 1.25rem 0.75rem;
+  padding: 0.6rem 0.9rem;
+  background: #f5f3ff;
+  border: 1px solid #c4b5fd;
+  border-radius: 0.625rem;
+  font-size: 0.82rem;
+  color: #5b21b6;
+}
+.ej-auto-added-strip > .fas {
+  color: #7c3aed;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+.ej-auto-added-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* ── Section-level ambiguous banner ──────────────────────── */
+.ej-ambiguous-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0 0 0.25rem;
+  padding: 0.7rem 1.25rem;
+  background: #fffbeb;
+  border-bottom: 1px solid #fcd34d;
+  font-size: 0.82rem;
+  color: #92400e;
+}
+.ej-ambiguous-banner > .fas {
+  color: #d97706;
+  flex-shrink: 0;
+}
+.ej-ambiguous-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .ej-ambiguous-banner {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .ej-ambiguous-banner .ej-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* ── Named classes replacing inline styles ───────────────── */
 .ej-card-header-right {
   display: flex;

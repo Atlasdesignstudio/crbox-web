@@ -103,6 +103,23 @@
   var _historyExpanded = false; // "Historial de envíos" section collapsed by default
   var _postCreatePkg  = null; // package to auto-add after creating a group from the add-to-group row flow
 
+  /* ─── Auto-assign session state ─── */
+  var _SEEN_MIAMI_KEY      = 'crbox_seen_miami_ids';
+  var _AUTO_ADDED_KEY      = 'crbox_auto_added_groups';
+  var _AMBIGUOUS_KEY       = 'crbox_ambiguous_miami_pkgs';
+
+  /* Load auto-added map from sessionStorage so in-card strips survive reloads */
+  var _autoAddedByGroup = (function () {
+    try { return JSON.parse(sessionStorage.getItem(_AUTO_ADDED_KEY) || '{}') || {}; }
+    catch (_e) { return {}; }
+  }());
+
+  /* Load ambiguous packages from sessionStorage so the banner survives reloads */
+  var _ambiguousNewMiamiPkgs = (function () {
+    try { return JSON.parse(sessionStorage.getItem(_AMBIGUOUS_KEY) || '[]') || []; }
+    catch (_e) { return []; }
+  }());
+
   /* ─── Package ID normalizer — always returns a string ─── */
   function _pid(x) { return String(x == null ? '' : x); }
 
@@ -423,6 +440,24 @@
       '</div>' +
     '</div>';
 
+    /* ── In-card auto-added notification strip ── */
+    if (!isReadOnly && _autoAddedByGroup[group.id] && _autoAddedByGroup[group.id].length > 0) {
+      var autoEntries = _autoAddedByGroup[group.id];
+      html += '<div class="ej-auto-added-strip" data-gid="' + _esc(group.id) + '">' +
+        '<i class="fas fa-magic"></i>' +
+        '<div class="ej-auto-added-text">' +
+          '<strong>' + autoEntries.length +
+            (autoEntries.length === 1 ? ' paquete agregado automáticamente' : ' paquetes agregados automáticamente') +
+          '</strong>' +
+          ' — ' + autoEntries.map(function (x) { return _esc(x.tracking); }).join(', ') +
+        '</div>' +
+        '<button class="ej-btn-dismiss-auto-add ej-icon-btn" data-gid="' + _esc(group.id) + '" ' +
+          'title="Descartar" aria-label="Descartar notificación">' +
+          '<i class="fas fa-times" style="font-size:0.7rem"></i>' +
+        '</button>' +
+      '</div>';
+    }
+
     /* ── Card-level amber banner when any grouped package changed status ── */
     if (!isReadOnly && cnt > 0) {
       var changedPkgs = (group.packages || []).filter(function (p) {
@@ -506,6 +541,36 @@
   function renderSection() {
     var container = _el('ej-group-list-container');
     if (!container) return;
+
+    /* Prune ambiguous-banner list: remove packages no longer in Miami or already locked */
+    if (_ambiguousNewMiamiPkgs.length > 0) {
+      var lockedNow = getLockedPackageIds();
+      var miamiNow = new Set(
+        _allPackages.filter(function (p) { return p.statusId === 1; })
+                    .map(function (p) { return _pid(p.idwarehousereceipt); })
+      );
+      var ambigBefore = _ambiguousNewMiamiPkgs.length;
+      _ambiguousNewMiamiPkgs = _ambiguousNewMiamiPkgs.filter(function (p) {
+        var pid = _pid(p.idwarehousereceipt);
+        return miamiNow.has(pid) && !lockedNow.has(pid);
+      });
+      if (_ambiguousNewMiamiPkgs.length !== ambigBefore) _saveAmbiguous();
+    }
+
+    /* Prune stale auto-added entries: remove refs to packages no longer in group */
+    var allGrps = getAllGroups();
+    var autoAddedChanged = false;
+    Object.keys(_autoAddedByGroup).forEach(function (gid) {
+      var grp = allGrps.find(function (g) { return g.id === gid; });
+      if (!grp) { delete _autoAddedByGroup[gid]; autoAddedChanged = true; return; }
+      var pkgIds = new Set((grp.packages || []).map(function (p) { return _pid(p.idwarehousereceipt); }));
+      var before = _autoAddedByGroup[gid].length;
+      _autoAddedByGroup[gid] = _autoAddedByGroup[gid].filter(function (x) { return pkgIds.has(x.pid); });
+      if (_autoAddedByGroup[gid].length === 0) { delete _autoAddedByGroup[gid]; autoAddedChanged = true; }
+      else if (_autoAddedByGroup[gid].length !== before) { autoAddedChanged = true; }
+    });
+    if (autoAddedChanged) _saveAutoAdded();
+
     var groups = getAllGroups();
     var nonClosedGroups = groups.filter(function (g) { return g.status !== 'closed'; });
     var closedGroups    = groups.filter(function (g) { return g.status === 'closed'; });
@@ -548,7 +613,29 @@
             '<i class="fas fa-chevron-down mr-1"></i>Ver mis grupos' +
           '</button>' +
         '</div>';
-      var html = summaryBar + '<div class="ej-group-list">';
+      /* Section-level banner: new Miami packages with multiple eligible groups */
+      var ambigHtml = '';
+      if (_ambiguousNewMiamiPkgs.length > 0) {
+        var ambigCount = _ambiguousNewMiamiPkgs.length;
+        var firstAmbigPkg = _ambiguousNewMiamiPkgs[0];
+        ambigHtml =
+          '<div class="ej-ambiguous-banner" id="ej-ambiguous-banner">' +
+            '<i class="fas fa-exclamation-circle" style="flex-shrink:0"></i>' +
+            '<div class="ej-ambiguous-text">' +
+              '<strong>' + ambigCount + (ambigCount === 1 ? ' nuevo paquete en Miami sin grupo' : ' nuevos paquetes en Miami sin grupo') + '</strong>' +
+              ' — agrégalo manualmente.' +
+            '</div>' +
+            '<button class="ej-btn-open-selector-ambig ej-btn ej-btn-outline ej-btn-sm" ' +
+              'data-pid="' + _esc(_pid(firstAmbigPkg.idwarehousereceipt)) + '">' +
+              '<i class="fas fa-plus"></i> Agregar' +
+            '</button>' +
+            '<button class="ej-btn-dismiss-ambig ej-icon-btn" title="Descartar" aria-label="Descartar notificación">' +
+              '<i class="fas fa-times" style="font-size:0.7rem"></i>' +
+            '</button>' +
+          '</div>';
+      }
+
+      var html = summaryBar + ambigHtml + '<div class="ej-group-list">';
       nonClosedGroups.forEach(function (g) { html += _renderGroupCard(g); });
       html += '</div>';
 
@@ -1093,7 +1180,172 @@
     _openModal(_el('ej-delete-modal-overlay'));
   }
 
+  /* ─── Auto-assign helpers ────────────────────────────────── */
+  function _saveSeenMiamiIds(set) {
+    try { sessionStorage.setItem(_SEEN_MIAMI_KEY, JSON.stringify(Array.from(set))); }
+    catch (_e) {}
+  }
+
+  function _saveAutoAdded() {
+    try { sessionStorage.setItem(_AUTO_ADDED_KEY, JSON.stringify(_autoAddedByGroup)); }
+    catch (_e) {}
+  }
+
+  function _saveAmbiguous() {
+    try { sessionStorage.setItem(_AMBIGUOUS_KEY, JSON.stringify(_ambiguousNewMiamiPkgs)); }
+    catch (_e) {}
+  }
+
+  function _checkAutoAssign() {
+    var miamiPkgs = _allPackages.filter(function (p) { return p.statusId === 1; });
+
+    /* ── Prevent retroactive assignment on first session load ──────────
+     * On first call the sessionStorage key is absent (rawSeen === null).
+     * We must only seed the baseline when we have a real package snapshot;
+     * if packages haven't loaded yet (_allPackages empty / miamiPkgs empty)
+     * we skip writing the key entirely and return — the next call that has
+     * actual package data will create the baseline. This avoids a race where
+     * init() fires _checkAutoAssign() before setPackages() has been called,
+     * which would seed an empty set and then treat all Miami packages as
+     * "newly arrived" when setPackages() finally runs. */
+    var rawSeen = null;
+    try { rawSeen = sessionStorage.getItem(_SEEN_MIAMI_KEY); } catch (_e) {}
+
+    if (rawSeen === null) {
+      if (_allPackages.length === 0) {
+        /* Package data not yet loaded at all — defer seeding to the next call.
+         * We must not write an empty seen set here or a future Miami transition
+         * would be treated as baseline instead of "newly arrived". */
+        return false;
+      }
+      /* First call with real package data loaded. Seed current Miami IDs
+       * (may be an empty set) and bail — no auto-assignment on first load.
+       * This correctly handles both cases:
+       *   (a) packages loaded, 0 Miami → seed empty set; next Miami arrival detected
+       *   (b) packages loaded, N Miami → seed those IDs; no retroactive assignment */
+      var seed = new Set();
+      miamiPkgs.forEach(function (p) { seed.add(_pid(p.idwarehousereceipt)); });
+      _saveSeenMiamiIds(seed);
+      return false;
+    }
+
+    var seen;
+    try { seen = new Set(JSON.parse(rawSeen)); } catch (_e) { seen = new Set(); }
+
+    var newlyArrived = miamiPkgs.filter(function (p) { return !seen.has(_pid(p.idwarehousereceipt)); });
+
+    /* Always update seen set so future calls don't re-detect these */
+    miamiPkgs.forEach(function (p) { seen.add(_pid(p.idwarehousereceipt)); });
+    _saveSeenMiamiIds(seen);
+
+    if (newlyArrived.length === 0) return false;
+
+    var locked = getLockedPackageIds();
+    var unassigned = newlyArrived.filter(function (p) { return !locked.has(_pid(p.idwarehousereceipt)); });
+    if (unassigned.length === 0) return false;
+
+    /* ── Fix: enforce capacity per package, not per batch ──
+     * Track remaining slots locally and decrement after each successful
+     * add so that a group cannot be overfilled when several packages
+     * arrive in the same cycle. Re-evaluate eligibility before every
+     * assignment using this local counter. */
+    var capacityLeft = {};
+    getActiveGroups().forEach(function (g) {
+      if (g.status === 'waiting_for_packages') {
+        var remaining = g.expectedPackageCount - (g.packages || []).length;
+        if (remaining > 0) capacityLeft[g.id] = remaining;
+      }
+    });
+
+    var didChange = false;
+    _ambiguousNewMiamiPkgs = [];
+
+    unassigned.forEach(function (pkg) {
+      /* Re-evaluate eligible groups using the up-to-date capacity counters */
+      var currentEligible = getActiveGroups().filter(function (g) {
+        return g.status === 'waiting_for_packages' &&
+               capacityLeft[g.id] > 0;
+      });
+
+      if (currentEligible.length === 0) return; // no room anywhere — skip
+
+      if (currentEligible.length === 1) {
+        var grp = currentEligible[0];
+        addPackagesToGroup(grp.id, [{
+          idwarehousereceipt: pkg.idwarehousereceipt,
+          trackingNumber:     pkg.trackingNumber,
+          number:             pkg.number,
+          carrierName:        pkg.carrierName,
+          bestDate:           pkg.bestDate,
+          statusId:           pkg.statusId,
+          invoicesCount:      pkg.invoicesCount
+        }]);
+        /* Decrement local counter so later iterations respect capacity */
+        capacityLeft[grp.id] = (capacityLeft[grp.id] || 1) - 1;
+        if (!_autoAddedByGroup[grp.id]) _autoAddedByGroup[grp.id] = [];
+        var tracking = pkg.trackingNumber || pkg.number || '?';
+        var pkgId = _pid(pkg.idwarehousereceipt);
+        _autoAddedByGroup[grp.id].push({ pid: pkgId, tracking: tracking });
+        _saveAutoAdded();
+        didChange = true;
+        /* Undo toast — 5 second window */
+        (function (groupId, pid) {
+          _showUndoToast(
+            '1 paquete agregado automáticamente al grupo',
+            function () {
+              removePackageFromGroup(groupId, pid);
+              if (_autoAddedByGroup[groupId]) {
+                _autoAddedByGroup[groupId] = _autoAddedByGroup[groupId].filter(function (x) { return x.pid !== pid; });
+                if (_autoAddedByGroup[groupId].length === 0) delete _autoAddedByGroup[groupId];
+              }
+              _saveAutoAdded();
+              renderSection();
+            }
+          );
+        }(grp.id, pkgId));
+      } else {
+        /* Multiple groups eligible — flag for manual assignment */
+        _ambiguousNewMiamiPkgs.push(pkg);
+        didChange = true;
+      }
+    });
+
+    if (didChange) _saveAmbiguous();
+    return didChange;
+  }
+
   /* ─── Toast ──────────────────────────────────────────────── */
+  function _showUndoToast(msg, undoCb) {
+    var container = _el('toast-container');
+    if (!container) return;
+    var div = document.createElement('div');
+    div.className = 'flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium bg-indigo-600 toast-enter max-w-xs';
+    div.innerHTML = '<i class="fas fa-magic" style="flex-shrink:0"></i>' +
+      '<span style="flex:1">' + _esc(msg) + '</span>' +
+      '<button class="ej-undo-btn" style="background:none;border:1px solid rgba(255,255,255,0.6);' +
+        'border-radius:0.375rem;color:#fff;font-size:0.75rem;font-weight:700;padding:0.2rem 0.55rem;' +
+        'cursor:pointer;white-space:nowrap;flex-shrink:0">Deshacer</button>';
+    container.appendChild(div);
+    var undone = false;
+    var undoBtn = div.querySelector('.ej-undo-btn');
+    if (undoBtn) {
+      undoBtn.addEventListener('click', function () {
+        undone = true;
+        undoCb();
+        div.classList.remove('toast-enter');
+        div.classList.add('toast-exit');
+        setTimeout(function () { div.remove(); }, 400);
+      });
+    }
+    setTimeout(function () {
+      if (!undone) {
+        div.classList.remove('toast-enter');
+        div.classList.add('toast-exit');
+        setTimeout(function () { div.remove(); }, 400);
+      }
+    }, 5000);
+  }
+
   function _showToast(msg, type) {
     var container = _el('toast-container');
     if (!container) return;
@@ -1185,6 +1437,37 @@
         btn.setAttribute('aria-expanded', String(_historyExpanded));
         return;
       }
+      /* Dismiss auto-added in-card strip */
+      btn = e.target.closest('.ej-btn-dismiss-auto-add');
+      if (btn) {
+        var dismissGid = btn.dataset.gid;
+        delete _autoAddedByGroup[dismissGid];
+        _saveAutoAdded();
+        renderSection();
+        return;
+      }
+      /* Dismiss ambiguous banner */
+      btn = e.target.closest('.ej-btn-dismiss-ambig');
+      if (btn) {
+        _ambiguousNewMiamiPkgs = [];
+        _saveAmbiguous();
+        renderSection();
+        return;
+      }
+      /* Open package selector from ambiguous banner shortcut */
+      btn = e.target.closest('.ej-btn-open-selector-ambig');
+      if (btn) {
+        var firstAmbigPid = btn.dataset.pid;
+        var firstAmbigPkg = _ambiguousNewMiamiPkgs[0] ||
+          _allPackages.find(function (p) { return _pid(p.idwarehousereceipt) === firstAmbigPid; });
+        if (firstAmbigPkg) {
+          _ambiguousNewMiamiPkgs = [];
+          _saveAmbiguous();
+          openAddToGroupModal(firstAmbigPkg);
+        }
+        return;
+      }
+
       /* Expand / collapse card package list */
       btn = e.target.closest('.ej-btn-toggle-card');
       if (btn) {
@@ -1350,6 +1633,7 @@
         catch (_e) { _groups = []; }
       })
       .then(function () {
+        _checkAutoAssign();
         renderSection();
       });
   }
@@ -1362,7 +1646,11 @@
     openAddToGroupModal: openAddToGroupModal,
     getActiveGroups:    getActiveGroups,
     getAllGroups:       getAllGroups,
-    setPackages:        function (pkgs) { _allPackages = pkgs; }
+    setPackages:        function (pkgs) {
+      _allPackages = pkgs;
+      var changed = _checkAutoAssign();
+      if (changed) renderSection();
+    }
   };
 
 }(window));
