@@ -548,6 +548,51 @@
   scrollbar-color: #d1d5db transparent;
 }
 
+/* ── Group summary card (invoice + summary modals) ───────── */
+.ej-group-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: #f5f3ff;
+  border: 1.5px solid #ddd6fe;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.ej-gsc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid #ede9fe;
+  gap: 0.5rem;
+}
+.ej-gsc-row:last-child {
+  border-bottom: none;
+}
+.ej-gsc-label {
+  font-size: 0.8125rem;
+  color: #5b21b6;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.ej-gsc-label i {
+  width: 1rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+.ej-gsc-value {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #3b0764;
+  text-align: right;
+}
+.ej-gsc-freight {
+  color: #15803d;
+}
+
 /* ── Invoice step ────────────────────────────────────────── */
 .ej-invoice-row {
   display: flex;

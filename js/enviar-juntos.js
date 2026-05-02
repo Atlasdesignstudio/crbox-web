@@ -102,6 +102,11 @@
     closed:               'fa-lock'
   };
 
+  /* ─── Freight rate constants — edit here to update estimates ─ */
+  var EJ_FREIGHT_RATE_LOW  = 2.5;   // USD per lb (low-end estimate)
+  var EJ_FREIGHT_RATE_HIGH = 3.5;   // USD per lb (high-end estimate)
+  var EJ_KG_TO_LBS         = 2.20462;
+
   /* ─── Package global pool (set by page after API load) ─── */
   var _allPackages = [];   // raw mapped packages from portal-api
 
@@ -919,6 +924,66 @@
     _showToast('Paquete agregado al grupo.', 'success');
   }
 
+  /* ─── Group summary aggregation ─────────────────────────── */
+  function _groupSummary(group) {
+    var liveLookup = {};
+    _allPackages.forEach(function (p) { liveLookup[_pid(p.idwarehousereceipt)] = p; });
+    var pkgs = group.packages || [];
+    var totalWeight = 0;
+    var hasWeight   = false;
+    var totalValue  = 0;
+    var hasValue    = false;
+    pkgs.forEach(function (snap) {
+      var live = liveLookup[_pid(snap.idwarehousereceipt)] || snap;
+      var wKg = (live.totalweight !== null && live.totalweight !== undefined) ? Number(live.totalweight) : null;
+      if (wKg !== null && !isNaN(wKg) && wKg > 0) {
+        totalWeight += wKg * EJ_KG_TO_LBS;
+        hasWeight = true;
+      }
+      var val = live.montofactura  !== undefined ? live.montofactura
+              : live.declaredValue !== undefined ? live.declaredValue
+              : live.declaredvalue !== undefined ? live.declaredvalue
+              : live.invoiceValue  !== undefined ? live.invoiceValue
+              : live.invoicevalue  !== undefined ? live.invoicevalue
+              : null;
+      if (val !== null && !isNaN(Number(val)) && Number(val) > 0) {
+        totalValue += Number(val);
+        hasValue = true;
+      }
+    });
+    return { count: pkgs.length, totalWeight: totalWeight, hasWeight: hasWeight, totalValue: totalValue, hasValue: hasValue };
+  }
+
+  function _summaryCardHTML(summary) {
+    if (summary.count === 0) return '';
+    var html = '<div class="ej-group-summary-card">';
+    html += '<div class="ej-gsc-row">' +
+      '<span class="ej-gsc-label"><i class="fas fa-boxes"></i> Paquetes en grupo</span>' +
+      '<span class="ej-gsc-value">' + summary.count + '</span>' +
+    '</div>';
+    if (summary.hasWeight) {
+      var lbs = summary.totalWeight;
+      var fLow  = (lbs * EJ_FREIGHT_RATE_LOW).toFixed(0);
+      var fHigh = (lbs * EJ_FREIGHT_RATE_HIGH).toFixed(0);
+      html += '<div class="ej-gsc-row">' +
+        '<span class="ej-gsc-label"><i class="fas fa-weight"></i> Peso aprox.</span>' +
+        '<span class="ej-gsc-value">' + lbs.toFixed(1) + ' lbs</span>' +
+      '</div>';
+      html += '<div class="ej-gsc-row">' +
+        '<span class="ej-gsc-label"><i class="fas fa-dollar-sign"></i> Flete estimado</span>' +
+        '<span class="ej-gsc-value ej-gsc-freight">$' + fLow + '–$' + fHigh + '</span>' +
+      '</div>';
+    }
+    if (summary.hasValue) {
+      html += '<div class="ej-gsc-row">' +
+        '<span class="ej-gsc-label"><i class="fas fa-tag"></i> Valor declarado</span>' +
+        '<span class="ej-gsc-value">$' + summary.totalValue.toFixed(2) + '</span>' +
+      '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
   /* ─── Prepare group (warning step) ──────────────────────── */
   function openPrepareModal(groupId) {
     var group = getAllGroups().find(function (g) { return g.id === groupId; });
@@ -972,6 +1037,10 @@
     var pendingCount = pkgs.filter(function (p) {
       return p.invoicesCount !== null && p.invoicesCount !== undefined && Number(p.invoicesCount) === 0;
     }).length;
+
+    /* Populate group summary card */
+    var summCardEl = _el('ej-invoice-group-summary');
+    if (summCardEl) summCardEl.innerHTML = _summaryCardHTML(_groupSummary(group));
 
     /* Build invoice checklist */
     var listEl = _el('ej-invoice-list');
@@ -1174,6 +1243,9 @@
         '<i class="fas fa-check-circle"></i>' +
         '<span>Confirmado el <strong>' + _fmtTs(group.confirmedAt) + '</strong></span>' +
       '</div>';
+
+    /* Group summary card */
+    html += _summaryCardHTML(_groupSummary(group));
 
     /* Group metadata */
     html +=
