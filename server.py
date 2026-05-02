@@ -9458,6 +9458,47 @@ def _start_invoice_cleanup():
     t.start()
 
 
+# ── Package-group stale-record cleanup ────────────────────────────────────────
+# Rows in package_groups whose status is 'closed' or 'confirmation_sent' and
+# whose updated_at is older than 90 days are deleted automatically to keep the
+# database tidy.  Runs once at startup then every 24 h.
+_GROUP_CLEANUP_INTERVAL  = 86400       # check every 24 h
+_GROUP_CLEANUP_AGE_DAYS  = 90          # delete rows older than this many days
+
+
+def _group_cleanup_loop():
+    while True:
+        try:
+            cutoff = time.strftime(
+                '%Y-%m-%dT%H:%M:%SZ',
+                time.gmtime(time.time() - _GROUP_CLEANUP_AGE_DAYS * 86400)
+            )
+            with _DB_LOCK:
+                conn = _get_db()
+                cursor = conn.execute(
+                    "DELETE FROM package_groups "
+                    "WHERE json_extract(group_data, '$.status') "
+                    "      IN ('closed', 'confirmation_sent') "
+                    "  AND updated_at < ?",
+                    (cutoff,)
+                )
+                removed = cursor.rowcount
+                conn.commit()
+                conn.close()
+            if removed:
+                print(f'[GROUP_CLEANUP] Removed {removed} stale group(s) '
+                      f'older than {_GROUP_CLEANUP_AGE_DAYS} days '
+                      f'(closed / confirmation_sent)')
+        except Exception as exc:
+            print(f'[GROUP_CLEANUP] Error: {exc}')
+        time.sleep(_GROUP_CLEANUP_INTERVAL)
+
+
+def _start_group_cleanup():
+    t = threading.Thread(target=_group_cleanup_loop, daemon=True)
+    t.start()
+
+
 _CHAT_RATE          = {}
 _CHAT_RATE_LOCK     = threading.Lock()
 _CHAT_RATE_LIMIT_HOUR   = 200   # calls per IP per hour
@@ -9796,6 +9837,7 @@ if __name__ == "__main__":
     _start_health_monitor()
     _start_solicitud_reminder()
     _start_invoice_cleanup()
+    _start_group_cleanup()
     port = int(os.environ.get("PORT", "5000"))
     server = HTTPServer(("0.0.0.0", port), NoCacheHandler)
     print(f"Serving HTTP on 0.0.0.0 port {port} (http://0.0.0.0:{port}/) ...")
