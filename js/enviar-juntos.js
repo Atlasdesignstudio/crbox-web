@@ -25,7 +25,8 @@
  *   packages:             Array<{ idwarehousereceipt, trackingNumber, number, carrierName, bestDate, statusId, invoicesCount }>,
  *   createdAt:            ISO string,
  *   updatedAt:            ISO string,
- *   confirmedAt:          ISO string|null
+ *   confirmedAt:          ISO string|null,
+ *   closedAt:             ISO string|null
  * }
  */
 (function (global) {
@@ -99,6 +100,7 @@
 
   /* ─── UI state ─── */
   var _expandedCards  = {};  // groupId → true/false; default = expanded
+  var _historyExpanded = false; // "Historial de envíos" section collapsed by default
   var _postCreatePkg  = null; // package to auto-add after creating a group from the add-to-group row flow
 
   /* ─── Package ID normalizer — always returns a string ─── */
@@ -232,6 +234,10 @@
     return _updateGroup(groupId, { status: 'confirmation_sent', confirmedAt: _now() });
   }
 
+  function markGroupClosed(groupId) {
+    return _updateGroup(groupId, { status: 'closed', closedAt: _now() });
+  }
+
   /* ─── Which packages are already in an active group ─────── */
   function getLockedPackageIds() {
     var locked = new Set();
@@ -334,7 +340,8 @@
     /* Expand/collapse state — default expanded */
     var isExpanded = (_expandedCards[group.id] !== false);
 
-    var html = '<div class="ej-group-card' + (isReadOnly ? ' ej-confirmed' : '') + '" id="ej-card-' + _esc(group.id) + '">';
+    var isClosed = group.status === 'closed';
+    var html = '<div class="ej-group-card' + (isReadOnly ? ' ej-confirmed' : '') + (isClosed ? ' ej-closed-card-wrap' : '') + '" id="ej-card-' + _esc(group.id) + '">';
 
     /* Step indicator */
     if (!isReadOnly) html += _stepsHTML(group.status);
@@ -379,6 +386,24 @@
           '<button class="ej-btn ej-btn-purple ej-btn-sm ej-btn-create-new">' +
             '<i class="fas fa-plus"></i> <span class="ej-btn-label">Crear nuevo grupo</span>' +
           '</button>' +
+          '<button class="ej-btn ej-btn-ghost ej-btn-sm ej-btn-mark-closed" data-gid="' + _esc(group.id) + '" ' +
+            'title="Mover al historial una vez que CRBOX procesó el envío">' +
+            '<i class="fas fa-archive"></i> <span class="ej-btn-label">Marcar como procesado</span>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+      html += '</div>';
+      return html;
+    }
+
+    /* ── CLOSED state ── */
+    if (group.status === 'closed') {
+      html += '<div class="px-5 pb-5">' +
+        '<div class="ej-closed-card">' +
+          '<div class="ej-closed-icon"><i class="fas fa-check-double"></i></div>' +
+          '<p class="ej-closed-title">Envío procesado</p>' +
+          '<p class="ej-closed-desc">Este grupo fue procesado por CRBOX y archivado.</p>' +
+          (group.confirmedAt ? '<p class="ej-confirmed-ts" style="justify-content:center"><i class="fas fa-calendar-check"></i> Confirmado el ' + _fmtTs(group.confirmedAt) + '</p>' : '') +
         '</div>' +
       '</div>';
       html += '</div>';
@@ -482,7 +507,8 @@
     var container = _el('ej-group-list-container');
     if (!container) return;
     var groups = getAllGroups();
-    var active  = getActiveGroups();
+    var nonClosedGroups = groups.filter(function (g) { return g.status !== 'closed'; });
+    var closedGroups    = groups.filter(function (g) { return g.status === 'closed'; });
     if (groups.length === 0) {
       container.innerHTML =
         '<div class="ej-empty-state">' +
@@ -496,10 +522,9 @@
       var emptyBtn = _el('ej-create-btn-empty');
       if (emptyBtn) emptyBtn.addEventListener('click', openCreateModal);
     } else {
-      // Summary bar: always shown when any groups exist
-      var totalGroups = groups.length;
-      var confirmedGroups = groups.filter(function (g) { return g.status === 'confirmation_sent'; });
-      var openGroups = groups.filter(function (g) { return g.status !== 'closed' && g.status !== 'confirmation_sent'; });
+      // Summary bar: counter excludes closed groups
+      var confirmedGroups = nonClosedGroups.filter(function (g) { return g.status === 'confirmation_sent'; });
+      var openGroups      = nonClosedGroups.filter(function (g) { return g.status !== 'confirmation_sent'; });
       var counterParts = [];
       if (openGroups.length > 0) {
         counterParts.push(openGroups.length + (openGroups.length === 1 ? ' grupo activo' : ' grupos activos'));
@@ -507,8 +532,10 @@
       if (confirmedGroups.length > 0) {
         counterParts.push(confirmedGroups.length + ' en proceso');
       }
-      if (counterParts.length === 0) {
-        counterParts.push(totalGroups + (totalGroups === 1 ? ' grupo en total' : ' grupos en total'));
+      if (counterParts.length === 0 && closedGroups.length > 0) {
+        counterParts.push('Sin grupos activos');
+      } else if (counterParts.length === 0) {
+        counterParts.push(nonClosedGroups.length + (nonClosedGroups.length === 1 ? ' grupo en total' : ' grupos en total'));
       }
       var counterText = counterParts.join(' · ');
       var summaryBar =
@@ -522,8 +549,26 @@
           '</button>' +
         '</div>';
       var html = summaryBar + '<div class="ej-group-list">';
-      groups.forEach(function (g) { html += _renderGroupCard(g); });
+      nonClosedGroups.forEach(function (g) { html += _renderGroupCard(g); });
       html += '</div>';
+
+      // History section for closed groups
+      if (closedGroups.length > 0) {
+        html += '<div class="ej-history-section" id="ej-history-section">' +
+          '<button class="ej-history-toggle" id="ej-history-toggle-btn" aria-expanded="' + _historyExpanded + '">' +
+            '<span class="ej-history-toggle-left">' +
+              '<i class="fas fa-history"></i>' +
+              ' Historial de envíos' +
+              ' <span class="ej-history-count">' + closedGroups.length + '</span>' +
+            '</span>' +
+            '<i class="fas ' + (_historyExpanded ? 'fa-chevron-up' : 'fa-chevron-down') + ' ej-history-chevron"></i>' +
+          '</button>' +
+          '<div class="ej-history-list" id="ej-history-list"' + (_historyExpanded ? '' : ' style="display:none"') + '>';
+        closedGroups.forEach(function (g) { html += _renderGroupCard(g); });
+        html += '</div>' +
+        '</div>';
+      }
+
       container.innerHTML = html;
       var verBtn = _el('ej-ver-mis-grupos-btn');
       if (verBtn) {
@@ -1120,6 +1165,26 @@
       /* Create new group (from confirmed card CTA) */
       btn = e.target.closest('.ej-btn-create-new');
       if (btn) { openCreateModal(); return; }
+      /* Mark confirmation_sent group as closed/processed */
+      btn = e.target.closest('.ej-btn-mark-closed');
+      if (btn) {
+        markGroupClosed(btn.dataset.gid);
+        _historyExpanded = true; // reveal history section so user sees where it went
+        renderSection();
+        _showToast('Grupo archivado en el historial.', 'success');
+        return;
+      }
+      /* Toggle history section */
+      btn = e.target.closest('#ej-history-toggle-btn');
+      if (btn) {
+        _historyExpanded = !_historyExpanded;
+        var histList = _el('ej-history-list');
+        var histChevron = btn.querySelector('.ej-history-chevron');
+        if (histList) histList.style.display = _historyExpanded ? '' : 'none';
+        if (histChevron) histChevron.className = 'fas ' + (_historyExpanded ? 'fa-chevron-up' : 'fa-chevron-down') + ' ej-history-chevron';
+        btn.setAttribute('aria-expanded', String(_historyExpanded));
+        return;
+      }
       /* Expand / collapse card package list */
       btn = e.target.closest('.ej-btn-toggle-card');
       if (btn) {
