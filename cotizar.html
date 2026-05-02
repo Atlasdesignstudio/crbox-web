@@ -531,7 +531,8 @@
                         </div>
                     </div>
                 </div>
-                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button"
+                        aria-label="Abrir menú" aria-controls="mobile-menu" aria-expanded="false">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
             </div>
@@ -601,7 +602,7 @@
                 <div class="form-steps mb-8">
                     <div class="form-step-item">
                         <div class="form-step-dot step-active" id="fsd-1">1</div>
-                        <span class="form-step-label step-active-label">Producto</span>
+                        <span class="form-step-label step-active-label" id="fsl-1-lbl">Producto</span>
                     </div>
                     <div class="form-step-line" id="fsl-1"></div>
                     <div class="form-step-item">
@@ -1340,9 +1341,57 @@
             if (anyFilled && !hasRequiredField) {
                 hasRequiredField = true;
                 stickyCta.classList.add('show');
+                stickyCta.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('has-sticky-cta');
             }
             updateSubmitState();
+        }
+
+        function updateStepProgress() {
+            const productName = (fProductName.value || '').trim();
+            const category    = (fCategory.value || '').trim();
+            const declaredVal = parseFloat(fDeclaredValue.value);
+            const destination = (fDestination.value || '').trim();
+            const email       = (fEmail.value || '').trim();
+            const step1Done = productName.length >= 3 && category !== '' &&
+                              !isNaN(declaredVal) && declaredVal > 0;
+            const step2Done = destination !== '';
+            const step3Done = isValidEmail(email) && emailConfirmed;
+            const steps = [
+                { dot: 'fsd-1', lbl: 'fsl-1-lbl', done: step1Done },
+                { dot: 'fsd-2', lbl: 'fsl-2-lbl', done: step2Done },
+                { dot: 'fsd-3', lbl: 'fsl-3-lbl', done: step3Done }
+            ];
+            let activeIdx = steps.findIndex(function (s) { return !s.done; });
+            if (activeIdx === -1) activeIdx = steps.length - 1;
+            steps.forEach(function (s, i) {
+                const dotEl = document.getElementById(s.dot);
+                const lblEl = document.getElementById(s.lbl);
+                if (!dotEl) return;
+                dotEl.classList.remove('step-active', 'step-done');
+                if (lblEl) lblEl.classList.remove('step-active-label', 'step-done-label');
+                if (s.done) {
+                    dotEl.classList.add('step-done');
+                    dotEl.innerHTML = '<i class="fas fa-check" style="font-size:.6rem;"></i>';
+                    if (lblEl) lblEl.classList.add('step-done-label');
+                } else {
+                    dotEl.textContent = String(i + 1);
+                    if (i === activeIdx) {
+                        dotEl.classList.add('step-active');
+                        if (lblEl) lblEl.classList.add('step-active-label');
+                    }
+                }
+            });
+            const lineMap = [
+                { id: 'fsl-1', done: step1Done },
+                { id: 'fsl-2', done: step2Done }
+            ];
+            lineMap.forEach(function (l) {
+                const el = document.getElementById(l.id);
+                if (!el) return;
+                el.classList.remove('step-done-line', 'step-active-line');
+                if (l.done) el.classList.add('step-done-line');
+            });
         }
 
         function updateSubmitState() {
@@ -1357,6 +1406,7 @@
                 btnStickySubmit.style.color = '#9ca3af';
                 btnStickySubmit.style.cursor = 'not-allowed';
             }
+            updateStepProgress();
         }
 
         function isFormReady() {
@@ -1807,6 +1857,7 @@
             // Hide form, hide sticky, show confirm
             formSection.classList.add('hidden-section');
             stickyCta.classList.remove('show');
+            stickyCta.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('has-sticky-cta');
             failureScreen.classList.remove('visible');
             confirmScreen.classList.add('visible');
@@ -1855,6 +1906,7 @@
         function showFailure(detail) {
             formSection.classList.add('hidden-section');
             stickyCta.classList.remove('show');
+            stickyCta.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('has-sticky-cta');
             confirmScreen.classList.remove('visible');
             failureScreen.classList.add('visible');
@@ -1886,6 +1938,7 @@
             // Record is saved but email delivery failed — show recovery state
             formSection.classList.add('hidden-section');
             stickyCta.classList.remove('show');
+            stickyCta.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('has-sticky-cta');
             confirmScreen.classList.remove('visible');
             failureScreen.classList.add('visible');
@@ -1982,20 +2035,15 @@
             failureScreen.classList.remove('visible');
 
             stickyCta.classList.remove('show');
+            stickyCta.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('has-sticky-cta');
             btnSubmit.disabled = true;
             btnSubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
             btnStickySubmit.disabled = true;
             btnStickySubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
 
-            // Reset step dots
-            ['fsd-1','fsd-2','fsd-3'].forEach(function(id, i) {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.className = i === 0 ? 'form-step-dot step-active' : 'form-step-dot';
-                    el.textContent = i + 1;
-                }
-            });
+            // Reset step indicator (dots, labels, lines) — re-syncs from cleared field state
+            updateStepProgress();
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -2121,8 +2169,24 @@
         const mobileMenuBtn = document.getElementById('mobile-menu-button');
         const mobileMenu    = document.getElementById('mobile-menu');
         if (mobileMenuBtn && mobileMenu) {
+            const stickyHeader = document.querySelector('.sticky-header');
             mobileMenuBtn.addEventListener('click', function () {
-                mobileMenu.classList.toggle('hidden');
+                const isOpen = mobileMenu.classList.contains('is-open');
+                const icon = mobileMenuBtn.querySelector('i');
+                if (isOpen) {
+                    mobileMenu.classList.remove('is-open');
+                    if (stickyHeader) stickyHeader.classList.remove('menu-open');
+                    if (icon) icon.classList.replace('fa-times', 'fa-bars');
+                    mobileMenuBtn.setAttribute('aria-expanded', 'false');
+                    mobileMenuBtn.setAttribute('aria-label', 'Abrir menú');
+                } else {
+                    mobileMenu.classList.add('is-open');
+                    if (stickyHeader) stickyHeader.classList.add('menu-open');
+                    if (icon) icon.classList.replace('fa-bars', 'fa-times');
+                    mobileMenuBtn.setAttribute('aria-expanded', 'true');
+                    mobileMenuBtn.setAttribute('aria-label', 'Cerrar menú');
+                }
+                mobileMenuBtn.blur();
             });
         }
 
