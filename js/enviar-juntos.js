@@ -1146,6 +1146,57 @@
       .then(function (data) {
         if (data && data.ok && Array.isArray(data.groups)) {
           _groups = data.groups;
+
+          /* One-time migration: carry over any groups that exist in localStorage
+           * but are not yet on the server. This check runs whenever localStorage
+           * has entries, making it safe after partial migrations — only groups
+           * whose id is not already on the server are uploaded. Groups are
+           * removed from localStorage one-by-one as each POST succeeds, so a
+           * partial failure on one load does not abandon the successful ones on
+           * the next. When all localStorage entries are migrated the key is gone
+           * and this block becomes a no-op. */
+          var stored;
+          try { stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+          catch (_e) { stored = []; }
+
+          if (stored.length > 0) {
+            var serverIds = new Set(data.groups.map(function (g) { return g.id; }));
+            var toUpload = stored.filter(function (g) { return !serverIds.has(g.id); });
+
+            if (toUpload.length === 0) {
+              /* Every localStorage group is already on the server — safe to clear */
+              localStorage.removeItem(STORAGE_KEY);
+              return;
+            }
+
+            /* Upload each missing group; on individual success remove it from
+             * the pending localStorage list so a later retry only re-tries
+             * the ones that actually failed. */
+            var pending = stored.slice(); // copy to mutate safely
+            var uploadPromises = toUpload.map(function (g) {
+              return _apiCall('POST', '/api/package-groups', g).then(function (resp) {
+                if (resp && resp.ok) {
+                  pending = pending.filter(function (p) { return p.id !== g.id; });
+                }
+              }).catch(function () { /* leave this group in pending */ });
+            });
+
+            return Promise.all(uploadPromises).then(function () {
+              if (pending.length === 0) {
+                localStorage.removeItem(STORAGE_KEY);
+              } else {
+                /* Persist only the groups that still need to be migrated */
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(pending)); }
+                catch (_e) {}
+              }
+              /* Re-fetch so _groups reflects the current server state */
+              return _apiCall('GET', '/api/package-groups').then(function (refreshed) {
+                if (refreshed && refreshed.ok && Array.isArray(refreshed.groups)) {
+                  _groups = refreshed.groups;
+                }
+              }).catch(function () {});
+            });
+          }
         } else {
           /* Server responded but not OK — fall back to localStorage */
           try { _groups = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
