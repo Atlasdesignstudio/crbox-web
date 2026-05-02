@@ -810,6 +810,15 @@
                                 </div>
                             </div>
                         </div>
+                        <div id="maritimo-error" class="mt-6 p-5 bg-red-50 rounded-xl border-l-4 border-red-500 hidden">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 mr-4"><i class="fas fa-exclamation-circle"></i></div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-red-800 mb-1">No se pudo enviar la solicitud.</h3>
+                                    <p class="text-red-700 text-sm">Ocurrió un error al enviar. Intenta de nuevo o escríbenos directamente a <a href="mailto:ventas@crbox.cr" class="underline font-medium">ventas@crbox.cr</a>.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1424,13 +1433,93 @@
         /* ── Maritime form ─────────────────────────────────────── */
         const maritimoForm = $('maritimo-quote-form');
         if (maritimoForm) {
-            maritimoForm.addEventListener('submit', function (e) {
+            const _maritimoDestLabel = (v) => ({
+                sanjose:'San José', alajuela:'Alajuela', heredia:'Heredia', cartago:'Cartago',
+                guanacaste:'Guanacaste', puntarenas:'Puntarenas', limon:'Limón'
+            })[v] || v;
+            const _maritimoCargoLabel = (v) => ({
+                muebles:'Muebles', electrodomesticos:'Electrodomésticos',
+                vehiculos:'Vehículos o repuestos', maquinaria:'Maquinaria',
+                mercancia:'Mercancía comercial', otros:'Otros'
+            })[v] || v;
+
+            maritimoForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
-                setTimeout(function () {
-                    $('maritimo-confirmation').classList.remove('hidden');
-                    $('maritimo-confirmation').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    maritimoForm.reset();
-                }, 800);
+                const submitBtn = $('maritimo-submit-btn');
+                const confirmDiv = $('maritimo-confirmation');
+                const errorDiv = $('maritimo-error');
+                confirmDiv.classList.add('hidden');
+                errorDiv.classList.add('hidden');
+
+                const fd = new FormData(maritimoForm);
+                const get = (k) => (fd.get(k) || '').toString().trim();
+                const nombre = get('nombre');
+                const email = get('email');
+                const telefono = get('telefono');
+                const tipoCarga = get('tipo-carga');
+                const largo = get('largo');
+                const ancho = get('ancho');
+                const alto = get('alto');
+                const peso = get('peso');
+                const destino = get('destino');
+                const mensaje = get('mensaje');
+
+                // Build email body for the sales inbox
+                const lines = [];
+                lines.push('Solicitud de cotización marítima — CRBOX');
+                lines.push('========================================');
+                lines.push(`Nombre: ${nombre}`);
+                lines.push(`Correo: ${email}`);
+                if (telefono) lines.push(`Teléfono: ${telefono}`);
+                lines.push(`Tipo de carga: ${_maritimoCargoLabel(tipoCarga)}`);
+                lines.push(`Dimensiones aproximadas: ${largo} × ${ancho} × ${alto} cm`);
+                if (peso) lines.push(`Peso aproximado: ${peso} kg`);
+                lines.push(`Destino en Costa Rica: ${_maritimoDestLabel(destino)}`);
+                if (mensaje) {
+                    lines.push('');
+                    lines.push('Información adicional:');
+                    lines.push(mensaje);
+                }
+                lines.push('');
+                lines.push('Nota: Solicitud enviada desde la calculadora marítima de CRBOX. Solicito confirmación oficial de precio y disponibilidad.');
+
+                const origHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Enviando\u2026';
+
+                // 15 s timeout — guard against a hung network
+                const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const timer = ctrl ? setTimeout(() => ctrl.abort(), 15000) : null;
+
+                try {
+                    const res = await fetch('/send-quote', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            subject: `Solicitud cotización marítima${nombre ? ' \u2014 ' + nombre : ''} | CRBOX`,
+                            userEmail: email,
+                            userName: nombre,
+                            bodyText: lines.join('\n'),
+                        }),
+                        signal: ctrl ? ctrl.signal : undefined,
+                    });
+                    const data = await res.json();
+                    if (data && data.ok) {
+                        confirmDiv.classList.remove('hidden');
+                        confirmDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        maritimoForm.reset();
+                    } else {
+                        errorDiv.classList.remove('hidden');
+                        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                } catch (err) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } finally {
+                    if (timer) clearTimeout(timer);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = origHtml;
+                }
             });
         }
 
