@@ -309,8 +309,8 @@
   border-color: #c4b5fd;
 }
 .ej-group-card.ej-confirmed {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
+  border-color: #bfdbfe;
+  background: #eff6ff;
 }
 .ej-group-card-header {
   display: flex;
@@ -344,6 +344,7 @@
 .ej-status-invoices  { background: #fff7ed; color: #c2410c; }
 .ej-status-confirm   { background: #ede9fe; color: #7c3aed; }
 .ej-status-sent      { background: #dcfce7; color: #16a34a; }
+.ej-status-confirmed { background: #dbeafe; color: #1d4ed8; }
 .ej-status-closed    { background: #f3f4f6; color: #6b7280; }
 
 /* ── Progress bar ────────────────────────────────────────── */
@@ -719,6 +720,49 @@
   line-height: 1.6;
   max-width: 28rem;
   margin: 0 auto;
+}
+
+/* ── Confirmed / en proceso state ────────────────────────── */
+.ej-confirmed-card {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1.5px solid #93c5fd;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+}
+.ej-confirmed-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  background: #dbeafe;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1d4ed8;
+  font-size: 1.4rem;
+  margin: 0 auto 0.75rem;
+}
+.ej-confirmed-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 0.375rem;
+}
+.ej-confirmed-desc {
+  font-size: 0.875rem;
+  color: #1d4ed8;
+  line-height: 1.6;
+  max-width: 28rem;
+  margin: 0 auto 0.625rem;
+}
+.ej-confirmed-ts {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
 }
 
 /* ── Error / fallback ────────────────────────────────────── */

@@ -76,21 +76,21 @@
     waiting_for_packages: 'Esperando paquetes',
     invoices_pending:     'Facturas pendientes',
     ready_to_confirm:     'Listo para confirmar',
-    confirmation_sent:    'Confirmación enviada',
+    confirmation_sent:    'Confirmado — en proceso',
     closed:               'Cerrado'
   };
   var STATUS_CLASS = {
     waiting_for_packages: 'ej-status-waiting',
     invoices_pending:     'ej-status-invoices',
     ready_to_confirm:     'ej-status-confirm',
-    confirmation_sent:    'ej-status-sent',
+    confirmation_sent:    'ej-status-confirmed',
     closed:               'ej-status-closed'
   };
   var STATUS_ICON = {
     waiting_for_packages: 'fa-clock',
     invoices_pending:     'fa-file-invoice',
     ready_to_confirm:     'fa-check-circle',
-    confirmation_sent:    'fa-paper-plane',
+    confirmation_sent:    'fa-hourglass-half',
     closed:               'fa-lock'
   };
 
@@ -278,7 +278,7 @@
       { key: 'waiting_for_packages', label: 'Agregar paquetes' },
       { key: 'invoices_pending',     label: 'Verificar facturas' },
       { key: 'ready_to_confirm',     label: 'Confirmar' },
-      { key: 'confirmation_sent',    label: 'Enviado' }
+      { key: 'confirmation_sent',    label: 'Confirmado' }
     ];
     var order = steps.map(function (s) { return s.key; });
     var activeIdx = order.indexOf(currentStatus);
@@ -361,11 +361,11 @@
     /* ── SUCCESS state ── */
     if (group.status === 'confirmation_sent') {
       html += '<div class="px-5 pb-5">' +
-        '<div class="ej-success-card">' +
-          '<div class="ej-success-icon"><i class="fas fa-paper-plane"></i></div>' +
-          '<p class="ej-success-title">Confirmación enviada</p>' +
-          '<p class="ej-success-desc">Enviamos el detalle de este grupo a CRBOX. Nuestro equipo revisará las facturas y procesará los paquetes según disponibilidad operativa.</p>' +
-          '<p class="text-xs text-green-600 mt-2">Enviado el ' + _fmtTs(group.confirmedAt) + '</p>' +
+        '<div class="ej-confirmed-card">' +
+          '<div class="ej-confirmed-icon"><i class="fas fa-hourglass-half"></i></div>' +
+          '<p class="ej-confirmed-title">Confirmado — en proceso</p>' +
+          '<p class="ej-confirmed-desc">Tu solicitud fue enviada a CRBOX. Nuestro equipo está revisando las facturas y coordinando el envío del grupo.</p>' +
+          '<p class="ej-confirmed-ts"><i class="fas fa-check-circle"></i> Confirmado el ' + _fmtTs(group.confirmedAt) + '</p>' +
         '</div>' +
         '<div class="mt-3 flex gap-2 justify-center flex-wrap">' +
           '<button class="ej-btn ej-btn-outline ej-btn-sm ej-btn-view-summary" data-gid="' + _esc(group.id) + '">' +
@@ -492,16 +492,25 @@
       if (emptyBtn) emptyBtn.addEventListener('click', openCreateModal);
     } else {
       // Summary bar: always shown when any groups exist
-      var totalActive = active.length;
       var totalGroups = groups.length;
+      var confirmedGroups = groups.filter(function (g) { return g.status === 'confirmation_sent'; });
+      var openGroups = groups.filter(function (g) { return g.status !== 'closed' && g.status !== 'confirmation_sent'; });
+      var counterParts = [];
+      if (openGroups.length > 0) {
+        counterParts.push(openGroups.length + (openGroups.length === 1 ? ' grupo activo' : ' grupos activos'));
+      }
+      if (confirmedGroups.length > 0) {
+        counterParts.push(confirmedGroups.length + ' en proceso');
+      }
+      if (counterParts.length === 0) {
+        counterParts.push(totalGroups + (totalGroups === 1 ? ' grupo en total' : ' grupos en total'));
+      }
+      var counterText = counterParts.join(' · ');
       var summaryBar =
         '<div class="ej-groups-summary-bar" style="display:flex;align-items:center;justify-content:space-between;' +
           'padding:0.55rem 1.25rem;background:#f5f3ff;border-bottom:1px solid #ede9fe;font-size:0.85rem;">' +
           '<span style="color:#5b21b6;font-weight:600;">' +
-            '<i class="fas fa-layer-group mr-1"></i> ' +
-            (totalActive > 0
-              ? totalActive + (totalActive === 1 ? ' grupo activo' : ' grupos activos')
-              : totalGroups + (totalGroups === 1 ? ' grupo en total' : ' grupos en total')) +
+            '<i class="fas fa-layer-group mr-1"></i> ' + counterText +
           '</span>' +
           '<button class="ej-btn ej-btn-outline ej-btn-sm" id="ej-ver-mis-grupos-btn" style="font-size:0.78rem;padding:0.2rem 0.7rem">' +
             '<i class="fas fa-chevron-down mr-1"></i>Ver mis grupos' +
@@ -934,7 +943,7 @@
         '<tr><th>Paquetes esperados</th><td>' + group.expectedPackageCount + '</td></tr>' +
         '<tr><th>Paquetes confirmados</th><td>' + (group.packages || []).length + '</td></tr>' +
         '<tr><th>Notas</th><td>' + _esc(group.notes || '—') + '</td></tr>' +
-        '<tr><th>Enviado el</th><td>' + _fmtTs(group.confirmedAt) + '</td></tr>' +
+        '<tr><th>Confirmado el</th><td>' + _fmtTs(group.confirmedAt) + '</td></tr>' +
       '</table>' +
       '<p class="text-sm font-semibold text-gray-700 mb-2">Paquetes en el grupo:</p>' +
       '<div class="flex flex-col gap-2">' +
