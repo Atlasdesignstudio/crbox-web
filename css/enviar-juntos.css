@@ -537,6 +537,23 @@
   flex-shrink: 0;
   white-space: nowrap;
 }
+.ej-carrier-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+.ej-age-label {
+  font-weight: 500;
+  font-size: 0.7rem;
+  margin-left: 0.3rem;
+}
 .ej-selector-list {
   display: flex;
   flex-direction: column;

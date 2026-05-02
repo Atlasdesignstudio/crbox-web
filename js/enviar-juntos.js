@@ -102,6 +102,31 @@
     closed:               'fa-lock'
   };
 
+  /* ─── Carrier color map for selector pill badges ─────────── */
+  var _CARRIER_COLORS = {
+    'UPS':    { bg: '#5C3B1E', color: '#fff' },
+    'FEDEX':  { bg: '#4D148C', color: '#fff' },
+    'AMAZON': { bg: '#FF9900', color: '#fff' },
+    'DHL':    { bg: '#FFCC00', color: '#222' },
+    'USPS':   { bg: '#004B87', color: '#fff' }
+  };
+
+  function _carrierKey(carrierName) {
+    if (!carrierName) return null;
+    return carrierName.split(/\s+/)[0].toUpperCase();
+  }
+  function _carrierColor(carrierName) {
+    var key = _carrierKey(carrierName);
+    if (!key) return { bg: '#6b7280', color: '#fff' };
+    return _CARRIER_COLORS[key] || { bg: '#6b7280', color: '#fff' };
+  }
+  function _pkgAgeDays(bestDate) {
+    if (!bestDate) return null;
+    var d = new Date(bestDate);
+    if (isNaN(d.getTime())) return null;
+    return Math.floor((Date.now() - d.getTime()) / 86400000);
+  }
+
   /* ─── Freight rate constants — edit here to update estimates ─ */
   var EJ_FREIGHT_RATE_LOW  = 2.5;   // USD per lb (low-end estimate)
   var EJ_FREIGHT_RATE_HIGH = 3.5;   // USD per lb (high-end estimate)
@@ -780,6 +805,34 @@
     _openModal(_el('ej-selector-modal-overlay'));
   }
 
+  function _updateSelectorConfirmBtn() {
+    var selBtn = _el('ej-selector-confirm-btn');
+    if (!selBtn) return;
+    var count = _selectedPkgIds.size;
+    selBtn.disabled = (count === 0);
+    var label = selBtn.querySelector('.ej-btn-label');
+    if (label) {
+      if (count === 0) {
+        label.innerHTML = '<i class="fas fa-check mr-1"></i>Agregar seleccionados';
+      } else {
+        label.innerHTML = '<i class="fas fa-check mr-1"></i>Agregar ' + count + (count === 1 ? ' paquete' : ' paquetes');
+      }
+    }
+  }
+
+  function _updateSelectAllBtn(selectablePids) {
+    var btn = _el('ej-selector-select-all-btn');
+    if (!btn) return;
+    if (!selectablePids || selectablePids.length === 0) {
+      btn.style.display = 'none';
+      return;
+    }
+    btn.style.display = '';
+    var allSelected = selectablePids.every(function (pid) { return _selectedPkgIds.has(pid); });
+    btn.textContent = allSelected ? 'Deseleccionar todos' : 'Seleccionar todos';
+    btn.dataset.selectablePids = JSON.stringify(selectablePids);
+  }
+
   function _renderSelectorList() {
     var listEl = _el('ej-selector-list');
     if (!listEl) return;
@@ -796,33 +849,67 @@
           '<p class="ej-empty-title">No tienes paquetes en Miami</p>' +
           '<p class="ej-empty-desc">Los paquetes deben haber llegado a nuestras instalaciones en Miami para poder agregarlos a un grupo. El estado en tu casillero aparecerá como "MIAMI".</p>' +
         '</div>';
+      _updateSelectAllBtn([]);
+      _updateSelectorConfirmBtn();
       return;
     }
 
+    // Sort by bestDate descending; packages with no date or invalid date fall to the bottom
+    miamiPkgs = miamiPkgs.slice().sort(function (a, b) {
+      var da = a.bestDate ? new Date(a.bestDate).getTime() : NaN;
+      var db = b.bestDate ? new Date(b.bestDate).getTime() : NaN;
+      var sa = isNaN(da) ? 0 : da;
+      var sb = isNaN(db) ? 0 : db;
+      return sb - sa;
+    });
+
+    var selectablePids = [];
     var html = '';
     miamiPkgs.forEach(function (p) {
       var pid = _pid(p.idwarehousereceipt);  // always a string
       var isOwn      = ownIds.has(pid);
       var isLocked   = !isOwn && locked.has(pid);
       var isSelected = _selectedPkgIds.has(pid);
+      if (!isLocked) selectablePids.push(pid);
       var disabledCls = isLocked ? ' ej-disabled' : '';
       var selectedCls = isSelected ? ' ej-selected' : '';
       html += '<div class="ej-sel-row' + disabledCls + selectedCls + '" data-pid="' + _esc(pid) + '">';
+
+      // Check ring or lock icon
       if (isLocked) {
         html += '<div class="ej-sel-lock ej-tooltip"><i class="fas fa-lock"></i>' +
           '<span class="ej-tooltip-text">Este paquete ya pertenece a otro grupo.</span></div>';
       } else {
         html += '<div class="ej-check-ring"><i class="fas fa-check"></i></div>';
       }
-      html += '<span class="status-badge status-badge-blue" style="font-size:0.68rem;padding:0.1rem 0.45rem;flex-shrink:0">MIAMI</span>' +
-        '<div class="ej-sel-info">' +
+
+      // Carrier pill badge
+      var clr = _carrierColor(p.carrierName);
+      var carrierLabel = p.carrierName ? _carrierKey(p.carrierName) : null;
+      html += '<span class="ej-carrier-pill" style="background:' + clr.bg + ';color:' + clr.color + '">' +
+        _esc(carrierLabel || '?') + '</span>';
+
+      // MIAMI badge
+      html += '<span class="status-badge status-badge-blue" style="font-size:0.68rem;padding:0.1rem 0.45rem;flex-shrink:0">MIAMI</span>';
+
+      // Package info
+      var ageDays = _pkgAgeDays(p.bestDate);
+      var ageHtml = '';
+      if (ageDays !== null && ageDays >= 7) {
+        var ageColor = ageDays >= 21 ? '#dc2626' : '#d97706';
+        ageHtml = ' <span class="ej-age-label" style="color:' + ageColor + '">Llegó hace ' + ageDays + (ageDays === 1 ? ' día' : ' días') + '</span>';
+      }
+      html += '<div class="ej-sel-info">' +
           '<div class="ej-sel-tracking">' + _esc(p.trackingNumber || '—') + '</div>' +
-          '<div class="ej-sel-sub">' + _esc([p.number, p.carrierName].filter(Boolean).join(' · ')) + '</div>' +
+          '<div class="ej-sel-sub">' + _esc([p.number, p.carrierName].filter(Boolean).join(' · ')) + ageHtml + '</div>' +
         '</div>' +
         '<div class="ej-sel-date">' + _fmtDate(p.bestDate) + '</div>' +
       '</div>';
     });
     listEl.innerHTML = html;
+
+    _updateSelectAllBtn(selectablePids);
+    _updateSelectorConfirmBtn();
 
     // Delegation for row clicks
     listEl.onclick = function (e) {
@@ -836,7 +923,11 @@
         _selectedPkgIds.add(pid);
         row.classList.add('ej-selected');
       }
-      _el('ej-selector-confirm-btn').disabled = (_selectedPkgIds.size === 0);
+      var allSelectablePids;
+      try { allSelectablePids = JSON.parse(_el('ej-selector-select-all-btn').dataset.selectablePids || '[]'); }
+      catch (_e) { allSelectablePids = []; }
+      _updateSelectAllBtn(allSelectablePids);
+      _updateSelectorConfirmBtn();
     };
   }
 
@@ -1694,6 +1785,35 @@
     if (selBtn) {
       selBtn.disabled = true;
       selBtn.addEventListener('click', _handleSelectorConfirm);
+    }
+
+    /* Selector select-all / deselect-all toggle */
+    var selAllBtn = _el('ej-selector-select-all-btn');
+    if (selAllBtn) {
+      selAllBtn.addEventListener('click', function () {
+        var pids;
+        try { pids = JSON.parse(selAllBtn.dataset.selectablePids || '[]'); }
+        catch (_e) { pids = []; }
+        var allSelected = pids.every(function (pid) { return _selectedPkgIds.has(pid); });
+        var listEl = _el('ej-selector-list');
+        if (allSelected) {
+          pids.forEach(function (pid) { _selectedPkgIds.delete(pid); });
+          if (listEl) {
+            listEl.querySelectorAll('.ej-sel-row:not(.ej-disabled)').forEach(function (row) {
+              row.classList.remove('ej-selected');
+            });
+          }
+        } else {
+          pids.forEach(function (pid) { _selectedPkgIds.add(pid); });
+          if (listEl) {
+            listEl.querySelectorAll('.ej-sel-row:not(.ej-disabled)').forEach(function (row) {
+              row.classList.add('ej-selected');
+            });
+          }
+        }
+        _updateSelectAllBtn(pids);
+        _updateSelectorConfirmBtn();
+      });
     }
 
     /* Add-to-group: create new group option — carries the pending package forward */
