@@ -350,6 +350,11 @@
         '<span class="ej-group-status-badge ' + statusCls + '">' +
           '<i class="fas ' + statusIcon + '"></i> ' + _esc(statusLabel) +
         '</span>' +
+        (!isReadOnly ?
+          '<button class="ej-btn-edit-group" aria-label="Editar grupo" ' +
+            'data-gid="' + _esc(group.id) + '" style="background:none;border:none;cursor:pointer;color:#6b7280;padding:0.2rem 0.4rem;line-height:1" title="Editar nombre y notas">' +
+            '<i class="fas fa-pencil-alt"></i>' +
+          '</button>' : '') +
         (cnt > 0 ?
           '<button class="ej-btn-toggle-card" aria-label="' + (isExpanded ? 'Colapsar' : 'Expandir') + '" ' +
             'data-gid="' + _esc(group.id) + '" style="background:none;border:none;cursor:pointer;color:#6b7280;padding:0.2rem 0.4rem;line-height:1">' +
@@ -961,6 +966,41 @@
     _openModal(_el('ej-summary-modal-overlay'));
   }
 
+  /* ─── Edit Group modal ───────────────────────────────────── */
+  var _editGroupId = null;
+
+  function openEditModal(groupId) {
+    var group = getAllGroups().find(function (g) { return g.id === groupId; });
+    if (!group) return;
+    _editGroupId = groupId;
+    var nameEl  = _el('ej-edit-group-name');
+    var notesEl = _el('ej-edit-group-notes');
+    var errEl   = _el('ej-edit-error');
+    if (nameEl)  nameEl.value  = group.groupName || '';
+    if (notesEl) notesEl.value = group.notes     || '';
+    if (errEl)   errEl.textContent = '';
+    _openModal(_el('ej-edit-modal-overlay'));
+    setTimeout(function () {
+      if (nameEl) nameEl.focus();
+    }, 260);
+  }
+
+  function _handleEditSubmit() {
+    var nameEl  = _el('ej-edit-group-name');
+    var notesEl = _el('ej-edit-group-notes');
+    var errEl   = _el('ej-edit-error');
+    var name  = (nameEl  ? nameEl.value.trim()  : '');
+    var notes = (notesEl ? notesEl.value.trim() : '');
+    if (!name) {
+      if (errEl) errEl.textContent = 'El nombre del grupo no puede estar vacío.';
+      return;
+    }
+    _updateGroup(_editGroupId, { groupName: name, notes: notes });
+    _closeModal(_el('ej-edit-modal-overlay'));
+    renderSection();
+    _showToast('Grupo actualizado correctamente.', 'success');
+  }
+
   /* ─── Delete group confirm ───────────────────────────────── */
   function openDeleteConfirm(groupId) {
     var group = getAllGroups().find(function (g) { return g.id === groupId; });
@@ -1043,6 +1083,9 @@
         renderSection();
         return;
       }
+      /* Edit group name / notes */
+      btn = e.target.closest('.ej-btn-edit-group');
+      if (btn) { openEditModal(btn.dataset.gid); return; }
       /* Delete */
       btn = e.target.closest('.ej-btn-delete-group');
       if (btn) { openDeleteConfirm(btn.dataset.gid); return; }
@@ -1124,6 +1167,15 @@
         _pendingPkg = null;
         _closeModal(_el('ej-addto-modal-overlay'));
         openCreateModal();
+      });
+    }
+
+    /* Edit group form submit */
+    var editForm = _el('ej-edit-form');
+    if (editForm) {
+      editForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        _handleEditSubmit();
       });
     }
 

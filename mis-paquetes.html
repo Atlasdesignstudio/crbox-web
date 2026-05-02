@@ -3523,6 +3523,37 @@
       </div>
     </div>
 
+    <!-- ⑧ Edit Group Modal -->
+    <div id="ej-edit-modal-overlay" class="ej-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ej-edit-modal-title">
+      <div class="ej-modal">
+        <div class="ej-modal-header">
+          <span class="ej-modal-title" id="ej-edit-modal-title">
+            <i class="fas fa-pencil-alt text-purple-600 mr-2"></i>Editar grupo
+          </span>
+          <button class="ej-modal-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="ej-edit-form" novalidate>
+          <div class="ej-modal-body">
+            <div class="ej-field-group">
+              <label class="ej-label" for="ej-edit-group-name">Nombre del grupo <span class="text-red-500">*</span></label>
+              <input id="ej-edit-group-name" class="ej-input" type="text" placeholder="Ej. Pedido Amazon Mayo" maxlength="80" required autocomplete="off">
+            </div>
+            <div class="ej-field-group">
+              <label class="ej-label" for="ej-edit-group-notes">Notas para CRBOX <span class="text-gray-400 font-normal">(opcional)</span></label>
+              <textarea id="ej-edit-group-notes" class="ej-textarea" placeholder="Ej. Todos son artículos electrónicos, manejo con cuidado."></textarea>
+            </div>
+            <p id="ej-edit-error" class="text-red-500 text-sm mt-1"></p>
+          </div>
+          <div class="ej-modal-footer">
+            <button type="button" class="ej-btn ej-btn-outline ej-modal-close">Cancelar</button>
+            <button type="submit" class="ej-btn ej-btn-purple">
+              <span class="ej-btn-label"><i class="fas fa-save mr-1"></i>Guardar cambios</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- ⑦ Confirmation Summary Modal (read-only) -->
     <div id="ej-summary-modal-overlay" class="ej-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ej-summary-modal-title">
       <div class="ej-modal">
