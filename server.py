@@ -1664,6 +1664,13 @@ def _init_db():
             ''')
             conn.commit()
             print('[PACKAGE_GROUPS] Recreated table with per-user ownership schema')
+        # Safe migration: add ack_token column if it doesn't exist yet.
+        pg_cols2 = [row[1] for row in
+                    conn.execute('PRAGMA table_info(package_groups)').fetchall()]
+        if 'ack_token' not in pg_cols2:
+            conn.execute('ALTER TABLE package_groups ADD COLUMN ack_token TEXT')
+            conn.commit()
+            print('[PACKAGE_GROUPS] Added ack_token column to package_groups')
         conn.close()
     print('[SOLICITUDES] SQLite schema initialised OK')
 
@@ -6685,6 +6692,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                     self.end_headers()
         elif self.path == '/api/package-groups':
             self._handle_package_groups_get()
+        elif self.path.startswith('/api/package-group-ack'):
+            self._handle_package_group_ack()
         elif self.path.startswith('/api/solicitudes'):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/api/solicitudes':
@@ -8431,7 +8440,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         groups = []
         for row in rows:
             try:
-                groups.append(json.loads(row['group_data']))
+                g = json.loads(row['group_data'])
+                g.pop('ackToken', None)  # never expose token to client
+                groups.append(g)
             except Exception:
                 pass
         self._json_response(200, {'ok': True, 'groups': groups})
@@ -8499,6 +8510,32 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
         with _DB_LOCK:
             conn = _get_db()
+            # Fetch existing record to preserve server-managed fields that
+            # the client may not hold (ackToken, receivedAt) or that should
+            # not be downgraded by a stale client write (received_by_crbox status).
+            existing_row = conn.execute(
+                'SELECT group_data FROM package_groups WHERE id = ? AND casillero_id = ?',
+                (group_id, casillero_id)
+            ).fetchone()
+            # Enforce server-managed field integrity before any write.
+            # Strip fields that only the server (ack endpoint / confirm handler) may set.
+            updated_group.pop('ackToken', None)   # never stored in group_data anyway
+            # Block forged status transitions: client may never claim received_by_crbox
+            if updated_group.get('status') == 'received_by_crbox':
+                updated_group['status'] = existing_row and json.loads(existing_row['group_data'] or '{}').get('status') or 'confirmation_sent'
+            if existing_row:
+                try:
+                    existing_gdata = json.loads(existing_row['group_data'])
+                except Exception:
+                    existing_gdata = {}
+                # Enforce correct status if DB already has a terminal value
+                if existing_gdata.get('status') == 'received_by_crbox':
+                    updated_group['status'] = 'received_by_crbox'
+                # Preserve receivedAt: only the ack endpoint may set this
+                if existing_gdata.get('receivedAt'):
+                    updated_group['receivedAt'] = existing_gdata['receivedAt']
+                else:
+                    updated_group.pop('receivedAt', None)  # strip any client-supplied value
             cursor = conn.execute(
                 'UPDATE package_groups SET group_data = ?, updated_at = ? '
                 'WHERE id = ? AND casillero_id = ?',
@@ -8555,6 +8592,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
             return
 
+        group_id      = str(data.get('groupId') or '').strip()
         group_name    = str(data.get('groupName') or '').strip()
         try:
             exp_count = int(data.get('expectedPackageCount') or 0)
@@ -8572,6 +8610,44 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         if not group_name:
             self._json_response(400, {'ok': False, 'error': 'Nombre de grupo requerido.'})
+            return
+
+        # Generate unique acknowledgment token and store it on the group record.
+        # Require a valid groupId that resolves to an owned row — refuse to send
+        # the email if the token can't be persisted, which would produce a dead link.
+        if not group_id:
+            self._json_response(400, {'ok': False, 'error': 'ID de grupo requerido para enviar confirmación.'})
+            return
+        import secrets as _secrets
+        ack_token = _secrets.token_urlsafe(32)
+        site_url  = os.environ.get('SITE_URL', 'https://crbox.cr').rstrip('/')
+        ack_url   = f'{site_url}/api/package-group-ack?token={ack_token}'
+        token_stored = False
+        with _DB_LOCK:
+            conn_tok = _get_db()
+            row_tok = conn_tok.execute(
+                'SELECT group_data FROM package_groups WHERE id = ? AND casillero_id = ?',
+                (group_id, casillero_id)
+            ).fetchone()
+            if row_tok:
+                try:
+                    gdata = json.loads(row_tok['group_data'])
+                except Exception:
+                    gdata = {}
+                # ackToken is intentionally NOT stored in group_data to prevent
+                # client-side exposure; only the ack_token DB column holds the token.
+                gdata.pop('ackToken', None)   # scrub any legacy value
+                now_tok = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                conn_tok.execute(
+                    'UPDATE package_groups SET group_data = ?, ack_token = ?, updated_at = ? '
+                    'WHERE id = ? AND casillero_id = ?',
+                    (json.dumps(gdata), ack_token, now_tok, group_id, casillero_id)
+                )
+                conn_tok.commit()
+                token_stored = True
+            conn_tok.close()
+        if not token_stored:
+            self._json_response(400, {'ok': False, 'error': 'Grupo no encontrado. No se pudo enviar la confirmación.'})
             return
 
         esc = _html.escape
@@ -8611,7 +8687,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             f'Confirmado el: {confirmed_at}\n\n'
             f'Paquetes:\n{pkg_lines}\n\n'
             '---\nEnviado automáticamente desde el portal CRBOX.\n'
-            'Por favor revisar las facturas y procesar según disponibilidad operativa.'
+            'Por favor revisar las facturas y procesar según disponibilidad operativa.\n\n'
+            'CONFIRMAR RECEPCIÓN DE SOLICITUD:\n'
+            f'{ack_url}\n'
+            '(Haga clic en el enlace para confirmar que esta solicitud fue recibida por CRBOX.)'
         )
 
         # ── Build HTML body ──
@@ -8668,6 +8747,17 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
       </thead>
       <tbody>{pkg_rows_html}</tbody>
     </table>
+    <div style="margin-top:24px;text-align:center;padding:20px;background:#f5f3ff;border-radius:10px;border:1px solid #ddd6fe;">
+      <p style="margin:0 0 12px;font-size:14px;font-weight:600;color:#5b21b6;">¿Recibió esta solicitud?</p>
+      <p style="margin:0 0 16px;font-size:13px;color:#6b7280;">Haga clic en el botón para confirmar la recepción. No requiere inicio de sesión.</p>
+      <a href="{esc(ack_url)}" style="display:inline-block;background:#7c3aed;color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:8px;text-decoration:none;">
+        ✓ Confirmar recepción de solicitud
+      </a>
+      <p style="margin:14px 0 0;font-size:11px;color:#9ca3af;">
+        Si el botón no funciona, copie este enlace en su navegador:<br>
+        <a href="{esc(ack_url)}" style="color:#7c3aed;word-break:break-all;">{esc(ack_url)}</a>
+      </p>
+    </div>
     <p style="margin-top:20px;font-size:12px;color:#9ca3af;border-top:1px solid #f3f4f6;padding-top:16px;">
       El cliente ha confirmado que subió las facturas correspondientes a estos paquetes.<br>
       Por favor revisar y procesar según disponibilidad operativa.
@@ -8690,6 +8780,31 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             msg.attach(_mime_txt.MIMEText(html_body, 'html', 'utf-8'))
             _send_smtp(msg, [FACTURAS_RECIPIENT])
             print(f'[PKG-GROUP] Confirmation email sent for group "{group_name}" (locker {locker})')
+            # Atomically set status to confirmation_sent now that email is confirmed sent.
+            # This prevents a race where the client PATCH arrives before the ack endpoint
+            # checks the status. Uses the confirmedAt from the request or current time.
+            now_confirm = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+            confirmed_at_server = confirmed_at or now_confirm
+            with _DB_LOCK:
+                conn_cs = _get_db()
+                row_cs = conn_cs.execute(
+                    'SELECT group_data FROM package_groups WHERE id = ? AND casillero_id = ?',
+                    (group_id, casillero_id)
+                ).fetchone()
+                if row_cs:
+                    try:
+                        gdata_cs = json.loads(row_cs['group_data'])
+                    except Exception:
+                        gdata_cs = {}
+                    gdata_cs['status']      = 'confirmation_sent'
+                    gdata_cs['confirmedAt'] = gdata_cs.get('confirmedAt') or confirmed_at_server
+                    conn_cs.execute(
+                        'UPDATE package_groups SET group_data = ?, updated_at = ? '
+                        'WHERE id = ? AND casillero_id = ?',
+                        (json.dumps(gdata_cs), now_confirm, group_id, casillero_id)
+                    )
+                    conn_cs.commit()
+                conn_cs.close()
             self._json_response(200, {'ok': True})
         except Exception as exc:
             print(f'[PKG-GROUP] Email send failed: {exc}')
@@ -8697,6 +8812,159 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 'ok': False,
                 'error': 'No pudimos enviar el correo. Puedes escribirnos directamente a facturas@crbox.cr.'
             })
+
+    def _handle_package_group_ack(self):
+        """GET /api/package-group-ack?token=<ack_token>
+        No authentication required — intended for CRBOX staff clicking a link in email.
+        Looks up the group by ack_token, validates it, updates status to received_by_crbox,
+        and returns a simple branded HTML confirmation page.
+        """
+        qs = urllib.parse.parse_qs(self.path.partition('?')[2])
+        token = (qs.get('token', [''])[0] or '').strip()
+        esc = _html.escape
+
+        def _html_page(title, body_html, status=200):
+            page = (
+                '<!DOCTYPE html><html lang="es"><head>'
+                '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+                f'<title>{esc(title)} — CRBOX</title>'
+                '<style>'
+                'body{font-family:Arial,Helvetica,sans-serif;background:#f5f3ff;display:flex;'
+                'align-items:center;justify-content:center;min-height:100vh;margin:0;}'
+                '.card{background:#fff;border-radius:14px;box-shadow:0 4px 24px rgba(124,58,237,.12);'
+                'padding:40px 36px;max-width:460px;width:90%;text-align:center;}'
+                '.logo{font-weight:800;font-size:22px;color:#7c3aed;margin-bottom:8px;}'
+                '.icon{font-size:48px;margin:16px 0;}'
+                'h1{font-size:20px;color:#1f2937;margin:0 0 10px;}'
+                'p{color:#6b7280;font-size:14px;line-height:1.6;margin:0 0 8px;}'
+                '.ts{font-size:12px;color:#9ca3af;margin-top:16px;}'
+                '</style>'
+                '</head><body><div class="card">'
+                '<div class="logo">CRBOX</div>'
+                f'{body_html}'
+                '</div></body></html>'
+            )
+            self.send_response(status)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(page.encode('utf-8'))))
+            self.send_header('Cache-Control', 'no-store')
+            self.end_headers()
+            self.wfile.write(page.encode('utf-8'))
+
+        if not token:
+            _html_page('Enlace inválido',
+                '<div class="icon">⚠️</div>'
+                '<h1>Enlace inválido</h1>'
+                '<p>El enlace de confirmación no contiene un token válido.</p>',
+                status=400)
+            return
+
+        import time as _time
+        now_str = _time.strftime('%Y-%m-%dT%H:%M:%SZ', _time.gmtime())
+
+        with _DB_LOCK:
+            conn = _get_db()
+            row = conn.execute(
+                'SELECT casillero_id, id, group_data, updated_at FROM package_groups WHERE ack_token = ?',
+                (token,)
+            ).fetchone()
+            if row is None:
+                conn.close()
+                _html_page('Enlace no encontrado',
+                    '<div class="icon">❌</div>'
+                    '<h1>Enlace no encontrado</h1>'
+                    '<p>No encontramos ninguna solicitud asociada a este enlace.</p>',
+                    status=404)
+                return
+
+            try:
+                gdata = json.loads(row['group_data'])
+            except Exception:
+                gdata = {}
+
+            group_status = gdata.get('status', '')
+            group_name   = gdata.get('groupName', '')
+            received_at  = gdata.get('receivedAt')
+
+            # Already acknowledged — idempotent: return friendly "already done" page
+            if group_status == 'received_by_crbox' and received_at:
+                conn.close()
+                _html_page('Ya confirmado',
+                    '<div class="icon">✅</div>'
+                    '<h1>Ya fue confirmado</h1>'
+                    f'<p>La solicitud <strong>{esc(group_name)}</strong> ya fue confirmada el '
+                    f'<strong>{esc(str(received_at)[:16].replace("T", " "))}</strong>.</p>'
+                    '<p class="ts">No se realizó ningún cambio adicional.</p>',
+                    status=200)
+                return
+
+            # State guard: only allow transition from confirmation_sent
+            if group_status != 'confirmation_sent':
+                conn.close()
+                _html_page('Solicitud no confirmable',
+                    '<div class="icon">⚠️</div>'
+                    '<h1>Acción no disponible</h1>'
+                    '<p>Esta solicitud no puede ser confirmada en su estado actual.</p>'
+                    '<p>Si tiene dudas, contáctenos directamente.</p>',
+                    status=409)
+                return
+
+            # Check 30-day expiry. Prefer confirmedAt (immutable once set at confirmation
+            # time). Fall back to updated_at (the row timestamp at token issuance). If
+            # neither is parseable, refuse rather than silently allow.
+            import datetime as _dt
+            expiry_basis = gdata.get('confirmedAt') or row['updated_at'] or ''
+            if expiry_basis:
+                try:
+                    token_ts = _dt.datetime.strptime(expiry_basis[:19], '%Y-%m-%dT%H:%M:%S')
+                    now_dt   = _dt.datetime.utcnow()
+                    if (now_dt - token_ts) > _dt.timedelta(days=30):
+                        conn.close()
+                        _html_page('Enlace expirado',
+                            '<div class="icon">⏰</div>'
+                            '<h1>Enlace expirado</h1>'
+                            '<p>Este enlace de confirmación ha expirado (válido por 30 días).</p>'
+                            '<p>Si necesita confirmar la solicitud, contáctenos directamente.</p>',
+                            status=410)
+                        return
+                except ValueError:
+                    # Date is present but unparseable — refuse to avoid bypassing expiry
+                    conn.close()
+                    _html_page('Error de validación',
+                        '<div class="icon">⚠️</div>'
+                        '<h1>No se pudo verificar el enlace</h1>'
+                        '<p>No pudimos validar la fecha de este enlace. Contáctenos directamente.</p>',
+                        status=400)
+                    return
+            else:
+                # No date basis at all — refuse conservatively
+                conn.close()
+                _html_page('Enlace no verificable',
+                    '<div class="icon">⚠️</div>'
+                    '<h1>No se pudo verificar el enlace</h1>'
+                    '<p>Este enlace no tiene información de fecha. Contáctenos directamente.</p>',
+                    status=400)
+                return
+
+            # Update status to received_by_crbox
+            gdata['status']     = 'received_by_crbox'
+            gdata['receivedAt'] = now_str
+            conn.execute(
+                'UPDATE package_groups SET group_data = ?, updated_at = ? '
+                'WHERE ack_token = ?',
+                (json.dumps(gdata), now_str, token)
+            )
+            conn.commit()
+            conn.close()
+
+        print(f'[PKG-GROUP-ACK] Group "{group_name}" acknowledged at {now_str}')
+        _html_page('Solicitud confirmada',
+            '<div class="icon">✅</div>'
+            '<h1>¡Solicitud confirmada!</h1>'
+            f'<p>La solicitud <strong>{esc(group_name)}</strong> ha sido marcada como recibida por CRBOX.</p>'
+            '<p>El cliente verá este estado actualizado en su portal.</p>'
+            f'<p class="ts">Confirmado el {esc(now_str[:16].replace("T", " "))} UTC</p>',
+            status=200)
 
     def _handle_faq_pregunta_post(self):
         try:

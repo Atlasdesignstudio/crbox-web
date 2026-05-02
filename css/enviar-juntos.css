@@ -346,6 +346,7 @@
 .ej-status-confirm   { background: #ede9fe; color: #7c3aed; }
 .ej-status-sent      { background: #dcfce7; color: #16a34a; }
 .ej-status-confirmed { background: #dbeafe; color: #1d4ed8; }
+.ej-status-received  { background: #dcfce7; color: #15803d; }
 .ej-status-closed    { background: #f3f4f6; color: #6b7280; }
 
 /* ── Progress bar ────────────────────────────────────────── */

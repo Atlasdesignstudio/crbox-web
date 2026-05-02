@@ -21,13 +21,17 @@
  *   groupName:            string,
  *   expectedPackageCount: number,
  *   notes:                string,
- *   status:               'waiting_for_packages'|'invoices_pending'|'ready_to_confirm'|'confirmation_sent'|'closed',
+ *   status:               'waiting_for_packages'|'invoices_pending'|'ready_to_confirm'|'confirmation_sent'|'received_by_crbox'|'closed',
  *   packages:             Array<{ idwarehousereceipt, trackingNumber, number, carrierName, bestDate, statusId, invoicesCount }>,
  *   createdAt:            ISO string,
  *   updatedAt:            ISO string,
  *   confirmedAt:          ISO string|null,
- *   closedAt:             ISO string|null
+ *   closedAt:             ISO string|null,
+ *   receivedAt:           ISO string|null    // set server-side only when CRBOX clicks the ack link
  * }
+ * Note: ackToken is intentionally excluded from this schema; it lives only in the
+ * DB ack_token column and is never exposed in client-facing API responses.
+
  */
 (function (global) {
   'use strict';
@@ -78,6 +82,7 @@
     invoices_pending:     'Facturas pendientes',
     ready_to_confirm:     'Listo para confirmar',
     confirmation_sent:    'Confirmado — en proceso',
+    received_by_crbox:   'Recibido por CRBOX',
     closed:               'Cerrado'
   };
   var STATUS_CLASS = {
@@ -85,6 +90,7 @@
     invoices_pending:     'ej-status-invoices',
     ready_to_confirm:     'ej-status-confirm',
     confirmation_sent:    'ej-status-confirmed',
+    received_by_crbox:   'ej-status-received',
     closed:               'ej-status-closed'
   };
   var STATUS_ICON = {
@@ -92,6 +98,7 @@
     invoices_pending:     'fa-file-invoice',
     ready_to_confirm:     'fa-check-circle',
     confirmation_sent:    'fa-hourglass-half',
+    received_by_crbox:   'fa-check-double',
     closed:               'fa-lock'
   };
 
@@ -156,7 +163,7 @@
 
   function getActiveGroups() {
     return _load().filter(function (g) {
-      return g.status !== 'closed' && g.status !== 'confirmation_sent';
+      return g.status !== 'closed' && g.status !== 'confirmation_sent' && g.status !== 'received_by_crbox';
     });
   }
 
@@ -171,7 +178,8 @@
       packages: [],
       createdAt: _now(),
       updatedAt: _now(),
-      confirmedAt: null
+      confirmedAt: null,
+      receivedAt: null
     };
     groups.unshift(g);
     _save(groups);
@@ -301,7 +309,8 @@
       { key: 'waiting_for_packages', label: 'Agregar paquetes' },
       { key: 'invoices_pending',     label: 'Verificar facturas' },
       { key: 'ready_to_confirm',     label: 'Confirmar' },
-      { key: 'confirmation_sent',    label: 'Confirmado' }
+      { key: 'confirmation_sent',    label: 'Confirmado' },
+      { key: 'received_by_crbox',    label: 'Recibido ✓' }
     ];
     var order = steps.map(function (s) { return s.key; });
     var activeIdx = order.indexOf(currentStatus);
@@ -345,7 +354,7 @@
     var exp  = group.expectedPackageCount;
     var pct  = _progressPct(group);
     var pcls = _progressClass(pct);
-    var isReadOnly = group.status === 'confirmation_sent' || group.status === 'closed';
+    var isReadOnly = group.status === 'confirmation_sent' || group.status === 'received_by_crbox' || group.status === 'closed';
     var statusLabel = STATUS_LABEL[group.status] || group.status;
     var statusCls   = STATUS_CLASS[group.status] || 'ej-status-waiting';
     var statusIcon  = STATUS_ICON[group.status]  || 'fa-circle';
@@ -395,6 +404,33 @@
           '<p class="ej-confirmed-title">Confirmado — en proceso</p>' +
           '<p class="ej-confirmed-desc">Tu solicitud fue enviada a CRBOX. Nuestro equipo está revisando las facturas y coordinando el envío del grupo.</p>' +
           '<p class="ej-confirmed-ts"><i class="fas fa-check-circle"></i> Confirmado el ' + _fmtTs(group.confirmedAt) + '</p>' +
+        '</div>' +
+        '<div class="ej-confirmed-actions">' +
+          '<button class="ej-btn ej-btn-outline ej-btn-sm ej-btn-view-summary" data-gid="' + _esc(group.id) + '">' +
+            '<i class="fas fa-list"></i> <span class="ej-btn-label">Ver resumen</span>' +
+          '</button>' +
+          '<button class="ej-btn ej-btn-purple ej-btn-sm ej-btn-create-new">' +
+            '<i class="fas fa-plus"></i> <span class="ej-btn-label">Crear nuevo grupo</span>' +
+          '</button>' +
+          '<button class="ej-btn ej-btn-ghost ej-btn-sm ej-btn-mark-closed" data-gid="' + _esc(group.id) + '" ' +
+            'title="Mover al historial una vez que CRBOX procesó el envío">' +
+            '<i class="fas fa-archive"></i> <span class="ej-btn-label">Marcar como procesado</span>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+      html += '</div>';
+      return html;
+    }
+
+    /* ── RECEIVED BY CRBOX state ── */
+    if (group.status === 'received_by_crbox') {
+      html += '<div class="px-5 pb-5">' +
+        '<div class="ej-confirmed-card" style="border-color:#16a34a;">' +
+          '<div class="ej-confirmed-icon" style="background:#dcfce7;color:#16a34a;"><i class="fas fa-check-double"></i></div>' +
+          '<p class="ej-confirmed-title" style="color:#15803d;">Recibido por CRBOX</p>' +
+          '<p class="ej-confirmed-desc">CRBOX confirmó la recepción de tu solicitud. El equipo revisará las facturas y coordinará el envío del grupo.</p>' +
+          (group.confirmedAt ? '<p class="ej-confirmed-ts"><i class="fas fa-check-circle"></i> Confirmado el ' + _fmtTs(group.confirmedAt) + '</p>' : '') +
+          (group.receivedAt  ? '<p class="ej-confirmed-ts" style="color:#15803d;"><i class="fas fa-check-double"></i> Recibido por CRBOX el ' + _fmtTs(group.receivedAt) + '</p>' : '') +
         '</div>' +
         '<div class="ej-confirmed-actions">' +
           '<button class="ej-btn ej-btn-outline ej-btn-sm ej-btn-view-summary" data-gid="' + _esc(group.id) + '">' +
@@ -588,8 +624,8 @@
       if (emptyBtn) emptyBtn.addEventListener('click', openCreateModal);
     } else {
       // Summary bar: counter excludes closed groups
-      var confirmedGroups = nonClosedGroups.filter(function (g) { return g.status === 'confirmation_sent'; });
-      var openGroups      = nonClosedGroups.filter(function (g) { return g.status !== 'confirmation_sent'; });
+      var confirmedGroups = nonClosedGroups.filter(function (g) { return g.status === 'confirmation_sent' || g.status === 'received_by_crbox'; });
+      var openGroups      = nonClosedGroups.filter(function (g) { return g.status !== 'confirmation_sent' && g.status !== 'received_by_crbox'; });
       var counterParts = [];
       if (openGroups.length > 0) {
         counterParts.push(openGroups.length + (openGroups.length === 1 ? ' grupo activo' : ' grupos activos'));
@@ -1060,6 +1096,7 @@
     var token      = (window.CRBOXAuth && CRBOXAuth.getToken ? CRBOXAuth.getToken() : '') || '';
 
     var payload = {
+      groupId:              group.id,
       groupName:            group.groupName,
       expectedPackageCount: group.expectedPackageCount,
       notes:                group.notes,
