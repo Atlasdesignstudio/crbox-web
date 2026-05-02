@@ -2160,8 +2160,9 @@
             document.getElementById('draft-restore-btn').addEventListener('click', function () {
                 _restoreDraftCotizar(draft);
                 bar.classList.add('hidden');
-                // Trigger hasRequiredField check so sticky CTA can appear
-                fProductName.dispatchEvent(new Event('input'));
+                // Sync derived UI state from restored values (sticky CTA, step dots, char count)
+                checkRequiredFilled();
+                notesCharCount.textContent = (fNotes.value || '').length;
             });
             document.getElementById('draft-discard-btn').addEventListener('click', function () {
                 _clearDraftCotizar();
@@ -2171,10 +2172,16 @@
 
         // ── Pre-fill email from query params ────────────────────
         (function () {
-            const params = new URLSearchParams(window.location.search);
-            const emailParam = params.get('email');
-            if (emailParam && isValidEmail(decodeURIComponent(emailParam))) {
-                fEmail.value = decodeURIComponent(emailParam);
+            var params, emailParam, decoded;
+            try {
+                params = new URLSearchParams(window.location.search);
+                emailParam = params.get('email');
+                decoded = emailParam ? decodeURIComponent(emailParam) : '';
+            } catch (e) { return; }  // malformed escape sequence — ignore
+            if (decoded && isValidEmail(decoded)) {
+                fEmail.value = decoded;
+                // Sync derived UI state (sticky CTA, step dots, submit gating)
+                checkRequiredFilled();
                 // Trigger confirm flow after short delay
                 setTimeout(function () {
                     ecEmailDisplay.textContent = fEmail.value;
