@@ -807,10 +807,10 @@
                         <div class="mb-4">
                             <label class="q-label">Tipo de servicio <span class="q-required">*</span></label>
                             <div class="service-toggle" role="group" aria-label="Tipo de servicio">
-                                <button type="button" class="service-toggle-btn active" id="btn-aereo" data-service="aereo">
+                                <button type="button" class="service-toggle-btn active" id="btn-aereo" data-service="aereo" aria-pressed="true">
                                     <i class="fas fa-plane"></i> Aéreo
                                 </button>
-                                <button type="button" class="service-toggle-btn" id="btn-maritimo" data-service="maritimo">
+                                <button type="button" class="service-toggle-btn" id="btn-maritimo" data-service="maritimo" aria-pressed="false">
                                     <i class="fas fa-ship"></i> Marítimo
                                 </button>
                             </div>
@@ -1258,8 +1258,12 @@
 
         function setService(val) {
             fServiceType.value = val;
-            document.getElementById('btn-aereo').classList.toggle('active', val === 'aereo');
-            document.getElementById('btn-maritimo').classList.toggle('active', val === 'maritimo');
+            const btnAereo    = document.getElementById('btn-aereo');
+            const btnMaritimo = document.getElementById('btn-maritimo');
+            btnAereo.classList.toggle('active', val === 'aereo');
+            btnMaritimo.classList.toggle('active', val === 'maritimo');
+            btnAereo.setAttribute('aria-pressed', String(val === 'aereo'));
+            btnMaritimo.setAttribute('aria-pressed', String(val === 'maritimo'));
             serviceHintText.textContent = val === 'aereo'
                 ? 'Más rápido, ideal para electrónica, ropa y artículos menores a 50 kg.'
                 : 'Ideal para muebles, electrodomésticos y cargas mayores. Tiempo estimado: 4–8 semanas.';
@@ -1291,6 +1295,12 @@
                 emailConfirmBar.classList.remove('visible');
                 emailConfirmedBar.style.display = 'none';
                 hideError('err-email');
+            }
+            // Clear visible error as soon as the email becomes valid again
+            const val = (this.value || '').trim();
+            if (val && isValidEmail(val)) {
+                clearFieldError(this, 'err-email');
+                document.getElementById('err-email-text').textContent = 'Ingresa un correo válido.';
             }
             updateSubmitState();
         });
@@ -1480,6 +1490,7 @@
         fEmail.addEventListener('blur', function () {
             const val = (this.value || '').trim();
             if (!val || !isValidEmail(val)) {
+                document.getElementById('err-email-text').textContent = 'Ingresa un correo válido.';
                 markFieldError(this, 'err-email');
             } else {
                 clearFieldError(this, 'err-email');
@@ -1658,6 +1669,13 @@
         });
 
         async function submitQuote() {
+            // Clear stale red outlines/messages from any previous failed attempt
+            [fProductName, fCategory, fDeclaredValue, fWeight, fLength, fWidth, fHeight].forEach(function (el) {
+                if (el) el.style.outline = '';
+            });
+            if (aiConfirmWrapper) aiConfirmWrapper.style.outline = '';
+            document.getElementById('err-email-text').textContent = 'Ingresa un correo válido.';
+
             // Full validation
             let valid = true;
             const productName = (fProductName.value || '').trim();
@@ -1671,7 +1689,7 @@
             if (isNaN(declaredVal) || declaredVal <= 0) { markFieldError(fDeclaredValue, 'err-declared-value'); valid = false; }
             if (!destination)           { markFieldError(fDestination, 'err-destination'); valid = false; }
             if (!email || !isValidEmail(email)) { markFieldError(fEmail, 'err-email'); valid = false; }
-            if (!emailConfirmed)        {
+            if (email && isValidEmail(email) && !emailConfirmed) {
                 document.getElementById('err-email-text').textContent = 'Por favor confirma tu correo antes de enviar.';
                 markFieldError(fEmail, 'err-email'); valid = false;
             }
@@ -2187,6 +2205,18 @@
                     mobileMenuBtn.setAttribute('aria-label', 'Cerrar menú');
                 }
                 mobileMenuBtn.blur();
+            });
+            // Close menu when any link inside it is clicked (matches js/main.js parity)
+            mobileMenu.querySelectorAll('a').forEach(function (link) {
+                link.addEventListener('click', function () {
+                    if (!mobileMenu.classList.contains('is-open')) return;
+                    mobileMenu.classList.remove('is-open');
+                    if (stickyHeader) stickyHeader.classList.remove('menu-open');
+                    const icon = mobileMenuBtn.querySelector('i');
+                    if (icon) icon.classList.replace('fa-times', 'fa-bars');
+                    mobileMenuBtn.setAttribute('aria-expanded', 'false');
+                    mobileMenuBtn.setAttribute('aria-label', 'Abrir menú');
+                });
             });
         }
 
