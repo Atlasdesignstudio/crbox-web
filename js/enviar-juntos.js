@@ -942,26 +942,51 @@
     if (!group) return;
     var bodyEl = _el('ej-summary-body');
     if (!bodyEl) return;
+    var pkgs = group.packages || [];
+
+    /* Prominent confirmation timestamp banner */
     var html =
+      '<div class="ej-summary-confirmed-banner">' +
+        '<i class="fas fa-check-circle"></i>' +
+        '<span>Confirmado el <strong>' + _fmtTs(group.confirmedAt) + '</strong></span>' +
+      '</div>';
+
+    /* Group metadata */
+    html +=
       '<table class="ej-summary-table mb-4">' +
         '<tr><th>Nombre del grupo</th><td>' + _esc(group.groupName) + '</td></tr>' +
-        '<tr><th>Paquetes esperados</th><td>' + group.expectedPackageCount + '</td></tr>' +
-        '<tr><th>Paquetes confirmados</th><td>' + (group.packages || []).length + '</td></tr>' +
-        '<tr><th>Notas</th><td>' + _esc(group.notes || '—') + '</td></tr>' +
-        '<tr><th>Confirmado el</th><td>' + _fmtTs(group.confirmedAt) + '</td></tr>' +
-      '</table>' +
-      '<p class="text-sm font-semibold text-gray-700 mb-2">Paquetes en el grupo:</p>' +
-      '<div class="flex flex-col gap-2">' +
-      (group.packages || []).map(function (p) {
-        return '<div class="ej-invoice-row">' +
-          _invoiceBadge(p) +
-          '<div class="ej-inv-info">' +
-            '<div class="ej-inv-tracking">' + _esc(p.trackingNumber || '—') + '</div>' +
-            '<div class="ej-inv-sub">' + _esc([p.number, p.carrierName, _fmtDate(p.bestDate)].filter(Boolean).join(' · ')) + '</div>' +
-          '</div>' +
+        (group.notes ? '<tr><th>Notas</th><td>' + _esc(group.notes) + '</td></tr>' : '') +
+        '<tr><th>Paquetes incluidos</th><td>' + pkgs.length + ' de ' + group.expectedPackageCount + ' esperados</td></tr>' +
+      '</table>';
+
+    /* Package list table */
+    if (pkgs.length === 0) {
+      html += '<p class="text-sm text-gray-500 text-center py-3">No hay paquetes registrados en este grupo.</p>';
+    } else {
+      html +=
+        '<p class="text-sm font-semibold text-gray-700 mb-2">Paquetes en el grupo:</p>' +
+        '<div class="ej-summary-pkg-wrap">' +
+          '<table class="ej-summary-pkg-table">' +
+            '<thead><tr>' +
+              '<th>#</th>' +
+              '<th>Tracking</th>' +
+              '<th>Carrier</th>' +
+              '<th>Fecha esperada</th>' +
+            '</tr></thead>' +
+            '<tbody>' +
+            pkgs.map(function (p, i) {
+              return '<tr>' +
+                '<td class="ej-spkg-num">' + (i + 1) + '</td>' +
+                '<td class="ej-spkg-tracking">' + _esc(p.trackingNumber || p.number || '—') + '</td>' +
+                '<td class="ej-spkg-carrier">' + _esc(p.carrierName || '—') + '</td>' +
+                '<td class="ej-spkg-date">' + _fmtDate(p.bestDate) + '</td>' +
+              '</tr>';
+            }).join('') +
+            '</tbody>' +
+          '</table>' +
         '</div>';
-      }).join('') +
-      '</div>';
+    }
+
     bodyEl.innerHTML = html;
     _openModal(_el('ej-summary-modal-overlay'));
   }
