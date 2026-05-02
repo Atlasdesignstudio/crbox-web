@@ -3,6 +3,7 @@ import os
 import re
 import json
 import time
+import hmac
 import sqlite3
 import calendar
 import threading
@@ -1473,6 +1474,11 @@ def _handle_ai_extract(handler):
 # ── SQLite / Solicitudes ──────────────────────────────────────────────────────
 _DB_PATH = 'solicitudes.db'
 _DB_LOCK = threading.Lock()
+
+# /health caches the SMTP probe result for 60 s so monitoring pings
+# (k8s liveness, uptime checks, etc.) don't authenticate against Gmail
+# on every hit and trip its rate limiter.
+_HEALTH_CACHE: dict = {}
 
 _LEGAL_TRANSITIONS = {
     'enviada':                           {'en_revision', 'respondida', 'cancelada', 'expirada'},
@@ -6963,10 +6969,20 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def _handle_health(self):
         """GET /health — probe SMTP and return 200 OK or 503.
 
+        Result is cached for 60 s so monitoring pings don't hammer the SMTP
+        provider (Gmail rate-limits AUTH attempts aggressively).
         Detailed error text is written to the server log, not returned to the
         caller, to avoid exposing SMTP configuration details publicly.
         """
-        ok, err = _check_smtp()
+        now = time.time()
+        cached = _HEALTH_CACHE.get('result')
+        cached_at = _HEALTH_CACHE.get('ts', 0)
+        if cached is not None and (now - cached_at) < 60:
+            ok, err = cached
+        else:
+            ok, err = _check_smtp()
+            _HEALTH_CACHE['result'] = (ok, err)
+            _HEALTH_CACHE['ts'] = now
         if ok:
             self._json_response(200, {'ok': True, 'smtp': 'ok'})
         else:
@@ -6997,10 +7013,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(400, {'ok': False, 'error': 'Solicitud inválida.'})
             return
 
-        subject   = data.get('subject', 'Solicitud de cotización | CRBOX')
-        user_email = data.get('userEmail', '').strip()
-        user_name  = data.get('userName', '').strip()
-        body_text  = data.get('bodyText', '').strip()
+        # Strip CR/LF from any value that ends up in a MIME header to block
+        # email-header injection (otherwise an attacker could append Bcc:,
+        # Cc:, or extra headers via the JSON body and turn /send-quote into
+        # a spam relay).
+        def _hdr_safe(s):
+            return re.sub(r'[\r\n]+', ' ', (s or '')).strip()
+        subject    = _hdr_safe(data.get('subject', 'Solicitud de cotización | CRBOX'))[:300]
+        user_email = _hdr_safe(data.get('userEmail', ''))
+        user_name  = _hdr_safe(data.get('userName', ''))
+        body_text  = (data.get('bodyText') or '').strip()
 
         if not user_email or not body_text:
             _log_quote_submission(user_name, user_email, subject, 'failed', 'missing_required_fields', ip=client_ip)
@@ -7100,14 +7122,15 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         account_type = data.get('account_type', 'anonymous')
         if account_type not in ('personal', 'business', 'anonymous'):
             account_type = 'anonymous'
-        casillero_id = (data.get('casillero_id') or '').strip() or None
-
-        # Optional portal-auth hardening: when the caller supplies auth headers
-        # (Bearer token + X-Casillero-Email), verify the token server-side and
-        # derive casillero_id from the CRBOX API response instead of trusting the
-        # client-provided payload value.  Fails silently to preserve backward
-        # compatibility with unauthenticated (webhook / public) callers.
-        auth_header = self.headers.get('Authorization', '').strip()
+        # Casillero-ID hardening:
+        #   * If the caller presents auth headers (Bearer + X-Casillero-Email),
+        #     verify the token server-side and use the CRBOX-derived ID.
+        #   * If auth is missing OR fails, IGNORE any client-supplied value.
+        #     Otherwise an unauthenticated public POST could tag the request
+        #     with someone else's casillero, polluting their /mis-solicitudes
+        #     list with arbitrary content.
+        casillero_id = None
+        auth_header  = self.headers.get('Authorization', '').strip()
         email_header = self.headers.get('X-Casillero-Email', '').strip()
         if auth_header.startswith('Bearer ') and email_header:
             verified_id = self._portal_auth()
@@ -8265,7 +8288,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 _build_admin_login_html(error='Solicitud inválida.'), status=400
             )
             return
-        if pwd == _admin_password():
+        if hmac.compare_digest(pwd, _admin_password() or ''):
             with _admin_brute_lock:
                 _admin_brute_state.pop(client_ip, None)
             token = _admin_create_session()

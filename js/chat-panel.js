@@ -344,6 +344,10 @@
     var kb = (typeof CRBOX_KNOWLEDGE !== 'undefined') ? CRBOX_KNOWLEDGE : null;
     var pageInfo = (kb && kb.page_map && kb.page_map[slug]) ? kb.page_map[slug] : null;
 
+    // 20 s timeout — Gemini can be slow but anything beyond this is hung.
+    var _ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var _timer = _ctrl ? setTimeout(function () { _ctrl.abort(); }, 20000) : null;
+
     fetch(CHAT_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -352,6 +356,7 @@
         page: slug,
         context: pageInfo,
       }),
+      signal: _ctrl ? _ctrl.signal : undefined,
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {
@@ -363,11 +368,15 @@
       _history.push({ role: 'assistant', text: reply });
       if (_history.length > MAX_HISTORY) _history = _history.slice(-MAX_HISTORY);
     })
-    .catch(function () {
+    .catch(function (err) {
       _hideTyping();
-      _appendAIMessage('Hubo un error de conexión. Por favor intenta de nuevo o contáctanos por WhatsApp.');
+      var msg = (err && err.name === 'AbortError')
+        ? 'La consulta tomó demasiado tiempo. Intenta de nuevo o contáctanos por WhatsApp.'
+        : 'Hubo un error de conexión. Por favor intenta de nuevo o contáctanos por WhatsApp.';
+      _appendAIMessage(msg);
     })
     .finally(function () {
+      if (_timer) clearTimeout(_timer);
       _pending = false;
       $send.disabled = false;
       $input.focus();

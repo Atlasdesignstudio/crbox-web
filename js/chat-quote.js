@@ -88,16 +88,31 @@
         data_source:        'manual',
       };
 
+      // 15 s timeout — server normally responds in <1 s; this just guards
+      // against a hung network so the button doesn't spin forever.
+      var _qCtrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var _qTimer = _qCtrl ? setTimeout(function () { _qCtrl.abort(); }, 15000) : null;
+
       fetch('/api/solicitudes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: _qCtrl ? _qCtrl.signal : undefined,
       })
       .then(function (r) { return r.json(); })
       .then(function (data) {
+        if (_qTimer) clearTimeout(_qTimer);
         if (data && data.ok) {
           btn.style.display = 'none';
           successDiv.classList.add('visible');
+          // If the email confirmation didn't go out, warn the user so they
+          // don't sit waiting for a confirmation that never arrives.
+          if (data.email_warnings && data.email_warnings.length) {
+            var warn = document.createElement('p');
+            warn.style.cssText = 'margin-top:.6rem;color:#92400e;font-size:.85rem;';
+            warn.textContent = 'Tu solicitud quedó guardada, pero el correo de confirmación pudo fallar. Si no lo recibes en unos minutos, escríbenos por WhatsApp.';
+            successDiv.appendChild(warn);
+          }
         } else {
           var msg = (data && data.errors && data.errors[0]) || (data && data.error) || 'Error al enviar. Intenta de nuevo.';
           showErr(msg);
@@ -105,8 +120,13 @@
           btn.textContent = 'Solicitar cotización';
         }
       })
-      .catch(function () {
-        showErr('Error de conexión. Intenta de nuevo.');
+      .catch(function (err) {
+        if (_qTimer) clearTimeout(_qTimer);
+        if (err && err.name === 'AbortError') {
+          showErr('La solicitud tomó demasiado tiempo. Intenta de nuevo.');
+        } else {
+          showErr('Error de conexión. Intenta de nuevo.');
+        }
         btn.disabled = false;
         btn.textContent = 'Solicitar cotización';
       });

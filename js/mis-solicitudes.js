@@ -1256,6 +1256,12 @@
             var scbId = result.data.id;
             _panelSubmitted = true;
             showSubmitSuccess(scbId);
+            // If the email confirmation didn't go out, warn the user so they
+            // don't sit waiting for an email that never arrives. The record
+            // was saved either way.
+            if (result.data.email_warnings && result.data.email_warnings.length) {
+              showToast('Solicitud guardada, pero el correo de confirmación pudo fallar. Si no lo recibes en unos minutos, escríbenos por WhatsApp.', 'warning');
+            }
             // Refresh the list in background
             fetchSolicitudes().then(function (list) { renderList(list); }).catch(function(){});
           } else {

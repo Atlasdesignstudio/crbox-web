@@ -67,8 +67,12 @@
       if (data && data.ok && Array.isArray(data.groups)) {
         _groups = data.groups;
         renderSection();
+      } else {
+        _showToast('No se pudieron actualizar los grupos. Recarga la página si ves datos desactualizados.', 'warning');
       }
-    }).catch(function () {});
+    }).catch(function () {
+      _showToast('No se pudieron actualizar los grupos. Verifica tu conexión.', 'error');
+    });
   }
 
   function _uuid() {

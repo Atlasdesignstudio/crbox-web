@@ -26,13 +26,20 @@
     if (_ready) { fn(_kb); } else { _callbacks.push(fn); }
   }
 
-  fetch('/knowledge/crbox-kb.json')
+  // 8 s timeout — small JSON file, anything beyond this means the network
+  // is hung. We fall back to an empty KB so callers see a "ready" event
+  // instead of waiting forever.
+  var _kbCtrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var _kbTimer = _kbCtrl ? setTimeout(function () { _kbCtrl.abort(); }, 8000) : null;
+
+  fetch('/knowledge/crbox-kb.json', { signal: _kbCtrl ? _kbCtrl.signal : undefined })
     .then(function (r) { return r.json(); })
     .then(function (data) { _applyKb(data); })
     .catch(function (err) {
       console.warn('[CRBox] crbox-kb.json load failed:', err);
       _applyKb({});
-    });
+    })
+    .finally(function () { if (_kbTimer) clearTimeout(_kbTimer); });
 
   global.CRBOX_KNOWLEDGE = null;
   global.CRBOXKnowledgeReady = onReady;
