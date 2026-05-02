@@ -932,30 +932,52 @@
     var group = getAllGroups().find(function (g) { return g.id === groupId; });
     if (!group) return;
 
+    var pkgs = group.packages || [];
+    var pendingCount = pkgs.filter(function (p) {
+      return p.invoicesCount !== null && p.invoicesCount !== undefined && Number(p.invoicesCount) === 0;
+    }).length;
+
     /* Build invoice checklist */
     var listEl = _el('ej-invoice-list');
     if (listEl) {
-      if ((group.packages || []).length === 0) {
+      if (pkgs.length === 0) {
         listEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-3">No hay paquetes en este grupo.</p>';
       } else {
-        listEl.innerHTML = group.packages.map(function (p) {
-          return '<div class="ej-invoice-row">' +
-            _invoiceBadge(p) +
-            '<div class="ej-inv-info">' +
-              '<div class="ej-inv-tracking">' + _esc(p.trackingNumber || '—') + '</div>' +
-              '<div class="ej-inv-sub">' + _esc([p.number, p.carrierName].filter(Boolean).join(' · ')) + '</div>' +
-            '</div>' +
-          '</div>';
+        listEl.innerHTML = pkgs.map(function (p) {
+          var cnt = p.invoicesCount;
+          var isPending = (cnt !== null && cnt !== undefined && Number(cnt) === 0);
+          var isUnknown = (cnt === null || cnt === undefined);
+          var pid = _esc(_pid(p.idwarehousereceipt));
+          var html = '<div class="ej-inv-pkg-block">' +
+            '<div class="ej-invoice-row' + (isPending ? ' ej-invoice-row-pending' : '') + '">' +
+              _invoiceBadge(p) +
+              '<div class="ej-inv-info">' +
+                '<div class="ej-inv-tracking">' + _esc(p.trackingNumber || '—') + '</div>' +
+                '<div class="ej-inv-sub">' + _esc([p.number, p.carrierName].filter(Boolean).join(' · ')) + '</div>' +
+              '</div>' +
+            '</div>';
+          if (isPending) {
+            html += '<label class="ej-inv-ack-row" for="ej-inv-row-chk-' + pid + '">' +
+              '<input type="checkbox" id="ej-inv-row-chk-' + pid + '" class="ej-inv-pending-chk" data-pid="' + pid + '">' +
+              '<span>Entiendo que este paquete no tiene factura subida</span>' +
+            '</label>';
+          } else if (isUnknown) {
+            html += '<div class="ej-inv-unk-note"><i class="fas fa-info-circle"></i> No hay datos de factura disponibles para este paquete.</div>';
+          }
+          html += '</div>';
+          return html;
         }).join('');
       }
     }
 
-    /* Restore checkbox state: pre-check if group is already in ready_to_confirm */
+    /* Summary line visibility */
+    var summaryEl = _el('ej-invoice-summary');
+    if (summaryEl) summaryEl.style.display = pendingCount > 0 ? '' : 'none';
+
+    /* Restore main checkbox state */
     var chk = _el('ej-invoice-confirm-check');
     var alreadyReady = group.status === 'ready_to_confirm';
     if (chk) chk.checked = alreadyReady;
-    var sendBtn = _el('ej-invoice-send-btn');
-    if (sendBtn) sendBtn.disabled = !alreadyReady;
 
     /* Error area reset */
     var errEl = _el('ej-invoice-error');
@@ -965,22 +987,55 @@
     var stepsEl = _el('ej-invoice-steps');
     if (stepsEl) stepsEl.innerHTML = _stepsHTML(group.status);
 
+    /* Set initial button state */
+    _updateInvoiceSendBtn();
+
     _openModal(_el('ej-invoice-modal-overlay'));
   }
 
-  function _handleInvoiceCheckChange() {
-    var chk = _el('ej-invoice-confirm-check');
-    var btn = _el('ej-invoice-send-btn');
-    if (!chk || !btn) return;
-    btn.disabled = !chk.checked;
-    // Advance group status to reflect checkbox state (enables "Enviar confirmación" CTA in card)
+  function _updateInvoiceSendBtn() {
+    var mainChk = _el('ej-invoice-confirm-check');
+    var sendBtn = _el('ej-invoice-send-btn');
+    if (!mainChk || !sendBtn) return;
+
+    var pendingChks = document.querySelectorAll('#ej-invoice-list .ej-inv-pending-chk');
+    var totalPending = pendingChks.length;
+    var checkedPending = 0;
+    pendingChks.forEach(function (c) { if (c.checked) checkedPending++; });
+
+    var allAcknowledged = (totalPending === 0) || (checkedPending === totalPending);
+    var canSend = mainChk.checked && allAcknowledged;
+    sendBtn.disabled = !canSend;
+
+    /* Update summary line */
+    var summaryEl = _el('ej-invoice-summary');
+    if (summaryEl && totalPending > 0) {
+      var group = _invoiceGroupId ? getAllGroups().find(function (g) { return g.id === _invoiceGroupId; }) : null;
+      var pkgs = group ? (group.packages || []) : [];
+      var totalPkgs = pkgs.length;
+      /* Count strictly: only packages where invoicesCount > 0 */
+      var withInvoice = pkgs.filter(function (p) {
+        return p.invoicesCount !== null && p.invoicesCount !== undefined && Number(p.invoicesCount) > 0;
+      }).length;
+      var html = '<span class="ej-inv-sum-ok"><i class="fas fa-check-circle"></i> ' + withInvoice + ' de ' + totalPkgs + ' paquetes con factura</span>';
+      if (checkedPending > 0) {
+        html += ' · <span class="ej-inv-sum-warn">' + checkedPending + ' sin factura (reconocido)</span>';
+      }
+      summaryEl.innerHTML = html;
+    }
+
+    /* Sync group status so the card-level CTA matches the modal gate:
+     * only promote to ready_to_confirm when the send button is actually unblocked */
     if (_invoiceGroupId) {
-      var nextStatus = chk.checked ? 'ready_to_confirm' : 'invoices_pending';
+      var nextStatus = canSend ? 'ready_to_confirm' : 'invoices_pending';
       _updateGroup(_invoiceGroupId, { status: nextStatus });
-      // Update the step display inside the modal without closing it
       var stepsEl = _el('ej-invoice-steps');
       if (stepsEl) stepsEl.innerHTML = _stepsHTML(nextStatus);
     }
+  }
+
+  function _handleInvoiceCheckChange() {
+    _updateInvoiceSendBtn();
   }
 
   /* ─── Confirmation email POST ────────────────────────────── */
@@ -1555,6 +1610,16 @@
     /* Invoice checkbox */
     var invCheck = _el('ej-invoice-confirm-check');
     if (invCheck) invCheck.addEventListener('change', _handleInvoiceCheckChange);
+
+    /* Per-row pending acknowledgment checkboxes (delegated — elements are dynamic) */
+    var invList = _el('ej-invoice-list');
+    if (invList) {
+      invList.addEventListener('change', function (e) {
+        if (e.target && e.target.classList.contains('ej-inv-pending-chk')) {
+          _updateInvoiceSendBtn();
+        }
+      });
+    }
 
     /* Invoice send button */
     var invSend = _el('ej-invoice-send-btn');
