@@ -1700,9 +1700,12 @@
             if (_aiActive && typeof CRBOXAIExtractor !== 'undefined') {
                 const fconf = CRBOXAIExtractor.allFieldsConfirmed();
                 if (!fconf.ok) {
-                    fconf.unconfirmedIds.forEach(function (fid) {
+                    fconf.unconfirmedIds.forEach(function (fid, idx) {
                         const el = document.getElementById(fid);
-                        if (el) { el.style.outline = '2px solid #ef4444'; el.focus(); }
+                        if (el) {
+                            el.style.outline = '2px solid #ef4444';
+                            if (idx === 0) el.focus();
+                        }
                     });
                     valid = false;
                 }
@@ -1865,7 +1868,9 @@
                 btnStickySubmit.disabled = true;
                 btnStickySubmit.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Enviando\u2026';
             } else {
+                btnSubmit.disabled = false;
                 btnSubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
+                btnStickySubmit.disabled = false;
                 btnStickySubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
             }
         }
@@ -2010,8 +2015,20 @@
 
         // ── New request reset ────────────────────────────────────
         btnNewRequest.addEventListener('click', resetForm);
-        btnRetry.addEventListener('click', resetForm);
         document.getElementById('btn-new-after-smtp').addEventListener('click', resetForm);
+
+        // Retry after a network/server failure: keep the user's data, just re-show the form
+        btnRetry.addEventListener('click', function () {
+            failureScreen.classList.remove('visible');
+            formSection.classList.remove('hidden-section');
+            if (hasRequiredField) {
+                stickyCta.classList.add('show');
+                stickyCta.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('has-sticky-cta');
+            }
+            updateSubmitState();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
 
         function resetForm() {
             _clearDraftCotizar();
