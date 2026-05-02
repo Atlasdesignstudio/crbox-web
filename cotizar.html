@@ -232,6 +232,13 @@
         #sticky-cta-bar.show { display: block; }
         @media (min-width: 768px) { #sticky-cta-bar { display: none !important; } }
 
+        /* Lift floating chat bubble above the sticky CTA so they don't overlap on mobile */
+        @media (max-width: 767px) {
+            body.has-sticky-cta #crbox-chat-bubble {
+                bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+            }
+        }
+
         /* ── Confirmation screen ── */
         #confirm-screen { display: none; }
         #confirm-screen.visible { display: block; }
@@ -695,12 +702,12 @@
                             <label class="q-label" for="f-category">
                                 Categoría <span class="q-required">*</span>
                             </label>
-                            <select id="f-category" class="q-input" style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right .75rem center;padding-right:2.5rem;">
+                            <select id="f-category" class="q-input" style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right .75rem center;padding-right:2.5rem;">
                                 <option value="" disabled selected>Selecciona una categoría</option>
                                 <optgroup label="Electrónica">
                                     <option value="celulares">Celulares y Smartphones</option>
                                     <option value="computadora">Computadoras y Laptops</option>
-                                    <option value="computadora">Tabletas y iPads</option>
+                                    <option value="tableta_electronica">Tabletas y iPads</option>
                                     <option value="consola_videojuegos">Consolas de Videojuegos</option>
                                     <option value="camara">Cámaras y Video</option>
                                     <option value="auricular_telefono">Audífonos y Accesorios Audio</option>
@@ -815,7 +822,7 @@
                             <label class="q-label" for="f-destination-zone">
                                 Zona de destino <span class="q-required">*</span>
                             </label>
-                            <select id="f-destination-zone" class="q-input" style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right .75rem center;padding-right:2.5rem;">
+                            <select id="f-destination-zone" class="q-input" style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right .75rem center;padding-right:2.5rem;">
                                 <option value="" disabled selected>Selecciona tu provincia</option>
                                 <option value="sanjose">San José</option>
                                 <option value="heredia">Heredia</option>
@@ -1333,6 +1340,7 @@
             if (anyFilled && !hasRequiredField) {
                 hasRequiredField = true;
                 stickyCta.classList.add('show');
+                document.body.classList.add('has-sticky-cta');
             }
             updateSubmitState();
         }
@@ -1799,6 +1807,7 @@
             // Hide form, hide sticky, show confirm
             formSection.classList.add('hidden-section');
             stickyCta.classList.remove('show');
+            document.body.classList.remove('has-sticky-cta');
             failureScreen.classList.remove('visible');
             confirmScreen.classList.add('visible');
 
@@ -1846,6 +1855,7 @@
         function showFailure(detail) {
             formSection.classList.add('hidden-section');
             stickyCta.classList.remove('show');
+            document.body.classList.remove('has-sticky-cta');
             confirmScreen.classList.remove('visible');
             failureScreen.classList.add('visible');
 
@@ -1876,6 +1886,7 @@
             // Record is saved but email delivery failed — show recovery state
             formSection.classList.add('hidden-section');
             stickyCta.classList.remove('show');
+            document.body.classList.remove('has-sticky-cta');
             confirmScreen.classList.remove('visible');
             failureScreen.classList.add('visible');
 
@@ -1971,6 +1982,7 @@
             failureScreen.classList.remove('visible');
 
             stickyCta.classList.remove('show');
+            document.body.classList.remove('has-sticky-cta');
             btnSubmit.disabled = true;
             btnSubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
             btnStickySubmit.disabled = true;
