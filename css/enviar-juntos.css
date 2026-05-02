@@ -458,6 +458,101 @@
   background: #fee2e2;
 }
 
+/* ── Quick-group banner ──────────────────────────────────── */
+.ej-quick-group-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #fefce8 100%);
+  border: 1.5px solid #bfdbfe;
+  border-radius: 0.875rem;
+  margin: 1rem 1.25rem 0;
+}
+.ej-qgb-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: #dbeafe;
+  color: #2563eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.ej-qgb-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.ej-qgb-text strong {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1e40af;
+  line-height: 1.3;
+}
+.ej-qgb-text span {
+  font-size: 0.8125rem;
+  color: #3b82f6;
+}
+@media (max-width: 480px) {
+  .ej-quick-group-banner {
+    flex-wrap: wrap;
+    margin: 0.75rem 0.75rem 0;
+  }
+  .ej-quick-group-banner .ej-btn-quick-group {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Quick-create modal: package preview ─────────────────── */
+.ej-qc-pkg-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.625rem 0.75rem;
+  background: #f5f3ff;
+  border: 1.5px solid #e9d5ff;
+  border-radius: 0.625rem;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+.ej-qc-pkg-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+.ej-qc-carrier-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.ej-qc-tracking {
+  font-weight: 600;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ej-qc-pkg-count-note {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
 /* ── Selector row (in package selector modal) ────────────── */
 .ej-sel-row {
   display: flex;

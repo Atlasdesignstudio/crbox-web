@@ -1597,6 +1597,13 @@ def _init_db():
                 updated_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
                 UNIQUE(casillero_id, id)
             );
+
+            CREATE TABLE IF NOT EXISTS arrival_emails_sent (
+                casillero_id    TEXT NOT NULL,
+                tracking_number TEXT NOT NULL,
+                sent_at         TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                PRIMARY KEY (casillero_id, tracking_number)
+            );
         ''')
         conn.commit()
         # Safe migration: add reminder_sent_at if it doesn't exist yet.
@@ -1671,8 +1678,73 @@ def _init_db():
             conn.execute('ALTER TABLE package_groups ADD COLUMN ack_token TEXT')
             conn.commit()
             print('[PACKAGE_GROUPS] Added ack_token column to package_groups')
+        # Ensure arrival_emails_sent table exists (safe for existing DBs that
+        # were initialised before this table was added to the CREATE script).
+        aes_tables = [row[0] for row in
+                      conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        if 'arrival_emails_sent' not in aes_tables:
+            conn.execute('''
+                CREATE TABLE arrival_emails_sent (
+                    casillero_id    TEXT NOT NULL,
+                    tracking_number TEXT NOT NULL,
+                    sent_at         TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                    PRIMARY KEY (casillero_id, tracking_number)
+                )
+            ''')
+            conn.commit()
+            print('[ARRIVALS] Created arrival_emails_sent table')
         conn.close()
     print('[SOLICITUDES] SQLite schema initialised OK')
+
+
+def _build_miami_arrival_email_html(tracking_number, carrier_name, cta_url):
+    """Build the HTML body for the Miami arrival notification email."""
+    esc = _html.escape
+    carrier_row = (
+        f'<tr><td style="padding:5px 0;color:#666;width:40%;">Transportista</td>'
+        f'<td style="padding:5px 0;color:#111;">{esc(carrier_name)}</td></tr>'
+    ) if carrier_name else ''
+    return (
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;'
+        'color:#1a1a1a;max-width:600px;margin:0 auto;">'
+        '<div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);'
+        'padding:24px;border-radius:8px 8px 0 0;">'
+        '<p style="color:#fff;font-size:22px;font-weight:700;margin:0;">'
+        '&#128230; Tu paquete llegó a Miami</p>'
+        '<p style="color:rgba(255,255,255,.85);font-size:13px;margin:6px 0 0;">'
+        '¿Lo enviamos a Costa Rica?</p>'
+        '</div>'
+        '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;'
+        'padding:28px;border-radius:0 0 8px 8px;">'
+        '<p style="font-size:15px;color:#111;margin:0 0 20px;">'
+        'Tu paquete acaba de llegar a nuestras instalaciones en Miami. '
+        'Puedes crear un grupo de envío ahora para coordinarlo hacia Costa Rica.</p>'
+        '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;'
+        'padding:16px 20px;margin-bottom:24px;">'
+        '<p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#1d4ed8;'
+        'text-transform:uppercase;letter-spacing:.06em;">Detalles del paquete</p>'
+        '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+        f'<tr><td style="padding:5px 0;color:#666;width:40%;">Tracking</td>'
+        f'<td style="padding:5px 0;font-weight:700;color:#111;">{esc(tracking_number)}</td></tr>'
+        f'{carrier_row}'
+        f'<tr><td style="padding:5px 0;color:#666;">Estado</td>'
+        f'<td style="padding:5px 0;color:#2563eb;font-weight:600;">En Miami — listo</td></tr>'
+        '</table>'
+        '</div>'
+        f'<a href="{esc(cta_url)}" style="display:inline-block;background:#FF6B00;'
+        'color:#fff;font-size:15px;font-weight:700;padding:14px 28px;border-radius:8px;'
+        'text-decoration:none;margin-bottom:24px;">Crear grupo de envío &rarr;</a>'
+        '<div style="background:#fff7ed;border-left:4px solid #FF6B00;border-radius:4px;'
+        'padding:14px 16px;margin-bottom:20px;">'
+        '<p style="margin:0;font-size:14px;color:#7c2d12;line-height:1.6;">'
+        '<strong>¿Qué sigue?</strong> Entra al portal, revisa tus paquetes en Miami '
+        'y crea un grupo para coordinar el envío a Costa Rica en pocos clics.</p>'
+        '</div>'
+        '<p style="font-size:12px;color:#9ca3af;margin:0;">'
+        'Recibiste este correo porque tienes paquetes en Miami sin grupo de envío activo. '
+        'Si ya creaste un grupo, puedes ignorar este mensaje.</p>'
+        '</div></div>'
+    )
 
 
 def _generate_scb_id():
@@ -6831,6 +6903,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_package_groups_post()
         elif self.path == '/api/package-group-confirm':
             self._handle_package_group_confirm()
+        elif self.path == '/api/notify-miami-arrivals':
+            self._handle_notify_miami_arrivals()
         elif self.path == '/api/solicitudes/link-guest':
             self._handle_link_guest()
         elif self.path == '/api/solicitudes/check-duplicate':
@@ -8812,6 +8886,125 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 'ok': False,
                 'error': 'No pudimos enviar el correo. Puedes escribirnos directamente a facturas@crbox.cr.'
             })
+
+    # ── POST /api/notify-miami-arrivals ────────────────────────────────────
+    def _handle_notify_miami_arrivals(self):
+        """POST /api/notify-miami-arrivals
+        Called client-side (fire-and-forget) after the portal package list loads.
+        Accepts a list of packages currently in Miami status, checks which ones
+        haven't had a notification sent yet (and the user has no active group),
+        sends the arrival email for each new arrival, and records the send to
+        avoid repeat emails on subsequent page loads.
+        Requires: Authorization: Bearer <token>  +  X-Casillero-Email header.
+        Body: {"packages": [{"trackingNumber": "...", "number": "...", "carrierName": "..."}]}
+        Returns: {"ok": true, "sent": N}
+        """
+        casillero_id, verified_email = self._portal_auth_full()
+        if not casillero_id:
+            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
+            return
+        try:
+            raw = self._read_body(_MAX_BODY_REGULAR)
+            if raw is None:
+                self._json_response(413, {'ok': False, 'error': 'Payload demasiado grande.'})
+                return
+            data = json.loads(raw.decode('utf-8'))
+        except Exception:
+            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            return
+
+        packages = data.get('packages') or []
+        if not packages:
+            self._json_response(200, {'ok': True, 'sent': 0})
+            return
+
+        # Check whether the user already has an active (non-closed) group.
+        # If so, skip all emails — arrivals are handled by auto-assignment.
+        with _DB_LOCK:
+            conn = _get_db()
+            pg_rows = conn.execute(
+                'SELECT group_data FROM package_groups WHERE casillero_id = ?',
+                (casillero_id,)
+            ).fetchall()
+            conn.close()
+
+        has_active_group = False
+        for row in pg_rows:
+            try:
+                g = json.loads(row['group_data'])
+                if g.get('status') not in ('closed',):
+                    has_active_group = True
+                    break
+            except Exception:
+                pass
+
+        if has_active_group:
+            self._json_response(200, {'ok': True, 'sent': 0, 'reason': 'active_group_exists'})
+            return
+
+        smtp_cfg = _smtp_settings()
+        smtp_user = smtp_cfg[2] if smtp_cfg else None
+        site_url = os.environ.get('SITE_URL', 'https://crbox.cr').rstrip('/')
+        cta_url = site_url + '/mis-paquetes.html#enviar-juntos-section'
+
+        sent_count = 0
+        for pkg in packages:
+            tracking = str(pkg.get('trackingNumber') or pkg.get('number') or '').strip()
+            if not tracking:
+                continue
+            carrier = str(pkg.get('carrierName') or '').strip()
+
+            # Check if we already sent a notification for this (user, tracking) pair
+            with _DB_LOCK:
+                conn = _get_db()
+                already_sent = conn.execute(
+                    'SELECT 1 FROM arrival_emails_sent WHERE casillero_id = ? AND tracking_number = ?',
+                    (casillero_id, tracking)
+                ).fetchone()
+                conn.close()
+
+            if already_sent:
+                continue
+
+            # Send the arrival email
+            if smtp_user and verified_email:
+                try:
+                    html_body = _build_miami_arrival_email_html(tracking, carrier, cta_url)
+                    plain_body = (
+                        f'Hola,\n\n'
+                        f'Tu paquete {tracking} llegó a Miami.\n'
+                        f'¿Lo enviamos a Costa Rica?\n\n'
+                        f'Crea un grupo de envío aquí:\n{cta_url}\n\n'
+                        f'Equipo CRBOX\n'
+                    )
+                    msg = email.mime.multipart.MIMEMultipart('alternative')
+                    msg['Subject'] = f'Tu paquete {tracking} llegó a Miami — ¿Lo enviamos a Costa Rica?'
+                    msg['From'] = f'CRBOX <{smtp_user}>'
+                    msg['To'] = verified_email
+                    msg['Message-ID'] = f'<{_uuid4_hex()}@crbox.cr>'
+                    msg['Date'] = email.utils.formatdate(localtime=False)
+                    msg.attach(email.mime.text.MIMEText(plain_body, 'plain', 'utf-8'))
+                    msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
+                    _send_smtp(msg, [verified_email])
+                except Exception as exc:
+                    print(f'[MIAMI_ARRIVAL] Email send failed for tracking {tracking}: {exc}')
+                    continue
+
+            # Record the send so we never repeat it for this package
+            now_ts = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+            with _DB_LOCK:
+                conn = _get_db()
+                conn.execute(
+                    'INSERT OR IGNORE INTO arrival_emails_sent (casillero_id, tracking_number, sent_at) '
+                    'VALUES (?, ?, ?)',
+                    (casillero_id, tracking, now_ts)
+                )
+                conn.commit()
+                conn.close()
+            sent_count += 1
+            print(f'[MIAMI_ARRIVAL] Sent arrival email to {verified_email} for tracking {tracking}')
+
+        self._json_response(200, {'ok': True, 'sent': sent_count})
 
     def _handle_package_group_ack(self):
         """GET /api/package-group-ack?token=<ack_token>

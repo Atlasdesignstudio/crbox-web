@@ -176,6 +176,14 @@
   /* ─── Package ID normalizer — always returns a string ─── */
   function _pid(x) { return String(x == null ? '' : x); }
 
+  /* ─── Default group name (localised month + year) ────────── */
+  function _defaultGroupName() {
+    var MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    var d = new Date();
+    return 'Envío ' + MONTHS_ES[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
   /* ─── DOM helpers ───────────────────────────────────────── */
   function _esc(s) {
     return String(s || '')
@@ -769,6 +777,20 @@
     return html;
   }
 
+  /* ─── Quick-group banner HTML ────────────────────────────── */
+  function _quickGroupBannerHTML(count) {
+    return '<div class="ej-quick-group-banner" id="ej-quick-group-banner">' +
+      '<div class="ej-qgb-icon"><i class="fas fa-map-marker-alt"></i></div>' +
+      '<div class="ej-qgb-text">' +
+        '<strong>Tienes ' + count + (count === 1 ? ' paquete en Miami' : ' paquetes en Miami') + ' sin grupo de envío</strong>' +
+        '<span>' + (count === 1 ? 'Está listo' : 'Están listos') + ' para ser enviado' + (count === 1 ? '' : 's') + ' a Costa Rica.</span>' +
+      '</div>' +
+      '<button class="ej-btn ej-btn-primary ej-btn-quick-group">' +
+        '<i class="fas fa-bolt"></i> Crear grupo rápido' +
+      '</button>' +
+    '</div>';
+  }
+
   /* ─── Render full section body ───────────────────────────── */
   function renderSection() {
     var container = _el('ej-group-list-container');
@@ -807,7 +829,10 @@
     var nonClosedGroups = groups.filter(function (g) { return g.status !== 'closed'; });
     var closedGroups    = groups.filter(function (g) { return g.status === 'closed'; });
     if (groups.length === 0) {
+      var _qbMiami = _allPackages.filter(function (p) { return p.statusId === 1; });
+      var _qbBanner = _qbMiami.length > 0 ? _quickGroupBannerHTML(_qbMiami.length) : '';
       container.innerHTML =
+        _qbBanner +
         '<div class="ej-empty-state">' +
           '<div class="ej-empty-icon"><i class="fas fa-layer-group"></i></div>' +
           '<p class="ej-empty-title">Aún no tienes grupos de envío</p>' +
@@ -867,7 +892,11 @@
           '</div>';
       }
 
-      var html = summaryBar + ambigHtml + '<div class="ej-group-list">';
+      var _qbMiami2 = nonClosedGroups.length === 0
+        ? _allPackages.filter(function (p) { return p.statusId === 1; })
+        : [];
+      var _qbBannerHtml = _qbMiami2.length > 0 ? _quickGroupBannerHTML(_qbMiami2.length) : '';
+      var html = _qbBannerHtml + summaryBar + ambigHtml + '<div class="ej-group-list">';
       nonClosedGroups.forEach(function (g) { html += _renderGroupCard(g); });
       html += '</div>';
 
@@ -955,6 +984,86 @@
     _closeModal(_el('ej-create-modal-overlay'));
     renderSection();
     _showToast('Grupo "' + name + '" creado correctamente.', 'success');
+  }
+
+  /* ─── Quick-create group modal ───────────────────────────── */
+  function openQuickCreateModal() {
+    var locked = getLockedPackageIds();
+    var ungrouped = _allPackages.filter(function (p) {
+      return p.statusId === 1 && !locked.has(_pid(p.idwarehousereceipt));
+    });
+    if (ungrouped.length === 0) { openCreateModal(); return; }
+
+    var overlay = _el('ej-quick-create-modal-overlay');
+    if (!overlay) { openCreateModal(); return; }
+
+    var nameEl = _el('ej-qc-group-name');
+    if (nameEl) nameEl.value = _defaultGroupName();
+
+    var cntEl = _el('ej-qc-group-count');
+    if (cntEl) cntEl.value = String(ungrouped.length);
+
+    var previewEl = _el('ej-qc-pkg-preview');
+    if (previewEl) {
+      previewEl.innerHTML = ungrouped.map(function (p) {
+        var carrier = p.carrierName || '';
+        var ck = _carrierKey(carrier);
+        var cc = _carrierColor(carrier);
+        var tracking = p.trackingNumber || p.number || '—';
+        return '<div class="ej-qc-pkg-row">' +
+          (ck ? '<span class="ej-qc-carrier-badge" style="background:' + cc.bg + ';color:' + cc.color + '">' + _esc(ck) + '</span>' : '') +
+          '<span class="ej-qc-tracking">' + _esc(tracking) + '</span>' +
+        '</div>';
+      }).join('');
+    }
+
+    var errEl = _el('ej-qc-error');
+    if (errEl) errEl.textContent = '';
+
+    _openModal(overlay);
+    setTimeout(function () {
+      var f = _el('ej-qc-group-count');
+      if (f) f.focus();
+    }, 260);
+  }
+
+  function _handleQuickCreateSubmit() {
+    var nameEl = _el('ej-qc-group-name');
+    var cntEl  = _el('ej-qc-group-count');
+    var errEl  = _el('ej-qc-error');
+
+    var name = (nameEl ? nameEl.value.trim() : '');
+    var cnt  = parseInt(cntEl ? cntEl.value : '1', 10);
+    if (!name) { if (errEl) errEl.textContent = 'Escribe un nombre para el grupo.'; return; }
+    if (!cnt || cnt < 1) { if (errEl) errEl.textContent = 'Indica cuántos paquetes esperas.'; return; }
+
+    var locked = getLockedPackageIds();
+    var ungrouped = _allPackages.filter(function (p) {
+      return p.statusId === 1 && !locked.has(_pid(p.idwarehousereceipt));
+    });
+
+    var newGroup = createGroup(name, cnt, '');
+    if (!newGroup) { if (errEl) errEl.textContent = 'Error al crear el grupo.'; return; }
+
+    if (ungrouped.length > 0) {
+      addPackagesToGroup(newGroup.id, ungrouped.map(function (p) {
+        return {
+          idwarehousereceipt: p.idwarehousereceipt,
+          trackingNumber:     p.trackingNumber,
+          number:             p.number,
+          carrierName:        p.carrierName,
+          bestDate:           p.bestDate,
+          statusId:           p.statusId,
+          invoicesCount:      p.invoicesCount
+        };
+      }));
+    }
+
+    advanceToInvoices(newGroup.id);
+    _closeModal(_el('ej-quick-create-modal-overlay'));
+    renderSection();
+    _showToast('Grupo "' + name + '" creado con ' + ungrouped.length + (ungrouped.length === 1 ? ' paquete.' : ' paquetes.'), 'success');
+    openInvoiceModal(newGroup.id);
   }
 
   /* ─── Package Selector modal ─────────────────────────────── */
@@ -1801,6 +1910,9 @@
     if (!section) return;
     section.addEventListener('click', function (e) {
       var btn;
+      /* Quick-group banner CTA */
+      btn = e.target.closest('.ej-btn-quick-group');
+      if (btn) { openQuickCreateModal(); return; }
       /* Remove package */
       btn = e.target.closest('.ej-btn-remove-pkg');
       if (btn) {
@@ -2003,6 +2115,15 @@
       createForm.addEventListener('submit', function (e) {
         e.preventDefault();
         _handleCreateSubmit();
+      });
+    }
+
+    /* Quick-create form submit */
+    var qcForm = _el('ej-qc-form');
+    if (qcForm) {
+      qcForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        _handleQuickCreateSubmit();
       });
     }
 

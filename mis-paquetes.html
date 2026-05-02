@@ -2673,6 +2673,32 @@
             CRBOXEnviarJuntos.renderSection();
           }
 
+          // Fire-and-forget: notify server of Miami arrivals for proactive email
+          (function () {
+            var miamiPkgs = packages.filter(function (p) { return p.statusId === 1; });
+            if (miamiPkgs.length === 0 || !window.CRBOXAuth) return;
+            var token = CRBOXAuth.getToken ? CRBOXAuth.getToken() : '';
+            var emailAddr = CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '';
+            if (!token || !emailAddr) return;
+            fetch('/api/notify-miami-arrivals', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token,
+                'X-Casillero-Email': emailAddr
+              },
+              body: JSON.stringify({
+                packages: miamiPkgs.map(function (p) {
+                  return {
+                    trackingNumber: p.trackingNumber || '',
+                    number:         p.number || '',
+                    carrierName:    p.carrierName || ''
+                  };
+                })
+              })
+            }).catch(function () {});
+          }());
+
           // ?receipt= deep-link: client-side filter on warehouse receipt number.
           // Consumed once; cleared so subsequent filter changes show all packages.
           var _displayPackages = packages;
@@ -3367,6 +3393,43 @@
     <!-- ══════════════════════════════════════════════════════
          ENVIAR JUNTOS — MODALS
          ══════════════════════════════════════════════════════ -->
+
+    <!-- ⓪ Quick Create Group Modal -->
+    <div id="ej-quick-create-modal-overlay" class="ej-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ej-qc-modal-title">
+      <div class="ej-modal">
+        <div class="ej-modal-header">
+          <span class="ej-modal-title" id="ej-qc-modal-title">
+            <i class="fas fa-bolt text-orange-500 mr-2"></i>Crear grupo rápido
+          </span>
+          <button class="ej-modal-close" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="ej-qc-form" novalidate>
+          <div class="ej-modal-body">
+            <div class="ej-field-group">
+              <label class="ej-label" for="ej-qc-group-name">Nombre del grupo <span class="text-red-500">*</span></label>
+              <input id="ej-qc-group-name" class="ej-input" type="text" maxlength="80" required autocomplete="off">
+            </div>
+            <div class="ej-field-group">
+              <label class="ej-label" for="ej-qc-group-count">Cantidad de paquetes esperados <span class="text-red-500">*</span></label>
+              <input id="ej-qc-group-count" class="ej-input" type="number" min="1" max="99" required>
+              <p class="ej-qc-pkg-count-note">Se incluirán todos los paquetes de Miami que no pertenecen a otro grupo.</p>
+            </div>
+            <div class="ej-field-group">
+              <label class="ej-label">Paquetes que se incluirán automáticamente</label>
+              <div id="ej-qc-pkg-preview" class="ej-qc-pkg-preview"></div>
+            </div>
+            <p id="ej-qc-error" class="text-red-500 text-sm mt-1"></p>
+          </div>
+          <div class="ej-modal-footer">
+            <button type="button" class="ej-btn ej-btn-outline ej-modal-close">Cancelar</button>
+            <button type="submit" class="ej-btn ej-btn-primary">
+              <span class="ej-spinner"></span>
+              <span class="ej-btn-label"><i class="fas fa-bolt mr-1"></i>Crear y verificar facturas</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <!-- ① Create Group Modal -->
     <div id="ej-create-modal-overlay" class="ej-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ej-create-modal-title">
