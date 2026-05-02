@@ -153,6 +153,7 @@
   var _expandedCards      = {};  // groupId → true/false; default = expanded
   var _driftDetailExpanded = {};  // groupId → true/false; drift detail panel
   var _historyExpanded = false; // "Historial de envíos" section collapsed by default
+  var _timelineExpanded = {};   // groupId → true/false; activity timeline per card
   var _postCreatePkg  = null; // package to auto-add after creating a group from the add-to-group row flow
 
   /* ─── Auto-assign session state ─── */
@@ -336,6 +337,107 @@
     } catch (_) { return String(s).slice(0, 16).replace('T', ' '); }
   }
 
+  /* ─── Activity log: derive events from group data ───────── */
+  function _deriveGroupEvents(group) {
+    var events = [];
+
+    var _statusOrder = [
+      'waiting_for_packages', 'invoices_pending', 'ready_to_confirm',
+      'confirmation_sent', 'received_by_crbox', 'closed'
+    ];
+    var _statusIdx = _statusOrder.indexOf(group.status);
+
+    if (group.createdAt) {
+      events.push({ ts: group.createdAt, tsVal: new Date(group.createdAt).getTime(),
+        icon: 'fa-plus-circle', color: 'blue', label: 'Grupo creado' });
+    }
+
+    (group.packages || []).forEach(function (p) {
+      var ts = p.addedAt || p.updatedAt || group.updatedAt;
+      var tracking = p.trackingNumber || p.number || '—';
+      events.push({ ts: ts, tsVal: ts ? new Date(ts).getTime() : 0,
+        icon: 'fa-box', color: 'blue', label: 'Paquete agregado: ' + tracking });
+    });
+
+    /* Status-change events: invoices step entered */
+    if (_statusIdx >= 1) {
+      var invTs = null;
+      var invTsVal = 0;
+      if (group.status === 'invoices_pending' || group.status === 'ready_to_confirm') {
+        invTs = group.updatedAt || null;
+        invTsVal = invTs ? new Date(invTs).getTime() : 0;
+      } else if (group.confirmedAt) {
+        /* Place it logically just before confirmation when we lack a real timestamp */
+        invTsVal = new Date(group.confirmedAt).getTime() - 1;
+      }
+      events.push({ ts: invTs, tsVal: invTsVal,
+        icon: 'fa-file-invoice', color: 'blue', label: 'Verificación de facturas iniciada' });
+    }
+
+    if (group.confirmedAt) {
+      events.push({ ts: group.confirmedAt, tsVal: new Date(group.confirmedAt).getTime(),
+        icon: 'fa-paper-plane', color: 'green', label: 'Confirmación enviada a CRBOX' });
+    }
+
+    if (group.receivedAt) {
+      events.push({ ts: group.receivedAt, tsVal: new Date(group.receivedAt).getTime(),
+        icon: 'fa-check-double', color: 'green', label: 'Recibido por CRBOX' });
+    }
+
+    if (group.closedAt) {
+      events.push({ ts: group.closedAt, tsVal: new Date(group.closedAt).getTime(),
+        icon: 'fa-archive', color: 'gray', label: 'Grupo archivado' });
+    }
+
+    events.sort(function (a, b) { return b.tsVal - a.tsVal; });
+    return events;
+  }
+
+  function _timelineHTML(events) {
+    if (events.length === 0) {
+      return '<p class="ej-tl-empty">Sin eventos registrados.</p>';
+    }
+    var html = '<div class="ej-timeline">';
+    events.forEach(function (ev, i) {
+      var dotCls = ev.color === 'green' ? 'ej-tl-dot-green' :
+                   (ev.color === 'gray'  ? 'ej-tl-dot-gray'  : 'ej-tl-dot-blue');
+      var isLast = i === events.length - 1;
+      html += '<div class="ej-tl-row">' +
+        '<div class="ej-tl-dot-wrap">' +
+          '<div class="ej-tl-dot ' + dotCls + '"><i class="fas ' + ev.icon + '"></i></div>' +
+          (!isLast ? '<div class="ej-tl-connector"></div>' : '') +
+        '</div>' +
+        '<div class="ej-tl-content">' +
+          '<div class="ej-tl-label">' + _esc(ev.label) + '</div>' +
+          '<div class="ej-tl-ts">' + _fmtTs(ev.ts) + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function _timelineSectionHTML(group, events) {
+    var isConfirmed = group.status === 'confirmation_sent' ||
+                      group.status === 'received_by_crbox' ||
+                      group.status === 'closed';
+    var expanded = _timelineExpanded[group.id] !== undefined
+      ? _timelineExpanded[group.id]
+      : isConfirmed;
+    var cnt = events.length;
+    return '<div class="ej-timeline-section">' +
+      '<button class="ej-tl-toggle ej-btn-toggle-timeline" data-gid="' + _esc(group.id) + '" ' +
+        'aria-expanded="' + expanded + '">' +
+        '<i class="fas fa-history ej-tl-toggle-icon"></i>' +
+        '<span>Historial del grupo (' + cnt + ' ' + (cnt === 1 ? 'evento' : 'eventos') + ')</span>' +
+        '<i class="fas ' + (expanded ? 'fa-chevron-up' : 'fa-chevron-down') + ' ej-tl-chevron"></i>' +
+      '</button>' +
+      '<div class="ej-tl-body"' + (expanded ? '' : ' style="display:none"') + '>' +
+        _timelineHTML(events) +
+      '</div>' +
+    '</div>';
+  }
+
   /* ─── Progress helpers ───────────────────────────────────── */
   function _progressPct(group) {
     var cnt = (group.packages || []).length;
@@ -471,6 +573,7 @@
           '</button>' +
         '</div>' +
       '</div>';
+      html += _timelineSectionHTML(group, _deriveGroupEvents(group));
       html += '</div>';
       return html;
     }
@@ -498,6 +601,7 @@
           '</button>' +
         '</div>' +
       '</div>';
+      html += _timelineSectionHTML(group, _deriveGroupEvents(group));
       html += '</div>';
       return html;
     }
@@ -512,6 +616,7 @@
           (group.confirmedAt ? '<p class="ej-confirmed-ts" style="justify-content:center"><i class="fas fa-calendar-check"></i> Confirmado el ' + _fmtTs(group.confirmedAt) + '</p>' : '') +
         '</div>' +
       '</div>';
+      html += _timelineSectionHTML(group, _deriveGroupEvents(group));
       html += '</div>';
       return html;
     }
@@ -658,7 +763,9 @@
         '<i class="fas fa-trash-alt"></i> Cancelar grupo</button>';
     }
 
-    html += '</div></div>'; // close actions + card
+    html += '</div>'; // close actions
+    html += _timelineSectionHTML(group, _deriveGroupEvents(group));
+    html += '</div>'; // close card
     return html;
   }
 
@@ -1824,6 +1931,21 @@
         var detailIcon = btn.querySelector('i');
         if (detailEl) detailEl.style.display = _driftDetailExpanded[detailGid] ? '' : 'none';
         if (detailIcon) detailIcon.className = 'fas ' + (_driftDetailExpanded[detailGid] ? 'fa-chevron-up' : 'fa-chevron-down');
+        return;
+      }
+
+      /* Toggle activity timeline */
+      btn = e.target.closest('.ej-btn-toggle-timeline');
+      if (btn) {
+        var tlGid = btn.dataset.gid;
+        var tlCurrentlyExpanded = btn.getAttribute('aria-expanded') === 'true';
+        _timelineExpanded[tlGid] = !tlCurrentlyExpanded;
+        var tlSection = btn.closest('.ej-timeline-section');
+        var tlBody = tlSection && tlSection.querySelector('.ej-tl-body');
+        var tlChevron = btn.querySelector('.ej-tl-chevron');
+        if (tlBody) tlBody.style.display = _timelineExpanded[tlGid] ? '' : 'none';
+        if (tlChevron) tlChevron.className = 'fas ' + (_timelineExpanded[tlGid] ? 'fa-chevron-up' : 'fa-chevron-down') + ' ej-tl-chevron';
+        btn.setAttribute('aria-expanded', String(_timelineExpanded[tlGid]));
         return;
       }
 
