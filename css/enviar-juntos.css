@@ -100,6 +100,7 @@
   padding: 1rem 1.5rem 1.25rem;
   border-top: 1px solid #f3f4f6;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   justify-content: flex-end;
 }
@@ -1087,4 +1088,138 @@
   line-height: 1.5;
   max-width: 26rem;
   margin: 0 auto 0.5rem;
+}
+
+/* ── Named classes replacing inline styles ───────────────── */
+.ej-card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ej-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0.2rem 0.4rem;
+  line-height: 1;
+  border-radius: 0.375rem;
+  transition: color 150ms, background 150ms;
+}
+.ej-icon-btn:hover {
+  color: #374151;
+  background: #f3f4f6;
+}
+.ej-btn-prepare-continue {
+  border-color: #FF6B00;
+  color: #FF6B00;
+  font-weight: 700;
+}
+.ej-btn-prepare-continue:hover:not(:disabled) {
+  background: #fff7ed;
+  border-color: #E05A00;
+}
+.ej-btn-delete-confirm {
+  font-size: 0.9rem;
+  padding: 0.55rem 1.1rem;
+}
+.ej-btn-ver-grupos {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.7rem;
+}
+
+/* ── Confirmed-state card action buttons ─────────────────── */
+.ej-confirmed-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE OVERRIDES  (≤ 640 px)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Modal header / body / footer padding */
+  .ej-modal-header {
+    padding: 1rem 1rem 0.75rem;
+  }
+  .ej-modal-body {
+    padding: 1rem;
+  }
+
+  /* Footer: stack buttons vertically, primary on top */
+  .ej-modal-footer {
+    flex-direction: column-reverse;
+    padding: 0.875rem 1rem max(1.25rem, env(safe-area-inset-bottom));
+    gap: 0.5rem;
+  }
+  .ej-modal-footer .ej-btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  /* Group list / card padding */
+  .ej-group-list {
+    padding: 0.875rem 0.875rem;
+    gap: 0.875rem;
+  }
+  .ej-group-card-header {
+    padding: 0.875rem 1rem 0.625rem;
+  }
+  .ej-progress-wrap {
+    padding: 0 1rem 0.625rem;
+  }
+  .ej-pkg-list {
+    padding: 0.625rem 1rem;
+  }
+
+  /* Group action buttons: stack vertically */
+  .ej-group-actions {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0 1rem 0.875rem;
+    gap: 0.5rem;
+  }
+  .ej-group-actions .ej-btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  /* Confirmed-state action buttons */
+  .ej-confirmed-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .ej-confirmed-actions .ej-btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  /* Selector list: cap height for short screens */
+  .ej-selector-list {
+    max-height: 40vh;
+  }
+
+  /* Safe-area bottom padding for iOS */
+  .ej-modal {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Section header button comfortable tap target */
+  #enviar-juntos-section .ej-section-header .ej-btn {
+    min-height: 40px;
+  }
+
+  /* Empty-state create button */
+  .ej-empty-state .ej-btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
 }

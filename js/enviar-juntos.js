@@ -353,18 +353,18 @@
         '<p class="ej-group-meta">Creado ' + _fmtDate(group.createdAt) +
           (group.notes ? ' · <em>' + _esc(group.notes) + '</em>' : '') + '</p>' +
       '</div>' +
-      '<div style="display:flex;align-items:center;gap:0.5rem;">' +
+      '<div class="ej-card-header-right">' +
         '<span class="ej-group-status-badge ' + statusCls + '">' +
           '<i class="fas ' + statusIcon + '"></i> ' + _esc(statusLabel) +
         '</span>' +
         (!isReadOnly ?
-          '<button class="ej-btn-edit-group" aria-label="Editar grupo" ' +
-            'data-gid="' + _esc(group.id) + '" style="background:none;border:none;cursor:pointer;color:#6b7280;padding:0.2rem 0.4rem;line-height:1" title="Editar nombre y notas">' +
+          '<button class="ej-btn-edit-group ej-icon-btn" aria-label="Editar grupo" ' +
+            'data-gid="' + _esc(group.id) + '" title="Editar nombre y notas">' +
             '<i class="fas fa-pencil-alt"></i>' +
           '</button>' : '') +
         (cnt > 0 ?
-          '<button class="ej-btn-toggle-card" aria-label="' + (isExpanded ? 'Colapsar' : 'Expandir') + '" ' +
-            'data-gid="' + _esc(group.id) + '" style="background:none;border:none;cursor:pointer;color:#6b7280;padding:0.2rem 0.4rem;line-height:1">' +
+          '<button class="ej-btn-toggle-card ej-icon-btn" aria-label="' + (isExpanded ? 'Colapsar' : 'Expandir') + '" ' +
+            'data-gid="' + _esc(group.id) + '">' +
             '<i class="fas ' + (isExpanded ? 'fa-chevron-up' : 'fa-chevron-down') + '"></i>' +
           '</button>' : '') +
       '</div>' +
@@ -379,7 +379,7 @@
           '<p class="ej-confirmed-desc">Tu solicitud fue enviada a CRBOX. Nuestro equipo está revisando las facturas y coordinando el envío del grupo.</p>' +
           '<p class="ej-confirmed-ts"><i class="fas fa-check-circle"></i> Confirmado el ' + _fmtTs(group.confirmedAt) + '</p>' +
         '</div>' +
-        '<div class="mt-3 flex gap-2 justify-center flex-wrap">' +
+        '<div class="ej-confirmed-actions">' +
           '<button class="ej-btn ej-btn-outline ej-btn-sm ej-btn-view-summary" data-gid="' + _esc(group.id) + '">' +
             '<i class="fas fa-list"></i> <span class="ej-btn-label">Ver resumen</span>' +
           '</button>' +
@@ -544,7 +544,7 @@
           '<span style="color:#5b21b6;font-weight:600;">' +
             '<i class="fas fa-layer-group mr-1"></i> ' + counterText +
           '</span>' +
-          '<button class="ej-btn ej-btn-outline ej-btn-sm" id="ej-ver-mis-grupos-btn" style="font-size:0.78rem;padding:0.2rem 0.7rem">' +
+          '<button class="ej-btn ej-btn-outline ej-btn-sm ej-btn-ver-grupos" id="ej-ver-mis-grupos-btn">' +
             '<i class="fas fa-chevron-down mr-1"></i>Ver mis grupos' +
           '</button>' +
         '</div>';
