@@ -1588,10 +1588,6 @@
             if (isNaN(declaredVal) || declaredVal <= 0) { markFieldError(fDeclaredValue, 'err-declared-value'); valid = false; }
             if (!destination)           { markFieldError(fDestination, 'err-destination'); valid = false; }
             if (!email || !isValidEmail(email)) { markFieldError(fEmail, 'err-email'); valid = false; }
-            if (fCategory.dataset.aiSuggested === '1' && fCategory.dataset.aiConfirmed !== '1') {
-                markFieldError(fCategory, 'err-category');
-                valid = false;
-            }
             if (_aiActive && typeof CRBOXAIExtractor !== 'undefined') {
                 const fconf = CRBOXAIExtractor.allFieldsConfirmed();
                 if (!fconf.ok) {
