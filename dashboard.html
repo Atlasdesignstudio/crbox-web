@@ -391,22 +391,25 @@
                 </div>
             </div>
             
-            <!-- Stat 2: Facturas Pendientes -->
+            <!-- Stat 2: Facturas Pendientes
+                 Cuenta paquetes en estado MIAMI (statusId=1) cuyo invoicesCount
+                 es estrictamente 0. Si invoicesCount es null/undefined no se
+                 cuenta — no se asume ausencia de factura sin dato confirmado. -->
             <div class="stat-card bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:shadow-lg hover:border-red-200 relative overflow-hidden">
                 <div class="absolute right-0 top-0 w-24 h-24 bg-red-50 rounded-bl-3xl opacity-80"></div>
                 <div class="flex items-center relative">
                     <div class="flex-shrink-0 w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mr-4 shadow-inner">
-                        <i class="fas fa-file-invoice-dollar text-red-500 text-2xl"></i>
+                        <i class="fas fa-file-invoice-dollar text-red-500 text-2xl" aria-hidden="true"></i>
                     </div>
                     <div>
                         <h3 class="text-gray-500 text-sm mb-1 uppercase tracking-wider font-medium">Facturas Pendientes</h3>
-                        <p class="text-base font-medium text-gray-400" id="dash-stat-facturas">Sin datos disponibles</p>
+                        <p class="text-base font-medium text-gray-400" id="dash-stat-facturas" aria-live="polite">—</p>
                     </div>
                 </div>
                 <div class="mt-4 pt-4 border-t border-gray-100 relative">
-                    <a href="mis-facturas.html" class="text-red-500 hover:text-red-700 font-medium text-sm flex items-center transition-colors">
-                        Ver detalle
-                        <i class="fas fa-chevron-right ml-1 text-xs transition-transform duration-200 group-hover:translate-x-1"></i>
+                    <a href="mis-paquetes.html#sin-factura" id="dash-stat-facturas-link" class="text-red-500 hover:text-red-700 font-medium text-sm flex items-center transition-colors">
+                        <span id="dash-stat-facturas-cta">Subir facturas pendientes</span>
+                        <i class="fas fa-chevron-right ml-1 text-xs transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true"></i>
                     </a>
                 </div>
             </div>
@@ -608,10 +611,10 @@
                     <!-- Instrucciones de Envío con corrección de iconos -->
 <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
     <div class="mb-6">
-        <h2 class="text-xl font-bold text-gray-800 flex items-center">
-            <i class="fas fa-info-circle text-orange-500 mr-2"></i>
+        <h3 class="text-xl font-bold text-gray-800 flex items-center">
+            <i class="fas fa-info-circle text-orange-500 mr-2" aria-hidden="true"></i>
             Instrucciones de Envío
-        </h2>
+        </h3>
     </div>
     
     <div class="space-y-6">
@@ -666,22 +669,72 @@
                 </div>
             </div>
 
-        <!-- Warehouse Notifications -->
+        <!-- Resumen por estado
+             Reemplaza al panel "Notificaciones del Almacén" (sin endpoint de
+             notificaciones confirmado). Muestra el desglose en vivo de los
+             paquetes del cliente derivado del mismo getuserpackages que ya
+             alimenta el resto del dashboard. Cada fila lleva al filtro
+             correspondiente en mis-paquetes para acción rápida. -->
         <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-lg mb-8">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center">
                 <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                    <i class="fas fa-bell text-orange-500 mr-2 opacity-70"></i>
-                    Notificaciones del Almacén
+                    <i class="fas fa-chart-pie text-orange-500 mr-2 opacity-70" aria-hidden="true"></i>
+                    Resumen por estado
                 </h2>
-                <div class="text-sm text-gray-500">
-                    <span class="px-2 py-1 rounded-full bg-gray-50 text-gray-500 font-medium">0 nuevas</span>
-                </div>
+                <span class="text-xs text-gray-500" id="dash-resumen-total-label">Últimos 30 días</span>
             </div>
-            <div class="p-6">
-                <div class="text-center py-8 text-gray-400">
-                    <i class="fas fa-bell-slash text-3xl mb-3 block text-gray-300"></i>
-                    <p class="text-sm font-medium text-gray-500">No hay notificaciones del almacén</p>
-                    <p class="text-xs text-gray-400 mt-1">Cuando recibas avisos importantes aparecerán aquí.</p>
+            <div class="p-4 sm:p-6">
+                <div id="dash-resumen-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3" aria-live="polite">
+                    <!-- Miami -->
+                    <a href="mis-paquetes.html#estado-MIAMI" class="dash-resumen-row group flex items-center p-3 rounded-xl border border-orange-100 bg-gradient-to-r from-orange-50 to-white hover:shadow-md hover:border-orange-200 transition-all">
+                        <div class="w-10 h-10 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center mr-3 flex-shrink-0">
+                            <i class="fas fa-warehouse" aria-hidden="true"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">En Miami</p>
+                            <p class="text-lg font-bold text-gray-800" id="dash-resumen-miami">—</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-300 group-hover:text-orange-500 transition-colors" aria-hidden="true"></i>
+                    </a>
+                    <!-- En tránsito -->
+                    <a href="mis-paquetes.html#estado-EN-TRANSITO" class="dash-resumen-row group flex items-center p-3 rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50 to-white hover:shadow-md hover:border-blue-200 transition-all">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mr-3 flex-shrink-0">
+                            <i class="fas fa-plane-departure" aria-hidden="true"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">En tránsito</p>
+                            <p class="text-lg font-bold text-gray-800" id="dash-resumen-transito">—</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-300 group-hover:text-blue-500 transition-colors" aria-hidden="true"></i>
+                    </a>
+                    <!-- Listo en CRBOX -->
+                    <a href="mis-paquetes.html#estado-CRBOX" class="dash-resumen-row group flex items-center p-3 rounded-xl border border-green-100 bg-gradient-to-r from-green-50 to-white hover:shadow-md hover:border-green-200 transition-all">
+                        <div class="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center mr-3 flex-shrink-0">
+                            <i class="fas fa-box-open" aria-hidden="true"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">Listo en CRBOX</p>
+                            <p class="text-lg font-bold text-gray-800" id="dash-resumen-crbox">—</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-300 group-hover:text-green-500 transition-colors" aria-hidden="true"></i>
+                    </a>
+                    <!-- Entregados -->
+                    <a href="mis-paquetes.html#estado-ENTREGADO" class="dash-resumen-row group flex items-center p-3 rounded-xl border border-gray-100 bg-gradient-to-r from-gray-50 to-white hover:shadow-md hover:border-gray-200 transition-all">
+                        <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center mr-3 flex-shrink-0">
+                            <i class="fas fa-check-circle" aria-hidden="true"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs uppercase tracking-wider text-gray-500 font-medium">Entregados</p>
+                            <p class="text-lg font-bold text-gray-800" id="dash-resumen-entregado">—</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-300 group-hover:text-gray-500 transition-colors" aria-hidden="true"></i>
+                    </a>
+                </div>
+                <!-- Empty / no-data state -->
+                <div id="dash-resumen-empty" class="hidden text-center py-6 text-gray-500">
+                    <i class="fas fa-inbox text-3xl mb-2 block text-gray-300" aria-hidden="true"></i>
+                    <p class="text-sm font-medium">Aún no tienes paquetes en los últimos 30 días.</p>
+                    <a href="mi-cuenta.html" class="text-xs text-orange-600 hover:text-orange-700 font-medium mt-1 inline-block">Comparte tu dirección en Miami para empezar →</a>
                 </div>
             </div>
         </div>
@@ -1008,10 +1061,95 @@
           noticeEl.classList.add('hidden');
         }
       }
+      _renderFacturasPendientes(mapped);
+      _renderResumenPorEstado(mapped);
       _renderRecentActivity(mapped);
     }).catch(function (err) {
       console.warn('[CRBOX] getPackages (dashboard stat) failed:', err);
       statEl.textContent = '—';
+      _setFacturasPendientesError();
+    });
+  }
+
+  // Facturas pendientes: paquetes en MIAMI (statusId=1) con invoicesCount
+  // estrictamente 0. invoicesCount null/undefined se ignora — no asumimos
+  // ausencia de factura sin dato confirmado del backend.
+  function _renderFacturasPendientes(mapped) {
+    var el   = document.getElementById('dash-stat-facturas');
+    var cta  = document.getElementById('dash-stat-facturas-cta');
+    var link = document.getElementById('dash-stat-facturas-link');
+    if (!el) return;
+    var pending = 0;
+    var miamiTotal = 0;
+    for (var i = 0; i < mapped.length; i++) {
+      var p = mapped[i];
+      if (p.statusId !== 1) continue;
+      miamiTotal++;
+      var ic = p.invoicesCount;
+      if (ic !== null && ic !== undefined && Number(ic) === 0) pending++;
+    }
+    if (pending > 0) {
+      el.textContent = pending === 1
+        ? '1 paquete sin factura'
+        : pending + ' paquetes sin factura';
+      el.classList.remove('text-gray-400', 'text-green-600');
+      el.classList.add('text-red-600', 'font-semibold');
+      if (cta)  cta.textContent = pending === 1 ? 'Subir factura ahora' : 'Subir facturas pendientes';
+      if (link) link.setAttribute('href', 'mis-paquetes.html#sin-factura');
+    } else if (miamiTotal > 0) {
+      el.textContent = 'Al día';
+      el.classList.remove('text-gray-400', 'text-red-600');
+      el.classList.add('text-green-600', 'font-semibold');
+      if (cta)  cta.textContent = 'Ver mis paquetes en Miami';
+      if (link) link.setAttribute('href', 'mis-paquetes.html#estado-MIAMI');
+    } else {
+      el.textContent = 'Sin paquetes en Miami';
+      el.classList.remove('text-red-600', 'text-green-600', 'font-semibold');
+      el.classList.add('text-gray-500');
+      if (cta)  cta.textContent = 'Ver mis paquetes';
+      if (link) link.setAttribute('href', 'mis-paquetes.html');
+    }
+  }
+  function _setFacturasPendientesError() {
+    var el = document.getElementById('dash-stat-facturas');
+    if (el) el.textContent = '—';
+  }
+
+  // Resumen por estado: desglose en vivo (Miami / En tránsito / CRBOX /
+  // Entregado). "En tránsito" agrega los estados 2 (SJO), 3 (CARGADO) y
+  // 4 (EN TRÁNSITO) — todos los puntos intermedios entre Miami y CRBOX.
+  function _renderResumenPorEstado(mapped) {
+    var ids = { miami: 0, transito: 0, crbox: 0, entregado: 0 };
+    for (var i = 0; i < mapped.length; i++) {
+      var sid = mapped[i].statusId;
+      if (sid === 1) ids.miami++;
+      else if (sid === 2 || sid === 3 || sid === 4) ids.transito++;
+      else if (sid === 5) ids.crbox++;
+      else if (sid === 7) ids.entregado++;
+    }
+    var listEl  = document.getElementById('dash-resumen-list');
+    var emptyEl = document.getElementById('dash-resumen-empty');
+    // Use the full mapped length (not the sum of displayed buckets) so a user
+    // whose packages are only in status 6 (EN ESPERA) still sees the live
+    // grid with zeros instead of a misleading "no packages" empty state —
+    // EN ESPERA is already surfaced separately by #dash-espera-notice.
+    var total = mapped.length;
+    if (total === 0) {
+      if (listEl)  listEl.classList.add('hidden');
+      if (emptyEl) emptyEl.classList.remove('hidden');
+      return;
+    }
+    if (listEl)  listEl.classList.remove('hidden');
+    if (emptyEl) emptyEl.classList.add('hidden');
+    var pairs = [
+      ['dash-resumen-miami',     ids.miami],
+      ['dash-resumen-transito',  ids.transito],
+      ['dash-resumen-crbox',     ids.crbox],
+      ['dash-resumen-entregado', ids.entregado]
+    ];
+    pairs.forEach(function (p) {
+      var n = document.getElementById(p[0]);
+      if (n) n.textContent = String(p[1]);
     });
   }
 

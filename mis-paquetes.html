@@ -2448,8 +2448,13 @@
           } else if (activeStatus === 'pendiente-factura') {
             // Strict: only include packages where invoicesCount is KNOWN to be 0.
             // Treat null/undefined as "unknown" — do not overclassify as invoiceless.
+            // Additionally require statusId === 1 (MIAMI): the "Subir factura"
+            // action only renders for Miami packages with a warehouse receipt
+            // (see _renderInvoiceAction). Restricting the tab to Miami keeps
+            // it semantically actionable and gives parity with the dashboard
+            // "Facturas Pendientes" stat card.
             var _ic = _pkg.invoicesCount;
-            _matchesStatus = (_ic !== null && _ic !== undefined && Number(_ic) === 0);
+            _matchesStatus = (_pkg.statusId === 1 && _ic !== null && _ic !== undefined && Number(_ic) === 0);
           } else {
             _matchesStatus = (_statusKey(_pkg) === activeStatus);
           }
@@ -2569,9 +2574,12 @@
         packages.forEach(function (p) {
           var key = _statusKey(p);
           counts[key] = (counts[key] || 0) + 1;
-          // Strict: only count packages where invoicesCount is KNOWN to be 0.
+          // Strict: only count packages where invoicesCount is KNOWN to be 0
+          // AND the package is in MIAMI (statusId=1) — same predicate used by
+          // the pendiente-factura filter above. Keeps the tab badge in sync
+          // with both the filter's row count and the dashboard stat card.
           var _sic = p.invoicesCount;
-          if (_sic !== null && _sic !== undefined && Number(_sic) === 0) pendienteFacturaCount++;
+          if (p.statusId === 1 && _sic !== null && _sic !== undefined && Number(_sic) === 0) pendienteFacturaCount++;
         });
         _txt('total-paquetes', String(total));
         _txt('en-transito',    String(counts['EN TRÁNSITO'] || 0));
@@ -3295,6 +3303,40 @@
                 if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }, 300);
             }
+
+            // Hash deep-links from the dashboard:
+            //   #sin-factura          → activate the "pendiente-factura" tab
+            //   #estado-MIAMI         → activate the MIAMI status tab
+            //   #estado-EN-TRANSITO   → activate the "EN TRÁNSITO" tab
+            //   #estado-CRBOX         → activate the CRBOX tab
+            //   #estado-ENTREGADO     → activate any tab matching that status
+            // The tabs in the DOM use data-status with the canonical names
+            // (incl. accents); we map common URL-safe aliases here.
+            (function _applyDashboardHash() {
+              var h = (window.location.hash || '').replace(/^#/, '');
+              if (!h) return;
+              var alias = {
+                'sin-factura':       'pendiente-factura',
+                'estado-MIAMI':      'MIAMI',
+                'estado-EN-TRANSITO':'EN TRÁNSITO',
+                'estado-CRBOX':      'CRBOX',
+                'estado-SJO':        'SJO',
+                'estado-CARGADO':    'CARGADO',
+                'estado-ENTREGADO':  'ENTREGADO'
+              };
+              var target = alias[h];
+              if (!target) return;
+              setTimeout(function () {
+                var tabs = document.querySelectorAll('.status-tab');
+                for (var i = 0; i < tabs.length; i++) {
+                  if ((tabs[i].getAttribute('data-status') || '').trim() === target) {
+                    tabs[i].click();
+                    tabs[i].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    break;
+                  }
+                }
+              }, 300);
+            }());
 
             // Wire filter inputs
             var searchInput   = document.getElementById('search-input');
