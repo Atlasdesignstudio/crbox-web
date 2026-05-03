@@ -431,7 +431,7 @@
                 </div>
     
                 <!-- Botón menú móvil -->
-                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button" type="button" aria-label="Abrir menú" aria-controls="mobile-menu" aria-expanded="false">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
             </div>
@@ -811,24 +811,58 @@
             const bankInfo = document.querySelectorAll('.space-y-3 li span');
             if (bankInfo.length) {
                 bankInfo.forEach(info => {
+                    // Keyboard / screen-reader accessibility: spans aren't focusable by default.
+                    info.setAttribute('tabindex', '0');
+                    info.setAttribute('role', 'button');
+                    if (!info.getAttribute('aria-label')) {
+                        info.setAttribute('aria-label', 'Copiar al portapapeles');
+                    }
+                    info.style.cursor = 'pointer';
+                    info.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            info.click();
+                        }
+                    });
                     info.addEventListener('click', function() {
                         // Get the text content without the label
                         const text = this.textContent.split(':')[1]?.trim() || this.textContent;
-                        
-                        // Copy to clipboard
-                        navigator.clipboard.writeText(text).then(() => {
-                            // Show a tooltip or some feedback
-                            const originalHTML = this.innerHTML;
-                            const fontWeight = this.style.fontWeight;
-                            
-                            this.innerHTML += ' <span class="text-green-500">(Copiado)</span>';
-                            this.style.fontWeight = 'bold';
-                            
+
+                        const target = this;
+                        const originalHTML = target.innerHTML;
+                        const fontWeight = target.style.fontWeight;
+                        const flash = (label) => {
+                            target.innerHTML = originalHTML + ' ' + label;
+                            target.style.fontWeight = 'bold';
                             setTimeout(() => {
-                                this.innerHTML = originalHTML;
-                                this.style.fontWeight = fontWeight;
+                                target.innerHTML = originalHTML;
+                                target.style.fontWeight = fontWeight;
                             }, 2000);
-                        });
+                        };
+                        const legacyCopy = () => {
+                            try {
+                                const ta = document.createElement('textarea');
+                                ta.value = text;
+                                ta.setAttribute('readonly', '');
+                                ta.style.position = 'absolute';
+                                ta.style.left = '-9999px';
+                                document.body.appendChild(ta);
+                                ta.select();
+                                const ok = document.execCommand('copy');
+                                document.body.removeChild(ta);
+                                return ok;
+                            } catch (e) { return false; }
+                        };
+                        const okLabel = '<span class="text-green-500">(Copiado)</span>';
+                        const failLabel = '<span class="text-red-500">(No se pudo copiar)</span>';
+
+                        if (navigator.clipboard && window.isSecureContext) {
+                            navigator.clipboard.writeText(text)
+                                .then(() => flash(okLabel))
+                                .catch(() => flash(legacyCopy() ? okLabel : failLabel));
+                            return;
+                        }
+                        flash(legacyCopy() ? okLabel : failLabel);
                     });
                 });
             }

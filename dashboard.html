@@ -7,8 +7,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://clients.crbox.cr https://www.google-analytics.com; frame-src https://www.googletagmanager.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRBOX | Mis Paquetes | Casillero Virtual y Courier en Costa Rica</title>
-    <meta name="description" content="Gestiona y rastrea tus paquetes en CRBOX, tu casillero virtual en Miami para compras en USA con entrega en Costa Rica.">
+    <title>Dashboard | Mi Portal CRBOX</title>
+    <meta name="description" content="Tu panel personal CRBOX: estado de paquetes, dirección de Miami, cotizaciones activas y datos de tu casillero virtual.">
     <meta name="robots" content="noindex, nofollow">
     
     <!-- Favicons -->
@@ -113,7 +113,7 @@
                 </div>
         
                 <!-- Botón menú móvil -->
-                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button" type="button" aria-label="Abrir menú" aria-controls="mobile-menu" aria-expanded="false">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
             </div>
@@ -864,11 +864,36 @@
     var copyBtn = document.getElementById('copy-casillero');
     if (copyBtn) {
       copyBtn.addEventListener('click', function () {
-        navigator.clipboard.writeText(casillero).then(function () {
+        function _flash(label) {
           var orig = copyBtn.innerHTML;
-          copyBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Copiado';
+          copyBtn.innerHTML = label;
           setTimeout(function () { copyBtn.innerHTML = orig; }, 1800);
-        });
+        }
+        function _legacyCopy() {
+          try {
+            var ta = document.createElement('textarea');
+            ta.value = casillero;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'absolute';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            var ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            return ok;
+          } catch (e) { return false; }
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(casillero).then(function () {
+            _flash('<i class="fas fa-check mr-1"></i>Copiado');
+          }).catch(function () {
+            _flash(_legacyCopy() ? '<i class="fas fa-check mr-1"></i>Copiado'
+                                 : '<i class="fas fa-times mr-1"></i>Copia manual');
+          });
+        } else {
+          _flash(_legacyCopy() ? '<i class="fas fa-check mr-1"></i>Copiado'
+                               : '<i class="fas fa-times mr-1"></i>Copia manual');
+        }
       });
     }
   }

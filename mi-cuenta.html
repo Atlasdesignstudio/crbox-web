@@ -92,7 +92,7 @@
                 </div>
     
                 <!-- Botón menú móvil -->
-                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button" type="button" aria-label="Abrir menú" aria-controls="mobile-menu" aria-expanded="false">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
             </div>
@@ -708,13 +708,35 @@
                     });
                     const addressText = lines.join('\n');
 
-                    navigator.clipboard.writeText(addressText).then(() => {
-                        const originalHTML = this.innerHTML;
-                        this.innerHTML = '<i class="fas fa-check mr-1.5 text-green-500"></i>¡Dirección copiada!';
-                        setTimeout(() => {
-                            this.innerHTML = originalHTML;
-                        }, 2000);
-                    });
+                    const btn = this;
+                    const originalHTML = btn.innerHTML;
+                    function flash(label) {
+                        btn.innerHTML = label;
+                        setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+                    }
+                    function legacyCopy() {
+                        try {
+                            const ta = document.createElement('textarea');
+                            ta.value = addressText;
+                            ta.setAttribute('readonly', '');
+                            ta.style.position = 'absolute';
+                            ta.style.left = '-9999px';
+                            document.body.appendChild(ta);
+                            ta.select();
+                            const ok = document.execCommand('copy');
+                            document.body.removeChild(ta);
+                            return ok;
+                        } catch (e) { return false; }
+                    }
+                    const successMsg = '<i class="fas fa-check mr-1.5 text-green-500"></i>¡Dirección copiada!';
+                    const failMsg    = '<i class="fas fa-times mr-1.5 text-red-500"></i>No se pudo copiar';
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(addressText)
+                            .then(() => flash(successMsg))
+                            .catch(() => flash(legacyCopy() ? successMsg : failMsg));
+                    } else {
+                        flash(legacyCopy() ? successMsg : failMsg);
+                    }
                 });
             }
             
