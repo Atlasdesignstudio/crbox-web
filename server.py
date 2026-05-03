@@ -2574,6 +2574,79 @@ def _build_response_email_html(scb_id, product_name, customer_name,
                 '</div>'
             )
 
+    # ── CTA buttons (built before return to avoid mixing implicit + explicit concat) ──
+    _casillero_btn = (
+        '<a href="https://crbox.cr/afiliate.html" '
+        'style="display:inline-block;background:#fff;color:#FF6B00;font-weight:700;'
+        'font-size:14px;padding:12px 20px;border-radius:8px;text-decoration:none;'
+        'border:2px solid #FF6B00;text-align:center;flex:1;min-width:160px;">'
+        '&#x1F4E6; Abrir casillero gratis</a>'
+        if availability in ('disponible', 'disponible_con_condiciones') else ''
+    )
+    cta_block = (
+        '<div style="margin:24px 0 20px;display:flex;flex-wrap:wrap;gap:10px;">'
+        f'<a href="https://crbox.cr/solicitud.html?id={esc(scb_id)}" '
+        'style="display:inline-block;background:#FF6B00;color:#fff;font-weight:700;'
+        'font-size:14px;padding:12px 20px;border-radius:8px;text-decoration:none;'
+        'text-align:center;flex:1;min-width:160px;">&#128203; Ver mi solicitud</a>'
+        f'{_casillero_btn}'
+        '</div>'
+    )
+    contact_block = (
+        '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;'
+        'padding:16px 20px;margin-bottom:20px;">'
+        '<p style="font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;'
+        'letter-spacing:.06em;margin:0 0 10px;">&#128172; ¿Tienes alguna pregunta?</p>'
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;">'
+        f'<a href="mailto:ventas@crbox.cr?subject=Re%3A%20{esc(scb_id)}" '
+        'style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;'
+        'background:#fff;border:1px solid #d1d5db;border-radius:6px;'
+        'font-size:13px;color:#374151;text-decoration:none;font-weight:500;">'
+        '&#9993; Responder por correo</a>'
+        '<a href="https://wa.me/50689794418" '
+        'style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;'
+        'background:#25D366;color:#fff;border-radius:6px;'
+        'font-size:13px;text-decoration:none;font-weight:600;">'
+        '&#128241; WhatsApp (+506&nbsp;8979&#8209;4418)</a>'
+        '</div></div>'
+    )
+    _faq_avail_items = (
+        '<div><p style="font-size:13px;font-weight:600;color:#111;margin:0 0 2px;">'
+        '¿C&oacute;mo confirmo que quiero el servicio?</p>'
+        '<p style="font-size:12px;color:#6b7280;margin:0;line-height:1.5;">'
+        'Inicia sesi&oacute;n en tu portal, entra a esta solicitud y selecciona '
+        '"Quiero que CRBOX compre por m&iacute;". Luego coordinaremos el pago.</p></div>'
+        '<div><p style="font-size:13px;font-weight:600;color:#111;margin:0 0 2px;">'
+        '¿C&oacute;mo se realiza el pago?</p>'
+        '<p style="font-size:12px;color:#6b7280;margin:0;line-height:1.5;">'
+        'Una vez que confirmes, te enviaremos los datos para transferencia SINPE '
+        'o tarjeta. El pago incluye el costo del producto + env&iacute;o.</p></div>'
+        if availability in ('disponible', 'disponible_con_condiciones') else
+        '<div><p style="font-size:13px;font-weight:600;color:#111;margin:0 0 2px;">'
+        '¿Puedo cotizar otro producto?</p>'
+        '<p style="font-size:12px;color:#6b7280;margin:0;line-height:1.5;">'
+        'S&iacute;, visita '
+        '<a href="https://crbox.cr/cotizar.html" style="color:#FF6B00;">crbox.cr/cotizar.html</a> '
+        'en cualquier momento para una nueva cotizaci&oacute;n sin costo.</p></div>'
+    )
+    faq_block = (
+        '<div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:20px;">'
+        '<div style="background:#f3f4f6;padding:10px 16px;border-bottom:1px solid #e5e7eb;">'
+        '<p style="margin:0;font-size:12px;font-weight:700;color:#374151;'
+        'text-transform:uppercase;letter-spacing:.06em;">&#9889; Preguntas frecuentes</p>'
+        '</div>'
+        '<div style="padding:14px 16px;display:grid;gap:10px;">'
+        f'{_faq_avail_items}'
+        '<div><p style="font-size:13px;font-weight:600;color:#111;margin:0 0 2px;">'
+        '¿Qu&eacute; es el casillero de CRBOX?</p>'
+        '<p style="font-size:12px;color:#6b7280;margin:0;line-height:1.5;">'
+        'Con un casillero gratis obtienes una direcci&oacute;n en Miami para recibir paquetes. '
+        'Puedes comprar directo t&uacute; y nosotros lo traemos a Costa Rica. '
+        '<a href="https://crbox.cr/afiliate.html" style="color:#FF6B00;">&#193;brelo gratis aqu&iacute;.</a>'
+        '</p></div>'
+        '</div></div>'
+    )
+    _email_prod_rows = _build_email_product_rows(product_name, quote_breakdown)
     return (
         '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;'
         'color:#1a1a1a;max-width:600px;margin:0 auto;">'
@@ -2594,7 +2667,7 @@ def _build_response_email_html(scb_id, product_name, customer_name,
         '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
         f'<tr><td style="padding:5px 0;color:#666;width:40%;">ID</td>'
         f'<td style="padding:5px 0;font-weight:700;color:#111;">{esc(scb_id)}</td></tr>'
-        + _build_email_product_rows(product_name, quote_breakdown) +
+        f'{_email_prod_rows}'
         f'<tr><td style="padding:5px 0;color:#666;">Disponibilidad</td>'
         f'<td style="padding:5px 0;{avail_style}">{avail_label}</td></tr>'
         f'{price_rows}'
@@ -2604,11 +2677,14 @@ def _build_response_email_html(scb_id, product_name, customer_name,
         f'{message_block}'
         f'{diff_block}'
         f'{breakdown_block}'
-        '<p style="font-size:12px;color:#9ca3af;margin:20px 0 0;">Para cualquier consulta, '
-        f'responde a este correo con tu ID <strong>{esc(scb_id)}</strong> '
-        'o esc&iacute;benos por WhatsApp: '
-        '<a href="https://wa.me/50689794418" style="color:#9ca3af;text-decoration:underline;">+506&nbsp;8979&#8209;4418</a>. '
-        'El equipo de CRBOX estar&aacute; encantado de ayudarte.</p>'
+        f'{cta_block}'
+        f'{contact_block}'
+        f'{faq_block}'
+        f'<p style="font-size:11px;color:#9ca3af;margin:0;line-height:1.6;">'
+        f'Solicitud <strong>{esc(scb_id)}</strong> &middot; '
+        'ventas@crbox.cr &middot; '
+        '<a href="https://wa.me/50689794418" style="color:#9ca3af;">+506&nbsp;8979&#8209;4418</a>'
+        '</p>'
         '</div></div>'
     )
 
@@ -4229,9 +4305,29 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
               + '<span>' + LINE_LABELS[k] + '</span>'
               + '<span style="font-weight:600;">' + fmtUSD(res[k]) + '</span></div>';
           }}).join('');
+          // Show billable weight + which mode won (real vs volumétrico)
+          var _billable = res.billableKg || 0;
+          var _volKg    = res.volKg    || 0;
+          var _realKg   = res.realKg   || w;
+          var _isVol    = _volKg > 0 && _volKg >= _realKg;
+          var _modeLabel = _isVol ? 'volumétrico' : 'real';
+          var _modeColor = _isVol ? '#7c3aed' : '#374151';
+          var _weightLine = '<div style="display:flex;justify-content:space-between;align-items:center;'
+            + 'font-size:.73rem;padding:.25rem 0 .4rem;margin-bottom:.25rem;border-bottom:1px dashed #e5e7eb;">'
+            + '<span style="color:#6b7280;">Peso facturado</span>'
+            + '<span style="font-weight:700;color:' + _modeColor + ';">'
+            + _billable.toFixed(3) + '\u00a0kg'
+            + '<span style="font-size:.65rem;font-weight:400;color:' + _modeColor + ';margin-left:3px;">(' + _modeLabel + ')</span>'
+            + '</span></div>';
+          var _volLine = (_volKg > 0)
+            ? '<div style="display:flex;justify-content:space-between;font-size:.7rem;padding:.05rem 0 .3rem;color:#9ca3af;">'
+              + '<span>&#x2514; vol: ' + _volKg.toFixed(3) + '\u00a0kg &nbsp;|&nbsp; real: ' + _realKg.toFixed(3) + '\u00a0kg</span>'
+              + '</div>'
+            : '';
           if (resEl) {{
             resEl.innerHTML =
-              '<div style="border-top:1px solid #e5e7eb;margin-top:.35rem;padding-top:.35rem;">' + rows + '</div>'
+              '<div style="border-top:1px solid #e5e7eb;margin-top:.35rem;padding-top:.35rem;">'
+              + _weightLine + _volLine + rows + '</div>'
               + '<div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;color:#059669;border-top:1px solid #d1fae5;margin-top:.3rem;padding-top:.3rem;">'
               + '<span>Subtotal env\u00edo</span><span>' + fmtUSD(tot) + '</span></div>';
           }}
