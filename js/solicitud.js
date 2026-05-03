@@ -369,9 +369,12 @@
         multiEl.classList.remove('hidden');
       }
     } else {
-      _setText('sol-product-name', (_solProducts.length === 1 ? (_solProducts[0].name || sol.product_name) : sol.product_name) || '—');
-      _setText('sol-category', CATEGORY_LABELS[sol.category] || sol.category || 'Otros');
-      _setText('sol-value', sol.declared_value_usd != null ? '$' + Number(sol.declared_value_usd).toFixed(2) + ' USD' : '—');
+      var _p0 = _solProducts.length === 1 ? _solProducts[0] : null;
+      _setText('sol-product-name', (_p0 ? (_p0.name || sol.product_name) : sol.product_name) || '—');
+      var _cat0 = _p0 ? (_p0.category || sol.category) : sol.category;
+      _setText('sol-category', CATEGORY_LABELS[_cat0] || _cat0 || 'Otros');
+      var _val0 = (_p0 != null && _p0.declared_value_usd != null) ? _p0.declared_value_usd : sol.declared_value_usd;
+      _setText('sol-value', _val0 != null ? '$' + Number(_val0).toFixed(2) + ' USD' : '—');
 
       var urlEl = document.getElementById('sol-url');
       if (urlEl) {
