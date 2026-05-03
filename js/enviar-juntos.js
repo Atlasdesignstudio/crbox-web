@@ -159,6 +159,7 @@
   var _historyExpanded = false; // "Historial de envíos" section collapsed by default
   var _timelineExpanded = {};   // groupId → true/false; activity timeline per card
   var _postCreatePkg  = null; // package to auto-add after creating a group from the add-to-group row flow
+  var _invoiceStatusDebounceTimer = null; // debounce timer for status PATCH in _updateInvoiceSendBtn
 
   /* ─── Auto-assign session state ─── */
   var _SEEN_MIAMI_KEY      = 'crbox_seen_miami_ids';
@@ -1500,10 +1501,22 @@
     }
 
     /* Sync group status so the card-level CTA matches the modal gate:
-     * only promote to ready_to_confirm when the send button is actually unblocked */
+     * only promote to ready_to_confirm when the send button is actually unblocked.
+     * Update the local cache immediately for instant UI feedback; debounce the
+     * server PATCH so rapid checkbox tapping doesn't fire one request per tick. */
     if (_invoiceGroupId) {
       var nextStatus = canSend ? 'ready_to_confirm' : 'invoices_pending';
-      _updateGroup(_invoiceGroupId, { status: nextStatus });
+      var _groups2 = _load();
+      var _idx2 = _groups2.findIndex(function (g) { return g.id === _invoiceGroupId; });
+      if (_idx2 >= 0) {
+        _groups2[_idx2].status = nextStatus;
+        _groups2[_idx2].updatedAt = _now();
+        _save(_groups2);
+      }
+      clearTimeout(_invoiceStatusDebounceTimer);
+      _invoiceStatusDebounceTimer = setTimeout(function () {
+        _updateGroup(_invoiceGroupId, { status: nextStatus });
+      }, 400);
       var stepsEl = _el('ej-invoice-steps');
       if (stepsEl) stepsEl.innerHTML = _stepsHTML(nextStatus);
     }
@@ -1560,7 +1573,17 @@
     .then(function (r) {
       if (sendBtn) { sendBtn.classList.remove('ej-loading'); }
       if (r.ok && r.data.ok) {
-        markConfirmationSent(groupId);
+        /* Server already atomically set status=confirmation_sent and confirmedAt.
+         * Update local cache directly (no PATCH) to avoid a redundant write that
+         * could overwrite the server-canonical confirmedAt timestamp. */
+        var _groups3 = _load();
+        var _idx3 = _groups3.findIndex(function (g) { return g.id === groupId; });
+        if (_idx3 >= 0) {
+          _groups3[_idx3].status      = 'confirmation_sent';
+          _groups3[_idx3].confirmedAt = _groups3[_idx3].confirmedAt || _now();
+          _groups3[_idx3].updatedAt   = _now();
+          _save(_groups3);
+        }
         _closeModal(_el('ej-invoice-modal-overlay'));
         renderSection();
         _showToast('Confirmación enviada a CRBOX. Nuestro equipo revisará tu solicitud.', 'success');
@@ -2207,6 +2230,14 @@
 
     /* Bind section-level events */
     _bindSectionEvents();
+
+    /* Close any open modal on Escape key */
+    document.addEventListener('keydown', function (e) {
+      if ((e.key === 'Escape' || e.keyCode === 27) &&
+          document.querySelector('.ej-modal-overlay.ej-open')) {
+        _closeAll();
+      }
+    });
 
     /* Load groups from server, then render.
      * Falls back to localStorage if the request fails (e.g. not logged in yet
