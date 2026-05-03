@@ -34,7 +34,7 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5WD8N53F" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
-    <div id="toast-container" class="fixed bottom-24 right-6 z-50 flex flex-col space-y-2"></div>
+    <div id="toast-container" class="fixed bottom-24 right-6 z-50 flex flex-col space-y-2" role="status" aria-live="polite" aria-atomic="false"></div>
 
     <!-- ═══ Header ═══════════════════════════════════════════════════════════ -->
     <header class="bg-white shadow-sm sticky-header">
@@ -88,13 +88,13 @@
                         </div>
                     </div>
                 </div>
-                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button">
+                <button class="md:hidden text-gray-700 focus:outline-none" id="mobile-menu-button" type="button" aria-label="Abrir menú" aria-controls="mobile-menu" aria-expanded="false">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
             </div>
 
             <!-- Mobile menu -->
-            <div class="md:hidden mt-4 hidden" id="mobile-menu">
+            <div class="md:hidden mt-4" id="mobile-menu">
                 <div class="py-3">
                     <nav aria-label="Navegación general">
                         <a href="servicios.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 transition-colors">Servicios</a>
@@ -146,7 +146,7 @@
     </header>
 
     <!-- ═══ Navigation Tabs ══════════════════════════════════════════════════ -->
-    <div class="bg-white border-b border-gray-200 shadow-sm sticky top-16 z-30">
+    <div class="bg-white border-b border-gray-200 shadow-sm sticky z-30" style="top: var(--portal-header-h, 64px)">
             <div class="flex justify-center overflow-x-auto no-scrollbar -mb-px w-full">
                 <a href="dashboard.html" class="whitespace-nowrap px-5 py-4 font-medium text-gray-600 hover:text-orange-600 border-b-2 border-transparent hover:border-orange-600 transition-all focus:outline-none flex items-center relative">
                     <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
@@ -537,7 +537,9 @@
     <div id="site-footer"></div>
     <script src="/js/footer.js?v=1" defer></script>
     <script src="js/auth.js?v=4"></script>
+    <script src="js/nav-auth.js?v=2"></script>
     <script src="js/portal-api.js?v=4"></script>
     <script src="js/solicitud.js?v=1"></script>
+    <script src="js/portal-nav-offset.js" defer></script>
 </body>
 </html>
