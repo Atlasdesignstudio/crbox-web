@@ -2390,6 +2390,25 @@ def _send_cancellation_email(scb_id, customer_email, customer_name, product_name
     _send_smtp(msg, [customer_email])
 
 
+def _build_email_product_rows(product_name, quote_breakdown):
+    """Build the product row(s) for the response-email summary table (E-2)."""
+    esc = _html.escape
+    bd_prods = (quote_breakdown or {}).get('products') or []
+    if len(bd_prods) > 1:
+        names_html = '; '.join(
+            esc(str(bp.get('name') or f'Producto {i+1}'))
+            for i, bp in enumerate(bd_prods)
+        )
+        return (
+            f'<tr><td style="padding:5px 0;color:#666;vertical-align:top;">Productos</td>'
+            f'<td style="padding:5px 0;color:#111;">{names_html}</td></tr>'
+        )
+    return (
+        f'<tr><td style="padding:5px 0;color:#666;">Producto</td>'
+        f'<td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
+    )
+
+
 def _build_response_email_html(scb_id, product_name, customer_name,
                                 confirmed_price_usd, availability,
                                 delivery_timeline, conditions,
@@ -2561,8 +2580,7 @@ def _build_response_email_html(scb_id, product_name, customer_name,
         '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
         f'<tr><td style="padding:5px 0;color:#666;width:40%;">ID</td>'
         f'<td style="padding:5px 0;font-weight:700;color:#111;">{esc(scb_id)}</td></tr>'
-        f'<tr><td style="padding:5px 0;color:#666;">Producto</td>'
-        f'<td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
+        + _build_email_product_rows(product_name, quote_breakdown) +
         f'<tr><td style="padding:5px 0;color:#666;">Disponibilidad</td>'
         f'<td style="padding:5px 0;{avail_style}">{avail_label}</td></tr>'
         f'{price_rows}'
@@ -2573,7 +2591,9 @@ def _build_response_email_html(scb_id, product_name, customer_name,
         f'{diff_block}'
         f'{breakdown_block}'
         '<p style="font-size:12px;color:#9ca3af;margin:20px 0 0;">Para cualquier consulta, '
-        f'responde a este correo indicando tu ID <strong>{esc(scb_id)}</strong>. '
+        f'responde a este correo con tu ID <strong>{esc(scb_id)}</strong> '
+        'o esc&iacute;benos por WhatsApp: '
+        '<a href="https://wa.me/50689794418" style="color:#9ca3af;text-decoration:underline;">+506&nbsp;8979&#8209;4418</a>. '
         'El equipo de CRBOX estar&aacute; encantado de ayudarte.</p>'
         '</div></div>'
     )
@@ -2590,7 +2610,11 @@ def _send_customer_response(scb_id, customer_email, customer_name, product_name,
     }
     avail_label = avail_labels.get(availability, availability)
     greeting = f'Hola {customer_name},' if customer_name else 'Hola,'
-    subject = f'[{scb_id}] Respuesta a tu solicitud de compra \u2014 {product_name}'
+    _bd_prods_subj = (quote_breakdown or {}).get('products') or []
+    if len(_bd_prods_subj) > 1:
+        subject = f'[{scb_id}] Respuesta a tu solicitud de compra \u2014 {len(_bd_prods_subj)} productos'
+    else:
+        subject = f'[{scb_id}] Respuesta a tu solicitud de compra \u2014 {product_name}'
 
     plain_parts = [
         f'{greeting}\n',
@@ -3722,9 +3746,14 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         'televisor': 'Televisores', 'anteojos': 'Anteojos', 'cinturon': 'Cinturones',
         'electrodomesticos': 'Electrodomésticos', 'aspiradora': 'Aspiradoras',
         'colchon': 'Colchones', 'herramientas': 'Herramientas',
-        'bicicleta_economica': 'Bicicleta (econ.)', 'bicicleta_cara': 'Bicicleta (cara)',
+        'bicicleta_economica': 'Bicicleta estándar', 'bicicleta_cara': 'Bicicleta premium',
         'bola': 'Deportivo', 'coche_bebe': 'Coches de bebé', 'juguetes': 'Juguetes',
         'amortiguadores': 'Amortiguadores', 'aros_carro_moto': 'Aros', 'cds': 'Libros/CDs',
+        'vehiculos': 'Repuestos Vehíc.', 'salud_belleza': 'Salud y Belleza',
+        'suplementos': 'Suplementos',
+        'electr_otro': 'Otro — Electrónica', 'ropa_otro': 'Otro — Ropa',
+        'hogar_otro': 'Otro — Hogar', 'deporte_otro': 'Otro — Deportes',
+        'bebe_otro': 'Otro — Bebé', 'vehic_otro': 'Otro — Vehículos',
     }
     # Parse multi-product JSON early so both the product block and the
     # calculator section can use the same list.
@@ -4027,14 +4056,23 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         ('aspiradora','Aspiradora y Limpieza'),
         ('colchon','Colchones y Muebles'),
         ('herramientas','Herramientas'),
-        ('bicicleta_economica','Bicicleta (CIF bajo $1000)'),
-        ('bicicleta_cara','Bicicleta (CIF $1000+)'),
+        ('bicicleta_economica','Bicicleta (valor bajo $1000)'),
+        ('bicicleta_cara','Bicicleta (valor $1000+)'),
         ('bola','Artículos Deportivos'),
         ('coche_bebe','Coches de Bebé'),
         ('juguetes','Juguetes'),
         ('amortiguadores','Amortiguadores'),
         ('aros_carro_moto','Aros de Carro/Moto'),
+        ('vehiculos','Repuestos de Vehículos'),
+        ('salud_belleza','Salud y Belleza'),
+        ('suplementos','Suplementos'),
         ('cds','Libros, CDs y Medios'),
+        ('electr_otro','Otro — Electrónica'),
+        ('ropa_otro','Otro — Ropa y Accesorios'),
+        ('hogar_otro','Otro — Hogar'),
+        ('deporte_otro','Otro — Deportes'),
+        ('bebe_otro','Otro — Bebé y Niños'),
+        ('vehic_otro','Otro — Vehículos'),
         ('otros','Otro / No está en la lista'),
     ]
     _calc_rows_html = ''
@@ -4195,9 +4233,48 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         }};
       }} else {{ totEl.innerHTML = 'Total estimado: &mdash;'; lastBreakdown = null; }}
     }}
+    // A-2: Autosave calculator state to localStorage keyed by SCB-ID
+    var _CALC_KEY = 'crbox-calc-{esc(rid)}';
+    function _saveCalcState() {{
+      var state = [];
+      document.querySelectorAll('#adm-calc-section .adm-calc-product').forEach(function(el) {{
+        state.push({{
+          w:  (el.querySelector('.adm-calc-weight')   || {{}}).value || '',
+          l:  (el.querySelector('.adm-calc-length')   || {{}}).value || '',
+          wi: (el.querySelector('.adm-calc-width')    || {{}}).value || '',
+          h:  (el.querySelector('.adm-calc-height')   || {{}}).value || '',
+          v:  (el.querySelector('.adm-calc-value')    || {{}}).value || '',
+          c:  (el.querySelector('.adm-calc-category') || {{}}).value || ''
+        }});
+      }});
+      try {{ localStorage.setItem(_CALC_KEY, JSON.stringify(state)); }} catch(e) {{}}
+    }}
+    function _restoreCalcState() {{
+      try {{
+        var raw = localStorage.getItem(_CALC_KEY);
+        if (!raw) return;
+        var state = JSON.parse(raw);
+        if (!Array.isArray(state)) return;
+        document.querySelectorAll('#adm-calc-section .adm-calc-product').forEach(function(el, idx) {{
+          var s = state[idx]; if (!s) return;
+          var sv = function(cls, val) {{ var inp = el.querySelector(cls); if (inp && val) inp.value = val; }};
+          sv('.adm-calc-weight', s.w); sv('.adm-calc-length', s.l); sv('.adm-calc-width', s.wi);
+          sv('.adm-calc-height', s.h); sv('.adm-calc-value', s.v); sv('.adm-calc-category', s.c);
+        }});
+        calcAll();
+        var tot = document.getElementById('adm-calc-grand-total');
+        if (tot && lastBreakdown) {{
+          var note = document.createElement('p');
+          note.style.cssText = 'font-size:.72rem;color:#6b7280;margin-top:.3rem;';
+          note.textContent = 'Valores restaurados del borrador anterior.';
+          if (!tot.nextSibling || tot.nextSibling.tagName !== 'P') tot.parentNode.insertBefore(note, tot.nextSibling);
+        }}
+      }} catch(e) {{}}
+    }}
     document.querySelectorAll('#adm-calc-section .adm-calc-inp').forEach(function(inp) {{
-      inp.addEventListener('input', calcAll);
+      inp.addEventListener('input', function() {{ calcAll(); _saveCalcState(); }});
     }});
+    _restoreCalcState();
     var applyBtn = document.getElementById('adm-calc-apply-btn');
     var applyStatus = document.getElementById('adm-calc-apply-status');
     if (applyBtn) {{
@@ -4501,7 +4578,26 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       <div id="resp-ai-label-msg" style="display:none;margin-top:4px;font-size:11px;
            color:#7c3aed;font-weight:600;">&#10024; Sugerido por IA &mdash; revise antes de enviar</div>
     </div>
-    <div style="margin-top:4px;">
+    <!-- A-3: Email preview toggle -->
+    <div style="margin-top:16px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+      <button type="button" id="resp-preview-btn"
+              style="width:100%;text-align:left;padding:10px 14px;background:#f9fafb;border:none;
+                     font-size:13px;font-weight:600;color:#374151;cursor:pointer;display:flex;
+                     align-items:center;gap:8px;">
+        <span id="resp-preview-icon" style="font-size:11px;transition:transform .2s;">&#9654;</span>
+        Vista previa del email al cliente
+      </button>
+      <div id="resp-preview-body" style="display:none;padding:14px;background:#fff;border-top:1px solid #e5e7eb;">
+        <p style="font-size:11px;color:#9ca3af;margin:0 0 10px;font-style:italic;">
+          Previsualización aproximada — el formato real puede variar ligeramente.
+        </p>
+        <div id="resp-preview-content"
+             style="font-size:13px;line-height:1.6;color:#374151;background:#f9fafb;
+                    border:1px solid #e5e7eb;border-radius:6px;padding:12px 14px;max-height:320px;overflow-y:auto;">
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
       <button class="adm-upd-btn adm-btn-send" type="submit">
         &#9993;&nbsp; Enviar respuesta al cliente
       </button>
@@ -4517,8 +4613,21 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
           priceDisp.textContent = isNaN(n) || n <= 0 ? '\u2014' : '$' + n.toFixed(2) + ' USD';
         }});
       }}
-
       var availSel = document.getElementById('resp-availability');
+
+      // A-1: Guard against zero-price response for available items
+      var respForm = document.querySelector('form[action="/admin/solicitudes/{esc(rid)}/respond"]');
+      if (respForm) {{
+        respForm.addEventListener('submit', function(e) {{
+          var avail = availSel ? availSel.value : '';
+          var price = parseFloat(priceInp ? priceInp.value : '');
+          if ((avail === 'disponible' || avail === 'disponible_con_condiciones') && (isNaN(price) || price <= 0)) {{
+            e.preventDefault();
+            alert('El precio de env\u00edo debe ser mayor a $0.00 para esta disponibilidad.');
+            if (priceInp) priceInp.focus();
+          }}
+        }});
+      }}
       var aiBtn    = document.getElementById('resp-ai-btn');
       var aiStatus = document.getElementById('resp-ai-status');
 
@@ -4613,6 +4722,50 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
             }}
           }});
         }});
+      }}
+
+      // A-3: Email preview toggle
+      var prevBtn  = document.getElementById('resp-preview-btn');
+      var prevBody = document.getElementById('resp-preview-body');
+      var prevIcon = document.getElementById('resp-preview-icon');
+      var prevCont = document.getElementById('resp-preview-content');
+      if (prevBtn && prevBody && prevCont) {{
+        var prevOpen = false;
+        function _buildPreview() {{
+          var avail = availSel ? availSel.value : '';
+          var availLabels = {{
+            disponible: 'Disponible',
+            no_disponible: 'No disponible',
+            disponible_con_condiciones: 'Disponible con condiciones'
+          }};
+          var price    = priceInp ? priceInp.value : '';
+          var timeline = (document.getElementById('resp-delivery-timeline') || {{}}).value || '';
+          var msg      = (document.getElementById('resp-message') || {{}}).value || '';
+          var cond     = (document.getElementById('resp-conditions') || {{}}).value || '';
+          var esc = function(s) {{ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }};
+          var rows = '';
+          rows += '<tr><td style="padding:4px 0;color:#666;width:38%;">Disponibilidad</td><td style="padding:4px 0;">' + esc(availLabels[avail] || avail || '\u2014') + '</td></tr>';
+          if (price) rows += '<tr><td style="padding:4px 0;color:#666;">Precio de env\u00edo</td><td style="padding:4px 0;font-weight:700;">$' + esc(price) + ' USD</td></tr>';
+          if (timeline) rows += '<tr><td style="padding:4px 0;color:#666;">Tiempo de entrega</td><td style="padding:4px 0;">' + esc(timeline) + '</td></tr>';
+          prevCont.innerHTML =
+            '<p style="margin:0 0 8px;font-weight:700;font-size:13px;color:#111;">Vista previa</p>' +
+            '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">' + rows + '</table>' +
+            (cond ? '<p style="font-size:12px;margin:0 0 8px;"><strong>Condiciones:</strong> ' + esc(cond) + '</p>' : '') +
+            (msg  ? '<div style="white-space:pre-wrap;font-size:12px;border-top:1px solid #e5e7eb;padding-top:8px;">' + esc(msg) + '</div>' : '<p style="font-size:12px;color:#9ca3af;">(Sin mensaje aún)</p>');
+        }}
+        prevBtn.addEventListener('click', function() {{
+          prevOpen = !prevOpen;
+          prevBody.style.display = prevOpen ? 'block' : 'none';
+          prevIcon.style.transform = prevOpen ? 'rotate(90deg)' : '';
+          if (prevOpen) _buildPreview();
+        }});
+        // Rebuild preview lazily when fields change while preview is open
+        ['resp-availability','resp-delivery-timeline','resp-message','resp-conditions'].forEach(function(id) {{
+          var el = document.getElementById(id);
+          if (el) el.addEventListener('input', function() {{ if (prevOpen) _buildPreview(); }});
+          if (el) el.addEventListener('change', function() {{ if (prevOpen) _buildPreview(); }});
+        }});
+        if (priceInp) priceInp.addEventListener('input', function() {{ if (prevOpen) _buildPreview(); }});
       }}
     }})();
   </script>

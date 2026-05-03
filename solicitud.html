@@ -235,9 +235,9 @@
                                 Preguntar por WhatsApp
                             </a>
                             <button id="btn-cancel-solicitud"
-                               class="hidden items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 active:scale-95 transition-all"
-                               style="min-height:40px;">
-                                <i class="fas fa-times-circle text-xs"></i>
+                               class="hidden items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-red-600 border border-gray-200 hover:border-red-200 transition-all"
+                               style="min-height:36px;">
+                                <i class="fas fa-times text-xs"></i>
                                 Cancelar solicitud
                             </button>
                             <a id="btn-duplicate" href="mis-solicitudes.html"
@@ -265,7 +265,7 @@
                         <i class="fas fa-search text-blue-400 mt-0.5 flex-shrink-0"></i>
                         <p class="text-sm text-blue-800">
                             <strong class="font-semibold">CRBOX está revisando tu solicitud.</strong>
-                            Te notificaremos por email cuando tengamos novedades.
+                            En menos de 24 horas hábiles recibirás una respuesta por correo electrónico con el precio final y los próximos pasos.
                         </p>
                     </div>
                 </div>
@@ -518,11 +518,15 @@
                             <span class="detail-label">Tipo de servicio</span>
                             <span id="sol-service" class="detail-value"></span>
                         </div>
-                        <div class="detail-row">
+                        <div class="detail-row" id="sol-destination-row">
+                            <span class="detail-label">Zona de destino</span>
+                            <span id="sol-destination" class="detail-value"></span>
+                        </div>
+                        <div class="detail-row" id="sol-weight-row">
                             <span class="detail-label">Peso aproximado</span>
                             <span id="sol-weight" class="detail-value"></span>
                         </div>
-                        <div class="detail-row">
+                        <div class="detail-row" id="sol-dims-row">
                             <span class="detail-label">Dimensiones</span>
                             <span id="sol-dims" class="detail-value"></span>
                         </div>
@@ -553,7 +557,7 @@
     <script src="js/auth.js?v=4"></script>
     <script src="js/nav-auth.js?v=2" defer></script>
     <script src="js/portal-api.js?v=4"></script>
-    <script src="js/solicitud.js?v=1"></script>
+    <script src="js/solicitud.js?v=5"></script>
     <script src="js/portal-nav-offset.js" defer></script>
 </body>
 </html>

@@ -162,6 +162,17 @@ const TARIFF_ADAPTER = (function () {
     video_juegos: 0.1413,
     video_monitor: 0.4927,
     zapatos: 0.2995,
+    // ── Additional category keys used by cotizar form ─────────────────────
+    salud_belleza: 0.2995,
+    suplementos:   0.13,
+    vehiculos:     0.43,
+    // ── Per-optgroup "otro" aliases (C-14) — all map to the base otros rate
+    electr_otro:   0.2995,
+    ropa_otro:     0.2995,
+    hogar_otro:    0.2995,
+    deporte_otro:  0.2430,
+    bebe_otro:     0.2995,
+    vehic_otro:    0.43,
     otros: 0.2995
   };
 

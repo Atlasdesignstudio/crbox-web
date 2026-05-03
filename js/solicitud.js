@@ -38,20 +38,51 @@
   };
 
   var CATEGORY_LABELS = {
-    ropa:                'Ropa y calzado',
-    electronico:         'Electrónico',
-    computadora:         'Computadoras',
-    celular:             'Celulares',
-    auricular_telefono:  'Auriculares',
-    electrodomestico:    'Electrodoméstico',
-    cosmetico:           'Cosméticos',
-    suplemento:          'Suplementos',
-    libro:               'Libros',
-    juguete:             'Juguetes',
-    herramienta:         'Herramientas',
-    equipo_medico:       'Equipo médico',
-    deportivo:           'Deportivo',
-    otros:               'Otros'
+    celulares:            'Celulares y Smartphones',
+    computadora:          'Computadoras y Laptops',
+    tableta_electronica:  'Tabletas y iPads',
+    consola_videojuegos:  'Consolas de Videojuegos',
+    camara:               'Cámaras y Video',
+    auricular_telefono:   'Audífonos y Accesorios Audio',
+    bocina:               'Bocinas y Equipos de Sonido',
+    televisor:            'Televisores',
+    ropa:                 'Ropa y Calzado',
+    anteojos:             'Anteojos y Gafas',
+    cinturon:             'Cinturones y Bolsos',
+    electrodomesticos:    'Electrodomésticos',
+    aspiradora:           'Aspiradora y Limpieza',
+    colchon:              'Colchones y Muebles',
+    herramientas:         'Herramientas',
+    bicicleta_economica:  'Bicicleta estándar',
+    bicicleta_cara:       'Bicicleta premium',
+    bola:                 'Artículos Deportivos',
+    coche_bebe:           'Coches de Bebé y Accesorios',
+    juguetes:             'Juguetes',
+    amortiguadores:       'Amortiguadores',
+    aros_carro_moto:      'Aros de Carro/Moto',
+    vehiculos:            'Repuestos de Vehículos',
+    salud_belleza:        'Salud y Belleza',
+    suplementos:          'Suplementos',
+    cds:                  'Libros, CDs y Medios',
+    electr_otro:          'Otro — Electrónica',
+    ropa_otro:            'Otro — Ropa y Accesorios',
+    hogar_otro:           'Otro — Hogar',
+    deporte_otro:         'Otro — Deportes',
+    bebe_otro:            'Otro — Bebé y Niños',
+    vehic_otro:           'Otro — Vehículos',
+    otros:                'Otros',
+    // Legacy keys for older records
+    ropa_calzado:         'Ropa y Calzado',
+    celular:              'Celulares',
+    electrodomestico:     'Electrodomésticos',
+    electronico:          'Electrónica',
+    cosmetico:            'Cosméticos',
+    suplemento:           'Suplementos',
+    libro:                'Libros',
+    juguete:              'Juguetes',
+    herramienta:          'Herramientas',
+    equipo_medico:        'Equipo Médico',
+    deportivo:            'Deportivo'
   };
 
   var SERVICE_LABELS = { aereo: 'Aéreo', maritimo: 'Marítimo' };
@@ -354,15 +385,44 @@
 
     _setText('sol-service', SERVICE_LABELS[sol.service_type] || 'Aéreo');
 
-    var weightEl = document.getElementById('sol-weight');
-    if (weightEl) weightEl.textContent = sol.weight_kg ? sol.weight_kg + ' kg' : 'No especificado';
+    // S-2: Destination zone
+    var ZONE_LABELS = {
+      sanjose: 'San José', heredia: 'Heredia', alajuela: 'Alajuela',
+      cartago: 'Cartago', guanacaste: 'Guanacaste', puntarenas: 'Puntarenas', limon: 'Limón'
+    };
+    var destEl  = document.getElementById('sol-destination');
+    var destRow = document.getElementById('sol-destination-row');
+    if (destEl) {
+      var dz = sol.destination_zone || '';
+      if (dz) {
+        destEl.textContent = ZONE_LABELS[dz] || dz;
+        if (destRow) destRow.classList.remove('hidden');
+      } else {
+        if (destRow) destRow.classList.add('hidden');
+      }
+    }
 
-    var dimsEl = document.getElementById('sol-dims');
+    // S-1: Weight — hide row when absent
+    var weightEl  = document.getElementById('sol-weight');
+    var weightRow = document.getElementById('sol-weight-row');
+    if (weightEl) {
+      if (sol.weight_kg) {
+        weightEl.textContent = sol.weight_kg + ' kg';
+        if (weightRow) weightRow.classList.remove('hidden');
+      } else {
+        if (weightRow) weightRow.classList.add('hidden');
+      }
+    }
+
+    // S-1: Dimensions — hide row when absent
+    var dimsEl  = document.getElementById('sol-dims');
+    var dimsRow = document.getElementById('sol-dims-row');
     if (dimsEl) {
       if (sol.length_cm && sol.width_cm && sol.height_cm) {
         dimsEl.textContent = 'L' + sol.length_cm + ' × W' + sol.width_cm + ' × H' + sol.height_cm + ' cm';
+        if (dimsRow) dimsRow.classList.remove('hidden');
       } else {
-        dimsEl.textContent = 'No especificadas';
+        if (dimsRow) dimsRow.classList.add('hidden');
       }
     }
 
@@ -469,19 +529,20 @@
     var dupNoticeLink = document.getElementById('link-dup-notice');
     if (dupNoticeLink) dupNoticeLink.href = 'mis-solicitudes.html?dup=' + encodeURIComponent(sol.id);
 
-    // ── Timeline ──────────────────────────────────────────────────────────────
+    // ── Timeline — S-4: reverse to chronological (oldest → newest) ───────────
     var timeline = document.getElementById('sol-timeline');
     if (timeline && sol.history && sol.history.length > 0) {
-      timeline.innerHTML = sol.history.map(function (h, i) {
-        var isFirst = i === 0;
+      var histArr = sol.history.slice().reverse();
+      timeline.innerHTML = histArr.map(function (h, i) {
+        var isLatest = i === histArr.length - 1;
         var actor = ACTOR_LABELS[h.changed_by] || h.changed_by || 'Sistema';
         var label = STATUS_LABELS[h.to_status] || h.to_status;
         var c = STATUS_COLORS[h.to_status] || { dot: 'bg-gray-300', text: 'text-gray-600' };
         return (
-          '<div class="flex gap-3 ' + (isFirst ? '' : 'mt-1') + '">' +
+          '<div class="flex gap-3 ' + (i > 0 ? 'mt-1' : '') + '">' +
             '<div class="flex flex-col items-center">' +
-              '<div class="w-3 h-3 rounded-full mt-0.5 flex-shrink-0 ' + c.dot + (isFirst ? ' ring-2 ring-offset-1 ring-current' : '') + '"></div>' +
-              (i < sol.history.length - 1 ? '<div class="w-0.5 flex-1 bg-gray-200 mt-1"></div>' : '') +
+              '<div class="w-3 h-3 rounded-full mt-0.5 flex-shrink-0 ' + c.dot + (isLatest ? ' ring-2 ring-offset-1 ring-current' : '') + '"></div>' +
+              (i < histArr.length - 1 ? '<div class="w-0.5 flex-1 bg-gray-200 mt-1"></div>' : '') +
             '</div>' +
             '<div class="flex-1 pb-3">' +
               '<div class="flex flex-wrap items-baseline gap-2">' +

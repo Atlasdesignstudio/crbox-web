@@ -683,6 +683,11 @@
                                 <i class="fas fa-exclamation-circle"></i>
                                 <span>Selecciona tu zona de entrega.</span>
                             </div>
+                            <!-- C-12: Remote zone surcharge hint -->
+                            <div id="zone-remote-hint" class="q-hint" style="display:none;color:#d97706;">
+                                <i class="fas fa-info-circle"></i>
+                                Las zonas alejadas (Guanacaste, Puntarenas, Limón) pueden tener un cargo adicional de entrega local.
+                            </div>
                         </div>
                     </div>
 
@@ -769,11 +774,15 @@
 
                     <!-- ── Desktop submit button ── -->
                     <div class="hidden md:block anim-fadeslide" style="animation-delay:.25s;">
-                                        <button type="submit" id="btn-submit-quote" disabled>
+                        <button type="submit" id="btn-submit-quote" disabled>
                             <i class="fas fa-paper-plane"></i>
                             Enviar solicitud
                         </button>
-                        <p class="text-center text-xs text-gray-400 mt-3">
+                        <!-- C-7: Incomplete hint -->
+                        <p id="submit-incomplete-hint" class="text-center text-xs mt-2" style="color:#d97706;display:none;">
+                            Completa todos los campos requeridos (*) para enviar.
+                        </p>
+                        <p class="text-center text-xs text-gray-400 mt-2">
                             <i class="fas fa-lock mr-1"></i>
                             Tus datos están protegidos. No los compartimos con terceros.
                         </p>
@@ -793,8 +802,45 @@
                     <p class="text-gray-500 text-sm mb-1">ID de tu solicitud</p>
                     <h2 class="text-2xl font-bold text-gray-900 mt-3 mb-1">¡Solicitud enviada!</h2>
                     <p class="text-gray-500 text-sm max-w-md mx-auto leading-relaxed">
-                        El equipo CRBOX revisará tu solicitud y te contactará en menos de 24 horas con el precio final y los próximos pasos.
+                        Revisa tu correo — en menos de 24 horas hábiles recibirás la cotización con el precio final.
                     </p>
+                </div>
+
+                <!-- C-13: Visual next steps -->
+                <div class="form-card mb-5 anim-fadeslide" style="animation-delay:.07s;">
+                    <div class="q-section-head mb-4">
+                        <div class="q-section-icon"><i class="fas fa-map-signs"></i></div>
+                        <div class="q-section-title">¿Qué sigue?</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:1.1rem;">
+                        <div style="display:flex;align-items:flex-start;gap:.875rem;">
+                            <div style="width:2rem;height:2rem;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="fas fa-check" style="color:#16a34a;font-size:.7rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:.875rem;font-weight:600;color:#111827;">Solicitud recibida</div>
+                                <div style="font-size:.8rem;color:#6b7280;">Ya la tenemos y está en nuestra cola de revisión.</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:.875rem;">
+                            <div style="width:2rem;height:2rem;border-radius:50%;background:#fff7ed;border:2px solid #FF6B00;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <span style="font-size:.75rem;font-weight:700;color:#FF6B00;">2</span>
+                            </div>
+                            <div>
+                                <div style="font-size:.875rem;font-weight:600;color:#111827;">Revisión CRBOX <span style="font-size:.75rem;font-weight:400;color:#6b7280;">≤ 24 h hábiles</span></div>
+                                <div style="font-size:.8rem;color:#6b7280;">Nuestro equipo revisa disponibilidad y calcula el costo exacto de envío e impuestos.</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:flex-start;gap:.875rem;">
+                            <div style="width:2rem;height:2rem;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="fas fa-envelope" style="color:#9ca3af;font-size:.7rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size:.875rem;font-weight:600;color:#374151;">Te escribimos por email</div>
+                                <div style="font-size:.8rem;color:#6b7280;">Recibirás el precio final, condiciones y próximos pasos directamente en tu correo.</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Summary card -->
@@ -814,8 +860,8 @@
                                 <i class="fas fa-star" style="color:#fff;font-size:1.1rem;"></i>
                             </div>
                             <div>
-                                <h3 class="text-white font-bold text-base leading-tight">¿Quieres seguir el estado de tu solicitud?</h3>
-                                <p class="text-sm mt-0.5" style="color:rgba(255,255,255,.82);">Crea tu cuenta gratis y accede al portal en tiempo real</p>
+                                <h3 class="text-white font-bold text-base leading-tight">¿Quieres ver el estado en tiempo real?</h3>
+                                <p class="text-sm mt-0.5" style="color:rgba(255,255,255,.82);">Opcional — crea una cuenta gratis y consulta actualizaciones sin esperar el email</p>
                             </div>
                         </div>
                     </div>
@@ -848,7 +894,7 @@
                 <div class="text-center anim-fadeslide" style="animation-delay:.25s;">
                     <button type="button" id="btn-new-request" class="btn-reset-form">
                         <i class="fas fa-plus"></i>
-                        Solicitar otro producto
+                        Nueva cotización
                     </button>
                 </div>
             </div><!-- /#confirm-screen -->
@@ -882,7 +928,7 @@
                     <div id="btn-new-after-smtp-wrapper" style="display:none;">
                         <button type="button" id="btn-new-after-smtp" class="btn-reset-form inline-flex" style="display:inline-flex;width:auto;margin:0 auto;">
                             <i class="fas fa-plus"></i>
-                            Solicitar otro producto
+                            Nueva cotización
                         </button>
                     </div>
                 </div>
@@ -961,37 +1007,37 @@
             '<option value="auricular_telefono">Audífonos y Accesorios Audio</option>',
             '<option value="bocina">Bocinas y Equipos de Sonido</option>',
             '<option value="televisor">Televisores</option>',
-            '<option value="otros">Otro — Electrónica</option>',
+            '<option value="electr_otro">Otro — Electrónica</option>',
             '</optgroup>',
             '<optgroup label="Ropa y Accesorios">',
             '<option value="ropa">Ropa y Calzado</option>',
             '<option value="anteojos">Anteojos y Gafas</option>',
             '<option value="cinturon">Cinturones y Bolsos</option>',
-            '<option value="otros">Otro — Ropa y Accesorios</option>',
+            '<option value="ropa_otro">Otro — Ropa y Accesorios</option>',
             '</optgroup>',
             '<optgroup label="Hogar y Jardín">',
             '<option value="electrodomesticos">Electrodomésticos</option>',
             '<option value="aspiradora">Aspiradora y Limpieza</option>',
             '<option value="colchon">Colchones y Muebles</option>',
             '<option value="herramientas">Herramientas</option>',
-            '<option value="otros">Otro — Hogar</option>',
+            '<option value="hogar_otro">Otro — Hogar</option>',
             '</optgroup>',
             '<optgroup label="Deportes y Recreación">',
-            '<option value="bicicleta_economica">Bicicleta (CIF bajo $1000)</option>',
-            '<option value="bicicleta_cara">Bicicleta (CIF $1000+)</option>',
+            '<option value="bicicleta_economica">Bicicleta estándar</option>',
+            '<option value="bicicleta_cara">Bicicleta premium</option>',
             '<option value="bola">Artículos Deportivos</option>',
-            '<option value="otros">Otro — Deportes</option>',
+            '<option value="deporte_otro">Otro — Deportes</option>',
             '</optgroup>',
             '<optgroup label="Bebé y Niños">',
             '<option value="coche_bebe">Coches de Bebé y Accesorios</option>',
             '<option value="juguetes">Juguetes</option>',
-            '<option value="otros">Otro — Bebé y Niños</option>',
+            '<option value="bebe_otro">Otro — Bebé y Niños</option>',
             '</optgroup>',
             '<optgroup label="Repuestos de Vehículos">',
             '<option value="amortiguadores">Amortiguadores</option>',
             '<option value="aros_carro_moto">Aros de Carro/Moto</option>',
             '<option value="vehiculos">Repuestos en General</option>',
-            '<option value="otros">Otro — Vehículos</option>',
+            '<option value="vehic_otro">Otro — Vehículos</option>',
             '</optgroup>',
             '<optgroup label="Salud y Belleza">',
             '<option value="salud_belleza">Salud y Belleza</option>',
@@ -1052,11 +1098,12 @@
                 + '<label class="q-label" for="f-val-' + id + '">Valor declarado <span class="q-required">*</span></label>'
                 + '<div class="relative">'
                 + '<span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-weight:600;pointer-events:none;font-size:.9rem;">$</span>'
-                + '<input type="number" id="f-val-' + id + '" class="q-input f-declared-value" style="padding-left:1.75rem;" placeholder="0.00" min="0.01" step="0.01">'
+                + '<input type="number" id="f-val-' + id + '" class="q-input f-declared-value" style="padding-left:1.75rem;" placeholder="Ej: 49.99" min="0.01" step="0.01">'
                 + '<span style="position:absolute;right:.9rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">USD</span>'
                 + '</div>'
                 + '<div class="q-hint">Precio de venta del producto en USD, sin incluir envío ni impuestos.</div>'
                 + '<div class="q-error-msg" id="err-val-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Ingresa el valor declarado mayor a $0.</span></div>'
+                + '<div id="live-est-' + id + '" style="display:none;margin-top:.35rem;padding:.25rem 0;"></div>'
                 + '</div>'
                 + '<label id="ai-confirm-wrap-' + id + '" class="ai-confirm-wrapper" style="display:none;margin-top:.75rem;">'
                 + '<input type="checkbox" id="ai-confirm-chk-' + id + '" class="ai-confirm-chk">'
@@ -1096,9 +1143,36 @@
             });
             var aiChk = cardEl.querySelector('.ai-confirm-chk');
             if (aiChk) aiChk.addEventListener('change', function() { updateSubmitState(); });
+            // C-10: Live tariff estimate
+            function _updateLiveEst() {
+                var estEl = document.getElementById('live-est-' + cardId);
+                if (!estEl) return;
+                var cat = catSel ? catSel.value : '';
+                var val = parseFloat(valInput ? valInput.value : '') || 0;
+                if (!cat || val <= 0 || typeof TARIFF_ADAPTER === 'undefined') { estEl.style.display = 'none'; return; }
+                var t = TARIFF_ADAPTER.getTariffRate(cat);
+                var est = val * t.rate;
+                estEl.style.display = '';
+                estEl.innerHTML = '<span style="font-size:.78rem;color:#6b7280;">Arancel est.: <strong style="color:#374151;">~$' + est.toFixed(2) + ' USD</strong> <span style="color:#9ca3af;font-size:.73rem;">(' + (t.rate * 100).toFixed(1) + '% del valor declarado, solo impuestos)</span></span>';
+            }
+            if (catSel) catSel.addEventListener('change', _updateLiveEst);
+            if (valInput) { valInput.addEventListener('input', _updateLiveEst); valInput.addEventListener('change', _updateLiveEst); }
         }
 
         function addProductCard() {
+            // C-8: Enforce max 8 products
+            if (_cards.length >= 8) {
+                var tc = document.getElementById('toast-container');
+                if (tc) {
+                    var tn = document.createElement('div');
+                    tn.className = 'bg-amber-50 border border-amber-200 text-amber-900 text-sm rounded-xl px-4 py-3 shadow-md';
+                    tn.style.cssText = 'max-width:340px;';
+                    tn.textContent = 'Máximo 8 productos por solicitud. Crea una nueva solicitud para agregar más.';
+                    tc.appendChild(tn);
+                    setTimeout(function() { tn.remove(); }, 4500);
+                }
+                return;
+            }
             var id = _nextCardId++;
             _cards.push({ id: id, aiActive: false, aiDataSource: 'manual', aiInFlight: false, lastAiResult: null });
             var container = document.getElementById('products-container');
@@ -1140,6 +1214,9 @@
             if (!state || state.aiInFlight) return;
             var cardEl = document.querySelector('[data-card-id="' + cardId + '"]');
             if (!cardEl) return;
+            // C-9: Remove any stale ignore button before new extraction
+            var oldIgn = document.getElementById('ai-ignore-btn-' + cardId);
+            if (oldIgn) oldIgn.remove();
             var fUrl = cardEl.querySelector('.f-product-url');
             var url = ((fUrl ? fUrl.value : '') || '').trim();
             if (!url) return;
@@ -1168,6 +1245,14 @@
                     var banner = bannerWrap.querySelector('.ai-extract-banner');
                     if (banner && (banner.classList.contains('ai-banner-success') || banner.classList.contains('ai-banner-partial'))) {
                         state.aiActive = true;
+                        // C-9: Add "ignore AI results" link
+                        var ignBtn = document.createElement('button');
+                        ignBtn.type = 'button';
+                        ignBtn.id = 'ai-ignore-btn-' + cardId;
+                        ignBtn.innerHTML = '<i class="fas fa-times" style="font-size:.7rem;"></i> Ignorar resultados AI';
+                        ignBtn.style.cssText = 'display:inline-flex;align-items:center;gap:.3rem;margin-top:.4rem;font-size:.75rem;color:#6b7280;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;';
+                        ignBtn.addEventListener('click', function() { _resetCardExtraction(cardId); ignBtn.remove(); updateSubmitState(); });
+                        bannerWrap.appendChild(ignBtn);
                     }
                 }
                 if (result && result.data_source) state.aiDataSource = result.data_source;
@@ -1291,7 +1376,14 @@
             else clearFieldError(this, 'err-email');
         });
 
-        fDestination.addEventListener('change', function() { if (this.value) clearFieldError(this, 'err-destination'); updateSubmitState(); checkRequiredFilled(); });
+        fDestination.addEventListener('change', function() {
+            if (this.value) clearFieldError(this, 'err-destination');
+            // C-12: Remote zone surcharge hint
+            var remoteZones = ['guanacaste','puntarenas','limon'];
+            var remoteHint = document.getElementById('zone-remote-hint');
+            if (remoteHint) remoteHint.style.display = remoteZones.indexOf(this.value) !== -1 ? '' : 'none';
+            updateSubmitState(); checkRequiredFilled();
+        });
         fNotes.addEventListener('input', function() { notesCharCount.textContent = this.value.length; });
 
         // ── Error helpers ──────────────────────────────────────
@@ -1374,6 +1466,9 @@
             btnStickySubmit.disabled = !allReady;
             if (allReady) { btnStickySubmit.style.background = '#FF6B00'; btnStickySubmit.style.cursor = 'pointer'; btnStickySubmit.style.color = '#fff'; }
             else { btnStickySubmit.style.background = '#e5e7eb'; btnStickySubmit.style.color = '#9ca3af'; btnStickySubmit.style.cursor = 'not-allowed'; }
+            // C-7: Show incomplete hint when user has started filling but form is not ready
+            var incHint = document.getElementById('submit-incomplete-hint');
+            if (incHint) incHint.style.display = (!allReady && hasRequiredField) ? '' : 'none';
             updateStepProgress();
         }
 
@@ -1424,10 +1519,15 @@
 
             lastSubmitPayload = payload;
 
-            // Duplicate check (first product only)
+            // C-3: Duplicate check — test every product card
             if (!_dupWarningDismissed) {
-                var dupResult = await _checkDuplicateCotizar(email, p0.url, p0.name);
-                if (dupResult && dupResult.duplicate) { _showDupWarningCotizar(dupResult.existing_id, dupResult.hours_ago); return; }
+                var dupFound = null;
+                for (var _di = 0; _di < products.length && !dupFound; _di++) {
+                    var _dp = products[_di];
+                    var _dr = await _checkDuplicateCotizar(email, _dp.url, _dp.name);
+                    if (_dr && _dr.duplicate) dupFound = _dr;
+                }
+                if (dupFound) { _showDupWarningCotizar(dupFound.existing_id, dupFound.hours_ago); return; }
             }
 
             setLoading(true);
@@ -1603,10 +1703,13 @@
             ropa:'Ropa y Calzado', anteojos:'Anteojos y Gafas', cinturon:'Cinturones y Bolsos',
             electrodomesticos:'Electrodomésticos', aspiradora:'Aspiradora y Limpieza',
             colchon:'Colchones y Muebles', herramientas:'Herramientas',
-            bicicleta_economica:'Bicicleta (CIF bajo $1000)', bicicleta_cara:'Bicicleta (CIF $1000+)',
+            bicicleta_economica:'Bicicleta estándar', bicicleta_cara:'Bicicleta premium',
             bola:'Artículos Deportivos', coche_bebe:'Coches de Bebé y Accesorios', juguetes:'Juguetes',
             amortiguadores:'Amortiguadores', aros_carro_moto:'Aros de Carro/Moto', vehiculos:'Repuestos en General',
             salud_belleza:'Salud y Belleza', suplementos:'Suplementos', cds:'Libros, CDs y Medios',
+            electr_otro:'Otro — Electrónica', ropa_otro:'Otro — Ropa y Accesorios',
+            hogar_otro:'Otro — Hogar', deporte_otro:'Otro — Deportes',
+            bebe_otro:'Otro — Bebé y Niños', vehic_otro:'Otro — Vehículos',
             otros:'Otros',
         };
         function getCategoryLabel(val) { return _CAT_LABEL_MAP[val] || val || ''; }
@@ -1615,13 +1718,38 @@
             return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         }
 
-        // ── Draft save (service/destination/contact only) ──────
-        const _DRAFT_KEY = 'crbox-draft-anon';
+        // ── Draft save (v2: includes product cards) ─────────────
+        const _DRAFT_KEY = 'crbox-draft-anon-v2';
         const _DRAFT_FIELD_IDS = ['f-service-type', 'f-destination-zone', 'f-customer-name', 'f-customer-email', 'f-notes'];
 
+        function _saveDraftProducts() {
+            return _cards.map(function(c) {
+                var el = document.querySelector('[data-card-id="' + c.id + '"]');
+                if (!el) return null;
+                return {
+                    url:  (el.querySelector('.f-product-url')    ? el.querySelector('.f-product-url').value    : ''),
+                    name: (el.querySelector('.f-product-name')   ? el.querySelector('.f-product-name').value   : ''),
+                    cat:  (el.querySelector('.f-category')       ? el.querySelector('.f-category').value       : ''),
+                    val:  (el.querySelector('.f-declared-value') ? el.querySelector('.f-declared-value').value : ''),
+                };
+            }).filter(Boolean);
+        }
+        function _restoreDraftProducts(prods) {
+            if (!prods || !prods.length) return;
+            while (_cards.length > 1) removeProductCard(_cards[_cards.length - 1].id);
+            prods.forEach(function(p, i) {
+                if (i > 0) addProductCard();
+                var c = _cards[i]; if (!c) return;
+                var el = document.querySelector('[data-card-id="' + c.id + '"]'); if (!el) return;
+                var sv = function(cls, val) { var inp = el.querySelector(cls); if (inp && val) inp.value = val; };
+                sv('.f-product-url', p.url); sv('.f-product-name', p.name);
+                sv('.f-category', p.cat); sv('.f-declared-value', p.val);
+            });
+        }
         function _saveDraftCotizar() {
             var data = {};
             _DRAFT_FIELD_IDS.forEach(function(id) { var el = document.getElementById(id); if (el) data[id] = el.value; });
+            data['_products'] = _saveDraftProducts();
             try { localStorage.setItem(_DRAFT_KEY, JSON.stringify(data)); } catch(e) {}
         }
         function _clearDraftCotizar() { try { localStorage.removeItem(_DRAFT_KEY); } catch(e) {} }
@@ -1633,6 +1761,7 @@
                 var el = document.getElementById(id); if (el) el.value = data[id];
             });
             setService(data['f-service-type'] || 'aereo');
+            if (data['_products'] && data['_products'].length) _restoreDraftProducts(data['_products']);
         }
         var _draftTimer = null;
         function _scheduleDraftSave() { clearTimeout(_draftTimer); _draftTimer = setTimeout(_saveDraftCotizar, 500); }
@@ -1641,6 +1770,13 @@
             var el = document.getElementById(id);
             if (el) { el.addEventListener('input', _scheduleDraftSave); el.addEventListener('change', _scheduleDraftSave); }
         });
+        // Also save draft when product card fields change
+        document.getElementById('products-container').addEventListener('input', function(e) {
+            if (e.target.closest && e.target.closest('.product-card')) _scheduleDraftSave();
+        });
+        document.getElementById('products-container').addEventListener('change', function(e) {
+            if (e.target.closest && e.target.closest('.product-card')) _scheduleDraftSave();
+        });
         document.getElementById('btn-aereo').addEventListener('click', function() { setTimeout(_saveDraftCotizar, 0); });
         document.getElementById('btn-maritimo').addEventListener('click', function() { setTimeout(_saveDraftCotizar, 0); });
 
@@ -1648,7 +1784,8 @@
             var draft = _loadDraftCotizar();
             var bar = document.getElementById('draft-restore-bar');
             if (!draft || !bar) return;
-            var hasData = _DRAFT_FIELD_IDS.some(function(id) { return id !== 'f-service-type' && (draft[id]||'').toString().trim() !== ''; });
+            var hasData = _DRAFT_FIELD_IDS.some(function(id) { return id !== 'f-service-type' && (draft[id]||'').toString().trim() !== ''; })
+                || (draft['_products'] && draft['_products'].some(function(p) { return p.name || p.url || p.val; }));
             if (!hasData) { _clearDraftCotizar(); return; }
             bar.classList.remove('hidden');
             document.getElementById('draft-restore-btn').addEventListener('click', function() {

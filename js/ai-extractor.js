@@ -502,11 +502,16 @@
         if (complianceTarget) _removeComplianceCard(complianceTarget);
         clearExtractionBadges(formFields);
 
+        var _ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        var _tmr  = _ctrl ? setTimeout(function () { _ctrl.abort(); }, 12000) : null;
+
         return fetch(EXTRACT_ENDPOINT, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ url: url }),
+            signal:  _ctrl ? _ctrl.signal : undefined,
         }).then(function (resp) {
+            if (_tmr) clearTimeout(_tmr);
             return resp.json();
         }).then(function (result) {
             _removeStepLoader(bannerTarget);
@@ -601,14 +606,19 @@
             }));
             return result;
 
-        }).catch(function () {
+        }).catch(function (err) {
+            if (_tmr) clearTimeout(_tmr);
             _removeStepLoader(bannerTarget);
             _lastExtractionResult = null;
+            var isAbort = err && (err.name === 'AbortError' || err.name === 'TimeoutError');
             _showBanner(bannerTarget, 'neutral',
-                'No pudimos completar los datos automáticamente. Puedes ingresarlos manualmente.');
+                isAbort
+                    ? 'La extracción tardó demasiado. Puedes completar los datos manualmente.'
+                    : 'No pudimos completar los datos automáticamente. Puedes ingresarlos manualmente.');
             document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
                 detail: { url: url, result: null, filledCount: 0, dataSource: null }
             }));
+            if (confirmWrapper) _hideConfirmCheckbox(confirmWrapper);
             return null;
         });
     }
