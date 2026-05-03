@@ -372,6 +372,29 @@
         .anim-fadeslide { animation: fadeSlideUp .4s ease both; }
         .anim-scalepop { animation: scalePop .45s ease both; }
 
+        /* ── Multi-product cards ── */
+        .product-card-header {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: .75rem; margin-bottom: 1.25rem;
+        }
+        .product-card-header .q-section-head { margin-bottom: 0; flex: 1; min-width: 0; }
+        .btn-remove-card {
+            display: none; align-items: center; justify-content: center;
+            width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #fca5a5;
+            background: #fff1f2; color: #ef4444; cursor: pointer; flex-shrink: 0;
+            transition: background .2s, border-color .2s; margin-top: 2px;
+        }
+        .btn-remove-card:hover { background: #fee2e2; border-color: #f87171; }
+        .btn-add-product {
+            display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+            padding: .7rem 1.5rem; background: #fff7ed; color: #FF6B00;
+            border: 1.5px dashed #fdba74; border-radius: .75rem;
+            font-size: .875rem; font-weight: 700; cursor: pointer;
+            transition: background .2s, border-color .2s;
+        }
+        .btn-add-product:hover { background: #fff; border-color: #FF6B00; }
+        .product-card { position: relative; }
+
         /* ── Trust badges ── */
         .trust-badge {
             display: flex; align-items: center; gap: .5rem;
@@ -605,158 +628,15 @@
 
                 <form id="quote-form" novalidate>
 
-                    <!-- ── CARD 1: Product ── -->
-                    <div class="form-card mb-5 anim-fadeslide" style="animation-delay:.05s">
-                        <div class="q-section-head">
-                            <div class="q-section-icon"><i class="fas fa-box"></i></div>
-                            <div>
-                                <div class="q-section-title">Información del producto</div>
-                                <div class="q-section-sub">Pega el enlace para autocompletar o llena los campos</div>
-                            </div>
-                        </div>
+                    <!-- ── PRODUCTS: Multi-product cards ── -->
+                    <div id="products-container">
+                        <!-- Product cards injected here by JS -->
+                    </div>
 
-                        <!-- Product URL (first — triggers AI extraction) -->
-                        <div class="mb-4">
-                            <label class="q-label" for="f-product-url">
-                                URL del producto <span class="q-optional">(opcional — autocompleta los datos)</span>
-                            </label>
-                            <div style="display:flex;gap:.5rem;align-items:center;">
-                                <input
-                                    type="url"
-                                    id="f-product-url"
-                                    class="q-input"
-                                    placeholder="https://www.amazon.com/dp/..."
-                                    autocomplete="off"
-                                    style="flex:1;"
-                                >
-                                <button type="button" id="btn-ai-analizar-cotizar"
-                                    style="flex-shrink:0;padding:.65rem 1rem;background:#FF6B00;color:#fff;border:none;border-radius:.6rem;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s;"
-                                    onmouseover="this.style.background='#E05A00'" onmouseout="this.style.background='#FF6B00'">
-                                    <i class="fas fa-magic"></i> Analizar
-                                </button>
-                            </div>
-                            <div class="q-hint">Pega el enlace del producto y presiona "Analizar" para completar los datos automáticamente.</div>
-                            <p id="ai-analizar-helper" style="display:none;font-size:.775rem;color:#6b7280;margin-top:.3rem;line-height:1.45;">
-                                <i class="fas fa-circle-notch fa-spin" style="margin-right:.3rem;color:#FF6B00;"></i>Estamos analizando el enlace y completando los datos del producto.
-                            </p>
-                            <!-- AI compliance card mounts here (RESTRICTED / PROHIBITED) -->
-                            <div id="ai-compliance-card-cotizar"></div>
-                            <!-- AI extraction banner mounts here -->
-                            <div id="ai-extract-banner-cotizar"></div>
-                        </div>
-
-                        <!-- Product name -->
-                        <div class="mb-4">
-                            <label class="q-label" for="f-product-name">
-                                Nombre del producto <span class="q-required">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="f-product-name"
-                                class="q-input"
-                                placeholder="Ej: iPhone 15 Pro Max 256GB Negro"
-                                autocomplete="off"
-                                maxlength="200"
-                            >
-                            <div class="q-error-msg" id="err-product-name">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span>Ingresa el nombre del producto (mínimo 3 caracteres).</span>
-                            </div>
-                        </div>
-
-                        <!-- Category -->
-                        <div class="mb-4">
-                            <label class="q-label" for="f-category">
-                                Categoría <span class="q-required">*</span>
-                            </label>
-                            <select id="f-category" class="q-input" style="background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right .75rem center;padding-right:2.5rem;">
-                                <option value="" disabled selected>Selecciona una categoría</option>
-                                <optgroup label="Electrónica">
-                                    <option value="celulares">Celulares y Smartphones</option>
-                                    <option value="computadora">Computadoras y Laptops</option>
-                                    <option value="tableta_electronica">Tabletas y iPads</option>
-                                    <option value="consola_videojuegos">Consolas de Videojuegos</option>
-                                    <option value="camara">Cámaras y Video</option>
-                                    <option value="auricular_telefono">Audífonos y Accesorios Audio</option>
-                                    <option value="bocina">Bocinas y Equipos de Sonido</option>
-                                    <option value="televisor">Televisores</option>
-                                    <option value="otros">Otro — Electrónica</option>
-                                </optgroup>
-                                <optgroup label="Ropa y Accesorios">
-                                    <option value="ropa">Ropa y Calzado</option>
-                                    <option value="anteojos">Anteojos y Gafas</option>
-                                    <option value="cinturon">Cinturones y Bolsos</option>
-                                    <option value="otros">Otro — Ropa y Accesorios</option>
-                                </optgroup>
-                                <optgroup label="Hogar y Jardín">
-                                    <option value="electrodomesticos">Electrodomésticos</option>
-                                    <option value="aspiradora">Aspiradora y Limpieza</option>
-                                    <option value="colchon">Colchones y Muebles</option>
-                                    <option value="herramientas">Herramientas</option>
-                                    <option value="otros">Otro — Hogar</option>
-                                </optgroup>
-                                <optgroup label="Deportes y Recreación">
-                                    <option value="bicicleta_economica">Bicicleta (CIF bajo $1000)</option>
-                                    <option value="bicicleta_cara">Bicicleta (CIF $1000+)</option>
-                                    <option value="bola">Artículos Deportivos</option>
-                                    <option value="otros">Otro — Deportes</option>
-                                </optgroup>
-                                <optgroup label="Bebé y Niños">
-                                    <option value="coche_bebe">Coches de Bebé y Accesorios</option>
-                                    <option value="juguetes">Juguetes</option>
-                                    <option value="otros">Otro — Bebé y Niños</option>
-                                </optgroup>
-                                <optgroup label="Repuestos de Vehículos">
-                                    <option value="amortiguadores">Amortiguadores</option>
-                                    <option value="aros_carro_moto">Aros de Carro/Moto</option>
-                                    <option value="vehiculos">Repuestos en General</option>
-                                    <option value="otros">Otro — Vehículos</option>
-                                </optgroup>
-                                <optgroup label="Salud y Belleza">
-                                    <option value="salud_belleza">Salud y Belleza</option>
-                                    <option value="suplementos">Suplementos</option>
-                                </optgroup>
-                                <optgroup label="Libros y Medios">
-                                    <option value="cds">Libros, CDs y Medios</option>
-                                </optgroup>
-                                <option value="otros">Otro (no está en la lista)</option>
-                            </select>
-                            <div class="q-error-msg" id="err-category">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span>Selecciona una categoría.</span>
-                            </div>
-                        </div>
-
-                        <!-- Declared value -->
-                        <div class="mb-0">
-                            <label class="q-label" for="f-declared-value">
-                                Valor declarado <span class="q-required">*</span>
-                            </label>
-                            <div class="relative">
-                                <span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-weight:600;pointer-events:none;font-size:.9rem;">$</span>
-                                <input
-                                    type="number"
-                                    id="f-declared-value"
-                                    class="q-input"
-                                    style="padding-left:1.75rem;"
-                                    placeholder="0.00"
-                                    min="0.01"
-                                    step="0.01"
-                                >
-                                <span style="position:absolute;right:.9rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">USD</span>
-                            </div>
-                            <div class="q-hint">Precio de venta del producto en USD, sin incluir envío ni impuestos.</div>
-                            <div class="q-error-msg" id="err-declared-value">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span>Ingresa el valor declarado mayor a $0.</span>
-                            </div>
-                        </div>
-
-                        <!-- AI confirm checkbox (shown only when AI prefilled ≥1 field) -->
-                        <label id="ai-confirm-cotizar" class="ai-confirm-wrapper" style="display:none;">
-                            <input type="checkbox" id="ai-confirm-chk-cotizar">
-                            <span>Confirmo que todos los datos extraídos automáticamente son correctos antes de enviar.</span>
-                        </label>
+                    <div class="mb-5" style="text-align:center;">
+                        <button type="button" id="btn-add-product" class="btn-add-product">
+                            <i class="fas fa-plus"></i> Agregar otro producto
+                        </button>
                     </div>
 
                     <!-- ── CARD 2: Shipping ── -->
@@ -765,7 +645,7 @@
                             <div class="q-section-icon"><i class="fas fa-shipping-fast"></i></div>
                             <div>
                                 <div class="q-section-title">Preferencias de envío</div>
-                                <div class="q-section-sub">Servicio, destino y detalles físicos del producto</div>
+                                <div class="q-section-sub">Tipo de servicio y zona de entrega</div>
                             </div>
                         </div>
 
@@ -785,7 +665,7 @@
                         </div>
 
                         <!-- Destination zone -->
-                        <div class="mb-4">
+                        <div class="mb-0">
                             <label class="q-label" for="f-destination-zone">
                                 Zona de destino <span class="q-required">*</span>
                             </label>
@@ -802,63 +682,6 @@
                             <div class="q-error-msg" id="err-destination">
                                 <i class="fas fa-exclamation-circle"></i>
                                 <span>Selecciona tu zona de entrega.</span>
-                            </div>
-                        </div>
-
-                        <!-- Weight and dimensions (optional) -->
-                        <div class="mb-0">
-                            <label class="q-label">
-                                Datos físicos <span class="q-optional">(opcionales — ayudan a estimar el costo)</span>
-                            </label>
-                            <!-- Weight row with kg/lb toggle -->
-                            <div class="mb-3">
-                                <div class="flex items-center justify-between mb-1">
-                                    <label class="q-hint" style="margin:0;" for="f-weight">Peso aprox.</label>
-                                    <div class="unit-toggle-group" id="f-weight-toggle">
-                                        <button type="button" class="unit-btn unit-btn-active" data-unit="kg" aria-pressed="true">kg</button>
-                                        <button type="button" class="unit-btn" data-unit="lb" aria-pressed="false">lb</button>
-                                    </div>
-                                </div>
-                                <div class="relative">
-                                    <input type="number" id="f-weight" class="q-input" placeholder="Peso" min="0" step="0.01" style="padding-right:2.75rem;">
-                                    <span id="f-weight-suffix" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">kg</span>
-                                </div>
-                                <div class="q-hint" style="color:#6b7280;font-size:.78rem;margin-top:.25rem;">Puedes ingresar en kg o lb. Si no sabes el peso exacto, déjalo en blanco.</div>
-                            </div>
-                            <!-- Dims row with cm/in toggle -->
-                            <div>
-                                <div class="flex items-center justify-between mb-1">
-                                    <label class="q-hint" style="margin:0;" for="f-length">Dimensiones <span style="font-weight:400;color:#9ca3af;">(L × A × H)</span></label>
-                                    <div class="unit-toggle-group" id="f-dim-toggle">
-                                        <button type="button" class="unit-btn unit-btn-active" data-unit="cm" aria-pressed="true">cm</button>
-                                        <button type="button" class="unit-btn" data-unit="in" aria-pressed="false">in</button>
-                                    </div>
-                                </div>
-                                <div class="q-grid-3">
-                                    <div>
-                                        <div class="relative">
-                                            <input type="number" id="f-length" class="q-input" placeholder="Largo" min="0" step="0.1" style="padding-right:2.75rem;">
-                                            <span id="f-dim-suffix-l" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">cm</span>
-                                        </div>
-                                        <div class="q-hint">Largo</div>
-                                    </div>
-                                    <div>
-                                        <div class="relative">
-                                            <input type="number" id="f-width" class="q-input" placeholder="Ancho" min="0" step="0.1" style="padding-right:2.75rem;">
-                                            <span id="f-dim-suffix-w" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">cm</span>
-                                        </div>
-                                        <div class="q-hint">Ancho</div>
-                                    </div>
-                                    <div>
-                                        <div class="relative">
-                                            <input type="number" id="f-height" class="q-input" placeholder="Alto" min="0" step="0.1" style="padding-right:2.75rem;">
-                                            <span id="f-dim-suffix-h" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">cm</span>
-                                        </div>
-                                        <div class="q-hint">Alto</div>
-                                    </div>
-                                </div>
-                                <div id="err-dims" class="q-error hidden" style="margin-top:.35rem;"></div>
-                                <div class="q-hint" style="color:#6b7280;font-size:.78rem;margin-top:.35rem;">Puedes ingresar en cm o pulgadas. Si no tienes las dimensiones, déjalas en blanco.</div>
                             </div>
                         </div>
                     </div>
@@ -946,12 +769,7 @@
 
                     <!-- ── Desktop submit button ── -->
                     <div class="hidden md:block anim-fadeslide" style="animation-delay:.25s;">
-                        <!-- AI confirm checkbox duplicated near submit for clarity -->
-                        <label id="ai-confirm-cotizar-submit" class="ai-confirm-wrapper" style="display:none;margin-bottom:.75rem;">
-                            <input type="checkbox" id="ai-confirm-chk-cotizar-submit">
-                            <span>Confirmo que todos los datos extraídos automáticamente son correctos antes de enviar.</span>
-                        </label>
-                        <button type="submit" id="btn-submit-quote" disabled>
+                                        <button type="submit" id="btn-submit-quote" disabled>
                             <i class="fas fa-paper-plane"></i>
                             Enviar solicitud
                         </button>
@@ -1090,7 +908,6 @@
     <script src="js/auth.js"></script>
     <script src="js/nav-auth.js?v=2" defer></script>
     <script src="js/analytics.js" defer></script>
-    <script src="js/unit-converter.js?v=2"></script>
     <script src="js/ai-extractor.js?v=4"></script>
     <script>
     (function () {
@@ -1105,25 +922,13 @@
         const confirmScreen   = document.getElementById('confirm-screen');
         const failureScreen   = document.getElementById('failure-screen');
         const stickyCta       = document.getElementById('sticky-cta-bar');
-
-        const fProductName    = document.getElementById('f-product-name');
-        const fCategory       = document.getElementById('f-category');
-        const fDeclaredValue  = document.getElementById('f-declared-value');
-        const fProductUrl     = document.getElementById('f-product-url');
         const fServiceType    = document.getElementById('f-service-type');
         const fDestination    = document.getElementById('f-destination-zone');
-        const fWeight         = document.getElementById('f-weight');
-        const fLength         = document.getElementById('f-length');
-        const fWidth          = document.getElementById('f-width');
-        const fHeight         = document.getElementById('f-height');
         const fCustomerName   = document.getElementById('f-customer-name');
         const fEmail          = document.getElementById('f-customer-email');
         const fNotes          = document.getElementById('f-notes');
-
-
         const btnSubmit       = document.getElementById('btn-submit-quote');
         const btnStickySubmit = document.getElementById('btn-sticky-submit');
-
         const confirmScbId    = document.getElementById('sc-scb-id');
         const confirmList     = document.getElementById('confirm-summary-list');
         const btnCreateAcct   = document.getElementById('btn-create-account');
@@ -1136,41 +941,305 @@
         const notesCharCount  = document.getElementById('notes-char-count');
         const serviceHintText = document.getElementById('service-hint-text');
 
-        const aiExtractBanner    = document.getElementById('ai-extract-banner-cotizar');
-        const aiComplianceCard   = document.getElementById('ai-compliance-card-cotizar');
-        const aiConfirmWrapper   = document.getElementById('ai-confirm-cotizar');
-        const aiConfirmChk     = document.getElementById('ai-confirm-chk-cotizar');
-
-        // ── State ──────────────────────────────────────────────
-        let hasRequiredField  = false; // has user filled any required field?
-        let lastSubmitPayload = null;  // keep for WA fallback
+        // ── Multi-product state ────────────────────────────────
+        let _cards = [];
+        let _nextCardId = 0;
+        let hasRequiredField  = false;
+        let lastSubmitPayload = null;
         let _dupWarningDismissed = false;
         let _formSubmitted    = false;
-        let _aiActive              = false; // AI pre-filled ≥1 field
-        let _aiDataSource          = 'manual'; // 'manual' | 'ai_extracted' | 'ai_partial'
-        let _cotizarWeightToggle   = null; // UnitConverter toggle for weight
-        let _cotizarDimToggle      = null; // UnitConverter toggle for dims
 
+        // Category options HTML reused per card
+        const CATEGORY_OPTS_HTML = [
+            '<option value="" disabled selected>Selecciona una categoría</option>',
+            '<optgroup label="Electrónica">',
+            '<option value="celulares">Celulares y Smartphones</option>',
+            '<option value="computadora">Computadoras y Laptops</option>',
+            '<option value="tableta_electronica">Tabletas y iPads</option>',
+            '<option value="consola_videojuegos">Consolas de Videojuegos</option>',
+            '<option value="camara">Cámaras y Video</option>',
+            '<option value="auricular_telefono">Audífonos y Accesorios Audio</option>',
+            '<option value="bocina">Bocinas y Equipos de Sonido</option>',
+            '<option value="televisor">Televisores</option>',
+            '<option value="otros">Otro — Electrónica</option>',
+            '</optgroup>',
+            '<optgroup label="Ropa y Accesorios">',
+            '<option value="ropa">Ropa y Calzado</option>',
+            '<option value="anteojos">Anteojos y Gafas</option>',
+            '<option value="cinturon">Cinturones y Bolsos</option>',
+            '<option value="otros">Otro — Ropa y Accesorios</option>',
+            '</optgroup>',
+            '<optgroup label="Hogar y Jardín">',
+            '<option value="electrodomesticos">Electrodomésticos</option>',
+            '<option value="aspiradora">Aspiradora y Limpieza</option>',
+            '<option value="colchon">Colchones y Muebles</option>',
+            '<option value="herramientas">Herramientas</option>',
+            '<option value="otros">Otro — Hogar</option>',
+            '</optgroup>',
+            '<optgroup label="Deportes y Recreación">',
+            '<option value="bicicleta_economica">Bicicleta (CIF bajo $1000)</option>',
+            '<option value="bicicleta_cara">Bicicleta (CIF $1000+)</option>',
+            '<option value="bola">Artículos Deportivos</option>',
+            '<option value="otros">Otro — Deportes</option>',
+            '</optgroup>',
+            '<optgroup label="Bebé y Niños">',
+            '<option value="coche_bebe">Coches de Bebé y Accesorios</option>',
+            '<option value="juguetes">Juguetes</option>',
+            '<option value="otros">Otro — Bebé y Niños</option>',
+            '</optgroup>',
+            '<optgroup label="Repuestos de Vehículos">',
+            '<option value="amortiguadores">Amortiguadores</option>',
+            '<option value="aros_carro_moto">Aros de Carro/Moto</option>',
+            '<option value="vehiculos">Repuestos en General</option>',
+            '<option value="otros">Otro — Vehículos</option>',
+            '</optgroup>',
+            '<optgroup label="Salud y Belleza">',
+            '<option value="salud_belleza">Salud y Belleza</option>',
+            '<option value="suplementos">Suplementos</option>',
+            '</optgroup>',
+            '<optgroup label="Libros y Medios">',
+            '<option value="cds">Libros, CDs y Medios</option>',
+            '</optgroup>',
+            '<option value="otros">Otro (no está en la lista)</option>',
+        ].join('');
+
+        const SELECT_ARROW = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E\") no-repeat right .75rem center";
+
+
+        // ── Multi-product card management ──────────────────────────────────
+        function _getCardState(cardId) {
+            return _cards.find(function(c) { return c.id === cardId; });
+        }
+
+        function _cardHtml(id, num) {
+            return '<div class="product-card-header">'
+                + '<div class="q-section-head" style="margin-bottom:0;">'
+                + '<div class="q-section-icon"><i class="fas fa-box"></i></div>'
+                + '<div>'
+                + '<div class="q-section-title product-card-num">Producto ' + num + '</div>'
+                + '<div class="q-section-sub">Pega el enlace para autocompletar o llena los campos</div>'
+                + '</div>'
+                + '</div>'
+                + '<button type="button" class="btn-remove-card" data-card="' + id + '" aria-label="Eliminar producto">'
+                + '<i class="fas fa-times"></i>'
+                + '</button>'
+                + '</div>'
+                + '<div class="mb-4" style="margin-top:1.25rem;">'
+                + '<label class="q-label" for="f-url-' + id + '">URL del producto <span class="q-optional">(opcional — autocompleta los datos)</span></label>'
+                + '<div style="display:flex;gap:.5rem;align-items:center;">'
+                + '<input type="url" id="f-url-' + id + '" class="q-input f-product-url" placeholder="https://www.amazon.com/dp/..." autocomplete="off" style="flex:1;">'
+                + '<button type="button" class="btn-ai-analizar" data-card="' + id + '" style="flex-shrink:0;padding:.65rem 1rem;background:#FF6B00;color:#fff;border:none;border-radius:.6rem;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s;">'
+                + '<i class="fas fa-magic"></i> Analizar'
+                + '</button>'
+                + '</div>'
+                + '<div class="q-hint">Pega el enlace del producto y presiona "Analizar" para completar los datos automáticamente.</div>'
+                + '<div class="ai-compliance-card" id="ai-compliance-' + id + '"></div>'
+                + '<div id="ai-banner-' + id + '"></div>'
+                + '</div>'
+                + '<div class="mb-4">'
+                + '<label class="q-label" for="f-name-' + id + '">Nombre del producto <span class="q-required">*</span></label>'
+                + '<input type="text" id="f-name-' + id + '" class="q-input f-product-name" placeholder="Ej: iPhone 15 Pro Max 256GB Negro" autocomplete="off" maxlength="200">'
+                + '<div class="q-error-msg" id="err-name-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Ingresa el nombre del producto (mínimo 3 caracteres).</span></div>'
+                + '</div>'
+                + '<div class="mb-4">'
+                + '<label class="q-label" for="f-cat-' + id + '">Categoría <span class="q-required">*</span></label>'
+                + '<select id="f-cat-' + id + '" class="q-input f-category" style="background:' + SELECT_ARROW + ';background-repeat:no-repeat;padding-right:2.5rem;">'
+                + CATEGORY_OPTS_HTML
+                + '</select>'
+                + '<div class="q-error-msg" id="err-cat-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Selecciona una categoría.</span></div>'
+                + '</div>'
+                + '<div class="mb-0">'
+                + '<label class="q-label" for="f-val-' + id + '">Valor declarado <span class="q-required">*</span></label>'
+                + '<div class="relative">'
+                + '<span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-weight:600;pointer-events:none;font-size:.9rem;">$</span>'
+                + '<input type="number" id="f-val-' + id + '" class="q-input f-declared-value" style="padding-left:1.75rem;" placeholder="0.00" min="0.01" step="0.01">'
+                + '<span style="position:absolute;right:.9rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">USD</span>'
+                + '</div>'
+                + '<div class="q-hint">Precio de venta del producto en USD, sin incluir envío ni impuestos.</div>'
+                + '<div class="q-error-msg" id="err-val-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Ingresa el valor declarado mayor a $0.</span></div>'
+                + '</div>'
+                + '<label id="ai-confirm-wrap-' + id + '" class="ai-confirm-wrapper" style="display:none;margin-top:.75rem;">'
+                + '<input type="checkbox" id="ai-confirm-chk-' + id + '" class="ai-confirm-chk">'
+                + '<span>Confirmo que todos los datos extraídos automáticamente son correctos antes de enviar.</span>'
+                + '</label>';
+        }
+
+        function _bindCardEvents(cardId) {
+            var cardEl = document.querySelector('[data-card-id="' + cardId + '"]');
+            if (!cardEl) return;
+            var removeBtn = cardEl.querySelector('.btn-remove-card');
+            if (removeBtn) removeBtn.addEventListener('click', function() { removeProductCard(cardId); });
+            var btnAnalizar = cardEl.querySelector('.btn-ai-analizar');
+            if (btnAnalizar) btnAnalizar.addEventListener('click', function() { _doAiExtract(cardId); });
+            var fUrl = cardEl.querySelector('.f-product-url');
+            if (fUrl) fUrl.addEventListener('input', function() {
+                if (!(this.value || '').trim()) _resetCardExtraction(cardId);
+            });
+            var nameInput = cardEl.querySelector('.f-product-name');
+            var catSel    = cardEl.querySelector('.f-category');
+            var valInput  = cardEl.querySelector('.f-declared-value');
+            [nameInput, catSel, valInput].forEach(function(el) {
+                if (el) { el.addEventListener('input', function() { updateSubmitState(); checkRequiredFilled(); }); }
+                if (el) { el.addEventListener('change', function() { updateSubmitState(); checkRequiredFilled(); }); }
+            });
+            if (nameInput) nameInput.addEventListener('blur', function() {
+                if ((this.value||'').trim().length < 3) markFieldError(this, 'err-name-' + cardId);
+                else clearFieldError(this, 'err-name-' + cardId);
+            });
+            if (catSel) catSel.addEventListener('change', function() {
+                if (this.value) clearFieldError(this, 'err-cat-' + cardId);
+            });
+            if (valInput) valInput.addEventListener('blur', function() {
+                var v = parseFloat(this.value);
+                if (isNaN(v) || v <= 0) markFieldError(this, 'err-val-' + cardId);
+                else clearFieldError(this, 'err-val-' + cardId);
+            });
+            var aiChk = cardEl.querySelector('.ai-confirm-chk');
+            if (aiChk) aiChk.addEventListener('change', function() { updateSubmitState(); });
+        }
+
+        function addProductCard() {
+            var id = _nextCardId++;
+            _cards.push({ id: id, aiActive: false, aiDataSource: 'manual', aiInFlight: false, lastAiResult: null });
+            var container = document.getElementById('products-container');
+            var cardDiv = document.createElement('div');
+            cardDiv.className = 'form-card mb-4 product-card anim-fadeslide';
+            cardDiv.dataset.cardId = id;
+            cardDiv.innerHTML = _cardHtml(id, _cards.length);
+            container.appendChild(cardDiv);
+            _bindCardEvents(id);
+            _updateCardHeaders();
+            updateSubmitState();
+            if (_cards.length > 1) {
+                setTimeout(function() { cardDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
+            }
+        }
+
+        function removeProductCard(cardId) {
+            if (_cards.length <= 1) return;
+            _cards = _cards.filter(function(c) { return c.id !== cardId; });
+            var el = document.querySelector('[data-card-id="' + cardId + '"]');
+            if (el) el.remove();
+            _updateCardHeaders();
+            updateSubmitState();
+        }
+
+        function _updateCardHeaders() {
+            _cards.forEach(function(c, idx) {
+                var cardEl = document.querySelector('[data-card-id="' + c.id + '"]');
+                if (!cardEl) return;
+                var numEl = cardEl.querySelector('.product-card-num');
+                if (numEl) numEl.textContent = 'Producto ' + (idx + 1);
+                var removeBtn = cardEl.querySelector('.btn-remove-card');
+                if (removeBtn) removeBtn.style.display = _cards.length > 1 ? 'flex' : 'none';
+            });
+        }
+
+        function _doAiExtract(cardId) {
+            var state = _getCardState(cardId);
+            if (!state || state.aiInFlight) return;
+            var cardEl = document.querySelector('[data-card-id="' + cardId + '"]');
+            if (!cardEl) return;
+            var fUrl = cardEl.querySelector('.f-product-url');
+            var url = ((fUrl ? fUrl.value : '') || '').trim();
+            if (!url) return;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) { url = 'https://' + url; if (fUrl) fUrl.value = url; }
+            if (typeof CRBOXAIExtractor === 'undefined') return;
+            state.aiInFlight = true;
+            state.aiActive = false;
+            state.aiDataSource = 'manual';
+            var btnAnalizar = cardEl.querySelector('.btn-ai-analizar');
+            if (btnAnalizar) {
+                btnAnalizar.disabled = true;
+                btnAnalizar.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analizando\u2026';
+                btnAnalizar.style.background = '#d97706';
+            }
+            CRBOXAIExtractor.runExtraction(url, {
+                bannerTarget:     cardEl.querySelector('#ai-banner-' + cardId),
+                complianceTarget: cardEl.querySelector('#ai-compliance-' + cardId),
+                fName:            cardEl.querySelector('.f-product-name'),
+                fValue:           cardEl.querySelector('.f-declared-value'),
+                fCategory:        cardEl.querySelector('.f-category'),
+                fWeight: null, fLength: null, fWidth: null, fHeight: null,
+                confirmWrapper:   cardEl.querySelector('#ai-confirm-wrap-' + cardId),
+            }).then(function(result) {
+                var bannerWrap = cardEl.querySelector('#ai-banner-' + cardId);
+                if (bannerWrap) {
+                    var banner = bannerWrap.querySelector('.ai-extract-banner');
+                    if (banner && (banner.classList.contains('ai-banner-success') || banner.classList.contains('ai-banner-partial'))) {
+                        state.aiActive = true;
+                    }
+                }
+                if (result && result.data_source) state.aiDataSource = result.data_source;
+                try { state.lastAiResult = CRBOXAIExtractor.getLastResult(); } catch(e) {}
+            }).finally(function() {
+                state.aiInFlight = false;
+                if (btnAnalizar) {
+                    btnAnalizar.disabled = false;
+                    btnAnalizar.innerHTML = '<i class="fas fa-magic"></i> Analizar';
+                    btnAnalizar.style.background = '#FF6B00';
+                }
+                updateSubmitState();
+            });
+        }
+
+        function _resetCardExtraction(cardId) {
+            var state = _getCardState(cardId);
+            if (!state) return;
+            var cardEl = document.querySelector('[data-card-id="' + cardId + '"]');
+            if (!cardEl || typeof CRBOXAIExtractor === 'undefined') return;
+            CRBOXAIExtractor.resetExtraction({
+                bannerTarget:     cardEl.querySelector('#ai-banner-' + cardId),
+                complianceTarget: cardEl.querySelector('#ai-compliance-' + cardId),
+                fName:            cardEl.querySelector('.f-product-name'),
+                fValue:           cardEl.querySelector('.f-declared-value'),
+                fCategory:        cardEl.querySelector('.f-category'),
+                fWeight: null, fLength: null, fWidth: null, fHeight: null,
+                confirmWrapper:   cardEl.querySelector('#ai-confirm-wrap-' + cardId),
+            });
+            state.aiActive = false;
+            state.lastAiResult = null;
+        }
+
+        function getProducts() {
+            return _cards.map(function(c) {
+                var cardEl = document.querySelector('[data-card-id="' + c.id + '"]');
+                if (!cardEl) return null;
+                var nameEl = cardEl.querySelector('.f-product-name');
+                var catEl  = cardEl.querySelector('.f-category');
+                var valEl  = cardEl.querySelector('.f-declared-value');
+                var urlEl  = cardEl.querySelector('.f-product-url');
+                return {
+                    name: (nameEl ? nameEl.value : '').trim(),
+                    category: (catEl ? catEl.value : '').trim(),
+                    declared_value_usd: parseFloat(valEl ? valEl.value : '') || 0,
+                    url: (urlEl ? urlEl.value : '').trim(),
+                    data_source: c.aiDataSource,
+                };
+            }).filter(Boolean);
+        }
+
+        // ── Add product button ────────────────────────────────────
+        var btnAddProduct = document.getElementById('btn-add-product');
+        if (btnAddProduct) btnAddProduct.addEventListener('click', addProductCard);
 
         // ── Duplicate check helpers ────────────────────────────
+        var dupWarningCotizar = document.getElementById('dup-warning-cotizar');
+        var dupLinkCotizar    = document.getElementById('dup-link-cotizar');
+        var dupHoursCotizar   = document.getElementById('dup-hours-cotizar');
+        var btnDupDismiss     = document.getElementById('btn-dup-dismiss-cotizar');
+
         async function _checkDuplicateCotizar(email, productUrl, productName) {
             try {
-                const res = await fetch('/api/solicitudes/check-duplicate', {
+                var res = await fetch('/api/solicitudes/check-duplicate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: email, product_url: productUrl, product_name: productName })
                 });
                 if (!res.ok) return null;
                 return await res.json();
-            } catch (e) {
-                return null;
-            }
+            } catch (e) { return null; }
         }
-
-        const dupWarningCotizar  = document.getElementById('dup-warning-cotizar');
-        const dupLinkCotizar     = document.getElementById('dup-link-cotizar');
-        const dupHoursCotizar    = document.getElementById('dup-hours-cotizar');
-        const btnDupDismiss      = document.getElementById('btn-dup-dismiss-cotizar');
 
         function _showDupWarningCotizar(existingId, hoursAgo) {
             var dupIdSpan = document.getElementById('dup-id-cotizar');
@@ -1179,35 +1248,27 @@
                 dupLinkCotizar.href = existingId ? 'solicitud.html?id=' + encodeURIComponent(existingId) : 'mis-solicitudes.html';
                 dupLinkCotizar.target = '_blank';
                 dupLinkCotizar.rel = 'noopener';
-                dupLinkCotizar.title = 'Inicia sesión para ver los detalles de esta solicitud';
             }
             if (dupHoursCotizar) dupHoursCotizar.textContent = hoursAgo;
-            if (dupWarningCotizar) dupWarningCotizar.classList.remove('hidden');
-            // Scroll into view
-            if (dupWarningCotizar) dupWarningCotizar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (dupWarningCotizar) { dupWarningCotizar.classList.remove('hidden'); dupWarningCotizar.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
         }
 
         if (btnDupDismiss) {
-            btnDupDismiss.addEventListener('click', function () {
+            btnDupDismiss.addEventListener('click', function() {
                 _dupWarningDismissed = true;
                 if (dupWarningCotizar) dupWarningCotizar.classList.add('hidden');
-                // Immediately submit
                 submitQuote();
             });
         }
 
         // ── Service toggle ─────────────────────────────────────
-        document.getElementById('btn-aereo').addEventListener('click', function () {
-            setService('aereo');
-        });
-        document.getElementById('btn-maritimo').addEventListener('click', function () {
-            setService('maritimo');
-        });
+        document.getElementById('btn-aereo').addEventListener('click', function() { setService('aereo'); });
+        document.getElementById('btn-maritimo').addEventListener('click', function() { setService('maritimo'); });
 
         function setService(val) {
             fServiceType.value = val;
-            const btnAereo    = document.getElementById('btn-aereo');
-            const btnMaritimo = document.getElementById('btn-maritimo');
+            var btnAereo = document.getElementById('btn-aereo');
+            var btnMaritimo = document.getElementById('btn-maritimo');
             btnAereo.classList.toggle('active', val === 'aereo');
             btnMaritimo.classList.toggle('active', val === 'maritimo');
             btnAereo.setAttribute('aria-pressed', String(val === 'aereo'));
@@ -1217,33 +1278,33 @@
                 : 'Ideal para muebles, electrodomésticos y cargas mayores. Tiempo estimado: 4–8 semanas.';
         }
 
-        // ── Email input — live validation ───────────────────────
-        fEmail.addEventListener('input', function () {
-            const val = (this.value || '').trim();
-            if (val && isValidEmail(val)) {
-                clearFieldError(this, 'err-email');
-                document.getElementById('err-email-text').textContent = 'Ingresa un correo válido.';
-            }
+        // ── Email validation ───────────────────────────────────
+        function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+        fEmail.addEventListener('input', function() {
+            if ((this.value||'').trim() && isValidEmail((this.value||'').trim())) clearFieldError(this, 'err-email');
             updateSubmitState();
         });
-
-        // ── Notes char count ────────────────────────────────────
-        fNotes.addEventListener('input', function () {
-            notesCharCount.textContent = this.value.length;
+        fEmail.addEventListener('blur', function() {
+            var val = (this.value||'').trim();
+            if (!val || !isValidEmail(val)) { document.getElementById('err-email-text').textContent = 'Ingresa un correo válido.'; markFieldError(this, 'err-email'); }
+            else clearFieldError(this, 'err-email');
         });
 
-        // ── Required field tracker (for sticky bar) ────────────
-        const requiredFields = [fProductName, fCategory, fDeclaredValue, fDestination, fEmail];
-        requiredFields.forEach(function (el) {
-            el.addEventListener('input', checkRequiredFilled);
-            el.addEventListener('change', checkRequiredFilled);
-        });
+        fDestination.addEventListener('change', function() { if (this.value) clearFieldError(this, 'err-destination'); updateSubmitState(); checkRequiredFilled(); });
+        fNotes.addEventListener('input', function() { notesCharCount.textContent = this.value.length; });
 
+        // ── Error helpers ──────────────────────────────────────
+        function markFieldError(input, errId) { if (input) input.classList.add('q-error'); var el = document.getElementById(errId); if (el) el.classList.add('visible'); }
+        function clearFieldError(input, errId) { if (input) input.classList.remove('q-error'); var el = document.getElementById(errId); if (el) el.classList.remove('visible'); }
+
+        // ── Required field tracker (sticky bar) ───────────────
         function checkRequiredFilled() {
-            const anyFilled = requiredFields.some(function (el) {
-                return (el.value || '').trim() !== '' && el.value !== '';
-            });
-            if (anyFilled && !hasRequiredField) {
+            var products = getProducts();
+            var anyFilled = products.some(function(p) { return p.name.length >= 3 || p.category || p.declared_value_usd > 0; });
+            var destFilled = (fDestination.value||'').trim() !== '';
+            var emailFilled = (fEmail.value||'').trim() !== '';
+            if ((anyFilled || destFilled || emailFilled) && !hasRequiredField) {
                 hasRequiredField = true;
                 stickyCta.classList.add('show');
                 stickyCta.setAttribute('aria-hidden', 'false');
@@ -1253,25 +1314,19 @@
         }
 
         function updateStepProgress() {
-            const productName = (fProductName.value || '').trim();
-            const category    = (fCategory.value || '').trim();
-            const declaredVal = parseFloat(fDeclaredValue.value);
-            const destination = (fDestination.value || '').trim();
-            const email       = (fEmail.value || '').trim();
-            const step1Done = productName.length >= 3 && category !== '' &&
-                              !isNaN(declaredVal) && declaredVal > 0;
-            const step2Done = destination !== '';
-            const step3Done = isValidEmail(email);
-            const steps = [
+            var products = getProducts();
+            var step1Done = products.length > 0 && products.every(function(p) { return p.name.length >= 3 && p.category && p.declared_value_usd > 0; });
+            var step2Done = (fDestination.value||'').trim() !== '';
+            var step3Done = isValidEmail((fEmail.value||'').trim());
+            var steps = [
                 { dot: 'fsd-1', lbl: 'fsl-1-lbl', done: step1Done },
                 { dot: 'fsd-2', lbl: 'fsl-2-lbl', done: step2Done },
-                { dot: 'fsd-3', lbl: 'fsl-3-lbl', done: step3Done }
+                { dot: 'fsd-3', lbl: 'fsl-3-lbl', done: step3Done },
             ];
-            let activeIdx = steps.findIndex(function (s) { return !s.done; });
+            var activeIdx = steps.findIndex(function(s) { return !s.done; });
             if (activeIdx === -1) activeIdx = steps.length - 1;
-            steps.forEach(function (s, i) {
-                const dotEl = document.getElementById(s.dot);
-                const lblEl = document.getElementById(s.lbl);
+            steps.forEach(function(s, i) {
+                var dotEl = document.getElementById(s.dot), lblEl = document.getElementById(s.lbl);
                 if (!dotEl) return;
                 dotEl.classList.remove('step-active', 'step-done');
                 if (lblEl) lblEl.classList.remove('step-active-label', 'step-done-label');
@@ -1281,469 +1336,115 @@
                     if (lblEl) lblEl.classList.add('step-done-label');
                 } else {
                     dotEl.textContent = String(i + 1);
-                    if (i === activeIdx) {
-                        dotEl.classList.add('step-active');
-                        if (lblEl) lblEl.classList.add('step-active-label');
-                    }
+                    if (i === activeIdx) { dotEl.classList.add('step-active'); if (lblEl) lblEl.classList.add('step-active-label'); }
                 }
             });
-            const lineMap = [
-                { id: 'fsl-1', done: step1Done },
-                { id: 'fsl-2', done: step2Done }
-            ];
-            lineMap.forEach(function (l) {
-                const el = document.getElementById(l.id);
+            [{ id: 'fsl-1', done: step1Done }, { id: 'fsl-2', done: step2Done }].forEach(function(l) {
+                var el = document.getElementById(l.id);
                 if (!el) return;
                 el.classList.remove('step-done-line', 'step-active-line');
                 if (l.done) el.classList.add('step-done-line');
             });
         }
 
+        function isFormReady() {
+            var products = getProducts();
+            if (!products.length) return false;
+            var allProductsOk = products.every(function(p) { return p.name.length >= 3 && p.category && !isNaN(p.declared_value_usd) && p.declared_value_usd > 0; });
+            if (!allProductsOk) return false;
+            var dest = (fDestination.value||'').trim();
+            var email = (fEmail.value||'').trim();
+            if (!dest || !isValidEmail(email)) return false;
+            // Block if any card has AI active but confirm unchecked
+            for (var i = 0; i < _cards.length; i++) {
+                var c = _cards[i];
+                if (!c.aiActive) continue;
+                var cardEl = document.querySelector('[data-card-id="' + c.id + '"]');
+                if (!cardEl) continue;
+                var wrap = cardEl.querySelector('#ai-confirm-wrap-' + c.id);
+                var chk  = cardEl.querySelector('#ai-confirm-chk-' + c.id);
+                if (wrap && wrap.style.display !== 'none' && chk && !chk.checked) return false;
+            }
+            return true;
+        }
+
         function updateSubmitState() {
-            const allReady = isFormReady();
+            var allReady = isFormReady();
             btnSubmit.disabled = !allReady;
             btnStickySubmit.disabled = !allReady;
-            if (allReady) {
-                btnStickySubmit.style.background = '#FF6B00';
-                btnStickySubmit.style.cursor = 'pointer';
-            } else {
-                btnStickySubmit.style.background = '#e5e7eb';
-                btnStickySubmit.style.color = '#9ca3af';
-                btnStickySubmit.style.cursor = 'not-allowed';
-            }
+            if (allReady) { btnStickySubmit.style.background = '#FF6B00'; btnStickySubmit.style.cursor = 'pointer'; btnStickySubmit.style.color = '#fff'; }
+            else { btnStickySubmit.style.background = '#e5e7eb'; btnStickySubmit.style.color = '#9ca3af'; btnStickySubmit.style.cursor = 'not-allowed'; }
             updateStepProgress();
         }
 
-        function isFormReady() {
-            const name  = (fProductName.value || '').trim();
-            const cat   = (fCategory.value || '').trim();
-            const val   = parseFloat(fDeclaredValue.value);
-            const dest  = (fDestination.value || '').trim();
-            const email = (fEmail.value || '').trim();
-            return (
-                name.length >= 3 &&
-                cat !== '' &&
-                !isNaN(val) && val > 0 &&
-                dest !== '' &&
-                isValidEmail(email)
-            );
-        }
-
-        // ── Validation helpers ──────────────────────────────────
-        function isValidEmail(e) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-        }
-
-        function showError(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('visible');
-        }
-        function hideError(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('visible');
-        }
-        function markFieldError(input, errId) {
-            input.classList.add('q-error');
-            showError(errId);
-        }
-        function clearFieldError(input, errId) {
-            input.classList.remove('q-error');
-            hideError(errId);
-        }
-
-        // Inline validation on blur for required fields
-        fProductName.addEventListener('blur', function () {
-            if ((this.value || '').trim().length < 3) {
-                markFieldError(this, 'err-product-name');
-            } else {
-                clearFieldError(this, 'err-product-name');
-            }
-        });
-        fProductName.addEventListener('input', function () {
-            if ((this.value || '').trim().length >= 3) clearFieldError(this, 'err-product-name');
-        });
-
-        fCategory.addEventListener('change', function () {
-            if (this.value) clearFieldError(this, 'err-category');
-        });
-
-        fDeclaredValue.addEventListener('blur', function () {
-            const v = parseFloat(this.value);
-            if (isNaN(v) || v <= 0) markFieldError(this, 'err-declared-value');
-            else clearFieldError(this, 'err-declared-value');
-        });
-        fDeclaredValue.addEventListener('input', function () {
-            const v = parseFloat(this.value);
-            if (!isNaN(v) && v > 0) clearFieldError(this, 'err-declared-value');
-        });
-
-        fDestination.addEventListener('change', function () {
-            if (this.value) clearFieldError(this, 'err-destination');
-        });
-
-        fEmail.addEventListener('blur', function () {
-            const val = (this.value || '').trim();
-            if (!val || !isValidEmail(val)) {
-                document.getElementById('err-email-text').textContent = 'Ingresa un correo válido.';
-                markFieldError(this, 'err-email');
-            } else {
-                clearFieldError(this, 'err-email');
-            }
-        });
-
-        // ── Unit toggles ─────────────────────────────────────────
-        (function () {
-            if (typeof UnitConverter === 'undefined') return;
-            var wToggleEl = document.getElementById('f-weight-toggle');
-            var dToggleEl = document.getElementById('f-dim-toggle');
-            if (wToggleEl) {
-                _cotizarWeightToggle = UnitConverter.setup({
-                    container: wToggleEl,
-                    inputs:    [{ el: fWeight }],
-                    unitType:  'weight',
-                    onChange:  function (u) {
-                        var sfx = document.getElementById('f-weight-suffix');
-                        if (sfx) sfx.textContent = u;
-                    }
-                });
-            }
-            if (dToggleEl) {
-                _cotizarDimToggle = UnitConverter.setup({
-                    container: dToggleEl,
-                    inputs:    [{ el: fLength }, { el: fWidth }, { el: fHeight }],
-                    unitType:  'dim',
-                    onChange:  function (u) {
-                        ['f-dim-suffix-l', 'f-dim-suffix-w', 'f-dim-suffix-h'].forEach(function (id) {
-                            var sfx = document.getElementById(id);
-                            if (sfx) sfx.textContent = u;
-                        });
-                    }
-                });
-            }
-        })();
-
-        // ── AI extraction ────────────────────────────────────────
-        const btnAiAnalizar   = document.getElementById('btn-ai-analizar-cotizar');
-        const aiAnalizarHelper = document.getElementById('ai-analizar-helper');
-        var _aiInFlight = false;
-
-        function _setAnalizarLoading(loading) {
-            if (!btnAiAnalizar) return;
-            if (loading) {
-                btnAiAnalizar.disabled = true;
-                btnAiAnalizar.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analizando\u2026';
-                btnAiAnalizar.style.background = '#d97706';
-                btnAiAnalizar.onmouseover = null;
-                btnAiAnalizar.onmouseout  = null;
-                if (aiAnalizarHelper) aiAnalizarHelper.style.display = 'block';
-            } else {
-                btnAiAnalizar.disabled = false;
-                btnAiAnalizar.innerHTML = '<i class="fas fa-magic"></i> Analizar';
-                btnAiAnalizar.style.background = '#FF6B00';
-                btnAiAnalizar.onmouseover = function () { this.style.background = '#E05A00'; };
-                btnAiAnalizar.onmouseout  = function () { this.style.background = '#FF6B00'; };
-                if (aiAnalizarHelper) aiAnalizarHelper.style.display = 'none';
-            }
-        }
-
-        function _doAiExtract() {
-            let url = (fProductUrl.value || '').trim();
-            if (!url) return;
-            // Auto-prepend https:// for bare domain/path URLs (e.g. amazon.com/dp/...)
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                url = 'https://' + url;
-                fProductUrl.value = url;
-            }
-            if (typeof CRBOXAIExtractor === 'undefined') return;
-            if (_aiInFlight) return;
-            _aiInFlight   = true;
-            _aiActive     = false;
-            _aiDataSource = 'manual';
-            _setAnalizarLoading(true);
-            // AI extractor writes values in canonical cm/kg — reset toggles first to avoid double-conversion
-            if (_cotizarWeightToggle) _cotizarWeightToggle.setUnit('kg');
-            if (_cotizarDimToggle)    _cotizarDimToggle.setUnit('cm');
-            CRBOXAIExtractor.runExtraction(url, {
-                bannerTarget:     aiExtractBanner,
-                complianceTarget: aiComplianceCard,
-                fName:            fProductName,
-                fValue:           fDeclaredValue,
-                fCategory:        fCategory,
-                fWeight:          document.getElementById('f-weight'),
-                fLength:          document.getElementById('f-length'),
-                fWidth:           document.getElementById('f-width'),
-                fHeight:          document.getElementById('f-height'),
-                confirmWrapper:   aiConfirmWrapper,
-            }).then(function (result) {
-                var banner = aiExtractBanner.querySelector('.ai-extract-banner');
-                if (banner && (banner.classList.contains('ai-banner-success') ||
-                               banner.classList.contains('ai-banner-partial'))) {
-                    _aiActive = true;
-                }
-            }).finally(function () {
-                _aiInFlight = false;
-                _setAnalizarLoading(false);
-            });
-        }
-        const aiConfirmWrapperSubmit = document.getElementById('ai-confirm-cotizar-submit');
-        const aiConfirmChkSubmit    = document.getElementById('ai-confirm-chk-cotizar-submit');
-
-        // Disable submit CTA while AI confirm checkbox is visible and unchecked
-        function _syncAiSubmitGate() {
-            const submitBtn   = document.getElementById('btn-submit-quote');
-            const stickyBtn   = document.getElementById('btn-sticky-submit');
-            const wrapVisible = aiConfirmWrapper && aiConfirmWrapper.style.display !== 'none';
-            const checked     = (aiConfirmChk && aiConfirmChk.checked) ||
-                                (aiConfirmChkSubmit && aiConfirmChkSubmit.checked);
-            const shouldBlock = wrapVisible && !checked;
-            if (submitBtn) {
-                submitBtn.disabled      = shouldBlock;
-                submitBtn.style.opacity = shouldBlock ? '0.5' : '';
-                submitBtn.style.cursor  = shouldBlock ? 'not-allowed' : '';
-            }
-            if (stickyBtn) {
-                stickyBtn.disabled      = shouldBlock;
-                stickyBtn.style.opacity = shouldBlock ? '0.5' : '';
-                stickyBtn.style.cursor  = shouldBlock ? 'not-allowed' : '';
-            }
-            // Keep duplicate checkbox visible/hidden in sync
-            if (aiConfirmWrapperSubmit) {
-                aiConfirmWrapperSubmit.style.display = wrapVisible ? 'flex' : 'none';
-            }
-            // Sync checked states
-            if (aiConfirmChk && aiConfirmChkSubmit && aiConfirmChk.checked !== aiConfirmChkSubmit.checked) {
-                aiConfirmChkSubmit.checked = aiConfirmChk.checked;
-            }
-        }
-        if (aiConfirmChk) {
-            aiConfirmChk.addEventListener('change', function () {
-                if (aiConfirmChkSubmit) aiConfirmChkSubmit.checked = aiConfirmChk.checked;
-                _syncAiSubmitGate();
-            });
-        }
-        if (aiConfirmChkSubmit) {
-            aiConfirmChkSubmit.addEventListener('change', function () {
-                if (aiConfirmChk) aiConfirmChk.checked = aiConfirmChkSubmit.checked;
-                _syncAiSubmitGate();
-            });
-        }
-        document.addEventListener('ai:extraction-complete', function (e) {
-            if (e.detail && e.detail.dataSource) {
-                _aiDataSource = e.detail.dataSource;
-            }
-            setTimeout(_syncAiSubmitGate, 0);
-        });
-
-        if (btnAiAnalizar) {
-            btnAiAnalizar.addEventListener('click', _doAiExtract);
-        }
-        fProductUrl.addEventListener('input', function () {
-            const url = (this.value || '').trim();
-            if (!url && typeof CRBOXAIExtractor !== 'undefined') {
-                CRBOXAIExtractor.resetExtraction({
-                    bannerTarget:     aiExtractBanner,
-                    complianceTarget: aiComplianceCard,
-                    fName:            fProductName,
-                    fValue:           fDeclaredValue,
-                    fCategory:        fCategory,
-                    fWeight:          document.getElementById('f-weight'),
-                    fLength:          document.getElementById('f-length'),
-                    fWidth:           document.getElementById('f-width'),
-                    fHeight:          document.getElementById('f-height'),
-                    confirmWrapper:   aiConfirmWrapper,
-                });
-                _aiActive = false;
-                if (aiAnalizarHelper) aiAnalizarHelper.style.display = 'none';
-            }
-        });
-
-        // ── Submit (form or sticky) ─────────────────────────────
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            submitQuote();
-        });
-
-        btnStickySubmit.addEventListener('click', function () {
-            if (!this.disabled) submitQuote();
-        });
+        // ── Submit ─────────────────────────────────────────────
+        form.addEventListener('submit', function(e) { e.preventDefault(); submitQuote(); });
+        btnStickySubmit.addEventListener('click', function() { if (!this.disabled) submitQuote(); });
 
         async function submitQuote() {
-            // Clear stale red outlines/messages from any previous failed attempt
-            [fProductName, fCategory, fDeclaredValue, fWeight, fLength, fWidth, fHeight].forEach(function (el) {
-                if (el) el.style.outline = '';
-            });
-            if (aiConfirmWrapper) aiConfirmWrapper.style.outline = '';
             document.getElementById('err-email-text').textContent = 'Ingresa un correo válido.';
-
-            // Full validation
-            let valid = true;
-            const productName = (fProductName.value || '').trim();
-            const category    = (fCategory.value || '').trim();
-            const declaredVal = parseFloat(fDeclaredValue.value);
-            const destination = (fDestination.value || '').trim();
-            const email       = (fEmail.value || '').trim();
-
-            if (productName.length < 3) { markFieldError(fProductName, 'err-product-name'); valid = false; }
-            if (!category)              { markFieldError(fCategory, 'err-category'); valid = false; }
-            if (isNaN(declaredVal) || declaredVal <= 0) { markFieldError(fDeclaredValue, 'err-declared-value'); valid = false; }
-            if (!destination)           { markFieldError(fDestination, 'err-destination'); valid = false; }
+            var valid = true;
+            var products = getProducts();
+            products.forEach(function(p, idx) {
+                var cardId = _cards[idx] ? _cards[idx].id : null;
+                if (cardId == null) return;
+                var cardEl = document.querySelector('[data-card-id="' + cardId + '"]');
+                if (!cardEl) return;
+                var nameEl = cardEl.querySelector('.f-product-name');
+                var catEl  = cardEl.querySelector('.f-category');
+                var valEl  = cardEl.querySelector('.f-declared-value');
+                if (!p.name || p.name.length < 3) { markFieldError(nameEl, 'err-name-' + cardId); valid = false; }
+                if (!p.category) { markFieldError(catEl, 'err-cat-' + cardId); valid = false; }
+                if (isNaN(p.declared_value_usd) || p.declared_value_usd <= 0) { markFieldError(valEl, 'err-val-' + cardId); valid = false; }
+            });
+            var destination = (fDestination.value||'').trim();
+            var email = (fEmail.value||'').trim();
+            if (!destination) { markFieldError(fDestination, 'err-destination'); valid = false; }
             if (!email || !isValidEmail(email)) { markFieldError(fEmail, 'err-email'); valid = false; }
-            if (_aiActive && typeof CRBOXAIExtractor !== 'undefined') {
-                const fconf = CRBOXAIExtractor.allFieldsConfirmed();
-                if (!fconf.ok) {
-                    fconf.unconfirmedIds.forEach(function (fid, idx) {
-                        const el = document.getElementById(fid);
-                        if (el) {
-                            el.style.outline = '2px solid #ef4444';
-                            if (idx === 0) el.focus();
-                        }
-                    });
-                    valid = false;
-                }
-            }
-            if (_aiActive && aiConfirmWrapper && aiConfirmWrapper.style.display !== 'none') {
-                if (!aiConfirmChk || !aiConfirmChk.checked) {
-                    aiConfirmWrapper.style.outline = '2px solid #ef4444';
-                    aiConfirmWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    valid = false;
-                } else {
-                    aiConfirmWrapper.style.outline = '';
-                }
-            }
+            if (!valid) { var firstErr = form.querySelector('.q-error'); if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' }); return; }
 
-            // Validate dimensions: all three or none; each must be a positive number if provided
-            const errDims = document.getElementById('err-dims');
-            const _lRaw = (fLength.value || '').trim(), _wRaw = (fWidth.value || '').trim(), _hRaw = (fHeight.value || '').trim();
-            const _lPresent = _lRaw !== '', _wPresent = _wRaw !== '', _hPresent = _hRaw !== '';
-            const _anyPresent = _lPresent || _wPresent || _hPresent;
-            const _allPresent = _lPresent && _wPresent && _hPresent;
-            const _lNum = parseFloat(_lRaw), _wNum = parseFloat(_wRaw), _hNum = parseFloat(_hRaw);
-            let dimErrMsg = '';
-            if (_anyPresent && !_allPresent) {
-                dimErrMsg = 'Si ingresas dimensiones, completa los tres campos (largo, ancho y alto).';
-            } else if (_allPresent && (isNaN(_lNum) || _lNum <= 0 || isNaN(_wNum) || _wNum <= 0 || isNaN(_hNum) || _hNum <= 0)) {
-                dimErrMsg = 'Las dimensiones deben ser números mayores a cero.';
-            }
-            if (dimErrMsg) {
-                if (errDims) { errDims.textContent = dimErrMsg; errDims.classList.remove('hidden'); }
-                valid = false;
-            } else {
-                if (errDims) errDims.classList.add('hidden');
-            }
-
-            if (!valid) {
-                // Scroll to first error
-                if (!(_aiActive && aiConfirmWrapper && !aiConfirmChk.checked)) {
-                    const firstErr = form.querySelector('.q-error:not(.hidden)');
-                    if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                return;
-            }
-
-            // Build payload
-            const payload = {
-                product_name:       productName,
-                declared_value_usd: declaredVal,
-                category:           category,
+            // Build payload with products array
+            var p0 = products[0] || {};
+            var payload = {
+                products:           products,
+                product_name:       p0.name || '',
+                declared_value_usd: p0.declared_value_usd || 0,
+                category:           p0.category || 'otros',
+                product_url:        p0.url || '',
                 service_type:       fServiceType.value || 'aereo',
                 destination_zone:   destination,
                 customer_email:     email,
                 account_type:       'anonymous',
-                data_source:        _aiActive ? _aiDataSource : 'manual',
+                data_source:        _cards[0] && _cards[0].aiActive ? _cards[0].aiDataSource : 'manual',
             };
-            // Attach AI extraction snapshot for admin visibility
-            if (_aiActive && typeof CRBOXAIExtractor !== 'undefined') {
-                const lastResult = CRBOXAIExtractor.getLastResult();
-                if (lastResult) payload.ai_extraction_result = lastResult;
-            }
-
-            const customerName = (fCustomerName.value || '').trim();
+            var customerName = (fCustomerName.value||'').trim();
             if (customerName) payload.customer_name = customerName;
-
-            const productUrl = (fProductUrl.value || '').trim();
-            if (productUrl) payload.product_url = productUrl;
-
-            // Normalize to canonical kg / cm using normalizePhysicalInputs
-            const _UC    = (typeof UnitConverter !== 'undefined') ? UnitConverter : null;
-            const _wUnit = _cotizarWeightToggle ? _cotizarWeightToggle.getUnit() : 'kg';
-            const _dUnit = _cotizarDimToggle    ? _cotizarDimToggle.getUnit()    : 'cm';
-            const _phys  = _UC ? _UC.normalizePhysicalInputs({
-                length:        fLength.value,
-                width:         fWidth.value,
-                height:        fHeight.value,
-                weight:        fWeight.value,
-                dimensionUnit: _dUnit,
-                weightUnit:    _wUnit,
-            }) : null;
-
-            if (_phys) {
-                if (_phys.weight_kg != null && _phys.weight_kg > 0) {
-                    payload.weight_kg    = _phys.weight_kg;
-                    payload.weight_input = _phys.weight_input;
-                    payload.weight_unit  = _phys.weight_unit;
-                }
-                if (_phys.length_cm != null && _phys.length_cm > 0 &&
-                    _phys.width_cm  != null && _phys.width_cm  > 0 &&
-                    _phys.height_cm != null && _phys.height_cm > 0) {
-                    payload.length_cm      = _phys.length_cm;
-                    payload.width_cm       = _phys.width_cm;
-                    payload.height_cm      = _phys.height_cm;
-                    payload.dimension_unit = _phys.dimension_unit;
-                }
-            } else {
-                // Fallback if UnitConverter unavailable
-                const weight = parseFloat(fWeight.value);
-                if (!isNaN(weight) && weight > 0) payload.weight_kg = weight;
-                const length = parseFloat(fLength.value), width = parseFloat(fWidth.value), height = parseFloat(fHeight.value);
-                if (length > 0 && width > 0 && height > 0) { payload.length_cm = length; payload.width_cm = width; payload.height_cm = height; }
-            }
-
-            const notes = (fNotes.value || '').trim();
+            var notes = (fNotes.value||'').trim();
             if (notes) payload.customer_notes = notes;
 
             lastSubmitPayload = payload;
 
-            // Duplicate check (skipped if user already dismissed the warning)
+            // Duplicate check (first product only)
             if (!_dupWarningDismissed) {
-                const dupResult = await _checkDuplicateCotizar(email, productUrl, productName);
-                if (dupResult && dupResult.duplicate) {
-                    _showDupWarningCotizar(dupResult.existing_id, dupResult.hours_ago);
-                    return;
-                }
+                var dupResult = await _checkDuplicateCotizar(email, p0.url, p0.name);
+                if (dupResult && dupResult.duplicate) { _showDupWarningCotizar(dupResult.existing_id, dupResult.hours_ago); return; }
             }
 
-            // Set loading state
             setLoading(true);
-
             try {
-                const res = await fetch('/api/solicitudes', {
+                var res = await fetch('/api/solicitudes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                 });
-                const data = await res.json();
-
+                var data = await res.json();
                 if (res.ok && data.ok && data.id) {
                     _formSubmitted = true;
-                    // GTM event — fire regardless of email delivery status
-                    if (window.dataLayer) {
-                        window.dataLayer.push({
-                            event: 'quote_submitted',
-                            scb_id: data.id,
-                            category: category,
-                            service_type: payload.service_type,
-                            destination: destination,
-                        });
-                    }
-                    if (data.email_warnings && data.email_warnings.length) {
-                        // Record was saved but email delivery failed — show recovery state
-                        showSmtpFailure(data.id, payload);
-                    } else {
-                        showConfirmation(data.id, payload);
-                    }
+                    if (window.dataLayer) window.dataLayer.push({ event: 'quote_submitted', scb_id: data.id, category: p0.category, service_type: payload.service_type, destination: destination });
+                    if (data.email_warnings && data.email_warnings.length) showSmtpFailure(data.id, payload);
+                    else showConfirmation(data.id, payload, products);
                 } else {
-                    const errMsg = (data.errors && data.errors[0]) || data.error || 'Error desconocido';
-                    showFailure(errMsg);
+                    showFailure((data.errors && data.errors[0]) || data.error || 'Error desconocido');
                 }
             } catch (err) {
                 showFailure('Error de conexión. Revisa tu internet e intenta de nuevo.');
@@ -1754,78 +1455,61 @@
 
         function setLoading(loading) {
             if (loading) {
-                btnSubmit.disabled = true;
-                btnSubmit.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Enviando\u2026';
-                btnStickySubmit.disabled = true;
-                btnStickySubmit.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Enviando\u2026';
+                btnSubmit.disabled = true; btnSubmit.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Enviando\u2026';
+                btnStickySubmit.disabled = true; btnStickySubmit.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Enviando\u2026';
             } else {
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
-                btnStickySubmit.disabled = false;
-                btnStickySubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
+                btnSubmit.disabled = false; btnSubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
+                btnStickySubmit.disabled = false; btnStickySubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
             }
         }
 
-        function showConfirmation(scbId, payload) {
+        function showConfirmation(scbId, payload, products) {
             _clearDraftCotizar();
-            // Hide form, hide sticky, show confirm
             formSection.classList.add('hidden-section');
-            stickyCta.classList.remove('show');
-            stickyCta.setAttribute('aria-hidden', 'true');
+            stickyCta.classList.remove('show'); stickyCta.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('has-sticky-cta');
             failureScreen.classList.remove('visible');
             confirmScreen.classList.add('visible');
-
             confirmScbId.textContent = scbId;
 
-            // Build summary
-            const zoneLabelMap = {
-                sanjose:'San José', heredia:'Heredia', alajuela:'Alajuela',
-                cartago:'Cartago', guanacaste:'Guanacaste', puntarenas:'Puntarenas', limon:'Limón',
-            };
-            const serviceLabel = payload.service_type === 'maritimo' ? 'Marítimo' : 'Aéreo';
-            const destLabel = zoneLabelMap[payload.destination_zone] || payload.destination_zone;
+            var zoneLabelMap = { sanjose:'San José', heredia:'Heredia', alajuela:'Alajuela', cartago:'Cartago', guanacaste:'Guanacaste', puntarenas:'Puntarenas', limon:'Limón' };
+            var serviceLabel = payload.service_type === 'maritimo' ? 'Marítimo' : 'Aéreo';
+            var destLabel = zoneLabelMap[payload.destination_zone] || payload.destination_zone;
 
-            const rows = [
-                { label: 'ID de solicitud', value: scbId },
-                { label: 'Producto', value: payload.product_name },
-                { label: 'Valor declarado', value: '$' + parseFloat(payload.declared_value_usd).toLocaleString('es-CR', { minimumFractionDigits: 2 }) + ' USD' },
-                { label: 'Categoría', value: getCategoryLabel(payload.category) },
-                { label: 'Servicio', value: serviceLabel },
-                { label: 'Destino', value: destLabel },
-                { label: 'Correo', value: payload.customer_email },
-            ];
-            if (payload.customer_name) rows.splice(1, 0, { label: 'Nombre', value: payload.customer_name });
+            var rows = [{ label: 'ID de solicitud', value: scbId }];
+            if (payload.customer_name) rows.push({ label: 'Nombre', value: payload.customer_name });
+            if (products && products.length > 1) {
+                rows.push({ label: 'Productos', value: products.length + ' productos' });
+                products.forEach(function(p, i) {
+                    rows.push({ label: 'Producto ' + (i+1), value: p.name + ' — $' + p.declared_value_usd.toFixed(2) });
+                });
+            } else {
+                var p0 = (products && products[0]) || {};
+                rows.push({ label: 'Producto', value: p0.name || payload.product_name || '' });
+                rows.push({ label: 'Valor declarado', value: '$' + (p0.declared_value_usd || payload.declared_value_usd || 0).toFixed(2) + ' USD' });
+                rows.push({ label: 'Categoría', value: getCategoryLabel(p0.category || payload.category) });
+            }
+            rows.push({ label: 'Servicio', value: serviceLabel });
+            rows.push({ label: 'Destino', value: destLabel });
+            rows.push({ label: 'Correo', value: payload.customer_email });
 
-            confirmList.innerHTML = rows.map(function (r) {
-                return '<div class="confirm-summary-row">'
-                    + '<span class="csr-label">' + escHtml(r.label) + '</span>'
-                    + '<span class="csr-value">' + escHtml(r.value) + '</span>'
-                    + '</div>';
+            confirmList.innerHTML = rows.map(function(r) {
+                return '<div class="confirm-summary-row"><span class="csr-label">' + escHtml(r.label) + '</span><span class="csr-value">' + escHtml(r.value) + '</span></div>';
             }).join('');
 
-            // Update conversion panel CTA URL
-            const encodedEmail = encodeURIComponent(payload.customer_email);
-            btnCreateAcct.href = '/afiliate.html?email=' + encodedEmail + '&source=quote';
-
-            // Update step dots
+            btnCreateAcct.href = '/afiliate.html?email=' + encodeURIComponent(payload.customer_email) + '&source=quote';
             ['fsd-1','fsd-2','fsd-3'].forEach(function(id) {
-                const el = document.getElementById(id);
+                var el = document.getElementById(id);
                 if (el) { el.className = 'form-step-dot step-done'; el.innerHTML = '<i class="fas fa-check" style="font-size:.6rem;"></i>'; }
             });
-
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function showFailure(detail) {
             formSection.classList.add('hidden-section');
-            stickyCta.classList.remove('show');
-            stickyCta.setAttribute('aria-hidden', 'true');
+            stickyCta.classList.remove('show'); stickyCta.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('has-sticky-cta');
-            confirmScreen.classList.remove('visible');
-            failureScreen.classList.add('visible');
-
-            // Full failure variant: no SCB-ID, retry available
+            confirmScreen.classList.remove('visible'); failureScreen.classList.add('visible');
             document.getElementById('failure-scb-section').style.display = 'none';
             document.getElementById('failure-title').textContent = 'No se pudo enviar tu solicitud';
             document.getElementById('failure-icon').className = 'fas fa-exclamation-triangle';
@@ -1833,327 +1517,206 @@
             document.getElementById('failure-icon-wrap').style.boxShadow = '0 8px 24px rgba(239,68,68,.25)';
             document.getElementById('btn-retry-wrapper').style.display = '';
             document.getElementById('btn-new-after-smtp-wrapper').style.display = 'none';
-
             failureMsg.textContent = detail + ' Puedes escribirnos por WhatsApp y te atendemos de inmediato.';
-
-            // Build WA fallback link from last payload
-            if (lastSubmitPayload) {
-                const waText = buildWaFallback(lastSubmitPayload);
-                waFallbackLink.href = WA_BASE + '?text=' + encodeURIComponent(waText);
-            } else {
-                waFallbackLink.href = WA_BASE;
-            }
-
+            if (lastSubmitPayload) waFallbackLink.href = WA_BASE + '?text=' + encodeURIComponent(buildWaFallback(lastSubmitPayload));
+            else waFallbackLink.href = WA_BASE;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function showSmtpFailure(scbId, payload) {
             _clearDraftCotizar();
-            // Record is saved but email delivery failed — show recovery state
             formSection.classList.add('hidden-section');
-            stickyCta.classList.remove('show');
-            stickyCta.setAttribute('aria-hidden', 'true');
+            stickyCta.classList.remove('show'); stickyCta.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('has-sticky-cta');
-            confirmScreen.classList.remove('visible');
-            failureScreen.classList.add('visible');
-
-            // SMTP failure variant: show SCB-ID, amber icon, hide retry, show new-request
-            const scbSection = document.getElementById('failure-scb-section');
+            confirmScreen.classList.remove('visible'); failureScreen.classList.add('visible');
+            var scbSection = document.getElementById('failure-scb-section');
             scbSection.style.display = '';
             document.getElementById('failure-scb-id').textContent = scbId;
-
             document.getElementById('failure-icon').className = 'fas fa-envelope-open-text';
             document.getElementById('failure-icon-wrap').style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
             document.getElementById('failure-icon-wrap').style.boxShadow = '0 8px 24px rgba(245,158,11,.25)';
             document.getElementById('failure-title').textContent = 'Solicitud guardada — correo no enviado';
             document.getElementById('btn-retry-wrapper').style.display = 'none';
             document.getElementById('btn-new-after-smtp-wrapper').style.display = '';
-
             failureMsg.textContent = 'Tu solicitud fue registrada con el ID indicado arriba, pero no pudimos enviarte el correo de confirmación. Escríbenos por WhatsApp con ese ID y te confirmamos el recibo.';
-
-            // WA message includes the SCB-ID so the team can look it up quickly
-            const waText = [
-                'Hola CRBOX, acabo de cotizar y recibí el ID ' + scbId + ' pero no me llegó el correo de confirmación.',
-                '',
-                'Producto: ' + payload.product_name,
-                'Correo: ' + payload.customer_email,
-            ].join('\n');
+            var waText = 'Hola CRBOX, acabo de cotizar y recibí el ID ' + scbId + ' pero no me llegó el correo.\n\nCorreo: ' + payload.customer_email;
             waFallbackLink.href = WA_BASE + '?text=' + encodeURIComponent(waText);
-
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function buildWaFallback(p) {
-            const lines = [
-                'Hola CRBOX, quiero cotizar una compra:',
-                '',
-                'Producto: ' + p.product_name,
-                'Valor declarado: $' + parseFloat(p.declared_value_usd).toFixed(2) + ' USD',
-                'Categoría: ' + getCategoryLabel(p.category),
-                'Servicio: ' + (p.service_type === 'maritimo' ? 'Marítimo' : 'Aéreo'),
-                'Destino: ' + p.destination_zone,
-                'Correo: ' + p.customer_email,
-            ];
-            if (p.product_url) lines.push('URL: ' + p.product_url);
+            var prods = p.products || [{ name: p.product_name, declared_value_usd: p.declared_value_usd, category: p.category }];
+            var lines = ['Hola CRBOX, quiero cotizar una compra:', ''];
+            prods.forEach(function(prod, i) {
+                if (prods.length > 1) lines.push('Producto ' + (i+1) + ':');
+                lines.push('Nombre: ' + (prod.name || ''));
+                lines.push('Valor: $' + parseFloat(prod.declared_value_usd||0).toFixed(2) + ' USD');
+                lines.push('Categoría: ' + getCategoryLabel(prod.category || 'otros'));
+                if (prod.url) lines.push('URL: ' + prod.url);
+                if (prods.length > 1) lines.push('');
+            });
+            lines.push('Servicio: ' + (p.service_type === 'maritimo' ? 'Marítimo' : 'Aéreo'));
+            lines.push('Destino: ' + (p.destination_zone || ''));
+            lines.push('Correo: ' + (p.customer_email || ''));
             if (p.customer_notes) lines.push('Notas: ' + p.customer_notes);
             return lines.join('\n');
         }
 
-        // ── Conversion panel dismiss ────────────────────────────
-        btnDismiss.addEventListener('click', function () {
-            conversionPanel.style.display = 'none';
-        });
-
-        // ── New request reset ────────────────────────────────────
+        // ── Conversion panel / reset / retry ──────────────────
+        btnDismiss.addEventListener('click', function() { conversionPanel.style.display = 'none'; });
         btnNewRequest.addEventListener('click', resetForm);
         document.getElementById('btn-new-after-smtp').addEventListener('click', resetForm);
-
-        // Retry after a network/server failure: keep the user's data, just re-show the form
-        btnRetry.addEventListener('click', function () {
-            failureScreen.classList.remove('visible');
-            formSection.classList.remove('hidden-section');
-            if (hasRequiredField) {
-                stickyCta.classList.add('show');
-                stickyCta.setAttribute('aria-hidden', 'false');
-                document.body.classList.add('has-sticky-cta');
-            }
-            updateSubmitState();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        btnRetry.addEventListener('click', function() {
+            failureScreen.classList.remove('visible'); formSection.classList.remove('hidden-section');
+            if (hasRequiredField) { stickyCta.classList.add('show'); stickyCta.setAttribute('aria-hidden', 'false'); document.body.classList.add('has-sticky-cta'); }
+            updateSubmitState(); window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
         function resetForm() {
             _clearDraftCotizar();
-            form.reset();
-            // Clear AI extraction state, badges, and physical note
-            if (typeof CRBOXAIExtractor !== 'undefined') {
-                CRBOXAIExtractor.resetExtraction({
-                    bannerTarget:     aiExtractBanner,
-                    complianceTarget: aiComplianceCard,
-                    fName:            fProductName,
-                    fValue:           fDeclaredValue,
-                    fCategory:        fCategory,
-                    fWeight:          document.getElementById('f-weight'),
-                    fLength:          document.getElementById('f-length'),
-                    fWidth:           document.getElementById('f-width'),
-                    fHeight:          document.getElementById('f-height'),
-                    confirmWrapper:   aiConfirmWrapper,
-                });
-            }
-            _aiActive = false;
-            hasRequiredField = false;
-            lastSubmitPayload = null;
-            _formSubmitted = false;
-            _dupWarningDismissed = false;
+            // Clear all product cards and create a fresh one
+            _cards = [];
+            var container = document.getElementById('products-container');
+            if (container) container.innerHTML = '';
+            addProductCard();
+            fServiceType.value = 'aereo'; setService('aereo');
+            fDestination.value = ''; fCustomerName.value = ''; fEmail.value = ''; fNotes.value = '';
+            hasRequiredField = false; lastSubmitPayload = null; _formSubmitted = false; _dupWarningDismissed = false;
             if (dupWarningCotizar) dupWarningCotizar.classList.add('hidden');
             notesCharCount.textContent = '0';
-            setService('aereo');
-
-            // Clear errors
             form.querySelectorAll('.q-error').forEach(function(el){ el.classList.remove('q-error'); });
             form.querySelectorAll('.q-error-msg').forEach(function(el){ el.classList.remove('visible'); });
-
             conversionPanel.style.display = '';
-            formSection.classList.remove('hidden-section');
-            confirmScreen.classList.remove('visible');
-            failureScreen.classList.remove('visible');
-
-            stickyCta.classList.remove('show');
-            stickyCta.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('has-sticky-cta');
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
-            btnStickySubmit.disabled = true;
-            btnStickySubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
-
-            // Reset step indicator (dots, labels, lines) — re-syncs from cleared field state
-            updateStepProgress();
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            formSection.classList.remove('hidden-section'); confirmScreen.classList.remove('visible'); failureScreen.classList.remove('visible');
+            stickyCta.classList.remove('show'); stickyCta.setAttribute('aria-hidden', 'true'); document.body.classList.remove('has-sticky-cta');
+            btnSubmit.disabled = true; btnSubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
+            btnStickySubmit.disabled = true; btnStickySubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
+            updateStepProgress(); window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // ── Category label helper ───────────────────────────────
-        function getCategoryLabel(val) {
-            const catSelect = document.getElementById('f-category');
-            if (!catSelect) return val;
-            const opt = catSelect.querySelector('option[value="' + val + '"]');
-            return opt ? opt.textContent : val;
-        }
+        // ── Category label helper ────────────────────────────────
+        var _CAT_LABEL_MAP = {
+            celulares:'Celulares y Smartphones', computadora:'Computadoras y Laptops',
+            tableta_electronica:'Tabletas y iPads', consola_videojuegos:'Consolas de Videojuegos',
+            camara:'Cámaras y Video', auricular_telefono:'Audífonos y Accesorios Audio',
+            bocina:'Bocinas y Equipos de Sonido', televisor:'Televisores',
+            ropa:'Ropa y Calzado', anteojos:'Anteojos y Gafas', cinturon:'Cinturones y Bolsos',
+            electrodomesticos:'Electrodomésticos', aspiradora:'Aspiradora y Limpieza',
+            colchon:'Colchones y Muebles', herramientas:'Herramientas',
+            bicicleta_economica:'Bicicleta (CIF bajo $1000)', bicicleta_cara:'Bicicleta (CIF $1000+)',
+            bola:'Artículos Deportivos', coche_bebe:'Coches de Bebé y Accesorios', juguetes:'Juguetes',
+            amortiguadores:'Amortiguadores', aros_carro_moto:'Aros de Carro/Moto', vehiculos:'Repuestos en General',
+            salud_belleza:'Salud y Belleza', suplementos:'Suplementos', cds:'Libros, CDs y Medios',
+            otros:'Otros',
+        };
+        function getCategoryLabel(val) { return _CAT_LABEL_MAP[val] || val || ''; }
 
         function escHtml(str) {
-            return String(str)
-                .replace(/&/g,'&amp;')
-                .replace(/</g,'&lt;')
-                .replace(/>/g,'&gt;')
-                .replace(/"/g,'&quot;');
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         }
 
-        // ── LocalStorage draft save ──────────────────────────────
+        // ── Draft save (service/destination/contact only) ──────
         const _DRAFT_KEY = 'crbox-draft-anon';
-        const _DRAFT_FIELD_IDS = [
-            'f-product-name', 'f-category', 'f-declared-value', 'f-product-url',
-            'f-service-type', 'f-destination-zone', 'f-weight',
-            'f-length', 'f-width', 'f-height',
-            'f-customer-name', 'f-customer-email', 'f-notes',
-        ];
+        const _DRAFT_FIELD_IDS = ['f-service-type', 'f-destination-zone', 'f-customer-name', 'f-customer-email', 'f-notes'];
 
         function _saveDraftCotizar() {
             var data = {};
-            _DRAFT_FIELD_IDS.forEach(function (id) {
-                var el = document.getElementById(id);
-                if (el) data[id] = el.value;
-            });
-            try { localStorage.setItem(_DRAFT_KEY, JSON.stringify(data)); } catch (e) {}
+            _DRAFT_FIELD_IDS.forEach(function(id) { var el = document.getElementById(id); if (el) data[id] = el.value; });
+            try { localStorage.setItem(_DRAFT_KEY, JSON.stringify(data)); } catch(e) {}
         }
-
-        function _clearDraftCotizar() {
-            try { localStorage.removeItem(_DRAFT_KEY); } catch (e) {}
-        }
-
-        function _loadDraftCotizar() {
-            try {
-                var raw = localStorage.getItem(_DRAFT_KEY);
-                return raw ? JSON.parse(raw) : null;
-            } catch (e) { return null; }
-        }
-
+        function _clearDraftCotizar() { try { localStorage.removeItem(_DRAFT_KEY); } catch(e) {} }
+        function _loadDraftCotizar() { try { var raw = localStorage.getItem(_DRAFT_KEY); return raw ? JSON.parse(raw) : null; } catch(e) { return null; } }
         function _restoreDraftCotizar(data) {
-            _DRAFT_FIELD_IDS.forEach(function (id) {
-                if (id === 'f-service-type') return; // handled separately
+            _DRAFT_FIELD_IDS.forEach(function(id) {
+                if (id === 'f-service-type') return;
                 if (data[id] == null) return;
-                var el = document.getElementById(id);
-                if (el) el.value = data[id];
+                var el = document.getElementById(id); if (el) el.value = data[id];
             });
-            // Restore service type toggle
-            var svc = data['f-service-type'] || 'aereo';
-            setService(svc);
+            setService(data['f-service-type'] || 'aereo');
         }
-
-        // Debounced listener — attach to all editable fields
         var _draftTimer = null;
-        function _scheduleDraftSave() {
-            clearTimeout(_draftTimer);
-            _draftTimer = setTimeout(_saveDraftCotizar, 500);
-        }
-        _DRAFT_FIELD_IDS.forEach(function (id) {
+        function _scheduleDraftSave() { clearTimeout(_draftTimer); _draftTimer = setTimeout(_saveDraftCotizar, 500); }
+        _DRAFT_FIELD_IDS.forEach(function(id) {
             if (id === 'f-service-type') return;
             var el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('input', _scheduleDraftSave);
-                el.addEventListener('change', _scheduleDraftSave);
-            }
+            if (el) { el.addEventListener('input', _scheduleDraftSave); el.addEventListener('change', _scheduleDraftSave); }
         });
-        // Service type buttons
-        document.getElementById('btn-aereo').addEventListener('click', function () {
-            setTimeout(_saveDraftCotizar, 0);
-        });
-        document.getElementById('btn-maritimo').addEventListener('click', function () {
-            setTimeout(_saveDraftCotizar, 0);
-        });
+        document.getElementById('btn-aereo').addEventListener('click', function() { setTimeout(_saveDraftCotizar, 0); });
+        document.getElementById('btn-maritimo').addEventListener('click', function() { setTimeout(_saveDraftCotizar, 0); });
 
-        // On load: show restore banner if a non-trivial draft exists
-        (function () {
+        (function() {
             var draft = _loadDraftCotizar();
-            var bar   = document.getElementById('draft-restore-bar');
+            var bar = document.getElementById('draft-restore-bar');
             if (!draft || !bar) return;
-            var hasData = _DRAFT_FIELD_IDS.some(function (id) {
-                return id !== 'f-service-type' && (draft[id] || '').toString().trim() !== '';
-            });
+            var hasData = _DRAFT_FIELD_IDS.some(function(id) { return id !== 'f-service-type' && (draft[id]||'').toString().trim() !== ''; });
             if (!hasData) { _clearDraftCotizar(); return; }
-
             bar.classList.remove('hidden');
-
-            document.getElementById('draft-restore-btn').addEventListener('click', function () {
-                _restoreDraftCotizar(draft);
-                bar.classList.add('hidden');
-                // Sync derived UI state from restored values (sticky CTA, step dots, char count)
-                checkRequiredFilled();
-                notesCharCount.textContent = (fNotes.value || '').length;
+            document.getElementById('draft-restore-btn').addEventListener('click', function() {
+                _restoreDraftCotizar(draft); bar.classList.add('hidden'); checkRequiredFilled();
+                notesCharCount.textContent = (fNotes.value||'').length;
             });
-            document.getElementById('draft-discard-btn').addEventListener('click', function () {
-                _clearDraftCotizar();
-                bar.classList.add('hidden');
-            });
+            document.getElementById('draft-discard-btn').addEventListener('click', function() { _clearDraftCotizar(); bar.classList.add('hidden'); });
         })();
 
         // ── Pre-fill email from query params ────────────────────
-        (function () {
-            var params, emailParam, decoded;
+        (function() {
             try {
-                params = new URLSearchParams(window.location.search);
-                emailParam = params.get('email');
-                decoded = emailParam ? decodeURIComponent(emailParam) : '';
-            } catch (e) { return; }  // malformed escape sequence — ignore
-            if (decoded && isValidEmail(decoded)) {
-                fEmail.value = decoded;
-                // Sync derived UI state (sticky CTA, step dots, submit gating)
-                checkRequiredFilled();
-            }
+                var params = new URLSearchParams(window.location.search);
+                var emailParam = params.get('email');
+                var decoded = emailParam ? decodeURIComponent(emailParam) : '';
+                if (decoded && isValidEmail(decoded)) { fEmail.value = decoded; checkRequiredFilled(); }
+            } catch(e) {}
         })();
 
-        // ── Mobile menu toggle ──────────────────────────────────
-        const mobileMenuBtn = document.getElementById('mobile-menu-button');
-        const mobileMenu    = document.getElementById('mobile-menu');
+        // ── Mobile menu ──────────────────────────────────────────
+        var mobileMenuBtn = document.getElementById('mobile-menu-button');
+        var mobileMenu    = document.getElementById('mobile-menu');
         if (mobileMenuBtn && mobileMenu) {
-            const stickyHeader = document.querySelector('.sticky-header');
-            mobileMenuBtn.addEventListener('click', function () {
-                const isOpen = mobileMenu.classList.contains('is-open');
-                const icon = mobileMenuBtn.querySelector('i');
+            var stickyHeader = document.querySelector('.sticky-header');
+            mobileMenuBtn.addEventListener('click', function() {
+                var isOpen = mobileMenu.classList.contains('is-open');
+                var icon = mobileMenuBtn.querySelector('i');
                 if (isOpen) {
-                    mobileMenu.classList.remove('is-open');
-                    mobileMenu.classList.add('hidden');
+                    mobileMenu.classList.remove('is-open'); mobileMenu.classList.add('hidden');
                     if (stickyHeader) stickyHeader.classList.remove('menu-open');
                     if (icon) icon.classList.replace('fa-times', 'fa-bars');
-                    mobileMenuBtn.setAttribute('aria-expanded', 'false');
-                    mobileMenuBtn.setAttribute('aria-label', 'Abrir menú');
+                    mobileMenuBtn.setAttribute('aria-expanded', 'false'); mobileMenuBtn.setAttribute('aria-label', 'Abrir menú');
                 } else {
-                    mobileMenu.classList.remove('hidden');
-                    mobileMenu.classList.add('is-open');
+                    mobileMenu.classList.remove('hidden'); mobileMenu.classList.add('is-open');
                     if (stickyHeader) stickyHeader.classList.add('menu-open');
                     if (icon) icon.classList.replace('fa-bars', 'fa-times');
-                    mobileMenuBtn.setAttribute('aria-expanded', 'true');
-                    mobileMenuBtn.setAttribute('aria-label', 'Cerrar menú');
+                    mobileMenuBtn.setAttribute('aria-expanded', 'true'); mobileMenuBtn.setAttribute('aria-label', 'Cerrar menú');
                 }
                 mobileMenuBtn.blur();
             });
-            // Close menu when any link inside it is clicked (matches js/main.js parity)
-            mobileMenu.querySelectorAll('a').forEach(function (link) {
-                link.addEventListener('click', function () {
+            mobileMenu.querySelectorAll('a').forEach(function(link) {
+                link.addEventListener('click', function() {
                     if (!mobileMenu.classList.contains('is-open')) return;
-                    mobileMenu.classList.remove('is-open');
-                    mobileMenu.classList.add('hidden');
+                    mobileMenu.classList.remove('is-open'); mobileMenu.classList.add('hidden');
                     if (stickyHeader) stickyHeader.classList.remove('menu-open');
-                    const icon = mobileMenuBtn.querySelector('i');
+                    var icon = mobileMenuBtn.querySelector('i');
                     if (icon) icon.classList.replace('fa-times', 'fa-bars');
-                    mobileMenuBtn.setAttribute('aria-expanded', 'false');
-                    mobileMenuBtn.setAttribute('aria-label', 'Abrir menú');
+                    mobileMenuBtn.setAttribute('aria-expanded', 'false'); mobileMenuBtn.setAttribute('aria-label', 'Abrir menú');
                 });
             });
         }
 
         // ── User dropdown ────────────────────────────────────────
-        const userMenuBtn  = document.getElementById('user-menu-button');
-        const userDropdown = document.getElementById('user-dropdown-menu');
+        var userMenuBtn  = document.getElementById('user-menu-button');
+        var userDropdown = document.getElementById('user-dropdown-menu');
         if (userMenuBtn && userDropdown) {
-            userMenuBtn.addEventListener('click', function (e) {
+            userMenuBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                const hidden = userDropdown.classList.contains('opacity-0');
-                if (hidden) {
-                    userDropdown.classList.remove('opacity-0','scale-95','pointer-events-none');
-                    userDropdown.classList.add('opacity-100','scale-100','pointer-events-auto');
-                    userMenuBtn.setAttribute('aria-expanded','true');
-                } else {
-                    userDropdown.classList.add('opacity-0','scale-95','pointer-events-none');
-                    userDropdown.classList.remove('opacity-100','scale-100','pointer-events-auto');
-                    userMenuBtn.setAttribute('aria-expanded','false');
-                }
+                var hidden = userDropdown.classList.contains('opacity-0');
+                if (hidden) { userDropdown.classList.remove('opacity-0','scale-95','pointer-events-none'); userDropdown.classList.add('opacity-100','scale-100','pointer-events-auto'); userMenuBtn.setAttribute('aria-expanded','true'); }
+                else { userDropdown.classList.add('opacity-0','scale-95','pointer-events-none'); userDropdown.classList.remove('opacity-100','scale-100','pointer-events-auto'); userMenuBtn.setAttribute('aria-expanded','false'); }
             });
-            document.addEventListener('click', function () {
-                userDropdown.classList.add('opacity-0','scale-95','pointer-events-none');
-                userDropdown.classList.remove('opacity-100','scale-100','pointer-events-auto');
-                userMenuBtn.setAttribute('aria-expanded','false');
-            });
-            userDropdown.addEventListener('click', function (e) { e.stopPropagation(); });
+            document.addEventListener('click', function() { userDropdown.classList.add('opacity-0','scale-95','pointer-events-none'); userDropdown.classList.remove('opacity-100','scale-100','pointer-events-auto'); userMenuBtn.setAttribute('aria-expanded','false'); });
+            userDropdown.addEventListener('click', function(e) { e.stopPropagation(); });
         }
+
+        // ── Initialize — first product card ────────────────────
+        addProductCard();
 
     })();
     </script>

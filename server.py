@@ -1640,6 +1640,31 @@ def _init_db():
             conn.execute('ALTER TABLE quote_requests ADD COLUMN customs_description TEXT')
             conn.commit()
             print('[SOLICITUDES] Added customs_description column to quote_requests')
+        if 'products' not in existing_cols:
+            conn.execute('ALTER TABLE quote_requests ADD COLUMN products TEXT')
+            conn.commit()
+            print('[SOLICITUDES] Added products column to quote_requests')
+        if 'quote_breakdown' not in existing_cols:
+            conn.execute('ALTER TABLE quote_requests ADD COLUMN quote_breakdown TEXT')
+            conn.commit()
+            print('[SOLICITUDES] Added quote_breakdown column to quote_requests')
+        # Backfill legacy single-product rows: wrap columns into products[] JSON so
+        # multi-product code paths always have a usable products list.
+        try:
+            conn.execute("""
+                UPDATE quote_requests
+                SET products = json_array(json_object(
+                    'name', COALESCE(product_name, 'Producto'),
+                    'category', COALESCE(category, 'otros'),
+                    'declared_value_usd', COALESCE(declared_value_usd, 0),
+                    'url', COALESCE(product_url, '')
+                ))
+                WHERE products IS NULL AND product_name IS NOT NULL
+            """)
+            conn.commit()
+            print('[SOLICITUDES] Backfilled products column for legacy single-product rows')
+        except Exception as _mig_exc:
+            print(f'[SOLICITUDES] Products backfill skipped: {_mig_exc}')
         # Legacy migration: extend consultas_generales (FAQ path) with extra columns.
         # New general contact intake now uses the separate general_inquiries table.
         cg_cols = [row[1] for row in
@@ -1910,8 +1935,43 @@ def _send_smtp(msg, recipients):
 
 
 def _build_customer_confirmation_html(scb_id, product_name, declared_value_usd,
-                                      category, submitted_at):
+                                      category, submitted_at, products=None):
     esc = _html.escape
+    cat_labels = {
+        'ropa': 'Ropa y calzado', 'electronico': 'Electrónico',
+        'computadora': 'Computadoras', 'celular': 'Celulares',
+        'auricular_telefono': 'Auriculares', 'electrodomestico': 'Electrodoméstico',
+        'cosmetico': 'Cosméticos', 'suplemento': 'Suplementos',
+        'libro': 'Libros', 'juguete': 'Juguetes', 'herramienta': 'Herramientas',
+        'equipo_medico': 'Equipo médico', 'deportivo': 'Deportivo', 'otros': 'Otros',
+    }
+    # Build product rows — list if multi-product, otherwise single row
+    if products and isinstance(products, list) and len(products) > 1:
+        prod_rows = (
+            '<tr><td style="padding:5px 0;color:#666;width:40%;vertical-align:top;">Productos</td>'
+            '<td style="padding:5px 0;color:#111;">'
+            + ''.join(
+                f'<div style="margin-bottom:4px;">'
+                f'<span style="font-weight:600;">{esc(str(p.get("name") or "Producto"))}</span>'
+                + (f' &mdash; <span style="color:#6b7280;font-size:12px;">{esc(cat_labels.get(str(p.get("category") or "otros"), str(p.get("category") or "Otros")))}</span>' if p.get("category") else '')
+                + (f' &mdash; <span style="color:#374151;font-size:12px;">${float(p.get("declared_value_usd") or 0):,.2f} USD</span>' if p.get("declared_value_usd") else '')
+                + '</div>'
+                for p in products
+            )
+            + '</td></tr>'
+        )
+        total_val = sum(float(p.get('declared_value_usd') or 0) for p in products)
+        prod_rows += (
+            f'<tr><td style="padding:5px 0;color:#666;">Valor total declarado</td>'
+            f'<td style="padding:5px 0;color:#111;">${total_val:,.2f} USD</td></tr>'
+        )
+    else:
+        prod_rows = (
+            f'<tr><td style="padding:5px 0;color:#666;width:40%;">Producto</td><td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
+            f'<tr><td style="padding:5px 0;color:#666;">Valor declarado</td><td style="padding:5px 0;color:#111;">${declared_value_usd:,.2f} USD</td></tr>'
+            f'<tr><td style="padding:5px 0;color:#666;">Categoría</td><td style="padding:5px 0;color:#111;">{esc(cat_labels.get(category, category))}</td></tr>'
+        )
+
     return (
         '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;'
         'color:#1a1a1a;max-width:600px;margin:0 auto;">'
@@ -1927,12 +1987,10 @@ def _build_customer_confirmation_html(scb_id, product_name, declared_value_usd,
         '<p style="font-size:15px;color:#111;margin:0 0 20px;">Hemos recibido tu solicitud de compra. '
         'El equipo de CRBOX la revisará y te contactará pronto.</p>'
         '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:16px 20px;margin-bottom:20px;">'
-        f'<p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#FF6B00;text-transform:uppercase;letter-spacing:.06em;">Detalles de tu solicitud</p>'
-        f'<table style="width:100%;border-collapse:collapse;font-size:14px;">'
+        '<p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#FF6B00;text-transform:uppercase;letter-spacing:.06em;">Detalles de tu solicitud</p>'
+        '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
         f'<tr><td style="padding:5px 0;color:#666;width:40%;">ID</td><td style="padding:5px 0;font-weight:700;color:#111;">{esc(scb_id)}</td></tr>'
-        f'<tr><td style="padding:5px 0;color:#666;">Producto</td><td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
-        f'<tr><td style="padding:5px 0;color:#666;">Valor declarado</td><td style="padding:5px 0;color:#111;">${declared_value_usd:,.2f} USD</td></tr>'
-        f'<tr><td style="padding:5px 0;color:#666;">Categoría</td><td style="padding:5px 0;color:#111;">{esc(category)}</td></tr>'
+        + prod_rows +
         f'<tr><td style="padding:5px 0;color:#666;">Enviada el</td><td style="padding:5px 0;color:#111;">{esc(submitted_at)}</td></tr>'
         '</table>'
         '</div>'
@@ -1953,7 +2011,7 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
                              width_cm, height_cm, data_source, service_type,
                              destination_zone, estimate_usd, customer_notes,
                              weight_input=None, weight_unit=None, dimension_unit=None,
-                             customs_description=None):
+                             customs_description=None, products=None):
     def f(v, default='No especificado'):
         return str(v) if v is not None and str(v).strip() != '' else default
 
@@ -1998,6 +2056,30 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
 
     customs_val = customs_description.strip() if customs_description else None
 
+    # Multi-product section (when client submitted 2+ products via new form)
+    multi_prod_section = ''
+    if products and isinstance(products, list) and len(products) > 1:
+        prod_lines = []
+        for _pi, _pp in enumerate(products, 1):
+            _pn = _pp.get('name') or 'Producto'
+            _pv = _pp.get('declared_value_usd')
+            _pc = _pp.get('category') or ''
+            _pu = _pp.get('url') or ''
+            _pline = f'  {_pi}. {_pn}'
+            if _pc: _pline += f' [{_pc}]'
+            if _pv is not None:
+                try: _pline += f' — ${float(_pv):,.2f} USD'
+                except Exception: pass
+            if _pu: _pline += f'\n     URL: {_pu}'
+            prod_lines.append(_pline)
+        total_val = sum(float(_pp.get('declared_value_usd') or 0) for _pp in products)
+        multi_prod_section = (
+            f'─────────────────────────\n'
+            f'LISTA COMPLETA DE PRODUCTOS ({len(products)})\n'
+            + '\n'.join(prod_lines)
+            + f'\nTotal declarado: ${total_val:,.2f} USD\n'
+        )
+
     plain = (
         f'SOLICITUD DE COMPRA CRBOX\n'
         f'─────────────────────────\n'
@@ -2018,7 +2100,8 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
         f'Categoría: {category}\n'
         f'Datos físicos: {_phys_line}\n'
         f'Origen del datos: {ds_label}\n'
-        f'─────────────────────────\n'
+        + multi_prod_section
+        + f'─────────────────────────\n'
         f'ENVÍO\n'
         f'Servicio: {service_label}\n'
         f'Destino: {dest_val}\n'
@@ -2168,9 +2251,12 @@ def _plain_to_sales_html(body_text, scb_id, account_type):
 
 def _send_customer_confirmation(scb_id, customer_email, customer_name,
                                  product_name, declared_value_usd, category,
-                                 submitted_display, smtp_user):
+                                 submitted_display, smtp_user, products=None):
     esc = _html.escape
-    subject = f'[{scb_id}] Tu solicitud fue recibida — {product_name}'
+    if products and isinstance(products, list) and len(products) > 1:
+        subject = f'[{scb_id}] Tu solicitud fue recibida — {len(products)} productos'
+    else:
+        subject = f'[{scb_id}] Tu solicitud fue recibida — {product_name}'
     msg = email.mime.multipart.MIMEMultipart('alternative')
     msg['Subject'] = subject
     msg['From'] = f'CRBOX <{smtp_user}>'
@@ -2179,21 +2265,39 @@ def _send_customer_confirmation(scb_id, customer_email, customer_name,
     msg['Date'] = email.utils.formatdate(localtime=False)
 
     greeting = f'Hola {customer_name},' if customer_name else 'Hola,'
-    plain = (
-        f'{greeting}\n\n'
-        f'Tu solicitud de compra fue recibida correctamente.\n\n'
-        f'ID de solicitud: {scb_id}\n'
-        f'Producto: {product_name}\n'
-        f'Valor declarado: ${declared_value_usd:,.2f} USD\n'
-        f'Categoría: {category}\n'
-        f'Fecha: {submitted_display}\n\n'
-        f'CRBOX te contactará en breve con el precio final y los próximos pasos.\n\n'
-        f'Si tienes preguntas, responde a este correo indicando tu ID: {scb_id}\n\n'
-        f'Equipo CRBOX\n'
-        f'ventas@crbox.cr'
-    )
+    if products and isinstance(products, list) and len(products) > 1:
+        prod_lines = '\n'.join(
+            f'  • {p.get("name") or "Producto"} — ${float(p.get("declared_value_usd") or 0):,.2f} USD'
+            for p in products
+        )
+        plain = (
+            f'{greeting}\n\n'
+            f'Tu solicitud de compra fue recibida correctamente.\n\n'
+            f'ID de solicitud: {scb_id}\n'
+            f'Productos ({len(products)}):\n{prod_lines}\n'
+            f'Fecha: {submitted_display}\n\n'
+            f'CRBOX te contactará en breve con el precio final y los próximos pasos.\n\n'
+            f'Si tienes preguntas, responde a este correo indicando tu ID: {scb_id}\n\n'
+            f'Equipo CRBOX\n'
+            f'ventas@crbox.cr'
+        )
+    else:
+        plain = (
+            f'{greeting}\n\n'
+            f'Tu solicitud de compra fue recibida correctamente.\n\n'
+            f'ID de solicitud: {scb_id}\n'
+            f'Producto: {product_name}\n'
+            f'Valor declarado: ${declared_value_usd:,.2f} USD\n'
+            f'Categoría: {category}\n'
+            f'Fecha: {submitted_display}\n\n'
+            f'CRBOX te contactará en breve con el precio final y los próximos pasos.\n\n'
+            f'Si tienes preguntas, responde a este correo indicando tu ID: {scb_id}\n\n'
+            f'Equipo CRBOX\n'
+            f'ventas@crbox.cr'
+        )
     html_body = _build_customer_confirmation_html(
-        scb_id, product_name, declared_value_usd, category, submitted_display
+        scb_id, product_name, declared_value_usd, category, submitted_display,
+        products=products
     )
     msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
     msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
@@ -2208,9 +2312,12 @@ def _send_sales_submission(scb_id, customer_email, customer_name,
                             estimate_usd, customer_notes,
                             weight_input=None, weight_unit=None, dimension_unit=None,
                             submitted_display=None, smtp_user=None,
-                            customs_description=None):
+                            customs_description=None, products=None):
     empresa_tag = '[EMPRESA] ' if account_type == 'business' else ''
-    subject = f'[{scb_id}] {empresa_tag}Solicitud de compra — {product_name} — {customer_email}'
+    if products and isinstance(products, list) and len(products) > 1:
+        subject = f'[{scb_id}] {empresa_tag}Solicitud de compra — {len(products)} productos — {customer_email}'
+    else:
+        subject = f'[{scb_id}] {empresa_tag}Solicitud de compra — {product_name} — {customer_email}'
     body_text = _build_sales_email_body(
         scb_id, submitted_display, customer_name, customer_email,
         casillero_id, account_type, product_name, product_url,
@@ -2218,7 +2325,7 @@ def _send_sales_submission(scb_id, customer_email, customer_name,
         height_cm, data_source, service_type, destination_zone,
         estimate_usd, customer_notes,
         weight_input=weight_input, weight_unit=weight_unit, dimension_unit=dimension_unit,
-        customs_description=customs_description,
+        customs_description=customs_description, products=products,
     )
     msg = email.mime.multipart.MIMEMultipart('alternative')
     msg['Subject'] = subject
@@ -2286,7 +2393,8 @@ def _send_cancellation_email(scb_id, customer_email, customer_name, product_name
 def _build_response_email_html(scb_id, product_name, customer_name,
                                 confirmed_price_usd, availability,
                                 delivery_timeline, conditions,
-                                difference_explanation, customer_message):
+                                difference_explanation, customer_message,
+                                quote_breakdown=None):
     esc = _html.escape
     avail_labels = {
         'disponible': 'Disponible',
@@ -2367,6 +2475,72 @@ def _build_response_email_html(scb_id, product_name, customer_name,
             '</div>'
         )
 
+    breakdown_block = ''
+    if quote_breakdown and isinstance(quote_breakdown, dict):
+        bd_products = quote_breakdown.get('products') or []
+        bd_total    = quote_breakdown.get('grand_total_usd')
+        _line_labels = {
+            'freight':  'Flete aéreo',
+            'fuel':     'Combustible (19%)',
+            'handling': 'Manejo',
+            'taxes':    'Impuestos / Aduana',
+            'insurance': 'Seguro',
+            'delivery': 'Entrega (CR)',
+        }
+        if bd_products:
+            rows_html = ''
+            for _bp in bd_products:
+                _bname = esc(str(_bp.get('name') or 'Producto'))
+                _bship = _bp.get('shipping_usd')
+                _bw    = _bp.get('weight_kg')
+                _bv    = _bp.get('declared_value_usd')
+                _bcat  = _bp.get('category') or ''
+                _ship_str = f'${float(_bship):,.2f} USD' if _bship is not None else '—'
+                # Header row for this product
+                rows_html += (
+                    f'<tr style="background:#f0fdf4;">'
+                    f'<td colspan="2" style="padding:7px 8px 3px;font-size:13px;font-weight:700;color:#15803d;">'
+                    f'{_bname}'
+                    + (f' <span style="font-size:11px;font-weight:400;color:#6b7280;">'
+                       f'· {_bw} kg' + (f' · valor ${float(_bv):,.2f}' if _bv else '') + '</span>'
+                       if _bw else '')
+                    + '</td></tr>\n'
+                )
+                # Per-line-item breakdown if details are stored
+                _details = _bp.get('details') or {}
+                if _details:
+                    for _lk, _llabel in _line_labels.items():
+                        _lv = _details.get(_lk)
+                        if _lv is not None:
+                            rows_html += (
+                                f'<tr>'
+                                f'<td style="padding:2px 8px 2px 20px;font-size:11px;color:#4b5563;">{esc(_llabel)}</td>'
+                                f'<td style="padding:2px 8px;text-align:right;font-size:11px;color:#374151;">'
+                                f'${float(_lv):,.2f} USD</td></tr>\n'
+                            )
+                # Subtotal row
+                rows_html += (
+                    f'<tr style="border-bottom:1px solid #bbf7d0;">'
+                    f'<td style="padding:3px 8px 7px;font-size:12px;font-weight:700;color:#15803d;">'
+                    f'Subtotal envío</td>'
+                    f'<td style="padding:3px 8px 7px;text-align:right;font-size:12px;font-weight:700;color:#16a34a;">'
+                    f'{esc(_ship_str)}</td></tr>\n'
+                )
+            total_row = ''
+            if bd_total is not None:
+                total_row = (
+                    f'<tr><td style="padding:8px 8px 4px;font-weight:700;font-size:13px;color:#FF6B00;">Total envío estimado</td>'
+                    f'<td style="padding:8px 8px 4px;text-align:right;font-weight:700;font-size:14px;color:#FF6B00;">${float(bd_total):,.2f} USD</td></tr>'
+                )
+            breakdown_block = (
+                '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:16px 20px;margin:16px 0;">'
+                '<p style="margin:0 0 10px;font-size:12px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.06em;">&#128178; Desglose de costos de envío</p>'
+                '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+                + rows_html + total_row +
+                '</table>'
+                '</div>'
+            )
+
     return (
         '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;'
         'color:#1a1a1a;max-width:600px;margin:0 auto;">'
@@ -2397,6 +2571,7 @@ def _build_response_email_html(scb_id, product_name, customer_name,
         f'{conditions_block}'
         f'{message_block}'
         f'{diff_block}'
+        f'{breakdown_block}'
         '<p style="font-size:12px;color:#9ca3af;margin:20px 0 0;">Para cualquier consulta, '
         f'responde a este correo indicando tu ID <strong>{esc(scb_id)}</strong>. '
         'El equipo de CRBOX estar&aacute; encantado de ayudarte.</p>'
@@ -2407,7 +2582,7 @@ def _build_response_email_html(scb_id, product_name, customer_name,
 def _send_customer_response(scb_id, customer_email, customer_name, product_name,
                               confirmed_price_usd, availability, delivery_timeline,
                               conditions, difference_explanation, customer_message,
-                              smtp_user):
+                              smtp_user, quote_breakdown=None):
     avail_labels = {
         'disponible': 'Disponible',
         'no_disponible': 'No disponible',
@@ -2442,7 +2617,8 @@ def _send_customer_response(scb_id, customer_email, customer_name, product_name,
     html_body = _build_response_email_html(
         scb_id, product_name, customer_name,
         confirmed_price_usd, availability, delivery_timeline,
-        conditions, difference_explanation, customer_message
+        conditions, difference_explanation, customer_message,
+        quote_breakdown=quote_breakdown
     )
 
     msg = email.mime.multipart.MIMEMultipart('alternative')
@@ -3740,6 +3916,228 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
   </div>
 </div>'''
 
+    # ── Interactive calculator section ──────────────────────────────────────
+    _calc_products_raw = row.get('products') or None
+    _calc_products = []
+    if _calc_products_raw:
+        try:
+            _calc_products = json.loads(_calc_products_raw)
+            if not isinstance(_calc_products, list):
+                _calc_products = []
+        except Exception:
+            pass
+    if not _calc_products:
+        _calc_products = [{
+            'name': row.get('product_name') or 'Producto',
+            'category': row.get('category') or 'otros',
+            'declared_value_usd': row.get('declared_value_usd') or 0,
+            'url': row.get('product_url') or '',
+        }]
+
+    _ADM_CATEGORIES = [
+        ('celulares','Celulares y Smartphones'),
+        ('computadora','Computadoras y Laptops'),
+        ('tableta_electronica','Tabletas y iPads'),
+        ('consola_videojuegos','Consolas de Videojuegos'),
+        ('camara','Cámaras y Video'),
+        ('auricular_telefono','Audífonos y Accesorios Audio'),
+        ('bocina','Bocinas y Equipos de Sonido'),
+        ('televisor','Televisores'),
+        ('ropa','Ropa y Calzado'),
+        ('anteojos','Anteojos y Gafas'),
+        ('cinturon','Cinturones y Bolsos'),
+        ('electrodomesticos','Electrodomésticos'),
+        ('aspiradora','Aspiradora y Limpieza'),
+        ('colchon','Colchones y Muebles'),
+        ('herramientas','Herramientas'),
+        ('bicicleta_economica','Bicicleta (CIF bajo $1000)'),
+        ('bicicleta_cara','Bicicleta (CIF $1000+)'),
+        ('bola','Artículos Deportivos'),
+        ('coche_bebe','Coches de Bebé'),
+        ('juguetes','Juguetes'),
+        ('amortiguadores','Amortiguadores'),
+        ('aros_carro_moto','Aros de Carro/Moto'),
+        ('cds','Libros, CDs y Medios'),
+        ('otros','Otro / No está en la lista'),
+    ]
+    _calc_rows_html = ''
+    for _ci, _cp in enumerate(_calc_products):
+        _pname    = esc(_cp.get('name') or f'Producto {_ci+1}')
+        _pcat_val = _cp.get('category') or 'otros'
+        _pdecval  = _cp.get('declared_value_usd') or 0
+        _purl     = _cp.get('url') or ''
+        _url_link = (
+            f'<div style="margin-bottom:.5rem;"><a href="{esc(_purl)}" target="_blank" rel="noopener"'
+            f' style="font-size:.73rem;color:#6366f1;word-break:break-all;">'
+            f'{esc(_purl[:70])}{"&hellip;" if len(_purl)>70 else ""}</a></div>'
+        ) if _purl else ''
+        # Build category select with current value pre-selected (same keys as tariff-adapter)
+        _pcat_known = _pcat_val if any(_ck == _pcat_val for _ck, _ in _ADM_CATEGORIES) else 'otros'
+        _cat_opts_cur = ''.join(
+            f'<option value="{_ck}"{" selected" if _ck==_pcat_known else ""}>{_cv}</option>'
+            for _ck, _cv in _ADM_CATEGORIES
+        )
+        _calc_rows_html += f'''<details class="adm-calc-product" data-prod-idx="{_ci}" open style="border:1px solid #e5e7eb;border-radius:.55rem;margin-bottom:.65rem;overflow:hidden;">
+  <summary style="font-weight:700;font-size:.88rem;color:#1f2937;padding:.7rem .9rem;cursor:pointer;user-select:none;background:#f9fafb;display:flex;justify-content:space-between;align-items:center;">
+    <span>{_ci+1}. {_pname}</span>
+    <span style="font-size:.72rem;font-weight:400;color:#6b7280;margin-left:.5rem;" class="adm-calc-summary-total"></span>
+  </summary>
+  <div style="padding:.8rem .9rem;">
+    {_url_link}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem;">
+      <div>
+        <label style="font-size:.7rem;color:#6b7280;display:block;margin-bottom:.15rem;">Valor declarado (USD)</label>
+        <input class="adm-calc-inp adm-calc-value" type="number" min="0" step="0.01" value="{_pdecval}" style="width:100%;padding:.35rem .45rem;border:1px solid #d1d5db;border-radius:.35rem;font-size:.83rem;">
+      </div>
+      <div>
+        <label style="font-size:.7rem;color:#6b7280;display:block;margin-bottom:.15rem;">Categoría</label>
+        <select class="adm-calc-inp adm-calc-category" style="width:100%;padding:.35rem .45rem;border:1px solid #d1d5db;border-radius:.35rem;font-size:.83rem;background:#fff;">{_cat_opts_cur}</select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.4rem;margin-bottom:.45rem;">
+      <div><label style="font-size:.7rem;color:#6b7280;display:block;margin-bottom:.15rem;">Peso (kg)</label><input class="adm-calc-inp adm-calc-weight" type="number" min="0.01" step="0.01" placeholder="kg" style="width:100%;padding:.35rem .45rem;border:1px solid #d1d5db;border-radius:.35rem;font-size:.83rem;"></div>
+      <div><label style="font-size:.7rem;color:#6b7280;display:block;margin-bottom:.15rem;">Largo (cm)</label><input class="adm-calc-inp adm-calc-length" type="number" min="0" step="0.1" placeholder="cm" style="width:100%;padding:.35rem .45rem;border:1px solid #d1d5db;border-radius:.35rem;font-size:.83rem;"></div>
+      <div><label style="font-size:.7rem;color:#6b7280;display:block;margin-bottom:.15rem;">Ancho (cm)</label><input class="adm-calc-inp adm-calc-width" type="number" min="0" step="0.1" placeholder="cm" style="width:100%;padding:.35rem .45rem;border:1px solid #d1d5db;border-radius:.35rem;font-size:.83rem;"></div>
+      <div><label style="font-size:.7rem;color:#6b7280;display:block;margin-bottom:.15rem;">Alto (cm)</label><input class="adm-calc-inp adm-calc-height" type="number" min="0" step="0.1" placeholder="cm" style="width:100%;padding:.35rem .45rem;border:1px solid #d1d5db;border-radius:.35rem;font-size:.83rem;"></div>
+    </div>
+    <div class="adm-calc-result" style="font-size:.79rem;color:#374151;min-height:1.4rem;padding:.35rem .55rem;background:#f9fafb;border-radius:.35rem;"></div>
+  </div>
+</details>'''
+
+    _svc_calc = row.get('service_type') or 'aereo'
+    _dest_calc = row.get('destination_zone') or 'sanjose'
+    # Safe JSON for inline <script type="application/json"> — prevent </script> breakout
+    _calc_products_js_safe = json.dumps(_calc_products, ensure_ascii=False).replace('</', '<\\/')
+
+    if status in ('enviada', 'en_revision'):
+        _calc_hidden_target = 'resp-quote-breakdown'
+    else:
+        _calc_hidden_target = ''
+
+    _svc_calc_esc = esc(_svc_calc)
+    _dest_calc_esc = esc(_dest_calc)
+    _calc_hidden_target_esc = esc(_calc_hidden_target)
+
+    if _svc_calc == 'maritimo':
+        calculator_html = f'''<div class="adm-detail-section" id="adm-calc-section">
+  <div class="adm-detail-section-title">&#128178;&nbsp;Calculadora de env&iacute;o</div>
+  <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:.5rem;padding:1rem 1.1rem;">
+    <p style="font-weight:700;font-size:.85rem;color:#92400e;margin:0 0 .3rem;">&#9888;&#65039; Env&iacute;o Mar&iacute;timo &mdash; revisi&oacute;n manual requerida</p>
+    <p style="font-size:.81rem;color:#78350f;margin:0;line-height:1.55;">La calculadora autom&aacute;tica solo aplica para env&iacute;o a&eacute;reo. Para carga mar&iacute;tima debes calcular el costo manualmente seg&uacute;n el volumen (m&sup3;) y las tarifas vigentes. Ingresa el precio directamente en el formulario de respuesta.</p>
+  </div>
+</div>'''
+    else:
+        calculator_html = f'''<div class="adm-detail-section" id="adm-calc-section">
+  <div class="adm-detail-section-title">&#128178;&nbsp;Calculadora de env&iacute;o a&eacute;reo</div>
+  <p style="font-size:.82rem;color:#6b7280;margin-bottom:.9rem;">Ingresa el peso y dimensiones por producto. Se muestran los costos desglosados por &iacute;tem. Usa el bot&oacute;n para incluir el desglose en la respuesta al cliente.</p>
+  <script src="/js/tariff-adapter.js?v=2"></script>
+  <script src="/js/calculator-engine.js?v=2"></script>
+  <script type="application/json" id="adm-calc-products-json">{_calc_products_js_safe}</script>
+  {_calc_rows_html}
+  <div id="adm-calc-grand-total" style="border-top:2px solid #FF6B00;margin-top:.4rem;padding:.65rem 0 0;font-weight:700;font-size:.95rem;color:#FF6B00;">Total estimado: &mdash;</div>
+  <div style="margin-top:.7rem;">
+    <button type="button" id="adm-calc-apply-btn" style="padding:.5rem 1.1rem;background:#1d4ed8;color:#fff;border:none;border-radius:.45rem;font-size:.82rem;font-weight:700;cursor:pointer;transition:background .2s;" onmouseover="this.style.background=\'#1e3a8a\'" onmouseout="this.style.background=\'#1d4ed8\'">
+      Incluir este desglose en la respuesta
+    </button>
+    <span id="adm-calc-apply-status" style="font-size:.78rem;color:#059669;margin-left:.6rem;display:none;">&#10003; Desglose guardado &mdash; se enviar&aacute; al cliente</span>
+  </div>
+  <script>
+  (function() {{
+    var _dataEl = document.getElementById('adm-calc-products-json');
+    var PRODUCTS = _dataEl ? JSON.parse(_dataEl.textContent) : [];
+    var SERVICE_TYPE = '{_svc_calc_esc}';
+    var DEST_ZONE = '{_dest_calc_esc}';
+    var HIDDEN_ID = '{_calc_hidden_target_esc}';
+    var lastBreakdown = null;
+    var LINE_LABELS = {{
+      freight:  'Flete a\u00e9reo',
+      fuel:     'Combustible (19%)',
+      handling: 'Manejo',
+      taxes:    'Impuestos / Aduana',
+      insurance:'Seguro',
+      delivery: 'Entrega (CR)'
+    }};
+    function fmtUSD(v) {{ return '$' + Number(v||0).toFixed(2) + ' USD'; }}
+    function calcAll() {{
+      if (typeof CALCULATOR_ENGINE === 'undefined' || typeof TARIFF_ADAPTER === 'undefined') return;
+      var grandTotal = 0;
+      var allProds = [];
+      var productEls = document.querySelectorAll('#adm-calc-section .adm-calc-product');
+      productEls.forEach(function(el, idx) {{
+        var w  = parseFloat(el.querySelector('.adm-calc-weight').value) || 0;
+        var l  = parseFloat(el.querySelector('.adm-calc-length').value) || 0;
+        var wi = parseFloat(el.querySelector('.adm-calc-width').value)  || 0;
+        var h  = parseFloat(el.querySelector('.adm-calc-height').value) || 0;
+        var resEl = el.querySelector('.adm-calc-result');
+        var summaryTot = el.querySelector('.adm-calc-summary-total');
+        var p = PRODUCTS[idx] || {{}};
+        var pVal = parseFloat((el.querySelector('.adm-calc-value') || {{}}).value) || p.declared_value_usd || 0;
+        var pCat = ((el.querySelector('.adm-calc-category') || {{}}).value) || p.category || 'otros';
+        var pName = p.name || ('Producto ' + (idx + 1));
+        if (w <= 0) {{
+          if (resEl) {{ resEl.innerHTML = '<span style="color:#9ca3af;">&mdash; Ingresa el peso para calcular</span>'; }}
+          if (summaryTot) summaryTot.textContent = '';
+          return;
+        }}
+        try {{
+          var res = CALCULATOR_ENGINE.calcSinglePackage({{
+            name: pName, value: pVal,
+            weight: w, length: l || 0.1, width: wi || 0.1, height: h || 0.1,
+            category: pCat, destination: DEST_ZONE
+          }});
+          if (!res) {{ if (resEl) resEl.textContent = '\u2014 Error en c\u00e1lculo'; return; }}
+          var tot = res.total || 0;
+          grandTotal += tot;
+          if (summaryTot) summaryTot.textContent = fmtUSD(tot);
+          allProds.push({{
+            name: pName, category: pCat, declared_value_usd: pVal,
+            weight_kg: w, length_cm: l, width_cm: wi, height_cm: h,
+            shipping_usd: tot, details: res
+          }});
+          var lines = ['freight','fuel','handling','taxes','insurance','delivery'];
+          var rows = lines.map(function(k) {{
+            return '<div style="display:flex;justify-content:space-between;font-size:.74rem;padding:.1rem 0;color:#374151;">'
+              + '<span>' + LINE_LABELS[k] + '</span>'
+              + '<span style="font-weight:600;">' + fmtUSD(res[k]) + '</span></div>';
+          }}).join('');
+          if (resEl) {{
+            resEl.innerHTML =
+              '<div style="border-top:1px solid #e5e7eb;margin-top:.35rem;padding-top:.35rem;">' + rows + '</div>'
+              + '<div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;color:#059669;border-top:1px solid #d1fae5;margin-top:.3rem;padding-top:.3rem;">'
+              + '<span>Subtotal env\u00edo</span><span>' + fmtUSD(tot) + '</span></div>';
+          }}
+        }} catch(e) {{ if (resEl) resEl.textContent = '\u2014 Error: ' + e.message; }}
+      }});
+      var totEl = document.getElementById('adm-calc-grand-total');
+      if (grandTotal > 0) {{
+        totEl.textContent = 'Total estimado: $' + grandTotal.toFixed(2) + ' USD';
+        lastBreakdown = {{
+          products: allProds, grand_total_usd: grandTotal,
+          service_type: SERVICE_TYPE, destination_zone: DEST_ZONE,
+          calculated_at: new Date().toISOString()
+        }};
+      }} else {{ totEl.innerHTML = 'Total estimado: &mdash;'; lastBreakdown = null; }}
+    }}
+    document.querySelectorAll('#adm-calc-section .adm-calc-inp').forEach(function(inp) {{
+      inp.addEventListener('input', calcAll);
+    }});
+    var applyBtn = document.getElementById('adm-calc-apply-btn');
+    var applyStatus = document.getElementById('adm-calc-apply-status');
+    if (applyBtn) {{
+      applyBtn.addEventListener('click', function() {{
+        if (!lastBreakdown) {{ alert('Ingresa el peso de al menos un producto para generar el desglose.'); return; }}
+        if (!HIDDEN_ID) {{ alert('El formulario de respuesta no est\u00e1 disponible (solicitud ya respondida).'); return; }}
+        var hidden = document.getElementById(HIDDEN_ID);
+        if (hidden) {{
+          hidden.value = JSON.stringify(lastBreakdown);
+          if (applyStatus) {{ applyStatus.style.display = 'inline'; setTimeout(function() {{ applyStatus.style.display = 'none'; }}, 3500); }}
+        }} else {{ alert('El formulario de respuesta no est\u00e1 disponible.'); }}
+      }});
+    }}
+  }})();
+  </script>
+</div>'''
+
     # ── Status history timeline ─────────────────────────────────────────────
     status_label_map = {
         'enviada':                           'Enviada',
@@ -3973,6 +4371,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
   </div>
   <form method="POST" action="/admin/solicitudes/{rid}/respond">
     <input type="hidden" name="filter" value="{esc(filter_val)}">
+    <input type="hidden" name="resp_quote_breakdown" id="resp-quote-breakdown" value="">
     <div class="adm-resp-field">
       <label class="adm-resp-label">Precio de env&iacute;o confirmado (USD) <span style="color:#ef4444;">*</span></label>
       <input class="adm-resp-input" type="number" name="confirmed_price"
@@ -4517,6 +4916,7 @@ details.adm-ai-details[open] .adm-ai-chevron{{transform:rotate(180deg)}}
     <div class="adm-col-main">
       {product_html}
       {estimado_html}
+      {calculator_html}
       {ai_section_html}
       {history_html}
       {composer_html}
@@ -7157,9 +7557,43 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_error(400, 'Solicitud inválida.')
             return
 
-        product_name = (data.get('product_name') or '').strip()
+        # ── Multi-product support ─────────────────────────────────────────────
+        # If `products` array is provided, derive primary fields from products[0].
+        # Falls back to single-product fields for backward compat.
+        products_raw = data.get('products')
+        if isinstance(products_raw, list) and products_raw:
+            # Normalise each product entry — strip strings, coerce value to float
+            _norm_prods = []
+            for _pp in products_raw:
+                if not isinstance(_pp, dict):
+                    continue
+                try:
+                    _pv = float(_pp.get('declared_value_usd') or 0)
+                except (TypeError, ValueError):
+                    _pv = 0.0
+                _norm_prods.append({
+                    'name':               str(_pp.get('name') or '').strip(),
+                    'declared_value_usd': _pv,
+                    'category':           str(_pp.get('category') or 'otros').strip(),
+                    'url':                str(_pp.get('url') or '').strip() or None,
+                    'customs_description': str(_pp.get('customs_description') or '').strip() or None,
+                })
+            products_raw = _norm_prods if _norm_prods else None
+
+        if isinstance(products_raw, list) and products_raw:
+            p0 = products_raw[0]
+            product_name        = p0['name'] or (data.get('product_name') or '').strip()
+            declared_value_raw  = p0['declared_value_usd'] if p0['declared_value_usd'] else data.get('declared_value_usd')
+            data = dict(data)
+            data['category']    = p0['category'] or (data.get('category') or 'otros')
+            data['product_url'] = p0['url'] or (data.get('product_url') or None)
+        else:
+            # Single-product (legacy) path — normalise into one-item products array
+            product_name = (data.get('product_name') or '').strip()
+            declared_value_raw = data.get('declared_value_usd')
+            # products_raw is set after declared_value_usd is validated below
+
         customer_email = (data.get('customer_email') or '').strip()
-        declared_value_raw = data.get('declared_value_usd')
 
         errors = []
         if not product_name or len(product_name) < 3:
@@ -7176,6 +7610,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         if errors:
             self._json_response(400, {'ok': False, 'errors': errors})
             return
+
+        # Normalise single-product submissions into one-item products array
+        if products_raw is None:
+            products_raw = [{
+                'name': product_name,
+                'declared_value_usd': declared_value_usd,
+                'category': (data.get('category') or 'otros').strip(),
+                'url': (data.get('product_url') or None),
+                'customs_description': (data.get('customs_description') or '').strip() or None,
+            }]
 
         scb_id = _generate_scb_id()
         now_iso = _now_iso()
@@ -7244,6 +7688,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             weight_kg = length_cm = width_cm = height_cm = estimate_usd = None
 
         estimate_breakdown_json = json.dumps(estimate_breakdown) if estimate_breakdown else None
+        products_json = json.dumps(products_raw, ensure_ascii=False) if products_raw else None
         hist_id = _uuid4_hex()
 
         try:
@@ -7255,14 +7700,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                         product_name, product_url, declared_value_usd, category,
                         weight_kg, length_cm, width_cm, height_cm, customer_notes,
                         service_type, destination_zone, estimate_usd, estimate_breakdown,
-                        data_source, ai_extraction_json, customs_description,
+                        data_source, ai_extraction_json, customs_description, products,
                         status, submitted_at, expires_at)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
                     (scb_id, casillero_id, customer_email, customer_name, account_type,
                      product_name, product_url, declared_value_usd, category,
                      weight_kg, length_cm, width_cm, height_cm, customer_notes,
                      service_type, destination_zone, estimate_usd, estimate_breakdown_json,
-                     data_source, ai_extraction_json, customs_description,
+                     data_source, ai_extraction_json, customs_description, products_json,
                      'enviada', now_iso, expires_iso)
                 )
                 conn.execute(
@@ -7287,7 +7732,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         try:
             _send_customer_confirmation(
                 scb_id, customer_email, customer_name, product_name,
-                declared_value_usd, category, now_disp, smtp_user
+                declared_value_usd, category, now_disp, smtp_user,
+                products=products_raw,
             )
             print(f'[SOLICITUDES] Customer confirmation sent to {customer_email}')
         except Exception as exc:
@@ -7303,6 +7749,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 weight_input, weight_unit, dimension_unit,
                 now_disp, smtp_user,
                 customs_description=customs_description,
+                products=products_raw,
             )
             print(f'[SOLICITUDES] Sales email sent to {QUOTE_RECIPIENT}')
         except Exception as exc:
@@ -9510,6 +9957,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             conditions             = (params.get('conditions', [''])[0] or '').strip()[:2000]
             difference_explanation = (params.get('difference_explanation', [''])[0] or '').strip()[:2000]
             customer_message       = (params.get('customer_message', [''])[0] or '').strip()[:5000]
+            resp_quote_breakdown_raw = (params.get('resp_quote_breakdown', [''])[0] or '').strip()
+            # Validate quote_breakdown is valid JSON if provided
+            resp_quote_breakdown = None
+            if resp_quote_breakdown_raw:
+                try:
+                    _bd = json.loads(resp_quote_breakdown_raw)
+                    if isinstance(_bd, dict):
+                        resp_quote_breakdown = resp_quote_breakdown_raw
+                except Exception:
+                    pass
         except Exception:
             self.send_response(400); self.end_headers(); return
 
@@ -9587,6 +10044,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         smtp_user = settings[2]
         try:
+            _bd_for_email = None
+            if resp_quote_breakdown:
+                try: _bd_for_email = json.loads(resp_quote_breakdown)
+                except Exception: pass
             _send_customer_response(
                 scb_id,
                 row['customer_email'],
@@ -9599,6 +10060,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 difference_explanation,
                 customer_message,
                 smtp_user,
+                quote_breakdown=_bd_for_email,
             )
             print(f'[ADMIN] Response email sent for {scb_id} → {row["customer_email"]}')
         except Exception as exc:
@@ -9611,7 +10073,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         hist_id  = _uuid4_hex()
         hist_note = f'Respuesta enviada \u00b7 disponibilidad: {availability}'
 
-        resp_payload = json.dumps({
+        resp_payload_dict = {
             'confirmed_shipping_price_usd': confirmed_price,
             'availability': availability,
             'delivery_timeline': delivery_timeline,
@@ -9619,14 +10081,20 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             'difference_explanation': difference_explanation,
             'customer_message': customer_message,
             'sent_at': now_iso,
-        }, ensure_ascii=False)
+        }
+        if resp_quote_breakdown:
+            try:
+                resp_payload_dict['quote_breakdown'] = json.loads(resp_quote_breakdown)
+            except Exception:
+                pass
+        resp_payload = json.dumps(resp_payload_dict, ensure_ascii=False)
 
         try:
             with _DB_LOCK:
                 conn = _get_db()
                 conn.execute(
-                    'UPDATE quote_requests SET status = ?, responded_at = ?, response_json = ? WHERE id = ?',
-                    ('respondida', now_iso, resp_payload, scb_id)
+                    'UPDATE quote_requests SET status = ?, responded_at = ?, response_json = ?, quote_breakdown = ? WHERE id = ?',
+                    ('respondida', now_iso, resp_payload, resp_quote_breakdown, scb_id)
                 )
                 conn.execute(
                     '''INSERT INTO quote_status_history
@@ -9728,6 +10196,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 resp_data.get('difference_explanation', ''),
                 resp_data.get('customer_message', ''),
                 smtp_user,
+                quote_breakdown=resp_data.get('quote_breakdown'),
             )
             print(f'[ADMIN] Response email resent for {scb_id} → {row["customer_email"]}')
         except Exception as exc:

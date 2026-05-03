@@ -207,7 +207,67 @@
     var respEmailEl = document.getElementById('resp-email');
     if (respEmailEl) respEmailEl.textContent = userEmail || '';
 
+    // Render itemized breakdown if present
+    if (parsed.quote_breakdown) {
+      _renderBreakdown(parsed.quote_breakdown);
+    }
+
     return hasContent;
+  }
+
+  var _BD_LINE_LABELS = {
+    freight:  'Flete aéreo',
+    fuel:     'Combustible (19%)',
+    handling: 'Manejo',
+    taxes:    'Impuestos / Aduana',
+    insurance:'Seguro',
+    delivery: 'Entrega (CR)'
+  };
+
+  function _renderBreakdown(bd) {
+    var section = document.getElementById('resp-breakdown-section');
+    var tableEl = document.getElementById('resp-breakdown-table');
+    var totalEl = document.getElementById('resp-breakdown-total');
+    if (!section || !tableEl) return;
+    var products = bd.products || [];
+    if (!products.length) return;
+
+    tableEl.innerHTML = products.map(function(p, idx) {
+      var name = p.name || ('Producto ' + (idx + 1));
+      var ship = (p.shipping_usd != null) ? '$' + Number(p.shipping_usd).toFixed(2) + ' USD' : '—';
+      var meta = [];
+      if (p.weight_kg) meta.push(p.weight_kg + ' kg');
+      if (p.declared_value_usd) meta.push('valor $' + Number(p.declared_value_usd).toFixed(2));
+
+      var det = p.details || {};
+      var lineKeys = ['freight','fuel','handling','taxes','insurance','delivery'];
+      var hasDetails = lineKeys.some(function(k) { return det[k] != null; });
+      var lineItemsHtml = '';
+      if (hasDetails) {
+        lineItemsHtml = lineKeys.filter(function(k) { return det[k] != null; }).map(function(k) {
+          return '<div class="flex justify-between text-xs text-green-700 py-0.5">'
+            + '<span>' + esc(_BD_LINE_LABELS[k] || k) + '</span>'
+            + '<span class="font-medium ml-4">$' + Number(det[k]).toFixed(2) + ' USD</span>'
+            + '</div>';
+        }).join('');
+      }
+
+      var summaryMeta = meta.length ? ' <span class="font-normal text-green-600 text-xs">' + esc(meta.join(' · ')) + '</span>' : '';
+      return '<details class="border border-green-100 rounded-xl mb-2 last:mb-0 overflow-hidden" open>'
+        + '<summary class="flex justify-between items-center px-3 py-2 bg-green-50 cursor-pointer list-none">'
+        + '<span class="text-xs font-semibold text-green-900">' + esc(name) + summaryMeta + '</span>'
+        + '<span class="text-xs font-bold text-green-800 whitespace-nowrap ml-4">' + esc(ship) + '</span>'
+        + '</summary>'
+        + (lineItemsHtml
+            ? '<div class="px-3 pb-2 pt-1">' + lineItemsHtml + '</div>'
+            : '')
+        + '</details>';
+    }).join('');
+
+    if (bd.grand_total_usd != null) {
+      totalEl.textContent = 'Total envío estimado: $' + Number(bd.grand_total_usd).toFixed(2) + ' USD';
+    }
+    section.classList.remove('hidden');
   }
 
   // ─── Main render ────────────────────────────────────────────────────────────
