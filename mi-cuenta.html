@@ -652,18 +652,30 @@
             const togglePasswordButtons = document.querySelectorAll('.toggle-password');
             
             togglePasswordButtons.forEach(button => {
+                // Initialize accessibility state
+                button.setAttribute('aria-pressed', 'false');
+                button.setAttribute('aria-label', 'Mostrar contraseña');
                 button.addEventListener('click', function() {
                     const passwordInput = this.parentNode.querySelector('input');
                     const icon = this.querySelector('i');
-                    
+                    if (!passwordInput) return;
+
                     if (passwordInput.type === 'password') {
                         passwordInput.type = 'text';
-                        icon.classList.remove('fa-eye');
-                        icon.classList.add('fa-eye-slash');
+                        if (icon) {
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        }
+                        this.setAttribute('aria-pressed', 'true');
+                        this.setAttribute('aria-label', 'Ocultar contraseña');
                     } else {
                         passwordInput.type = 'password';
-                        icon.classList.remove('fa-eye-slash');
-                        icon.classList.add('fa-eye');
+                        if (icon) {
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                        this.setAttribute('aria-pressed', 'false');
+                        this.setAttribute('aria-label', 'Mostrar contraseña');
                     }
                 });
             });

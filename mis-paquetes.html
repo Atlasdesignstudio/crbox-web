@@ -894,8 +894,8 @@
                         </div>
                         <input type="text" id="tracking-number-input" class="h-12 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500" placeholder="Ingresa el número de tracking">
                         <div class="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
-                            <button id="clear-tracking-input" class="inline-flex items-center border border-transparent rounded-lg px-2 text-gray-400 hover:text-gray-500">
-                                <i class="fas fa-times"></i>
+                            <button id="clear-tracking-input" type="button" aria-label="Limpiar número de tracking" class="inline-flex items-center border border-transparent rounded-lg px-2 text-gray-400 hover:text-gray-500">
+                                <i class="fas fa-times" aria-hidden="true"></i>
                             </button>
                         </div>
                     </div>
@@ -1725,7 +1725,7 @@
                     gridViewBtn.setAttribute('aria-pressed', 'false');
                     
                     // Guardar preferencia del usuario
-                    localStorage.setItem('preferredView', 'list');
+                    try { localStorage.setItem('preferredView', 'list'); } catch (e) {}
                 });
                 
                 gridViewBtn.addEventListener('click', () => {
@@ -1742,11 +1742,12 @@
                     listViewBtn.setAttribute('aria-pressed', 'false');
                     
                     // Guardar preferencia del usuario
-                    localStorage.setItem('preferredView', 'grid');
+                    try { localStorage.setItem('preferredView', 'grid'); } catch (e) {}
                 });
                 
                 // Restaurar preferencia guardada
-                const preferredView = localStorage.getItem('preferredView');
+                let preferredView = null;
+                try { preferredView = localStorage.getItem('preferredView'); } catch (e) {}
                 if (preferredView === 'grid') {
                     gridViewBtn.click();
                 }

@@ -1066,8 +1066,6 @@ function initDashboard() {
     // Solicitudes de compra badge count
     initSolicitudesBadge();
     
-    // Log initialization
-    console.log('CRBOX Dashboard inicializado correctamente: ' + new Date().toISOString());
 }
 
 /**
