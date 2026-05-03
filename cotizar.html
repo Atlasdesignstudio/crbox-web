@@ -41,8 +41,8 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/styles.css?v=4">
-    <link rel="stylesheet" href="css/responsive.css?v=12">
+    <link rel="stylesheet" href="css/styles.css?v=6">
+    <link rel="stylesheet" href="css/responsive.css?v=15">
 
     <script type="application/ld+json">
     {
@@ -2217,11 +2217,13 @@
                 const icon = mobileMenuBtn.querySelector('i');
                 if (isOpen) {
                     mobileMenu.classList.remove('is-open');
+                    mobileMenu.classList.add('hidden');
                     if (stickyHeader) stickyHeader.classList.remove('menu-open');
                     if (icon) icon.classList.replace('fa-times', 'fa-bars');
                     mobileMenuBtn.setAttribute('aria-expanded', 'false');
                     mobileMenuBtn.setAttribute('aria-label', 'Abrir menú');
                 } else {
+                    mobileMenu.classList.remove('hidden');
                     mobileMenu.classList.add('is-open');
                     if (stickyHeader) stickyHeader.classList.add('menu-open');
                     if (icon) icon.classList.replace('fa-bars', 'fa-times');
@@ -2235,6 +2237,7 @@
                 link.addEventListener('click', function () {
                     if (!mobileMenu.classList.contains('is-open')) return;
                     mobileMenu.classList.remove('is-open');
+                    mobileMenu.classList.add('hidden');
                     if (stickyHeader) stickyHeader.classList.remove('menu-open');
                     const icon = mobileMenuBtn.querySelector('i');
                     if (icon) icon.classList.replace('fa-times', 'fa-bars');

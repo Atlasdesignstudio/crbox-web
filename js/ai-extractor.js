@@ -537,7 +537,7 @@
 
             // Disable submit if PROHIBITED
             if (result.compliance && result.compliance.verdict === 'do_not_ship') {
-                var submitBtns = document.querySelectorAll('[type=submit], #btn-submit-cotizar, #btn-submit-portal');
+                var submitBtns = document.querySelectorAll('[type=submit], #btn-sticky-submit');
                 submitBtns.forEach(function (btn) {
                     btn.disabled = true;
                     btn.dataset.aiProhibited = '1';

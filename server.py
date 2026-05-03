@@ -7056,8 +7056,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return
 
         try:
-            length = int(self.headers.get('Content-Length', 0))
-            raw = self.rfile.read(length).decode('utf-8')
+            raw = self._read_body(_MAX_BODY_REGULAR)
             data = json.loads(raw)
         except Exception:
             _log_quote_submission('', '', '', 'failed', 'invalid_request_body', ip=client_ip)
