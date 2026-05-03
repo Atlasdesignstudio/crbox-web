@@ -10669,7 +10669,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self.send_response(404); self.end_headers(); return
+            self._admin_redirect('/admin/login?msg=expired'); return
         try:
             length = int(self.headers.get('Content-Length', 0))
             raw    = self.rfile.read(length).decode('utf-8')
@@ -10758,7 +10758,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self.send_response(404); self.end_headers(); return
+            self._admin_redirect('/admin/login?msg=expired'); return
         try:
             length = int(self.headers.get('Content-Length', 0))
             raw    = self.rfile.read(length).decode('utf-8')
@@ -10811,7 +10811,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self.send_response(404); self.end_headers(); return
+            self._admin_redirect('/admin/login?msg=expired'); return
 
         try:
             length = int(self.headers.get('Content-Length', 0))
@@ -10989,7 +10989,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self.send_response(404); self.end_headers(); return
+            self._admin_redirect('/admin/login?msg=expired'); return
 
         try:
             length = int(self.headers.get('Content-Length', 0))
@@ -11239,7 +11239,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self.send_response(404); self.end_headers(); return
+            self._admin_redirect('/admin/login?msg=expired'); return
         try:
             length = int(self.headers.get('Content-Length', 0))
             raw    = self.rfile.read(length).decode('utf-8')
