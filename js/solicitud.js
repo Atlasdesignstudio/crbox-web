@@ -105,11 +105,11 @@
     if (!iso) return '—';
     try {
       var d = new Date(iso);
-      var dd = String(d.getDate()).padStart(2, '0');
-      var mm = String(d.getMonth() + 1).padStart(2, '0');
-      var yyyy = d.getFullYear();
-      var hh = String(d.getHours()).padStart(2, '0');
-      var min = String(d.getMinutes()).padStart(2, '0');
+      var dd = String(d.getUTCDate()).padStart(2, '0');
+      var mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+      var yyyy = d.getUTCFullYear();
+      var hh = String(d.getUTCHours()).padStart(2, '0');
+      var min = String(d.getUTCMinutes()).padStart(2, '0');
       return dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + min;
     } catch (e) { return iso; }
   }
@@ -118,9 +118,9 @@
     if (!iso) return '—';
     try {
       var d = new Date(iso);
-      var dd = String(d.getDate()).padStart(2, '0');
-      var mm = String(d.getMonth() + 1).padStart(2, '0');
-      var yyyy = d.getFullYear();
+      var dd = String(d.getUTCDate()).padStart(2, '0');
+      var mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+      var yyyy = d.getUTCFullYear();
       return dd + '/' + mm + '/' + yyyy;
     } catch (e) { return iso; }
   }
@@ -215,7 +215,12 @@
       hasContent = true;
     }
     if (parsed.availability) {
-      _setText('resp-avail', parsed.availability);
+      var _availLabels = {
+        disponible: 'Disponible',
+        no_disponible: 'No disponible',
+        disponible_con_condiciones: 'Disponible con condiciones'
+      };
+      _setText('resp-avail', _availLabels[parsed.availability] || parsed.availability);
       _show('resp-avail-row');
       hasContent = true;
     }
@@ -772,9 +777,11 @@
         if (isHidden) {
           mobileMenu.classList.remove('hidden');
           mobileMenuBtn.querySelector('i').className = 'fas fa-times text-xl';
+          mobileMenuBtn.setAttribute('aria-expanded', 'true');
         } else {
           mobileMenu.classList.add('hidden');
           mobileMenuBtn.querySelector('i').className = 'fas fa-bars text-xl';
+          mobileMenuBtn.setAttribute('aria-expanded', 'false');
         }
       });
     }

@@ -500,7 +500,7 @@
                     <a href="contacto.html" class="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contacto</a>
                 </nav>
                 <div class="hidden md:flex items-center space-x-4">
-                    <a href="cotizar.html" class="primary-btn">Cotizar Ahora</a>
+                    <a href="#" class="primary-btn">Cotizar Ahora</a>
                     <a href="afiliate.html" class="secondary-btn">Afíliate Gratis</a>
                     <div class="relative ml-3" id="user-dropdown">
                         <button class="flex items-center justify-center w-11 h-11 rounded-full bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-orange-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-sm" id="user-menu-button" aria-expanded="false">
@@ -535,7 +535,7 @@
                     <a href="cotizar.html" class="block text-orange-600 font-bold py-2.5 px-2 rounded-lg bg-orange-50 transition-colors">Cotizar</a>
                     <a href="contacto.html" class="block text-gray-700 hover:text-orange-600 font-medium py-2.5 px-2 rounded-lg hover:bg-orange-50 transition-colors">Contacto</a>
                     <div class="flex flex-col space-y-2 pt-3 border-t border-gray-100 mt-2">
-                        <a href="cotizar.html" class="inline-block primary-btn text-center">Cotizar Ahora</a>
+                        <a href="#" class="inline-block primary-btn text-center">Cotizar Ahora</a>
                         <a href="afiliate.html" class="inline-block secondary-btn text-center">Afíliate Gratis</a>
                     </div>
                 </div>
@@ -954,7 +954,7 @@
     <script src="js/auth.js"></script>
     <script src="js/nav-auth.js?v=2" defer></script>
     <script src="js/analytics.js" defer></script>
-    <script src="js/ai-extractor.js?v=4"></script>
+    <script src="js/ai-extractor.js?v=6"></script>
     <script>
     (function () {
         'use strict';
@@ -1079,7 +1079,7 @@
                 + '</button>'
                 + '</div>'
                 + '<div class="q-hint">Pega el enlace del producto y presiona "Analizar" para completar los datos automáticamente.</div>'
-                + '<div class="ai-compliance-card" id="ai-compliance-' + id + '"></div>'
+                + '<div class="ai-compliance-wrap" id="ai-compliance-' + id + '"></div>'
                 + '<div id="ai-banner-' + id + '"></div>'
                 + '</div>'
                 + '<div class="mb-4">'
@@ -1863,5 +1863,6 @@
     <script src="js/chat-calculator.js"></script>
     <script src="js/chat-quote.js"></script>
     <script src="js/chat-panel.js"></script>
+<div id="toast-container" class="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 items-end pointer-events-none" aria-live="polite"></div>
 </body>
 </html>

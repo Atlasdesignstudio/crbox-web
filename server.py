@@ -98,7 +98,7 @@ _AI_RATE_LOCK    = threading.Lock()
 _AI_RATE_LIMIT   = 200          # calls per IP per hour (Gemini API is the real throttle)
 
 _CRBOX_CATEGORIES = (
-    'celulares', 'computadora', 'consola_videojuegos', 'camara',
+    'celulares', 'tableta_electronica', 'computadora', 'consola_videojuegos', 'camara',
     'auricular_telefono', 'bocina', 'televisor',
     'ropa', 'anteojos', 'cinturon',
     'electrodomesticos', 'aspiradora', 'colchon', 'herramientas',
@@ -1779,10 +1779,10 @@ def _build_miami_arrival_email_html(tracking_number, carrier_name, cta_url):
 
 
 def _generate_scb_id():
-    """Generate the next SCB-XXXX ID by counting existing rows."""
+    """Generate the next SCB-XXXX ID using MAX(rowid) to avoid race-condition duplicates."""
     with _DB_LOCK:
         conn = _get_db()
-        row = conn.execute('SELECT COUNT(*) FROM quote_requests').fetchone()
+        row = conn.execute('SELECT COALESCE(MAX(rowid), 0) FROM quote_requests').fetchone()
         count = row[0] + 1
         conn.close()
     if count < 10000:
@@ -1791,10 +1791,8 @@ def _generate_scb_id():
 
 
 def _uuid4_hex():
-    """Return a compact random UUID without importing uuid."""
-    import random
-    h = '%032x' % random.getrandbits(128)
-    return h
+    """Return a cryptographically random 32-char hex string."""
+    return os.urandom(16).hex()
 
 
 def _now_iso():
@@ -1938,12 +1936,27 @@ def _build_customer_confirmation_html(scb_id, product_name, declared_value_usd,
                                       category, submitted_at, products=None):
     esc = _html.escape
     cat_labels = {
+        # Legacy keys
         'ropa': 'Ropa y calzado', 'electronico': 'Electrónico',
         'computadora': 'Computadoras', 'celular': 'Celulares',
         'auricular_telefono': 'Auriculares', 'electrodomestico': 'Electrodoméstico',
         'cosmetico': 'Cosméticos', 'suplemento': 'Suplementos',
         'libro': 'Libros', 'juguete': 'Juguetes', 'herramienta': 'Herramientas',
         'equipo_medico': 'Equipo médico', 'deportivo': 'Deportivo', 'otros': 'Otros',
+        # Modern keys
+        'celulares': 'Celulares', 'tableta_electronica': 'Tabletas',
+        'consola_videojuegos': 'Consolas', 'camara': 'Cámaras', 'bocina': 'Bocinas',
+        'televisor': 'Televisores', 'anteojos': 'Anteojos', 'cinturon': 'Cinturones',
+        'electrodomesticos': 'Electrodomésticos', 'aspiradora': 'Aspiradoras',
+        'colchon': 'Colchones', 'herramientas': 'Herramientas',
+        'bicicleta_economica': 'Bicicleta estándar', 'bicicleta_cara': 'Bicicleta premium',
+        'bola': 'Deportivo', 'coche_bebe': 'Coches de bebé', 'juguetes': 'Juguetes',
+        'amortiguadores': 'Amortiguadores', 'aros_carro_moto': 'Aros',
+        'cds': 'Libros / CDs', 'vehiculos': 'Repuestos vehíc.',
+        'salud_belleza': 'Salud y Belleza', 'suplementos': 'Suplementos',
+        'electr_otro': 'Otro — Electrónica', 'ropa_otro': 'Otro — Ropa',
+        'hogar_otro': 'Otro — Hogar', 'deporte_otro': 'Otro — Deportes',
+        'bebe_otro': 'Otro — Bebé', 'vehic_otro': 'Otro — Vehículos',
     }
     # Build product rows — list if multi-product, otherwise single row
     if products and isinstance(products, list) and len(products) > 1:
@@ -2000,7 +2013,8 @@ def _build_customer_confirmation_html(scb_id, product_name, declared_value_usd,
         'con un precio final y los próximos pasos para completar tu compra.</p>'
         '</div>'
         '<p style="font-size:12px;color:#9ca3af;margin:0;">Si tienes preguntas, responde a este correo '
-        'o escríbenos por WhatsApp. Incluye tu ID <strong>' + esc(scb_id) + '</strong> en el asunto.</p>'
+        'o escr&iacute;benos por <a href="https://wa.me/50689794418" style="color:#FF6B00;text-decoration:underline;">WhatsApp (+506&nbsp;8979&#8209;4418)</a>. '
+        'Incluye tu ID <strong>' + esc(scb_id) + '</strong> en el asunto.</p>'
         '</div></div>'
     )
 
@@ -4504,270 +4518,459 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
   </div>
 </div>'''
     elif status in ('enviada', 'en_revision'):
-        # Show the composer form
-        est_str = f'${estimate_usd:,.2f} USD' if estimate_usd is not None else '—'
-        composer_html = f'''<div class="adm-detail-section adm-composer-section">
-  <div class="adm-detail-section-title">&#9993; Respuesta revisada por CRBOX</div>
-  <p class="adm-note-sm">
-    Completa los campos y env&iacute;a la respuesta al cliente. El correo se env&iacute;a
-    autom&aacute;ticamente al confirmar.
-  </p>
-  <div class="adm-resp-cmp">
-    <div class="adm-resp-cmp-item">
-      <div class="adm-resp-cmp-label">Estimado autom&aacute;tico del sistema</div>
-      <div class="adm-resp-cmp-val" style="color:#1d4ed8;">{esc(est_str)}</div>
+        est_str      = f'${estimate_usd:,.2f} USD' if estimate_usd is not None else '—'
+        est_num_str  = f'{estimate_usd:.2f}' if estimate_usd is not None else ''
+        src_label    = 'Formulario público' if acct_type == 'anonymous' else 'Portal de cliente'
+        src_icon_str = '&#127760;' if acct_type == 'anonymous' else '&#128100;'
+        src_pill_cls = 'cmp-src-pub' if acct_type == 'anonymous' else 'cmp-src-portal'
+        _cust_js     = (cust_name_val or '').replace('\\', '\\\\').replace("'", "\\'")
+        _rid_js      = row['id'].replace('\\', '\\\\').replace("'", "\\'")
+        _est_chip    = (f'<span class="cmp-est-chip">&#128200; Estimado del sistema: '
+                        f'<strong>{esc(est_str)}</strong></span>') if estimate_usd is not None else ''
+        composer_html = f'''<div class="adm-detail-section adm-composer-section" id="adm-composer">
+  <div class="cmp-ctx-bar">
+    <div class="cmp-ctx-left">
+      <div class="adm-detail-section-title" style="margin-bottom:0">&#9993; Responder al cliente</div>
+      <span class="cmp-src-pill {src_pill_cls}">{src_icon_str} {esc(src_label)}</span>
+      {_est_chip}
     </div>
-    <div class="adm-resp-cmp-arrow">&#8594;</div>
-    <div class="adm-resp-cmp-item">
-      <div class="adm-resp-cmp-label">Precio confirmado por ventas</div>
-      <div class="adm-resp-cmp-val" id="resp-price-display" style="color:#FF6B00;">&mdash;</div>
-    </div>
+    <span class="cmp-elapsed-pill">{esc(elapsed)}</span>
   </div>
-  <form method="POST" action="/admin/solicitudes/{rid}/respond">
+
+  <form method="POST" action="/admin/solicitudes/{rid}/respond" id="cmp-form" novalidate>
     <input type="hidden" name="filter" value="{esc(filter_val)}">
     <input type="hidden" name="resp_quote_breakdown" id="resp-quote-breakdown" value="">
-    <div class="adm-resp-field">
-      <label class="adm-resp-label">Precio de env&iacute;o confirmado (USD) <span style="color:#ef4444;">*</span></label>
-      <input class="adm-resp-input" type="number" name="confirmed_price"
-             id="resp-price-input" step="0.01" min="0.01" placeholder="Ej. 45.00" required>
-    </div>
-    <div class="adm-resp-field">
-      <label class="adm-resp-label">Disponibilidad <span style="color:#ef4444;">*</span></label>
-      <select class="adm-select" name="availability" id="resp-availability" required>
-        <option value="">Seleccionar&hellip;</option>
-        <option value="disponible">Disponible</option>
-        <option value="no_disponible">No disponible</option>
-        <option value="disponible_con_condiciones">Disponible con condiciones</option>
-      </select>
-    </div>
-    <div class="adm-resp-field">
-      <label class="adm-resp-label">Tiempo de entrega estimado <span style="color:#ef4444;">*</span></label>
-      <input class="adm-resp-input" type="text" name="delivery_timeline"
-             placeholder="Ej. 5&ndash;8 d&iacute;as h&aacute;biles" maxlength="200" required>
-    </div>
-    <div style="margin:4px 0 16px;">
-      <button type="button" id="resp-ai-btn"
-              disabled
-              style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;
-                     border:1px solid #c7d2fe;border-radius:6px;background:#eef2ff;
-                     color:#4338ca;font-size:13px;font-weight:600;cursor:pointer;
-                     opacity:.45;transition:opacity .15s;">
-        &#10024;&nbsp;Sugerir borrador con IA
-      </button>
-      <span id="resp-ai-status" class="adm-ai-status"></span>
-    </div>
-    <div class="adm-resp-field">
-      <label class="adm-resp-label">Condiciones <span class="adm-optional">(opcional)</span></label>
-      <textarea class="adm-note" name="conditions" id="resp-conditions" rows="3" maxlength="2000"
-                placeholder="Condiciones adicionales que el cliente debe conocer&hellip;"></textarea>
-      <div id="resp-ai-label-conditions" style="display:none;margin-top:4px;font-size:11px;
-           color:#7c3aed;font-weight:600;">&#10024; Sugerido por IA &mdash; revise antes de enviar</div>
-    </div>
-    <div class="adm-resp-field">
-      <label class="adm-resp-label">Explicaci&oacute;n de diferencia con el estimado <span class="adm-optional">(opcional)</span></label>
-      <p class="adm-hint-sm">Usa este campo si el precio revisado difiere del estimado autom&aacute;tico y el cliente se beneficiar&iacute;a de una explicaci&oacute;n.</p>
-      <textarea class="adm-note" name="difference_explanation" id="resp-diff-expl" rows="2" maxlength="2000"
-                placeholder="Ej. El peso real del producto es mayor al estimado por el sistema."></textarea>
-      <div id="resp-ai-label-diff" style="display:none;margin-top:4px;font-size:11px;
-           color:#7c3aed;font-weight:600;">&#10024; Sugerido por IA &mdash; revise antes de enviar</div>
-    </div>
-    <div class="adm-resp-field">
-      <label class="adm-resp-label">Mensaje al cliente <span style="color:#ef4444;">*</span></label>
-      <textarea class="adm-note" name="customer_message" id="resp-message" rows="5" maxlength="5000" required
-                placeholder="Escribe el mensaje que el cliente recibir&aacute; en el correo&hellip;"></textarea>
-      <div id="resp-ai-label-msg" style="display:none;margin-top:4px;font-size:11px;
-           color:#7c3aed;font-weight:600;">&#10024; Sugerido por IA &mdash; revise antes de enviar</div>
-    </div>
-    <!-- A-3: Email preview toggle -->
-    <div style="margin-top:16px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
-      <button type="button" id="resp-preview-btn"
-              style="width:100%;text-align:left;padding:10px 14px;background:#f9fafb;border:none;
-                     font-size:13px;font-weight:600;color:#374151;cursor:pointer;display:flex;
-                     align-items:center;gap:8px;">
-        <span id="resp-preview-icon" style="font-size:11px;transition:transform .2s;">&#9654;</span>
-        Vista previa del email al cliente
-      </button>
-      <div id="resp-preview-body" style="display:none;padding:14px;background:#fff;border-top:1px solid #e5e7eb;">
-        <p style="font-size:11px;color:#9ca3af;margin:0 0 10px;font-style:italic;">
-          Previsualización aproximada — el formato real puede variar ligeramente.
-        </p>
-        <div id="resp-preview-content"
-             style="font-size:13px;line-height:1.6;color:#374151;background:#f9fafb;
-                    border:1px solid #e5e7eb;border-radius:6px;padding:12px 14px;max-height:320px;overflow-y:auto;">
+
+    <!-- Step 1: Availability -->
+    <div class="cmp-step">
+      <div class="cmp-step-num">1</div>
+      <div class="cmp-step-body">
+        <div class="cmp-step-title">Disponibilidad del producto <span class="adm-req">*</span></div>
+        <div class="cmp-avail-grid" role="radiogroup" aria-label="Disponibilidad">
+          <label class="cmp-avail-card" data-avail="disponible" tabindex="0">
+            <input type="radio" name="availability" value="disponible"
+                   style="position:absolute;opacity:0;pointer-events:none;" required>
+            <div class="cmp-avail-icon cmp-av-ok">&#10003;</div>
+            <div class="cmp-avail-title">Disponible</div>
+            <div class="cmp-avail-desc">Procede con cotizaci&oacute;n</div>
+          </label>
+          <label class="cmp-avail-card" data-avail="disponible_con_condiciones" tabindex="0">
+            <input type="radio" name="availability" value="disponible_con_condiciones"
+                   style="position:absolute;opacity:0;pointer-events:none;">
+            <div class="cmp-avail-icon cmp-av-warn">&#9888;</div>
+            <div class="cmp-avail-title">Con condiciones</div>
+            <div class="cmp-avail-desc">Restricciones o requisitos</div>
+          </label>
+          <label class="cmp-avail-card" data-avail="no_disponible" tabindex="0">
+            <input type="radio" name="availability" value="no_disponible"
+                   style="position:absolute;opacity:0;pointer-events:none;">
+            <div class="cmp-avail-icon cmp-av-no">&#10005;</div>
+            <div class="cmp-avail-title">No disponible</div>
+            <div class="cmp-avail-desc">No se puede tramitar</div>
+          </label>
         </div>
       </div>
     </div>
-    <div style="margin-top:12px;">
-      <button class="adm-upd-btn adm-btn-send" type="submit">
+
+    <!-- Step 2: Precio y plazo (oculto para no_disponible) -->
+    <div class="cmp-step" id="cmp-step-2" style="display:none;">
+      <div class="cmp-step-num">2</div>
+      <div class="cmp-step-body">
+        <div class="cmp-step-title">Precio y tiempo de entrega</div>
+        <div class="cmp-pricing-grid">
+          <div>
+            <label class="adm-resp-label">Precio de env&iacute;o (USD) <span class="adm-req">*</span></label>
+            <div class="cmp-price-wrap">
+              <span class="cmp-price-pfx">$</span>
+              <input class="adm-resp-input cmp-price-inp" type="number" name="confirmed_price"
+                     id="resp-price-input" step="0.01" min="0.01" placeholder="0.00">
+            </div>
+            <button type="button" id="cmp-calc-chip" class="cmp-calc-chip" style="display:none;">
+              Usar total del calculador:&nbsp;<strong id="cmp-calc-chip-val"></strong>
+            </button>
+          </div>
+          <div>
+            <label class="adm-resp-label">Tiempo de entrega <span class="adm-req">*</span></label>
+            <div class="cmp-tl-presets">
+              <button type="button" class="cmp-tl-btn" data-val="5&ndash;8 d&iacute;as h&aacute;biles">5&ndash;8 d&iacute;as</button>
+              <button type="button" class="cmp-tl-btn" data-val="8&ndash;15 d&iacute;as h&aacute;biles">8&ndash;15 d&iacute;as</button>
+              <button type="button" class="cmp-tl-btn" data-val="3&ndash;5 semanas">3&ndash;5 sem.</button>
+              <button type="button" class="cmp-tl-btn" data-val="Por confirmar">Por confirmar</button>
+            </div>
+            <input class="adm-resp-input" type="text" name="delivery_timeline"
+                   id="resp-delivery-timeline" placeholder="Ej. 5&ndash;8 d&iacute;as h&aacute;biles" maxlength="200">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Mensaje (número se adapta) -->
+    <div class="cmp-step">
+      <div class="cmp-step-num" id="cmp-msg-num">2</div>
+      <div class="cmp-step-body">
+        <div class="cmp-step-title">Mensaje al cliente</div>
+        <div class="cmp-ai-toolbar">
+          <button type="button" id="resp-ai-btn" class="cmp-ai-btn" disabled>
+            &#10024;&nbsp;Sugerir borrador con IA
+          </button>
+          <span id="resp-ai-status" class="adm-ai-status"></span>
+        </div>
+        <div id="cmp-cond-wrap" class="adm-resp-field" style="display:none;">
+          <label class="adm-resp-label">Condiciones <span class="adm-req">*</span></label>
+          <textarea class="adm-note" name="conditions" id="resp-conditions" rows="3"
+                    maxlength="2000"
+                    placeholder="Describe las condiciones que el cliente debe aceptar&hellip;"></textarea>
+          <div id="resp-ai-label-conditions" class="cmp-ai-label" style="display:none;">
+            &#10024; Borrador IA &mdash; revise antes de enviar
+          </div>
+        </div>
+        <div class="adm-resp-field">
+          <label class="adm-resp-label">Nota sobre el estimado <span class="adm-optional">(opcional)</span></label>
+          <p class="adm-hint-sm">Si el precio difiere del estimado, explica brevemente por qu&eacute;.</p>
+          <textarea class="adm-note" name="difference_explanation" id="resp-diff-expl" rows="2"
+                    maxlength="2000"
+                    placeholder="Ej. El peso real result&oacute; mayor al estimado por el sistema."></textarea>
+          <div id="resp-ai-label-diff" class="cmp-ai-label" style="display:none;">
+            &#10024; Borrador IA &mdash; revise antes de enviar
+          </div>
+        </div>
+        <div class="adm-resp-field">
+          <label class="adm-resp-label">Mensaje principal al cliente <span class="adm-req">*</span></label>
+          <textarea class="adm-note" name="customer_message" id="resp-message" rows="6"
+                    maxlength="5000" required
+                    placeholder="Escribe el mensaje que el cliente recibir&aacute; en el correo&hellip;"></textarea>
+          <div id="resp-ai-label-msg" class="cmp-ai-label" style="display:none;">
+            &#10024; Borrador IA &mdash; revise antes de enviar
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista previa en vivo -->
+    <div class="cmp-preview-pane" id="cmp-preview-pane" style="display:none;">
+      <div class="cmp-preview-header">
+        <span>&#128286; Vista previa del email al cliente</span>
+        <span class="cmp-preview-note">Se actualiza en tiempo real &mdash; el formato final puede variar</span>
+      </div>
+      <div id="cmp-preview-body" class="cmp-preview-body"></div>
+    </div>
+
+    <!-- Botón de envío -->
+    <div class="cmp-actions">
+      <button class="adm-upd-btn adm-btn-send cmp-send-btn" type="submit" id="cmp-send-btn">
         &#9993;&nbsp; Enviar respuesta al cliente
       </button>
+      <p class="cmp-send-hint">El correo se env&iacute;a autom&aacute;ticamente al confirmar.</p>
     </div>
   </form>
   <script>
-    (function() {{
-      var priceInp = document.getElementById('resp-price-input');
-      var priceDisp = document.getElementById('resp-price-display');
-      if (priceInp && priceDisp) {{
-        priceInp.addEventListener('input', function() {{
-          var n = parseFloat(this.value);
-          priceDisp.textContent = isNaN(n) || n <= 0 ? '\u2014' : '$' + n.toFixed(2) + ' USD';
-        }});
-      }}
-      var availSel = document.getElementById('resp-availability');
+  (function() {{
+    var SCB_ID    = '{_rid_js}';
+    var CUST_NAME = '{_cust_js}';
+    var curAvail  = '';
+    var _pvTimer  = null;
 
-      // A-1: Guard against zero-price response for available items
-      var respForm = document.querySelector('form[action="/admin/solicitudes/{esc(rid)}/respond"]');
-      if (respForm) {{
-        respForm.addEventListener('submit', function(e) {{
-          var avail = availSel ? availSel.value : '';
-          var price = parseFloat(priceInp ? priceInp.value : '');
-          if ((avail === 'disponible' || avail === 'disponible_con_condiciones') && (isNaN(price) || price <= 0)) {{
-            e.preventDefault();
-            alert('El precio de env\u00edo debe ser mayor a $0.00 para esta disponibilidad.');
-            if (priceInp) priceInp.focus();
+    var form      = document.getElementById('cmp-form');
+    var priceInp  = document.getElementById('resp-price-input');
+    var tlInp     = document.getElementById('resp-delivery-timeline');
+    var msgTa     = document.getElementById('resp-message');
+    var condTa    = document.getElementById('resp-conditions');
+    var diffTa    = document.getElementById('resp-diff-expl');
+    var aiBtn     = document.getElementById('resp-ai-btn');
+    var aiStatus  = document.getElementById('resp-ai-status');
+    var step2     = document.getElementById('cmp-step-2');
+    var condWrap  = document.getElementById('cmp-cond-wrap');
+    var msgNum    = document.getElementById('cmp-msg-num');
+    var calcChip  = document.getElementById('cmp-calc-chip');
+    var calcChipV = document.getElementById('cmp-calc-chip-val');
+    var prevPane  = document.getElementById('cmp-preview-pane');
+    var prevBody  = document.getElementById('cmp-preview-body');
+    var sendBtn   = document.getElementById('cmp-send-btn');
+
+    /* ── Availability card selection ───────────────────── */
+    var avCards = document.querySelectorAll('#adm-composer .cmp-avail-card');
+    function _selAvail(av) {{
+      curAvail = av;
+      avCards.forEach(function(c) {{
+        var sel = c.dataset.avail === av;
+        c.classList.toggle('cmp-av-sel', sel);
+        c.setAttribute('aria-checked', sel ? 'true' : 'false');
+        var r = c.querySelector('input[type=radio]');
+        if (r) r.checked = sel;
+      }});
+      var isAv = av === 'disponible' || av === 'disponible_con_condiciones';
+      var isCd = av === 'disponible_con_condiciones';
+      if (step2)    step2.style.display    = isAv ? '' : 'none';
+      if (condWrap) condWrap.style.display = isCd ? '' : 'none';
+      if (msgNum)   msgNum.textContent     = isAv ? '3' : '2';
+      if (priceInp) priceInp.required      = isAv;
+      if (tlInp)    tlInp.required         = isAv;
+      _syncAi();
+      _schedPrev();
+    }}
+    avCards.forEach(function(c) {{
+      c.addEventListener('click', function() {{ _selAvail(c.dataset.avail || ''); }});
+      c.addEventListener('keydown', function(e) {{
+        if (e.key === ' ' || e.key === 'Enter') {{ e.preventDefault(); _selAvail(c.dataset.avail || ''); }}
+      }});
+    }});
+
+    /* ── Timeline presets ─────────────────────────────── */
+    var tlBtns = document.querySelectorAll('#adm-composer .cmp-tl-btn');
+    tlBtns.forEach(function(btn) {{
+      btn.addEventListener('click', function() {{
+        tlBtns.forEach(function(b) {{ b.classList.remove('cmp-tl-act'); }});
+        btn.classList.add('cmp-tl-act');
+        if (tlInp) tlInp.value = btn.dataset.val || '';
+        _schedPrev();
+      }});
+    }});
+    if (tlInp) tlInp.addEventListener('input', function() {{
+      tlBtns.forEach(function(b) {{ b.classList.toggle('cmp-tl-act', b.dataset.val === tlInp.value); }});
+      _schedPrev();
+    }});
+
+    /* ── Calculator chip ──────────────────────────────── */
+    var brkInp = document.getElementById('resp-quote-breakdown');
+    function _checkBrk() {{
+      if (!brkInp || !calcChip || !calcChipV) return;
+      var v = brkInp.value || '';
+      if (!v) return;
+      try {{
+        var bd = JSON.parse(v);
+        var t = bd.grand_total_usd;
+        if (t != null && t > 0) {{
+          calcChipV.textContent = '$' + Number(t).toFixed(2) + ' USD';
+          calcChip.style.display = 'inline-flex';
+        }}
+      }} catch(e) {{}}
+    }}
+    if (brkInp) {{
+      brkInp.addEventListener('change', _checkBrk);
+      brkInp.addEventListener('input',  _checkBrk);
+      new MutationObserver(_checkBrk).observe(brkInp, {{attributes: true}});
+      _checkBrk();
+    }}
+    if (calcChip && priceInp) {{
+      calcChip.addEventListener('click', function() {{
+        var txt = (calcChipV.textContent || '').replace(/[^0-9.]/g, '');
+        var n = parseFloat(txt);
+        if (!isNaN(n) && n > 0) {{ priceInp.value = n.toFixed(2); _schedPrev(); }}
+      }});
+    }}
+
+    /* ── AI draft button ──────────────────────────────── */
+    function _syncAi() {{
+      if (!aiBtn) return;
+      aiBtn.disabled = !curAvail;
+      aiBtn.style.opacity = curAvail ? '1' : '.5';
+    }}
+    _syncAi();
+
+    function _aiLbl(fid, lid) {{
+      var f = document.getElementById(fid), l = document.getElementById(lid);
+      if (f && l) f.addEventListener('input', function() {{ l.style.display = 'none'; }});
+    }}
+    _aiLbl('resp-conditions', 'resp-ai-label-conditions');
+    _aiLbl('resp-diff-expl',  'resp-ai-label-diff');
+    _aiLbl('resp-message',    'resp-ai-label-msg');
+
+    if (aiBtn) {{
+      aiBtn.addEventListener('click', function() {{
+        if (!curAvail) return;
+        aiBtn.disabled = true;
+        aiBtn.textContent = '\u23f3\u00a0Generando\u2026';
+        if (aiStatus) {{ aiStatus.textContent = ''; aiStatus.style.display = 'none'; }}
+        var sids = ['resp-conditions', 'resp-diff-expl', 'resp-message'];
+        sids.forEach(function(id) {{
+          var el = document.getElementById(id); if (el) el.classList.add('adm-skeleton');
+        }});
+        fetch('/admin/solicitudes/{rid}/suggest-draft', {{
+          method: 'POST',
+          headers: {{'Content-Type': 'application/json'}},
+          body: JSON.stringify({{availability: curAvail, confirmed_price: priceInp ? priceInp.value : ''}})
+        }})
+        .then(function(r) {{ return r.json(); }})
+        .then(function(d) {{
+          sids.forEach(function(id) {{
+            var el = document.getElementById(id); if (el) el.classList.remove('adm-skeleton');
+          }});
+          aiBtn.disabled = false;
+          aiBtn.innerHTML = '&#10024;&nbsp;Sugerir borrador con IA';
+          _syncAi();
+          if (d.error) {{
+            if (aiStatus) {{ aiStatus.textContent = 'Error: ' + d.error; aiStatus.style.color = '#dc2626'; aiStatus.style.display = 'inline'; }}
+            return;
           }}
-        }});
-      }}
-      var aiBtn    = document.getElementById('resp-ai-btn');
-      var aiStatus = document.getElementById('resp-ai-status');
-
-      function syncAiBtn() {{
-        var ok = availSel && availSel.value;
-        if (aiBtn) {{
-          aiBtn.disabled = !ok;
-          aiBtn.style.opacity = ok ? '1' : '.45';
-          aiBtn.style.cursor  = ok ? 'pointer' : 'default';
-        }}
-      }}
-      if (availSel) availSel.addEventListener('change', syncAiBtn);
-      syncAiBtn();
-
-      function aiLabelFor(fieldId, labelId) {{
-        var field = document.getElementById(fieldId);
-        var label = document.getElementById(labelId);
-        if (!field || !label) return;
-        field.addEventListener('input', function() {{
-          label.style.display = 'none';
-        }});
-      }}
-      aiLabelFor('resp-conditions', 'resp-ai-label-conditions');
-      aiLabelFor('resp-diff-expl',  'resp-ai-label-diff');
-      aiLabelFor('resp-message',    'resp-ai-label-msg');
-
-      if (aiBtn) {{
-        aiBtn.addEventListener('click', function() {{
-          var avail       = availSel ? availSel.value : '';
-          var priceVal    = priceInp ? priceInp.value : '';
-          if (!avail) return;
-
-          aiBtn.disabled = true;
-          aiBtn.textContent = '\u23f3\u00a0Generando borrador\u2026';
-          if (aiStatus) {{ aiStatus.textContent = ''; aiStatus.style.display = 'none'; }}
-          var skeletonIds = ['resp-conditions', 'resp-diff-expl', 'resp-message'];
-          skeletonIds.forEach(function(id) {{
-            var el = document.getElementById(id);
-            if (el) el.classList.add('adm-skeleton');
+          function _fill(fid, lid, val) {{
+            var f = document.getElementById(fid), l = document.getElementById(lid);
+            if (!f) return;
+            f.value = val || '';
+            if (l) l.style.display = val ? 'block' : 'none';
+          }}
+          _fill('resp-conditions', 'resp-ai-label-conditions', d.conditions);
+          _fill('resp-diff-expl',  'resp-ai-label-diff',       d.difference_explanation);
+          _fill('resp-message',    'resp-ai-label-msg',        d.customer_message);
+          if (aiStatus) {{ aiStatus.textContent = 'Borrador listo \u2014 revise y edite antes de enviar.'; aiStatus.style.color = '#059669'; aiStatus.style.display = 'inline'; }}
+          _schedPrev();
+        }})
+        .catch(function() {{
+          sids.forEach(function(id) {{
+            var el = document.getElementById(id); if (el) el.classList.remove('adm-skeleton');
           }});
-
-          fetch('/admin/solicitudes/{rid}/suggest-draft', {{
-            method: 'POST',
-            headers: {{'Content-Type': 'application/json'}},
-            body: JSON.stringify({{availability: avail, confirmed_price: priceVal}})
-          }})
-          .then(function(r) {{ return r.json(); }})
-          .then(function(data) {{
-            skeletonIds.forEach(function(id) {{
-              var el = document.getElementById(id);
-              if (el) el.classList.remove('adm-skeleton');
-            }});
-            aiBtn.disabled = false;
-            aiBtn.innerHTML = '&#10024;&nbsp;Sugerir borrador con IA';
-            syncAiBtn();
-            if (data.error) {{
-              if (aiStatus) {{
-                aiStatus.textContent = 'Error: ' + data.error;
-                aiStatus.style.color = '#dc2626';
-                aiStatus.style.display = 'inline';
-              }}
-              return;
-            }}
-            function fillField(fieldId, labelId, value) {{
-              var f = document.getElementById(fieldId);
-              var l = document.getElementById(labelId);
-              if (!f) return;
-              f.value = value || '';
-              if (l) l.style.display = value ? 'block' : 'none';
-            }}
-            fillField('resp-conditions', 'resp-ai-label-conditions', data.conditions);
-            fillField('resp-diff-expl',  'resp-ai-label-diff',       data.difference_explanation);
-            fillField('resp-message',    'resp-ai-label-msg',        data.customer_message);
-            if (aiStatus) {{
-              aiStatus.textContent = 'Borrador listo. Revise y edite antes de enviar.';
-              aiStatus.style.color = '#059669';
-              aiStatus.style.display = 'inline';
-            }}
-          }})
-          .catch(function(err) {{
-            skeletonIds.forEach(function(id) {{
-              var el = document.getElementById(id);
-              if (el) el.classList.remove('adm-skeleton');
-            }});
-            aiBtn.disabled = false;
-            aiBtn.innerHTML = '&#10024;&nbsp;Sugerir borrador con IA';
-            syncAiBtn();
-            if (aiStatus) {{
-              aiStatus.textContent = 'Error de conexi\u00f3n. Intente de nuevo.';
-              aiStatus.style.color = '#dc2626';
-              aiStatus.style.display = 'inline';
-            }}
-          }});
+          aiBtn.disabled = false;
+          aiBtn.innerHTML = '&#10024;&nbsp;Sugerir borrador con IA';
+          _syncAi();
+          if (aiStatus) {{ aiStatus.textContent = 'Error de conexi\u00f3n. Int\u00e9ntalo de nuevo.'; aiStatus.style.color = '#dc2626'; aiStatus.style.display = 'inline'; }}
         }});
-      }}
+      }});
+    }}
 
-      // A-3: Email preview toggle
-      var prevBtn  = document.getElementById('resp-preview-btn');
-      var prevBody = document.getElementById('resp-preview-body');
-      var prevIcon = document.getElementById('resp-preview-icon');
-      var prevCont = document.getElementById('resp-preview-content');
-      if (prevBtn && prevBody && prevCont) {{
-        var prevOpen = false;
-        function _buildPreview() {{
-          var avail = availSel ? availSel.value : '';
-          var availLabels = {{
-            disponible: 'Disponible',
-            no_disponible: 'No disponible',
-            disponible_con_condiciones: 'Disponible con condiciones'
-          }};
-          var price    = priceInp ? priceInp.value : '';
-          var timeline = (document.getElementById('resp-delivery-timeline') || {{}}).value || '';
-          var msg      = (document.getElementById('resp-message') || {{}}).value || '';
-          var cond     = (document.getElementById('resp-conditions') || {{}}).value || '';
-          var esc = function(s) {{ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }};
-          var rows = '';
-          rows += '<tr><td style="padding:4px 0;color:#666;width:38%;">Disponibilidad</td><td style="padding:4px 0;">' + esc(availLabels[avail] || avail || '\u2014') + '</td></tr>';
-          if (price) rows += '<tr><td style="padding:4px 0;color:#666;">Precio de env\u00edo</td><td style="padding:4px 0;font-weight:700;">$' + esc(price) + ' USD</td></tr>';
-          if (timeline) rows += '<tr><td style="padding:4px 0;color:#666;">Tiempo de entrega</td><td style="padding:4px 0;">' + esc(timeline) + '</td></tr>';
-          prevCont.innerHTML =
-            '<p style="margin:0 0 8px;font-weight:700;font-size:13px;color:#111;">Vista previa</p>' +
-            '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;">' + rows + '</table>' +
-            (cond ? '<p style="font-size:12px;margin:0 0 8px;"><strong>Condiciones:</strong> ' + esc(cond) + '</p>' : '') +
-            (msg  ? '<div style="white-space:pre-wrap;font-size:12px;border-top:1px solid #e5e7eb;padding-top:8px;">' + esc(msg) + '</div>' : '<p style="font-size:12px;color:#9ca3af;">(Sin mensaje aún)</p>');
+    /* ── Live email preview ───────────────────────────── */
+    var _AL = {{disponible: 'Disponible', no_disponible: 'No disponible', disponible_con_condiciones: 'Disponible con condiciones'}};
+    var _AC = {{disponible: '#16a34a', no_disponible: '#dc2626', disponible_con_condiciones: '#d97706'}};
+    function _e(s) {{
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }}
+    function _buildPrev() {{
+      if (!prevBody || !prevPane) return;
+      if (!curAvail) {{ prevPane.style.display = 'none'; return; }}
+      var avail = curAvail;
+      var price = priceInp ? priceInp.value : '';
+      var tl    = tlInp    ? tlInp.value    : '';
+      var msg   = msgTa    ? msgTa.value    : '';
+      var cond  = condTa   ? condTa.value   : '';
+      var diff  = diffTa   ? diffTa.value   : '';
+      var al = _AL[avail] || avail, ac = _AC[avail] || '#374151';
+      var pn = parseFloat(price), hasP = !isNaN(pn) && pn > 0;
+      var grad = avail === 'disponible'
+        ? 'linear-gradient(135deg,#FF6B00,#FF9A00)'
+        : avail === 'no_disponible'
+          ? 'linear-gradient(135deg,#6b7280,#9ca3af)'
+          : 'linear-gradient(135deg,#f59e0b,#fbbf24)';
+      var ico = avail === 'disponible' ? '&#10003;' : avail === 'no_disponible' ? '&#10005;' : '&#9888;';
+      var greet = CUST_NAME ? 'Hola ' + _e(CUST_NAME) + ',' : 'Hola,';
+      var rows = '';
+      rows += '<tr><td style="padding:3px 0;color:#666;width:38%;font-size:11px;">ID</td>'
+            + '<td style="padding:3px 0;font-weight:700;font-size:11px;">' + _e(SCB_ID) + '</td></tr>';
+      rows += '<tr><td style="padding:3px 0;color:#666;font-size:11px;">Disponibilidad</td>'
+            + '<td style="padding:3px 0;font-weight:700;color:' + ac + ';font-size:11px;">' + _e(al) + '</td></tr>';
+      if (avail !== 'no_disponible' && hasP)
+        rows += '<tr><td style="padding:3px 0;color:#666;font-size:11px;">Precio de env\u00edo</td>'
+              + '<td style="padding:3px 0;font-weight:700;color:#FF6B00;font-size:11px;">$' + pn.toFixed(2) + ' USD</td></tr>';
+      if (avail !== 'no_disponible' && tl)
+        rows += '<tr><td style="padding:3px 0;color:#666;font-size:11px;">Tiempo estimado</td>'
+              + '<td style="padding:3px 0;font-size:11px;">' + _e(tl) + '</td></tr>';
+      var h = '';
+      h += '<div style="background:' + grad + ';padding:10px 14px;border-radius:6px 6px 0 0;">';
+      h += '<p style="color:#fff;font-size:13px;font-weight:700;margin:0;">' + ico + ' Respuesta a tu solicitud CRBOX</p>';
+      h += '<p style="color:rgba(255,255,255,.85);font-size:10px;margin:2px 0 0;">ID: <strong>' + _e(SCB_ID) + '</strong></p>';
+      h += '</div>';
+      h += '<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:12px 14px;border-radius:0 0 6px 6px;">';
+      h += '<p style="font-size:12px;margin:0 0 9px;">' + _e(greet) + '</p>';
+      h += '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;padding:9px;margin-bottom:7px;">';
+      h += '<table style="width:100%;border-collapse:collapse;">' + rows + '</table>';
+      h += '</div>';
+      if (avail === 'disponible_con_condiciones' && cond) {{
+        h += '<div style="background:#fff7ed;border-left:3px solid #f59e0b;padding:6px 9px;margin:5px 0;border-radius:0 4px 4px 0;font-size:11px;">';
+        h += '<strong style="color:#92400e;">Condiciones:</strong><br><span style="color:#78350f;">' + _e(cond) + '</span>';
+        h += '</div>';
+      }}
+      if (msg) {{
+        h += '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;padding:8px;margin:5px 0;font-size:11px;white-space:pre-line;color:#374151;">' + _e(msg) + '</div>';
+      }}
+      if (diff)
+        h += '<p style="font-size:10px;color:#9ca3af;margin:4px 0 0;font-style:italic;">Nota sobre el estimado: ' + _e(diff) + '</p>';
+      h += '<p style="font-size:10px;color:#9ca3af;margin:7px 0 0;">Equipo CRBOX &middot; ventas@crbox.cr</p>';
+      h += '</div>';
+      prevBody.innerHTML = h;
+      prevPane.style.display = '';
+    }}
+    function _schedPrev() {{
+      if (_pvTimer) clearTimeout(_pvTimer);
+      _pvTimer = setTimeout(_buildPrev, 180);
+    }}
+    [priceInp, tlInp, msgTa, condTa, diffTa].forEach(function(el) {{
+      if (el) {{ el.addEventListener('input', _schedPrev); el.addEventListener('change', _schedPrev); }}
+    }});
+
+    /* ── Form submit validation ───────────────────────── */
+    if (form) {{
+      form.addEventListener('submit', function(e) {{
+        if (!curAvail) {{
+          e.preventDefault();
+          alert('Selecciona la disponibilidad antes de enviar.');
+          return;
         }}
-        prevBtn.addEventListener('click', function() {{
-          prevOpen = !prevOpen;
-          prevBody.style.display = prevOpen ? 'block' : 'none';
-          prevIcon.style.transform = prevOpen ? 'rotate(90deg)' : '';
-          if (prevOpen) _buildPreview();
-        }});
-        // Rebuild preview lazily when fields change while preview is open
-        ['resp-availability','resp-delivery-timeline','resp-message','resp-conditions'].forEach(function(id) {{
-          var el = document.getElementById(id);
-          if (el) el.addEventListener('input', function() {{ if (prevOpen) _buildPreview(); }});
-          if (el) el.addEventListener('change', function() {{ if (prevOpen) _buildPreview(); }});
-        }});
-        if (priceInp) priceInp.addEventListener('input', function() {{ if (prevOpen) _buildPreview(); }});
+        var isAv = curAvail === 'disponible' || curAvail === 'disponible_con_condiciones';
+        if (isAv) {{
+          var p = parseFloat(priceInp ? priceInp.value : '');
+          if (isNaN(p) || p <= 0) {{
+            e.preventDefault();
+            alert('El precio de env\u00edo debe ser mayor a $0.00.');
+            if (priceInp) priceInp.focus();
+            return;
+          }}
+          if (!tlInp || !tlInp.value.trim()) {{
+            e.preventDefault();
+            alert('Ingresa el tiempo de entrega estimado.');
+            if (tlInp) tlInp.focus();
+            return;
+          }}
+        }}
+        if (!msgTa || !msgTa.value.trim()) {{
+          e.preventDefault();
+          alert('El mensaje al cliente es obligatorio.');
+          if (msgTa) msgTa.focus();
+          return;
+        }}
+        if (sendBtn) {{ sendBtn.disabled = true; sendBtn.innerHTML = '\u23f3&nbsp;Enviando\u2026'; }}
+      }});
+    }}
+  }})();
+  </script>
+</div>'''
+
+    # ── Customer reply logger (shown for all non-terminal statuses) ────────────
+    _is_terminal   = status in ('completada', 'cancelada')
+    cust_reply_html = ''
+    if not _is_terminal:
+        cust_reply_html = f'''<div class="adm-detail-section cmp-reply-section">
+  <div class="adm-detail-section-title">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+    &#128231; &#191;El cliente respondi&#243; al email?
+  </div>
+  <p class="adm-note-sm">Si el cliente replic&#243; al correo de cotizaci&#243;n, pega su respuesta aqu&#237; para registrarla en el historial interno.</p>
+  <form method="POST" action="/admin/solicitudes/{rid}/add-note" id="cmp-reply-form">
+    <input type="hidden" name="filter" value="{esc(filter_val)}">
+    <div class="adm-form-field">
+      <label class="adm-form-label" for="cmp-reply-ta">Respuesta del cliente <span class="adm-req">*</span></label>
+      <textarea class="adm-note" id="cmp-reply-ta" name="note" rows="4" maxlength="8000"
+                placeholder="Pega aqu&#237; el texto de la respuesta recibida por correo&hellip;"></textarea>
+    </div>
+    <button type="submit" class="adm-upd-btn adm-btn-reply" id="cmp-reply-btn">
+      <span class="adm-btn-text">&#128231; Registrar respuesta del cliente</span>
+      <span class="adm-btn-spinner" style="display:none;"><span class="adm-spin">&#8635;</span></span>
+    </button>
+  </form>
+  <script>
+  (function(){{
+    var frm=document.getElementById('cmp-reply-form');
+    var ta=document.getElementById('cmp-reply-ta');
+    var btn=document.getElementById('cmp-reply-btn');
+    if(!frm||!ta) return;
+    frm.addEventListener('submit',function(e){{
+      var raw=(ta.value||'').trim();
+      if(!raw){{e.preventDefault();ta.focus();return;}}
+      ta.value='[Respuesta del cliente] '+raw;
+      if(btn){{
+        btn.disabled=true;
+        var t=btn.querySelector('.adm-btn-text'),s=btn.querySelector('.adm-btn-spinner');
+        if(t)t.style.display='none';
+        if(s)s.style.display='';
       }}
-    }})();
+    }});
+  }})();
   </script>
 </div>'''
 
@@ -5109,6 +5312,94 @@ details.adm-ai-details[open] .adm-ai-chevron{{transform:rotate(180deg)}}
   .adm-detail-val{{max-width:calc(100% - 100px)}}
   #adm-toast-stack{{right:10px;left:10px;max-width:none;top:60px}}
 }}
+/* ── Redesigned composer ─────────────────────────────────────────── */
+.cmp-ctx-bar{{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+  flex-wrap:wrap;margin-bottom:var(--sp-4);padding-bottom:var(--sp-4);
+  border-bottom:1px solid #fed7aa}}
+.cmp-ctx-left{{display:flex;flex-wrap:wrap;align-items:center;gap:8px}}
+.cmp-src-pill{{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
+  border-radius:99px;font-size:11px;font-weight:600;border:1px solid}}
+.cmp-src-pub{{background:#f1f5f9;color:#475569;border-color:#e2e8f0}}
+.cmp-src-portal{{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}}
+.cmp-est-chip{{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
+  border-radius:99px;background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;
+  font-size:11px;font-weight:600}}
+.cmp-elapsed-pill{{padding:4px 10px;background:var(--clr-amber-lt);color:var(--clr-amber);
+  border:1px solid #fde68a;border-radius:99px;font-size:11px;font-weight:700;
+  white-space:nowrap;flex-shrink:0}}
+/* Steps */
+.cmp-step{{display:flex;gap:12px;margin-bottom:var(--sp-5)}}
+.cmp-step-num{{width:28px;height:28px;border-radius:50%;background:var(--clr-orange);
+  color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;margin-top:2px}}
+.cmp-step-body{{flex:1;min-width:0}}
+.cmp-step-title{{font-size:13px;font-weight:700;color:var(--clr-slate700);margin-bottom:12px}}
+/* Availability cards */
+.cmp-avail-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px}}
+@media(max-width:540px){{.cmp-avail-grid{{grid-template-columns:1fr}}}}
+.cmp-avail-card{{border:2px solid var(--clr-slate200);border-radius:var(--radius);
+  padding:14px 10px;cursor:pointer;text-align:center;transition:all .2s;
+  position:relative;background:#fff;user-select:none;outline:none}}
+.cmp-avail-card:hover{{border-color:#94a3b8;background:var(--clr-slate50)}}
+.cmp-avail-card:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
+.cmp-avail-card.cmp-av-sel[data-avail="disponible"]{{border-color:#16a34a;background:#f0fdf4}}
+.cmp-avail-card.cmp-av-sel[data-avail="disponible_con_condiciones"]{{border-color:#d97706;background:#fffbeb}}
+.cmp-avail-card.cmp-av-sel[data-avail="no_disponible"]{{border-color:#dc2626;background:#fef2f2}}
+.cmp-avail-icon{{width:34px;height:34px;border-radius:50%;margin:0 auto 8px;
+  display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700}}
+.cmp-av-ok{{background:#dcfce7;color:#16a34a}}
+.cmp-av-warn{{background:#fef9c3;color:#d97706}}
+.cmp-av-no{{background:#fee2e2;color:#dc2626}}
+.cmp-avail-title{{font-size:13px;font-weight:700;color:var(--clr-slate900);margin-bottom:2px}}
+.cmp-avail-desc{{font-size:11px;color:var(--clr-slate500)}}
+/* Pricing grid */
+.cmp-pricing-grid{{display:grid;grid-template-columns:1fr 1fr;gap:14px}}
+@media(max-width:540px){{.cmp-pricing-grid{{grid-template-columns:1fr}}}}
+/* Price input */
+.cmp-price-wrap{{position:relative;margin-bottom:5px}}
+.cmp-price-pfx{{position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  color:#9ca3af;font-weight:700;font-size:14px;pointer-events:none}}
+.cmp-price-inp{{padding-left:22px!important}}
+.cmp-calc-chip{{display:none;align-items:center;gap:5px;padding:5px 10px;
+  background:#dbeafe;border:1px solid #93c5fd;border-radius:99px;
+  font-size:11px;color:#1d4ed8;cursor:pointer;font-family:var(--font);font-weight:600;
+  transition:background .15s;margin-top:4px}}
+.cmp-calc-chip:hover{{background:#bfdbfe}}
+/* Timeline presets */
+.cmp-tl-presets{{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px}}
+.cmp-tl-btn{{padding:5px 11px;border:1.5px solid var(--clr-slate200);border-radius:99px;
+  background:#fff;color:var(--clr-slate700);font-size:11px;font-weight:600;
+  cursor:pointer;font-family:var(--font);transition:all .15s;white-space:nowrap}}
+.cmp-tl-btn:hover{{border-color:var(--clr-orange);color:var(--clr-orange)}}
+.cmp-tl-act{{border-color:var(--clr-orange)!important;background:var(--clr-orange-lt)!important;color:var(--clr-orange)!important}}
+/* AI toolbar */
+.cmp-ai-toolbar{{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:var(--sp-4)}}
+.cmp-ai-btn{{display:inline-flex;align-items:center;gap:6px;padding:8px 15px;
+  border:1.5px solid #c7d2fe;border-radius:var(--radius-sm);background:#eef2ff;
+  color:#4338ca;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);
+  transition:all .15s}}
+.cmp-ai-btn:hover:not(:disabled){{background:#e0e7ff;border-color:#a5b4fc}}
+.cmp-ai-btn:disabled{{opacity:.45;cursor:not-allowed}}
+.cmp-ai-label{{font-size:11px;color:#7c3aed;font-weight:600;margin-top:4px}}
+/* Live preview */
+.cmp-preview-pane{{border:1px solid #e5e7eb;border-radius:var(--radius);
+  overflow:hidden;margin-bottom:var(--sp-4)}}
+.cmp-preview-header{{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 13px;background:var(--clr-slate50);border-bottom:1px solid #e5e7eb;
+  font-size:12px;font-weight:700;color:var(--clr-slate700)}}
+.cmp-preview-note{{font-size:10px;color:var(--clr-slate400);font-weight:400;font-style:italic}}
+.cmp-preview-body{{padding:12px 14px;background:#fff;max-height:360px;overflow-y:auto}}
+/* Actions */
+.cmp-actions{{text-align:center;padding-top:var(--sp-2)}}
+.cmp-send-btn{{max-width:none!important;width:100%!important}}
+.cmp-send-hint{{font-size:11px;color:var(--clr-slate400);margin-top:6px}}
+/* Customer reply logger */
+.cmp-reply-section{{border-color:#c7d2fe!important;background:#eef2ff!important}}
+.cmp-reply-section .adm-detail-section-title{{color:#3730a3}}
+.cmp-reply-section .adm-note{{border-color:#c7d2fe!important}}
+.cmp-reply-section .adm-note:focus{{outline-color:#6366f1!important;border-color:#6366f1!important}}
+.adm-btn-reply{{background:#4f46e5!important}}
+.adm-btn-reply:hover{{background:#4338ca!important}}
 </style>
 </head>
 <body>
@@ -5150,6 +5441,7 @@ details.adm-ai-details[open] .adm-ai-chevron{{transform:rotate(180deg)}}
       {ai_section_html}
       {history_html}
       {composer_html}
+      {cust_reply_html}
     </div>
     <div class="adm-col-side">
       {customer_html}
