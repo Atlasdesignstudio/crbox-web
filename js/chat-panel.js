@@ -6,7 +6,8 @@
 (function (global) {
   'use strict';
 
-  var MAX_HISTORY = 20;
+  var MAX_HISTORY     = 10;
+  var MAX_MSG_CHARS   = 500;
   var GREETING_DELAY = 3500;
   var CHAT_ENDPOINT = '/api/chat';
 
@@ -325,7 +326,7 @@
 
   // ── Send message ──────────────────────────────────────────────────────────
   function _sendMessage() {
-    var text = $input.value.trim();
+    var text = $input.value.trim().slice(0, MAX_MSG_CHARS);
     if (!text || _pending) return;
 
     _removeFAQPills();
