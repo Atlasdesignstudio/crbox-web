@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function _closeMobileMenu() {
             if (!mobileMenu.classList.contains('is-open')) return;
             mobileMenu.classList.remove('is-open');
+            mobileMenu.classList.add('hidden');
             if (stickyHeader) stickyHeader.classList.remove('menu-open');
             const icon = mobileMenuButton.querySelector('i');
             if (icon) icon.classList.replace('fa-times', 'fa-bars');
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isOpen) {
                 _closeMobileMenu();
             } else {
+                mobileMenu.classList.remove('hidden');
                 mobileMenu.classList.add('is-open');
                 if (stickyHeader) stickyHeader.classList.add('menu-open');
                 if (icon) { icon.classList.replace('fa-bars', 'fa-times'); }
@@ -62,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Close mobile menu if open
                     if (mobileMenu && mobileMenu.classList.contains('is-open')) {
                         mobileMenu.classList.remove('is-open');
+                        mobileMenu.classList.add('hidden');
                         const _sh = document.querySelector('.sticky-header');
                         if (_sh) _sh.classList.remove('menu-open');
                         const _btn = document.getElementById('mobile-menu-button');
