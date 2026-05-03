@@ -2510,8 +2510,11 @@ def _build_response_email_html(scb_id, product_name, customer_name,
 
     breakdown_block = ''
     if quote_breakdown and isinstance(quote_breakdown, dict):
-        bd_products = quote_breakdown.get('products') or []
-        bd_total    = quote_breakdown.get('grand_total_usd')
+        bd_products      = quote_breakdown.get('products') or []
+        bd_total         = quote_breakdown.get('grand_total_usd')
+        bd_sep_total     = quote_breakdown.get('separate_total_usd')
+        bd_savings       = quote_breakdown.get('savings_usd')
+        bd_savings_pct   = quote_breakdown.get('savings_pct')
         _line_labels = {
             'freight':  'Flete aéreo',
             'fuel':     'Combustible (19%)',
@@ -2521,15 +2524,50 @@ def _build_response_email_html(scb_id, product_name, customer_name,
             'delivery': 'Entrega (CR)',
         }
         if bd_products:
+            # ── Savings comparison banner (multi-product only) ───────────────
+            savings_banner = ''
+            _show_savings = (
+                len(bd_products) > 1
+                and bd_total is not None
+                and bd_sep_total is not None
+                and bd_savings is not None
+                and float(bd_savings) > 0.01
+            )
+            if _show_savings:
+                _sav_f   = float(bd_savings)
+                _sep_f   = float(bd_sep_total)
+                _con_f   = float(bd_total)
+                _pct_f   = float(bd_savings_pct) if bd_savings_pct is not None else (_sav_f / _sep_f * 100 if _sep_f else 0)
+                savings_banner = (
+                    '<div style="background:linear-gradient(135deg,#FF6B00,#FF9A00);'
+                    'border-radius:6px 6px 0 0;padding:14px 20px 10px;">'
+                    '<p style="margin:0 0 6px;font-size:11px;font-weight:800;letter-spacing:.08em;'
+                    'text-transform:uppercase;color:rgba(255,255,255,.75);">&#127381; Ahorras consolidando</p>'
+                    f'<p style="margin:0;font-size:26px;font-weight:900;color:#fff;line-height:1;">'
+                    f'${_sav_f:,.2f} USD</p>'
+                    f'<p style="margin:3px 0 0;font-size:12px;color:rgba(255,255,255,.85);">'
+                    f'{_pct_f:.1f}% menos que envi&aacute;ndolos por separado</p>'
+                    '</div>'
+                    '<table style="width:100%;border-collapse:collapse;font-size:13px;'
+                    'background:#f0fdf4;border-left:1px solid #bbf7d0;border-right:1px solid #bbf7d0;">'
+                    f'<tr><td style="padding:7px 16px;color:#15803d;font-weight:700;">'
+                    f'&#9989;&nbsp;Env&iacute;o consolidado CRBOX</td>'
+                    f'<td style="padding:7px 16px;text-align:right;font-weight:700;color:#15803d;font-size:15px;">'
+                    f'${_con_f:,.2f} USD</td></tr>'
+                    f'<tr style="background:#fafafa;"><td style="padding:5px 16px 8px;color:#9ca3af;font-size:12px;">'
+                    f'Si enviaras por separado</td>'
+                    f'<td style="padding:5px 16px 8px;text-align:right;color:#9ca3af;font-size:12px;'
+                    f'text-decoration:line-through;">${_sep_f:,.2f} USD</td></tr>'
+                    '</table>'
+                )
+
             rows_html = ''
             for _bp in bd_products:
                 _bname = esc(str(_bp.get('name') or 'Producto'))
                 _bship = _bp.get('shipping_usd')
                 _bw    = _bp.get('weight_kg')
                 _bv    = _bp.get('declared_value_usd')
-                _bcat  = _bp.get('category') or ''
                 _ship_str = f'${float(_bship):,.2f} USD' if _bship is not None else '—'
-                # Header row for this product
                 rows_html += (
                     f'<tr style="background:#f0fdf4;">'
                     f'<td colspan="2" style="padding:7px 8px 3px;font-size:13px;font-weight:700;color:#15803d;">'
@@ -2539,7 +2577,6 @@ def _build_response_email_html(scb_id, product_name, customer_name,
                        if _bw else '')
                     + '</td></tr>\n'
                 )
-                # Per-line-item breakdown if details are stored
                 _details = _bp.get('details') or {}
                 if _details:
                     for _lk, _llabel in _line_labels.items():
@@ -2551,27 +2588,35 @@ def _build_response_email_html(scb_id, product_name, customer_name,
                                 f'<td style="padding:2px 8px;text-align:right;font-size:11px;color:#374151;">'
                                 f'${float(_lv):,.2f} USD</td></tr>\n'
                             )
-                # Subtotal row
                 rows_html += (
                     f'<tr style="border-bottom:1px solid #bbf7d0;">'
                     f'<td style="padding:3px 8px 7px;font-size:12px;font-weight:700;color:#15803d;">'
-                    f'Subtotal envío</td>'
+                    f'Subtotal env&iacute;o</td>'
                     f'<td style="padding:3px 8px 7px;text-align:right;font-size:12px;font-weight:700;color:#16a34a;">'
                     f'{esc(_ship_str)}</td></tr>\n'
                 )
             total_row = ''
             if bd_total is not None:
+                _tlabel = 'Total env&iacute;o consolidado' if _show_savings else 'Total env&iacute;o estimado'
                 total_row = (
-                    f'<tr><td style="padding:8px 8px 4px;font-weight:700;font-size:13px;color:#FF6B00;">Total envío estimado</td>'
+                    f'<tr><td style="padding:8px 8px 4px;font-weight:700;font-size:13px;color:#FF6B00;">{_tlabel}</td>'
                     f'<td style="padding:8px 8px 4px;text-align:right;font-weight:700;font-size:14px;color:#FF6B00;">${float(bd_total):,.2f} USD</td></tr>'
                 )
-            breakdown_block = (
-                '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:16px 20px;margin:16px 0;">'
-                '<p style="margin:0 0 10px;font-size:12px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.06em;">&#128178; Desglose de costos de envío</p>'
+            _detail_section = (
+                '<div style="padding:14px 20px 16px;">'
+                '<p style="margin:0 0 8px;font-size:11px;font-weight:700;color:#15803d;'
+                'text-transform:uppercase;letter-spacing:.06em;">&#128178; Desglose por art&iacute;culo</p>'
                 '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
                 + rows_html + total_row +
                 '</table>'
                 '</div>'
+            )
+            breakdown_block = (
+                '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;'
+                'overflow:hidden;margin:16px 0;">'
+                + savings_banner
+                + _detail_section
+                + '</div>'
             )
 
     # ── CTA buttons (built before return to avoid mixing implicit + explicit concat) ──
@@ -4234,17 +4279,139 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     else:
         calculator_html = f'''<div class="adm-detail-section" id="adm-calc-section">
   <div class="adm-detail-section-title">&#128178;&nbsp;Calculadora de env&iacute;o a&eacute;reo</div>
-  <p style="font-size:.82rem;color:#6b7280;margin-bottom:.9rem;">Ingresa el peso y dimensiones por producto. Se muestran los costos desglosados por &iacute;tem. Usa el bot&oacute;n para incluir el desglose en la respuesta al cliente.</p>
+  <p style="font-size:.82rem;color:#6b7280;margin-bottom:.9rem;">Ingresa los datos f&iacute;sicos por producto y haz clic en <strong>Calcular</strong> para ver el desglose comparativo (consolidado vs. por separado).</p>
+  <style>
+  #adm-calc-section .admc-hero-wrap {{
+    background:linear-gradient(145deg,#0f172a,#1e293b);border-radius:1rem;overflow:hidden;
+    box-shadow:0 8px 32px rgba(0,0,0,.2),0 0 0 1px rgba(255,255,255,.04);margin-bottom:1rem;
+  }}
+  #adm-calc-section .admc-hero-grid {{
+    display:grid;grid-template-columns:1fr auto 1fr;
+  }}
+  @media(max-width:600px) {{
+    #adm-calc-section .admc-hero-grid {{ grid-template-columns:1fr; }}
+    #adm-calc-section .admc-hero-sep {{ border-right:none !important;border-bottom:1px solid rgba(255,255,255,.08); }}
+    #adm-calc-section .admc-savings {{ min-width:0 !important; }}
+  }}
+  #adm-calc-section .admc-hero-side {{ padding:1.1rem 1.4rem; }}
+  #adm-calc-section .admc-hero-sep {{ border-right:1px solid rgba(255,255,255,.08); }}
+  #adm-calc-section .admc-cost-lbl {{
+    font-size:.6rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:rgba(255,255,255,.45);margin:0 0 .2rem;
+  }}
+  #adm-calc-section .admc-cost-val {{
+    font-size:1.45rem;font-weight:700;color:#fff;line-height:1.1;
+  }}
+  #adm-calc-section .admc-cost-val.green {{color:#4ade80;}}
+  #adm-calc-section .admc-cost-sub {{
+    font-size:.7rem;color:rgba(255,255,255,.4);margin-top:.2rem;
+  }}
+  #adm-calc-section .admc-savings {{
+    background:linear-gradient(135deg,#FF6B00,#FF9A00);
+    padding:1.1rem 1.4rem;text-align:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-width:150px;
+  }}
+  #adm-calc-section .admc-save-lbl {{
+    font-size:.6rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+    color:rgba(255,255,255,.7);margin:0 0 .15rem;
+  }}
+  #adm-calc-section .admc-save-amt {{
+    font-size:1.9rem;font-weight:900;color:#fff;line-height:1;letter-spacing:-.02em;
+  }}
+  #adm-calc-section .admc-save-pct {{
+    font-size:.85rem;font-weight:700;color:rgba(255,255,255,.85);margin-top:.15rem;
+  }}
+  #adm-calc-section .admc-tab-pills {{
+    display:inline-flex;background:#f3f4f6;border-radius:.6rem;padding:3px;gap:2px;margin-bottom:.75rem;
+  }}
+  #adm-calc-section .admc-tab-pills button {{
+    border:none;background:transparent;font-size:.8rem;font-weight:600;color:#6b7280;
+    padding:.3rem .85rem;border-radius:.4rem;cursor:pointer;transition:all .2s;white-space:nowrap;
+  }}
+  #adm-calc-section .admc-tab-pills button.active {{
+    background:#FF6B00;color:#fff;box-shadow:0 2px 6px rgba(255,107,0,.3);
+  }}
+  #adm-calc-section .admc-dcard {{
+    background:#fff;border:1.5px solid #e5e7eb;border-radius:.8rem;overflow:hidden;margin-bottom:.6rem;
+  }}
+  #adm-calc-section .admc-dhdr {{
+    background:linear-gradient(135deg,#1e293b,#334155);
+    padding:.85rem 1.15rem;display:flex;justify-content:space-between;
+    align-items:flex-start;flex-wrap:wrap;gap:.4rem;
+  }}
+  #adm-calc-section .admc-drow {{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:.45rem 1.15rem;border-bottom:1px solid #f3f4f6;font-size:.8rem;
+  }}
+  #adm-calc-section .admc-drow:last-child {{border-bottom:none;}}
+  #adm-calc-section .admc-drow.total {{
+    background:linear-gradient(90deg,#fff7ed,#fff);padding:.7rem 1.15rem;
+  }}
+  #adm-calc-section .admc-drow .rl {{color:#4b5563;}}
+  #adm-calc-section .admc-drow .rv {{font-weight:700;color:#111827;}}
+  #adm-calc-section .admc-drow.total .rv {{color:#FF6B00;font-size:1.05rem;}}
+  #adm-calc-section .admc-wt {{
+    display:inline-flex;align-items:center;background:#f0fdf4;color:#166534;
+    border:1px solid #bbf7d0;border-radius:999px;font-size:.67rem;font-weight:700;padding:.14rem .5rem;
+  }}
+  #adm-calc-section .admc-wt.vol {{background:#fff7ed;color:#c2410c;border-color:#fed7aa;}}
+  </style>
   <script src="/js/tariff-adapter.js?v=2"></script>
   <script src="/js/calculator-engine.js?v=2"></script>
   <script type="application/json" id="adm-calc-products-json">{_calc_products_js_safe}</script>
   {_calc_rows_html}
-  <div id="adm-calc-grand-total" style="border-top:2px solid #FF6B00;margin-top:.4rem;padding:.65rem 0 0;font-weight:700;font-size:.95rem;color:#FF6B00;">Total estimado: &mdash;</div>
-  <div style="margin-top:.7rem;">
-    <button type="button" id="adm-calc-apply-btn" style="padding:.5rem 1.1rem;background:#1d4ed8;color:#fff;border:none;border-radius:.45rem;font-size:.82rem;font-weight:700;cursor:pointer;transition:background .2s;" onmouseover="this.style.background=\'#1e3a8a\'" onmouseout="this.style.background=\'#1d4ed8\'">
+  <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin:.65rem 0 .9rem;">
+    <button type="button" id="adm-calc-btn"
+      style="padding:.52rem 1.3rem;background:#FF6B00;color:#fff;border:none;border-radius:.5rem;
+             font-size:.87rem;font-weight:700;cursor:pointer;transition:background .2s;
+             display:inline-flex;align-items:center;gap:.4rem;"
+      onmouseover="this.style.background='#d45c00'" onmouseout="this.style.background='#FF6B00'">
+      &#128178; Calcular env&iacute;o
+    </button>
+    <span id="admc-err" style="font-size:.77rem;color:#dc2626;display:none;"></span>
+  </div>
+
+  <div id="admc-hero" style="display:none;margin-bottom:.85rem;">
+    <div class="admc-hero-wrap">
+      <div class="admc-hero-grid">
+        <div class="admc-hero-side admc-hero-sep">
+          <p class="admc-cost-lbl">Env&iacute;o por separado</p>
+          <p class="admc-cost-val" id="admc-sep-val">—</p>
+          <p class="admc-cost-sub" id="admc-sep-sub"></p>
+        </div>
+        <div class="admc-savings" id="admc-savings-cell">
+          <p class="admc-save-lbl">Ahorras</p>
+          <p class="admc-save-amt" id="admc-save-amt">—</p>
+          <p class="admc-save-pct" id="admc-save-pct"></p>
+        </div>
+        <div class="admc-hero-side">
+          <p class="admc-cost-lbl">Consolidado CRBOX</p>
+          <p class="admc-cost-val green" id="admc-con-val">—</p>
+          <p class="admc-cost-sub" id="admc-con-sub"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="admc-dossier" style="display:none;margin-bottom:.75rem;">
+    <div class="admc-tab-pills">
+      <button id="admc-tab-con" class="active" type="button">Consolidado</button>
+      <button id="admc-tab-sep" type="button">Por separado</button>
+    </div>
+    <div id="admc-panel-con"></div>
+    <div id="admc-panel-sep" style="display:none;"></div>
+  </div>
+
+  <div id="admc-apply-wrap" style="display:none;">
+    <button type="button" id="adm-calc-apply-btn"
+      style="padding:.5rem 1.1rem;background:#1d4ed8;color:#fff;border:none;border-radius:.45rem;
+             font-size:.82rem;font-weight:700;cursor:pointer;transition:background .2s;"
+      onmouseover="this.style.background='#1e3a8a'" onmouseout="this.style.background='#1d4ed8'">
       Incluir este desglose en la respuesta
     </button>
-    <span id="adm-calc-apply-status" style="font-size:.78rem;color:#059669;margin-left:.6rem;display:none;">&#10003; Desglose guardado &mdash; se enviar&aacute; al cliente</span>
+    <span id="adm-calc-apply-status"
+      style="font-size:.78rem;color:#059669;margin-left:.6rem;display:none;">&#10003; Desglose guardado &mdash; se enviar&aacute; al cliente</span>
   </div>
   <script>
   (function() {{
@@ -4255,149 +4422,248 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     var HIDDEN_ID = '{_calc_hidden_target_esc}';
     var lastBreakdown = null;
     var LINE_LABELS = {{
-      freight:  'Flete a\u00e9reo',
-      fuel:     'Combustible (19%)',
-      handling: 'Manejo',
-      taxes:    'Impuestos / Aduana',
-      insurance:'Seguro',
-      delivery: 'Entrega (CR)'
+      freight:  'Flete a\u00e9reo', fuel: 'Combustible (19%)', handling: 'Manejo',
+      taxes: 'Impuestos / Aduana', insurance: 'Seguro', delivery: 'Entrega (CR)'
     }};
-    function fmtUSD(v) {{ return '$' + Number(v||0).toFixed(2) + ' USD'; }}
-    function calcAll() {{
-      if (typeof CALCULATOR_ENGINE === 'undefined' || typeof TARIFF_ADAPTER === 'undefined') return;
-      var grandTotal = 0;
-      var allProds = [];
-      var productEls = document.querySelectorAll('#adm-calc-section .adm-calc-product');
-      productEls.forEach(function(el, idx) {{
-        var w  = parseFloat(el.querySelector('.adm-calc-weight').value) || 0;
-        var l  = parseFloat(el.querySelector('.adm-calc-length').value) || 0;
-        var wi = parseFloat(el.querySelector('.adm-calc-width').value)  || 0;
-        var h  = parseFloat(el.querySelector('.adm-calc-height').value) || 0;
-        var resEl = el.querySelector('.adm-calc-result');
-        var summaryTot = el.querySelector('.adm-calc-summary-total');
-        var p = PRODUCTS[idx] || {{}};
-        var pVal = parseFloat((el.querySelector('.adm-calc-value') || {{}}).value) || p.declared_value_usd || 0;
-        var pCat = ((el.querySelector('.adm-calc-category') || {{}}).value) || p.category || 'otros';
-        var pName = p.name || ('Producto ' + (idx + 1));
-        if (w <= 0) {{
-          if (resEl) {{ resEl.innerHTML = '<span style="color:#9ca3af;">&mdash; Ingresa el peso para calcular</span>'; }}
-          if (summaryTot) summaryTot.textContent = '';
-          return;
-        }}
-        try {{
-          var res = CALCULATOR_ENGINE.calcSinglePackage({{
-            name: pName, value: pVal,
-            weight: w, length: l || 0.1, width: wi || 0.1, height: h || 0.1,
-            category: pCat, destination: DEST_ZONE
-          }});
-          if (!res) {{ if (resEl) resEl.textContent = '\u2014 Error en c\u00e1lculo'; return; }}
-          var tot = res.total || 0;
-          grandTotal += tot;
-          if (summaryTot) summaryTot.textContent = fmtUSD(tot);
-          allProds.push({{
-            name: pName, category: pCat, declared_value_usd: pVal,
-            weight_kg: w, length_cm: l, width_cm: wi, height_cm: h,
-            shipping_usd: tot, details: res
-          }});
-          var lines = ['freight','fuel','handling','taxes','insurance','delivery'];
-          var rows = lines.map(function(k) {{
-            return '<div style="display:flex;justify-content:space-between;font-size:.74rem;padding:.1rem 0;color:#374151;">'
-              + '<span>' + LINE_LABELS[k] + '</span>'
-              + '<span style="font-weight:600;">' + fmtUSD(res[k]) + '</span></div>';
-          }}).join('');
-          // Show billable weight + which mode won (real vs volumétrico)
-          var _billable = res.billableKg || 0;
-          var _volKg    = res.volKg    || 0;
-          var _realKg   = res.realKg   || w;
-          var _isVol    = _volKg > 0 && _volKg >= _realKg;
-          var _modeLabel = _isVol ? 'volumétrico' : 'real';
-          var _modeColor = _isVol ? '#7c3aed' : '#374151';
-          var _weightLine = '<div style="display:flex;justify-content:space-between;align-items:center;'
-            + 'font-size:.73rem;padding:.25rem 0 .4rem;margin-bottom:.25rem;border-bottom:1px dashed #e5e7eb;">'
-            + '<span style="color:#6b7280;">Peso facturado</span>'
-            + '<span style="font-weight:700;color:' + _modeColor + ';">'
-            + _billable.toFixed(3) + '\u00a0kg'
-            + '<span style="font-size:.65rem;font-weight:400;color:' + _modeColor + ';margin-left:3px;">(' + _modeLabel + ')</span>'
-            + '</span></div>';
-          var _volLine = (_volKg > 0)
-            ? '<div style="display:flex;justify-content:space-between;font-size:.7rem;padding:.05rem 0 .3rem;color:#9ca3af;">'
-              + '<span>&#x2514; vol: ' + _volKg.toFixed(3) + '\u00a0kg &nbsp;|&nbsp; real: ' + _realKg.toFixed(3) + '\u00a0kg</span>'
-              + '</div>'
-            : '';
-          if (resEl) {{
-            resEl.innerHTML =
-              '<div style="border-top:1px solid #e5e7eb;margin-top:.35rem;padding-top:.35rem;">'
-              + _weightLine + _volLine + rows + '</div>'
-              + '<div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;color:#059669;border-top:1px solid #d1fae5;margin-top:.3rem;padding-top:.3rem;">'
-              + '<span>Subtotal env\u00edo</span><span>' + fmtUSD(tot) + '</span></div>';
-          }}
-        }} catch(e) {{ if (resEl) resEl.textContent = '\u2014 Error: ' + e.message; }}
-      }});
-      var totEl = document.getElementById('adm-calc-grand-total');
-      if (grandTotal > 0) {{
-        totEl.textContent = 'Total estimado: $' + grandTotal.toFixed(2) + ' USD';
-        lastBreakdown = {{
-          products: allProds, grand_total_usd: grandTotal,
-          service_type: SERVICE_TYPE, destination_zone: DEST_ZONE,
-          calculated_at: new Date().toISOString()
-        }};
-      }} else {{ totEl.innerHTML = 'Total estimado: &mdash;'; lastBreakdown = null; }}
+    function fmt(v) {{ return '$' + Number(v||0).toFixed(2); }}
+    function showErr(m) {{ var e=document.getElementById('admc-err'); if(e){{e.textContent=m;e.style.display='inline';}} }}
+    function hideErr() {{ var e=document.getElementById('admc-err'); if(e) e.style.display='none'; }}
+    function dRow(lbl,val) {{
+      return '<div class="admc-drow"><span class="rl">'+lbl+'</span><span class="rv">'+val+'</span></div>';
     }}
-    // A-2: Autosave calculator state to localStorage keyed by SCB-ID
+    function wtPill(bKg,mode) {{
+      var cls='admc-wt'+(mode==='volumetrico'?' vol':'');
+      return '<span class="'+cls+'">'+bKg.toFixed(3)+'\u00a0kg '+mode+'</span>';
+    }}
+    function tBadge(src) {{
+      return src==='official_tica'
+        ? '<span style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:999px;font-size:.64rem;font-weight:700;padding:.1rem .45rem;">Oficial TICA</span>'
+        : '<span style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:999px;font-size:.64rem;font-weight:700;padding:.1rem .45rem;">Estimado</span>';
+    }}
+
+    function calcAll() {{
+      if (typeof CALCULATOR_ENGINE==='undefined'||typeof TARIFF_ADAPTER==='undefined') {{
+        showErr('Calculadora no cargada \u2014 recarga la p\u00e1gina.');
+        return;
+      }}
+      var productEls = document.querySelectorAll('#adm-calc-section .adm-calc-product');
+      var items = [];
+      productEls.forEach(function(el,idx) {{
+        var w  = parseFloat(el.querySelector('.adm-calc-weight').value)||0;
+        var l  = parseFloat(el.querySelector('.adm-calc-length').value)||0;
+        var wi = parseFloat(el.querySelector('.adm-calc-width').value)||0;
+        var h  = parseFloat(el.querySelector('.adm-calc-height').value)||0;
+        var p  = PRODUCTS[idx]||{{}};
+        var pVal = parseFloat((el.querySelector('.adm-calc-value')||{{}}).value)||p.declared_value_usd||0;
+        var pCat = ((el.querySelector('.adm-calc-category')||{{}}).value)||p.category||'otros';
+        var pName = p.name||('Producto '+(idx+1));
+        if (w>0) items.push({{name:pName,value:pVal,weight:w,length:l||0.1,width:wi||0.1,height:h||0.1,category:pCat,destination:DEST_ZONE}});
+      }});
+      if (!items.length) {{ showErr('Ingresa el peso de al menos un producto.'); return; }}
+      hideErr();
+
+      var sepRes = CALCULATOR_ENGINE.calcSeparate(items, DEST_ZONE);
+      var sepTotal = sepRes.grandTotal;
+      var con = CALCULATOR_ENGINE.calcConsolidated(items, DEST_ZONE);
+      var conTotal = con.total;
+      var savings = sepTotal - conTotal;
+      var savPct = sepTotal>0 ? (savings/sepTotal)*100 : 0;
+
+      // ── Update per-product card summaries ──────────────────────────────
+      sepRes.results.forEach(function(r,idx) {{
+        var el = productEls[idx]; if (!el) return;
+        var sEl=el.querySelector('.adm-calc-summary-total');
+        var rEl=el.querySelector('.adm-calc-result');
+        if (sEl) sEl.textContent=fmt(r.total);
+        if (rEl) {{
+          var isVol=r.volKg>0&&r.volKg>=r.realKg;
+          var mc=isVol?'#7c3aed':'#374151';
+          var rows=['freight','fuel','handling','taxes','insurance','delivery'].map(function(k){{
+            return '<div style="display:flex;justify-content:space-between;font-size:.74rem;padding:.1rem 0;color:#374151;">'
+              +'<span>'+LINE_LABELS[k]+'</span><span style="font-weight:600;">'+fmt(r[k])+'</span></div>';
+          }}).join('');
+          var volLine=r.volKg>0
+            ?'<div style="font-size:.7rem;color:#9ca3af;padding:.05rem 0 .2rem;">'
+              +'\u2514 vol: '+r.volKg.toFixed(3)+'\u00a0kg | real: '+r.realKg.toFixed(3)+'\u00a0kg</div>'
+            :'';
+          rEl.innerHTML=
+            '<div style="border-top:1px solid #e5e7eb;margin-top:.35rem;padding-top:.35rem;">'
+            +'<div style="display:flex;justify-content:space-between;font-size:.73rem;padding:.2rem 0 .2rem;border-bottom:1px dashed #e5e7eb;margin-bottom:.25rem;">'
+            +'<span style="color:#6b7280;">Peso facturado</span>'
+            +'<span style="font-weight:700;color:'+mc+';">'+r.billableKg.toFixed(3)+'\u00a0kg'
+            +' <span style="font-size:.65rem;font-weight:400;">('+r.weightMode+')</span></span></div>'
+            +volLine+rows+'</div>'
+            +'<div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;color:#059669;border-top:1px solid #d1fae5;margin-top:.3rem;padding-top:.3rem;">'
+            +'<span>Subtotal (individual)</span><span>'+fmt(r.total)+' USD</span></div>';
+        }}
+      }});
+
+      // ── Store breakdown (consolidated = primary price) ──────────────────
+      lastBreakdown = {{
+        products: sepRes.results.map(function(r,i) {{
+          var it=items[i]||{{}};
+          return {{
+            name:r.name||it.name, category:r.category||it.category,
+            declared_value_usd:it.value, weight_kg:r.realKg,
+            length_cm:it.length, width_cm:it.width, height_cm:it.height,
+            shipping_usd:r.total,
+            details:{{freight:r.freight,fuel:r.fuel,handling:r.handling,
+                      taxes:r.taxes,insurance:r.insurance,delivery:r.delivery,
+                      billableKg:r.billableKg,weightMode:r.weightMode}}
+          }};
+        }}),
+        grand_total_usd: conTotal,
+        separate_total_usd: sepTotal,
+        savings_usd: savings,
+        savings_pct: savPct,
+        service_type: SERVICE_TYPE,
+        destination_zone: DEST_ZONE,
+        calculated_at: new Date().toISOString()
+      }};
+
+      // ── Comparison hero ─────────────────────────────────────────────────
+      document.getElementById('admc-sep-val').textContent = fmt(sepTotal)+' USD';
+      document.getElementById('admc-sep-sub').textContent = items.length+' env\u00edo'+(items.length!==1?'s':'')+' individuales';
+      document.getElementById('admc-con-val').textContent = fmt(conTotal)+' USD';
+      document.getElementById('admc-con-sub').textContent = 'Peso: '+con.billableKg.toFixed(3)+'\u00a0kg ('+con.weightMode+')';
+      var sc = document.getElementById('admc-savings-cell');
+      if (items.length===1) {{
+        sc.innerHTML='<p style="color:rgba(255,255,255,.75);font-size:.76rem;line-height:1.5;text-align:center;padding:0 .5rem;">'
+          +'Un art\u00edculo.<br>Agrega m\u00e1s<br>para ver el ahorro.</p>';
+      }} else {{
+        var sign=savings>=0?'':'-';
+        document.getElementById('admc-save-amt').textContent=sign+fmt(Math.abs(savings))+' USD';
+        document.getElementById('admc-save-pct').textContent=Math.abs(savPct).toFixed(1)+'% menos';
+      }}
+      document.getElementById('admc-hero').style.display='block';
+
+      // ── Consolidated dossier panel ──────────────────────────────────────
+      var conBadge=tBadge(con.tariffSource||'local_estimated');
+      document.getElementById('admc-panel-con').innerHTML=
+        '<div class="admc-dcard">'
+        +'<div class="admc-dhdr">'
+        +'<div><p style="font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin:0 0 .1rem;">Consolidado CRBOX</p>'
+        +'<h4 style="font-size:.88rem;font-weight:700;color:#fff;margin:0;">'+items.length+' art\u00edculo'+(items.length!==1?'s':'')+' en un bulto</h4></div>'
+        +wtPill(con.billableKg,con.weightMode)
+        +'</div>'
+        +dRow('Flete a\u00e9reo',fmt(con.freight)+' USD')
+        +dRow('Combustible (19%)',fmt(con.fuel)+' USD')
+        +dRow('Manejo',fmt(con.handling)+' USD')
+        +dRow('Impuestos / Aduana '+conBadge,fmt(con.taxes)+' USD')
+        +dRow('Seguro',fmt(con.insurance)+' USD')
+        +dRow('Entrega (CR)',fmt(con.delivery)+' USD')
+        +'<div class="admc-drow total"><span class="rl" style="font-weight:700;">Total consolidado</span>'
+        +'<span class="rv">'+fmt(conTotal)+' USD</span></div>'
+        +'</div>';
+
+      // ── Separate dossier panel ──────────────────────────────────────────
+      var sepHTML='';
+      sepRes.results.forEach(function(r) {{
+        var rt=TARIFF_ADAPTER.getTariffRate(r.category||'otros');
+        sepHTML+=
+          '<div class="admc-dcard">'
+          +'<div class="admc-dhdr">'
+          +'<div><p style="font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin:0 0 .1rem;">Env\u00edo individual</p>'
+          +'<h4 style="font-size:.88rem;font-weight:700;color:#fff;margin:0;">'+(r.name||'Art\u00edculo')+'</h4></div>'
+          +wtPill(r.billableKg,r.weightMode)
+          +'</div>'
+          +dRow('Flete a\u00e9reo',fmt(r.freight)+' USD')
+          +dRow('Combustible (19%)',fmt(r.fuel)+' USD')
+          +dRow('Manejo',fmt(r.handling)+' USD')
+          +dRow('Impuestos / Aduana '+tBadge(rt.source),fmt(r.taxes)+' USD')
+          +dRow('Seguro',fmt(r.insurance)+' USD')
+          +dRow('Entrega (CR)',fmt(r.delivery)+' USD')
+          +'<div class="admc-drow total"><span class="rl" style="font-weight:700;">Total este art\u00edculo</span>'
+          +'<span class="rv">'+fmt(r.total)+' USD</span></div>'
+          +'</div>';
+      }});
+      sepHTML+='<div style="border-top:2px solid #FF6B00;padding:.5rem 0 0;font-weight:700;font-size:.88rem;color:#FF6B00;">'
+        +'Total por separado: '+fmt(sepTotal)+' USD</div>';
+      document.getElementById('admc-panel-sep').innerHTML=sepHTML;
+
+      document.getElementById('admc-dossier').style.display='block';
+      document.getElementById('admc-apply-wrap').style.display='block';
+    }}
+
+    // ── Tab switching ──────────────────────────────────────────────────────
+    document.getElementById('admc-tab-con').addEventListener('click',function() {{
+      document.getElementById('admc-panel-con').style.display='block';
+      document.getElementById('admc-panel-sep').style.display='none';
+      this.classList.add('active');
+      document.getElementById('admc-tab-sep').classList.remove('active');
+    }});
+    document.getElementById('admc-tab-sep').addEventListener('click',function() {{
+      document.getElementById('admc-panel-sep').style.display='block';
+      document.getElementById('admc-panel-con').style.display='none';
+      this.classList.add('active');
+      document.getElementById('admc-tab-con').classList.remove('active');
+    }});
+
+    // ── Calculate button ───────────────────────────────────────────────────
+    document.getElementById('adm-calc-btn').addEventListener('click',function() {{
+      calcAll(); _saveCalcState();
+    }});
+
+    // ── A-2: Autosave to localStorage ──────────────────────────────────────
     var _CALC_KEY = 'crbox-calc-{esc(rid)}';
     function _saveCalcState() {{
-      var state = [];
+      var state=[];
       document.querySelectorAll('#adm-calc-section .adm-calc-product').forEach(function(el) {{
         state.push({{
-          w:  (el.querySelector('.adm-calc-weight')   || {{}}).value || '',
-          l:  (el.querySelector('.adm-calc-length')   || {{}}).value || '',
-          wi: (el.querySelector('.adm-calc-width')    || {{}}).value || '',
-          h:  (el.querySelector('.adm-calc-height')   || {{}}).value || '',
-          v:  (el.querySelector('.adm-calc-value')    || {{}}).value || '',
-          c:  (el.querySelector('.adm-calc-category') || {{}}).value || ''
+          w:(el.querySelector('.adm-calc-weight')||{{}}).value||'',
+          l:(el.querySelector('.adm-calc-length')||{{}}).value||'',
+          wi:(el.querySelector('.adm-calc-width')||{{}}).value||'',
+          h:(el.querySelector('.adm-calc-height')||{{}}).value||'',
+          v:(el.querySelector('.adm-calc-value')||{{}}).value||'',
+          c:(el.querySelector('.adm-calc-category')||{{}}).value||''
         }});
       }});
-      try {{ localStorage.setItem(_CALC_KEY, JSON.stringify(state)); }} catch(e) {{}}
+      try {{ localStorage.setItem(_CALC_KEY,JSON.stringify(state)); }} catch(e) {{}}
     }}
     function _restoreCalcState() {{
       try {{
-        var raw = localStorage.getItem(_CALC_KEY);
+        var raw=localStorage.getItem(_CALC_KEY);
         if (!raw) return;
-        var state = JSON.parse(raw);
+        var state=JSON.parse(raw);
         if (!Array.isArray(state)) return;
-        document.querySelectorAll('#adm-calc-section .adm-calc-product').forEach(function(el, idx) {{
-          var s = state[idx]; if (!s) return;
-          var sv = function(cls, val) {{ var inp = el.querySelector(cls); if (inp && val) inp.value = val; }};
-          sv('.adm-calc-weight', s.w); sv('.adm-calc-length', s.l); sv('.adm-calc-width', s.wi);
-          sv('.adm-calc-height', s.h); sv('.adm-calc-value', s.v); sv('.adm-calc-category', s.c);
+        document.querySelectorAll('#adm-calc-section .adm-calc-product').forEach(function(el,idx) {{
+          var s=state[idx]; if (!s) return;
+          var sv=function(cls,val){{ var inp=el.querySelector(cls); if(inp&&val) inp.value=val; }};
+          sv('.adm-calc-weight',s.w); sv('.adm-calc-length',s.l); sv('.adm-calc-width',s.wi);
+          sv('.adm-calc-height',s.h); sv('.adm-calc-value',s.v); sv('.adm-calc-category',s.c);
         }});
         calcAll();
-        var tot = document.getElementById('adm-calc-grand-total');
-        if (tot && lastBreakdown) {{
-          var note = document.createElement('p');
-          note.style.cssText = 'font-size:.72rem;color:#6b7280;margin-top:.3rem;';
-          note.textContent = 'Valores restaurados del borrador anterior.';
-          if (!tot.nextSibling || tot.nextSibling.tagName !== 'P') tot.parentNode.insertBefore(note, tot.nextSibling);
+        if (lastBreakdown) {{
+          var aw=document.getElementById('admc-apply-wrap');
+          if (aw&&!aw.querySelector('.restore-note')) {{
+            var n=document.createElement('p');
+            n.className='restore-note';
+            n.style.cssText='font-size:.72rem;color:#6b7280;margin:.35rem 0 0;';
+            n.textContent='Valores restaurados del borrador anterior.';
+            aw.appendChild(n);
+          }}
         }}
       }} catch(e) {{}}
     }}
     document.querySelectorAll('#adm-calc-section .adm-calc-inp').forEach(function(inp) {{
-      inp.addEventListener('input', function() {{ calcAll(); _saveCalcState(); }});
+      inp.addEventListener('input',_saveCalcState);
     }});
-    _restoreCalcState();
-    var applyBtn = document.getElementById('adm-calc-apply-btn');
-    var applyStatus = document.getElementById('adm-calc-apply-status');
+
+    // ── Apply button ────────────────────────────────────────────────────────
+    var applyBtn=document.getElementById('adm-calc-apply-btn');
+    var applyStatus=document.getElementById('adm-calc-apply-status');
     if (applyBtn) {{
-      applyBtn.addEventListener('click', function() {{
-        if (!lastBreakdown) {{ alert('Ingresa el peso de al menos un producto para generar el desglose.'); return; }}
+      applyBtn.addEventListener('click',function() {{
+        if (!lastBreakdown) {{ alert('Haz clic en "Calcular env\u00edo" primero para generar el desglose.'); return; }}
         if (!HIDDEN_ID) {{ alert('El formulario de respuesta no est\u00e1 disponible (solicitud ya respondida).'); return; }}
-        var hidden = document.getElementById(HIDDEN_ID);
+        var hidden=document.getElementById(HIDDEN_ID);
         if (hidden) {{
-          hidden.value = JSON.stringify(lastBreakdown);
-          if (applyStatus) {{ applyStatus.style.display = 'inline'; setTimeout(function() {{ applyStatus.style.display = 'none'; }}, 3500); }}
+          hidden.value=JSON.stringify(lastBreakdown);
+          if (applyStatus) {{ applyStatus.style.display='inline'; setTimeout(function(){{ applyStatus.style.display='none'; }},3500); }}
         }} else {{ alert('El formulario de respuesta no est\u00e1 disponible.'); }}
       }});
     }}
+    _restoreCalcState();
   }})();
   </script>
 </div>'''
