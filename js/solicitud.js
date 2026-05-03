@@ -210,8 +210,14 @@
 
     if (parsed.confirmed_shipping_price_usd != null) {
       var price = Number(parsed.confirmed_shipping_price_usd);
-      _setText('resp-price', isNaN(price) ? String(parsed.confirmed_shipping_price_usd) : '$' + price.toFixed(2) + ' USD');
+      var _priceStr = isNaN(price) ? String(parsed.confirmed_shipping_price_usd) : '$' + price.toFixed(2) + ' USD';
+      _setText('resp-price', _priceStr);
       _show('resp-price-row');
+      // Price hero display
+      var _heroValEl = document.getElementById('resp-price-hero-val');
+      var _heroEl    = document.getElementById('resp-price-hero');
+      if (_heroValEl) _heroValEl.textContent = _priceStr;
+      if (_heroEl)    _heroEl.classList.remove('hidden');
       hasContent = true;
     }
     if (parsed.availability) {

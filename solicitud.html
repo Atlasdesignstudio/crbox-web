@@ -23,10 +23,77 @@
     <link rel="stylesheet" href="css/dashboard.css?v=6">
 
     <style>
-        .detail-row { display: flex; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6; }
+        .detail-row { display: flex; gap: 0.75rem; padding: 0.625rem 0; border-bottom: 1px solid #f3f4f6; }
         .detail-row:last-child { border-bottom: 0; }
-        .detail-label { font-size: 0.8125rem; font-weight: 500; color: #6b7280; min-width: 9rem; flex-shrink: 0; }
-        .detail-value { font-size: 0.9375rem; color: #111827; font-weight: 500; }
+        .detail-label { font-size: 0.78rem; font-weight: 500; color: #9ca3af; min-width: 9rem; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.04em; padding-top: 0.1rem; }
+        .detail-value { font-size: 0.875rem; color: #111827; font-weight: 500; }
+
+        /* ── Hero banner ──────────────────────────────────────── */
+        .sol-hero-band {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            position: relative; overflow: hidden;
+            padding: 1.4rem 1.5rem 1.3rem;
+        }
+        .sol-hero-band::before {
+            content: ''; position: absolute; right: -1.5rem; top: -1.5rem;
+            width: 8rem; height: 8rem; background: rgba(255,107,0,.15);
+            border-radius: 50%; pointer-events: none;
+        }
+        .sol-hero-band::after {
+            content: ''; position: absolute; right: 3.5rem; bottom: -3.5rem;
+            width: 11rem; height: 11rem; background: rgba(255,107,0,.06);
+            border-radius: 50%; pointer-events: none;
+        }
+        .sol-hero-label {
+            font-size: .6875rem; font-weight: 700; letter-spacing: .1em;
+            text-transform: uppercase; color: rgba(255,255,255,.35); margin: 0 0 .35rem;
+        }
+        .sol-hero-id {
+            font-size: 1.55rem; font-weight: 800; color: #fff;
+            letter-spacing: -.01em; margin: 0 0 .65rem; line-height: 1.15;
+            font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Consolas, monospace;
+        }
+        .sol-hero-date-wrap {
+            font-size: .8125rem; color: rgba(255,255,255,.5);
+            display: inline-flex; align-items: center; gap: .45rem;
+        }
+        .sol-hero-date-val { font-weight: 600; color: rgba(255,255,255,.82); }
+
+        /* ── Section card headers ─────────────────────────────── */
+        .sol-sec-hdr {
+            padding: .9rem 1.5rem; border-bottom: 1px solid #f3f4f6;
+            display: flex; align-items: center; gap: .65rem;
+        }
+        .sol-sec-hdr-icon {
+            width: 1.85rem; height: 1.85rem; border-radius: .45rem;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .sol-sec-hdr-title { font-size: .875rem; font-weight: 600; color: #1f2937; }
+
+        /* ── Price hero in response block ─────────────────────── */
+        .resp-price-hero {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1.5px solid #86efac; border-radius: .875rem;
+            padding: 1rem 1.15rem; margin: 1rem 1.25rem .25rem;
+            display: flex; align-items: center; gap: .85rem;
+        }
+        .resp-price-hero-icon {
+            width: 2.75rem; height: 2.75rem;
+            background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; box-shadow: 0 2px 10px rgba(22,163,74,.3);
+        }
+        .resp-price-hero-val {
+            font-size: 1.5rem; font-weight: 800; color: #15803d;
+            letter-spacing: -.03em; line-height: 1;
+        }
+        .resp-price-hero-lbl { font-size: .72rem; color: #16a34a; margin-top: .2rem; font-weight: 500; }
+
+        /* ── Timeline ─────────────────────────────────────────── */
+        .sol-tl-wrap { padding: 1.25rem 1.5rem; }
+
+        /* ── Panels ───────────────────────────────────────────── */
+        .sol-panel-inner { border-radius: 1rem; overflow: hidden; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -215,19 +282,19 @@
             <div id="sol-content" class="hidden">
 
                 <!-- ── Header card ─────────────────────────────────────────── -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
-                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Cotización</p>
-                            <h1 id="sol-id" class="text-3xl font-bold text-gray-900 tracking-tight mb-2"></h1>
-                            <div class="flex flex-wrap items-center gap-3">
-                                <span id="sol-badge"></span>
-                                <span class="text-sm text-gray-500 flex items-center gap-1">
-                                    <i class="fas fa-calendar-alt text-xs text-gray-400"></i>
-                                    Enviada el <span id="sol-date" class="font-medium text-gray-700 ml-1"></span>
-                                </span>
-                            </div>
-                        </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-5">
+                    <!-- Gradient hero band -->
+                    <div class="sol-hero-band">
+                        <p class="sol-hero-label">Solicitud de cotización</p>
+                        <h1 id="sol-id" class="sol-hero-id"></h1>
+                        <span class="sol-hero-date-wrap">
+                            <i class="fas fa-calendar-alt text-xs" aria-hidden="true"></i>
+                            Enviada el <span id="sol-date" class="sol-hero-date-val ml-1"></span>
+                        </span>
+                    </div>
+                    <!-- Badge + actions strip -->
+                    <div class="px-5 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-50">
+                        <span id="sol-badge"></span>
                         <div class="flex flex-wrap gap-2 flex-shrink-0">
                             <a id="btn-whatsapp" href="#" target="_blank" rel="noopener noreferrer"
                                class="hidden inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors">
@@ -246,14 +313,14 @@
                                 Duplicar
                             </a>
                         </div>
-                        <!-- Cancel confirm inline prompt -->
-                        <div id="cancel-confirm-row" class="hidden w-full mt-3 p-3 bg-red-50 border border-red-200 rounded-xl flex flex-wrap items-center gap-3 text-sm">
-                            <i class="fas fa-exclamation-triangle text-red-500 flex-shrink-0"></i>
-                            <span class="text-red-800 font-medium flex-1">¿Confirmas cancelar esta solicitud? No se puede deshacer.</span>
-                            <div class="flex gap-2">
-                                <button id="btn-cancel-confirm-yes" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors active:scale-95" style="min-height:36px;">Sí, cancelar</button>
-                                <button id="btn-cancel-confirm-no"  class="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors active:scale-95" style="min-height:36px;">No</button>
-                            </div>
+                    </div>
+                    <!-- Cancel confirm inline prompt -->
+                    <div id="cancel-confirm-row" class="hidden px-5 py-3 bg-red-50 border-b border-red-100 flex flex-wrap items-center gap-3 text-sm">
+                        <i class="fas fa-exclamation-triangle text-red-500 flex-shrink-0"></i>
+                        <span class="text-red-800 font-medium flex-1">¿Confirmas cancelar esta solicitud? No se puede deshacer.</span>
+                        <div class="flex gap-2">
+                            <button id="btn-cancel-confirm-yes" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors active:scale-95" style="min-height:36px;">Sí, cancelar</button>
+                            <button id="btn-cancel-confirm-no"  class="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors active:scale-95" style="min-height:36px;">No</button>
                         </div>
                     </div>
                 </div>
@@ -275,9 +342,21 @@
                     <!-- Rich response display (when response_json exists) -->
                     <div id="resp-block" class="hidden">
                         <div class="bg-green-50 border border-green-200 rounded-2xl overflow-hidden">
-                            <div class="flex items-center gap-2.5 px-5 py-4 border-b border-green-100">
-                                <i class="fas fa-check-circle text-green-500"></i>
+                            <div class="flex items-center gap-2.5 px-5 py-4 border-b border-green-100" style="background:linear-gradient(90deg,#f0fdf4,#dcfce7);">
+                                <div style="width:1.85rem;height:1.85rem;background:linear-gradient(135deg,#16a34a,#22c55e);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(22,163,74,.25);">
+                                    <i class="fas fa-check text-white" style="font-size:.7rem;"></i>
+                                </div>
                                 <p class="text-sm font-semibold text-green-900">CRBOX revisó tu solicitud</p>
+                            </div>
+                            <!-- Price hero (shown when price is confirmed) -->
+                            <div id="resp-price-hero" class="hidden resp-price-hero">
+                                <div class="resp-price-hero-icon">
+                                    <i class="fas fa-tag text-white" style="font-size:.8rem;"></i>
+                                </div>
+                                <div>
+                                    <div id="resp-price-hero-val" class="resp-price-hero-val">—</div>
+                                    <div class="resp-price-hero-lbl">Precio de envío confirmado</div>
+                                </div>
                             </div>
                             <div class="px-5 py-4 space-y-2.5">
                                 <div id="resp-price-row" class="hidden flex items-start gap-2">
@@ -487,9 +566,11 @@
 
                 <!-- ── Product card ────────────────────────────────────────── -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-5">
-                    <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-                        <i class="fas fa-box text-orange-400 text-sm"></i>
-                        <h2 id="sol-product-title" class="font-semibold text-gray-800 text-sm">Detalles del producto</h2>
+                    <div class="sol-sec-hdr" style="background:linear-gradient(90deg,#fff7ed,#fff);">
+                        <div class="sol-sec-hdr-icon" style="background:#fff0e0;">
+                            <i class="fas fa-box text-orange-500" style="font-size:.75rem;"></i>
+                        </div>
+                        <h2 id="sol-product-title" class="sol-sec-hdr-title">Detalles del producto</h2>
                     </div>
                     <div class="px-6 py-2">
                         <!-- Multi-product list (shown when 2+ products) -->
@@ -539,9 +620,11 @@
 
                 <!-- ── Status timeline ─────────────────────────────────────── -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-                        <i class="fas fa-history text-orange-400 text-sm"></i>
-                        <h2 class="font-semibold text-gray-800 text-sm">Historial de estado</h2>
+                    <div class="sol-sec-hdr" style="background:linear-gradient(90deg,#f8faff,#fff);">
+                        <div class="sol-sec-hdr-icon" style="background:#eff6ff;">
+                            <i class="fas fa-history text-blue-400" style="font-size:.75rem;"></i>
+                        </div>
+                        <h2 class="sol-sec-hdr-title">Historial de estado</h2>
                     </div>
                     <div class="px-6 py-5">
                         <div id="sol-timeline"></div>
@@ -557,7 +640,7 @@
     <script src="js/auth.js?v=4"></script>
     <script src="js/nav-auth.js?v=2" defer></script>
     <script src="js/portal-api.js?v=4"></script>
-    <script src="js/solicitud.js?v=5"></script>
+    <script src="js/solicitud.js?v=6"></script>
     <script src="js/portal-nav-offset.js" defer></script>
 </body>
 </html>
