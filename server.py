@@ -10353,7 +10353,8 @@ def _handle_ai_chat(handler):
             config={
                 'system_instruction': _CRBOX_CHAT_SYSTEM_PROMPT,
                 'temperature': 0.4,
-                'max_output_tokens': 400,
+                'max_output_tokens': 300,
+                'thinking_config': {'thinking_budget': 0},
             },
         )
         raw_text = resp.text.strip()

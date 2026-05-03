@@ -52,23 +52,74 @@
   },
   "air_rates_usd": {
     "table": [
-      {"kg": 0.5, "usd": 5},
-      {"kg": 1,   "usd": 7},
-      {"kg": 2,   "usd": 11},
-      {"kg": 3,   "usd": 15},
-      {"kg": 4,   "usd": 19},
-      {"kg": 5,   "usd": 23},
-      {"kg": 6,   "usd": 27},
-      {"kg": 7,   "usd": 32},
-      {"kg": 8,   "usd": 36},
-      {"kg": 9,   "usd": 40},
-      {"kg": 10,  "usd": 44},
-      {"kg": 11,  "usd": 48},
-      {"kg": 12,  "usd": 52},
-      {"kg": 13,  "usd": 56},
-      {"kg": 14,  "usd": 60},
-      {"kg": 15,  "usd": 64},
-      {"kg": 20,  "usd": 84}
+      {
+        "kg": 0.5,
+        "usd": 5
+      },
+      {
+        "kg": 1,
+        "usd": 7
+      },
+      {
+        "kg": 2,
+        "usd": 11
+      },
+      {
+        "kg": 3,
+        "usd": 15
+      },
+      {
+        "kg": 4,
+        "usd": 19
+      },
+      {
+        "kg": 5,
+        "usd": 23
+      },
+      {
+        "kg": 6,
+        "usd": 27
+      },
+      {
+        "kg": 7,
+        "usd": 32
+      },
+      {
+        "kg": 8,
+        "usd": 36
+      },
+      {
+        "kg": 9,
+        "usd": 40
+      },
+      {
+        "kg": 10,
+        "usd": 44
+      },
+      {
+        "kg": 11,
+        "usd": 48
+      },
+      {
+        "kg": 12,
+        "usd": 52
+      },
+      {
+        "kg": 13,
+        "usd": 56
+      },
+      {
+        "kg": 14,
+        "usd": 60
+      },
+      {
+        "kg": 15,
+        "usd": 64
+      },
+      {
+        "kg": 20,
+        "usd": 84
+      }
     ],
     "over_20kg": "$84 + $3/kg sobre 20",
     "over_100kg": "tarifa especial — consultar",
@@ -77,35 +128,111 @@
     "volumetric_formula": "(largo × ancho × alto cm) / 6000 — se cobra el mayor entre peso real y volumétrico"
   },
   "handling_fees_usd": [
-    {"value_from": 0,    "value_to": 20,   "fee": 1.50},
-    {"value_from": 20,   "value_to": 30,   "fee": 3.50},
-    {"value_from": 30,   "value_to": 50,   "fee": 5.50},
-    {"value_from": 50,   "value_to": 100,  "fee": 7.00},
-    {"value_from": 100,  "value_to": 200,  "fee": 14.00},
-    {"value_from": 200,  "value_to": 250,  "fee": 25.00},
-    {"value_from": 250,  "value_to": 500,  "fee": 35.00},
-    {"value_from": 500,  "value_to": 1000, "fee": 45.00},
-    {"value_from": 1000, "value_to": 2500, "fee": 100.00},
-    {"value_from": 2500, "value_to": null, "fee": "ver tarifas.html"}
+    {
+      "value_from": 0,
+      "value_to": 20,
+      "fee": 1.5
+    },
+    {
+      "value_from": 20,
+      "value_to": 30,
+      "fee": 3.5
+    },
+    {
+      "value_from": 30,
+      "value_to": 50,
+      "fee": 5.5
+    },
+    {
+      "value_from": 50,
+      "value_to": 100,
+      "fee": 7.0
+    },
+    {
+      "value_from": 100,
+      "value_to": 200,
+      "fee": 14.0
+    },
+    {
+      "value_from": 200,
+      "value_to": 250,
+      "fee": 25.0
+    },
+    {
+      "value_from": 250,
+      "value_to": 500,
+      "fee": 35.0
+    },
+    {
+      "value_from": 500,
+      "value_to": 1000,
+      "fee": 45.0
+    },
+    {
+      "value_from": 1000,
+      "value_to": 2500,
+      "fee": 100.0
+    },
+    {
+      "value_from": 2500,
+      "value_to": null,
+      "fee": "ver tarifas.html"
+    }
   ],
   "delivery_fees_usd": {
     "san_jose_heredia_alajuela": [
-      {"max_kg": 10, "fee": 5},
-      {"max_kg": 20, "fee": 7},
-      {"max_kg": 50, "fee": 12},
-      {"max_kg": null,"fee": 15}
+      {
+        "max_kg": 10,
+        "fee": 5
+      },
+      {
+        "max_kg": 20,
+        "fee": 7
+      },
+      {
+        "max_kg": 50,
+        "fee": 12
+      },
+      {
+        "max_kg": null,
+        "fee": 15
+      }
     ],
     "cartago": [
-      {"max_kg": 10, "fee": 10},
-      {"max_kg": 20, "fee": 15},
-      {"max_kg": 50, "fee": 18},
-      {"max_kg": null,"fee": 20}
+      {
+        "max_kg": 10,
+        "fee": 10
+      },
+      {
+        "max_kg": 20,
+        "fee": 15
+      },
+      {
+        "max_kg": 50,
+        "fee": 18
+      },
+      {
+        "max_kg": null,
+        "fee": 20
+      }
     ],
     "provinces_remote": [
-      {"max_kg": 10, "fee": 15},
-      {"max_kg": 20, "fee": 20},
-      {"max_kg": 50, "fee": 25},
-      {"max_kg": null,"fee": 30}
+      {
+        "max_kg": 10,
+        "fee": 15
+      },
+      {
+        "max_kg": 20,
+        "fee": 20
+      },
+      {
+        "max_kg": 50,
+        "fee": 25
+      },
+      {
+        "max_kg": null,
+        "fee": 30
+      }
     ],
     "pickup_free": true,
     "pickup_note": "Retiro gratuito en sucursales de Sabana Norte y Calle Blancos"
@@ -120,16 +247,56 @@
       "Materiales tóxicos o peligrosos sin etiqueta"
     ],
     "restricted": [
-      {"item": "Suplementos / proteína en polvo", "note": "Requiere registro sanitario del Ministerio de Salud", "agency": "Ministerio de Salud"},
-      {"item": "Medicamentos / fármacos", "note": "Requiere receta médica + registro sanitario", "agency": "Ministerio de Salud"},
-      {"item": "Alimentos, bebidas, semillas", "note": "Requiere permiso fitosanitario", "agency": "SFE"},
-      {"item": "Cosméticos, perfumes, cremas", "note": "Requiere registro sanitario; grandes volúmenes de líquido pueden rechazarse", "agency": "Ministerio de Salud"},
-      {"item": "Drones / aeronaves radio-controladas", "note": "Requiere permiso SUTEL/DGAC", "agency": "SUTEL/DGAC"},
-      {"item": "Equipos de telecomunicaciones / radio", "note": "Requiere homologación SUTEL", "agency": "SUTEL"},
-      {"item": "Baterías de litio sueltas / power banks", "note": "IATA restringido; dentro del dispositivo es aceptable", "agency": "IATA"},
-      {"item": "Químicos, pinturas, solventes", "note": "Pueden ser materiales peligrosos", "agency": "Aduanas CR"},
-      {"item": "Repuestos de vehículos", "note": "Altas tarifas aduaneras 42–49%", "agency": "DGA"},
-      {"item": "Plantas, tierra, materia orgánica", "note": "Requiere permiso fitosanitario SFE", "agency": "SFE"}
+      {
+        "item": "Suplementos / proteína en polvo",
+        "note": "Requiere registro sanitario del Ministerio de Salud",
+        "agency": "Ministerio de Salud"
+      },
+      {
+        "item": "Medicamentos / fármacos",
+        "note": "Requiere receta médica + registro sanitario",
+        "agency": "Ministerio de Salud"
+      },
+      {
+        "item": "Alimentos, bebidas, semillas",
+        "note": "Requiere permiso fitosanitario",
+        "agency": "SFE"
+      },
+      {
+        "item": "Cosméticos, perfumes, cremas",
+        "note": "Requiere registro sanitario; grandes volúmenes de líquido pueden rechazarse",
+        "agency": "Ministerio de Salud"
+      },
+      {
+        "item": "Drones / aeronaves radio-controladas",
+        "note": "Requiere permiso SUTEL/DGAC",
+        "agency": "SUTEL/DGAC"
+      },
+      {
+        "item": "Equipos de telecomunicaciones / radio",
+        "note": "Requiere homologación SUTEL",
+        "agency": "SUTEL"
+      },
+      {
+        "item": "Baterías de litio sueltas / power banks",
+        "note": "IATA restringido; dentro del dispositivo es aceptable",
+        "agency": "IATA"
+      },
+      {
+        "item": "Químicos, pinturas, solventes",
+        "note": "Pueden ser materiales peligrosos",
+        "agency": "Aduanas CR"
+      },
+      {
+        "item": "Repuestos de vehículos",
+        "note": "Altas tarifas aduaneras 42–49%",
+        "agency": "DGA"
+      },
+      {
+        "item": "Plantas, tierra, materia orgánica",
+        "note": "Requiere permiso fitosanitario SFE",
+        "agency": "SFE"
+      }
     ],
     "allowed_examples": [
       "Ropa y calzado",
@@ -223,10 +390,13 @@
     "El paquete llega a Costa Rica en 2–4 días hábiles después de salir de Miami"
   ],
   "faq": [
-    {"q": "¿Cuánto cuesta el casillero?", "a": "Es 100% GRATIS. Sin cuota mensual ni costo de afiliación."},
+    {
+      "q": "¿Cuánto cuesta el casillero?",
+      "a": "Es 100% GRATIS. Sin cuota mensual ni costo de afiliación."
+    },
     {
       "q": "¿Qué hacer si se me olvida el número de mi casillero o la clave de mi cuenta?",
-      "a": "Para ver tu número de casillero: ingresa con tu correo y contraseña en crbox.cr y lo encontrarás en tu cuenta. Si olvidaste tu contraseña, haz clic en '¿Olvidó su clave?' en la página de inicio — el sistema te enviará una clave provisional que podrás cambiar cuando quieras. Si necesitas más ayuda escríbenos a servicioalcliente@crbox.cr."
+      "a": "Ingresa en crbox.cr con tu correo — tu número de casillero aparece en tu cuenta. Si olvidaste la contraseña, usa \"¿Olvidó su clave?\" en el inicio de sesión. Más ayuda: servicioalcliente@crbox.cr."
     },
     {
       "q": "¿El servicio se cobra por peso o por volumen?",
@@ -246,15 +416,15 @@
     },
     {
       "q": "¿CRBOX hace entregas en Zonas Francas y Oficentros?",
-      "a": "Sí. CRBOX ofrece entrega local GRATUITA en varias Zonas Francas y Oficentros. Si trabajas en alguno de estos lugares, puedes usar este beneficio sin costo adicional. Los lugares incluyen: Oficentro la Sabana, Ofimall (Mall San Pedro), Terra Campus, San Antonio Business Park, Plaza Aeropuerto, Forum 1 y 2, Plaza Murano, Ofiplaza del Este, Plaza Roble, El Cafetal, Eurocenter; y Zonas Francas: El Coyol, Z, Bes, Bodegas del Este, Metropark, Global Park, Ultra Park, Ultra Lag y Saret."
+      "a": "Sí. CRBOX ofrece entrega GRATUITA en Zonas Francas y Oficentros seleccionados (La Sabana, Forum 1 y 2, Ultra Park, El Coyol y otros). Consulta la lista completa en el portal o escríbenos."
     },
     {
       "q": "¿CRBOX hace logística internacional / exportaciones / importaciones?",
-      "a": "Sí. CRBOX ofrece servicios completos de logística internacional: importación y exportación aérea, marítima (LCL y FCL) y terrestre. Cubrimos EE.UU., Centroamérica, México, Panamá, Suramérica (Argentina, Chile, Brasil, Perú, Colombia, Uruguay), Lejano Oriente (China, Japón, Korea, Taiwan, Vietnam) y Europa/Medio Oriente. Escríbenos a ventas@crbox.cr o por WhatsApp para coordinar tu requerimiento."
+      "a": "Sí. Logística internacional: importación/exportación aérea, marítima (LCL/FCL) y terrestre. Destinos: EE.UU., Centroamérica, Suramérica, Asia y Europa. Escríbenos a ventas@crbox.cr."
     },
     {
       "q": "Mi paquete ya está en Miami / ya llegó a la bodega, ¿qué tengo que hacer?",
-      "a": "Si ya tienes cuenta en CRBOX (por ejemplo ya hiciste una solicitud de compra por encargo), entra al portal del cliente y sube la factura en la sección 'Mis Paquetes'. También puedes enviar la factura directamente a facturas@crbox.cr. La factura es obligatoria para que Aduanas autorice el ingreso a Costa Rica. Una vez que tenemos la factura, coordinamos el envío."
+      "a": "Sube la factura en la sección \"Mis Paquetes\" del portal, o envíala a facturas@crbox.cr. La factura es obligatoria para Aduanas. Una vez recibida coordinamos el envío."
     },
     {
       "q": "¿Cómo subo la factura de mi compra?",
@@ -262,30 +432,60 @@
     },
     {
       "q": "¿Puedo consolidar varios paquetes? / Quiero enviar 5 paquetes juntos",
-      "a": "¡Sin problema! Si vas a recibir varios paquetes, no tienes que hacer nada especial de inmediato. Espera a que todos los paquetes lleguen a la bodega en Miami y aparezcan confirmados en tu portal (sección 'Mis Paquetes'). Una vez que todos estén registrados en el sistema, sube las facturas de todos al mismo tiempo. Así los consolidamos en un solo envío y ahorras en flete."
-    },
-    {
-      "q": "¿Puedo consolidar paquetes?",
-      "a": "Sí. Espera a que todos los paquetes estén confirmados en tu portal ('Mis Paquetes') y luego sube todas las facturas juntas. CRBOX los consolida en un solo envío para que ahorres en el costo de flete."
+      "a": "Sí. Espera a que todos los paquetes aparezcan confirmados en \"Mis Paquetes\", luego sube todas las facturas juntas. CRBOX los consolida en un solo envío para ahorrar en flete."
     },
     {
       "q": "¿Necesito factura?",
       "a": "Sí, la factura es obligatoria por requerimiento de Aduanas de Costa Rica. Puedes subirla en el portal del cliente en 'Mis Paquetes' o enviarla a facturas@crbox.cr."
     },
-    {"q": "¿Cuál es el valor máximo por paquete?", "a": "$1,000 para envíos aéreos estándar. Valores mayores requieren manejo especial."},
-    {"q": "¿Puedo pagar en colones?", "a": "Sí. El pago se puede realizar en colones al tipo de cambio vigente."},
-    {"q": "¿Cómo funciona la compra por encargo?", "a": "Llenas el formulario en cotizar.html con tu nombre, email y el link del producto. CRBOX te contacta con precio y pasos a seguir."},
-    {"q": "¿Puedo traer perfumes?", "a": "Los perfumes son líquidos y pueden ser restringidos en cantidades grandes. Consulta antes de comprar."},
-    {"q": "¿Puedo traer suplementos?", "a": "Los suplementos son RESTRINGIDOS. Requieren registro sanitario. CRBOX puede intentar el proceso pero no garantiza el ingreso."},
-    {"q": "¿Puedo traer medicamentos?", "a": "Los medicamentos son RESTRINGIDOS. Necesitan prescripción y registro sanitario."}
+    {
+      "q": "¿Cuál es el valor máximo por paquete?",
+      "a": "$1,000 para envíos aéreos estándar. Valores mayores requieren manejo especial."
+    },
+    {
+      "q": "¿Puedo pagar en colones?",
+      "a": "Sí. El pago se puede realizar en colones al tipo de cambio vigente."
+    },
+    {
+      "q": "¿Cómo funciona la compra por encargo?",
+      "a": "Llenas el formulario en cotizar.html con tu nombre, email y el link del producto. CRBOX te contacta con precio y pasos a seguir."
+    }
   ],
   "page_map": {
-    "index":         {"url": "index.html",         "label": "Inicio",       "greeting": "¡Hola! Soy el Asistente CRBox. Puedo resolver tus dudas sobre envíos, tarifas y servicios. ¿En qué te ayudo?"},
-    "servicios":     {"url": "servicios.html",     "label": "Servicios",    "greeting": "¡Hola! Estoy aquí para explicarte cualquiera de nuestros servicios. ¿En qué te ayudo?"},
-    "tarifas":       {"url": "tarifas.html",       "label": "Tarifas",      "greeting": "¡Hola! Veo que estás revisando las tarifas. ¿Quieres que calcule el costo de tu envío?"},
-    "calculadora":   {"url": "calculadora.html",   "label": "Calculadora",  "greeting": "¡Hola! Puedo ayudarte a entender el resultado de la calculadora o responder preguntas sobre tu envío."},
-    "cotizar":       {"url": "cotizar.html",       "label": "Cotizar",      "greeting": "¡Hola! ¿Necesitas ayuda para completar tu solicitud de compra por encargo?"},
-    "como-funciona": {"url": "como-funciona.html", "label": "Cómo Funciona","greeting": "¡Hola! ¿Tienes alguna duda sobre el proceso de envío de CRBOX?"},
-    "contacto":      {"url": "contacto.html",      "label": "Contacto",     "greeting": "¡Hola! ¿Puedo ayudarte antes de que escribas al equipo?"}
+    "index": {
+      "url": "index.html",
+      "label": "Inicio",
+      "greeting": "¡Hola! Soy el Asistente CRBox. Puedo resolver tus dudas sobre envíos, tarifas y servicios. ¿En qué te ayudo?"
+    },
+    "servicios": {
+      "url": "servicios.html",
+      "label": "Servicios",
+      "greeting": "¡Hola! Estoy aquí para explicarte cualquiera de nuestros servicios. ¿En qué te ayudo?"
+    },
+    "tarifas": {
+      "url": "tarifas.html",
+      "label": "Tarifas",
+      "greeting": "¡Hola! Veo que estás revisando las tarifas. ¿Quieres que calcule el costo de tu envío?"
+    },
+    "calculadora": {
+      "url": "calculadora.html",
+      "label": "Calculadora",
+      "greeting": "¡Hola! Puedo ayudarte a entender el resultado de la calculadora o responder preguntas sobre tu envío."
+    },
+    "cotizar": {
+      "url": "cotizar.html",
+      "label": "Cotizar",
+      "greeting": "¡Hola! ¿Necesitas ayuda para completar tu solicitud de compra por encargo?"
+    },
+    "como-funciona": {
+      "url": "como-funciona.html",
+      "label": "Cómo Funciona",
+      "greeting": "¡Hola! ¿Tienes alguna duda sobre el proceso de envío de CRBOX?"
+    },
+    "contacto": {
+      "url": "contacto.html",
+      "label": "Contacto",
+      "greeting": "¡Hola! ¿Puedo ayudarte antes de que escribas al equipo?"
+    }
   }
 }
