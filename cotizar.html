@@ -155,40 +155,6 @@
         }
         .service-toggle-btn:not(.active):hover { background: #e5e7eb; color: #374151; }
 
-        /* ── Email confirmation bar ── */
-        #email-confirm-bar {
-            display: none;
-            align-items: center;
-            gap: .6rem;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: .55rem;
-            padding: .65rem .9rem;
-            margin-top: .5rem;
-            font-size: .8375rem;
-        }
-        #email-confirm-bar.visible { display: flex; }
-        #email-confirm-bar.unconfirmed {
-            background: #fffbeb;
-            border-color: #fde68a;
-        }
-        #email-confirm-bar .ec-icon { color: #16a34a; font-size: .9rem; flex-shrink: 0; }
-        #email-confirm-bar.unconfirmed .ec-icon { color: #d97706; }
-        #email-confirm-bar .ec-text { color: #166534; flex: 1; line-height: 1.4; }
-        #email-confirm-bar.unconfirmed .ec-text { color: #92400e; }
-        #btn-change-email {
-            font-size: .775rem;
-            font-weight: 700;
-            color: #FF6B00;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            text-decoration: underline;
-            flex-shrink: 0;
-            white-space: nowrap;
-        }
-
         /* ── Submit CTA ── */
         #btn-submit-quote {
             background: #FF6B00;
@@ -939,19 +905,6 @@
                                 <i class="fas fa-exclamation-circle"></i>
                                 <span id="err-email-text">Ingresa un correo válido.</span>
                             </div>
-                            <!-- Email confirm bar -->
-                            <div id="email-confirm-bar" class="unconfirmed" role="status">
-                                <i class="fas fa-question-circle ec-icon"></i>
-                                <span class="ec-text">
-                                    <strong>Confirma tu correo:</strong> <span id="ec-email-display"></span>
-                                    <span style="margin-left:.25rem;color:#92400e;">— ¿Es correcto?</span>
-                                </span>
-                                <button type="button" id="btn-change-email">Cambiar</button>
-                            </div>
-                            <div id="email-confirmed-bar" style="display:none;" class="flex items-center gap-2 mt-2 text-sm text-green-700" role="status">
-                                <i class="fas fa-check-circle" style="color:#16a34a;"></i>
-                                <span>Correo confirmado</span>
-                            </div>
                         </div>
 
                         <!-- Notes -->
@@ -1167,10 +1120,6 @@
         const fEmail          = document.getElementById('f-customer-email');
         const fNotes          = document.getElementById('f-notes');
 
-        const emailConfirmBar      = document.getElementById('email-confirm-bar');
-        const emailConfirmedBar    = document.getElementById('email-confirmed-bar');
-        const ecEmailDisplay       = document.getElementById('ec-email-display');
-        const btnChangeEmail       = document.getElementById('btn-change-email');
 
         const btnSubmit       = document.getElementById('btn-submit-quote');
         const btnStickySubmit = document.getElementById('btn-sticky-submit');
@@ -1193,7 +1142,6 @@
         const aiConfirmChk     = document.getElementById('ai-confirm-chk-cotizar');
 
         // ── State ──────────────────────────────────────────────
-        let emailConfirmed    = false;
         let hasRequiredField  = false; // has user filled any required field?
         let lastSubmitPayload = null;  // keep for WA fallback
         let _dupWarningDismissed = false;
@@ -1269,34 +1217,8 @@
                 : 'Ideal para muebles, electrodomésticos y cargas mayores. Tiempo estimado: 4–8 semanas.';
         }
 
-        // ── Email display-back ──────────────────────────────────
-        fEmail.addEventListener('blur', function () {
-            const val = (this.value || '').trim();
-            if (val && isValidEmail(val)) {
-                ecEmailDisplay.textContent = val;
-                emailConfirmBar.classList.remove('visible');
-                emailConfirmedBar.style.display = 'none';
-
-                // Show unconfirmed state
-                emailConfirmBar.classList.add('visible', 'unconfirmed');
-                emailConfirmBar.querySelector('.ec-icon').className = 'fas fa-question-circle ec-icon';
-                emailConfirmed = false;
-                updateSubmitState();
-            } else {
-                emailConfirmBar.classList.remove('visible');
-                emailConfirmedBar.style.display = 'none';
-            }
-        });
-
+        // ── Email input — live validation ───────────────────────
         fEmail.addEventListener('input', function () {
-            // If editing after confirmation, reset
-            if (emailConfirmed) {
-                emailConfirmed = false;
-                emailConfirmBar.classList.remove('visible');
-                emailConfirmedBar.style.display = 'none';
-                hideError('err-email');
-            }
-            // Clear visible error as soon as the email becomes valid again
             const val = (this.value || '').trim();
             if (val && isValidEmail(val)) {
                 clearFieldError(this, 'err-email');
@@ -1304,33 +1226,6 @@
             }
             updateSubmitState();
         });
-
-        // "Cambiar" link → focus email
-        btnChangeEmail.addEventListener('click', function () {
-            emailConfirmBar.classList.remove('visible');
-            emailConfirmedBar.style.display = 'none';
-            emailConfirmed = false;
-            fEmail.value = '';
-            fEmail.focus();
-            updateSubmitState();
-        });
-
-        // Clicking on the confirmation bar (when unconfirmed) confirms the email
-        emailConfirmBar.addEventListener('click', function (e) {
-            if (e.target === btnChangeEmail) return;
-            const val = (fEmail.value || '').trim();
-            if (val && isValidEmail(val) && !emailConfirmed) {
-                confirmEmail(val);
-            }
-        });
-
-        function confirmEmail(val) {
-            emailConfirmed = true;
-            emailConfirmBar.classList.remove('visible', 'unconfirmed');
-            emailConfirmedBar.style.display = 'flex';
-            hideError('err-email');
-            updateSubmitState();
-        }
 
         // ── Notes char count ────────────────────────────────────
         fNotes.addEventListener('input', function () {
@@ -1366,7 +1261,7 @@
             const step1Done = productName.length >= 3 && category !== '' &&
                               !isNaN(declaredVal) && declaredVal > 0;
             const step2Done = destination !== '';
-            const step3Done = isValidEmail(email) && emailConfirmed;
+            const step3Done = isValidEmail(email);
             const steps = [
                 { dot: 'fsd-1', lbl: 'fsl-1-lbl', done: step1Done },
                 { dot: 'fsd-2', lbl: 'fsl-2-lbl', done: step2Done },
@@ -1430,8 +1325,7 @@
                 cat !== '' &&
                 !isNaN(val) && val > 0 &&
                 dest !== '' &&
-                isValidEmail(email) &&
-                emailConfirmed
+                isValidEmail(email)
             );
         }
 
@@ -1694,10 +1588,6 @@
             if (isNaN(declaredVal) || declaredVal <= 0) { markFieldError(fDeclaredValue, 'err-declared-value'); valid = false; }
             if (!destination)           { markFieldError(fDestination, 'err-destination'); valid = false; }
             if (!email || !isValidEmail(email)) { markFieldError(fEmail, 'err-email'); valid = false; }
-            if (email && isValidEmail(email) && !emailConfirmed) {
-                document.getElementById('err-email-text').textContent = 'Por favor confirma tu correo antes de enviar.';
-                markFieldError(fEmail, 'err-email'); valid = false;
-            }
             if (fCategory.dataset.aiSuggested === '1' && fCategory.dataset.aiConfirmed !== '1') {
                 markFieldError(fCategory, 'err-category');
                 valid = false;
@@ -2054,14 +1944,11 @@
                 });
             }
             _aiActive = false;
-            emailConfirmed = false;
             hasRequiredField = false;
             lastSubmitPayload = null;
             _formSubmitted = false;
             _dupWarningDismissed = false;
             if (dupWarningCotizar) dupWarningCotizar.classList.add('hidden');
-            emailConfirmBar.classList.remove('visible');
-            emailConfirmedBar.style.display = 'none';
             notesCharCount.textContent = '0';
             setService('aereo');
 
@@ -2204,11 +2091,6 @@
                 fEmail.value = decoded;
                 // Sync derived UI state (sticky CTA, step dots, submit gating)
                 checkRequiredFilled();
-                // Trigger confirm flow after short delay
-                setTimeout(function () {
-                    ecEmailDisplay.textContent = fEmail.value;
-                    emailConfirmBar.classList.add('visible', 'unconfirmed');
-                }, 200);
             }
         })();
 
