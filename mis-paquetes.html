@@ -18,6 +18,8 @@
     <link rel="manifest" href="img/favicon/site.webmanifest">
     
     <!-- Estilos -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     
@@ -812,7 +814,7 @@
                         </label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm select-none">$</span>
-                            <input type="number" id="invoice-monto" min="0" step="0.01"
+                            <input type="number" id="invoice-monto" min="0" step="0.01" inputmode="decimal"
                                 class="w-full h-11 pl-8 pr-4 rounded-lg border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-sm"
                                 placeholder="0.00" required>
                         </div>
@@ -3412,7 +3414,7 @@
             </div>
             <div class="ej-field-group">
               <label class="ej-label" for="ej-qc-group-count">Cantidad de paquetes esperados <span class="text-red-500">*</span></label>
-              <input id="ej-qc-group-count" class="ej-input" type="number" min="1" max="99" required>
+              <input id="ej-qc-group-count" class="ej-input" type="number" min="1" max="99" inputmode="numeric" required>
               <p class="ej-qc-pkg-count-note">Se incluirán todos los paquetes de Miami que no pertenecen a otro grupo.</p>
             </div>
             <div class="ej-field-group">
@@ -3449,7 +3451,7 @@
             </div>
             <div class="ej-field-group">
               <label class="ej-label" for="ej-create-group-count">Cantidad de paquetes esperados <span class="text-red-500">*</span></label>
-              <input id="ej-create-group-count" class="ej-input" type="number" min="1" max="99" placeholder="Ej. 7" required>
+              <input id="ej-create-group-count" class="ej-input" type="number" min="1" max="99" inputmode="numeric" placeholder="Ej. 7" required>
             </div>
             <div class="ej-field-group">
               <label class="ej-label" for="ej-create-group-notes">Notas para CRBOX <span class="text-gray-400 font-normal">(opcional)</span></label>
