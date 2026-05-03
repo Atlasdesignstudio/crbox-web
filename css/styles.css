@@ -1050,3 +1050,36 @@ button.active {
     transform: scale(0.97);
     box-shadow: 0 2px 10px rgba(255, 107, 0, 0.3);
 }
+
+/* ==========================================================================
+   Horizontal-scroll fade affordance
+   Hints to mobile users that content extends beyond the visible area.
+   Apply .scroll-fade-x to a wrapper containing an overflow-x scrolling child.
+   ========================================================================== */
+.scroll-fade-x {
+    position: relative;
+    --scroll-fade-bg: 255, 255, 255; /* override per-container if not on white */
+}
+.scroll-fade-x::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 28px;
+    pointer-events: none;
+    background: linear-gradient(
+        to right,
+        rgba(var(--scroll-fade-bg), 0) 0%,
+        rgba(var(--scroll-fade-bg), 0.85) 100%
+    );
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    z-index: 2;
+}
+@media (min-width: 1024px) {
+    /* On desktop, content typically fits — hide the fade. */
+    .scroll-fade-x::after {
+        display: none;
+    }
+}
