@@ -2619,24 +2619,9 @@ def _build_response_email_html(scb_id, product_name, customer_name,
                 + '</div>'
             )
 
-    # ── CTA buttons (built before return to avoid mixing implicit + explicit concat) ──
-    _casillero_btn = (
-        '<a href="https://crbox.cr/afiliate.html" '
-        'style="display:inline-block;background:#fff;color:#FF6B00;font-weight:700;'
-        'font-size:14px;padding:12px 20px;border-radius:8px;text-decoration:none;'
-        'border:2px solid #FF6B00;text-align:center;flex:1;min-width:160px;">'
-        '&#x1F4E6; Abrir casillero gratis</a>'
-        if availability in ('disponible', 'disponible_con_condiciones') else ''
-    )
-    cta_block = (
-        '<div style="margin:24px 0 20px;display:flex;flex-wrap:wrap;gap:10px;">'
-        f'<a href="https://crbox.cr/solicitud.html?id={esc(scb_id)}" '
-        'style="display:inline-block;background:#FF6B00;color:#fff;font-weight:700;'
-        'font-size:14px;padding:12px 20px;border-radius:8px;text-decoration:none;'
-        'text-align:center;flex:1;min-width:160px;">&#128203; Ver mi solicitud</a>'
-        f'{_casillero_btn}'
-        '</div>'
-    )
+    # ── CTA buttons (hidden for now) ──
+    _casillero_btn = ''
+    cta_block = ''
     contact_block = (
         '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;'
         'padding:16px 20px;margin-bottom:20px;">'
