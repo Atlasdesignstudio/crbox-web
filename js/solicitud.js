@@ -287,21 +287,72 @@
     if (badgeEl) badgeEl.innerHTML = statusBadge(status);
     if (dateEl)  dateEl.textContent = formatDateShort(sol.submitted_at);
 
-    // Product card
-    _setText('sol-product-name', sol.product_name || '—');
-    _setText('sol-category', CATEGORY_LABELS[sol.category] || sol.category || 'Otros');
-    _setText('sol-value', sol.declared_value_usd != null ? '$' + Number(sol.declared_value_usd).toFixed(2) + ' USD' : '—');
-    _setText('sol-service', SERVICE_LABELS[sol.service_type] || 'Aéreo');
+    // Product card — parse multi-product array if present
+    var _solProducts = [];
+    if (sol.products) {
+      try {
+        var _pp = typeof sol.products === 'string' ? JSON.parse(sol.products) : sol.products;
+        if (Array.isArray(_pp) && _pp.length > 0) _solProducts = _pp;
+      } catch (e) {}
+    }
 
-    var urlEl = document.getElementById('sol-url');
-    if (urlEl) {
-      if (sol.product_url) {
-        urlEl.innerHTML = '<a href="' + esc(sol.product_url) + '" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline break-all text-sm">' + esc(sol.product_url.replace(/https?:\/\//i, '').substring(0, 60)) + (sol.product_url.length > 60 ? '…' : '') + '</a>';
-      } else {
-        urlEl.textContent = 'No proporcionada';
-        urlEl.className = 'text-gray-400 text-sm';
+    if (_solProducts.length > 1) {
+      var singleEl = document.getElementById('sol-single-product');
+      if (singleEl) singleEl.classList.add('hidden');
+      var titleEl = document.getElementById('sol-product-title');
+      if (titleEl) titleEl.textContent = _solProducts.length + ' productos';
+      var multiEl = document.getElementById('sol-multi-products');
+      if (multiEl) {
+        multiEl.innerHTML = _solProducts.map(function (p, i) {
+          var pName = esc(p.name || ('Producto ' + (i + 1)));
+          var pCat  = esc(CATEGORY_LABELS[p.category] || p.category || 'Otros');
+          var pVal  = p.declared_value_usd != null ? '$' + Number(p.declared_value_usd).toFixed(2) + ' USD' : '—';
+          var pUrl  = p.url || '';
+          var urlHtml = pUrl
+            ? '<a href="' + esc(pUrl) + '" target="_blank" rel="noopener noreferrer" '
+              + 'class="text-blue-600 hover:text-blue-800 underline break-all text-xs">'
+              + esc(pUrl.replace(/https?:\/\//i, '').substring(0, 55))
+              + (pUrl.length > 55 ? '…' : '') + '</a>'
+            : '<span class="text-gray-400 text-xs">No proporcionada</span>';
+          return '<details class="border border-gray-100 rounded-xl mb-2 last:mb-0 overflow-hidden" open>'
+            + '<summary class="flex justify-between items-center px-4 py-2.5 bg-gray-50 '
+            + 'cursor-pointer list-none select-none">'
+            + '<span class="text-sm font-semibold text-gray-900">' + (i + 1) + '. ' + pName + '</span>'
+            + '<span class="text-xs font-medium text-gray-500 ml-3 whitespace-nowrap">' + esc(pVal) + '</span>'
+            + '</summary>'
+            + '<div class="px-4 py-2">'
+            + '<div class="detail-row"><span class="detail-label">Categoría</span>'
+            + '<span class="detail-value">' + pCat + '</span></div>'
+            + '<div class="detail-row"><span class="detail-label">Valor declarado</span>'
+            + '<span class="detail-value font-semibold text-gray-900">' + esc(pVal) + '</span></div>'
+            + '<div class="detail-row"><span class="detail-label">Enlace</span>'
+            + '<span class="detail-value">' + urlHtml + '</span></div>'
+            + '</div>'
+            + '</details>';
+        }).join('');
+        multiEl.classList.remove('hidden');
+      }
+    } else {
+      _setText('sol-product-name', (_solProducts.length === 1 ? (_solProducts[0].name || sol.product_name) : sol.product_name) || '—');
+      _setText('sol-category', CATEGORY_LABELS[sol.category] || sol.category || 'Otros');
+      _setText('sol-value', sol.declared_value_usd != null ? '$' + Number(sol.declared_value_usd).toFixed(2) + ' USD' : '—');
+
+      var urlEl = document.getElementById('sol-url');
+      if (urlEl) {
+        var _pUrl = (_solProducts.length === 1 ? (_solProducts[0].url || sol.product_url) : sol.product_url) || '';
+        if (_pUrl) {
+          urlEl.innerHTML = '<a href="' + esc(_pUrl) + '" target="_blank" rel="noopener noreferrer" '
+            + 'class="text-blue-600 hover:text-blue-800 underline break-all text-sm">'
+            + esc(_pUrl.replace(/https?:\/\//i, '').substring(0, 60))
+            + (_pUrl.length > 60 ? '…' : '') + '</a>';
+        } else {
+          urlEl.textContent = 'No proporcionada';
+          urlEl.className = 'text-gray-400 text-sm';
+        }
       }
     }
+
+    _setText('sol-service', SERVICE_LABELS[sol.service_type] || 'Aéreo');
 
     var weightEl = document.getElementById('sol-weight');
     if (weightEl) weightEl.textContent = sol.weight_kg ? sol.weight_kg + ' kg' : 'No especificado';

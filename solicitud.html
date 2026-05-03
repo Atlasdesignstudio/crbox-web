@@ -489,25 +489,31 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-5">
                     <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
                         <i class="fas fa-box text-orange-400 text-sm"></i>
-                        <h2 class="font-semibold text-gray-800 text-sm">Detalles del producto</h2>
+                        <h2 id="sol-product-title" class="font-semibold text-gray-800 text-sm">Detalles del producto</h2>
                     </div>
                     <div class="px-6 py-2">
-                        <div class="detail-row">
-                            <span class="detail-label">Producto</span>
-                            <span id="sol-product-name" class="detail-value font-semibold text-gray-900"></span>
+                        <!-- Multi-product list (shown when 2+ products) -->
+                        <div id="sol-multi-products" class="hidden py-1"></div>
+                        <!-- Single-product rows (hidden when 2+ products) -->
+                        <div id="sol-single-product">
+                            <div class="detail-row">
+                                <span class="detail-label">Producto</span>
+                                <span id="sol-product-name" class="detail-value font-semibold text-gray-900"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Categoría</span>
+                                <span id="sol-category" class="detail-value"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Valor declarado</span>
+                                <span id="sol-value" class="detail-value font-semibold text-gray-900"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Enlace del producto</span>
+                                <span id="sol-url" class="detail-value"></span>
+                            </div>
                         </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Categoría</span>
-                            <span id="sol-category" class="detail-value"></span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Valor declarado</span>
-                            <span id="sol-value" class="detail-value font-semibold text-gray-900"></span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Enlace del producto</span>
-                            <span id="sol-url" class="detail-value"></span>
-                        </div>
+                        <!-- Shared fields always visible -->
                         <div class="detail-row">
                             <span class="detail-label">Tipo de servicio</span>
                             <span id="sol-service" class="detail-value"></span>

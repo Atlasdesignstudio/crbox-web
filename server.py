@@ -3716,7 +3716,35 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         'cosmetico': 'Cosméticos', 'suplemento': 'Suplementos',
         'libro': 'Libros', 'juguete': 'Juguetes', 'herramienta': 'Herramientas',
         'equipo_medico': 'Equipo médico', 'deportivo': 'Deportivo', 'otros': 'Otros',
+        # extended keys used by the calculator / tariff-adapter
+        'celulares': 'Celulares', 'tableta_electronica': 'Tabletas',
+        'consola_videojuegos': 'Consolas', 'camara': 'Cámaras', 'bocina': 'Bocinas',
+        'televisor': 'Televisores', 'anteojos': 'Anteojos', 'cinturon': 'Cinturones',
+        'electrodomesticos': 'Electrodomésticos', 'aspiradora': 'Aspiradoras',
+        'colchon': 'Colchones', 'herramientas': 'Herramientas',
+        'bicicleta_economica': 'Bicicleta (econ.)', 'bicicleta_cara': 'Bicicleta (cara)',
+        'bola': 'Deportivo', 'coche_bebe': 'Coches de bebé', 'juguetes': 'Juguetes',
+        'amortiguadores': 'Amortiguadores', 'aros_carro_moto': 'Aros', 'cds': 'Libros/CDs',
     }
+    # Parse multi-product JSON early so both the product block and the
+    # calculator section can use the same list.
+    _prod_json_raw = row.get('products') or None
+    _prod_list = []
+    if _prod_json_raw:
+        try:
+            _parsed = json.loads(_prod_json_raw)
+            if isinstance(_parsed, list) and _parsed:
+                _prod_list = _parsed
+        except Exception:
+            pass
+    if not _prod_list:
+        _prod_list = [{
+            'name': row.get('product_name') or 'Producto',
+            'category': row.get('category') or 'otros',
+            'declared_value_usd': row.get('declared_value_usd') or 0,
+            'url': row.get('product_url') or '',
+        }]
+
     cat_code  = row.get('category') or 'otros'
     cat_label = cat_labels.get(cat_code, cat_code)
     val_usd   = row.get('declared_value_usd')
@@ -3747,9 +3775,72 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         )
 
     svc_pill_cls = 'adm-pill-aereo' if (row.get('service_type') or 'aereo') == 'aereo' else 'adm-pill-maritimo'
-    cat_pill = f'<span class="adm-pill adm-pill-neutral">{esc(cat_label)}</span>'
     svc_pill = f'<span class="adm-pill {svc_pill_cls}">{esc(svc_str)}</span>'
-    product_html = f'''<div class="adm-detail-section">
+
+    if len(_prod_list) > 1:
+        # ── Multi-product display ────────────────────────────────────────────
+        _total_val = sum(float(p.get('declared_value_usd') or 0) for p in _prod_list)
+        _prod_items_html = ''
+        for _pi, _pp in enumerate(_prod_list):
+            _pn   = esc(_pp.get('name') or f'Producto {_pi+1}')
+            _pcat = cat_labels.get(_pp.get('category') or 'otros', _pp.get('category') or 'Otros')
+            _pval = _pp.get('declared_value_usd')
+            _pvstr = f'${float(_pval):,.2f}' if _pval is not None else '—'
+            _purl = _pp.get('url') or ''
+            _puhtml = (
+                f'<a href="{esc(_purl)}" target="_blank" rel="noopener" class="adm-link" '
+                f'style="font-size:.75rem;word-break:break-all;">'
+                f'{esc(_purl[:70])}{"&hellip;" if len(_purl)>70 else ""}</a>'
+            ) if _purl else '<span style="color:#9ca3af;">—</span>'
+            _prod_items_html += (
+                f'<details style="border:1px solid #e5e7eb;border-radius:.45rem;'
+                f'margin-bottom:.5rem;overflow:hidden;" open>'
+                f'<summary style="font-size:.82rem;font-weight:700;color:#1f2937;'
+                f'padding:.5rem .75rem;background:#f9fafb;cursor:pointer;'
+                f'display:flex;justify-content:space-between;align-items:center;'
+                f'list-style:none;user-select:none;">'
+                f'<span>{_pi+1}. {_pn}</span>'
+                f'<span style="font-size:.72rem;font-weight:400;color:#6b7280;">'
+                f'{esc(_pvstr)}</span></summary>'
+                f'<div style="padding:.5rem .75rem;font-size:.8rem;">'
+                f'<div class="adm-detail-row">'
+                f'<span class="adm-detail-label">Categoría</span>'
+                f'<span class="adm-detail-val">'
+                f'<span class="adm-pill adm-pill-neutral">{esc(_pcat)}</span>'
+                f'</span></div>'
+                f'<div class="adm-detail-row">'
+                f'<span class="adm-detail-label">Valor declarado</span>'
+                f'<span class="adm-detail-val adm-val-prominent">{esc(_pvstr)}</span>'
+                f'</div>'
+                f'<div class="adm-detail-row">'
+                f'<span class="adm-detail-label">URL</span>'
+                f'<span class="adm-detail-val adm-url-val">{_puhtml}</span>'
+                f'</div>'
+                f'</div></details>'
+            )
+        product_html = f'''<div class="adm-detail-section">
+  <div class="adm-detail-section-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+    {len(_prod_list)} Productos
+  </div>
+  <div class="adm-prod-pills" style="margin-bottom:.6rem;">{svc_pill}
+    <span class="adm-pill adm-pill-neutral" style="color:#374151;">
+      Total declarado: ${_total_val:,.2f}
+    </span>
+  </div>
+  {_prod_items_html}
+  {customs_row_html}
+  <div class="adm-detail-rows" style="margin-top:.4rem;">
+    <div class="adm-detail-row">
+      <span class="adm-detail-label">Notas del cliente</span>
+      <span class="adm-detail-val" style="white-space:pre-wrap;">{notes_str}</span>
+    </div>
+  </div>
+</div>'''
+    else:
+        # ── Single-product display (original) ───────────────────────────────
+        cat_pill = f'<span class="adm-pill adm-pill-neutral">{esc(cat_label)}</span>'
+        product_html = f'''<div class="adm-detail-section">
   <div class="adm-detail-section-title">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
     Producto
@@ -3917,22 +4008,8 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
 </div>'''
 
     # ── Interactive calculator section ──────────────────────────────────────
-    _calc_products_raw = row.get('products') or None
-    _calc_products = []
-    if _calc_products_raw:
-        try:
-            _calc_products = json.loads(_calc_products_raw)
-            if not isinstance(_calc_products, list):
-                _calc_products = []
-        except Exception:
-            pass
-    if not _calc_products:
-        _calc_products = [{
-            'name': row.get('product_name') or 'Producto',
-            'category': row.get('category') or 'otros',
-            'declared_value_usd': row.get('declared_value_usd') or 0,
-            'url': row.get('product_url') or '',
-        }]
+    # _prod_list was already parsed in the Product block above — reuse it.
+    _calc_products = _prod_list
 
     _ADM_CATEGORIES = [
         ('celulares','Celulares y Smartphones'),
