@@ -6642,10 +6642,61 @@ _MAX_BODY_UPLOAD   = 2 * 1024 * 1024   # 2 MB for file-upload endpoints
 
 
 class NoCacheHandler(SimpleHTTPRequestHandler):
+
+    # ── gzip compression for text static files ────────────────────────────────
+    def send_head(self):
+        """Override to gzip text responses when the client accepts it."""
+        accept_enc = self.headers.get('Accept-Encoding', '')
+        if 'gzip' not in accept_enc:
+            return super().send_head()
+        path = self.translate_path(self.path)
+        if not os.path.isfile(path):
+            return super().send_head()
+        ext = os.path.splitext(path)[1].lower()
+        _TEXT_EXTS = {'.html', '.css', '.js', '.json', '.svg', '.txt', '.xml', '.webmanifest'}
+        if ext not in _TEXT_EXTS:
+            return super().send_head()
+        try:
+            with open(path, 'rb') as f:
+                raw = f.read()
+        except OSError:
+            return super().send_head()
+        import io as _io
+        compressed = _gzip.compress(raw, compresslevel=6)
+        ctype = self.guess_type(path)
+        self.send_response(200)
+        self.send_header('Content-Type', ctype)
+        self.send_header('Content-Encoding', 'gzip')
+        self.send_header('Content-Length', str(len(compressed)))
+        self.send_header('Vary', 'Accept-Encoding')
+        self.end_headers()
+        return _io.BytesIO(compressed)
+
+    # ── smart Cache-Control per content type ──────────────────────────────────
+    def _cache_control_header(self):
+        p = self.path.split('?')[0]
+        # API, auth, admin, health: never cache
+        if (p.startswith('/api/') or p.startswith('/admin') or
+                p.startswith('/authtoken') or p in ('/health',)):
+            return 'no-store, no-cache, must-revalidate, max-age=0', True
+        ext = os.path.splitext(p)[1].lower()
+        # Static assets that carry a ?v= version query — long cache
+        if ext in ('.css', '.js', '.webp', '.png', '.jpg', '.jpeg',
+                   '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf',
+                   '.avif', '.mp4', '.webm'):
+            return 'public, max-age=31536000, immutable', False
+        # HTML: allow conditional revalidation but not stale serving
+        if ext == '.html' or not ext:
+            return 'no-cache', False
+        # Anything else: safe default
+        return 'no-store, no-cache, must-revalidate, max-age=0', True
+
     def end_headers(self):
-        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
+        cc, add_pragma = self._cache_control_header()
+        self.send_header("Cache-Control", cc)
+        if add_pragma:
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
