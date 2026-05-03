@@ -6529,21 +6529,34 @@ a{{color:inherit;text-decoration:none}}
 </html>'''
 
 
-def _allowed_origin():
-    """Return the single allowed CORS origin from env, or None to skip CORS.
+def _allowed_origins():
+    """Return the frozenset of allowed CORS origins.
 
-    Falls back to REPLIT_DOMAINS when ALLOWED_ORIGIN is not explicitly set,
-    so Replit deployments work without extra configuration.
+    Supports comma-separated values in both ALLOWED_ORIGIN and REPLIT_DOMAINS
+    so deployments accessible from multiple domains (e.g. a Replit subdomain
+    AND a custom domain) all work without extra configuration.
     """
     explicit = os.environ.get('ALLOWED_ORIGIN', '').strip()
     if explicit:
-        return explicit
+        return frozenset(o.strip() for o in explicit.split(',') if o.strip())
     replit_domains = os.environ.get('REPLIT_DOMAINS', '').strip()
     if replit_domains:
-        first = replit_domains.split(',')[0].strip()
-        if first:
-            return 'https://' + first
-    return None
+        return frozenset(
+            'https://' + d.strip()
+            for d in replit_domains.split(',')
+            if d.strip()
+        )
+    return frozenset()
+
+
+def _allowed_origin():
+    """Return a single representative allowed origin, or None.
+
+    Backward-compat shim used by the env-check warning path.
+    Prefer _allowed_origins() for actual CORS decisions.
+    """
+    origins = _allowed_origins()
+    return next(iter(origins), None) if origins else None
 
 
 def _effective_sales_token():
@@ -6706,16 +6719,17 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                          "max-age=31536000; includeSubDomains")
         self.send_header("Content-Security-Policy", _CSP_POLICY)
         origin = self.headers.get('Origin', '')
-        allowed = _allowed_origin()
+        allowed_set = _allowed_origins()
         if origin:
-            if allowed and origin == allowed:
-                self.send_header("Access-Control-Allow-Origin", allowed)
+            if allowed_set and origin in allowed_set:
+                # Echo back the matching origin (required when allowlist has >1 entry)
+                self.send_header("Access-Control-Allow-Origin", origin)
                 self.send_header("Access-Control-Allow-Methods",
                                  "GET, POST, PUT, PATCH, DELETE, OPTIONS")
                 self.send_header("Access-Control-Allow-Headers",
                                  "Content-Type, Authorization, X-Casillero-Email")
                 self.send_header("Access-Control-Max-Age", "86400")
-            elif not allowed and not _is_prod():
+            elif not allowed_set and not _is_prod():
                 self.send_header("Access-Control-Allow-Origin", origin)
                 self.send_header("Access-Control-Allow-Methods",
                                  "GET, POST, PUT, PATCH, DELETE, OPTIONS")
@@ -6727,22 +6741,24 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def _cors_reject(self):
         """Return 403 if the request Origin does not match the allowlist.
 
-        Fail-closed: when ALLOWED_ORIGIN is unset in production every browser
-        cross-origin request is denied (Origin header present but no allowlist
-        is configured → we cannot verify it is safe, so reject).  In development
-        the absence of ALLOWED_ORIGIN is accepted permissively so local
-        front-end workflows keep working.
+        Fail-closed: when no allowed origins are configured in production every
+        browser cross-origin request is denied.  In development the absence of
+        configuration is accepted permissively so local workflows keep working.
+
+        Accepts ALL origins listed in REPLIT_DOMAINS (comma-separated) so apps
+        accessible from both a Replit subdomain and a custom domain work without
+        extra ALLOWED_ORIGIN configuration.
         """
         origin = self.headers.get('Origin', '')
         if not origin:
             return False
-        allowed = _allowed_origin()
-        if not allowed:
+        allowed_set = _allowed_origins()
+        if not allowed_set:
             if _is_prod():
                 self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
                 return True
             return False
-        if origin != allowed:
+        if origin not in allowed_set:
             self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
             return True
         return False
@@ -6768,11 +6784,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
         """Handle CORS preflight requests. Reject if origin not allowlisted."""
         origin = self.headers.get('Origin', '')
-        allowed = _allowed_origin()
-        if origin and allowed and origin != allowed:
+        allowed_set = _allowed_origins()
+        if origin and allowed_set and origin not in allowed_set:
             self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
             return
-        if origin and not allowed and _is_prod():
+        if origin and not allowed_set and _is_prod():
             self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
             return
         self.send_response(204)

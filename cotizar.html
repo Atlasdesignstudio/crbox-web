@@ -1138,7 +1138,7 @@
     <script src="js/nav-auth.js?v=2" defer></script>
     <script src="js/analytics.js" defer></script>
     <script src="js/unit-converter.js?v=2"></script>
-    <script src="js/ai-extractor.js?v=3"></script>
+    <script src="js/ai-extractor.js?v=4"></script>
     <script>
     (function () {
         'use strict';
@@ -1553,8 +1553,13 @@
         }
 
         function _doAiExtract() {
-            const url = (fProductUrl.value || '').trim();
-            if (!url || !url.startsWith('http')) return;
+            let url = (fProductUrl.value || '').trim();
+            if (!url) return;
+            // Auto-prepend https:// for bare domain/path URLs (e.g. amazon.com/dp/...)
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+                fProductUrl.value = url;
+            }
             if (typeof CRBOXAIExtractor === 'undefined') return;
             if (_aiInFlight) return;
             _aiInFlight   = true;
