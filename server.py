@@ -4511,7 +4511,12 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         savings_pct: savPct,
         service_type: SERVICE_TYPE,
         destination_zone: DEST_ZONE,
-        calculated_at: new Date().toISOString()
+        calculated_at: new Date().toISOString(),
+        consolidated_breakdown: {{
+          freight: con.freight, fuel: con.fuel, handling: con.handling,
+          taxes: con.taxes, insurance: con.insurance, delivery: con.delivery,
+          billable_weight_kg: con.billableKg, weight_mode: con.weightMode
+        }}
       }};
 
       // ── Comparison hero ─────────────────────────────────────────────────
@@ -10986,6 +10991,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                         for p in _bd_prods
                     ]
                     if len(_bd_prods) > 1:
+                        _con_bd = _bd.get('consolidated_breakdown') or {}
                         resp_payload_dict['consolidated'] = {
                             'product_count': len(_bd_prods),
                             'grand_total_usd': _bd.get('grand_total_usd'),
@@ -10998,6 +11004,15 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                             'total_real_weight_kg': sum(
                                 float(p.get('weight_kg') or 0) for p in _bd_prods
                             ),
+                            # Consolidated shipment line items (from admin calculator)
+                            'freight':   float(_con_bd.get('freight')   or 0),
+                            'fuel':      float(_con_bd.get('fuel')      or 0),
+                            'handling':  float(_con_bd.get('handling')  or 0),
+                            'taxes':     float(_con_bd.get('taxes')     or 0),
+                            'insurance': float(_con_bd.get('insurance') or 0),
+                            'delivery':  float(_con_bd.get('delivery')  or 0),
+                            'billable_weight_kg': _con_bd.get('billable_weight_kg'),
+                            'weight_mode': _con_bd.get('weight_mode', 'real'),
                         }
             except Exception:
                 pass

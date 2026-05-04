@@ -230,25 +230,36 @@
 
   function _renderSingleProductBreakdown(calc) {
     if (!calc) return '';
-    var name    = calc.name || 'Producto';
-    var cat     = CATEGORY_LABELS[calc.category] || calc.category || 'Otros';
-    var realKg  = calc.real_weight_kg != null ? Number(calc.real_weight_kg).toFixed(3) + ' kg' : '—';
-    var billKg  = calc.billable_weight_kg != null ? Number(calc.billable_weight_kg).toFixed(3) + ' kg' : '—';
-    var wMode   = (calc.weight_mode === 'volumetrico') ? 'volumétrico' : 'real';
-    var declVal = calc.declared_value_usd != null ? _fmtUsd(calc.declared_value_usd) : '—';
-    var delivVal= (calc.delivery != null && Number(calc.delivery) > 0)
-                  ? _fmtUsd(calc.delivery) : 'No aplica';
+    var name      = calc.name || 'Producto';
+    var cat       = CATEGORY_LABELS[calc.category] || calc.category || 'Otros';
+    var isVol     = calc.weight_mode === 'volumetrico';
+    var realKg    = calc.real_weight_kg != null ? Number(calc.real_weight_kg).toFixed(3) + ' kg' : '—';
+    var billKg    = calc.billable_weight_kg != null ? Number(calc.billable_weight_kg).toFixed(3) + ' kg' : '—';
+    var wModeLabel= isVol ? 'volumétrico' : 'real';
+    var declVal   = calc.declared_value_usd != null ? _fmtUsd(calc.declared_value_usd) : '—';
+    var delivVal  = (calc.delivery != null && Number(calc.delivery) > 0)
+                    ? _fmtUsd(calc.delivery) : 'No aplica';
+
+    // Applied-weight pill: highlight the active mode
+    var weightBadge = isVol
+      ? '<span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:999px;'
+        + 'font-size:.64rem;font-weight:700;padding:.1rem .45rem;margin-left:.35rem;">'
+        + 'Volumétrico aplicado</span>'
+      : '<span style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:999px;'
+        + 'font-size:.64rem;font-weight:700;padding:.1rem .45rem;margin-left:.35rem;">'
+        + 'Peso real aplicado</span>';
 
     var rows = '';
     rows += _qrBdRow('Flete aéreo',        _fmtUsd(calc.freight));
     rows += _qrBdRow('Combustible (19%)',   _fmtUsd(calc.fuel));
-    rows += _qrBdRow('Manejo',              _fmtUsd(calc.handling));
-    rows += _qrBdRow('Impuestos / Aduana',  _fmtUsd(calc.taxes), 'estimado');
-    rows += _qrBdRow('Seguro',              _fmtUsd(calc.insurance));
-    rows += _qrBdRow('Entrega (CR)',        delivVal);
+    rows += _qrBdRow('Manejo',             _fmtUsd(calc.handling));
+    rows += _qrBdRow('Impuestos / Aduana', _fmtUsd(calc.taxes), 'impuesto local estimado');
+    rows += _qrBdRow('Seguro',             _fmtUsd(calc.insurance));
+    rows += _qrBdRow('Entrega (CR)',       delivVal);
 
     var html = '<div class="px-4 pb-3 pt-2">';
     html += '<div style="border-radius:.75rem;border:1px solid #e5e7eb;overflow:hidden;">';
+    // Product header
     html += '<div style="background:#f8fafc;padding:.6rem 1rem;border-bottom:1px solid #e5e7eb;">';
     html += '<p style="font-size:.82rem;font-weight:700;color:#1f2937;margin:0;">' + esc(name) + '</p>';
     html += '<p style="font-size:.72rem;color:#6b7280;margin:.1rem 0 0;">' + esc(cat);
@@ -256,14 +267,29 @@
       html += ' &middot; Valor declarado: ' + esc(declVal);
     }
     html += '</p></div>';
-    html += '<div style="background:#fff;padding:.45rem 1rem;border-bottom:1px solid #f3f4f6;'
-      + 'display:flex;gap:1.25rem;flex-wrap:wrap;">';
+    // Weight row with applied-weight badge
+    html += '<div style="background:#fff;padding:.45rem 1rem;border-bottom:1px solid #f3f4f6;">';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:.5rem .75rem;align-items:center;">';
     html += '<span style="font-size:.72rem;color:#6b7280;">Peso real: '
       + '<strong style="color:#374151;">' + esc(realKg) + '</strong></span>';
-    html += '<span style="font-size:.72rem;color:#6b7280;">Peso facturable: '
-      + '<strong style="color:#374151;">' + esc(billKg) + ' (' + esc(wMode) + ')</strong></span>';
-    html += '</div>';
+    if (isVol) {
+      html += '<span style="font-size:.72rem;color:#6b7280;">Peso volumétrico: '
+        + '<strong style="color:#374151;">' + esc(billKg) + '</strong>' + weightBadge + '</span>';
+    } else {
+      html += '<span style="font-size:.72rem;color:#6b7280;">Peso de cobro: '
+        + '<strong style="color:#374151;">' + esc(billKg) + '</strong>' + weightBadge + '</span>';
+    }
+    html += '</div></div>';
+    // Line items
     html += '<div style="background:#fff;padding:.5rem 1rem;">' + rows + '</div>';
+    // Disclosure row
+    html += '<div style="background:#f8fafc;padding:.45rem 1rem;border-top:1px solid #f3f4f6;">';
+    html += '<p style="font-size:.67rem;color:#9ca3af;margin:0;line-height:1.5;">'
+      + '<i class="fas fa-info-circle" style="margin-right:.3rem;"></i>'
+      + '¿Por qué este es el precio? El flete se calcula sobre el peso de cobro '
+      + '(el mayor entre peso real y volumétrico), según la categoría arancelaria y la zona de destino.</p>';
+    html += '</div>';
+    // Total
     html += '<div style="background:#fff7ed;padding:.55rem 1rem;border-top:2px solid #1e293b;">';
     html += '<div class="qr-bd-total-row">'
       + '<span class="qr-bd-total-label">Total de envío</span>'
@@ -274,16 +300,24 @@
   }
 
   function _renderConsolidatedBreakdown(qr, perCalcs) {
-    var con   = qr.consolidated || {};
-    var n     = perCalcs.length;
+    var con        = qr.consolidated || {};
+    var n          = perCalcs.length;
     var grandTotal = con.grand_total_usd != null
-      ? con.grand_total_usd
-      : (qr.confirmed_shipping_price_usd || 0);
+                     ? con.grand_total_usd : (qr.confirmed_shipping_price_usd || 0);
     var totalDecl  = con.total_declared_value != null ? _fmtUsd(con.total_declared_value) : '—';
     var totalRealKg= con.total_real_weight_kg != null
-      ? Number(con.total_real_weight_kg).toFixed(3) + ' kg' : '—';
+                     ? Number(con.total_real_weight_kg).toFixed(3) + ' kg' : '—';
+    var isVol      = con.weight_mode === 'volumetrico';
+    var billKg     = con.billable_weight_kg != null
+                     ? Number(con.billable_weight_kg).toFixed(3) + ' kg' : '—';
+    var wModeLabel = isVol ? 'volumétrico' : 'real';
+
+    // Determine if we have consolidated line items
+    var hasConLineitems = con.freight != null || con.fuel != null || con.handling != null;
 
     var html = '<div class="px-4 pb-2 pt-2">';
+
+    // ── Consolidated summary card
     html += '<div style="border-radius:.75rem;border:1.5px solid #fed7aa;overflow:hidden;margin-bottom:.75rem;">';
     html += '<div style="background:linear-gradient(135deg,#1e293b,#374155);padding:.65rem 1rem;">';
     html += '<p style="font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;'
@@ -291,33 +325,61 @@
     html += '<p style="font-size:.85rem;font-weight:700;color:#fff;margin:0;">'
       + n + ' producto' + (n !== 1 ? 's' : '') + ' en un bulto</p>';
     html += '</div>';
+
+    // Summary rows
     html += '<div style="background:#fff;padding:.65rem 1rem;">';
     html += _qrBdRow('Número de productos', String(n));
     html += _qrBdRow('Valor declarado total', totalDecl);
     html += _qrBdRow('Peso total real', totalRealKg);
-    if (con.savings_usd && Number(con.savings_usd) > 0) {
-      html += _qrBdRow('Ahorro vs. envíos individuales', _fmtUsd(con.savings_usd));
+    if (billKg !== '—') {
+      html += _qrBdRow('Peso de cobro (' + esc(wModeLabel) + ')', billKg);
     }
     html += '</div>';
+
+    // Consolidated line items (only when stored from calculator)
+    if (hasConLineitems) {
+      var delivVal = (con.delivery != null && Number(con.delivery) > 0)
+                     ? _fmtUsd(con.delivery) : 'No aplica';
+      html += '<div style="background:#fafafa;padding:.5rem 1rem;border-top:1px solid #f3f4f6;">';
+      html += '<p style="font-size:.67rem;font-weight:700;text-transform:uppercase;'
+        + 'letter-spacing:.07em;color:#9ca3af;margin:0 0 .3rem;">Desglose del envío consolidado</p>';
+      html += _qrBdRow('Flete aéreo',        _fmtUsd(con.freight));
+      html += _qrBdRow('Combustible (19%)',   _fmtUsd(con.fuel));
+      html += _qrBdRow('Manejo',             _fmtUsd(con.handling));
+      html += _qrBdRow('Impuestos / Aduana', _fmtUsd(con.taxes), 'impuesto local estimado');
+      html += _qrBdRow('Seguro',             _fmtUsd(con.insurance));
+      html += _qrBdRow('Entrega (CR)',       delivVal);
+      html += '</div>';
+    }
+
+    if (con.savings_usd && Number(con.savings_usd) > 0) {
+      html += '<div style="background:#f0fdf4;padding:.4rem 1rem;border-top:1px solid #dcfce7;">';
+      html += '<span style="font-size:.78rem;color:#15803d;font-weight:600;">'
+        + '&#10003; Ahorro vs. envíos individuales: ' + esc(_fmtUsd(con.savings_usd)) + '</span>';
+      html += '</div>';
+    }
+
+    // Grand total bar
     html += '<div style="background:#fff7ed;padding:.55rem 1rem;border-top:2px solid #1e293b;">';
     html += '<div class="qr-bd-total-row">'
       + '<span class="qr-bd-total-label">Total de envío (consolidado)</span>'
       + '<span class="qr-bd-total-value">' + esc(_fmtUsd(grandTotal)) + '</span></div>';
     html += '</div></div>';
 
+    // ── Per-product accordion
     html += '<details style="border-radius:.75rem;border:1px solid #e5e7eb;overflow:hidden;" open>';
     html += '<summary style="padding:.65rem 1rem;background:#f8fafc;cursor:pointer;list-none;'
       + 'display:flex;align-items:center;justify-content:space-between;user-select:none;">';
-    html += '<span style="font-size:.82rem;font-weight:700;color:#1f2937;">Detalle por producto</span>';
+    html += '<span style="font-size:.82rem;font-weight:700;color:#1f2937;">'
+      + 'Detalle por producto (envío individual)</span>';
     html += '<span style="font-size:.72rem;color:#9ca3af;">&#9662; toca para plegar</span>';
     html += '</summary>';
     perCalcs.forEach(function(calc, idx) {
-      var pName = calc.name || ('Producto ' + (idx + 1));
       html += '<div style="border-top:1px solid #f3f4f6;">';
       html += '<div style="padding:.35rem 1rem .1rem;background:#fff;">';
       html += '<p style="font-size:.72rem;font-weight:700;text-transform:uppercase;'
         + 'letter-spacing:.07em;color:#9ca3af;margin:0;">'
-        + esc(String(idx + 1) + '. ' + pName) + '</p></div>';
+        + esc(String(idx + 1) + '. ' + (calc.name || 'Producto ' + (idx + 1))) + '</p></div>';
       html += _renderSingleProductBreakdown(calc);
       html += '</div>';
     });
@@ -380,6 +442,16 @@
     var custMsg        = qr.customer_message || '';
     var confirmedPrice = qr.confirmed_shipping_price_usd;
 
+    // Availability badge colors
+    var availBg = { disponible: '#f0fdf4', no_disponible: '#fef2f2',
+                    disponible_con_condiciones: '#fffbeb' };
+    var availFg = { disponible: '#15803d', no_disponible: '#dc2626',
+                    disponible_con_condiciones: '#d97706' };
+    var availBdr= { disponible: '#86efac', no_disponible: '#fca5a5',
+                    disponible_con_condiciones: '#fde68a' };
+    var availDot= { disponible: '#22c55e', no_disponible: '#ef4444',
+                    disponible_con_condiciones: '#f59e0b' };
+
     var html = '<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">';
 
     // ── Header
@@ -388,9 +460,16 @@
       + 'border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;'
       + 'box-shadow:0 2px 6px rgba(22,163,74,.25);">'
       + '<i class="fas fa-check text-white" style="font-size:.7rem;"></i></div>';
-    html += '<div style="flex:1;">';
+    html += '<div style="flex:1;min-width:0;">';
+    html += '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">';
     html += '<p style="font-size:.875rem;font-weight:700;color:#fff;margin:0;">'
       + 'Cotización respondida por CRBOX</p>';
+    // Quote status badge
+    html += '<span style="display:inline-flex;align-items:center;padding:.1rem .55rem;'
+      + 'border-radius:999px;font-size:.65rem;font-weight:700;letter-spacing:.04em;'
+      + 'background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.25);">'
+      + 'COTIZACIÓN COMPLETADA</span>';
+    html += '</div>';
     html += '<p style="font-size:.72rem;color:rgba(255,255,255,.5);margin:.15rem 0 0;">'
       + esc(sol.id) + ' &middot; ' + esc(respondedAt) + '</p>';
     html += '</div></div>';
@@ -398,9 +477,12 @@
     // ── Availability + timeline chips
     html += '<div style="padding:.75rem 1.25rem .25rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;">';
     html += '<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.2rem .7rem;'
-      + 'border-radius:999px;font-size:.78rem;font-weight:600;background:#f0fdf4;'
-      + 'color:#15803d;border:1px solid #86efac;">'
-      + '<span style="width:.45rem;height:.45rem;border-radius:50%;background:#22c55e;'
+      + 'border-radius:999px;font-size:.78rem;font-weight:600;'
+      + 'background:' + (availBg[avail] || '#f9fafb') + ';'
+      + 'color:' + (availFg[avail] || '#374151') + ';'
+      + 'border:1px solid ' + (availBdr[avail] || '#e5e7eb') + ';">'
+      + '<span style="width:.45rem;height:.45rem;border-radius:50%;'
+      + 'background:' + (availDot[avail] || '#9ca3af') + ';'
       + 'display:inline-block;flex-shrink:0;"></span>' + esc(availLabel) + '</span>';
     if (delivTL) {
       html += '<span style="font-size:.78rem;color:#6b7280;">'
@@ -743,7 +825,9 @@
 
     } else if (status === 'respondida') {
       _show('panel-responded');
-      var _qr = normalizeQuoteResponse(sol.response_json);
+      // Normalize from all possible key variants
+      var _rawResp = sol.response_json || sol.quoteResponse || sol.responseJson;
+      var _qr = normalizeQuoteResponse(_rawResp);
 
       if (_qr && _qr.perProductCalculations && _qr.perProductCalculations.length > 0) {
         // Task #360: rich portal breakdown
@@ -770,34 +854,22 @@
           _show('resp-intent-section');
         }
 
-      } else if (_qr && _qr.portalResponseVisible) {
-        // Has gate but no perProductCalculations — email fallback
+      } else {
+        // Ungated or no structured data — truthful email fallback
+        // (never render a partial/broken legacy block)
         _hide('resp-block');
         _hide('qr-section');
-        var _emailEl = document.getElementById('panel-responded-email');
-        if (_emailEl) _emailEl.textContent = _userEmail;
-
-      } else {
-        // Legacy: use existing _renderResponseBlock
-        _hide('qr-section');
-        var hasResp = _renderResponseBlock(sol.response_json, _userEmail);
-        if (hasResp) {
-          _show('resp-block');
-          _hide('resp-fallback');
-          // Determine availability from parsed response_json for intent visibility
-          try {
-            var _legacyParsed = (typeof sol.response_json === 'string')
-              ? JSON.parse(sol.response_json) : (sol.response_json || {});
-            var _legacyAvail = _legacyParsed.availability || '';
-            if (_legacyAvail !== 'no_disponible' && _legacyAvail !== '') {
-              _show('resp-intent-section');
-            }
-          } catch(e) { _show('resp-intent-section'); }
-        } else {
-          _hide('resp-block');
-          var emailNoticeEl = document.getElementById('panel-responded-email');
-          if (emailNoticeEl) emailNoticeEl.textContent = _userEmail;
-        }
+        var emailNoticeEl = document.getElementById('panel-responded-email');
+        if (emailNoticeEl) emailNoticeEl.textContent = _userEmail;
+        // Show intent section if we can determine availability from legacy shape
+        try {
+          var _lgParsed = typeof _rawResp === 'string'
+            ? JSON.parse(_rawResp) : (_rawResp || {});
+          var _lgAvail = _lgParsed.availability || '';
+          if (_lgAvail && _lgAvail !== 'no_disponible') {
+            _show('resp-intent-section');
+          }
+        } catch(e) {}
       }
 
     } else if (status === 'pendiente_compra_crbox') {
