@@ -827,13 +827,26 @@
 
     } else if (status === 'respondida') {
       _show('panel-responded');
-      // Normalize from all possible key variants
+      // Deterministic reset — start with all sub-sections hidden
+      _hide('resp-block');
+      _hide('qr-section');
+      _hide('resp-intent-section');
+      _show('resp-fallback');  // default visible; overridden below for rich path
+
+      // Normalize from all possible key variants (single parsing point)
       var _rawResp = sol.response_json || sol.quoteResponse || sol.responseJson;
       var _qr = normalizeQuoteResponse(_rawResp);
 
+      // Shallow parse for availability used by both branches
+      var _shallowAvail = '';
+      try {
+        var _shallowParsed = typeof _rawResp === 'string'
+          ? JSON.parse(_rawResp) : (_rawResp || {});
+        _shallowAvail = _shallowParsed.availability || '';
+      } catch(e) {}
+
       if (_qr && _qr.perProductCalculations && _qr.perProductCalculations.length > 0) {
-        // Task #360: rich portal breakdown
-        _hide('resp-block');
+        // Rich portal breakdown (Task #360)
         _hide('resp-fallback');
         try {
           _renderQuoteResponse(sol, _qr);
@@ -850,28 +863,18 @@
             _show('qr-section');
           }
         }
-        // Show intent section for available responses
-        var _avail = _qr.availability || '';
-        if (_avail !== 'no_disponible' && _avail !== '') {
+        var _avail = _qr.availability || _shallowAvail;
+        if (_avail && _avail !== 'no_disponible') {
           _show('resp-intent-section');
         }
 
       } else {
-        // Ungated or no structured data — truthful email fallback
-        // (never render a partial/broken legacy block)
-        _hide('resp-block');
-        _hide('qr-section');
+        // Ungated or unstructured — truthful email fallback; resp-fallback already visible
         var emailNoticeEl = document.getElementById('panel-responded-email');
         if (emailNoticeEl) emailNoticeEl.textContent = _userEmail;
-        // Show intent section if we can determine availability from legacy shape
-        try {
-          var _lgParsed = typeof _rawResp === 'string'
-            ? JSON.parse(_rawResp) : (_rawResp || {});
-          var _lgAvail = _lgParsed.availability || '';
-          if (_lgAvail && _lgAvail !== 'no_disponible') {
-            _show('resp-intent-section');
-          }
-        } catch(e) {}
+        if (_shallowAvail && _shallowAvail !== 'no_disponible') {
+          _show('resp-intent-section');
+        }
       }
 
     } else if (status === 'pendiente_compra_crbox') {
