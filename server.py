@@ -1728,6 +1728,137 @@ def _init_db():
     print('[SOLICITUDES] SQLite schema initialised OK')
 
 
+def _backfill_portal_response_visible():
+    """Task #364: One-time migration — enrich old 'respondida' rows that have
+    quote_breakdown data but pre-date the portalResponseVisible gate.
+    Runs once at startup; safe to re-run (skips already-enriched rows)."""
+    def _vol_kg(p):
+        try:
+            l = float(p.get('length_cm') or 0)
+            w = float(p.get('width_cm')  or 0)
+            h = float(p.get('height_cm') or 0)
+            return round(l * w * h / 5000, 3) if (l and w and h) else None
+        except Exception:
+            return None
+
+    updated = 0
+    skipped = 0
+    try:
+        conn = _get_db()
+        rows = conn.execute(
+            '''SELECT id, response_json, quote_breakdown
+               FROM quote_requests
+               WHERE status = 'respondida'
+                 AND (quote_breakdown IS NOT NULL OR response_json IS NOT NULL)'''
+        ).fetchall()
+        conn.close()
+    except Exception as exc:
+        print(f'[BACKFILL] DB read failed: {exc}')
+        return
+
+    for row in rows:
+        scb_id, rj_raw, qb_raw = row['id'], row['response_json'], row['quote_breakdown']
+        try:
+            # Parse existing response_json
+            rj = {}
+            if rj_raw:
+                try:
+                    rj = json.loads(rj_raw) if isinstance(rj_raw, str) else (rj_raw or {})
+                except Exception:
+                    rj = {}
+
+            # Already enriched — skip
+            if rj.get('portalResponseVisible'):
+                skipped += 1
+                continue
+
+            # Try to get quote_breakdown — first from response_json, then from column
+            _bd = rj.get('quote_breakdown')
+            if not _bd and qb_raw:
+                try:
+                    _bd = json.loads(qb_raw) if isinstance(qb_raw, str) else qb_raw
+                except Exception:
+                    _bd = None
+
+            if not _bd or not isinstance(_bd, dict):
+                skipped += 1
+                continue
+
+            _bd_prods = _bd.get('products') or []
+            if not _bd_prods:
+                skipped += 1
+                continue
+
+            # Build perProductCalculations
+            rj['portalResponseVisible'] = True
+            rj['quote_breakdown'] = _bd  # ensure it's present in response_json
+            rj['perProductCalculations'] = [
+                {
+                    'name': p.get('name'),
+                    'category': p.get('category'),
+                    'declared_value_usd': p.get('declared_value_usd'),
+                    'real_weight_kg': p.get('weight_kg'),
+                    'volumetric_weight_kg': _vol_kg(p),
+                    'billable_weight_kg': (p.get('details') or {}).get('billableKg'),
+                    'weight_mode': (p.get('details') or {}).get('weightMode', 'real'),
+                    'freight':  float((p.get('details') or {}).get('freight')  or 0),
+                    'fuel':     float((p.get('details') or {}).get('fuel')     or 0),
+                    'handling': float((p.get('details') or {}).get('handling') or 0),
+                    'taxes':    float((p.get('details') or {}).get('taxes')    or 0),
+                    'insurance':float((p.get('details') or {}).get('insurance')or 0),
+                    'delivery': float((p.get('details') or {}).get('delivery') or 0),
+                    'total':    float(p.get('shipping_usd') or 0),
+                }
+                for p in _bd_prods
+            ]
+
+            # Build consolidated for multi-product
+            if len(_bd_prods) > 1:
+                _con_bd = _bd.get('consolidated_breakdown') or {}
+                rj['consolidated'] = {
+                    'product_count': len(_bd_prods),
+                    'grand_total_usd': _bd.get('grand_total_usd'),
+                    'separate_total_usd': _bd.get('separate_total_usd'),
+                    'savings_usd': _bd.get('savings_usd'),
+                    'savings_pct': _bd.get('savings_pct'),
+                    'total_declared_value': sum(
+                        float(p.get('declared_value_usd') or 0) for p in _bd_prods
+                    ),
+                    'total_real_weight_kg': sum(
+                        float(p.get('weight_kg') or 0) for p in _bd_prods
+                    ),
+                    'total_volumetric_weight_kg': round(sum(
+                        _vol_kg(p) or 0 for p in _bd_prods
+                    ), 3),
+                    'freight':   float(_con_bd.get('freight')   or 0),
+                    'fuel':      float(_con_bd.get('fuel')      or 0),
+                    'handling':  float(_con_bd.get('handling')  or 0),
+                    'taxes':     float(_con_bd.get('taxes')     or 0),
+                    'insurance': float(_con_bd.get('insurance') or 0),
+                    'delivery':  float(_con_bd.get('delivery')  or 0),
+                    'billable_weight_kg': _con_bd.get('billable_weight_kg'),
+                    'weight_mode': _con_bd.get('weight_mode', 'real'),
+                }
+            elif 'consolidated' in rj:
+                del rj['consolidated']
+
+            new_rj = json.dumps(rj, ensure_ascii=False)
+            with _DB_LOCK:
+                c2 = _get_db()
+                c2.execute(
+                    'UPDATE quote_requests SET response_json = ? WHERE id = ?',
+                    (new_rj, scb_id)
+                )
+                c2.commit()
+                c2.close()
+            updated += 1
+
+        except Exception as exc:
+            print(f'[BACKFILL] Error processing {scb_id}: {exc}')
+
+    print(f'[BACKFILL] portalResponseVisible: enriched {updated}, skipped {skipped} rows')
+
+
 def _build_miami_arrival_email_html(tracking_number, carrier_name, cta_url):
     """Build the HTML body for the Miami arrival notification email."""
     esc = _html.escape
@@ -2561,30 +2692,68 @@ def _build_response_email_html(scb_id, product_name, customer_name,
                     '</table>'
                 )
 
+            def _email_vol_kg(bp):
+                try:
+                    l = float(bp.get('length_cm') or 0)
+                    w = float(bp.get('width_cm')  or 0)
+                    h = float(bp.get('height_cm') or 0)
+                    return round(l * w * h / 5000, 3) if (l and w and h) else None
+                except Exception:
+                    return None
+
             rows_html = ''
             for _bp in bd_products:
-                _bname = esc(str(_bp.get('name') or 'Producto'))
-                _bship = _bp.get('shipping_usd')
-                _bw    = _bp.get('weight_kg')
-                _bv    = _bp.get('declared_value_usd')
+                _bname    = esc(str(_bp.get('name') or 'Producto'))
+                _bship    = _bp.get('shipping_usd')
+                _bw       = _bp.get('weight_kg')
+                _bv       = _bp.get('declared_value_usd')
+                _bcat     = _bp.get('category') or ''
                 _ship_str = f'${float(_bship):,.2f} USD' if _bship is not None else '—'
+                _details  = _bp.get('details') or {}
+                _bill_kg  = _details.get('billableKg')
+                _wmode    = _details.get('weightMode', 'real')
+                _vol_kg   = _email_vol_kg(_bp)
+
+                # Product header row
                 rows_html += (
                     f'<tr style="background:#f0fdf4;">'
                     f'<td colspan="2" style="padding:7px 8px 3px;font-size:13px;font-weight:700;color:#15803d;">'
                     f'{_bname}'
                     + (f' <span style="font-size:11px;font-weight:400;color:#6b7280;">'
-                       f'· {_bw} kg' + (f' · valor ${float(_bv):,.2f}' if _bv else '') + '</span>'
-                       if _bw else '')
+                       f'· valor ${float(_bv):,.2f} USD</span>' if _bv else '')
                     + '</td></tr>\n'
                 )
-                _details = _bp.get('details') or {}
+                # Weight info row
+                _wmode_label = 'volumétrico' if _wmode == 'volumetrico' else 'real'
+                _wmode_color = '#1d4ed8' if _wmode == 'volumetrico' else '#15803d'
+                _weight_parts = []
+                if _bw is not None:
+                    _weight_parts.append(f'Real: {float(_bw):.3f} kg')
+                if _vol_kg is not None:
+                    _weight_parts.append(f'Volumétrico: {_vol_kg:.3f} kg')
+                if _bill_kg is not None:
+                    _weight_parts.append(
+                        f'<strong style="color:{_wmode_color};">'
+                        f'Cobro ({_wmode_label}): {float(_bill_kg):.3f} kg</strong>'
+                    )
+                if _weight_parts:
+                    rows_html += (
+                        f'<tr style="background:#f0fdf4;">'
+                        f'<td colspan="2" style="padding:2px 8px 5px;font-size:11px;color:#6b7280;">'
+                        f'{" &nbsp;·&nbsp; ".join(_weight_parts)}'
+                        f'</td></tr>\n'
+                    )
+                # Cost line items
                 if _details:
                     for _lk, _llabel in _line_labels.items():
                         _lv = _details.get(_lk)
                         if _lv is not None:
                             rows_html += (
                                 f'<tr>'
-                                f'<td style="padding:2px 8px 2px 20px;font-size:11px;color:#4b5563;">{esc(_llabel)}</td>'
+                                f'<td style="padding:2px 8px 2px 20px;font-size:11px;color:#4b5563;">{esc(_llabel)}'
+                                + (' <span style="color:#9ca3af;">(estimado)</span>'
+                                   if _lk == 'taxes' else '')
+                                + f'</td>'
                                 f'<td style="padding:2px 8px;text-align:right;font-size:11px;color:#374151;">'
                                 f'${float(_lv):,.2f} USD</td></tr>\n'
                             )
@@ -2595,13 +2764,53 @@ def _build_response_email_html(scb_id, product_name, customer_name,
                     f'<td style="padding:3px 8px 7px;text-align:right;font-size:12px;font-weight:700;color:#16a34a;">'
                     f'{esc(_ship_str)}</td></tr>\n'
                 )
+
             total_row = ''
             if bd_total is not None:
-                _tlabel = 'Total env&iacute;o consolidado' if _show_savings else 'Total env&iacute;o estimado'
+                _tlabel = 'Total env&iacute;o consolidado' if _show_savings else 'Total env&iacute;o'
                 total_row = (
                     f'<tr><td style="padding:8px 8px 4px;font-weight:700;font-size:13px;color:#FF6B00;">{_tlabel}</td>'
-                    f'<td style="padding:8px 8px 4px;text-align:right;font-weight:700;font-size:14px;color:#FF6B00;">${float(bd_total):,.2f} USD</td></tr>'
+                    f'<td style="padding:8px 8px 4px;text-align:right;font-weight:700;font-size:14px;color:#FF6B00;">'
+                    f'${float(bd_total):,.2f} USD</td></tr>'
                 )
+
+            # Consolidated line-item breakdown for multi-product (Task #363)
+            _con_bd    = quote_breakdown.get('consolidated_breakdown') or {}
+            _con_table = ''
+            if len(bd_products) > 1 and _con_bd:
+                _con_rows = ''
+                for _lk, _llabel in _line_labels.items():
+                    _lv = _con_bd.get(_lk)
+                    if _lv is not None and float(_lv) != 0:
+                        _con_rows += (
+                            f'<tr>'
+                            f'<td style="padding:3px 8px 3px 16px;font-size:11px;color:#4b5563;">{esc(_llabel)}'
+                            + (' <span style="color:#9ca3af;">(estimado)</span>'
+                               if _lk == 'taxes' else '')
+                            + f'</td>'
+                            f'<td style="padding:3px 8px;text-align:right;font-size:11px;color:#374151;">'
+                            f'${float(_lv):,.2f} USD</td></tr>\n'
+                        )
+                _con_bill = _con_bd.get('billable_weight_kg')
+                _con_wmode = _con_bd.get('weight_mode', 'real')
+                _con_wlabel = 'volumétrico' if _con_wmode == 'volumetrico' else 'real'
+                if _con_rows:
+                    _wrow = (
+                        (f'<tr style="background:#f8fafc;"><td colspan="2" style="padding:3px 16px 6px;'
+                         f'font-size:11px;color:#6b7280;">Peso de cobro ({_con_wlabel}): '
+                         f'<strong>{float(_con_bill):.3f} kg</strong></td></tr>\n')
+                        if _con_bill is not None else ''
+                    )
+                    _con_table = (
+                        '<div style="padding:10px 20px 14px;border-top:1px solid #bbf7d0;">'
+                        '<p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#6b7280;'
+                        'text-transform:uppercase;letter-spacing:.05em;">'
+                        '&#128666; Desglose del env&iacute;o consolidado</p>'
+                        '<table style="width:100%;border-collapse:collapse;">'
+                        + _wrow + _con_rows +
+                        '</table></div>'
+                    )
+
             _detail_section = (
                 '<div style="padding:14px 20px 16px;">'
                 '<p style="margin:0 0 8px;font-size:11px;font-weight:700;color:#15803d;'
@@ -2616,6 +2825,7 @@ def _build_response_email_html(scb_id, product_name, customer_name,
                 'overflow:hidden;margin:16px 0;">'
                 + savings_banner
                 + _detail_section
+                + _con_table
                 + '</div>'
             )
 
@@ -2748,7 +2958,6 @@ def _send_customer_response(scb_id, customer_email, customer_name, product_name,
         'CRBOX ha revisado tu solicitud y tiene una respuesta para ti.',
         '',
         f'ID: {scb_id}',
-        f'Producto: {product_name}',
         f'Disponibilidad: {avail_label}',
     ]
     if availability != 'no_disponible':
@@ -2759,9 +2968,38 @@ def _send_customer_response(scb_id, customer_email, customer_name, product_name,
     plain_parts.append(f'\n{customer_message.strip()}')
     if difference_explanation and difference_explanation.strip():
         plain_parts.append(f'\nNota sobre el estimado:\n{difference_explanation.strip()}')
+    # Plain-text breakdown (Task #363)
+    _bd_plain = quote_breakdown or {}
+    _bd_plain_prods = _bd_plain.get('products') or []
+    if _bd_plain_prods:
+        plain_parts.append('\n--- Desglose de costos ---')
+        _line_keys_plain = ['freight','fuel','handling','taxes','insurance','delivery']
+        _line_labels_plain = {
+            'freight': 'Flete aéreo', 'fuel': 'Combustible (19%)', 'handling': 'Manejo',
+            'taxes': 'Impuestos/Aduana (estimado)', 'insurance': 'Seguro', 'delivery': 'Entrega (CR)',
+        }
+        for _i, _bp in enumerate(_bd_plain_prods):
+            plain_parts.append(f"\nProducto {_i+1}: {_bp.get('name') or 'Producto'}")
+            _bd_det = _bp.get('details') or {}
+            if _bp.get('weight_kg'):
+                plain_parts.append(f"  Peso real: {float(_bp['weight_kg']):.3f} kg")
+            if _bd_det.get('billableKg'):
+                _wm = 'volumétrico' if _bd_det.get('weightMode') == 'volumetrico' else 'real'
+                plain_parts.append(f"  Peso de cobro ({_wm}): {float(_bd_det['billableKg']):.3f} kg")
+            for _lk in _line_keys_plain:
+                _lv = _bd_det.get(_lk)
+                if _lv is not None:
+                    plain_parts.append(f"  {_line_labels_plain[_lk]}: ${float(_lv):,.2f} USD")
+            if _bp.get('shipping_usd') is not None:
+                plain_parts.append(f"  Subtotal envío: ${float(_bp['shipping_usd']):,.2f} USD")
+        if _bd_plain.get('grand_total_usd') is not None:
+            plain_parts.append(f"\nTotal de envío: ${float(_bd_plain['grand_total_usd']):,.2f} USD")
+        if len(_bd_plain_prods) > 1 and _bd_plain.get('savings_usd') and float(_bd_plain['savings_usd']) > 0:
+            plain_parts.append(f"Ahorro por consolidar: ${float(_bd_plain['savings_usd']):,.2f} USD")
     plain_parts.extend([
-        f'\nSi tienes preguntas, responde a este correo indicando tu ID: {scb_id}',
-        'Equipo CRBOX | ventas@crbox.cr',
+        f'\nRevisa tu portal para ver el desglose completo: crbox.cr',
+        f'Si tienes preguntas, responde a este correo indicando tu ID: {scb_id}',
+        'Equipo CRBOX | ventas@crbox.cr | WhatsApp: +506 8979-4418',
     ])
     plain = '\n'.join(plain_parts)
 
@@ -11830,6 +12068,7 @@ def _handle_ai_chat(handler):
 if __name__ == "__main__":
     _validate_env()
     _init_db()
+    _backfill_portal_response_visible()
     _verify_gemini_model_at_startup()
     _start_health_monitor()
     _start_solicitud_reminder()
