@@ -10961,7 +10961,44 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         }
         if resp_quote_breakdown:
             try:
-                resp_payload_dict['quote_breakdown'] = json.loads(resp_quote_breakdown)
+                _bd = json.loads(resp_quote_breakdown)
+                resp_payload_dict['quote_breakdown'] = _bd
+                # Portal breakdown gate — enables rich display in solicitud.html (Task #360)
+                resp_payload_dict['portalResponseVisible'] = True
+                _bd_prods = _bd.get('products') or []
+                if _bd_prods:
+                    resp_payload_dict['perProductCalculations'] = [
+                        {
+                            'name': p.get('name'),
+                            'category': p.get('category'),
+                            'declared_value_usd': p.get('declared_value_usd'),
+                            'real_weight_kg': p.get('weight_kg'),
+                            'billable_weight_kg': (p.get('details') or {}).get('billableKg'),
+                            'weight_mode': (p.get('details') or {}).get('weightMode', 'real'),
+                            'freight':  float((p.get('details') or {}).get('freight')  or 0),
+                            'fuel':     float((p.get('details') or {}).get('fuel')     or 0),
+                            'handling': float((p.get('details') or {}).get('handling') or 0),
+                            'taxes':    float((p.get('details') or {}).get('taxes')    or 0),
+                            'insurance':float((p.get('details') or {}).get('insurance')or 0),
+                            'delivery': float((p.get('details') or {}).get('delivery') or 0),
+                            'total':    float(p.get('shipping_usd') or 0),
+                        }
+                        for p in _bd_prods
+                    ]
+                    if len(_bd_prods) > 1:
+                        resp_payload_dict['consolidated'] = {
+                            'product_count': len(_bd_prods),
+                            'grand_total_usd': _bd.get('grand_total_usd'),
+                            'separate_total_usd': _bd.get('separate_total_usd'),
+                            'savings_usd': _bd.get('savings_usd'),
+                            'savings_pct': _bd.get('savings_pct'),
+                            'total_declared_value': sum(
+                                float(p.get('declared_value_usd') or 0) for p in _bd_prods
+                            ),
+                            'total_real_weight_kg': sum(
+                                float(p.get('weight_kg') or 0) for p in _bd_prods
+                            ),
+                        }
             except Exception:
                 pass
         resp_payload = json.dumps(resp_payload_dict, ensure_ascii=False)

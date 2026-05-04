@@ -94,6 +94,41 @@
 
         /* ── Panels ───────────────────────────────────────────── */
         .sol-panel-inner { border-radius: 1rem; overflow: hidden; }
+
+        /* ── Quote response breakdown (Task #360) ─────────────── */
+        .qr-section-hdr {
+            background: linear-gradient(135deg, #1e293b 0%, #374155 100%);
+            padding: .9rem 1.25rem;
+            display: flex; align-items: center; gap: .75rem;
+        }
+        .qr-price-total {
+            background: linear-gradient(135deg, #fff7ed, #ffedd5);
+            border: 1.5px solid #fed7aa; border-radius: .875rem;
+            padding: .9rem 1.25rem; margin: .75rem 1.25rem .25rem;
+            display: flex; align-items: center; gap: .85rem;
+        }
+        .qr-bd-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            padding: .4rem 0; border-bottom: 1px solid #f3f4f6;
+        }
+        .qr-bd-row:last-child { border-bottom: 0; }
+        .qr-bd-label { font-size: .78rem; color: #6b7280; }
+        .qr-bd-value { font-size: .875rem; font-weight: 600; color: #111827; }
+        .qr-bd-total-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: .55rem 0 .1rem;
+        }
+        .qr-bd-total-label { font-size: .875rem; font-weight: 700; color: #1e293b; }
+        .qr-bd-total-value { font-size: 1.05rem; font-weight: 800; color: #ea580c; }
+        .qr-payment-block {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: .75rem;
+            padding: .9rem 1rem; margin: 0 1.25rem 1rem;
+        }
+        .qr-cta-row { display: flex; flex-wrap: wrap; gap: .65rem; margin: 0 1.25rem 1.25rem; }
+        .qr-disclaimer {
+            font-size: .72rem; color: #9ca3af; line-height: 1.6;
+            margin: 0 1.25rem .75rem; border-top: 1px solid #f3f4f6; padding-top: .75rem;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -395,53 +430,10 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- ¿Cómo deseas proceder? -->
-                        <div id="resp-intent-section" class="mt-5">
-                            <p class="text-sm font-semibold text-gray-700 mb-3">¿Cómo deseas proceder?</p>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <!-- Comprar con CRBOX -->
-                                <div class="bg-white border-2 border-orange-200 rounded-2xl p-4 flex flex-col gap-3 hover:border-orange-400 hover:shadow-sm transition-all">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-shopping-cart text-orange-500 text-sm"></i>
-                                        </div>
-                                        <p class="font-semibold text-gray-900 text-sm">Comprar con CRBOX</p>
-                                    </div>
-                                    <p class="text-xs text-gray-600 leading-relaxed">CRBOX puede encargarse de todo el proceso de compra por ti. Solo necesitarás realizar por adelantado el pago correspondiente al producto cotizado, para que podamos gestionarlo en tu nombre.</p>
-                                    <button id="btn-intent-crbox"
-                                        class="w-full mt-auto py-2.5 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold transition-colors active:scale-95"
-                                        style="min-height:40px;">
-                                        Quiero que CRBOX compre por mí
-                                    </button>
-                                </div>
-
-                                <!-- Lo compraré por mi cuenta -->
-                                <div class="bg-white border-2 border-gray-200 rounded-2xl p-4 flex flex-col gap-3 hover:border-gray-400 hover:shadow-sm transition-all">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-user text-gray-500 text-sm"></i>
-                                        </div>
-                                        <p class="font-semibold text-gray-900 text-sm">Lo compraré por mi cuenta</p>
-                                    </div>
-                                    <p class="text-xs text-gray-600 leading-relaxed">Tú realizas la compra directamente. El portal mantendrá el registro de este paquete esperado para que CRBOX pueda darle seguimiento cuando llegue a Miami.</p>
-                                    <button id="btn-intent-cliente"
-                                        class="w-full mt-auto py-2.5 px-4 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-semibold transition-colors active:scale-95"
-                                        style="min-height:40px;">
-                                        Yo realizaré la compra
-                                    </button>
-                                </div>
-                            </div>
-                            <!-- No continuar: low emphasis -->
-                            <div class="mt-3 text-center">
-                                <button id="btn-intent-cancel"
-                                    class="text-xs text-gray-400 hover:text-red-500 transition-colors hover:underline underline-offset-2">
-                                    No deseo continuar con esta solicitud
-                                </button>
-                            </div>
-                            <p id="intent-error" class="hidden text-xs text-red-600 mt-2 text-center"></p>
-                        </div>
                     </div>
+
+                    <!-- Full quote response breakdown (Task #360 — populated by JS when portalResponseVisible===true) -->
+                    <div id="qr-section" class="hidden mb-3"></div>
 
                     <!-- Fallback when no response_json (legacy / pre-#188 records) -->
                     <div id="resp-fallback" class="flex items-start gap-3 bg-green-50 border border-green-200 rounded-2xl px-5 py-4">
@@ -452,6 +444,52 @@
                                 Revisa tu correo (<strong id="panel-responded-email" class="font-medium"></strong>) para ver los detalles del precio final.
                             </p>
                         </div>
+                    </div>
+
+                    <!-- ¿Cómo deseas proceder? — shown for disponible respondida records -->
+                    <div id="resp-intent-section" class="hidden mt-5">
+                        <p class="text-sm font-semibold text-gray-700 mb-3">¿Cómo deseas proceder?</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Comprar con CRBOX -->
+                            <div class="bg-white border-2 border-orange-200 rounded-2xl p-4 flex flex-col gap-3 hover:border-orange-400 hover:shadow-sm transition-all">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-shopping-cart text-orange-500 text-sm"></i>
+                                    </div>
+                                    <p class="font-semibold text-gray-900 text-sm">Comprar con CRBOX</p>
+                                </div>
+                                <p class="text-xs text-gray-600 leading-relaxed">CRBOX puede encargarse de todo el proceso de compra por ti. Solo necesitarás realizar por adelantado el pago correspondiente al producto cotizado, para que podamos gestionarlo en tu nombre.</p>
+                                <button id="btn-intent-crbox"
+                                    class="w-full mt-auto py-2.5 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold transition-colors active:scale-95"
+                                    style="min-height:40px;">
+                                    Quiero que CRBOX compre por mí
+                                </button>
+                            </div>
+
+                            <!-- Lo compraré por mi cuenta -->
+                            <div class="bg-white border-2 border-gray-200 rounded-2xl p-4 flex flex-col gap-3 hover:border-gray-400 hover:shadow-sm transition-all">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-user text-gray-500 text-sm"></i>
+                                    </div>
+                                    <p class="font-semibold text-gray-900 text-sm">Lo compraré por mi cuenta</p>
+                                </div>
+                                <p class="text-xs text-gray-600 leading-relaxed">Tú realizas la compra directamente. El portal mantendrá el registro de este paquete esperado para que CRBOX pueda darle seguimiento cuando llegue a Miami.</p>
+                                <button id="btn-intent-cliente"
+                                    class="w-full mt-auto py-2.5 px-4 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-semibold transition-colors active:scale-95"
+                                    style="min-height:40px;">
+                                    Yo realizaré la compra
+                                </button>
+                            </div>
+                        </div>
+                        <!-- No continuar: low emphasis -->
+                        <div class="mt-3 text-center">
+                            <button id="btn-intent-cancel"
+                                class="text-xs text-gray-400 hover:text-red-500 transition-colors hover:underline underline-offset-2">
+                                No deseo continuar con esta solicitud
+                            </button>
+                        </div>
+                        <p id="intent-error" class="hidden text-xs text-red-600 mt-2 text-center"></p>
                     </div>
                 </div>
 
@@ -640,7 +678,7 @@
     <script src="js/auth.js?v=4"></script>
     <script src="js/nav-auth.js?v=2" defer></script>
     <script src="js/portal-api.js?v=4"></script>
-    <script src="js/solicitud.js?v=6"></script>
+    <script src="js/solicitud.js?v=7"></script>
     <script src="js/portal-nav-offset.js" defer></script>
 </body>
 </html>
