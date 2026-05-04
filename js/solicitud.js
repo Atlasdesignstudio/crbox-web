@@ -60,7 +60,7 @@
     juguetes:             'Juguetes',
     amortiguadores:       'Amortiguadores',
     aros_carro_moto:      'Aros de Carro/Moto',
-    vehiculos:            'Repuestos de Vehículos',
+    vehiculos:            'Repuestos en General',
     salud_belleza:        'Salud y Belleza',
     suplementos:          'Suplementos',
     cds:                  'Libros, CDs y Medios',
