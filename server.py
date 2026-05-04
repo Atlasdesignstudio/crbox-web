@@ -10972,12 +10972,21 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 resp_payload_dict['portalResponseVisible'] = True
                 _bd_prods = _bd.get('products') or []
                 if _bd_prods:
+                    def _vol_kg(p):
+                        try:
+                            l = float(p.get('length_cm') or 0)
+                            w = float(p.get('width_cm')  or 0)
+                            h = float(p.get('height_cm') or 0)
+                            return round(l * w * h / 5000, 3) if (l and w and h) else None
+                        except Exception:
+                            return None
                     resp_payload_dict['perProductCalculations'] = [
                         {
                             'name': p.get('name'),
                             'category': p.get('category'),
                             'declared_value_usd': p.get('declared_value_usd'),
                             'real_weight_kg': p.get('weight_kg'),
+                            'volumetric_weight_kg': _vol_kg(p),
                             'billable_weight_kg': (p.get('details') or {}).get('billableKg'),
                             'weight_mode': (p.get('details') or {}).get('weightMode', 'real'),
                             'freight':  float((p.get('details') or {}).get('freight')  or 0),
@@ -11004,6 +11013,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                             'total_real_weight_kg': sum(
                                 float(p.get('weight_kg') or 0) for p in _bd_prods
                             ),
+                            'total_volumetric_weight_kg': round(sum(
+                                _vol_kg(p) or 0 for p in _bd_prods
+                            ), 3),
                             # Consolidated shipment line items (from admin calculator)
                             'freight':   float(_con_bd.get('freight')   or 0),
                             'fuel':      float(_con_bd.get('fuel')      or 0),

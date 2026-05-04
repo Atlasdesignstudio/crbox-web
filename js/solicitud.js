@@ -267,18 +267,17 @@
       html += ' &middot; Valor declarado: ' + esc(declVal);
     }
     html += '</p></div>';
-    // Weight row with applied-weight badge
+    // Three weight rows — always show real, volumetric, and applied
+    var volKg = calc.volumetric_weight_kg != null
+                ? Number(calc.volumetric_weight_kg).toFixed(3) + ' kg' : '—';
     html += '<div style="background:#fff;padding:.45rem 1rem;border-bottom:1px solid #f3f4f6;">';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:.5rem .75rem;align-items:center;">';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:.5rem .9rem;align-items:center;">';
     html += '<span style="font-size:.72rem;color:#6b7280;">Peso real: '
       + '<strong style="color:#374151;">' + esc(realKg) + '</strong></span>';
-    if (isVol) {
-      html += '<span style="font-size:.72rem;color:#6b7280;">Peso volumétrico: '
-        + '<strong style="color:#374151;">' + esc(billKg) + '</strong>' + weightBadge + '</span>';
-    } else {
-      html += '<span style="font-size:.72rem;color:#6b7280;">Peso de cobro: '
-        + '<strong style="color:#374151;">' + esc(billKg) + '</strong>' + weightBadge + '</span>';
-    }
+    html += '<span style="font-size:.72rem;color:#6b7280;">Peso volumétrico: '
+      + '<strong style="color:#374151;">' + esc(volKg) + '</strong></span>';
+    html += '<span style="font-size:.72rem;color:#6b7280;">Peso de cobro: '
+      + '<strong style="color:#374151;">' + esc(billKg) + '</strong>' + weightBadge + '</span>';
     html += '</div></div>';
     // Line items
     html += '<div style="background:#fff;padding:.5rem 1rem;">' + rows + '</div>';
@@ -328,11 +327,14 @@
 
     // Summary rows
     html += '<div style="background:#fff;padding:.65rem 1rem;">';
+    var totalVolKg = con.total_volumetric_weight_kg != null
+                     ? Number(con.total_volumetric_weight_kg).toFixed(3) + ' kg' : '—';
     html += _qrBdRow('Número de productos', String(n));
     html += _qrBdRow('Valor declarado total', totalDecl);
     html += _qrBdRow('Peso total real', totalRealKg);
+    html += _qrBdRow('Peso total volumétrico', totalVolKg);
     if (billKg !== '—') {
-      html += _qrBdRow('Peso de cobro (' + esc(wModeLabel) + ')', billKg);
+      html += _qrBdRow('Peso de cobro consolidado (' + esc(wModeLabel) + ')', billKg);
     }
     html += '</div>';
 
