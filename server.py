@@ -2626,19 +2626,25 @@ def _build_response_email_html(scb_id, product_name, customer_name,
         '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;'
         'padding:16px 20px;margin-bottom:20px;">'
         '<p style="font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;'
-        'letter-spacing:.06em;margin:0 0 10px;">&#128172; ¿Tienes alguna pregunta?</p>'
-        '<div style="display:flex;flex-wrap:wrap;gap:8px;">'
-        f'<a href="mailto:ventas@crbox.cr?subject=Re%3A%20{esc(scb_id)}" '
-        'style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;'
-        'background:#fff;border:1px solid #d1d5db;border-radius:6px;'
-        'font-size:13px;color:#374151;text-decoration:none;font-weight:500;">'
-        '&#9993; Responder por correo</a>'
+        'letter-spacing:.06em;margin:0 0 12px;">&#128172; ¿Tienes alguna pregunta?</p>'
+        '<table style="border-collapse:collapse;width:100%;" cellpadding="0" cellspacing="0"><tbody>'
+        '<tr><td style="padding:0 0 10px 0;">'
         '<a href="https://wa.me/50689794418" '
-        'style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;'
+        'style="display:block;text-align:center;padding:11px 16px;'
         'background:#25D366;color:#fff;border-radius:6px;'
-        'font-size:13px;text-decoration:none;font-weight:600;">'
-        '&#128241; WhatsApp (+506&nbsp;8979&#8209;4418)</a>'
-        '</div></div>'
+        'font-size:13px;text-decoration:none;font-weight:700;'
+        'mso-padding-alt:11px 16px;">'
+        '&#128241; Contactar por WhatsApp&nbsp;(+506&nbsp;8979&#8209;4418)</a>'
+        '</td></tr>'
+        '<tr><td style="padding:0;">'
+        f'<a href="mailto:ventas@crbox.cr?subject=Re%3A%20{esc(scb_id)}" '
+        'style="display:block;text-align:center;padding:11px 16px;'
+        'background:#ffffff;border:1px solid #d1d5db;border-radius:6px;'
+        'font-size:13px;color:#374151;text-decoration:none;font-weight:500;'
+        'mso-padding-alt:11px 16px;">'
+        '&#9993; Responder por correo</a>'
+        '</td></tr>'
+        '</tbody></table></div>'
     )
     _faq_avail_items = (
         '<div><p style="font-size:13px;font-weight:600;color:#111;margin:0 0 2px;">'
@@ -2649,8 +2655,9 @@ def _build_response_email_html(scb_id, product_name, customer_name,
         '<div><p style="font-size:13px;font-weight:600;color:#111;margin:0 0 2px;">'
         '¿C&oacute;mo se realiza el pago?</p>'
         '<p style="font-size:12px;color:#6b7280;margin:0;line-height:1.5;">'
-        'Una vez que confirmes, te enviaremos los datos para transferencia SINPE '
-        'o tarjeta. El pago incluye el costo del producto + env&iacute;o.</p></div>'
+        'Puedes realizar el pago por Sinpe M&oacute;vil o transferencia bancaria. '
+        'Si necesitas ayuda con el proceso, nuestro equipo puede asistirte por '
+        'WhatsApp o correo.</p></div>'
         if availability in ('disponible', 'disponible_con_condiciones') else
         '<div><p style="font-size:13px;font-weight:600;color:#111;margin:0 0 2px;">'
         '¿Puedo cotizar otro producto?</p>'
@@ -4342,7 +4349,8 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
   }}
   #adm-calc-section .admc-wt.vol {{background:#fff7ed;color:#c2410c;border-color:#fed7aa;}}
   </style>
-  <script src="/js/tariff-adapter.js?v=2"></script>
+  <script src="/js/product-categories.js?v=1"></script>
+  <script src="/js/tariff-adapter.js?v=3"></script>
   <script src="/js/calculator-engine.js?v=2"></script>
   <script type="application/json" id="adm-calc-products-json">{_calc_products_js_safe}</script>
   {_calc_rows_html}
