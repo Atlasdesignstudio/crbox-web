@@ -48,6 +48,13 @@
       dutyRate: null, totalEstimatedRate: 0.13, source: 'local_estimated', requiresPermit: false, needsReview: false,
     },
     {
+      id: 'telefonos', code: 'telefonos',
+      name: 'Teléfonos',
+      group: 'Electrónica',
+      aliases: ['teléfono', 'telefono', 'teléfonos fijos', 'teléfono de casa', 'landline', 'inalámbrico'],
+      dutyRate: null, totalEstimatedRate: 0.13, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
       id: 'computadora', code: 'computadora',
       name: 'Computadoras y Laptops',
       group: 'Electrónica',
