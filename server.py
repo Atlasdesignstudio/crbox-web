@@ -2628,7 +2628,7 @@ def _build_response_email_html(scb_id, product_name, customer_name,
         '<p style="font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;'
         'letter-spacing:.06em;margin:0 0 12px;">&#128172; ¿Tienes alguna pregunta?</p>'
         '<table style="border-collapse:collapse;width:100%;" cellpadding="0" cellspacing="0"><tbody>'
-        '<tr><td style="padding:0 0 10px 0;">'
+        '<tr><td style="padding:0 0 12px 0;">'
         '<a href="https://wa.me/50689794418" '
         'style="display:block;text-align:center;padding:11px 16px;'
         'background:#25D366;color:#fff;border-radius:6px;'
