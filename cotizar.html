@@ -852,41 +852,29 @@
                     <div id="confirm-summary-list"></div>
                 </div>
 
-                <!-- Conversion panel -->
-                <div class="conversion-panel mb-5 anim-fadeslide" style="animation-delay:.18s" id="conversion-panel">
-                    <div class="conversion-panel-header">
-                        <div class="flex items-center gap-3">
-                            <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;">
-                                <i class="fas fa-star" style="color:#fff;font-size:1.1rem;"></i>
+                <!-- C-15: Softened account upsell — subtle inline card, not pushy -->
+                <div class="form-card mb-5 anim-fadeslide" style="animation-delay:.18s;border-color:#fed7aa;" id="conversion-panel">
+                    <div style="display:flex;align-items:flex-start;gap:.875rem;">
+                        <div style="width:2rem;height:2rem;border-radius:50%;background:#fff7ed;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem;">
+                            <i class="fas fa-bell" style="color:#FF6B00;font-size:.75rem;"></i>
+                        </div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:.875rem;font-weight:700;color:#111827;margin-bottom:.2rem;">
+                                Sigue el estado sin esperar el email
+                                <span style="font-size:.75rem;font-weight:400;color:#9ca3af;margin-left:.25rem;">— opcional</span>
                             </div>
-                            <div>
-                                <h3 class="text-white font-bold text-base leading-tight">¿Quieres ver el estado en tiempo real?</h3>
-                                <p class="text-sm mt-0.5" style="color:rgba(255,255,255,.82);">Opcional — crea una cuenta gratis y consulta actualizaciones sin esperar el email</p>
+                            <div style="font-size:.8rem;color:#6b7280;margin-bottom:.7rem;">Crea una cuenta gratis y consulta actualizaciones desde tu portal en tiempo real.</div>
+                            <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+                                <a id="btn-create-account" href="afiliate.html"
+                                   style="display:inline-flex;align-items:center;gap:.35rem;font-size:.8125rem;font-weight:700;color:#FF6B00;text-decoration:none;padding:.4rem .9rem;border:1.5px solid #fed7aa;border-radius:.5rem;background:#fff7ed;transition:background .15s;white-space:nowrap;">
+                                    <i class="fas fa-user-plus" style="font-size:.7rem;"></i> Crear cuenta gratis
+                                </a>
+                                <button type="button" id="btn-dismiss-conversion"
+                                        style="font-size:.8rem;color:#9ca3af;background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:2px;padding:0;line-height:1.5;">
+                                    No, gracias
+                                </button>
                             </div>
                         </div>
-                    </div>
-                    <div class="p-5">
-                        <ul class="space-y-2 mb-5">
-                            <li class="flex items-center gap-2 text-sm text-gray-700">
-                                <i class="fas fa-check-circle text-orange-500" style="font-size:.85rem;flex-shrink:0;"></i>
-                                Seguimiento en tiempo real de tu solicitud
-                            </li>
-                            <li class="flex items-center gap-2 text-sm text-gray-700">
-                                <i class="fas fa-check-circle text-orange-500" style="font-size:.85rem;flex-shrink:0;"></i>
-                                Casillero en Miami para comprar en cualquier tienda
-                            </li>
-                            <li class="flex items-center gap-2 text-sm text-gray-700">
-                                <i class="fas fa-check-circle text-orange-500" style="font-size:.85rem;flex-shrink:0;"></i>
-                                Historial de pedidos y facturas en un solo lugar
-                            </li>
-                        </ul>
-                        <a id="btn-create-account" href="afiliate.html" class="btn-conversion-primary mb-3">
-                            <i class="fas fa-user-plus"></i>
-                            Crear cuenta gratis
-                        </a>
-                        <button type="button" id="btn-dismiss-conversion" class="btn-conversion-secondary">
-                            Continuar sin cuenta
-                        </button>
                     </div>
                 </div>
 

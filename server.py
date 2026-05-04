@@ -5248,7 +5248,10 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     <div class="cmp-preview-pane" id="cmp-preview-pane" style="display:none;">
       <div class="cmp-preview-header">
         <span>&#128286; Vista previa del email al cliente</span>
-        <span class="cmp-preview-note">Se actualiza en tiempo real &mdash; el formato final puede variar</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="cmp-preview-note">Se actualiza en tiempo real &mdash; el formato final puede variar</span>
+          <button type="button" id="btn-prev-toggle" style="font-size:10px;color:#6b7280;background:none;border:1px solid #e5e7eb;border-radius:4px;padding:2px 7px;cursor:pointer;white-space:nowrap;line-height:1.5;flex-shrink:0;" title="Colapsar vista previa">&#9650; Ocultar</button>
+        </div>
       </div>
       <div id="cmp-preview-body" class="cmp-preview-body"></div>
     </div>
@@ -5424,6 +5427,18 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       }});
     }}
 
+    /* ── A-3: Preview collapse toggle ───────────────────── */
+    var _prevCollapsed = false;
+    var btnPrevToggle = document.getElementById('btn-prev-toggle');
+    if (btnPrevToggle) {{
+      btnPrevToggle.addEventListener('click', function() {{
+        _prevCollapsed = !_prevCollapsed;
+        if (prevBody) prevBody.style.display = _prevCollapsed ? 'none' : '';
+        btnPrevToggle.innerHTML = _prevCollapsed ? '&#9660; Mostrar' : '&#9650; Ocultar';
+        btnPrevToggle.title = _prevCollapsed ? 'Expandir vista previa' : 'Colapsar vista previa';
+      }});
+    }}
+
     /* ── Live email preview ───────────────────────────── */
     var _AL = {{disponible: 'Disponible', no_disponible: 'No disponible', disponible_con_condiciones: 'Disponible con condiciones'}};
     var _AC = {{disponible: '#16a34a', no_disponible: '#dc2626', disponible_con_condiciones: '#d97706'}};
@@ -5483,6 +5498,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       h += '</div>';
       prevBody.innerHTML = h;
       prevPane.style.display = '';
+      if (_prevCollapsed) prevBody.style.display = 'none';
     }}
     function _schedPrev() {{
       if (_pvTimer) clearTimeout(_pvTimer);
