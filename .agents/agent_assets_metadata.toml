@@ -6,3 +6,9 @@ id = "6J1Gg2zqxmFPwg-zZvE5W"
 uri = "file://docs/quote-architecture-proposal.md"
 type = "text"
 title = "CRBOX Quote & Assisted-Purchase Architecture Proposal — v1.1"
+
+[[outputs]]
+id = "gvC0sKfhzgSA8Bh2FUd67"
+uri = "file://docs/cotizar-flow.md"
+type = "text"
+title = "Cotizar Flow — End-to-End Reference"
