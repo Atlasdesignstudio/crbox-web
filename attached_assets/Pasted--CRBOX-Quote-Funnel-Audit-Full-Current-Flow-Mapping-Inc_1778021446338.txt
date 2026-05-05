@@ -1,0 +1,211 @@
+# CRBOX Quote Funnel Audit — Full Current Flow Mapping Including Reminder Stage
+
+Before proposing or implementing any Product Brain, AI category classifier, or UX improvement, first audit and explain how the current CRBOX quote flow works end to end.
+
+The goal is to understand the existing quote system completely before changing anything.
+
+Please analyze the current codebase and provide a clear, structured explanation of the full quote funnel across every touchpoint, including the post-response/reminder stage.
+
+## What I need you to explain
+
+Map the complete current quote journey from beginning to end, including:
+
+1. Public Cotizar page
+2. Public Calculadora page
+3. Product URL “Analizar” flow
+4. Client portal Cotizaciones / Solicitudes flow
+5. Internal CRBOX sales/admin quote panel
+6. Admin per-product calculator
+7. Quote response generation
+8. Customer email response
+9. Client portal quote response view
+10. Customer decision/acceptance/reply flow, if it exists
+11. Quote reminder email flow
+12. Any expiration/deadline logic
+13. Any chat/AI assistant behavior related to quotes
+
+## Include the reminder flow
+
+I just saw that the system also sends a “Recordatorio de cotización” email.
+
+Please include this stage in the audit.
+
+Explain:
+
+- When is a reminder email triggered?
+- Is it automatic or manually triggered?
+- What conditions must be true for the reminder to send?
+- What quote status triggers the reminder?
+- Where is the reminder logic in the code?
+- What template/function builds the reminder email?
+- What fields are included in the reminder email?
+- Where does the deadline / fecha límite come from?
+- Is the deadline displayed in a user-friendly format?
+- What happens if the deadline is expired?
+- How many reminders can be sent?
+- Is reminder history stored?
+- Does the admin panel show whether a reminder was sent?
+- Does the client portal show reminder status?
+- What CTA does the reminder email include?
+- Where does “Ver mi solicitud” link?
+- What happens when the user clicks it?
+- What happens if the user ignores the reminder?
+- What happens if the user replies to the reminder email?
+- Is there any automatic status change after reminder or expiration?
+- Is the reminder content consistent with the quote response email and portal response?
+- Does the reminder show the same price breakdown or only a summary?
+- Does it include product category/tax explanation?
+- Does it include payment/next-step instructions?
+- Does it include any incorrect, outdated, placeholder, or unsupported information?
+
+## Questions to answer for the full quote flow
+
+Explain, in detail:
+
+- Where can a customer start a quote today?
+- What information does the customer enter in each touchpoint?
+- What happens when the user pastes a product URL and clicks “Analizar”?
+- What does AI/Gemini currently extract?
+- What happens if AI cannot extract price, weight, dimensions, or category?
+- Where is the product category selected today?
+- Is the category selected manually, inferred, or both?
+- Where does the category list live?
+- Are there duplicated category lists across pages?
+- What tax percentage/rate is used today?
+- Where does the calculator get the tax percentage from?
+- How does the calculator currently calculate price?
+- What is calculated automatically and what is left for sales/admin to complete manually?
+- How are multi-product quotes handled?
+- How are consolidated calculations handled?
+- What payload is submitted when a public user sends a quote?
+- What payload is submitted when a logged-in portal client sends a quote?
+- What fields are different between public quotes and portal quotes?
+- Where is the quote stored?
+- How does it appear in the sales/admin panel?
+- What exactly does sales see when opening a quote?
+- What can sales edit or override?
+- How does sales calculate each product?
+- How does sales generate the final response?
+- What gets saved into response_json or any response payload?
+- What gets sent by email to the customer?
+- What gets shown inside the client portal after a quote is responded?
+- What statuses exist today for a quote?
+- What happens after the customer receives the quote?
+- Can the customer reply, accept, reject, or only contact CRBOX manually?
+- Are there reminder states?
+- Are there expiration states?
+- Are there any missing states or broken parts in the journey?
+- Are there any places where the UI says one thing but the backend does another?
+- Are there any places where fake, placeholder, or unsupported information is shown?
+- Are there any edge cases with old quote records?
+- Are there any current limitations around product category, taxes, manual review, special permits, or regulated products?
+
+## Required output format
+
+Please structure the response like this:
+
+1. Executive summary
+   - Short explanation of how the quote funnel currently works.
+
+2. Touchpoint map
+   - Public Cotizar
+   - Public Calculadora
+   - URL Analizar
+   - Client Portal Cotizaciones/Solicitudes
+   - Admin/Sales Quote Panel
+   - Admin Calculator
+   - Email Quote Response
+   - Portal Quote Response
+   - Reminder Email
+   - Expiration / Deadline
+   - Customer Follow-up / Reply
+
+3. Step-by-step journey
+   - From customer input
+   - To quote submission
+   - To admin review
+   - To calculation
+   - To response generation
+   - To customer receiving the response
+   - To customer decision or no response
+   - To reminder email
+   - To expiration or follow-up
+
+4. Data flow
+   - What data is collected
+   - What payload is sent
+   - Where it is stored
+   - What fields are reused
+   - What fields are missing or manual
+   - What data is reused in reminder emails
+   - What deadline fields exist
+
+5. Category and tax logic audit
+   - Where categories live
+   - How tax rates are selected
+   - Whether the logic is duplicated
+   - Whether AI is involved
+   - Whether the calculator uses category consistently
+   - Whether emails/reminders show category or tax logic
+
+6. AI/Gemini audit
+   - What AI currently does
+   - What it extracts
+   - What it fails to extract
+   - How failures are handled
+   - Whether the UX feels broken when extraction is incomplete
+
+7. Admin workflow audit
+   - What sales sees
+   - What sales must complete manually
+   - What sales can override
+   - How sales calculates per product
+   - How sales sends the response
+   - Whether sales can send reminders
+   - Whether reminder history/status is visible
+
+8. Customer response audit
+   - What the email contains
+   - What the portal shows
+   - Whether the customer gets a clear breakdown
+   - Whether the customer understands why the price is what it is
+   - What action the customer is expected to take
+
+9. Reminder flow audit
+   - Trigger
+   - Timing
+   - Template
+   - Data fields
+   - CTA
+   - Deadline logic
+   - Status changes
+   - User journey after clicking
+   - Weaknesses or inconsistencies
+
+10. Current pain points
+   - UX issues
+   - Technical duplication
+   - Data gaps
+   - Category/tax limitations
+   - AI limitations
+   - Manual sales burden
+   - Reminder/expiration gaps
+   - Edge cases
+
+11. Opportunities for improvement
+   - Do not implement yet.
+   - Just identify where Product Brain, Gemini classification, better UX, better admin workflows, better customer response views, and better reminder logic could help.
+
+## Important constraints
+
+Do not change code yet.
+
+Do not implement Product Brain yet.
+
+Do not redesign the UI yet.
+
+This is an audit and mapping task only.
+
+Be very specific. Reference files, functions, endpoints, payload fields, database fields, email builders, status values, and line numbers where useful.
+
+The answer should be detailed enough that another agent could later design the improved AI-first quote experience based on it.
