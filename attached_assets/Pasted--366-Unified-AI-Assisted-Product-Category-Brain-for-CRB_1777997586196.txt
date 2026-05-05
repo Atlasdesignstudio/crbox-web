@@ -1,0 +1,2449 @@
+#366 - Unified AI-Assisted Product Category Brain for CRBOX Quote Funnel
+
+## What & Why
+
+We want to improve the product category selection experience across the entire CRBOX quote and calculator funnel.
+
+Right now, the product category dropdown is a poor UX pattern. Users have to manually open a long dropdown, scroll through many options, guess which category applies to their product, and they do not clearly see what percentage of taxes that category usually pays.
+
+This creates several problems:
+
+- The user experience feels outdated.
+- Users may choose the wrong category.
+- The dropdown is hard to use on mobile.
+- The category logic may be inconsistent across pages.
+- The user does not understand why a product pays a certain percentage.
+- The calculator logic may be limited by the current category list.
+- Product URL analysis and manual category selection may not use the same logic.
+- The public pages, client portal, internal sales tool, portal response, and email response may not explain category/tax logic consistently.
+
+The goal is to replace or enhance the current category dropdown behavior with a unified AI-assisted product classification flow powered by a local CRBOX product brain.
+
+The user should be able to type natural product descriptions such as:
+
+- zapatos rosados
+- Nike pink running shoes
+- iPhone 15 Pro Max
+- perfume Dior
+- proteína whey
+- power bank
+- laptop gamer
+- repuesto de carro
+- audífonos Bluetooth
+- maquillaje Sephora
+- cargador USB-C
+- air fryer
+- smartwatch
+- suplemento de magnesio
+
+The system should understand what the product is, assign it to the best CRBOX category, show a simple user-friendly tax percentage explanation, and then pass that category/rate into the existing calculator logic.
+
+Important: AI/Gemini should help interpret the product, but the full calculator math must stay in code. AI should not calculate the full quote. The calculator code should continue handling value, weight, volume, freight, fuel surcharge, handling, insurance, delivery, and final totals.
+
+---
+
+## Core Goal
+
+Turn the category dropdown into a smart product understanding experience.
+
+Instead of forcing the user to manually choose from a long dropdown, the system should work like this:
+
+1. User types a product description or pastes a product URL.
+2. User clicks “Analizar producto” or the existing “Analizar” action.
+3. Gemini/local product intelligence identifies what the product likely is.
+4. The system maps that product to the closest CRBOX local product category.
+5. The UI shows:
+   - Product detected
+   - Category detected
+   - Estimated tax percentage
+   - Simple explanation
+   - Any special requirement or review warning
+6. The user can confirm it or manually change it.
+7. The coded calculator uses that selected category and rate.
+
+Example:
+
+User enters:
+“zapatos rosados”
+
+The UI should show something like:
+
+“Detectamos que este producto pertenece a Calzado. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según el material, la suela y la revisión aduanera.”
+
+Not:
+
+“confidence: Media / DAI: 15 / law6946Rate: 1 / source: local_estimated”
+
+The technical metadata can exist internally, but customer-facing copy must be human and simple.
+
+---
+
+## Main Rule
+
+There must be ONE shared product/category/tax logic across all quote-related touchpoints.
+
+Do not create separate category logic for different pages.
+
+The same product should be classified the same way everywhere.
+
+If the user enters “zapatos rosados” in the public calculator, public Cotizar page, client portal, or internal sales tool, it should resolve to the same local product category:
+
+- Category: Calzado
+- Orientative tax: approximately 29%
+- User-friendly message about material/suela variation
+- Same manual review behavior if applicable
+
+---
+
+## Touchpoints In Scope
+
+Audit the project and identify every place where product category, product type, quote calculation, or quote response appears.
+
+At minimum, this must cover:
+
+1. Public Cotizar page
+2. Public Calculadora page
+3. Client portal Cotizaciones / Solicitudes flow
+4. Client portal quote response page
+5. Internal CRBOX sales quote calculator / quote detail tool
+6. Customer quote response email
+7. Existing product URL “Analizar” action
+8. Any quote-related AI/chat assistant behavior
+
+All of these touchpoints should use the same product brain and category classification logic.
+
+Do not only fix one dropdown.
+
+The goal is consistency across the entire funnel.
+
+---
+
+## Do Not Break Existing Functionality
+
+This is very important.
+
+Do not break:
+
+- Existing public Cotizar submission flow.
+- Existing Calculadora math.
+- Existing client portal quote flow.
+- Existing package/invoice/login flows.
+- Existing internal sales quote response flow.
+- Existing product URL analysis.
+- Existing quote response rendering.
+- Existing email response sending.
+- Existing calculator math for freight, volumetric weight, fuel, handling, insurance, delivery, and totals.
+- Existing legacy quote records.
+- Existing multi-product quote behavior.
+- Existing structured response_json behavior.
+- Existing admin overrides.
+
+This task is focused on improving and unifying the category/product classification layer.
+
+Preserve the existing calculator engine and business logic unless you find a clear bug.
+
+---
+
+## Architecture Direction
+
+Use a hybrid architecture.
+
+### 1. Local Product Brain
+
+Create or improve a local CRBOX product brain.
+
+Suggested file:
+
+js/product-categories.js
+
+This should be the local source of truth for:
+
+- Product categories
+- Product examples
+- Keywords / aliases
+- Estimated tax percentage
+- Manual review flags
+- Special risk flags
+- User-friendly messages
+- Admin notes
+- Source label: local_estimated
+
+The product brain does not need to list every exact sentence a user could write. Gemini is intelligent enough to interpret natural language. But the product brain must be broad enough and clear enough to provide the official CRBOX category/tax map.
+
+### 2. Gemini / AI Interpretation Layer
+
+Gemini may be used to interpret natural product descriptions, product URL titles, or ambiguous inputs.
+
+Gemini’s role:
+
+- Understand what the user is describing.
+- Identify the likely product type.
+- Detect if the product may have special requirements, such as battery, supplement, aerosol, chemical, drone, medical product, etc.
+- Map the product to one of the local PRODUCT_CATEGORIES.
+
+Gemini must not:
+
+- Invent tax percentages.
+- Invent customs rules.
+- Invent official classifications.
+- Calculate the full quote.
+- Give final legal/customs decisions.
+- Say something is illegal unless CRBOX has an explicit rule.
+
+Gemini must select from the local CRBOX product brain.
+
+### 3. Calculator Code
+
+The calculator code remains responsible for math.
+
+Calculator code handles:
+
+- Declared value
+- CIF logic if currently used
+- Product value
+- Weight
+- Dimensions
+- Volumetric weight
+- Billable weight
+- Freight
+- Fuel surcharge
+- Handling
+- Insurance
+- Delivery
+- Taxes
+- Multi-product calculation
+- Consolidated calculation
+- Final total
+
+AI only provides:
+
+- Product detected
+- Category selected
+- Tax rate/range
+- Manual review flag
+- Special requirement/risk flags
+- Customer-friendly message
+- Admin notes
+
+---
+
+## No External API Dependency
+
+Do not depend on external APIs.
+
+Do not require:
+
+- TICA API
+- Hacienda API
+- SAC API
+- Ar@ncelNet API
+- ATENA API
+- SIAA API
+- RIMM API
+
+The current implementation must work with a local product brain.
+
+Official systems can be referenced only as future/manual validation sources.
+
+All local category/tax logic must be marked as:
+
+source: "local_estimated"
+
+Customer-facing copy must make clear that the estimate is orientative and final amounts may vary after review.
+
+---
+
+## Product Brain Data Contract
+
+Create or update PRODUCT_CATEGORIES with a structure similar to this:
+
+{
+  id: "footwear_complete",
+  displayName: "Calzado",
+  categoryName: "Calzado",
+  examples: ["zapatos", "tenis", "sneakers", "botas", "sandalias", "Crocs", "tacones"],
+  keywords: ["zapatos", "tenis", "sneakers", "shoes", "footwear", "botas", "sandalias", "running shoes"],
+  daiRate: 15,
+  vatRate: 13,
+  law6946Rate: 1,
+  totalEstimatedRate: 29,
+  estimatedRange: "~29%",
+  automaticEstimateAllowed: true,
+  needsReview: false,
+  regulatedProduct: false,
+  riskFlags: [],
+  customerMessage: "Detectamos que este producto pertenece a Calzado. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material, tipo de suela y clasificación final.",
+  adminNotes: "Validar si son zapatos de seguridad, ortopédicos o partes de calzado.",
+  source: "local_estimated"
+}
+
+If needed for backward compatibility, also map fields to current app names such as:
+
+- code
+- name
+- aliases
+- dutyRate
+- totalEstimatedRate
+- requiresPermit
+- needsReview
+
+Do not break current tariff-adapter.js callers if they already expect specific fields.
+
+---
+
+## ProductCategoryUtils API
+
+Expose a shared utility object:
+
+window.ProductCategoryUtils = {
+  search(query),
+  analyzeProductInput(input),
+  classifyWithGeminiIfNeeded(input, context),
+  findBestMatch(query),
+  getById(id),
+  getByCode(code),
+  getEstimatedRate(categoryIdOrQuery),
+  isManualReviewRequired(categoryIdOrQuery),
+  estimateCourierTax(productSearch, declaredValue, shippingCost, insuranceCost),
+  toCSV()
+}
+
+All functions must be safe:
+
+- Empty input should not crash.
+- Unknown input should return manual review.
+- Regulated products should return manual review.
+- Gemini should never invent tax rates.
+- Manual-review products should not produce final-looking automatic totals.
+
+---
+
+## Gemini Instruction
+
+When Gemini is used, instruct it clearly:
+
+“Interpret the product description or product page title and map it to the closest category from the provided PRODUCT_CATEGORIES list. Do not invent percentages, customs rates, official classifications, or final legal conclusions. Return the selected category id, detected product name, risk flags if any, and a short user-friendly explanation. If uncertain, return manual_review_required.”
+
+Gemini can infer:
+
+“Nike pink running shoes” = footwear / running shoes / Calzado
+
+But the final category and percentage must come from PRODUCT_CATEGORIES:
+
+Calzado → approximately 29%
+
+---
+
+## Product URL “Analizar” Action
+
+The existing product URL analysis must use the same classifier.
+
+When the user pastes a link and clicks “Analizar”:
+
+1. Existing AI/link analysis extracts product title/details.
+2. The detected title/details are passed into the shared product classifier.
+3. The classifier maps the product to PRODUCT_CATEGORIES.
+4. The UI shows the detected category and estimated tax percentage.
+5. The coded calculator uses that category/rate.
+
+Do not keep product URL analysis separate from manual product input.
+
+Manual input and URL analysis must converge into the same product classification logic.
+
+---
+
+## User-Facing Messaging Rules
+
+Customer-facing messages must be simple, human, and useful.
+
+Avoid technical output such as:
+
+- confidence: Alta
+- DAI: 15
+- ley6946Rate: 1
+- source: local_estimated
+- manual_review_required
+- riskFlags: lithium_battery
+
+Instead, show natural explanations.
+
+### Example: Calzado
+
+“Detectamos que este producto pertenece a Calzado. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según el material, la suela y la revisión aduanera.”
+
+### Example: Celulares
+
+“Detectamos que este producto pertenece a Celulares. Esta categoría suele pagar aproximadamente 14% en impuestos. La estimación puede variar según el valor declarado y la validación final.”
+
+### Example: Suplementos
+
+“Este producto requiere revisión antes de cotizarlo automáticamente. Los suplementos pueden necesitar permisos o validación sanitaria, por eso nuestro equipo debe revisarlo antes de confirmar el costo final.”
+
+### Example: Batería / Power bank
+
+“Detectamos que este producto podría incluir una batería de litio. Estos productos suelen requerir revisión porque pueden tener condiciones especiales de transporte. En algunos casos pueden necesitar manejo especial o generar costos adicionales.”
+
+### Example: Aerosol / químico
+
+“Detectamos que este producto podría ser aerosol, inflamable o contener químicos. Este tipo de producto puede tener restricciones de transporte o requerir manejo especial. CRBOX debe revisarlo antes de confirmar si puede enviarse.”
+
+### Example: Drone
+
+“Detectamos que este producto parece ser un drone o equipo de control remoto. Estos productos pueden requerir revisión por batería, radiofrecuencia o regulación especial antes de confirmar la importación.”
+
+### Example: Armas / tácticos
+
+“Detectamos que este producto puede pertenecer a una categoría restringida, como armas, partes de armas, municiones o artículos tácticos. CRBOX debe revisarlo antes de confirmar si puede transportarse o importarse por courier.”
+
+---
+
+## Special Requirement / Risk Detection
+
+Gemini should also help detect special requirements or risks from the product name, product URL, product title, or description.
+
+Gemini should flag possible issues such as:
+
+- Lithium battery / rechargeable battery
+- Power bank / power station / jump starter
+- Aerosol
+- Flammable product
+- Chemical product
+- Paint, glue, resin, solvent, adhesive
+- Supplement, vitamin, protein, pre-workout, herbal product
+- Medicine or medical product
+- Food or beverage
+- Alcohol
+- Tobacco, vape, nicotine
+- Plants, seeds, soil, fertilizer, pesticide
+- Drone or remote-controlled aircraft
+- Radio, telecom, satellite, antenna, communication device
+- Medical device or medical supplies
+- Weapon, firearm part, ammunition, tactical knife, restricted item
+- Product that may be illegal, restricted, or not suitable for courier
+- Commercial quantity or repeated units that may change treatment
+
+When a risk is detected, the user-facing answer must not be vague.
+
+Do not only say:
+
+“Puede requerir revisión.”
+
+Instead, explain:
+
+1. What was detected.
+2. Why it matters.
+3. What CRBOX needs to do next.
+4. Whether it may affect shipping, timing, cost, or eligibility.
+
+Use careful but specific language:
+
+- “suele requerir revisión”
+- “puede requerir permiso”
+- “puede tener restricciones de transporte”
+- “puede generar costos adicionales”
+- “CRBOX debe validarlo antes de confirmar”
+
+Avoid definitive legal claims unless CRBOX has an explicit rule:
+
+- “es ilegal”
+- “está prohibido”
+- “garantizado que requiere permiso”
+- “definitivamente no se puede importar”
+
+If risk is detected, return internal metadata like:
+
+{
+  riskFlags: ["lithium_battery", "special_transport"],
+  manualReviewRecommended: true,
+  automaticEstimateAllowed: false,
+  customerMessage: "Detectamos que este producto podría incluir una batería de litio. Estos productos suelen requerir revisión porque pueden tener condiciones especiales de transporte. En algunos casos pueden necesitar manejo especial o generar costos adicionales."
+}
+
+The customer should see the human message.
+
+The admin/sales team can see the technical flags.
+
+---
+
+## Product Brain Seed / Category Tax Logic
+
+Use this product brain as the mandatory local source for estimated category/rate logic.
+
+Every category is source: local_estimated.
+
+Do not treat this as official customs data.
+
+The list below is intentionally category-level with examples and keywords. Gemini can interpret the natural input and map it into these categories.
+
+### 1. Celulares y smartphones
+
+id: phones_smartphones
+displayName: Celulares
+examples:
+- iPhone
+- Samsung Galaxy
+- Google Pixel
+- Xiaomi
+- Motorola
+- smartphone Android
+- celular básico
+keywords:
+- celular
+- smartphone
+- iphone
+- samsung galaxy
+- pixel
+- android phone
+- teléfono
+- mobile phone
+daiRate: 0
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 14
+estimatedRange: ~14%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Celulares. Esta categoría suele pagar aproximadamente 14% en impuestos. El monto final puede variar según el valor declarado y la validación final.
+adminNotes:
+Validar casos especiales como teléfonos satelitales o equipos de telecomunicación no comunes.
+
+### 2. Tablets y e-readers
+
+id: tablets_ereaders
+displayName: Tablets y lectores electrónicos
+examples:
+- iPad
+- iPad WiFi
+- iPad cellular
+- Samsung tablet
+- Kindle
+- e-reader
+keywords:
+- tablet
+- ipad
+- kindle
+- e-reader
+- lector electrónico
+daiRate: 0
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 14
+estimatedRange: ~14%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Tablets o lectores electrónicos. Esta categoría suele pagar aproximadamente 14% en impuestos. El monto final puede variar según el valor declarado y la validación final.
+adminNotes:
+Si incluye conectividad celular, revisar si aplica validación adicional.
+
+### 3. Computadoras y partes principales
+
+id: computers_main_parts
+displayName: Computadoras y partes principales
+examples:
+- laptop
+- MacBook
+- Chromebook
+- gaming laptop
+- desktop PC
+- mini PC
+- monitor computadora
+- SSD
+- disco duro
+- memoria RAM
+- tarjeta gráfica
+- motherboard
+- procesador
+keywords:
+- laptop
+- notebook
+- macbook
+- computadora
+- pc
+- monitor
+- ssd
+- disco duro
+- ram
+- gpu
+- tarjeta gráfica
+- motherboard
+- procesador
+daiRate: 0
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 14
+estimatedRange: ~14%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Computadoras o partes principales de computadora. Esta categoría suele pagar aproximadamente 14% en impuestos. El monto final puede variar según el valor declarado y la validación final.
+adminNotes:
+Diferenciar partes principales de accesorios simples o gabinetes vacíos.
+
+### 4. Accesorios de computadora y periféricos
+
+id: computer_accessories
+displayName: Accesorios de computadora
+examples:
+- teclado
+- mouse
+- mousepad
+- docking station
+- hub USB
+- adaptador HDMI
+- cable HDMI
+- cable Ethernet
+- webcam
+- capturadora
+keywords:
+- teclado
+- keyboard
+- mouse
+- hub
+- dock
+- docking
+- adaptador
+- cable hdmi
+- ethernet
+- webcam
+- mousepad
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: ~14%–29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Accesorios de computadora. Esta categoría suele pagar entre 14% y 29% en impuestos, según el tipo exacto de accesorio. El monto final puede variar por clasificación.
+adminNotes:
+Si el sistema necesita un único rate para estimación, usar tasa conservadora configurable o pedir revisión si es ambiguo.
+
+### 5. Redes y conectividad
+
+id: networking_equipment
+displayName: Redes y conectividad
+examples:
+- router WiFi
+- mesh WiFi
+- repetidor WiFi
+- switch red
+- access point
+- módem
+- antena WiFi
+keywords:
+- router
+- wifi
+- mesh
+- repetidor
+- switch
+- access point
+- modem
+- módem
+- antena wifi
+daiRate: 0
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 14
+estimatedRange: ~14%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Redes y conectividad. Esta categoría suele pagar aproximadamente 14% en impuestos. Algunos equipos de telecomunicación pueden requerir revisión.
+adminNotes:
+Marcar revisión si es radio, antena especializada, equipo telecom profesional o transmisión regulada.
+
+### 6. Accesorios de celular y tablet
+
+id: phone_tablet_accessories
+displayName: Accesorios de celular y tablet
+examples:
+- case celular
+- protector pantalla
+- PopSocket
+- soporte celular
+- funda tablet
+- trípode celular
+- selfie stick
+keywords:
+- case
+- funda
+- protector pantalla
+- popsocket
+- soporte celular
+- selfie stick
+- tripode celular
+- trípode celular
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Accesorios de celular o tablet. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material y clasificación.
+adminNotes:
+Cases de cuero pueden requerir revisión si el material afecta clasificación.
+
+### 7. Cargadores, cables y adaptadores
+
+id: chargers_cables_adapters
+displayName: Cargadores, cables y adaptadores
+examples:
+- cargador USB-C
+- cargador MagSafe
+- cable Lightning
+- cable USB-C
+- adaptador HDMI
+- adaptador USB-C
+- cargador celular
+keywords:
+- cargador
+- charger
+- cable
+- usb-c
+- lightning
+- magsafe
+- adaptador
+- adapter
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: ~15%–29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Cargadores, cables o adaptadores. Esta categoría suele pagar entre 15% y 29% en impuestos, según el tipo exacto. El monto final puede variar por clasificación.
+adminNotes:
+Usar revisión si no queda claro si es cable simple, cargador o dispositivo electrónico.
+
+### 8. Baterías y power banks
+
+id: lithium_batteries_powerbanks
+displayName: Baterías y power banks
+examples:
+- power bank
+- batería externa
+- batería MagSafe
+- repuesto batería celular
+- batería herramienta
+- jump starter
+- power station
+keywords:
+- power bank
+- bateria externa
+- batería externa
+- lithium
+- litio
+- jump starter
+- power station
+- batería
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Detectamos que este producto podría incluir una batería de litio. Estos productos suelen requerir revisión porque pueden tener condiciones especiales de transporte. En algunos casos pueden necesitar manejo especial o generar costos adicionales.
+adminNotes:
+No calcular como final automático. Revisar transporte aéreo/marítimo, capacidad y restricciones.
+
+### 9. Audífonos y audio personal
+
+id: headphones_audio_personal
+displayName: Audífonos y audio personal
+examples:
+- audífonos
+- AirPods
+- earbuds
+- headphones
+- headset gaming
+- audífonos Bluetooth
+keywords:
+- audifonos
+- audífonos
+- airpods
+- earbuds
+- headphones
+- headset
+- bluetooth headphones
+daiRate: 1
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 15
+estimatedRange: ~15%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Audífonos o audio personal. Esta categoría suele pagar aproximadamente 15% en impuestos. El monto final puede variar según validación final.
+adminNotes:
+Distinguir de bocinas grandes o equipos de audio profesional.
+
+### 10. Micrófonos y audio profesional
+
+id: microphones_audio_pro
+displayName: Micrófonos y audio profesional
+examples:
+- micrófono
+- micrófono USB
+- micrófono lavalier
+- interfaz audio
+- mezcladora audio
+keywords:
+- microfono
+- micrófono
+- microphone
+- lavalier
+- interfaz audio
+- audio interface
+- mezcladora
+daiRate: 0
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 14
+estimatedRange: ~14%–29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Audio profesional o micrófonos. Algunos equipos suelen pagar aproximadamente 14%, aunque puede variar según el tipo exacto.
+adminNotes:
+Interfaz o mezcladora puede requerir tasa variable según clasificación.
+
+### 11. Bocinas y audio para hogar
+
+id: speakers_home_audio
+displayName: Bocinas y audio para hogar
+examples:
+- bocina Bluetooth
+- parlantes
+- barra de sonido
+- subwoofer
+- amplificador
+- receptor AV
+keywords:
+- bocina
+- speaker
+- parlantes
+- bluetooth speaker
+- soundbar
+- barra sonido
+- subwoofer
+- amplificador
+daiRate: 1
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 15
+estimatedRange: ~15%–29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Bocinas o audio para hogar. Esta categoría suele pagar entre 15% y 29% en impuestos, según el tipo exacto.
+adminNotes:
+Bocinas simples pueden usar ~15%; equipos de audio más grandes pueden variar.
+
+### 12. Cámaras, fotografía y video
+
+id: cameras_photo_video
+displayName: Cámaras, fotografía y video
+examples:
+- cámara digital
+- cámara DSLR
+- cámara mirrorless
+- GoPro
+- lente cámara
+- flash
+- gimbal
+- luz fotografía
+keywords:
+- camara
+- cámara
+- camera
+- dslr
+- mirrorless
+- gopro
+- lente
+- lens
+- flash
+- gimbal
+- photography light
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: ~14%–29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Cámaras, fotografía o video. Esta categoría puede pagar entre 14% y 29% en impuestos, según el tipo exacto de equipo o accesorio.
+adminNotes:
+Revisar cámaras completas vs accesorios simples.
+
+### 13. Televisores, proyectores y streaming
+
+id: tv_projectors_streaming
+displayName: Televisores, proyectores y streaming
+examples:
+- televisor
+- proyector
+- Roku
+- Fire TV
+- Apple TV
+- Chromecast
+- reproductor Blu-ray
+keywords:
+- tv
+- televisor
+- television
+- proyector
+- projector
+- roku
+- fire tv
+- apple tv
+- chromecast
+- blu-ray
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: ~14%–29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Televisores, proyectores o dispositivos de streaming. Esta categoría puede pagar entre 14% y 29% en impuestos, según el producto exacto.
+adminNotes:
+Televisores grandes o proyectores no computacionales pueden requerir revisión.
+
+### 14. Consolas y gaming electrónico
+
+id: gaming_consoles_electronics
+displayName: Consolas y gaming
+examples:
+- PlayStation
+- Xbox
+- Nintendo Switch
+- Steam Deck
+- consola retro
+- control PlayStation
+- control Xbox
+- Joy-Con
+- Meta Quest
+keywords:
+- playstation
+- ps5
+- xbox
+- nintendo switch
+- steam deck
+- consola
+- controller
+- control
+- joy-con
+- meta quest
+- vr
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: ~14%–29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Consolas o accesorios gaming. Esta categoría puede pagar entre 14% y 29% en impuestos, según el tipo exacto.
+adminNotes:
+VR o equipos con batería/conectividad pueden requerir revisión.
+
+### 15. Accesorios físicos gaming
+
+id: gaming_physical_accessories
+displayName: Accesorios físicos gaming
+examples:
+- silla gaming
+- escritorio gaming
+- volante gaming
+- pedales gaming
+- mousepad gaming
+- figura coleccionable
+- estuche consola
+keywords:
+- silla gaming
+- gaming chair
+- escritorio gaming
+- volante gaming
+- pedales
+- mousepad gaming
+- figura coleccionable
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Accesorios físicos gaming. Esta categoría suele pagar aproximadamente 29% en impuestos.
+adminNotes:
+Distinguir de electrónicos gaming.
+
+### 16. Ropa
+
+id: clothing_general
+displayName: Ropa
+examples:
+- camiseta
+- camisa
+- blusa
+- hoodie
+- jacket
+- abrigo
+- vestido
+- falda
+- jeans
+- pantalón
+- shorts
+- pijama
+- ropa bebé
+keywords:
+- ropa
+- shirt
+- camiseta
+- camisa
+- blusa
+- hoodie
+- jacket
+- abrigo
+- vestido
+- falda
+- jeans
+- pantalon
+- pantalón
+- shorts
+- pijama
+- ropa bebé
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Ropa. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material, composición y tipo de prenda.
+adminNotes:
+Clasificación puede variar por tejido, material y tipo de confección.
+
+### 17. Accesorios de vestir
+
+id: clothing_accessories
+displayName: Accesorios de vestir
+examples:
+- gorra
+- sombrero
+- beanie
+- bufanda
+- guantes
+- corbata
+- pañuelo
+- cinturón
+keywords:
+- gorra
+- sombrero
+- beanie
+- bufanda
+- guantes
+- corbata
+- pañuelo
+- cinturon
+- cinturón
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Accesorios de vestir. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material.
+adminNotes:
+Cuero puede requerir revisión de clasificación.
+
+### 18. Calzado
+
+id: footwear_complete
+displayName: Calzado
+examples:
+- zapatos
+- tenis
+- sneakers
+- botas
+- sandalias
+- Crocs
+- tacones
+- zapatos running
+- zapatos fútbol
+keywords:
+- zapatos
+- tenis
+- sneakers
+- shoes
+- footwear
+- botas
+- sandalias
+- crocs
+- tacones
+- running shoes
+- basketball shoes
+- football shoes
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Calzado. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material, tipo de suela y clasificación final.
+adminNotes:
+Validar si son zapatos de seguridad, ortopédicos o partes de calzado.
+
+### 19. Partes y accesorios de calzado
+
+id: footwear_parts_accessories
+displayName: Partes y accesorios de calzado
+examples:
+- suelas
+- plantillas
+- cordones
+- partes calzado
+- kit limpieza zapatos
+keywords:
+- suelas
+- plantillas
+- cordones
+- partes calzado
+- shoe sole
+- insoles
+- laces
+- kit limpieza zapatos
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: ~20%–29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Partes o accesorios de calzado. Esta categoría puede pagar entre 20% y 29% en impuestos, según el tipo exacto.
+adminNotes:
+Suelas aproximadas ~20%; partes superiores ~24%; kits con químicos pueden requerir revisión.
+
+### 20. Perfumes y fragancias
+
+id: beauty_fragrance
+displayName: Perfumes y fragancias
+examples:
+- perfume
+- agua de tocador
+- body mist
+- fragancia
+- colonia
+keywords:
+- perfume
+- fragrance
+- fragancia
+- cologne
+- colonia
+- agua de tocador
+- body mist
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Perfumes o fragancias. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede requerir revisión si son cantidades comerciales o productos especiales.
+adminNotes:
+Revisar cantidades, alcohol/inflamabilidad y restricciones de transporte.
+
+### 21. Maquillaje y cosméticos
+
+id: beauty_makeup_cosmetics
+displayName: Maquillaje y cosméticos
+examples:
+- labial
+- lip gloss
+- máscara pestañas
+- delineador
+- sombras
+- base maquillaje
+- corrector
+- rubor
+- bronzer
+- highlighter
+- esmalte uñas
+keywords:
+- maquillaje
+- makeup
+- labial
+- lip gloss
+- mascara
+- pestañas
+- delineador
+- eyeshadow
+- base maquillaje
+- concealer
+- blush
+- esmalte
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Maquillaje o cosméticos. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede requerir revisión si son cantidades comerciales o productos especiales.
+adminNotes:
+Revisar productos líquidos, aerosoles, pegamentos o ingredientes activos.
+
+### 22. Skincare y cuidado personal
+
+id: beauty_skincare_personal_care
+displayName: Skincare y cuidado personal
+examples:
+- crema facial
+- serum
+- retinol
+- ácido hialurónico
+- protector solar
+- champú
+- acondicionador
+- desodorante
+- pasta dental
+keywords:
+- skincare
+- crema facial
+- serum
+- retinol
+- ácido hialurónico
+- hyaluronic acid
+- sunscreen
+- protector solar
+- shampoo
+- champú
+- desodorante
+- pasta dental
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Cuidado personal o skincare. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede requerir revisión si contiene ingredientes activos o si son cantidades comerciales.
+adminNotes:
+Ingredientes activos, medicinales o sanitarios pueden requerir revisión.
+
+### 23. Aparatos de belleza y cuidado personal
+
+id: beauty_devices
+displayName: Aparatos de belleza y cuidado personal
+examples:
+- secadora pelo
+- plancha pelo
+- rizadora
+- máquina cortar pelo
+- rasuradora eléctrica
+- cepillo dental eléctrico
+- depiladora
+keywords:
+- secadora pelo
+- hair dryer
+- plancha pelo
+- rizadora
+- máquina cortar pelo
+- rasuradora
+- electric toothbrush
+- cepillo dental eléctrico
+- depiladora
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Aparatos de belleza o cuidado personal. Esta categoría suele pagar aproximadamente 29% en impuestos.
+adminNotes:
+Diferenciar repuestos o productos médicos.
+
+### 24. Suplementos y vitaminas
+
+id: supplements_vitamins_nutrition
+displayName: Suplementos y vitaminas
+examples:
+- proteína whey
+- creatina
+- pre-workout
+- BCAA
+- colágeno
+- omega 3
+- multivitamínicos
+- vitamina C
+- vitamina D
+- magnesio
+- melatonina
+- probióticos
+keywords:
+- proteina
+- proteína
+- whey
+- creatina
+- pre workout
+- bcaa
+- colageno
+- colágeno
+- omega 3
+- multivitamin
+- vitamina
+- magnesium
+- magnesio
+- melatonina
+- probioticos
+- probióticos
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Este producto requiere revisión antes de cotizarlo automáticamente. Los suplementos pueden necesitar permisos, registro sanitario o validación especial.
+adminNotes:
+No calcular como final automático. Requiere revisión sanitaria/documental.
+
+### 25. Medicamentos y productos médicos
+
+id: medicines_medical_products
+displayName: Medicamentos y productos médicos
+examples:
+- medicamento OTC
+- medicamento receta
+- gotas ojos medicinales
+- crema medicinal
+- tensiómetro
+- oxímetro
+- nebulizador
+- glucómetro
+- agujas
+- jeringas
+- test médico
+keywords:
+- medicamento
+- medicine
+- drug
+- receta
+- gotas ojos
+- tensiometro
+- oxímetro
+- nebulizador
+- glucometer
+- glucómetro
+- agujas
+- jeringas
+- medical test
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Este producto requiere revisión antes de cotizarlo automáticamente. Los medicamentos, insumos o equipos médicos pueden requerir permisos o validación especial.
+adminNotes:
+No calcular como final automático. Revisión obligatoria.
+
+### 26. Electrodomésticos pequeños y cocina
+
+id: home_kitchen_appliances
+displayName: Electrodomésticos pequeños y cocina
+examples:
+- cafetera
+- espresso machine
+- coffee grinder
+- tostadora
+- freidora aire
+- licuadora
+- batidora
+- procesador alimentos
+- olla arrocera
+- microondas
+- horno eléctrico
+keywords:
+- cafetera
+- coffee maker
+- espresso
+- grinder
+- tostadora
+- air fryer
+- freidora aire
+- licuadora
+- blender
+- batidora
+- microwave
+- microondas
+- horno eléctrico
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Electrodomésticos pequeños o cocina. Esta categoría suele pagar aproximadamente 29% en impuestos.
+adminNotes:
+Electrodomésticos grandes o especiales pueden requerir revisión.
+
+### 27. Hogar, decoración y organización
+
+id: home_decor_storage
+displayName: Hogar, decoración y organización
+examples:
+- ollas
+- sartenes
+- cubiertos
+- vajilla
+- vasos
+- tazas
+- contenedores
+- organizadores
+- cortinas
+- sábanas
+- toallas
+- almohada
+- lámpara
+- espejo decorativo
+keywords:
+- ollas
+- sartenes
+- vajilla
+- vasos
+- tazas
+- organizador
+- contenedores
+- cortinas
+- sabanas
+- sábanas
+- toallas
+- almohada
+- lámpara
+- espejo
+- decoración
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Hogar, decoración u organización. Esta categoría suele pagar aproximadamente 29% en impuestos.
+adminNotes:
+Cuchillos, químicos, velas o líquidos pueden requerir revisión.
+
+### 28. Herramientas y ferretería
+
+id: tools_hardware_common
+displayName: Herramientas y ferretería
+examples:
+- taladro
+- sierra
+- destornillador
+- multímetro
+- nivel láser
+- martillo
+- brocas
+- tornillos
+- cerraduras
+- candados
+keywords:
+- taladro
+- drill
+- sierra
+- saw
+- destornillador
+- screwdriver
+- multimetro
+- multímetro
+- martillo
+- brocas
+- tornillos
+- cerradura
+- candado
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Herramientas o ferretería. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede variar si incluye batería, químicos o componentes especiales.
+adminNotes:
+Herramientas con batería, aerosoles, pintura o químicos requieren revisión.
+
+### 29. Químicos, aerosoles y adhesivos
+
+id: chemicals_aerosols_adhesives
+displayName: Químicos, aerosoles y adhesivos
+examples:
+- pintura
+- aerosol pintura
+- pegamento fuerte
+- resina epóxica
+- removedor esmalte
+- fertilizantes
+- pesticidas
+keywords:
+- pintura
+- aerosol
+- pegamento
+- glue
+- adhesive
+- resina
+- epoxy
+- fertilizante
+- pesticida
+- chemical
+- químico
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Detectamos que este producto podría ser aerosol, inflamable o contener químicos. Este tipo de producto puede tener restricciones de transporte o requerir manejo especial. CRBOX debe revisarlo antes de confirmar si puede enviarse.
+adminNotes:
+No calcular como final automático.
+
+### 30. Accesorios automotrices
+
+id: automotive_simple_accessories
+displayName: Accesorios automotrices
+examples:
+- alfombras carro
+- forros asiento
+- cobertor volante
+- soporte celular carro
+- cámara retroceso
+- dashcam
+- luces LED carro
+- escobillas limpiaparabrisas
+keywords:
+- carro
+- auto
+- car accessories
+- alfombras carro
+- forros asiento
+- dashcam
+- cámara retroceso
+- luces led carro
+- limpiaparabrisas
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: ~15%–29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Accesorios automotrices. Esta categoría suele pagar entre 15% y 29% en impuestos, según el tipo exacto.
+adminNotes:
+Distinguir accesorios simples de repuestos críticos.
+
+### 31. Repuestos automotrices y moto
+
+id: automotive_parts_review
+displayName: Repuestos automotrices y moto
+examples:
+- pastillas freno
+- discos freno
+- sensor oxígeno
+- sensor ABS
+- filtro aceite
+- filtro aire
+- repuesto moto
+- llantas
+- aros
+keywords:
+- repuesto carro
+- auto part
+- filtro aceite
+- filtro aire
+- pastillas freno
+- discos freno
+- sensor oxígeno
+- sensor abs
+- llantas
+- aros
+- repuesto moto
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: false
+customerMessage:
+Este producto requiere revisión antes de cotizarlo automáticamente. Los repuestos pueden variar mucho según tipo, uso y clasificación.
+adminNotes:
+Repuestos críticos, llantas, aros, baterías y partes específicas deben revisarse.
+
+### 32. Deportes y fitness
+
+id: sports_fitness_physical
+displayName: Deportes y fitness
+examples:
+- yoga mat
+- mancuernas
+- kettlebell
+- bandas resistencia
+- guantes gimnasio
+- mochila hiking
+- tienda campaña
+- sleeping bag
+- pelota fútbol
+- raqueta tenis
+keywords:
+- yoga mat
+- mancuernas
+- dumbbells
+- kettlebell
+- bandas resistencia
+- gimnasio
+- hiking
+- tienda campaña
+- sleeping bag
+- pelota
+- raqueta
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Deportes o fitness. Esta categoría suele pagar aproximadamente 29% en impuestos.
+adminNotes:
+Equipos electrónicos, bicicletas o pesca pueden variar.
+
+### 33. Bicicletas, pesca y outdoor especializado
+
+id: sports_outdoor_variable
+displayName: Bicicletas, pesca y outdoor especializado
+examples:
+- bicicleta
+- casco bicicleta
+- equipo pesca
+- carrete pesca
+- caña pesca
+- tabla surf
+- smartwatch deportivo
+keywords:
+- bicicleta
+- bike
+- pesca
+- fishing
+- carrete pesca
+- caña pesca
+- surf
+- tabla surf
+- smartwatch deportivo
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: ~14%–29% / Variable
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Outdoor, bicicleta o pesca. Esta categoría puede variar según el tipo exacto de producto.
+adminNotes:
+Bicicletas, equipos de pesca y electrónicos deportivos pueden requerir revisión.
+
+### 34. Juguetes
+
+id: toys_common
+displayName: Juguetes
+examples:
+- LEGO
+- muñeca
+- peluche
+- figura acción
+- carrito juguete
+- juego mesa
+- puzzle
+- juguete bebé
+keywords:
+- juguete
+- toy
+- lego
+- muñeca
+- peluche
+- figura acción
+- juego mesa
+- puzzle
+- baby toy
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Juguetes. Esta categoría suele pagar aproximadamente 29% en impuestos.
+adminNotes:
+Juguetes electrónicos, drones, proyectiles o tipo arma pueden requerir revisión.
+
+### 35. Drones y control remoto
+
+id: drones_rc_review
+displayName: Drones y productos de control remoto
+examples:
+- dron
+- dron juguete
+- juguete control remoto
+- pistola juguete
+keywords:
+- drone
+- dron
+- control remoto
+- rc car
+- rc toy
+- pistola juguete
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Detectamos que este producto parece ser un drone o equipo de control remoto. Estos productos pueden requerir revisión por batería, radiofrecuencia o regulación especial. CRBOX debe revisarlo antes de confirmar.
+adminNotes:
+No calcular como final automático sin revisión.
+
+### 36. Bebé y artículos infantiles
+
+id: baby_items
+displayName: Bebé y artículos infantiles
+examples:
+- coche bebé
+- silla carro bebé
+- cuna portátil
+- monitor bebé
+- biberón
+- chupón
+- pañalera
+- esterilizador biberón
+keywords:
+- bebé
+- baby
+- stroller
+- coche bebé
+- silla carro bebé
+- car seat
+- cuna portátil
+- monitor bebé
+- biberon
+- biberón
+- chupón
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Artículos de bebé. Esta categoría suele pagar aproximadamente 29% en impuestos.
+adminNotes:
+Monitores electrónicos pueden variar; alimentos o suplementos de bebé requieren revisión.
+
+### 37. Accesorios para mascotas
+
+id: pet_accessories
+displayName: Accesorios para mascotas
+examples:
+- juguete mascota
+- collar mascota
+- arnés mascota
+- correa mascota
+- cama mascota
+- comedero mascota
+- cepillo mascota
+keywords:
+- mascota
+- pet
+- dog collar
+- collar mascota
+- arnes
+- arnés
+- correa mascota
+- cama mascota
+- pet toy
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Accesorios para mascotas. Esta categoría suele pagar aproximadamente 29% en impuestos.
+adminNotes:
+Alimentos, suplementos o productos sanitarios para mascota requieren revisión.
+
+### 38. Alimentos y suplementos para mascotas
+
+id: pet_food_supplements_review
+displayName: Alimentos y suplementos para mascotas
+examples:
+- comida mascota
+- suplemento mascota
+- shampoo mascota
+keywords:
+- comida mascota
+- pet food
+- dog food
+- cat food
+- suplemento mascota
+- shampoo mascota
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Este producto requiere revisión antes de cotizarlo automáticamente. Alimentos o suplementos para mascotas pueden requerir validación sanitaria o veterinaria.
+adminNotes:
+No calcular como final automático.
+
+### 39. Libros y material impreso
+
+id: books_printed_material
+displayName: Libros y material impreso
+examples:
+- libro
+- revista
+- comic
+- manga
+keywords:
+- libro
+- book
+- revista
+- magazine
+- comic
+- manga
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable/bajo
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: false
+customerMessage:
+Este producto puede tener tratamiento distinto según el tipo de material impreso. Requiere revisión para evitar una estimación incorrecta.
+adminNotes:
+Validar tratamiento aplicable según normativa.
+
+### 40. Papelería, oficina y arte
+
+id: office_stationery_art
+displayName: Papelería, oficina y arte
+examples:
+- cuaderno
+- agenda
+- planner
+- lapiceros
+- lápices color
+- pinceles
+- canvas
+- papel dibujo
+- calculadora
+- mochila escolar
+- silla oficina
+keywords:
+- cuaderno
+- agenda
+- planner
+- lapiceros
+- lápices
+- pinceles
+- canvas
+- papel dibujo
+- calculadora
+- mochila escolar
+- silla oficina
+- stationery
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Papelería, oficina o arte. Esta categoría suele pagar aproximadamente 29% en impuestos.
+adminNotes:
+Pinturas, marcadores especiales, aerosoles o químicos deben revisarse.
+
+### 41. Bolsos, maletas y accesorios
+
+id: bags_luggage_accessories
+displayName: Bolsos, maletas y accesorios
+examples:
+- bolso cuero
+- bolso sintético
+- tote bag
+- mochila
+- billetera
+- maleta
+- neceser
+- estuche viaje
+keywords:
+- bolso
+- bag
+- tote
+- mochila
+- backpack
+- billetera
+- wallet
+- maleta
+- luggage
+- carry-on
+- neceser
+daiRate: 15
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: 29
+estimatedRange: ~29%
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Bolsos, maletas o accesorios. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede variar según material.
+adminNotes:
+Cuero o lujo puede requerir validación de valor/material.
+
+### 42. Relojes y joyería
+
+id: watches_jewelry
+displayName: Relojes y joyería
+examples:
+- reloj analógico
+- reloj digital
+- smartwatch
+- joyería fantasía
+- joyería plata
+- joyería oro
+- anillo
+- collar
+- pulsera
+- aretes
+keywords:
+- reloj
+- watch
+- smartwatch
+- joyeria
+- joyería
+- jewelry
+- anillo
+- ring
+- collar
+- necklace
+- pulsera
+- bracelet
+- aretes
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: ~15%–29% / Variable
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Relojes o joyería. Esta categoría puede variar según material, valor y tipo de producto.
+adminNotes:
+Metales preciosos, alta joyería o relojes de alto valor requieren revisión.
+
+### 43. Lentes y óptica
+
+id: eyewear_optical
+displayName: Lentes y óptica
+examples:
+- lentes sol
+- lentes ópticos
+- monturas lentes
+- estuche lentes
+- lentes contacto
+keywords:
+- lentes
+- sunglasses
+- gafas
+- glasses
+- monturas
+- optical
+- lentes contacto
+- contact lenses
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: ~15%–29% / Variable
+automaticEstimateAllowed: true
+needsReview: false
+regulatedProduct: false
+customerMessage:
+Detectamos que este producto pertenece a Lentes u óptica. Esta categoría puede variar según si son lentes de sol, monturas, ópticos o de contacto.
+adminNotes:
+Lentes de contacto o productos médicos/ópticos pueden requerir revisión sanitaria.
+
+### 44. Alimentos y bebidas
+
+id: food_beverages_review
+displayName: Alimentos y bebidas
+examples:
+- snacks
+- chocolate
+- dulces
+- galletas
+- café
+- té
+- salsas
+- especias
+- bebida energética
+keywords:
+- snacks
+- chocolate
+- dulces
+- candy
+- galletas
+- coffee
+- café
+- tea
+- té
+- salsa
+- especias
+- condimentos
+- bebida energética
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Este producto requiere revisión antes de cotizarlo automáticamente. Los alimentos y bebidas pueden requerir validación sanitaria o permisos.
+adminNotes:
+No calcular como final automático.
+
+### 45. Alcohol, tabaco, vape y nicotina
+
+id: alcohol_tobacco_vape_review
+displayName: Alcohol, tabaco, vape y nicotina
+examples:
+- alcohol
+- vino
+- cerveza
+- licor
+- tabaco
+- cigarros
+- vape
+- líquido vape
+- nicotina
+keywords:
+- alcohol
+- wine
+- vino
+- beer
+- cerveza
+- licor
+- liquor
+- tabaco
+- cigarros
+- vape
+- nicotine
+- nicotina
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Este producto requiere revisión antes de cotizarlo automáticamente. Alcohol, tabaco, vape o nicotina pueden tener restricciones, permisos o impuestos especiales.
+adminNotes:
+No calcular como final automático.
+
+### 46. Plantas, semillas y agro
+
+id: plants_seeds_agro_review
+displayName: Plantas, semillas y productos agro
+examples:
+- semillas
+- plantas
+- tierra
+- sustrato
+- fertilizantes
+- pesticidas
+keywords:
+- semillas
+- seeds
+- plantas
+- plants
+- tierra
+- sustrato
+- fertilizante
+- pesticida
+- agro
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Este producto requiere revisión antes de cotizarlo automáticamente. Plantas, semillas o productos agro pueden requerir permisos fitosanitarios.
+adminNotes:
+No calcular como final automático.
+
+### 47. Equipos de telecomunicación
+
+id: regulated_telecom
+displayName: Equipos de telecomunicación
+examples:
+- teléfono satelital
+- radios comunicación
+- equipos telecom
+- antenas especializadas
+keywords:
+- teléfono satelital
+- satellite phone
+- radio comunicación
+- walkie talkie
+- telecom
+- antenna
+- antena especializada
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Este producto requiere revisión antes de cotizarlo automáticamente. Algunos equipos de telecomunicación pueden necesitar validación o permisos.
+adminNotes:
+No calcular como final automático.
+
+### 48. Armas, partes y productos tácticos
+
+id: weapons_restricted
+displayName: Armas, partes y productos tácticos
+examples:
+- armas
+- partes armas
+- municiones
+- cuchillos tácticos
+keywords:
+- arma
+- weapon
+- gun
+- firearm
+- municiones
+- ammunition
+- partes armas
+- tactical knife
+- cuchillo táctico
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Detectamos que este producto puede pertenecer a una categoría restringida, como armas, partes de armas, municiones o artículos tácticos. CRBOX debe revisarlo antes de confirmar si puede transportarse o importarse por courier.
+adminNotes:
+No calcular automáticamente. Escalar a revisión.
+
+### 49. Productos peligrosos o inflamables
+
+id: dangerous_goods
+displayName: Productos peligrosos o inflamables
+examples:
+- productos inflamables
+- productos peligrosos
+- baterías litio grandes
+- aerosoles inflamables
+- químicos peligrosos
+keywords:
+- inflamable
+- peligroso
+- dangerous goods
+- hazardous
+- battery large
+- lithium battery
+- aerosol inflamable
+- químico peligroso
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: true
+customerMessage:
+Este producto requiere revisión antes de cotizarlo automáticamente. Puede tener restricciones de transporte, seguridad o permisos.
+adminNotes:
+No calcular automáticamente. Revisar transporte y normativa.
+
+### 50. Producto no identificado
+
+id: unknown_manual_review
+displayName: Producto por revisar
+examples:
+- producto no identificado
+- categoría no encontrada
+keywords:
+- no estoy seguro
+- unknown
+- otro
+- other
+daiRate: null
+vatRate: 13
+law6946Rate: 1
+totalEstimatedRate: null
+estimatedRange: Variable
+automaticEstimateAllowed: false
+needsReview: true
+regulatedProduct: false
+customerMessage:
+No encontramos una categoría suficientemente clara para este producto. CRBOX debe revisarlo para evitar una estimación incorrecta.
+adminNotes:
+Fallback seguro para productos no identificados.
+
+---
+
+## Quote and Calculator Math
+
+The AI/category system only provides:
+
+- category id
+- display category
+- estimated tax percentage or range
+- manual review flag
+- risk flags
+- customer message
+- admin notes
+
+The existing calculator code remains responsible for:
+
+- declared value
+- CIF
+- weight
+- volumetric weight
+- billable weight
+- freight
+- fuel surcharge
+- handling
+- insurance
+- delivery
+- total quote
+- multi-product/consolidated calculation
+
+Do not move calculator math into Gemini.
+
+---
+
+## Quote Payload Requirements
+
+Each product in a quote should store structured category information:
+
+{
+  productName,
+  originalProductInput,
+  analyzedProduct,
+  selectedCategoryId,
+  selectedCategoryName,
+  estimatedTaxRate,
+  estimatedTaxRange,
+  daiRate,
+  vatRate,
+  law6946Rate,
+  needsReview,
+  regulatedProduct,
+  automaticEstimateAllowed,
+  riskFlags,
+  customerMessage,
+  source: "local_estimated",
+  units,
+  declaredValue,
+  weight,
+  dimensions
+}
+
+---
+
+## Customer-Facing Result Requirements
+
+Wherever the category appears to the customer, show:
+
+- Product detected
+- Category detected
+- Friendly estimated tax percentage/range
+- Friendly special warning if relevant
+- Simple explanation that final amount may vary
+
+This must appear consistently in:
+
+- Public Cotizar page
+- Public Calculadora page
+- Client portal Cotizaciones
+- Portal quote response
+- Customer quote response email
+
+---
+
+## Admin-Facing Result Requirements
+
+In the internal CRBOX sales tool, show:
+
+- Original input
+- Detected product
+- Suggested category
+- Category used for quote
+- Estimated rate/range
+- DAI / IVA / Ley 6946
+- Risk flags
+- Review reason
+- Admin notes
+- Customer-friendly message
+- Ability to override category
+
+If sales overrides the category, clearly show:
+
+- Categoría detectada por el sistema
+- Categoría usada para cotización
+
+---
+
+## Do Not Do
+
+Do not:
+
+- Break existing calculator math.
+- Break existing quote submissions.
+- Break existing quote responses.
+- Break existing admin response_json behavior.
+- Create separate category lists per page.
+- Force users to scroll through a long dropdown.
+- Let Gemini invent rates.
+- Let Gemini calculate the full quote.
+- Present estimates as official final customs liquidation.
+- Automatically calculate regulated/manual-review products as final.
+- Hide manual review requirements.
+- Show technical metadata to customers.
+- Remove admin override capability.
+- Depend on external APIs.
+
+---
+
+## Acceptance Criteria
+
+- Category dropdown UX is replaced or enhanced with natural product search/classification.
+- Users can type natural language product names.
+- Product URL “Analizar” uses the same classifier.
+- Gemini can interpret product names but must map to PRODUCT_CATEGORIES.
+- Tax percentages come only from PRODUCT_CATEGORIES.
+- Calculator math stays in code.
+- Public Cotizar uses this logic.
+- Public Calculadora uses this logic.
+- Client portal Cotizaciones uses this logic.
+- Internal CRBOX sales calculator uses this logic.
+- Portal quote response uses this logic.
+- Customer quote email uses this logic.
+- User-facing messages are friendly and not technical.
+- Special requirement warnings are clear and useful.
+- Admin can see technical details and override category.
+- Manual-review products do not show final automatic totals.
+- Existing CRBOX functionality remains intact.
+- No duplicated category logic remains.
+- No console errors.
