@@ -1,0 +1,1004 @@
+# CRBOX Product Brain Master Database Builder
+# Costa Rica Courier / Product Category / Estimated Tax / Risk Rules
+
+Build the CRBOX Product Brain database.
+
+This is a source-of-truth data task only. Do not implement UI yet. Do not redesign the quote flow yet. Do not change calculator math yet.
+
+The goal is to create a complete, structured, AI-friendly local database that CRBOX can later use across:
+- Public Cotizar
+- Public Calculadora
+- Client portal Cotizaciones/Solicitudes
+- Internal sales/admin quote calculator
+- Product URL “Analizar”
+- Quote response email
+- Portal quote response
+- Reminder email
+- Quote-related AI/chat flows
+
+This Product Brain must help classify products, estimate tax category, detect risk, detect manual review needs, detect restricted/forbidden products, and generate customer-friendly explanations.
+
+IMPORTANT:
+This is not an official customs liquidation system.
+All rates are local estimated references for quote UX.
+Every record must use source: "local_estimated".
+Final taxes may vary by CIF, official classification, exchange rate, Aduanas review, permits, notes, and product specifics.
+
+Do not connect to external APIs.
+Do not use live TICA, Hacienda, SAC, Ar@ncelNet, ATENA, SIAA, RIMM, or VUCE integrations.
+Design the data so it can later migrate to SQLite/Postgres or official API validation.
+
+==================================================
+RATE FORMAT
+==================================================
+
+Use decimal format for totalEstimatedRate:
+
+0.14 = 14%
+0.15 = 15%
+0.20 = 20%
+0.24 = 24%
+0.29 = 29%
+
+Do NOT store 29 if the calculator expects 0.29.
+
+UX simplified estimate:
+- DAI 0% + IVA 13% + Ley 6946 1% = ~14%
+- DAI 1% + IVA 13% + Ley 6946 1% = ~15%
+- DAI 6% + IVA 13% + Ley 6946 1% = ~20%
+- DAI 10% + IVA 13% + Ley 6946 1% = ~24%
+- DAI 15% + IVA 13% + Ley 6946 1% = ~29%
+
+If uncertain:
+- totalEstimatedRate: null
+- estimatedRange: "Variable"
+- automaticEstimateAllowed: false or true with range, depending on category
+- manualReviewRequired: true if risk/regulation/ambiguity is high
+
+==================================================
+OUTPUT FILES
+==================================================
+
+Create:
+
+1. data/product-brain.json
+2. js/product-categories.js
+
+The JS file must expose:
+
+window.PRODUCT_CATEGORIES = [...]
+window.PRODUCT_PRODUCTS = [...]
+window.ProductBrainVersion = "2026-CRBOX-local-estimated-v1"
+
+Also generate helper indexes:
+
+CATEGORY_BY_ID
+PRODUCT_TO_CATEGORY_INDEX
+KEYWORD_INDEX
+RISK_FLAG_INDEX
+
+Do not implement the final UI yet.
+
+==================================================
+CATEGORY SCHEMA
+==================================================
+
+Each category must follow this structure:
+
+{
+  "id": "",
+  "code": "",
+  "displayName": "",
+  "categoryGroup": "",
+  "subCategory": "",
+  "aliases": [],
+  "keywords": [],
+  "commonSearches": [],
+  "misspellings": [],
+  "exampleProducts": [],
+  "estimatedDAI": null,
+  "vatRate": 13,
+  "law6946Rate": 1,
+  "totalEstimatedRate": null,
+  "estimatedRange": "",
+  "source": "local_estimated",
+  "automaticEstimateAllowed": true,
+  "manualReviewRequired": false,
+  "regulatedProduct": false,
+  "restrictedProduct": false,
+  "forbiddenProduct": false,
+  "riskFlags": [],
+  "possiblePermits": [],
+  "possibleInstitutions": [],
+  "customerMessage": "",
+  "adminNotes": "",
+  "actionForCustomer": "",
+  "actionForAdmin": "",
+  "confidenceLevel": "high | medium | low"
+}
+
+==================================================
+PRODUCT ROW SCHEMA
+==================================================
+
+Each product-level row must follow:
+
+{
+  "productKey": "",
+  "productName": "",
+  "categoryId": "",
+  "aliases": [],
+  "misspellings": [],
+  "englishTerms": [],
+  "spanishTerms": [],
+  "riskOverrideFlags": [],
+  "customerHint": "",
+  "adminHint": ""
+}
+
+==================================================
+CUSTOMER-FACING LANGUAGE RULES
+==================================================
+
+Customer messages must be friendly Spanish prose.
+
+Do NOT show customers:
+- confidence: high
+- DAI: 15
+- riskFlags
+- local_estimated
+- HS code
+- manual_review_required
+- technical metadata
+
+Use messages like:
+“Detectamos que este producto pertenece a Calzado. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material, tipo de suela y revisión aduanera.”
+
+For manual review:
+“Este producto requiere revisión antes de cotizarlo automáticamente. Puede necesitar permisos, validación especial o manejo de transporte.”
+
+For restricted:
+“Este producto puede pertenecer a una categoría restringida. CRBOX debe revisarlo antes de confirmar si puede transportarse o importarse por courier.”
+
+==================================================
+CATEGORY DATABASE SEED
+==================================================
+
+Create the following category records exactly, improving aliases/misspellings if useful.
+
+1. phones_smartphones
+Display: Celulares
+Group: Electrónica
+DAI: 0
+totalEstimatedRate: 0.14
+Range: ~14%
+Auto: true
+Manual review: false
+Regulated: false
+Risk flags: []
+Products: iPhone, iPhone Pro Max, Samsung Galaxy, Galaxy Ultra, Google Pixel, Xiaomi phone, Motorola phone, Android phone, smartphone genérico, celular básico.
+Aliases: iphone, ifon, aifon, iphon, apple phone, celular apple, samsung, galaxy, pixel, xiaomi, android, telefono, teléfono, mobile phone, smartphone.
+Customer message: Detectamos que este producto pertenece a Celulares. Esta categoría suele pagar aproximadamente 14% en impuestos. El monto final puede variar según el valor declarado y la validación final.
+Admin notes: Validar teléfonos satelitales o equipos de telecomunicación no comunes.
+
+2. tablets_ereaders
+Display: Tablets y lectores electrónicos
+Group: Electrónica
+DAI: 0
+totalEstimatedRate: 0.14
+Range: ~14%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: iPad, iPad WiFi, iPad cellular, Samsung tablet, Android tablet, Amazon Fire tablet, Kindle, Kobo, e-reader, lector electrónico.
+Aliases: tablet, ipad, kindle, e-reader, ereader, lector electronico, lector electrónico.
+Customer message: Detectamos que este producto pertenece a Tablets o lectores electrónicos. Esta categoría suele pagar aproximadamente 14% en impuestos. El monto final puede variar según el valor declarado y la validación final.
+Admin notes: Revisar modelos con conectividad celular si aplica.
+
+3. computers_main_parts
+Display: Computadoras y partes principales
+Group: Electrónica
+DAI: 0
+totalEstimatedRate: 0.14
+Range: ~14%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Laptop, MacBook, Chromebook, gaming laptop, desktop PC, mini PC, all-in-one computer, CPU tower, monitor computadora, monitor gaming, monitor portátil, motherboard, procesador, tarjeta gráfica, memoria RAM, SSD, disco duro interno, disco duro externo.
+Aliases: laptop, notebook, macbook, computadora, pc, desktop, monitor, ssd, hard drive, disco duro, ram, gpu, tarjeta grafica, tarjeta gráfica, motherboard, procesador, cpu.
+Customer message: Detectamos que este producto pertenece a Computadoras o partes principales de computadora. Esta categoría suele pagar aproximadamente 14% en impuestos. El monto final puede variar según el valor declarado y la validación final.
+Admin notes: Diferenciar partes principales de accesorios simples.
+
+4. storage_memory
+Display: Almacenamiento y memoria
+Group: Electrónica
+DAI: 0
+totalEstimatedRate: 0.14
+Range: ~14%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: SSD, HDD, disco duro externo, disco duro interno, tarjeta SD, microSD, USB drive, memoria RAM, pendrive.
+Aliases: ssd, hdd, disco duro, hard drive, sd card, microsd, usb drive, ram, pendrive, memoria usb.
+Customer message: Detectamos que este producto pertenece a almacenamiento o memoria. Esta categoría suele pagar aproximadamente 14% en impuestos.
+Admin notes: Validar si viene dentro de otro equipo o como parte individual.
+
+5. computer_accessories
+Display: Accesorios de computadora
+Group: Electrónica
+DAI: variable
+totalEstimatedRate: null
+Range: ~14%–29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Teclado, teclado mecánico, teclado inalámbrico, mouse, mouse gaming, trackpad, mousepad, mousepad RGB, webcam, hub USB, docking station, adaptador HDMI, adaptador Ethernet, cable HDMI, cable DisplayPort, cable Ethernet, capturadora video, tarjeta WiFi, tarjeta sonido, fuente poder PC, gabinete PC, cooler CPU, ventilador PC, pasta térmica.
+Aliases: keyboard, teclado, mouse, raton, ratón, hub, dock, docking, webcam, cable, adapter, adaptador, hdmi, ethernet.
+Customer message: Detectamos que este producto pertenece a Accesorios de computadora. Esta categoría suele pagar entre 14% y 29% en impuestos, según el tipo exacto.
+Admin notes: Si se requiere estimación única, usar rango o revisión si es ambiguo.
+
+6. chargers_cables_adapters
+Display: Cargadores, cables y adaptadores
+Group: Electrónica
+DAI: variable
+totalEstimatedRate: null
+Range: ~15%–29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Cargador pared, cargador rápido USB-C, cargador MagSafe, cargador laptop, cargador celular, cable Lightning, cable USB-C, cable micro USB, adaptador USB-C a Jack, adaptador USB-C a HDMI, adaptador corriente, adaptador viaje.
+Aliases: charger, cargador, cable, usb c, usb-c, lightning, magsafe, adapter, adaptador.
+Customer message: Detectamos que este producto pertenece a Cargadores, cables o adaptadores. Esta categoría suele pagar entre 15% y 29% en impuestos, según el tipo exacto.
+Admin notes: Revisar si es cargador, cable simple, adaptador o dispositivo electrónico.
+
+7. lithium_batteries_powerbanks
+Display: Baterías y power banks
+Group: Especial / Riesgo transporte
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: true
+Risk flags: contains_lithium_battery, special_transport, dangerous_goods_possible
+Products: Power bank, batería externa, batería MagSafe, batería celular, batería laptop, batería herramienta, jump starter, UPS, power station, estación de energía portátil, batería litio grande.
+Aliases: powerbank, power bank, bateria externa, batería externa, portable charger, lithium battery, litio, jumpstarter, jump starter, power station.
+Customer message: Detectamos que este producto podría incluir una batería de litio. Estos productos suelen requerir revisión porque pueden tener condiciones especiales de transporte. En algunos casos pueden necesitar manejo especial o generar costos adicionales.
+Admin notes: Revisar capacidad Wh/mAh, transporte aéreo/marítimo, carrier y empaque.
+Action customer: Compartir link, modelo, capacidad de batería si aparece y cantidad.
+Action admin: Revisar restricciones de transporte y dangerous goods.
+
+8. networking_equipment
+Display: Redes y conectividad
+Group: Electrónica
+DAI: 0
+totalEstimatedRate: 0.14
+Range: ~14%
+Auto: true
+Manual review: false
+Risk flags: telecom_possible
+Products: Router WiFi, mesh WiFi, repetidor WiFi, switch red, módem, access point, antena WiFi doméstica.
+Aliases: router, wifi, mesh, repeater, repetidor, switch, modem, módem, access point.
+Customer message: Detectamos que este producto pertenece a Redes y conectividad. Esta categoría suele pagar aproximadamente 14% en impuestos, aunque algunos equipos de telecomunicación pueden requerir revisión.
+Admin notes: Radios, antenas especializadas y telecom profesional deben revisarse.
+
+9. regulated_telecom
+Display: Equipos de telecomunicación
+Group: Regulado
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: true
+Risk flags: telecom, permit_possible, radiofrequency_possible
+Products: Teléfono satelital, radio comunicación, walkie talkie, antena especializada, equipo telecom, radio VHF, radio UHF, transmisor, repetidor radio.
+Aliases: satellite phone, telefono satelital, teléfono satelital, walkie, walkie talkie, radio, antenna, antena, telecom.
+Customer message: Este producto requiere revisión antes de cotizarlo automáticamente. Algunos equipos de telecomunicación pueden necesitar validación o permisos.
+Admin notes: Revisar SUTEL/MICITT o autoridad aplicable si corresponde.
+
+10. headphones_audio_personal
+Display: Audífonos y audio personal
+Group: Electrónica
+DAI: 1
+totalEstimatedRate: 0.15
+Range: ~15%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Audífonos cableados, audífonos Bluetooth, AirPods, earbuds, headphones, headset gaming, over-ear headphones, in-ear headphones.
+Aliases: audifonos, audífonos, airpods, earbuds, headphones, headset, bluetooth headphones, cascos.
+Customer message: Detectamos que este producto pertenece a Audífonos o audio personal. Esta categoría suele pagar aproximadamente 15% en impuestos.
+Admin notes: Distinguir de equipos de audio grandes.
+
+11. speakers_home_audio
+Display: Bocinas y audio para hogar
+Group: Electrónica
+DAI: 1
+totalEstimatedRate: 0.15
+Range: ~15%–29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Bocina Bluetooth, parlantes, bocinas escritorio, barra sonido, subwoofer, amplificador, receptor AV, tocadiscos.
+Aliases: bocina, speaker, speakers, parlantes, soundbar, barra sonido, subwoofer.
+Customer message: Detectamos que este producto pertenece a Bocinas o audio para hogar. Esta categoría suele pagar entre 15% y 29% en impuestos, según el tipo exacto.
+Admin notes: Bocinas simples pueden usar ~15%; equipos grandes pueden variar.
+
+12. microphones_audio_pro
+Display: Micrófonos y audio profesional
+Group: Electrónica
+DAI: 0
+totalEstimatedRate: 0.14
+Range: ~14%–29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Micrófono, micrófono USB, micrófono lavalier, interfaz audio, mezcladora audio.
+Aliases: microfono, micrófono, microphone, lavalier, interfaz audio, audio interface, mezcladora.
+Customer message: Detectamos que este producto pertenece a Audio profesional o micrófonos. Algunos equipos suelen pagar aproximadamente 14%, aunque puede variar según el tipo exacto.
+Admin notes: Interfaz o mezcladora puede requerir tasa variable según clasificación.
+
+13. cameras_photo_video
+Display: Cámaras, fotografía y video
+Group: Electrónica
+DAI: variable
+totalEstimatedRate: null
+Range: ~14%–29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Cámara digital, cámara compacta, cámara DSLR, cámara mirrorless, cámara instantánea, GoPro, cámara acción, lente cámara, filtro lente, flash fotográfico, trípode, monopod, gimbal, luz fotografía LED, softbox, reflector, bolsa cámara, tarjeta SD, lector tarjeta SD.
+Aliases: camara, cámara, camera, dslr, mirrorless, gopro, action camera, lens, lente, tripod, tripode, gimbal.
+Customer message: Detectamos que este producto pertenece a Cámaras, fotografía o video. Esta categoría puede pagar entre 14% y 29% en impuestos, según el tipo exacto.
+Admin notes: Revisar cámara completa vs accesorio.
+
+14. tv_projectors_streaming
+Display: Televisores, proyectores y streaming
+Group: Electrónica
+DAI: variable
+totalEstimatedRate: null
+Range: ~14%–29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Televisor, TV, smart TV, proyector, mini proyector, pantalla proyector, Roku, Fire TV, Apple TV, Chromecast, reproductor Blu-ray.
+Aliases: tv, televisor, television, smart tv, projector, proyector, roku, fire tv, apple tv, chromecast.
+Customer message: Detectamos que este producto pertenece a Televisores, proyectores o dispositivos de streaming. Esta categoría puede pagar entre 14% y 29% en impuestos.
+Admin notes: Revisar tamaño, tipo y uso.
+
+15. gaming_consoles_electronics
+Display: Consolas y gaming electrónico
+Group: Gaming
+DAI: variable
+totalEstimatedRate: null
+Range: ~14%–29%
+Auto: true
+Manual review: false
+Risk flags: battery_possible
+Products: PlayStation, PS5, Xbox, Nintendo Switch, Steam Deck, consola portátil retro, control PlayStation, control Xbox, Joy-Con, dock Nintendo Switch, cargador control, videojuego físico, Meta Quest, visor VR, accesorios VR.
+Aliases: playstation, ps5, xbox, nintendo, switch, steam deck, consola, controller, control, joycon, joy-con, meta quest, vr.
+Customer message: Detectamos que este producto pertenece a Consolas o accesorios gaming. Esta categoría puede pagar entre 14% y 29% en impuestos, según el tipo exacto.
+Admin notes: VR o equipos con batería/conectividad pueden requerir revisión.
+
+16. gaming_physical_accessories
+Display: Accesorios físicos gaming
+Group: Gaming
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Silla gaming, escritorio gaming, volante gaming, pedales gaming, joystick flight simulator, mousepad gaming, estuche consola, figura coleccionable gaming.
+Aliases: gaming chair, silla gamer, silla gaming, gaming desk, volante gaming.
+Customer message: Detectamos que este producto pertenece a Accesorios físicos gaming. Esta categoría suele pagar aproximadamente 29% en impuestos.
+Admin notes: Distinguir de electrónicos gaming.
+
+17. clothing_general
+Display: Ropa
+Group: Moda
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Camiseta, camiseta algodón, camiseta sintética, camiseta deportiva, camisa formal, camisa lino, blusa, polo, tank top, crop top, suéter, cardigan, hoodie, sweatshirt, jacket, abrigo, blazer, traje formal, vestido casual, vestido formal, falda, jeans, pantalón, pantalón vestir, pantalón deportivo, jogger, leggings, shorts, boxer, calzoncillos, brasier, panty, ropa interior, medias, calcetines, pijama, bata, traje baño, bikini, ropa bebé, uniforme deportivo, ropa térmica, ropa compresión.
+Aliases: ropa, clothing, clothes, shirt, t-shirt, camiseta, camisa, blouse, hoodie, pants, pantalones, jeans, dress, vestido, underwear.
+Customer message: Detectamos que este producto pertenece a Ropa. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material, composición y tipo de prenda.
+Admin notes: Clasificación puede variar por tejido, material y confección.
+
+18. clothing_accessories
+Display: Accesorios de vestir
+Group: Moda
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Gorra, sombrero, beanie, bufanda, guantes textiles, guantes cuero, corbata, pañuelo, cinturón textil, cinturón cuero.
+Aliases: cap, hat, gorra, sombrero, beanie, scarf, bufanda, gloves, guantes, belt, cinturon, cinturón.
+Customer message: Detectamos que este producto pertenece a Accesorios de vestir. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material.
+Admin notes: Cuero puede variar.
+
+19. footwear_complete
+Display: Calzado
+Group: Moda
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Tenis deportivos, sneakers casuales, zapatos cuero hombre, zapatos cuero mujer, zapatos vestir, botas cuero, botas montaña, botas impermeables, botas trabajo, zapatos seguridad, sandalias, chanclas, Crocs, pantuflas, zapatos bebé, zapatos niño, zapatos fútbol, zapatos running, zapatos basketball, zapatos ciclismo, zapatos golf, tacones, zapatos plataforma.
+Aliases: zapatos, tenis, tennis, sneakers, shoes, footwear, botas, boots, sandalias, sandals, crocs, heels, tacones, running shoes.
+Customer message: Detectamos que este producto pertenece a Calzado. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material, tipo de suela y clasificación final.
+Admin notes: Validar zapatos de seguridad, ortopédicos o partes.
+
+20. footwear_parts_accessories
+Display: Partes y accesorios de calzado
+Group: Moda
+DAI: variable
+totalEstimatedRate: null
+Range: ~20%–29%
+Auto: true
+Manual review: false
+Risk flags: chemical_possible
+Products: Plantillas, cordones, suelas, partes calzado, cremas para zapatos, kit limpieza zapatos.
+Aliases: insoles, plantillas, laces, cordones, suelas, shoe sole, shoe cleaner.
+Customer message: Detectamos que este producto pertenece a Partes o accesorios de calzado. Esta categoría puede pagar entre 20% y 29% en impuestos, según el tipo exacto.
+Admin notes: Suelas ~20%; partes superiores ~24%; kits químicos revisar.
+
+21. beauty_fragrance
+Display: Perfumes y fragancias
+Group: Belleza
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: liquid, flammable_possible, cosmetic_possible
+Products: Perfume, agua de tocador, eau de toilette, eau de parfum, body mist, fragancia, colonia.
+Aliases: perfume, parfum, fragrance, fragancia, cologne, colonia, edt, edp, body mist.
+Customer message: Detectamos que este producto pertenece a Perfumes o fragancias. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede requerir revisión si son cantidades comerciales o por condiciones de transporte.
+Admin notes: Revisar cantidad, alcohol/inflamabilidad y transporte.
+
+22. beauty_makeup_cosmetics
+Display: Maquillaje y cosméticos
+Group: Belleza
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: cosmetic_possible, sanitary_possible, liquid_possible
+Products: Maquillaje labios, lip gloss, bálsamo labios, maquillaje ojos, máscara pestañas, delineador, sombras ojos, base maquillaje, corrector, polvo compacto, rubor, bronzer, highlighter, primer, setting spray, esmalte uñas, removedor esmalte, kit manicure, uñas postizas, brochas maquillaje, esponja maquillaje, organizador maquillaje.
+Aliases: makeup, maquillaje, makillaje, lip gloss, labial, mascara, rímel, rimel, eyeliner, delineador, foundation, blush, esmalte.
+Customer message: Detectamos que este producto pertenece a Maquillaje o cosméticos. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede requerir revisión si son cantidades comerciales o productos especiales.
+Admin notes: Líquidos, aerosoles, pegamentos o ingredientes activos pueden requerir revisión.
+
+23. beauty_skincare_personal_care
+Display: Skincare y cuidado personal
+Group: Belleza
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: cosmetic_possible, sanitary_possible
+Products: Crema facial, serum facial, retinol, ácido hialurónico, protector solar, bronceador, crema corporal, body lotion, exfoliante corporal, champú, shampoo, acondicionador, mascarilla cabello, aceite cabello, gel cabello, laca cabello, tinte cabello, desodorante, antitranspirante, jabón tocador, jabón medicinal, gel baño, pasta dental, enjuague bucal, toallitas desmaquillantes, algodones cosméticos.
+Aliases: skincare, skin care, crema, serum, sérum, retinol, hyaluronic, sunscreen, protector solar, shampoo, champu, champú, deodorant.
+Customer message: Detectamos que este producto pertenece a Cuidado personal o skincare. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede requerir revisión si contiene ingredientes activos o si son cantidades comerciales.
+Admin notes: Ingredientes activos/medicinales pueden requerir revisión.
+
+24. beauty_devices
+Display: Aparatos de belleza y cuidado personal
+Group: Belleza
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: battery_possible
+Products: Cepillo dental eléctrico, repuestos cepillo eléctrico, rasuradora eléctrica, repuestos rasuradora, secadora pelo, plancha pelo, rizadora pelo, máquina cortar pelo, depiladora, masajeador eléctrico, pistola masaje.
+Aliases: hair dryer, secadora, straightener, plancha pelo, curler, rizadora, shaver, rasuradora, electric toothbrush.
+Customer message: Detectamos que este producto pertenece a Aparatos de belleza o cuidado personal. Esta categoría suele pagar aproximadamente 29% en impuestos.
+Admin notes: Si tiene batería integrada, revisar transporte si corresponde.
+
+25. supplements_vitamins_nutrition
+Display: Suplementos y vitaminas
+Group: Salud / Regulado
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: true
+Risk flags: supplement, sanitary_review
+Products: Proteína polvo, proteína whey, creatina, pre-workout, BCAA, aminoácidos, colágeno, omega 3, multivitamínicos, vitamina C, vitamina D, zinc, magnesio, melatonina, probióticos, suplemento herbal, ashwagandha, suplemento pérdida peso, quemador grasa, electrolitos.
+Aliases: protein, proteina, proteína, whey, creatine, creatina, pre workout, vitamins, vitaminas, melatonin, melatonina, magnesium, magnesio, suplemento.
+Customer message: Este producto requiere revisión antes de cotizarlo automáticamente. Los suplementos pueden necesitar permisos, registro sanitario o validación especial.
+Admin notes: No calcular como final automático. Requiere revisión sanitaria/documental.
+Action customer: Compartir link, ingredientes, cantidad y presentación.
+Action admin: Revisar requisitos sanitarios y viabilidad courier.
+
+26. medicines_medical_products
+Display: Medicamentos y productos médicos
+Group: Salud / Regulado
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: true
+Risk flags: medical, sanitary_review, prescription_possible
+Products: Medicamento OTC, medicamento receta, crema medicinal, gotas ojos medicinales, termómetro digital, tensiómetro, oxímetro, nebulizador, glucómetro, tiras glucómetro, equipo médico pequeño, agujas, jeringas, test embarazo, test COVID, test médico casero, faja ortopédica, rodillera, muñequera, plantillas ortopédicas.
+Aliases: medicine, medicamento, medication, receta, prescription, medical, oxímetro, oximeter, nebulizer, glucómetro.
+Customer message: Este producto requiere revisión antes de cotizarlo automáticamente. Los medicamentos, insumos o equipos médicos pueden requerir permisos o validación especial.
+Admin notes: Revisión obligatoria. No calcular final automático.
+Action customer: Compartir link, uso, cantidad y si requiere receta.
+Action admin: Escalar a revisión sanitaria/documental.
+
+27. home_kitchen_appliances
+Display: Electrodomésticos pequeños y cocina
+Group: Hogar
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Cafetera eléctrica, espresso machine, coffee grinder, tostadora, freidora aire, air fryer, licuadora, batidora, procesador alimentos, olla arrocera, olla presión eléctrica, slow cooker, hervidor eléctrico, microondas, horno eléctrico, waffle maker, sandwichera, extractor jugos, máquina hielo, vacuum sealer, balanza cocina, termómetro cocina.
+Aliases: coffee maker, cafetera, espresso, air fryer, freidora, blender, licuadora, microwave, microondas.
+Customer message: Detectamos que este producto pertenece a Electrodomésticos pequeños o cocina. Esta categoría suele pagar aproximadamente 29% en impuestos.
+Admin notes: Electrodomésticos grandes o especiales pueden variar.
+
+28. home_decor_storage
+Display: Hogar, decoración y organización
+Group: Hogar
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Set cuchillos cocina, tabla cortar, ollas, sartenes, cubiertos, vajilla cerámica, vajilla vidrio, vasos, tazas, botella térmica, lunch box, organizadores cocina, contenedores plásticos, cortinas, sábanas, toallas, almohada, edredón, cobija, alfombra, organizador plástico, canasta almacenamiento, lámpara mesa, lámpara escritorio, bombillo LED, tiras LED, decoración pared, cuadro decorativo, florero, espejo decorativo, vela decorativa, difusor aroma, reloj pared, basurero pequeño.
+Aliases: home, hogar, decor, decoración, organizer, organizador, kitchenware, vajilla, sarten, sartén, towel, toalla, sheets, sabanas, sábanas.
+Customer message: Detectamos que este producto pertenece a Hogar, decoración u organización. Esta categoría suele pagar aproximadamente 29% en impuestos.
+Admin notes: Cuchillos, químicos, velas o líquidos pueden requerir revisión.
+
+29. tools_hardware_common
+Display: Herramientas y ferretería
+Group: Herramientas
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: battery_possible, chemical_possible
+Products: Taladro eléctrico, taladro inalámbrico, destornillador eléctrico, sierra eléctrica, sierra circular, sierra caladora, lijadora, pulidora, Dremel, pistola calor, pistola silicón, multímetro, tester voltaje, nivel láser, cinta métrica, set herramientas manuales, destornilladores, llaves, alicates, martillo, brocas, tornillos, bisagras, cerraduras, candados, guantes trabajo, gafas seguridad, mascarilla polvo, cargador herramienta, caja herramientas, organizador tornillos.
+Aliases: tools, herramientas, drill, taladro, saw, sierra, screwdriver, destornillador, hammer, martillo, hardware, ferreteria, ferretería.
+Customer message: Detectamos que este producto pertenece a Herramientas o ferretería. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede variar si incluye batería, químicos o componentes especiales.
+Admin notes: Herramientas con batería, aerosoles, pintura o químicos requieren revisión.
+
+30. chemicals_aerosols_adhesives
+Display: Químicos, aerosoles y adhesivos
+Group: Regulado / Dangerous Goods
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: true
+Risk flags: chemical, aerosol, flammable_possible, special_transport
+Products: Pintura, aerosol pintura, pegamento fuerte, resina epóxica, solvente, removedor esmalte, fertilizante, pesticida, productos químicos, aerosoles, pinturas inflamables, limpiadores fuertes.
+Aliases: chemical, químico, quimico, aerosol, paint, pintura, glue, pegamento, epoxy, resin, resina, solvent, pesticide.
+Customer message: Detectamos que este producto podría ser aerosol, inflamable o contener químicos. Este tipo de producto puede tener restricciones de transporte o requerir manejo especial. CRBOX debe revisarlo antes de confirmar si puede enviarse.
+Admin notes: No calcular final automático. Revisar dangerous goods.
+Action customer: Compartir link, ficha técnica/SDS si existe, cantidad y presentación.
+
+31. automotive_simple_accessories
+Display: Accesorios automotrices
+Group: Automotriz
+DAI: variable
+totalEstimatedRate: null
+Range: ~15%–29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Cámara retroceso, dashcam, radio carro, pantalla carro, parlantes carro, amplificador carro, alfombras carro, forros asiento, cobertor volante, luces LED carro, halógenos, escobillas limpiaparabrisas, espejo retrovisor, cargador carro, soporte celular carro, compresor aire portátil, tapones válvula, kit limpieza carro, cera carro, shampoo carro.
+Aliases: car accessory, accesorios carro, auto accessory, dashcam, car radio, alfombras carro, luces carro.
+Customer message: Detectamos que este producto pertenece a Accesorios automotrices. Esta categoría suele pagar entre 15% y 29% en impuestos, según el tipo exacto.
+Admin notes: Diferenciar accesorios simples de repuestos críticos.
+
+32. automotive_parts_review
+Display: Repuestos automotrices y moto
+Group: Automotriz
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: false
+Risk flags: automotive_part_review
+Products: Repuesto carro genérico, filtro aceite, filtro aire, filtro cabina, pastillas freno, discos freno, bujías, bobina encendido, sensor oxígeno, sensor MAF, sensor ABS, llantas, aros, casco moto, guantes moto, jacket moto, intercom moto, repuesto moto, luces moto.
+Aliases: auto parts, repuesto carro, repuestos, car part, brake pads, pastillas freno, sensor, llantas, rims, aros, motorcycle parts.
+Customer message: Este producto requiere revisión antes de cotizarlo automáticamente. Los repuestos pueden variar mucho según tipo, uso y clasificación.
+Admin notes: Validar clasificación, peso, dimensiones y manejo especial.
+
+33. sports_fitness_physical
+Display: Deportes y fitness
+Group: Deportes
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Yoga mat, mancuernas, kettlebell, bandas resistencia, guantes gimnasio, cinturón gimnasio, rodilleras deporte, botella deportiva, mochila hiking, tienda campaña, sleeping bag, linterna, headlamp, binoculares, brújula, bastones trekking, pelota fútbol, pelota basketball, pelota tenis, raqueta tenis, raqueta pádel, raqueta pickleball, accesorios natación.
+Aliases: fitness, gym, gimnasio, yoga mat, dumbbells, mancuernas, kettlebell, resistance bands, raqueta, pelota.
+Customer message: Detectamos que este producto pertenece a Deportes o fitness. Esta categoría suele pagar aproximadamente 29% en impuestos.
+Admin notes: Electrónicos deportivos pueden variar.
+
+34. sports_outdoor_variable
+Display: Bicicletas, pesca y outdoor especializado
+Group: Deportes
+DAI: variable
+totalEstimatedRate: null
+Range: ~14%–29% / Variable
+Auto: true
+Manual review: false
+Risk flags: battery_possible
+Products: Bicicleta, casco bicicleta, luces bicicleta, guantes bicicleta, candado bicicleta, accesorios bicicleta, reloj deportivo, smartwatch deportivo, banda frecuencia cardiaca, gafas deportivas, equipo pesca, señuelos pesca, carrete pesca, caña pesca, tabla surf pequeña.
+Aliases: bike, bicicleta, cycling, pesca, fishing, surf, smartwatch deportivo, sports watch.
+Customer message: Detectamos que este producto pertenece a Outdoor, bicicleta o pesca. Esta categoría puede variar según el tipo exacto de producto.
+Admin notes: Bicicletas, pesca y electrónicos deportivos pueden requerir revisión.
+
+35. toys_common
+Display: Juguetes
+Group: Juguetes
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: battery_possible
+Products: LEGO, bloques construcción, muñeca, peluche, figura acción, carrito juguete, tren eléctrico juguete, juego mesa, puzzle, juguete electrónico, scooter infantil, bicicleta infantil, patines, patineta, set arte infantil, plastilina, slime, juguete bebé.
+Aliases: toy, toys, juguete, lego, muñeca, doll, plush, peluche, puzzle, board game.
+Customer message: Detectamos que este producto pertenece a Juguetes. Esta categoría suele pagar aproximadamente 29% en impuestos.
+Admin notes: Drones, armas de juguete o baterías deben revisarse.
+
+36. drones_rc_review
+Display: Drones y productos de control remoto
+Group: Regulado / Electrónica
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: true
+Risk flags: drone, lithium_battery, radiofrequency_possible
+Products: Drone, dron, dron juguete, juguete control remoto, carro RC, avión RC, helicóptero RC, cámara drone.
+Aliases: drone, dron, rc, remote control, control remoto, quadcopter.
+Customer message: Detectamos que este producto parece ser un drone o equipo de control remoto. Estos productos pueden requerir revisión por batería, radiofrecuencia o regulación especial. CRBOX debe revisarlo antes de confirmar.
+Admin notes: Revisar batería, radiofrecuencia y restricciones.
+
+37. baby_items
+Display: Bebé y artículos infantiles
+Group: Bebé
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Coche bebé, silla carro bebé, cuna portátil, monitor bebé, biberón, chupón, esterilizador biberón, pañalera, mochila bebé, juguete bebé, ropa bebé.
+Aliases: baby, bebé, stroller, coche bebé, car seat, silla bebé, biberon, biberón, pacifier, chupón.
+Customer message: Detectamos que este producto pertenece a Artículos de bebé. Esta categoría suele pagar aproximadamente 29% en impuestos.
+Admin notes: Alimentos, suplementos o medicina bebé requieren revisión.
+
+38. pet_accessories
+Display: Accesorios para mascotas
+Group: Mascotas
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Juguete mascota, collar mascota, arnés mascota, correa mascota, cama mascota, comedero mascota, fuente agua mascota, cepillo mascota.
+Aliases: pet, mascota, dog, cat, collar mascota, arnés, pet toy, dog bed.
+Customer message: Detectamos que este producto pertenece a Accesorios para mascotas. Esta categoría suele pagar aproximadamente 29% en impuestos.
+Admin notes: Alimentos/suplementos mascota requieren revisión.
+
+39. pet_food_supplements_review
+Display: Alimentos y suplementos para mascotas
+Group: Mascotas / Regulado
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: true
+Risk flags: pet_food, veterinary_review, sanitary_review
+Products: Comida mascota, suplemento mascota, vitaminas mascota, shampoo mascota medicinal, treats mascota, dog food, cat food.
+Aliases: pet food, dog food, cat food, comida perro, comida gato, suplemento mascota.
+Customer message: Este producto requiere revisión antes de cotizarlo automáticamente. Alimentos o suplementos para mascotas pueden requerir validación sanitaria o veterinaria.
+Admin notes: Revisar SENASA/sanitario si aplica.
+
+40. books_printed_material
+Display: Libros y material impreso
+Group: Libros / Oficina
+DAI: variable
+totalEstimatedRate: null
+Range: Variable/bajo
+Auto: false
+Manual review: true
+Regulated: false
+Risk flags: printed_material_review
+Products: Libro, revista, comic, manga, material impreso, manual, catálogo.
+Aliases: book, libro, magazine, revista, comic, manga.
+Customer message: Este producto puede tener tratamiento distinto según el tipo de material impreso. Requiere revisión para evitar una estimación incorrecta.
+Admin notes: Validar tratamiento aplicable.
+
+41. office_stationery_art
+Display: Papelería, oficina y arte
+Group: Oficina / Arte
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: chemical_possible
+Products: Cuaderno, agenda, planner, lapiceros, marcadores, lápices color, pinceles, canvas, papel dibujo, papel fotográfico, tijeras, regla, calculadora, mochila escolar, estuche lápices, silla oficina, escritorio pequeño, soporte laptop, organizador escritorio, pizarra blanca.
+Aliases: stationery, papeleria, papelería, notebook, cuaderno, agenda, planner, pen, lápices, art supplies.
+Customer message: Detectamos que este producto pertenece a Papelería, oficina o arte. Esta categoría suele pagar aproximadamente 29% en impuestos.
+Admin notes: Pinturas, marcadores especiales, aerosoles o químicos revisar.
+
+42. bags_luggage_accessories
+Display: Bolsos, maletas y accesorios
+Group: Moda / Accesorios
+DAI: 15
+totalEstimatedRate: 0.29
+Range: ~29%
+Auto: true
+Manual review: false
+Risk flags: []
+Products: Bolso cuero, bolso sintético, tote bag, mochila, mochila cuero, billetera cuero, billetera sintética, maleta carry-on, maleta grande, estuche viaje, neceser, paraguas, llaveros, accesorio cabello, pin, broche.
+Aliases: bag, bolso, purse, handbag, tote, backpack, mochila, wallet, billetera, luggage, maleta, suitcase.
+Customer message: Detectamos que este producto pertenece a Bolsos, maletas o accesorios. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede variar según material.
+Admin notes: Cuero o lujo puede requerir validación.
+
+43. watches_jewelry
+Display: Relojes y joyería
+Group: Moda / Lujo
+DAI: variable
+totalEstimatedRate: null
+Range: ~15%–29% / Variable
+Auto: true
+Manual review: false
+Risk flags: high_value_possible, precious_metal_possible
+Products: Reloj analógico, reloj digital, smartwatch, correa reloj, joyería fantasía, joyería plata, joyería oro, anillo, collar, pulsera, aretes.
+Aliases: watch, reloj, smartwatch, jewelry, joyeria, joyería, ring, anillo, necklace, collar, bracelet, pulsera, earrings.
+Customer message: Detectamos que este producto pertenece a Relojes o joyería. Esta categoría puede variar según material, valor y tipo de producto.
+Admin notes: Metales preciosos/alto valor requieren revisión.
+
+44. eyewear_optical
+Display: Lentes y óptica
+Group: Moda / Salud
+DAI: variable
+totalEstimatedRate: null
+Range: ~15%–29% / Variable
+Auto: true
+Manual review: false
+Risk flags: optical_possible, sanitary_possible
+Products: Lentes sol, lentes ópticos, monturas lentes, estuche lentes, gafas deportivas.
+Aliases: glasses, lentes, sunglasses, gafas, eyewear, monturas.
+Customer message: Detectamos que este producto pertenece a Lentes u óptica. Esta categoría puede variar según si son lentes de sol, monturas, ópticos o de contacto.
+Admin notes: Lentes contacto/soluciones pueden requerir revisión sanitaria.
+
+45. eyewear_medical_contact_lenses
+Display: Lentes de contacto y óptica médica
+Group: Salud / Regulado
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: true
+Risk flags: optical_medical, sanitary_review
+Products: Lentes contacto, solución lentes contacto, lágrimas artificiales, gotas ojos, lentes ópticos medicados.
+Aliases: contact lenses, lentes contacto, solution contacts, solución lentes, artificial tears.
+Customer message: Este producto puede requerir revisión sanitaria u óptica antes de importarse. CRBOX debe revisarlo antes de confirmar el costo final.
+Admin notes: Revisar sanitario/óptico.
+
+46. food_beverages_review
+Display: Alimentos y bebidas
+Group: Alimentos / Regulado
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: true
+Risk flags: food, sanitary_review
+Products: Snacks, chocolate, dulces, galletas, café, té, salsas, especias, condimentos, bebida energética, bebida no alcohólica.
+Aliases: food, comida, snacks, chocolate, candy, dulces, coffee, café, tea, té, sauce, salsa.
+Customer message: Este producto requiere revisión antes de cotizarlo automáticamente. Los alimentos y bebidas pueden requerir validación sanitaria o permisos.
+Admin notes: Validar si puede ingresar por courier y requisitos sanitarios.
+
+47. alcohol_tobacco_vape_review
+Display: Alcohol, tabaco, vape y nicotina
+Group: Restringido
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: true
+Risk flags: alcohol, tobacco, nicotine, restricted_possible
+Products: Alcohol, vino, cerveza, licor, tabaco, cigarros, vape, líquido vape, nicotina.
+Aliases: alcohol, wine, vino, beer, cerveza, liquor, licor, tobacco, tabaco, vape, nicotine, nicotina.
+Customer message: Este producto requiere revisión antes de cotizarlo automáticamente. Alcohol, tabaco, vape o nicotina pueden tener restricciones, permisos o impuestos especiales.
+Admin notes: Validar si CRBOX acepta el producto.
+
+48. plants_seeds_agro_review
+Display: Plantas, semillas y productos agro
+Group: Agro / Regulado
+DAI: variable
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: true
+Risk flags: agro, phytosanitary_review
+Products: Semillas, plantas, tierra, sustrato, fertilizantes, pesticidas, productos agro.
+Aliases: seeds, semillas, plants, plantas, soil, tierra, fertilizer, fertilizante, pesticide, pesticida.
+Customer message: Este producto requiere revisión antes de cotizarlo automáticamente. Plantas, semillas o productos agro pueden requerir permisos fitosanitarios.
+Admin notes: Validar fitosanitario/SFE si aplica.
+
+49. weapons_restricted
+Display: Armas, partes y productos tácticos
+Group: Prohibido / Restringido
+DAI: null
+totalEstimatedRate: null
+Range: Restricted
+Auto: false
+Manual review: true
+Regulated: true
+Restricted: true
+Forbidden: true
+Risk flags: weapon, restricted_item
+Products: Armas fuego, partes armas, municiones, balines, pistolas CO2, cuchillos tácticos, espadas, electroshock, taser, brass knuckles, silenciadores, cargadores arma.
+Aliases: gun, firearm, weapon, arma, municiones, ammunition, tactical knife, cuchillo tactico, cuchillo táctico, taser.
+Customer message: Este producto puede pertenecer a una categoría restringida, como armas, partes de armas, municiones o artículos tácticos. CRBOX debe revisarlo antes de confirmar si puede transportarse o importarse por courier.
+Admin notes: No calcular automáticamente. Escalar a revisión.
+
+50. dangerous_goods
+Display: Productos peligrosos o inflamables
+Group: Prohibido / Dangerous Goods
+DAI: null
+totalEstimatedRate: null
+Range: Restricted / Variable
+Auto: false
+Manual review: true
+Regulated: true
+Restricted: true
+Risk flags: dangerous_goods, flammable, explosive, corrosive, special_transport
+Products: Explosivos, productos inflamables, corrosivos, aerosoles peligrosos, químicos peligrosos, baterías grandes, fuegos artificiales, gases comprimidos.
+Aliases: hazmat, hazardous, dangerous goods, inflamable, explosive, explosivo, corrosive, corrosivo.
+Customer message: Este producto puede tener restricciones de transporte, seguridad o permisos. CRBOX debe revisarlo antes de confirmar si puede enviarse.
+Admin notes: Revisar dangerous goods y restricciones de carrier.
+
+51. illegal_drugs_controlled_substances
+Display: Drogas, narcóticos y sustancias controladas
+Group: Prohibido
+DAI: null
+totalEstimatedRate: null
+Range: Prohibited
+Auto: false
+Manual review: true
+Regulated: true
+Restricted: true
+Forbidden: true
+Risk flags: prohibited, controlled_substance
+Products: Drogas ilegales, narcóticos, psicotrópicos, sustancias controladas, CBD/THC si política lo restringe.
+Aliases: drugs, narcotics, droga, controlled substance, thc, cbd, marihuana.
+Customer message: Este producto puede estar prohibido o restringido. CRBOX no debe cotizarlo automáticamente.
+Admin notes: Bloquear/escala según política.
+
+52. counterfeit_goods
+Display: Productos falsificados o réplicas
+Group: Restringido
+DAI: null
+totalEstimatedRate: null
+Range: Restricted
+Auto: false
+Manual review: true
+Regulated: true
+Restricted: true
+Risk flags: counterfeit, trademark_risk
+Products: Réplicas, fake designer bags, fake watches, counterfeit shoes, productos falsificados, imitación marca.
+Aliases: fake, replica, réplica, counterfeit, falso, imitación, imitacion.
+Customer message: Este producto puede estar relacionado con mercancía falsificada o réplica. CRBOX debe revisarlo antes de confirmar si puede transportarse.
+Admin notes: Revisar política y riesgo marcario.
+
+53. unknown_manual_review
+Display: Producto por revisar
+Group: Fallback
+DAI: null
+totalEstimatedRate: null
+Range: Variable
+Auto: false
+Manual review: true
+Regulated: false
+Risk flags: unknown
+Products: Producto no identificado, categoría no encontrada, otro, producto ambiguo.
+Aliases: unknown, other, otro, no sé, no se, no estoy seguro.
+Customer message: No encontramos una categoría suficientemente clara para este producto. CRBOX debe revisarlo para evitar una estimación incorrecta.
+Admin notes: Fallback seguro para productos no identificados.
+
+==================================================
+PRODUCT-LEVEL SEED REQUIREMENTS
+==================================================
+
+Create product-level rows for every product listed inside each category above.
+
+Each product row must map to categoryId.
+
+Add aliases and common misspellings when useful.
+
+Examples:
+- "aifon", "ifon" -> phones_smartphones
+- "snikers", "sneackers", "tennis" -> footwear_complete
+- "proteina", "proteína", "whey protein" -> supplements_vitamins_nutrition
+- "airfryer", "freidora de aire" -> home_kitchen_appliances
+- "powerbank", "portable charger" -> lithium_batteries_powerbanks
+- "makillaje", "rimel", "rímel" -> beauty_makeup_cosmetics
+
+==================================================
+UTILITY REQUIREMENTS
+==================================================
+
+Create utility-ready structures:
+
+CATEGORY_BY_ID
+PRODUCT_TO_CATEGORY_INDEX
+KEYWORD_INDEX
+RISK_FLAG_INDEX
+
+Suggested utility methods:
+
+getCategoryById(id)
+searchProducts(query)
+classifyLocal(query)
+normalizeText(text)
+getCustomerMessage(categoryId)
+getAdminNotes(categoryId)
+isManualReview(categoryId)
+isForbiddenOrRestricted(categoryId)
+getRiskFlags(categoryId)
+exportCSV()
+exportJSON()
+
+Do not implement UI yet.
+Do not change calculator math.
+Do not connect external APIs.
+
+==================================================
+ACCEPTANCE CRITERIA
+==================================================
+
+- Product Brain exists as structured local data.
+- Category records include tax estimate, risk, review, customer message, admin notes.
+- Product rows map all common courier products into categories.
+- Forbidden/restricted categories are included.
+- Batteries, supplements, medicines, food, cosmetics, drones, telecom, chemicals, weapons, alcohol/tobacco/vape, plants/seeds are flagged.
+- Customer messages are friendly and useful.
+- Admin notes are specific.
+- totalEstimatedRate is decimal.
+- No external APIs are required.
+- Unknown products safely map to unknown_manual_review.
+- No final automatic total should ever be generated for automaticEstimateAllowed: false categories.
