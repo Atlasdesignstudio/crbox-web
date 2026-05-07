@@ -1495,11 +1495,6 @@
             "value": "cta_click"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -1649,11 +1644,6 @@
             "value": "whatsapp_click"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -1788,11 +1778,6 @@
             "value": "phone_click"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -1912,11 +1897,6 @@
             "value": "email_click"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -2019,11 +1999,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "contact_form_submit"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -2130,11 +2105,6 @@
             "value": "form_start"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -2237,11 +2207,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "form_abandon"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -2348,11 +2313,6 @@
             "value": "faq_engage"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -2455,11 +2415,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "nav_click"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -2581,11 +2536,6 @@
             "value": "service_card_click"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -2688,11 +2638,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "calculator_start"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -2799,11 +2744,6 @@
             "value": "calculator_tab_switch"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -2908,11 +2848,6 @@
             "value": "calculator_query"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -3015,11 +2950,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "calculator_result"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -3171,11 +3101,6 @@
             "value": "scroll_depth"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -3278,11 +3203,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "section_visible"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -3389,11 +3309,6 @@
             "value": "login_start"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -3483,11 +3398,6 @@
             "value": "login_success"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -3575,11 +3485,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "login_error"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -3686,11 +3591,6 @@
             "value": "signup_start"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -3778,11 +3678,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "signup_step"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -3889,11 +3784,6 @@
             "value": "signup_success"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -3996,11 +3886,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "signup_error"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -4107,11 +3992,6 @@
             "value": "package_search"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -4199,11 +4079,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "package_search_result"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -4310,11 +4185,6 @@
             "value": "invoice_upload_start"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -4419,11 +4289,6 @@
             "value": "invoice_upload_success"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -4511,11 +4376,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "invoice_upload_error"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -4620,11 +4480,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "quote_submit"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -4744,11 +4599,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "portal_section_view"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -4915,11 +4765,6 @@
             "value": "chat_open"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -5007,11 +4852,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "chat_message_sent"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -5116,11 +4956,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "outbound_click"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
@@ -5242,11 +5077,6 @@
             "value": "package_detail_view"
           },
           {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
-          },
-          {
             "type": "LIST",
             "key": "eventParameters",
             "list": [
@@ -5334,11 +5164,6 @@
             "type": "TEMPLATE",
             "key": "eventName",
             "value": "quote_start"
-          },
-          {
-            "type": "TEMPLATE",
-            "key": "measurementId",
-            "value": "{{GA4 Measurement ID}}"
           },
           {
             "type": "LIST",
