@@ -1772,7 +1772,16 @@
                     tab.classList.add('active');
                     
                     const statusFilter = tab.getAttribute('data-status');
-                    if (window.CRBOX && CRBOX.track) { try { CRBOX.track.portal_section_view('paquetes_' + (statusFilter || 'all')); } catch (_e) {} }
+                    // Fire portal_section_view with a human-readable label (the
+                    // visible tab text) so GA4 reports show "paquetes_Miami",
+                    // "paquetes_En Tránsito", etc. rather than raw data-status values.
+                    if (window.CRBOX && CRBOX.track) {
+                        try {
+                            var _labelEl = tab.querySelector('.text-sm.font-medium') || tab.querySelector('span');
+                            var _tabLabel = _labelEl ? _labelEl.textContent.trim() : (statusFilter || 'all');
+                            CRBOX.track.portal_section_view('paquetes_' + _tabLabel);
+                        } catch (_e) {}
+                    }
 
                     // Re-render with data-level filtering and pagination reset
                     if (window._crbRerender) {

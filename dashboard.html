@@ -1522,5 +1522,31 @@
 }());
 </script>
 <script src="js/portal-nav-offset.js" defer></script>
+<script>
+// ── Portal section entry card tracking ────────────────────────────────────────
+// Fires portal_section_view when the user navigates from the dashboard to
+// another portal section via any link (entry cards, stat card links, nav, etc.).
+// Uses event delegation so dynamically-rendered links are covered too.
+(function () {
+  var _SECTION_MAP = {
+    'mis-paquetes.html': 'mis_paquetes',
+    'mis-facturas.html': 'mis_facturas',
+    'mis-solicitudes.html': 'mis_solicitudes'
+  };
+
+  document.addEventListener('click', function (e) {
+    var anchor = e.target.closest('a[href]');
+    if (!anchor) return;
+    var href = anchor.getAttribute('href') || '';
+    // Strip hash/query to get the base filename.
+    var base = href.split('?')[0].split('#')[0].replace(/^.*\//, '');
+    var sectionName = _SECTION_MAP[base];
+    if (!sectionName) return;
+    if (window.CRBOX && CRBOX.track) {
+      try { CRBOX.track.portal_section_view(sectionName); } catch (_e) {}
+    }
+  }, true);
+}());
+</script>
 </body>
 </html>
