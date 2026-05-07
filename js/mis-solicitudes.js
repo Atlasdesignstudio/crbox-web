@@ -454,6 +454,17 @@
     if (overlay) overlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
+    if (window.CRBOX && CRBOX.track) {
+      try {
+        CRBOX.track.portal_section_view({
+          section_name: 'mis_solicitudes_new_request',
+          page_name:    'mis_solicitudes',
+          page_type:    'portal_requests',
+          cta_location: 'other'
+        });
+      } catch (_e) {}
+    }
+
     // Draft: check for saved draft and offer restore (skip when duplicating)
     _checkPortalDraftOnOpen(prefill || null);
   }
@@ -598,6 +609,17 @@
       successEl.classList.remove('hidden');
       var idEl = document.getElementById('form-success-id');
       if (idEl) idEl.textContent = scbId;
+    }
+
+    if (window.CRBOX && CRBOX.track) {
+      try {
+        CRBOX.track.portal_section_view({
+          section_name: 'mis_solicitudes_submit_success',
+          page_name:    'mis_solicitudes',
+          page_type:    'portal_requests',
+          cta_location: 'other'
+        });
+      } catch (_e) {}
     }
   }
 
@@ -802,6 +824,16 @@
         if (isHidden) {
           archivedContent.classList.remove('hidden');
           if (archiveIcon) archiveIcon.style.transform = 'rotate(180deg)';
+          if (window.CRBOX && CRBOX.track) {
+            try {
+              CRBOX.track.portal_section_view({
+                section_name: 'mis_solicitudes_archived',
+                page_name:    'mis_solicitudes',
+                page_type:    'portal_requests',
+                cta_location: 'tab_bar'
+              });
+            } catch (_e) {}
+          }
         } else {
           archivedContent.classList.add('hidden');
           if (archiveIcon) archiveIcon.style.transform = '';

@@ -1183,6 +1183,16 @@
         detailTr.className = 'bill-detail-row bg-gray-50';
         detailTr.innerHTML = '<td colspan="10">' + _renderRecibosDetail(bill) + '</td>';
         billRow.parentNode.insertBefore(detailTr, billRow.nextSibling);
+        if (window.CRBOX && CRBOX.track) {
+          try {
+            CRBOX.track.portal_section_view({
+              section_name: 'mis_facturas_invoice_detail',
+              page_name:    'mis_facturas',
+              page_type:    'portal_invoices',
+              cta_location: 'other'
+            });
+          } catch (_e) {}
+        }
       }
 
       document.addEventListener('click', function (e) {
@@ -1288,6 +1298,16 @@
         var buscarBtn = document.getElementById('bills-search-btn');
         if (buscarBtn) {
           buscarBtn.addEventListener('click', function () {
+            if (window.CRBOX && CRBOX.track) {
+              try {
+                CRBOX.track.portal_section_view({
+                  section_name: 'mis_facturas_filter_applied',
+                  page_name:    'mis_facturas',
+                  page_type:    'portal_invoices',
+                  cta_location: 'filter_bar'
+                });
+              } catch (_e) {}
+            }
             _loadBills(email, _getStart(), _getEnd());
           });
         }
@@ -1297,7 +1317,20 @@
           .forEach(function (el) {
             if (!el) return;
             el.addEventListener('keydown', function (e) {
-              if (e.key === 'Enter') { e.preventDefault(); _loadBills(email, _getStart(), _getEnd()); }
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                if (window.CRBOX && CRBOX.track) {
+                  try {
+                    CRBOX.track.portal_section_view({
+                      section_name: 'mis_facturas_filter_applied',
+                      page_name:    'mis_facturas',
+                      page_type:    'portal_invoices',
+                      cta_location: 'filter_bar'
+                    });
+                  } catch (_e) {}
+                }
+                _loadBills(email, _getStart(), _getEnd());
+              }
             });
           });
 

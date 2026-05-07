@@ -1350,6 +1350,7 @@
         document.getElementById('btn-aereo').addEventListener('click', function() { setService('aereo'); });
         document.getElementById('btn-maritimo').addEventListener('click', function() { setService('maritimo'); });
 
+        var _cotizarServiceCurrent = 'aereo';
         function setService(val) {
             fServiceType.value = val;
             var btnAereo = document.getElementById('btn-aereo');
@@ -1361,6 +1362,19 @@
             serviceHintText.textContent = val === 'aereo'
                 ? 'Más rápido, ideal para electrónica, ropa y artículos menores a 50 kg.'
                 : 'Ideal para muebles, electrodomésticos y cargas mayores. Tiempo estimado: 4–8 semanas.';
+            if (val !== _cotizarServiceCurrent) {
+                _cotizarServiceCurrent = val;
+                if (window.CRBOX && CRBOX.track) {
+                    try {
+                        CRBOX.track.portal_section_view({
+                            section_name: 'cotizar_service_' + val,
+                            page_name:    'cotizar',
+                            page_type:    'portal_quotes',
+                            cta_location: 'tab_bar'
+                        });
+                    } catch (_e) {}
+                }
+            }
         }
 
         // ── Email validation ───────────────────────────────────
@@ -1571,6 +1585,16 @@
             document.body.classList.remove('has-sticky-cta');
             failureScreen.classList.remove('visible');
             confirmScreen.classList.add('visible');
+            if (window.CRBOX && CRBOX.track) {
+                try {
+                    CRBOX.track.portal_section_view({
+                        section_name: 'cotizar_confirmation',
+                        page_name:    'cotizar',
+                        page_type:    'portal_quotes',
+                        cta_location: 'other'
+                    });
+                } catch (_e) {}
+            }
             confirmScbId.textContent = scbId;
 
             var zoneLabelMap = { sanjose:'San José', heredia:'Heredia', alajuela:'Alajuela', cartago:'Cartago', guanacaste:'Guanacaste', puntarenas:'Puntarenas', limon:'Limón' };
@@ -1611,6 +1635,16 @@
             stickyCta.classList.remove('show'); stickyCta.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('has-sticky-cta');
             confirmScreen.classList.remove('visible'); failureScreen.classList.add('visible');
+            if (window.CRBOX && CRBOX.track) {
+                try {
+                    CRBOX.track.portal_section_view({
+                        section_name: 'cotizar_failure',
+                        page_name:    'cotizar',
+                        page_type:    'portal_quotes',
+                        cta_location: 'other'
+                    });
+                } catch (_e) {}
+            }
             document.getElementById('failure-scb-section').style.display = 'none';
             document.getElementById('failure-title').textContent = 'No se pudo enviar tu solicitud';
             document.getElementById('failure-icon').className = 'fas fa-exclamation-triangle';
@@ -1630,6 +1664,16 @@
             stickyCta.classList.remove('show'); stickyCta.setAttribute('aria-hidden', 'true');
             document.body.classList.remove('has-sticky-cta');
             confirmScreen.classList.remove('visible'); failureScreen.classList.add('visible');
+            if (window.CRBOX && CRBOX.track) {
+                try {
+                    CRBOX.track.portal_section_view({
+                        section_name: 'cotizar_smtp_failure',
+                        page_name:    'cotizar',
+                        page_type:    'portal_quotes',
+                        cta_location: 'other'
+                    });
+                } catch (_e) {}
+            }
             var scbSection = document.getElementById('failure-scb-section');
             scbSection.style.display = '';
             document.getElementById('failure-scb-id').textContent = scbId;
