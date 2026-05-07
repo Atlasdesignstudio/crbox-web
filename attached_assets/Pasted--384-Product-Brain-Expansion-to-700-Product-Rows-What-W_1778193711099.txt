@@ -1,0 +1,388 @@
+#384 - Product Brain Expansion to 700+ Product Rows
+
+What & Why
+
+The current CRBOX Product Brain foundation (#382) successfully established the architecture, category system, compatibility layer, utility functions, and initial 206 product rows. However, the product-level coverage is still too limited for a modern AI-first logistics experience.
+
+This task expands the Product Brain into a truly comprehensive product knowledge database with approximately 700–1000 product rows covering the most common products customers bring through courier services into Costa Rica.
+
+The goal is NOT to create an official customs/tariff database.
+
+The goal IS to create a highly practical, AI-friendly, customer-facing classification and estimation knowledge layer that:
+- improves natural-language product interpretation,
+- improves category auto-detection,
+- improves tax estimate consistency,
+- improves regulated/permit detection,
+- improves UX quality,
+- improves admin efficiency,
+- improves AI extraction understanding.
+
+This is still a data-layer task only.
+
+No UI redesigns.
+No calculator math changes.
+No external APIs.
+No backend rewrites.
+
+The Product Brain remains local_estimated and reference-oriented only.
+
+---
+
+Core Principles
+
+This Product Brain is:
+- UX-oriented
+- AI-oriented
+- courier-oriented
+- operationally practical
+
+It is NOT:
+- an official customs liquidation engine
+- a legally binding tariff database
+- a replacement for TICA/Hacienda/ArancelNet
+- a guaranteed tax calculation system
+
+Customer-facing language must remain:
+- human
+- friendly
+- actionable
+- non-technical
+
+Examples:
+GOOD:
+- “Este tipo de producto normalmente paga impuestos relativamente bajos.”
+- “Este producto puede requerir revisión por batería de litio.”
+- “El monto final puede variar según Aduanas y el valor CIF.”
+
+BAD:
+- “Confidence: medium”
+- “HS uncertainty detected”
+- “Arancel ambiguity”
+- “Classification variance”
+
+---
+
+Main Goal
+
+Expand:
+- window.PRODUCT_PRODUCTS
+- data/product-brain.json
+
+from ~206 rows
+to approximately 700–1000 rich product rows.
+
+The database should become broad enough that:
+- Gemini/local AI can recognize most common product descriptions,
+- misspellings,
+- mixed Spanish/English wording,
+- ecommerce naming styles,
+- casual user wording,
+- branded product naming,
+- and vague user descriptions.
+
+Examples:
+- “zapatos rosados nike”
+- “iphone”
+- “air fryer”
+- “proteina whey”
+- “monitor gaming”
+- “power bank”
+- “camara gopro”
+- “perfume arabe”
+- “router wifi”
+- “maquina espresso”
+- “apple watch”
+- “crocs”
+- “vape”
+- “drone dji”
+- “vitaminas”
+- etc.
+
+---
+
+Important Constraint
+
+DO NOT break the compatibility architecture built in #382.
+
+Preserve:
+- PRODUCT_CATEGORIES existing codes
+- LEGACY_MAP behavior
+- totalEstimatedRate decimal structure
+- utility exports
+- existing category IDs
+
+This task is additive and enrichment-only.
+
+---
+
+Required Coverage
+
+Expand coverage heavily in these areas:
+
+1. Electronics
+- phones
+- tablets
+- laptops
+- monitors
+- gaming hardware
+- accessories
+- smart home
+- networking
+- batteries
+- chargers
+- adapters
+- storage
+- printers
+- cables
+- streaming devices
+
+2. Fashion
+- clothing
+- shoes
+- bags
+- jewelry
+- watches
+- sunglasses
+- accessories
+- luxury items
+
+3. Beauty
+- skincare
+- perfumes
+- makeup
+- hair care
+- beauty devices
+
+4. Home
+- kitchen
+- appliances
+- decor
+- furniture
+- organization
+- lighting
+- cleaning
+
+5. Sports
+- gym
+- cycling
+- camping
+- outdoor
+- sportswear
+- smart fitness devices
+
+6. Automotive
+- accessories
+- electronics
+- replacement parts
+- detailing
+- lighting
+- tools
+
+7. Baby & Toys
+- strollers
+- toys
+- LEGO
+- gaming toys
+- RC
+- monitors
+- feeding products
+
+8. Regulated / Review Categories
+- supplements
+- medicines
+- food
+- seeds
+- plants
+- drones
+- telecom
+- batteries
+- chemicals
+- vape
+- alcohol
+- tobacco
+- dangerous goods
+
+9. Forbidden / Restricted
+- weapons
+- ammunition
+- explosives
+- illegal drugs
+- counterfeit products
+- hazardous materials
+
+---
+
+Every Product Row Must Include
+
+Each row should contain:
+
+{
+  productKey,
+  productName,
+  categoryId,
+  aliases,
+  misspellings,
+  englishTerms,
+  spanishTerms,
+  ecommerceTerms,
+  commonSearchPhrases,
+  riskOverrideFlags,
+  customerHint,
+  adminHint
+}
+
+---
+
+Aliases & AI Optimization
+
+This is critical.
+
+The Product Brain should help AI classify quickly and accurately.
+
+Each product should include:
+- common English naming
+- common Spanish naming
+- ecommerce naming
+- slang/common wording
+- misspellings
+- plural/singular variations
+
+Examples:
+
+Product:
+AirPods Pro
+
+aliases:
+- airpods
+- airpod
+- apple earbuds
+- audifonos apple
+- audifonos bluetooth apple
+
+misspellings:
+- erpods
+- air pods
+- aipods
+- airports
+
+commonSearchPhrases:
+- audifonos inalambricos apple
+- earbuds iphone
+- bluetooth earbuds
+
+---
+
+Regulated Product Logic
+
+Products that often require permits or manual review must include:
+- clear riskOverrideFlags
+- customerHint
+- adminHint
+
+Examples:
+- lithium_battery
+- sanitary_review
+- telecom_review
+- dangerous_goods
+- customs_review
+- medical_review
+- food_review
+- chemical_review
+
+Customer hints should explain in friendly language:
+- what might happen,
+- why it may require review,
+- and what the customer should expect.
+
+Examples:
+- “Este producto contiene baterías de litio y puede requerir revisión adicional para transporte.”
+- “Este tipo de producto puede requerir validación sanitaria antes de importarse.”
+- “El cálculo automático puede variar para este tipo de artículo.”
+
+---
+
+Forbidden Products
+
+Forbidden products must:
+- remain searchable/classifiable,
+- but clearly indicate they cannot be imported normally.
+
+Examples:
+- firearms
+- ammunition
+- explosives
+- illegal drugs
+- counterfeit currency
+- hazardous explosives
+
+CustomerHint example:
+- “Este producto no puede importarse normalmente mediante courier.”
+
+---
+
+Data Quality Rules
+
+Do NOT:
+- invent fake official HS codes,
+- invent official tariff rates,
+- pretend this is official customs data,
+- duplicate product rows excessively,
+- create meaningless aliases,
+- use technical/legal wording for customer-facing copy,
+- break backward compatibility,
+- remove existing categories.
+
+Do:
+- prioritize realistic ecommerce/common products,
+- optimize for AI understanding,
+- optimize for user wording,
+- optimize for courier operations,
+- optimize for customer support efficiency,
+- optimize for future Gemini classification.
+
+---
+
+Expected Deliverables
+
+1. Expanded data/product-brain.json
+- approximately 700–1000 product rows
+
+2. Expanded window.PRODUCT_PRODUCTS
+- synced with JSON
+
+3. Expanded indexes
+- PRODUCT_TO_CATEGORY_INDEX
+- KEYWORD_INDEX
+- RISK_FLAG_INDEX
+
+4. Updated ProductBrainVersion
+Example:
+window.ProductBrainVersion = "2026-CRBOX-local-estimated-v2"
+
+5. Validation Report
+Provide:
+- total product count
+- total categories
+- top categories by product count
+- regulated product count
+- forbidden product count
+- total aliases count
+- total misspellings count
+- syntax validation result
+- duplicate detection result
+
+---
+
+Important
+
+This task is still ONLY the database expansion layer.
+
+DO NOT:
+- redesign UI,
+- change calculators,
+- modify quote flow,
+- modify emails,
+- change admin logic,
+- add Gemini integration yet.
+
+The next task will connect Gemini and the Product Brain into the quote funnel UX.

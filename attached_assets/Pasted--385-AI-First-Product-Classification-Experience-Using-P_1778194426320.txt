@@ -1,0 +1,862 @@
+#385 - AI-First Product Classification Experience Using Product Brain + Gemini
+
+## What & Why
+
+We already built and expanded the CRBOX Product Brain.
+
+Now we need to connect it into the real quotation experience.
+
+The goal is to make the product/category experience AI-first, natural, consistent, and customer-friendly across every quote touchpoint.
+
+Today, users often have to manually choose categories from dropdowns or rely on partial URL extraction. This feels technical, fragile, and inconsistent.
+
+The new experience should feel like CRBOX understands what the customer wants to bring.
+
+A user should be able to type or paste:
+
+- “zapatos rosados Nike”
+- “iPhone 15 Pro Max”
+- “proteína whey”
+- “power bank”
+- “perfume Dior”
+- “Stanley cup”
+- “air fryer”
+- “drone DJI”
+- “repuesto para Honda Civic”
+- “maquillaje Sephora”
+- Amazon / eBay / Walmart / Shein / Nike / Apple / Best Buy product URLs
+
+Then Gemini interprets the product, Product Brain validates/grounds the result, and the existing calculator code uses the compatible category/rate where appropriate.
+
+This is NOT a calculator rewrite.
+
+This is an intelligence + UX integration layer.
+
+---
+
+## Core Principle
+
+Gemini is the primary interpretation layer.
+
+Product Brain is the source of truth.
+
+Calculator code remains the deterministic math engine.
+
+Flow:
+
+User enters product name or URL  
+→ Gemini interprets product as a Costa Rica courier/logistics assistant  
+→ Gemini returns likely product type, closest Product Brain category, missing fields, and risk signals  
+→ System validates result against Product Brain  
+→ If exact product does not exist, Gemini may semantically map it to the closest valid category  
+→ Product Brain provides rate, category, warnings, customer message, admin notes, and review rules  
+→ Existing calculator code uses the selected compatible legacy category where automatic estimate is allowed  
+→ Admin can review/override if needed
+
+Gemini must not invent rates.
+
+Gemini must not invent final legal/customs conclusions.
+
+Gemini must not calculate final shipping totals.
+
+Gemini must not bypass Product Brain.
+
+---
+
+## Important UX Principle: No Hard Failure States
+
+The Product Brain must not behave like a rigid exact-match database.
+
+Gemini is allowed to semantically infer, approximate, and map products to the closest valid Product Brain category even when the exact product is not listed.
+
+The goal is to preserve flow continuity.
+
+Avoid user-facing messages like:
+
+- “Product not found”
+- “Category unknown”
+- “AI failed”
+- “Low confidence”
+- “No match”
+- “Error clasificando”
+- “No se pudo analizar”
+
+Instead, use helpful progressive guidance:
+
+- “Detectamos una categoría probable para este producto.”
+- “Parece pertenecer a Calzado.”
+- “CRBOX revisará algunos detalles para confirmar la cotización final.”
+- “Solo falta completar precio, peso o medidas.”
+- “Este producto puede requerir revisión especial antes de confirmar.”
+
+The user should never feel the system broke.
+
+If the exact product is not found, the system should still try to:
+
+1. infer the closest category,
+2. explain the result positively,
+3. ask only for the missing information,
+4. allow submission for CRBOX review when appropriate.
+
+Example:
+
+User input:
+“Stanley quencher pastel pink”
+
+Even if “Stanley quencher” is not explicitly in Product Brain, Gemini should infer:
+- reusable tumbler / bottle
+- home/kitchen accessory
+- likely category: hogar/decor/storage or kitchen accessory
+
+Customer-facing result:
+“Detectamos que este producto parece ser una botella térmica o accesorio de hogar. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material y revisión final.”
+
+Not:
+“Producto no encontrado.”
+
+Example:
+
+User input:
+“zapatos barefoot minimalistas”
+
+Even if “barefoot shoes” is not listed exactly, Gemini should infer:
+- footwear
+- category: calzado
+
+Customer-facing result:
+“Detectamos que este producto pertenece a Calzado. Esta categoría suele pagar aproximadamente 29% en impuestos.”
+
+Example:
+
+User input:
+“DJI FPV battery”
+
+Gemini should infer:
+- drone accessory
+- lithium battery
+- special transport risk
+
+Customer-facing result:
+“Este producto puede requerir revisión especial porque parece incluir batería de litio y estar relacionado con drones. CRBOX debe validarlo antes de confirmar si puede transportarse y cuánto pagaría.”
+
+---
+
+## Main Goal
+
+Create one shared AI-first product classification pipeline used by all product/category/quote touchpoints.
+
+All touchpoints must behave consistently:
+
+- Public cotizar.html
+- Public calculadora.html
+- Product URL “Analizar” flow
+- Client portal Cotizaciones/Solicitudes flow
+- Admin/sales quote calculator
+- Quote response email
+- Portal quote response page
+- Quote-related AI/chat assistant behavior
+
+The same product should classify the same way everywhere.
+
+No duplicated category logic.
+
+No isolated per-page category maps.
+
+No separate Gemini prompts per page unless they call the same shared classification logic.
+
+---
+
+## Done Looks Like
+
+### Customer-facing behavior
+
+Users can type natural product descriptions instead of manually browsing a long dropdown.
+
+When the user enters a product name or URL, the system analyzes it and shows:
+
+- Product detected
+- Category detected
+- Friendly estimated tax percentage/range
+- Friendly explanation from Product Brain
+- Special warning if relevant
+- Missing fields needed to finish the quote
+- Clear next step
+
+Example:
+
+Input:
+“zapatos rosados Nike”
+
+Output:
+“Detectamos que este producto pertenece a Calzado. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material, tipo de suela y revisión aduanera.”
+
+Example:
+
+Input:
+“proteína whey”
+
+Output:
+“Este producto requiere revisión antes de cotizarlo automáticamente. Los suplementos pueden necesitar permisos, registro sanitario o validación especial.”
+
+Example:
+
+Input:
+“power bank”
+
+Output:
+“Detectamos que este producto podría incluir una batería de litio. Estos productos suelen requerir revisión porque pueden tener condiciones especiales de transporte. En algunos casos pueden necesitar manejo especial o generar costos adicionales.”
+
+### Admin-facing behavior
+
+Admin/sales users see richer operational context:
+
+- Original user input
+- Product URL if present
+- Gemini detected product
+- Product Brain category
+- Legacy category code used by calculator
+- Estimated DAI
+- IVA
+- Ley 6946
+- totalEstimatedRate
+- riskFlags
+- manualReviewRequired
+- regulatedProduct
+- restrictedProduct
+- forbiddenProduct
+- adminNotes
+- actionForAdmin
+- category override option
+
+Admin must always be able to override the suggested category.
+
+If admin overrides, show both:
+
+- Categoría detectada por AI/Product Brain
+- Categoría usada para cotización
+
+---
+
+## Required Architecture
+
+Create a shared classification module.
+
+Suggested file:
+
+js/product-classifier.js
+
+Expose:
+
+window.CRBOXProductClassifier = {
+  analyze(input, context),
+  analyzeUrlResult(extractedData, context),
+  validateGeminiCategory(geminiResult),
+  buildCustomerClassificationView(result),
+  buildAdminClassificationView(result),
+  applyToProductCard(productCard, result),
+  shouldAllowAutomaticEstimate(result),
+  getMissingFields(result, currentProductData)
+}
+
+All touchpoints should use this shared classifier.
+
+Do not scatter classification logic across individual pages.
+
+---
+
+## Normalized Classification Result
+
+The shared classifier should return a normalized object:
+
+{
+  ok: true,
+  source: "gemini_product_brain" | "product_brain_local" | "semantic_approximation" | "manual_review",
+  originalInput: "",
+  detectedProductName: "",
+  normalizedProductName: "",
+  categoryId: "",
+  legacyCode: "",
+  displayName: "",
+  categoryGroup: "",
+  estimatedDAI: null,
+  vatRate: 13,
+  law6946Rate: 1,
+  totalEstimatedRate: null,
+  estimatedRange: "",
+  automaticEstimateAllowed: true,
+  manualReviewRequired: false,
+  regulatedProduct: false,
+  restrictedProduct: false,
+  forbiddenProduct: false,
+  riskFlags: [],
+  customerMessage: "",
+  customerWarning: "",
+  adminNotes: "",
+  actionForCustomer: "",
+  actionForAdmin: "",
+  missingFields: [],
+  confidence: "high" | "medium" | "low",
+  userFacingConfidenceLabel: "",
+  rawGeminiResult: {},
+  productBrainMatch: {},
+  exactProductFound: true,
+  semanticApproximationUsed: false
+}
+
+Important:
+
+Customer-facing UI must not show:
+
+- rawGeminiResult
+- confidence
+- categoryId
+- legacyCode
+- internal IDs
+- riskFlags
+- source
+- local_estimated
+- technical fields
+
+Admin can see technical fields.
+
+---
+
+## Gemini Role
+
+Gemini should behave like a Costa Rica courier/logistics product interpretation assistant.
+
+Gemini should analyze:
+
+- natural language product input
+- long ecommerce product titles
+- product URL extraction results
+- partially extracted data
+- user notes
+- visible product name/description
+- possible category
+- possible risk factors
+- whether the product is likely regulated
+- whether the product may include batteries, liquids, food, medicine, chemicals, telecom, drones, weapons, etc.
+
+Gemini should return:
+
+- detectedProductName
+- likelyProductType
+- bestMatchingProductBrainCategoryId
+- closestCategoryReason
+- possibleRiskFlags
+- missingFields
+- shortFriendlyReason
+- whether manual review is recommended
+- whether semantic approximation was used
+
+Gemini instruction:
+
+“Return only an existing Product Brain category ID. Do not invent a new category. Do not invent tax rates. Do not calculate shipping. Do not make final legal/customs decisions. If the exact product is not listed, semantically map it to the closest valid Product Brain category. If the category is still unclear or risky, return unknown_manual_review. Always preserve a helpful customer experience.”
+
+---
+
+## Product Brain Validation
+
+After Gemini returns a category ID:
+
+1. Check that the category ID exists in Product Brain.
+2. If valid, load the full Product Brain category record.
+3. Use Product Brain data for:
+   - legacyCode
+   - estimatedDAI
+   - vatRate
+   - law6946Rate
+   - totalEstimatedRate
+   - estimatedRange
+   - customerMessage
+   - adminNotes
+   - actionForCustomer
+   - actionForAdmin
+   - manualReviewRequired
+   - automaticEstimateAllowed
+   - regulatedProduct
+   - restrictedProduct
+   - forbiddenProduct
+   - riskFlags
+4. If Gemini category does not exist, fall back to semantic local matching.
+5. If still unclear, use unknown_manual_review.
+6. If Gemini is unavailable, use ProductBrain.classifyLocal() as fallback.
+7. If local fallback gives approximate match, return semantic_approximation instead of hard failure.
+
+Important:
+Gemini interprets.
+Product Brain decides.
+Calculator calculates.
+
+---
+
+## Semantic Approximation Rules
+
+The system should not require exact product rows.
+
+If the exact product does not exist in PRODUCT_PRODUCTS, Gemini can map it to the closest category based on:
+
+- product function
+- material
+- use case
+- ecommerce category
+- product title
+- brand context
+- similar products in Product Brain
+- risk pattern
+- tax behavior group
+
+Examples:
+
+“Stanley quencher” → bottle/tumbler → home_decor_storage or kitchen accessory  
+“barefoot shoes” → footwear_complete  
+“Owala bottle” → home_decor_storage  
+“DJI propellers” → drones_rc_review or cameras/photo depending context, but flag drone  
+“MagSafe battery pack” → lithium_batteries_powerbanks  
+“Lululemon leggings” → clothing_general  
+“Dyson Airwrap” → beauty_devices  
+“Kindle Paperwhite” → tablets_ereaders  
+“Meta Quest strap” → gaming_consoles_electronics / gaming accessory  
+“Hydro Flask” → home_decor_storage  
+“Theragun” → beauty_devices or medical/fitness depending context, flag battery_possible  
+“Car oxygen sensor” → automotive_parts_review  
+“Dog vitamins” → pet_food_supplements_review  
+“Retinol serum” → beauty_skincare_personal_care, flag sanitary_possible  
+“Creatine gummies” → supplements_vitamins_nutrition  
+“Paint marker” → office_stationery_art or chemicals_aerosols_adhesives depending liquid/flammable context
+
+If approximation is used, customer copy should say:
+
+“Detectamos una categoría probable…”
+
+or
+
+“Parece pertenecer a…”
+
+not:
+
+“Producto no encontrado.”
+
+---
+
+## URL Analyze Experience
+
+This is one of the most important UX improvements.
+
+When the user pastes a product URL and clicks “Analizar”:
+
+1. Existing URL extraction attempts to get product name, price, category, weight, dimensions.
+2. Preserve whatever data is successfully extracted.
+3. Pass extracted product title/name/description into CRBOXProductClassifier.
+4. Gemini/Product Brain classifies the product.
+5. UI shows partial success when some information is missing.
+6. Ask the user only for missing fields.
+
+Examples:
+
+If AI gets product name and category but not price:
+“Encontramos el producto y su categoría. Solo falta confirmar el precio para completar la cotización.”
+
+If AI gets product name but not dimensions:
+“Detectamos el producto correctamente. El peso y las medidas no aparecen en el enlace, por lo que el equipo CRBOX podrá revisarlas al preparar la cotización.”
+
+If AI cannot scrape much but can infer category:
+“Pudimos identificar el tipo de producto. Revisa o completa los datos faltantes antes de enviar.”
+
+If request truly fails:
+“No pudimos leer todos los datos del enlace, pero puedes completar la información manualmente.”
+
+Avoid:
+
+- “AI failed”
+- “Extraction failed”
+- “No category found”
+- “Error”
+
+---
+
+## Natural Manual Input Experience
+
+When a user manually types product name:
+
+- Do not force dropdown-first selection.
+- User can type naturally.
+- Use local lightweight suggestions while typing if helpful.
+- Use Gemini-first analysis when user clicks “Analizar producto” or pauses intentionally.
+- Debounce to avoid excessive API calls.
+- Category selector can remain as override, but should not be the primary UX.
+
+Recommended flow:
+
+1. User types product name.
+2. Local Product Brain shows lightweight suggestions.
+3. User clicks “Analizar producto” or system analyzes after a clear pause.
+4. Gemini interprets.
+5. Product Brain validates.
+6. Category field is auto-populated.
+7. Friendly explanation appears.
+8. User can keep or change manually.
+9. If user changes manually, re-render Product Brain message for selected category.
+
+---
+
+## Public Cotizar Page Requirements
+
+Update cotizar.html product cards.
+
+Each product card should support:
+
+- Product URL input
+- Product name input
+- Analyze action
+- AI/Product Brain classification result
+- Auto-populated category selector
+- Friendly category/tax message
+- Manual review warning if needed
+- Missing fields guidance
+- Confirmation for AI-filled important values
+
+When a product is classified:
+
+- Set category field to the compatible legacy code.
+- Store classification metadata in product card state.
+- Include classification metadata in submitted payload if backward-compatible.
+- Do not break existing payload fields.
+
+If automaticEstimateAllowed is false:
+
+- Do not show a final-looking live estimate.
+- Show manual review message.
+- Allow quote submission if current business rules allow sales review.
+- Make clear final price is confirmed by CRBOX.
+
+---
+
+## Public Calculadora Page Requirements
+
+Update calculadora.html category experience.
+
+The calculator should allow:
+
+- User enters product name naturally.
+- User analyzes product.
+- Gemini/Product Brain classifies it.
+- Category is auto-selected.
+- Friendly tax/category explanation appears.
+- If automatic estimate is allowed, existing calculator math proceeds.
+- If manual review is required, hide or soften final-looking estimates and show clear review message.
+
+Do not rewrite calculator-engine.js math.
+
+Only feed it selected compatible category/rate where appropriate.
+
+If product is regulated or forbidden, avoid showing misleading final totals.
+
+---
+
+## Client Portal Cotizaciones/Solicitudes Requirements
+
+Wherever the client portal allows quote/product input:
+
+- Use the same AI-first product classifier.
+- Use same Product Brain category logic.
+- Prefill category based on product description or URL.
+- Show same customerMessage.
+- Show same manual review warning.
+- Include classification metadata in product payload if backward-compatible.
+- Do not break portal authentication/session logic.
+- Do not change package tracking/invoices/profile flows.
+
+If portal already knows client profile, do not ask redundant customer data.
+
+---
+
+## Admin/Sales Quote Tool Requirements
+
+Admin should benefit from AI/Product Brain classification.
+
+In each product detail/card, show:
+
+- Original product input
+- URL if present
+- Gemini detected product
+- Product Brain category
+- Legacy calculator category code
+- Customer-facing category message
+- Admin notes
+- Risk flags
+- Manual review status
+- Regulatory/special handling warnings
+- Category override selector
+
+If product is manual review:
+
+- Clearly show why.
+- Show actionForAdmin from Product Brain.
+- Do not block admin from quoting if business rules allow manual handling.
+- Make it clear automatic estimate should not be trusted.
+
+If product is forbidden/restricted:
+
+- Show stronger warning.
+- Avoid auto-generating normal quote unless admin intentionally overrides.
+
+---
+
+## Email Quote Response Requirements
+
+Where quote response emails include product/category/tax explanation:
+
+- Use Product Brain customerMessage.
+- Use friendly percentage/range.
+- Do not show raw metadata.
+- If manual review category was involved, include friendly review explanation.
+- If special risk applies, mention it simply only if relevant.
+
+Do not rewrite email templates fully unless needed.
+
+Do not break existing email sending.
+
+---
+
+## Portal Quote Response Requirements
+
+When quote response is shown in solicitud.html / portal response:
+
+- Show Product Brain customerMessage where category/tax explanation appears.
+- For multi-product quotes, show per-product category explanation if useful.
+- For manual review products, show friendly warning.
+- Do not show technical metadata to customer.
+
+---
+
+## Reminder Email Requirements
+
+If reminder emails include quote/product/category summary:
+
+- Keep them consistent with Product Brain messaging.
+- Do not introduce new category language different from the quote response.
+- If a product required manual review, reminder should not imply the quote was fully automatic.
+- Do not break current reminder timing or status logic.
+
+---
+
+## Chat / AI Assistant Requirements
+
+If there is quote-related chat or AI assistant behavior:
+
+- It should use the same classification pipeline.
+- It should not answer tax/category questions from generic memory.
+- It should classify through Product Brain or say CRBOX must review.
+- It should not invent official rates.
+
+Example:
+
+User asks:
+“¿Cuánto paga traer unos zapatos?”
+
+Assistant:
+“Los zapatos normalmente pertenecen a Calzado y suelen pagar aproximadamente 29% en impuestos. El monto final puede variar según material, valor y revisión aduanera.”
+
+---
+
+## Payload / Data Requirements
+
+Where backward-compatible, enrich each product object with optional metadata:
+
+{
+  product_classification: {
+    originalInput,
+    detectedProductName,
+    normalizedProductName,
+    categoryId,
+    legacyCode,
+    displayName,
+    estimatedRange,
+    totalEstimatedRate,
+    automaticEstimateAllowed,
+    manualReviewRequired,
+    regulatedProduct,
+    restrictedProduct,
+    forbiddenProduct,
+    riskFlags,
+    customerMessage,
+    adminNotes,
+    actionForCustomer,
+    actionForAdmin,
+    source: "gemini_product_brain",
+    semanticApproximationUsed
+  }
+}
+
+Do not remove or rename existing fields.
+
+Do not break old records.
+
+If adding metadata to payload is risky, store it in an optional field only.
+
+---
+
+## Customer-Facing Copy Rules
+
+Never show:
+
+- raw JSON
+- confidence score
+- categoryId
+- legacyCode
+- DAI field names unless intentionally shown in friendly tax breakdown
+- riskFlags
+- manual_review_required
+- local_estimated
+- Gemini output
+- “AI failed”
+- “No match”
+- “Unknown category”
+
+Use:
+
+- “Detectamos que…”
+- “Parece pertenecer a…”
+- “Detectamos una categoría probable…”
+- “Esta categoría suele pagar aproximadamente…”
+- “El monto final puede variar…”
+- “CRBOX debe revisarlo antes de confirmar…”
+- “Solo falta completar…”
+
+---
+
+## Manual Review Rules
+
+If Product Brain says:
+
+- automaticEstimateAllowed: false
+- manualReviewRequired: true
+- regulatedProduct: true
+- restrictedProduct: true
+- forbiddenProduct: true
+
+Then:
+
+- Do not show a final-looking automatic total.
+- Show friendly warning.
+- Allow user to submit for review if business rules allow.
+- Mark product clearly for admin.
+- Include actionForCustomer/actionForAdmin where useful.
+
+For forbiddenProduct:
+
+- Use stronger copy.
+- Do not encourage purchase.
+- Say CRBOX must review before confirming whether it can be transported/imported.
+
+---
+
+## Error / Partial Extraction UX
+
+The experience should never feel broken when AI cannot extract everything.
+
+Use progressive completion language.
+
+Examples:
+
+Missing price:
+“Ya identificamos el producto y la categoría. Solo falta confirmar el precio.”
+
+Missing weight/dimensions:
+“Este enlace no muestra peso o medidas claras. Puedes enviar la solicitud y CRBOX lo revisará.”
+
+Missing category:
+“Detectamos una categoría probable, pero CRBOX puede revisarla antes de confirmar.”
+
+Gemini unavailable:
+“No pudimos analizar el producto automáticamente en este momento. Puedes continuar completando los datos manualmente.”
+
+---
+
+## Technical Constraints
+
+Do not change:
+
+- calculator-engine.js core math
+- tariff-adapter.js public API unless backward-compatible
+- existing category codes
+- existing quote IDs
+- existing status system
+- existing email sending system
+- existing reminder system
+- existing admin authentication
+- existing localStorage drafts unless extending safely
+
+Any new script must load after Product Brain files.
+
+Avoid duplicate logic.
+
+Prefer one shared classifier module used everywhere.
+
+---
+
+## Suggested Implementation Steps
+
+1. Audit available Product Brain exports from #382/#384.
+2. Create shared product-classifier module.
+3. Build Gemini-first prompt for product interpretation.
+4. Validate Gemini output against Product Brain.
+5. Implement semantic approximation behavior.
+6. Implement fallback to ProductBrain.classifyLocal.
+7. Normalize result object.
+8. Integrate into URL Analizar flow.
+9. Integrate into manual product input on cotizar.html.
+10. Integrate into calculadora.html.
+11. Integrate into client portal quote input if present.
+12. Integrate admin quote detail display.
+13. Integrate customer-facing message into email/portal/reminder where category explanation exists.
+14. Ensure all touchpoints use the same function.
+15. Preserve old category codes and payload compatibility.
+16. Test common products:
+    - iPhone 15
+    - zapatos rosados
+    - Stanley quencher
+    - proteína whey
+    - power bank
+    - perfume Dior
+    - air fryer
+    - drone DJI
+    - monitor gaming
+    - repuesto carro
+    - camiseta
+    - maquillaje Sephora
+    - vape
+    - semillas
+    - arma
+    - producto desconocido
+
+---
+
+## Acceptance Criteria
+
+- Gemini is the primary interpretation layer.
+- Product Brain is the source of category/rate/review truth.
+- Product Brain is not treated as rigid exact-match only.
+- Semantic approximation works for products not explicitly listed.
+- Customer never sees hard failure messages for normal classification uncertainty.
+- Calculator math remains unchanged.
+- cotizar.html uses the shared classifier.
+- calculadora.html uses the shared classifier.
+- URL Analizar uses the shared classifier.
+- Client portal quote input uses the shared classifier if present.
+- Admin sales quote tool displays Product Brain classification context.
+- Email/portal/reminder quote response uses friendly Product Brain messages where relevant.
+- Same product resolves consistently across touchpoints.
+- Category selector is auto-populated but still manually editable.
+- Manual-review products show warnings instead of final-looking totals.
+- Forbidden/restricted products are clearly flagged.
+- No duplicated category mapping logic is introduced.
+- Existing category codes are preserved.
+- Existing quote submission still works.
+- Existing calculator still works.
+- Existing response_json still works.
+- Existing reminder flow still works.
+- No console errors.
+- Old quote records still render.
