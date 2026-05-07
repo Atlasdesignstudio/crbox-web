@@ -302,7 +302,7 @@
                 </div>
                 <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight" id="welcome-name-span">Hola.</h1>
                 <p id="greet-message" class="text-gray-300 text-sm md:text-base mb-5 leading-relaxed max-w-xl">Cargando el resumen de tu cuenta…</p>
-                <div class="flex flex-col sm:flex-row gap-2.5">
+                <div class="flex flex-col sm:flex-row gap-2.5" data-cta-zone="hero_button">
                     <a href="mis-solicitudes.html" class="button-3d primary-action bg-orange-500 text-white hover:bg-orange-600 py-3 px-5 rounded-xl font-medium flex items-center justify-center transition-all shadow-lg">
                         <i class="fas fa-shopping-bag mr-2"></i>
                         Cotizar
@@ -405,7 +405,7 @@
         </div>
 
         <!-- Solicitudes de Compra entry card -->
-        <div class="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl shadow-sm p-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl shadow-sm p-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-4" data-cta-zone="entry_card">
             <div class="flex items-center gap-4 flex-1 min-w-0">
                 <div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center flex-shrink-0 shadow-inner">
                     <i class="fas fa-shopping-bag text-orange-500 text-2xl"></i>
@@ -1527,7 +1527,15 @@
 // Fires portal_section_view when the user navigates from the dashboard to
 // another portal section via any link (entry cards, stat card links, nav, etc.).
 // Uses event delegation so dynamically-rendered links are covered too.
-// All four registered GA4 custom dimension parameters are included in the push.
+// All registered GA4 custom dimension parameters are included in the push,
+// including cta_location which identifies which UI zone triggered the click:
+//   'tab_bar'      — sticky portal navigation bar
+//   'nav_dropdown' — desktop user-menu dropdown in the header
+//   'mobile_nav'   — mobile drawer portal navigation
+//   'hero_button'  — CTA buttons in the welcome banner
+//   'entry_card'   — Solicitudes de Compra entry card
+//   'stat_card'    — dashboard stat cards (Paquetes en Camino, etc.)
+//   'other'        — any other link on the page
 (function () {
   var _SECTION_MAP = {
     'mis-paquetes.html':    { section_name: 'mis_paquetes',    page_type: 'portal_packages'  },
@@ -1535,6 +1543,16 @@
     'mis-solicitudes.html': { section_name: 'mis_solicitudes', page_type: 'portal_requests'  },
     'mi-cuenta.html':       { section_name: 'mi_cuenta',       page_type: 'portal'           }
   };
+
+  function _detectCtaLocation(anchor) {
+    if (anchor.closest('.portal-tab-nav'))        return 'tab_bar';
+    if (anchor.closest('#user-dropdown-menu'))    return 'nav_dropdown';
+    if (anchor.closest('#mobile-menu'))           return 'mobile_nav';
+    if (anchor.closest('.stat-card'))             return 'stat_card';
+    var zone = anchor.closest('[data-cta-zone]');
+    if (zone) return zone.getAttribute('data-cta-zone');
+    return 'other';
+  }
 
   document.addEventListener('click', function (e) {
     var anchor = e.target.closest('a[href]');
@@ -1545,12 +1563,13 @@
     if (!entry) return;
     if (window.CRBOX && CRBOX.track && typeof CRBOX.track.portal_section_view === 'function') {
       try {
-        // page_type reflects the destination section type so GA4 can report
-        // on which portal area users navigate to from the dashboard.
+        // cta_location identifies which dashboard UI element drove the navigation
+        // so GA4 reports can reveal which zone generates the most portal traffic.
         CRBOX.track.portal_section_view({
           section_name: entry.section_name,
           page_name:    'dashboard',
-          page_type:    entry.page_type
+          page_type:    entry.page_type,
+          cta_location: _detectCtaLocation(anchor)
         });
       } catch (_e) {}
     }

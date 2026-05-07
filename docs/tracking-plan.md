@@ -468,13 +468,14 @@ Every event sends only the 24 parameters listed above. No other parameter names 
 | Field           | Detail                                                                   |
 |-----------------|--------------------------------------------------------------------------|
 | **Event name**  | `portal_section_view`                                                    |
-| **Parameters**  | `section_name` · `page_name` · `page_type` · `status_category` (optional) |
-| **Trigger**     | (1) Auto-fired on every portal page load (DOMContentLoaded in `analytics.js`) · (2) Tab switch in `mis-paquetes.html` · (3) Entry card click from `dashboard.html` |
+| **Parameters**  | `section_name` · `page_name` · `page_type` · `status_category` (optional) · `cta_location` (optional, dashboard only) |
+| **Trigger**     | (1) Auto-fired on every portal page load (DOMContentLoaded in `analytics.js`) · (2) Tab switch in `mis-paquetes.html` · (3) Any section link click from `dashboard.html` |
 | **Pages**       | All portal pages                                                         |
 | **section_name values** | `dashboard` · `mi_cuenta` · `mis_paquetes` · `mis_facturas` · `mis_solicitudes` · `solicitud` · `cotizar` · `packages_all` · `packages_miami` · `packages_loaded` · `packages_in_transit` · `packages_sjo` · `packages_crbox` · `packages_pending_invoice` · `packages_other` · `mi_cuenta_personal_info` · `mi_cuenta_address_info` · `mi_cuenta_security` · `mi_cuenta_notifications` · `mi_cuenta_other` |
 | **status_category** | Only set on tab-switch events in `mis-paquetes.html`: `all` · `miami` · `loaded` · `in_transit` · `sjo` · `crbox` · `pending_invoice` · `other` |
+| **cta_location** | Set on click events from `dashboard.html` only. Identifies which UI zone triggered the navigation: `tab_bar` (sticky portal nav bar) · `nav_dropdown` (desktop header user-menu) · `mobile_nav` (mobile drawer nav) · `hero_button` (welcome banner CTA buttons) · `entry_card` (Solicitudes de Compra card) · `stat_card` (Paquetes en Camino / Facturas stat cards) · `other` (any other link). Not set on auto-fired page-load events. |
 | **Auto-fire scope** | Fires automatically on all portal app pages (`portal` · `portal_packages` · `portal_invoices` · `portal_requests` · `portal_quotes`). Explicitly **excluded** from `portal_auth` (`login.html`) — that page is not part of the portal navigation set. |
-| **Method signature** | Accepts either a plain string (backward-compat) or an object `{ section_name, page_name, page_type, status_category }`. |
+| **Method signature** | Accepts either a plain string (backward-compat) or an object `{ section_name, page_name, page_type, status_category, cta_location }`. |
 
 ---
 

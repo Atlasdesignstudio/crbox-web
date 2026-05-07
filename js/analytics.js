@@ -309,21 +309,26 @@ CRBOX.track = {
   //   page_name       — (optional) override; defaults to current page_name
   //   page_type       — (optional) override; defaults to current page_type
   //   status_category — (optional) e.g. 'in_transit' | 'miami' | 'delivered'
+  //   cta_location    — (optional) which UI element triggered navigation:
+  //                     'entry_card' | 'stat_card' | 'hero_button' | 'tab_bar'
+  //                     | 'nav_dropdown' | 'mobile_nav' | 'other'
 
   portal_section_view: function(params) {
     var ctx = _crboxPageCtx();
-    var section_name, page_name, page_type, status_category;
+    var section_name, page_name, page_type, status_category, cta_location;
 
     if (params && typeof params === 'object') {
       section_name    = params.section_name    || 'unknown';
       page_name       = params.page_name       || ctx.page_name;
       page_type       = params.page_type       || ctx.page_type;
       status_category = params.status_category || undefined;
+      cta_location    = params.cta_location    || undefined;
     } else {
       section_name    = params || 'unknown';
       page_name       = ctx.page_name;
       page_type       = ctx.page_type;
       status_category = undefined;
+      cta_location    = undefined;
     }
 
     var payload = {
@@ -332,6 +337,7 @@ CRBOX.track = {
       page_type:    page_type
     };
     if (status_category) payload.status_category = status_category;
+    if (cta_location)    payload.cta_location    = cta_location;
     this.push('portal_section_view', payload);
   },
 

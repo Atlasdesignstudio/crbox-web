@@ -7,7 +7,7 @@
     "containerId": "0",
     "containerVersionId": "0",
     "name": "CRBOX Analytics",
-    "description": "CRBOX GTM container — updated May 2026. 25 DLV variables, 35 Custom Event triggers, 36 tags (GA4 Configuration + 35 GA4 Event tags). Covers all 25 tracked events including 17 portal events (login, signup, portal_section_view, package_search, package_detail_view, invoice_upload, quote_start, quote_submit, chat, outbound_click). All parameter names match the 24 registered GA4 custom dimensions. All stale pre-#376 variables and tags removed. Import via Admin → Import Container → Replace existing workspace.",
+    "description": "CRBOX GTM container — updated May 2026. 25 DLV variables, 35 Custom Event triggers, 36 tags (GA4 Configuration + 35 GA4 Event tags). Covers all 25 tracked events including 17 portal events (login, signup, portal_section_view, package_search, package_detail_view, invoice_upload, quote_start, quote_submit, chat, outbound_click). All parameter names match the 24 registered GA4 custom dimensions. All stale pre-#376 variables and tags removed. portal_section_view tag updated (task #374): cta_location parameter added using existing dlv - cta_location variable. Import via Admin → Import Container → Replace existing workspace.",
     "container": {
       "path": "accounts/0/containers/0",
       "accountId": "0",
@@ -4873,6 +4873,21 @@
                     "value": "{{dlv - status_category}}"
                   }
                 ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "name",
+                    "value": "cta_location"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "value",
+                    "value": "{{dlv - cta_location}}"
+                  }
+                ]
               }
             ]
           }
@@ -4880,7 +4895,7 @@
         "firingTriggerId": [
           "131"
         ],
-        "notes": ""
+        "notes": "cta_location added (task #374): entry_card | stat_card | hero_button | tab_bar | nav_dropdown | mobile_nav | other"
       },
       {
         "accountId": "0",
