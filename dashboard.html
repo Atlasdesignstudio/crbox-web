@@ -1527,23 +1527,32 @@
 // Fires portal_section_view when the user navigates from the dashboard to
 // another portal section via any link (entry cards, stat card links, nav, etc.).
 // Uses event delegation so dynamically-rendered links are covered too.
+// All four registered GA4 custom dimension parameters are included in the push.
 (function () {
   var _SECTION_MAP = {
-    'mis-paquetes.html': 'mis_paquetes',
-    'mis-facturas.html': 'mis_facturas',
-    'mis-solicitudes.html': 'mis_solicitudes'
+    'mis-paquetes.html':    { section_name: 'mis_paquetes',    page_type: 'portal_packages'  },
+    'mis-facturas.html':    { section_name: 'mis_facturas',    page_type: 'portal_invoices'  },
+    'mis-solicitudes.html': { section_name: 'mis_solicitudes', page_type: 'portal_requests'  },
+    'mi-cuenta.html':       { section_name: 'mi_cuenta',       page_type: 'portal'           }
   };
 
   document.addEventListener('click', function (e) {
     var anchor = e.target.closest('a[href]');
     if (!anchor) return;
     var href = anchor.getAttribute('href') || '';
-    // Strip hash/query to get the base filename.
     var base = href.split('?')[0].split('#')[0].replace(/^.*\//, '');
-    var sectionName = _SECTION_MAP[base];
-    if (!sectionName) return;
-    if (window.CRBOX && CRBOX.track) {
-      try { CRBOX.track.portal_section_view(sectionName); } catch (_e) {}
+    var entry = _SECTION_MAP[base];
+    if (!entry) return;
+    if (window.CRBOX && CRBOX.track && typeof CRBOX.track.portal_section_view === 'function') {
+      try {
+        // page_type reflects the destination section type so GA4 can report
+        // on which portal area users navigate to from the dashboard.
+        CRBOX.track.portal_section_view({
+          section_name: entry.section_name,
+          page_name:    'dashboard',
+          page_type:    entry.page_type
+        });
+      } catch (_e) {}
     }
   }, true);
 }());

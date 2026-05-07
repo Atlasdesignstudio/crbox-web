@@ -2138,13 +2138,11 @@
             $('sd-3').innerHTML = '<i class="fas fa-check text-xs"></i>';
             $('sl-3').className = 'text-xs mt-1 font-medium text-orange-600';
 
-            // Analytics
+            // Analytics — only registered GA4 custom dimension params are sent;
+            // raw values (destination text, total_usd) are intentionally omitted.
             if (window.CRBOX && window.CRBOX.track) {
                 window.CRBOX.track.calculator_query({
-                    mode: 'aereo_consolidado',
-                    item_count: items.length,
-                    destination,
-                    total_usd: consolidated.total
+                    mode: 'aereo_consolidado'
                 });
             }
         });

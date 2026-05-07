@@ -198,15 +198,13 @@ const CALCULATOR_ENGINE = (function () {
     if (window.CRBOX && CRBOX.track) {
       try {
         CRBOX.track.calculator_result({
-          mode:               mode || 'aereo',
-          weight_bucket:      _weightBucket(breakdown.billableKg),
-          value_bucket:       _valueBucket(breakdown.total || 0),
+          mode:                mode || 'aereo',
+          weight_bucket:       _weightBucket(breakdown.billableKg),
+          value_bucket:        _valueBucket(breakdown.total || 0),
           // All CRBOX destinations are within Costa Rica — zone keys are internal
-          destination_country: 'CR',
-          total_usd:          Math.round((breakdown.total || 0) * 100) / 100,
-          shipping_usd:       Math.round(((breakdown.freight || 0) + (breakdown.fuel || 0)) * 100) / 100,
-          handling_usd:       Math.round((breakdown.handling || 0) * 100) / 100,
-          taxes_usd:          Math.round((breakdown.taxes || 0) * 100) / 100
+          destination_country: 'CR'
+          // Raw monetary values (total_usd, shipping_usd, handling_usd, taxes_usd)
+          // are not registered GA4 custom dimensions and are intentionally omitted.
         });
       } catch (e) {}
     }

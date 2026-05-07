@@ -1772,14 +1772,24 @@
                     tab.classList.add('active');
                     
                     const statusFilter = tab.getAttribute('data-status');
-                    // Fire portal_section_view with a human-readable label (the
-                    // visible tab text) so GA4 reports show "paquetes_Miami",
-                    // "paquetes_En Tránsito", etc. rather than raw data-status values.
-                    if (window.CRBOX && CRBOX.track) {
+                    if (window.CRBOX && CRBOX.track && typeof CRBOX.track.portal_section_view === 'function') {
                         try {
-                            var _labelEl = tab.querySelector('.text-sm.font-medium') || tab.querySelector('span');
-                            var _tabLabel = _labelEl ? _labelEl.textContent.trim() : (statusFilter || 'all');
-                            CRBOX.track.portal_section_view('paquetes_' + _tabLabel);
+                            var _statusMap = {
+                                'all':               { section_name: 'packages_all',              status_category: 'all'              },
+                                'MIAMI':             { section_name: 'packages_miami',             status_category: 'miami'            },
+                                'CARGADO':           { section_name: 'packages_loaded',            status_category: 'loaded'           },
+                                'EN TRÁNSITO':       { section_name: 'packages_in_transit',        status_category: 'in_transit'       },
+                                'SJO':               { section_name: 'packages_sjo',               status_category: 'sjo'              },
+                                'CRBOX':             { section_name: 'packages_crbox',             status_category: 'crbox'            },
+                                'pendiente-factura': { section_name: 'packages_pending_invoice',   status_category: 'pending_invoice'  }
+                            };
+                            var _entry = _statusMap[statusFilter] || { section_name: 'packages_other', status_category: 'other' };
+                            CRBOX.track.portal_section_view({
+                                section_name:    _entry.section_name,
+                                page_name:       'mis_paquetes',
+                                page_type:       'portal_packages',
+                                status_category: _entry.status_category
+                            });
                         } catch (_e) {}
                     }
 
@@ -2735,10 +2745,20 @@
           _renderAll(_displayPackages, true);
           if (tracking && window.CRBOX && CRBOX.track) {
             try {
+              var _statusCatMap = {
+                'MIAMI': 'miami', 'miami': 'miami',
+                'CARGADO': 'loaded', 'cargado': 'loaded',
+                'EN TRÁNSITO': 'in_transit', 'EN TRANSITO': 'in_transit', 'en tránsito': 'in_transit',
+                'SJO': 'sjo', 'sjo': 'sjo',
+                'CRBOX': 'crbox', 'crbox': 'crbox',
+                'pendiente-factura': 'pending_invoice', 'PENDIENTE-FACTURA': 'pending_invoice'
+              };
               var _firstPkg = _displayPackages && _displayPackages[0];
+              var _rawStatus = _firstPkg ? (_firstPkg.statusLabel || _firstPkg.status || '') : '';
+              var _normalizedStatus = _statusCatMap[_rawStatus] || _statusCatMap[(_rawStatus || '').toUpperCase()] || 'unknown';
               CRBOX.track.package_search_result(
                 _displayPackages.length > 0,
-                _firstPkg ? (_firstPkg.statusLabel || _firstPkg.status || 'unknown') : 'no_result'
+                _firstPkg ? _normalizedStatus : 'no_result'
               );
             } catch (_e) {}
           }
@@ -3384,8 +3404,9 @@
               var _si = document.getElementById('search-input');
               var _q = (_si && _si.value) ? _si.value.trim() : '';
               if (_q && window.CRBOX && CRBOX.track) {
-                var _qBucket = _q.length <= 5 ? '1_5' : _q.length <= 15 ? '6_15' : '16_plus';
-                try { CRBOX.track.package_search(_qBucket); } catch (_e) {}
+                // query_length_bucket is not a registered GA4 custom dimension;
+                // the event name alone records the search signal.
+                try { CRBOX.track.package_search(); } catch (_e) {}
               }
               if (_cachedConsigneeId) _applyFiltersFromUI(_cachedConsigneeId);
             }
