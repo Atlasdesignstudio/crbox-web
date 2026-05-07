@@ -122,6 +122,72 @@
     }
     </script>
 
+    <!-- Structured Data: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "¿Cuánto cuesta el casillero virtual de CRBOX?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "El casillero virtual de CRBOX es completamente gratuito. No tiene cuota mensual, costo de registro ni costos ocultos. Solo pagás el flete cuando enviás paquetes a Costa Rica."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Necesito una tarjeta de crédito de USA para usar CRBOX?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Tu casillero virtual en Miami es gratuito y no requiere tarjeta internacional. Si necesitás comprar en tiendas que no aceptan tarjetas costarricenses, podés usar nuestro servicio de Compras por Encargo: enviás los links y nosotros realizamos la compra por vos."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Qué tiendas de USA puedo usar con mi casillero CRBOX?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Podés comprar en cualquier tienda de USA que envíe a Miami: Amazon, Walmart, Best Buy, Target, Apple, eBay, Shein, y miles de tiendas más. Solo ingresás tu dirección de casillero CRBOX como destino de envío al hacer tu compra."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Puedo enviar cualquier producto desde USA a Costa Rica?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "La gran mayoría de productos sí se pueden enviar. Los artículos restringidos por ley o aduanas incluyen: armas y municiones, animales vivos, alimentos perecederos, materiales peligrosos o inflamables, y mercancía falsificada o prohibida por las leyes de Costa Rica."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cuál es la diferencia entre carga aérea y carga marítima?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "La carga aérea llega en 3–5 días hábiles desde Miami y se cobra por libra (el mayor entre peso real y volumétrico). La carga marítima tarda aproximadamente 6–7 días desde Miami y se cobra por pie cúbico; es la opción más económica para cargas grandes o pesadas."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿CRBOX entrega paquetes a domicilio en toda Costa Rica?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sí. CRBOX ofrece entrega a domicilio en todo el territorio costarricense. También podés recoger tu paquete sin costo adicional en nuestras sucursales en San José: Sabana Norte (oficina principal) y Calle Blancos."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cómo me registro en CRBOX?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "El registro es gratuito y toma pocos minutos. Ingresá a https://crbox.cr/afiliate.html, completá el formulario con tu información y recibirás de inmediato tu dirección personal en Miami para empezar a comprar en tiendas de USA."
+          }
+        }
+      ]
+    }
+    </script>
+
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #FF6B00 0%, #FF9A00 100%);
@@ -349,6 +415,28 @@
             .logistics-pt-dot  { r:4px; }
             .logistics-pt-ring { r:6px; }
             .logistics-pt-pulse{ r:5px; }
+        }
+
+        /* ── FAQ accordion ────────────────────────────────────────── */
+        .faq-item .faq-answer {
+            overflow: hidden;
+            transition: max-height 0.35s ease, opacity 0.25s ease;
+        }
+        .faq-chevron {
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+        @media (max-width: 767px) {
+            .faq-item { cursor: pointer; }
+            .faq-item .faq-answer { max-height: 0; opacity: 0; }
+            .faq-item.faq-open .faq-answer { max-height: 400px; opacity: 1; }
+            .faq-item.faq-open .faq-chevron { transform: rotate(180deg); color: #FF6B00; }
+        }
+        @media (min-width: 768px) {
+            .faq-chevron { display: none; }
+            .faq-item .faq-answer { max-height: none !important; opacity: 1 !important; }
         }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
@@ -1064,6 +1152,121 @@
     </div>
 </section>
 
+    <!-- FAQ Section -->
+<section id="faq" class="py-16 md:py-24 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-16">
+            <span class="text-orange-600 font-semibold mb-2 inline-block">PREGUNTAS FRECUENTES</span>
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Resolvemos tus Dudas sobre Nuestros Servicios</h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Todo lo que necesitás saber antes de empezar a comprar en USA con CRBOX.</p>
+        </div>
+
+        <div class="max-w-4xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- FAQ 1 -->
+                <div class="feature-card p-6 faq-item">
+                    <div class="flex items-start mb-3">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold flex-1">¿Cuánto cuesta el casillero virtual de CRBOX?</h3>
+                        <i class="fas fa-chevron-down faq-chevron ml-3 mt-1"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="text-gray-600 mt-2 sm:ml-14">El casillero virtual es <strong>completamente gratuito</strong>. Sin cuota mensual, sin costo de registro y sin costos ocultos. Solo pagás el flete cuando enviás paquetes a Costa Rica.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ 2 -->
+                <div class="feature-card p-6 faq-item">
+                    <div class="flex items-start mb-3">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold flex-1">¿Necesito una tarjeta de crédito de USA?</h3>
+                        <i class="fas fa-chevron-down faq-chevron ml-3 mt-1"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="text-gray-600 mt-2 sm:ml-14">No. Si alguna tienda no acepta tu tarjeta costarricense, podés usar nuestro servicio de <strong>Compras por Encargo</strong>: enviás los links de los productos y nosotros realizamos la compra por vos.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ 3 -->
+                <div class="feature-card p-6 faq-item">
+                    <div class="flex items-start mb-3">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold flex-1">¿Qué tiendas de USA puedo usar?</h3>
+                        <i class="fas fa-chevron-down faq-chevron ml-3 mt-1"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="text-gray-600 mt-2 sm:ml-14">Podés comprar en <strong>cualquier tienda que envíe a Miami</strong>: Amazon, Walmart, Best Buy, Target, Apple, eBay, Shein, y miles más. Solo usás tu dirección de casillero CRBOX como destino de envío.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ 4 -->
+                <div class="feature-card p-6 faq-item">
+                    <div class="flex items-start mb-3">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                            <i class="fas fa-ban"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold flex-1">¿Puedo enviar cualquier producto desde USA?</h3>
+                        <i class="fas fa-chevron-down faq-chevron ml-3 mt-1"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="text-gray-600 mt-2 sm:ml-14">La gran mayoría de productos sí. Los artículos <strong>no permitidos</strong> incluyen: armas y municiones, animales vivos, alimentos perecederos, materiales peligrosos o inflamables, y mercancía falsificada o prohibida por aduanas de Costa Rica.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ 5 -->
+                <div class="feature-card p-6 faq-item">
+                    <div class="flex items-start mb-3">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                            <i class="fas fa-plane"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold flex-1">¿Cuál es la diferencia entre carga aérea y marítima?</h3>
+                        <i class="fas fa-chevron-down faq-chevron ml-3 mt-1"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="text-gray-600 mt-2 sm:ml-14"><strong>Carga aérea:</strong> llega en 3–5 días hábiles, se cobra por libra; ideal para paquetes urgentes o livianos. <strong>Carga marítima:</strong> tarda ~6–7 días, se cobra por pie cúbico; es la opción más económica para cargas grandes o pesadas.</p>
+                    </div>
+                </div>
+
+                <!-- FAQ 6 -->
+                <div class="feature-card p-6 faq-item">
+                    <div class="flex items-start mb-3">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold flex-1">¿CRBOX entrega a domicilio en toda Costa Rica?</h3>
+                        <i class="fas fa-chevron-down faq-chevron ml-3 mt-1"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="text-gray-600 mt-2 sm:ml-14">Sí. Ofrecemos entrega a domicilio en todo el país. También podés recoger tu paquete <strong>sin costo adicional</strong> en nuestras sucursales en San José (Sabana Norte y Calle Blancos).</p>
+                    </div>
+                </div>
+
+                <!-- FAQ 7 -->
+                <div class="feature-card p-6 faq-item md:col-span-2">
+                    <div class="flex items-start mb-3">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold flex-1">¿Cómo me registro en CRBOX?</h3>
+                        <i class="fas fa-chevron-down faq-chevron ml-3 mt-1"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="text-gray-600 mt-2 sm:ml-14">El registro es <strong>gratuito y toma pocos minutos</strong>. Ingresá a <a href="afiliate.html" class="text-orange-600 hover:underline font-medium">crbox.cr/afiliate.html</a>, completá el formulario con tu información y recibirás de inmediato tu dirección personal en Miami para empezar a comprar en tiendas de USA.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
   <!-- Call to Action -->
 <section class="py-16 md:py-24 gradient-bg relative overflow-hidden">
     <div class="absolute inset-0 opacity-10 bg-pattern"></div>
@@ -1173,6 +1376,23 @@
             });
         }
     });
+</script>
+<script>
+    (function () {
+        function initFAQ() {
+            var items = document.querySelectorAll('.faq-item');
+            items.forEach(function (item) {
+                item.addEventListener('click', function () {
+                    item.classList.toggle('faq-open');
+                });
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initFAQ);
+        } else {
+            initFAQ();
+        }
+    })();
 </script>
 <script src="js/seo-config.js"></script>
 <script src="js/analytics.js"></script>

@@ -121,7 +121,7 @@ Expanded from 4 questions to 6 questions. Added:
 | Page | Priority | Schema Types |
 |---|---|---|
 | index.html | 1.0 | Organization, LocalBusiness, WebSite |
-| servicios.html | 0.9 | ItemList (Service ×4), BreadcrumbList |
+| servicios.html | 0.9 | ItemList (Service ×4), BreadcrumbList, FAQPage (7Q) |
 | afiliate.html | 0.9 | WebPage (RegisterAction), BreadcrumbList |
 | como-funciona.html | 0.8 | FAQPage (9Q), HowTo (4 steps), BreadcrumbList |
 | tarifas.html | 0.8 | FAQPage (6Q), BreadcrumbList |
@@ -159,6 +159,7 @@ Expanded from 4 questions to 6 questions. Added:
 ```json
 { "@type": "ItemList" /* 4 Service items */ }
 { "@type": "BreadcrumbList" }
+{ "@type": "FAQPage" /* 7 questions */ }
 ```
 
 ### `como-funciona.html`
@@ -321,7 +322,7 @@ Portal pages correctly absent.
 5. **Add `og:image:width` and `og:image:height` to Open Graph tags** — Helps social media renderers pre-size images correctly.
 6. **Create a dedicated testimonials or case studies page** — CRBOX has +20 years of experience; a page with real customer stories would support E-E-A-T signals.
 7. **Add structured data `sameAs` links** — Once CRBOX establishes social media presence, add them to the Organization schema's `sameAs` array in `index.html` and `seo-config.js`.
-8. **Add a FAQ section to `servicios.html`** — The service descriptions are strong but a visible Q&A block would reinforce AEO extraction signals.
+8. **~~Add a FAQ section to `servicios.html`~~** — ✅ Done (Task #373): FAQPage JSON-LD (7 questions) + visible accordion section added.
 
 ### Low Priority / Ongoing
 9. **Monthly content update to `llms.txt`** — Keep it current if services, hours, or pricing change.
