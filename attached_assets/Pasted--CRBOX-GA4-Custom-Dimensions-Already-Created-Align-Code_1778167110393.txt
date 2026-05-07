@@ -1,0 +1,906 @@
+# CRBOX — GA4 Custom Dimensions Already Created + Align Code + Portal Navigation Tracking
+
+For context, the 24 GA4 custom dimensions have already been created manually inside the GA4 property.
+
+You do not need to create new GA4 dimensions for this task.
+
+Your job is to make sure the code sends event parameters that match the registered GA4 custom dimensions exactly, with the same technical names, normalized values, and no private data.
+
+This applies to the full GA4 analytics implementation, including #366 and #368.
+
+---
+
+## Main Context
+
+CRBOX already has a centralized analytics architecture around:
+
+- GTM
+- GA4
+- js/analytics.js
+- CRBOX.track
+- privacy-safe event payloads
+
+The goal now is to make sure every event sent by the code uses the exact parameter names that already exist in GA4.
+
+Do not invent new parameter names.
+
+Do not send duplicate versions of the same concept.
+
+Do not send raw/private/high-cardinality values.
+
+---
+
+## GA4 Custom Dimensions Already Registered
+
+These 24 event-scoped custom dimensions already exist in GA4:
+
+| GA4 Dimension | Event parameter |
+|---|---|
+| Page Type | page_type |
+| Page Name | page_name |
+| CTA ID | cta_id |
+| CTA Location | cta_location |
+| Destination Type | destination_type |
+| Step Name | step_name |
+| Account Type | account_type |
+| Service Type | service_type |
+| Shipping Mode | shipping_mode |
+| Weight Bucket | weight_bucket |
+| Value Bucket | value_bucket |
+| Error Category | error_category |
+| Section Name | section_name |
+| Form Name | form_name |
+| Status Category | status_category |
+| Destination Country | destination_country |
+| Message Type | message_type |
+| Link Domain | link_domain |
+| Link Context | link_context |
+| Query Length Bucket | query_length_bucket |
+| Item Count Bucket | item_count_bucket |
+| File Type | file_type |
+| CTA Text | cta_text |
+| Page Path Group | page_path_group |
+
+Use these exact technical parameter names in all GA4/dataLayer event payloads.
+
+---
+
+## Do Not Use Alternative Parameter Names
+
+Do not send alternatives such as:
+
+pageType
+page_category
+pageCategory
+page_name_clean
+ctaLabel
+cta_label
+button_text
+buttonText
+cta_destination
+destination
+formStep
+step
+portal_section
+tab_name
+section
+portal_tab
+active_tab
+link_url
+full_url
+tracking_number
+invoice_number
+user_id
+customer_id
+message_text
+
+If the meaning already exists in the 24 dimensions above, use the registered parameter name.
+
+Correct example:
+
+{
+  cta_id: "hero_affiliate",
+  cta_location: "hero",
+  destination_type: "affiliate"
+}
+
+Incorrect example:
+
+{
+  button_text: "Afíliate Gratis",
+  location: "hero",
+  destination: "afiliate.html"
+}
+
+---
+
+## Core Implementation Requirement
+
+Audit all analytics code and every place that calls:
+
+CRBOX.track(...)
+CRBOX.track.some_event(...)
+window.dataLayer.push(...)
+gtag(...)
+
+Make sure all event payloads:
+
+1. Use the exact registered GA4 parameter names.
+2. Use normalized values.
+3. Avoid high-cardinality values.
+4. Avoid private/user-specific data.
+5. Avoid raw URLs with query strings.
+6. Avoid raw backend error messages.
+7. Avoid duplicate parameter names.
+8. Continue going through the centralized analytics helper wherever possible.
+
+The final system should feel like one coherent analytics layer.
+
+---
+
+## Privacy Rules — Non-Negotiable
+
+Never send to GA4:
+
+Names
+Emails
+Phone numbers
+Identification numbers
+Addresses
+Customer IDs
+Account IDs
+Auth tokens
+Session tokens
+Package tracking numbers
+Package IDs
+Invoice numbers
+Invoice filenames
+Exact package descriptions
+Exact product descriptions written by users
+Raw quote descriptions
+Raw chat message text
+Uploaded file names
+Raw search queries
+Raw backend payloads
+Raw API responses
+Raw error messages
+Full URLs with query parameters
+
+Only send:
+
+Booleans
+Buckets
+Categories
+Normalized labels
+Generic page names
+Generic page types
+Generic section names
+Generic status categories
+Generic error categories
+Generic service types
+Generic action types
+File extensions only
+External domains only
+
+---
+
+## Preferred Normalized Values
+
+Use controlled values like these wherever possible.
+
+### page_type
+
+public_home
+public_service
+public_how_it_works
+public_rates
+public_calculator
+public_contact
+public_affiliate
+public_quote
+portal_auth
+portal
+portal_packages
+portal_invoices
+portal_quotes
+portal_account
+legal
+utility
+
+### page_name
+
+home
+servicios
+como_funciona
+tarifas
+calculadora
+contacto
+afiliate
+cotizar
+login
+dashboard
+mis_paquetes
+mis_facturas
+mis_solicitudes
+solicitud
+mi_cuenta
+privacidad
+terminos
+not_found
+
+### page_path_group
+
+public
+portal
+quote
+legal
+utility
+
+### cta_id
+
+Use normalized CTA IDs, not raw changing text:
+
+hero_affiliate
+hero_calculator
+header_calculator
+header_affiliate
+footer_whatsapp
+footer_contact
+calculator_result_affiliate
+contact_whatsapp
+services_quote
+rates_calculator
+how_it_works_affiliate
+portal_entry_packages
+portal_entry_invoices
+portal_entry_quotes
+
+### cta_text
+
+If used, keep it controlled and readable:
+
+Afíliate Gratis
+Calcular Envío
+Contactar por WhatsApp
+Solicitar Cotización
+Ver Tarifas
+Iniciar Sesión
+
+Do not use dynamic text or user-generated values.
+
+### cta_location
+
+header
+hero
+footer
+card
+content_section
+calculator_result
+contact_section
+dashboard_card
+portal
+
+### destination_type
+
+affiliate
+calculator
+contact
+quote
+login
+whatsapp
+portal
+rates
+how_it_works
+external
+
+### step_name
+
+account_type
+personal_info
+address
+contact_info
+shipping_info
+invoice_upload
+confirm
+submit
+success
+
+### account_type
+
+personal
+business
+unknown
+
+### service_type
+
+aereo
+maritimo
+courier
+quote
+consolidation
+invoice_upload
+tracking
+unknown
+
+### shipping_mode
+
+aereo
+maritimo
+unknown
+
+### weight_bucket
+
+0_1kg
+1_5kg
+5_10kg
+10kg_plus
+unknown
+
+### value_bucket
+
+0_50
+51_100
+101_250
+251_500
+500_plus
+unknown
+
+### error_category
+
+validation
+network
+invalid_credentials
+duplicate_email
+size_exceeded
+invalid_type
+not_found
+server_error
+unknown
+
+Never pass raw backend error messages.
+
+### section_name
+
+hero
+services
+how_it_works
+rates
+calculator
+faq
+contact
+registration_form
+packages
+invoices
+quotes
+account
+dashboard
+mis_paquetes
+mis_facturas
+mis_solicitudes
+mi_cuenta
+packages_all
+packages_miami
+packages_sjo
+packages_loaded
+packages_in_transit
+packages_crbox
+packages_waiting_invoice
+
+### form_name
+
+contact
+signup
+login
+quote
+invoice_upload
+tracking
+
+### status_category
+
+success
+error
+pending
+in_transit
+delivered
+not_found
+all
+miami
+sjo
+loaded
+crbox
+waiting_invoice
+unknown
+
+### destination_country
+
+Costa Rica
+United States
+unknown
+
+Only country-level values. Never address-level values.
+
+### message_type
+
+text
+calculator
+quote
+unknown
+
+Never send the message text.
+
+### link_domain
+
+Only hostname/domain:
+
+wa.me
+whatsapp.com
+google.com
+maps.google.com
+instagram.com
+facebook.com
+
+Never send full external URLs with query strings.
+
+### link_context
+
+header
+footer
+contact_section
+whatsapp_button
+content
+nav
+portal
+unknown
+
+### query_length_bucket
+
+1_5
+6_15
+16_plus
+unknown
+
+Never send the search query or tracking number.
+
+### item_count_bucket
+
+1
+2_5
+6_plus
+unknown
+
+### file_type
+
+pdf
+jpg
+jpeg
+png
+webp
+unknown
+
+Only file extension. Never filename.
+
+---
+
+## #368 Context — Portal Navigation Tracking
+
+Task #368 connects portal navigation interactions to GA4 using the existing portal_section_view event.
+
+The goal is to understand which portal sections users visit most, without sending any private or user-specific data.
+
+The event method already exists in:
+
+js/analytics.js
+
+Now it needs to be called from the correct portal interactions.
+
+---
+
+## Event to Use for Portal Navigation
+
+Use the existing event:
+
+portal_section_view
+
+It should send only these already-registered parameters when relevant:
+
+{
+  section_name: "...",
+  page_name: "...",
+  page_type: "...",
+  status_category: "..."
+}
+
+Do not create new dimensions or new parameter names for this task.
+
+---
+
+## Dashboard Entry Cards
+
+On dashboard.html, when users click portal entry cards, fire portal_section_view.
+
+Use normalized section_name values such as:
+
+mis_paquetes
+mis_facturas
+mis_solicitudes
+mi_cuenta
+
+Expected examples:
+
+portal_section_view
+{
+  section_name: "mis_paquetes",
+  page_name: "dashboard",
+  page_type: "portal"
+}
+
+portal_section_view
+{
+  section_name: "mis_facturas",
+  page_name: "dashboard",
+  page_type: "portal"
+}
+
+portal_section_view
+{
+  section_name: "mis_solicitudes",
+  page_name: "dashboard",
+  page_type: "portal"
+}
+
+Do not send full URLs, visible text dynamically, customer data, or account data.
+
+---
+
+## Mis Paquetes Status Tabs / Filters
+
+On mis-paquetes.html, when users change status tabs or package filters, fire portal_section_view.
+
+Use normalized values such as:
+
+packages_all
+packages_miami
+packages_sjo
+packages_loaded
+packages_in_transit
+packages_crbox
+packages_waiting_invoice
+
+If sending status_category, use normalized values such as:
+
+all
+miami
+sjo
+loaded
+in_transit
+crbox
+waiting_invoice
+
+Expected example:
+
+portal_section_view
+{
+  section_name: "packages_in_transit",
+  page_name: "mis_paquetes",
+  page_type: "portal_packages",
+  status_category: "in_transit"
+}
+
+Do not send:
+
+tracking numbers
+package IDs
+customer data
+search query text
+query strings
+package descriptions
+raw status labels if inconsistent
+
+---
+
+## Implementation Requirements for #368
+
+1. Use the existing CRBOX.track.portal_section_view method if it already exists.
+2. If the method exists but the signature needs alignment, update it carefully without breaking existing analytics events.
+3. Guard all calls safely:
+
+if (
+  window.CRBOX &&
+  CRBOX.track &&
+  typeof CRBOX.track.portal_section_view === "function"
+) {
+  CRBOX.track.portal_section_view({
+    section_name: "mis_paquetes",
+    page_name: "dashboard",
+    page_type: "portal"
+  });
+}
+
+4. Do not duplicate events.
+5. Do not fire the event repeatedly on page load unless it is intentional and documented.
+6. Fire the event on meaningful user interaction:
+   - dashboard entry card click
+   - portal tab click
+   - package status tab/filter change
+7. Keep all values normalized and low-cardinality.
+8. Do not add new GA4 custom dimensions unless there is a strong reason and it is documented first.
+
+---
+
+## Full GA4 Alignment Requirements
+
+Beyond #368, audit the entire analytics layer to make sure all events from #366 and related tasks use the 24 registered dimensions exactly.
+
+Expected events may include:
+
+page_view
+cta_click
+navigation_click
+section_view
+scroll_depth
+contact_form_start
+contact_form_submit
+calculator_start
+calculator_result
+login_start
+login_success
+login_error
+signup_start
+signup_step
+signup_success
+signup_error
+package_search
+package_search_result
+package_detail_view
+invoice_upload_start
+invoice_upload_success
+invoice_upload_error
+quote_start
+quote_submit
+portal_section_view
+chat_open
+chat_message_sent
+outbound_click
+
+Each event should use only the relevant parameters from the 24 registered dimensions.
+
+Examples:
+
+### CTA click
+
+{
+  cta_id: "hero_affiliate",
+  cta_text: "Afíliate Gratis",
+  cta_location: "hero",
+  destination_type: "affiliate",
+  page_name: "home",
+  page_type: "public_home",
+  page_path_group: "public"
+}
+
+### Calculator result
+
+{
+  shipping_mode: "aereo",
+  weight_bucket: "1_5kg",
+  value_bucket: "101_250",
+  destination_country: "Costa Rica",
+  page_name: "calculadora",
+  page_type: "public_calculator",
+  page_path_group: "public"
+}
+
+### Signup step
+
+{
+  form_name: "signup",
+  step_name: "personal_info",
+  account_type: "personal",
+  page_name: "afiliate",
+  page_type: "public_affiliate",
+  page_path_group: "public"
+}
+
+### Login error
+
+{
+  form_name: "login",
+  error_category: "invalid_credentials",
+  page_name: "login",
+  page_type: "portal_auth",
+  page_path_group: "portal"
+}
+
+### Package search
+
+{
+  form_name: "tracking",
+  query_length_bucket: "6_15",
+  page_name: "mis_paquetes",
+  page_type: "portal_packages",
+  page_path_group: "portal"
+}
+
+### Invoice upload
+
+{
+  form_name: "invoice_upload",
+  file_type: "pdf",
+  page_name: "mis_facturas",
+  page_type: "portal_invoices",
+  page_path_group: "portal"
+}
+
+### Chat message sent
+
+{
+  message_type: "text",
+  page_name: "contacto",
+  page_type: "public_contact",
+  page_path_group: "public"
+}
+
+### Outbound click
+
+{
+  link_domain: "wa.me",
+  link_context: "whatsapp_button",
+  page_name: "contacto",
+  page_type: "public_contact",
+  page_path_group: "public"
+}
+
+---
+
+## Important Note About cta_text
+
+cta_text is already registered in GA4, but it should be treated as secondary.
+
+Prefer cta_id for reporting because it is cleaner and more stable.
+
+If cta_text is sent, keep it normalized and controlled. Do not send dynamic or user-generated text.
+
+---
+
+## Important Note About High Cardinality
+
+Avoid high-cardinality dimensions.
+
+Do not send values that can create hundreds or thousands of unique values, such as:
+
+full URLs
+URL query strings
+tracking numbers
+invoice numbers
+customer IDs
+exact product names
+exact package descriptions
+exact chat messages
+raw search queries
+raw error messages
+file names
+
+Use buckets and categories instead.
+
+---
+
+## Relevant Files To Audit
+
+Check the actual project and use the correct files, but likely relevant files include:
+
+js/analytics.js
+js/auth.js
+js/dashboard.js
+js/chat-panel.js
+js/calculator-engine.js
+js/solicitud.js
+js/enviar-juntos.js
+dashboard.html
+mis-paquetes.html
+mis-facturas.html
+mis-solicitudes.html
+solicitud.html
+cotizar.html
+afiliate.html
+login.html
+contacto.html
+calculadora.html
+index.html
+
+If an event is handled by another file, use that file instead of adding fragile inline code.
+
+---
+
+## QA Requirements
+
+Verify with GTM Preview and GA4 DebugView:
+
+1. Events arrive in GA4.
+2. Parameters use the exact registered technical names:
+   - page_type
+   - page_name
+   - cta_id
+   - cta_location
+   - destination_type
+   - step_name
+   - account_type
+   - service_type
+   - shipping_mode
+   - weight_bucket
+   - value_bucket
+   - error_category
+   - section_name
+   - form_name
+   - status_category
+   - destination_country
+   - message_type
+   - link_domain
+   - link_context
+   - query_length_bucket
+   - item_count_bucket
+   - file_type
+   - cta_text
+   - page_path_group
+3. No alternative parameter names are sent.
+4. No duplicate event fires for the same action.
+5. No sensitive or user-specific data is sent.
+6. Values are normalized and low-cardinality.
+7. portal_section_view fires on dashboard entry card clicks.
+8. portal_section_view fires on package tab/status changes.
+9. Existing navigation behavior still works.
+10. Existing portal UI still works.
+11. Existing public-page analytics still works.
+12. Existing calculator, signup, quote, contact, chat, and portal tracking still works.
+
+---
+
+## Documentation Update
+
+Update the analytics documentation to reflect that these 24 GA4 dimensions are already registered.
+
+Add or update a section listing:
+
+1. Dimension name
+2. Technical parameter
+3. Expected normalized values
+4. Events where it appears
+5. Privacy notes
+6. Cardinality risk level
+
+Suggested file:
+
+docs/tracking-plan.md
+
+or, if a GA4 setup guide already exists:
+
+docs/ga4-property-setup-guide.md
+
+---
+
+## Final Response Expected
+
+When complete, summarize:
+
+1. Files changed
+2. Events audited
+3. Exact parameter names used
+4. Any parameter names that were renamed/normalized
+5. Normalized values used
+6. Where portal_section_view is now fired
+7. Privacy safeguards
+8. DebugView / GTM Preview QA results
+9. Any remaining manual setup needed inside GA4
+
+---
+
+## Done Looks Like
+
+All CRBOX analytics events are aligned with the 24 GA4 custom dimensions already registered in the GA4 property.
+
+The code sends the exact technical event parameter names GA4 expects.
+
+Portal navigation tracking works through portal_section_view.
+
+Dashboard entry cards and package status tabs are measured without exposing private data.
+
+The analytics layer remains centralized, low-cardinality, privacy-safe, and useful for GA4 reports, explorations, and CRO analysis.
