@@ -540,22 +540,92 @@ Every event sends only the 24 parameters listed above. No other parameter names 
 
 ---
 
+## GTM Container Import Guide
+
+> **Do this once after any update to `docs/gtm-container-export.json`.  
+> The container has been fully rebuilt — no manual variable edits are needed after import.**
+
+### Step 1 — Download the export file
+
+The ready-to-import file is `docs/gtm-container-export.json` in this repository.  
+Download it to your local machine (right-click → Download in the Replit file tree, or pull via Git).
+
+### Step 2 — Import into GTM
+
+1. Go to [tagmanager.google.com](https://tagmanager.google.com).
+2. Select account **CRBOX** → container **GTM-5WD8N53F**.
+3. In the left sidebar click **Admin** (gear icon).
+4. Under the **Container** column click **Import Container**.
+5. Click **Choose container file** and select `gtm-container-export.json`.
+6. Under **Choose workspace** select **Existing** → **Default Workspace**.
+7. Under **Choose an import option** select **Replace** (not Merge — the export contains the complete intended state).
+8. Review the diff GTM shows you:
+   - **New tags:** 34 GA4 Event tags + 1 GA4 Configuration tag.
+   - **Modified tags:** 0 (all old stale tags are replaced).
+   - **Deleted tags:** The old `GA4 - cta_afiliate_click` and `GA4 - cta_calculadora_click` tags are removed.
+9. Click **Confirm**.
+
+### Step 3 — Preview and verify
+
+1. Click **Preview** (top right of the workspace screen).
+2. Enter the live site URL (e.g. `https://crbox.cr`) and click **Connect**. A new tab opens with the site and the GTM debug panel.
+3. Open GA4 DebugView in a separate tab: **GA4 Admin → DebugView** for property `G-B5BPHFRR18`.
+4. Work through the **GTM Preview Verification Checklist** below, checking off each row.
+
+### Step 4 — Publish
+
+1. Once all checklist rows pass, close the Preview session.
+2. Click **Submit** (top right).
+3. Add a version name: `v2-portal-events-may-2026`.
+4. Add a description: `Added 17 portal events (login, signup, portal_section_view, package_search, invoice_upload, quote_submit, chat). Merged cta_click. Fixed calculator_result parameters. Removed all stale PII variables.`
+5. Click **Publish**.
+
+### Step 5 — Post-publish smoke check
+
+Within 30 minutes of publishing:
+
+| Check | How |
+|-------|-----|
+| GTM snippet fires | Open DevTools → Network, filter `gtm.js` — should return 200. |
+| `cta_click` reaches GA4 | Click an affiliate CTA → check GA4 DebugView for the event + `cta_id` parameter. |
+| Portal events reach GA4 | Log in → GA4 DebugView shows `login_success` then `portal_section_view`. |
+| No old event names | In GA4 DebugView confirm `cta_afiliate_click` and `cta_calculadora_click` are absent. |
+| No PII in parameters | Inspect any event parameters — no email, phone, name, or query text visible. |
+
+### Container contents (what was imported)
+
+| Item | Count | Notes |
+|------|-------|-------|
+| DLV Variables | 25 | 20 kept + 5 new (`cta_id`, `cta_text`, `destination_type`, `form_name`, `page_path_group`). All stale PII variables removed. |
+| Custom Event Triggers | 33 | `CE - cta_click` replaces the two former CTA triggers. |
+| GA4 Event Tags | 34 | One per event name. All parameter names match the 24 registered GA4 custom dimensions. |
+| GA4 Configuration Tag | 1 | Measurement ID `G-B5BPHFRR18` pre-set. |
+
+### What changed from the previous container version
+
+| Before | After |
+|--------|-------|
+| `cta_afiliate_click` + `cta_calculadora_click` (two separate tags/triggers) | Single `cta_click` tag with `cta_id` parameter |
+| `calculator_result` sent `total_usd`, `shipping_usd`, `handling_usd`, `taxes_usd` | Removed; sends `weight_bucket`, `value_bucket`, `destination_country`, `shipping_mode` |
+| `section_visible` used `section_id` DLV | Now uses `section_name` |
+| `calculator_tab_switch` used `to_mode` DLV | Now uses `shipping_mode` |
+| `form_start`/`form_abandon` used `form_id` DLV | Now uses `form_name` |
+| `nav_click` sent `nav_label`, `nav_destination` | Removed; sends `link_context`, `destination_type` |
+| `phone_click` sent `phone_number` | Removed; sends `link_domain`, `link_context` |
+| `email_click` sent `email_address` | Removed; sends `link_context` |
+| `faq_engage` sent `faq_question` | Removed; sends `section_name` |
+| `contact_form_submit` sent `contact_subject` | Removed; sends `form_name` |
+| `service_card_click` used `service_name` DLV | Now uses `service_type` |
+| Missing: `login_*`, `signup_*`, `portal_section_view`, `package_search*`, `invoice_upload_*`, `quote_submit`, `chat_*`, `outbound_click` | All 17 portal events now have triggers + tags |
+
+---
+
 ## GTM Setup Notes
 
-- **Container:** `GTM-5WD8N53F`
-- All events arrive as custom dataLayer events with the four standard context parameters (`page_path`, `page_name`, `page_type`, `page_path_group`).
-- GA4 Configuration tag should forward all custom events. Recommend a GA4 Event trigger with "All custom events" scope plus individual parameter mappings via dataLayer variables for the 24 registered custom dimensions.
-- The `cta_click` event replaces the former separate `cta_afiliate_click` and `cta_calculadora_click` events. Update any GA4 / Looker Studio reports referencing the old event names. GTM triggers CE-101 and CE-102 should be updated to match `cta_click` and use `cta_id` to distinguish the two flows.
-- `calculator_tab_switch`: the DLV variable for this tag should now read `shipping_mode` instead of the former `to_mode`.
-- `section_visible`: the DLV variable for this tag should now read `section_name` instead of the former `section_id`.
-- `form_start` / `form_abandon`: the DLV variable should now read `form_name` instead of the former `form_id`.
-- `faq_engage`: the DLV variable should read `section_name` (the containing section id); the `faq_question` variable is now removed.
-- `nav_click`: DLV variables should read `link_context` and `destination_type`; the former `nav_label` and `nav_destination` variables are removed.
-- `phone_click`: DLV should read `link_domain` and `link_context`; the former `phone_number` variable is removed.
-- `email_click`: DLV should read `link_context`; the former `email_address` variable is removed.
-- `contact_form_submit`: DLV should read `form_name`; the former `contact_subject` variable is removed.
-- `calculator_result`: DLV variables `total_usd`, `shipping_usd`, `handling_usd`, `taxes_usd` are removed. Only `weight_bucket`, `value_bucket`, `destination_country`, `shipping_mode` remain.
-- `portal_section_view`: DLV variables should include `section_name`, `page_name`, `page_type`, and optionally `status_category`.
+- **Container:** `GTM-5WD8N53F` · **GA4 Property:** `G-B5BPHFRR18`
+- All events arrive as custom dataLayer events. Every tag forwards the four standard context parameters: `page_path`, `page_name`, `page_type`, `page_path_group`.
+- The `cta_click` event replaces the former `cta_afiliate_click` / `cta_calculadora_click` events. **Update any GA4 or Looker Studio reports** that still filter by the old event names — use `cta_id` to separate affiliate vs calculator CTAs.
+- All changes noted in previous versions of this section are now applied in `docs/gtm-container-export.json`. Import the file as described above; no manual DLV edits are needed.
 
 ---
 
