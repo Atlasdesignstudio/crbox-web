@@ -7,7 +7,7 @@
     "containerId": "0",
     "containerVersionId": "0",
     "name": "CRBOX Analytics",
-    "description": "CRBOX GTM container — updated May 2026. 25 DLV variables, 35 Custom Event triggers, 36 tags (GA4 Configuration + 35 GA4 Event tags). Covers all 25 tracked events including 17 portal events (login, signup, portal_section_view, package_search, package_detail_view, invoice_upload, quote_start, quote_submit, chat, outbound_click). All parameter names match the 24 registered GA4 custom dimensions. All stale pre-#376 variables and tags removed. portal_section_view tag updated (task #374): cta_location parameter added using existing dlv - cta_location variable. Import via Admin → Import Container → Replace existing workspace.",
+    "description": "CRBOX GTM container — updated May 2026 (v3). 1 built-in variable (Event), 25 DLV variables, 35 Custom Event triggers, 36 tags (1 GA4 Configuration + 35 GA4 Event tags). Covers all 25 analytics.js events including 17 portal events. All parameter names match the 24 registered GA4 custom dimensions. Import via Admin → Import Container → Existing Workspace → Replace.",
     "container": {
       "path": "accounts/0/containers/0",
       "accountId": "0",
@@ -639,7 +639,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "103",
+        "triggerId": "102",
         "name": "CE - whatsapp_click",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -663,7 +663,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "104",
+        "triggerId": "103",
         "name": "CE - phone_click",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -687,7 +687,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "105",
+        "triggerId": "104",
         "name": "CE - email_click",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -711,7 +711,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "106",
+        "triggerId": "105",
         "name": "CE - contact_form_submit",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -735,7 +735,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "107",
+        "triggerId": "106",
         "name": "CE - form_start",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -759,7 +759,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "108",
+        "triggerId": "107",
         "name": "CE - form_abandon",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -783,7 +783,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "109",
+        "triggerId": "108",
         "name": "CE - faq_engage",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -807,7 +807,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "110",
+        "triggerId": "109",
         "name": "CE - nav_click",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -831,7 +831,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "111",
+        "triggerId": "110",
         "name": "CE - service_card_click",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -855,7 +855,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "112",
+        "triggerId": "111",
         "name": "CE - calculator_start",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -879,7 +879,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "113",
+        "triggerId": "112",
         "name": "CE - calculator_tab_switch",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -903,7 +903,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "114",
+        "triggerId": "113",
         "name": "CE - calculator_query",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -927,7 +927,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "115",
+        "triggerId": "114",
         "name": "CE - calculator_result",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -951,7 +951,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "116",
+        "triggerId": "115",
         "name": "CE - scroll_depth",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -975,7 +975,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "117",
+        "triggerId": "116",
         "name": "CE - section_visible",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -999,7 +999,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "118",
+        "triggerId": "117",
         "name": "CE - login_start",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1023,7 +1023,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "119",
+        "triggerId": "118",
         "name": "CE - login_success",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1047,7 +1047,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "120",
+        "triggerId": "119",
         "name": "CE - login_error",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1071,7 +1071,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "121",
+        "triggerId": "120",
         "name": "CE - signup_start",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1095,7 +1095,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "122",
+        "triggerId": "121",
         "name": "CE - signup_step",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1119,7 +1119,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "123",
+        "triggerId": "122",
         "name": "CE - signup_success",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1143,7 +1143,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "124",
+        "triggerId": "123",
         "name": "CE - signup_error",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1167,7 +1167,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "125",
+        "triggerId": "124",
         "name": "CE - package_search",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1191,7 +1191,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "126",
+        "triggerId": "125",
         "name": "CE - package_search_result",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1215,7 +1215,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "127",
+        "triggerId": "126",
         "name": "CE - invoice_upload_start",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1239,7 +1239,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "128",
+        "triggerId": "127",
         "name": "CE - invoice_upload_success",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1263,7 +1263,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "129",
+        "triggerId": "128",
         "name": "CE - invoice_upload_error",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1287,7 +1287,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "130",
+        "triggerId": "129",
         "name": "CE - quote_submit",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1311,7 +1311,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "131",
+        "triggerId": "130",
         "name": "CE - portal_section_view",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1335,7 +1335,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "132",
+        "triggerId": "131",
         "name": "CE - chat_open",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1359,7 +1359,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "133",
+        "triggerId": "132",
         "name": "CE - chat_message_sent",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1383,7 +1383,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "134",
+        "triggerId": "133",
         "name": "CE - outbound_click",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1407,7 +1407,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "135",
+        "triggerId": "134",
         "name": "CE - package_detail_view",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1431,7 +1431,7 @@
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "136",
+        "triggerId": "135",
         "name": "CE - quote_start",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
@@ -1766,7 +1766,7 @@
           }
         ],
         "firingTriggerId": [
-          "103"
+          "102"
         ],
         "notes": ""
       },
@@ -1890,7 +1890,7 @@
           }
         ],
         "firingTriggerId": [
-          "104"
+          "103"
         ],
         "notes": ""
       },
@@ -1999,7 +1999,7 @@
           }
         ],
         "firingTriggerId": [
-          "105"
+          "104"
         ],
         "notes": ""
       },
@@ -2108,7 +2108,7 @@
           }
         ],
         "firingTriggerId": [
-          "106"
+          "105"
         ],
         "notes": ""
       },
@@ -2217,7 +2217,7 @@
           }
         ],
         "firingTriggerId": [
-          "107"
+          "106"
         ],
         "notes": ""
       },
@@ -2326,7 +2326,7 @@
           }
         ],
         "firingTriggerId": [
-          "108"
+          "107"
         ],
         "notes": ""
       },
@@ -2435,7 +2435,7 @@
           }
         ],
         "firingTriggerId": [
-          "109"
+          "108"
         ],
         "notes": ""
       },
@@ -2559,7 +2559,7 @@
           }
         ],
         "firingTriggerId": [
-          "110"
+          "109"
         ],
         "notes": ""
       },
@@ -2668,7 +2668,7 @@
           }
         ],
         "firingTriggerId": [
-          "111"
+          "110"
         ],
         "notes": ""
       },
@@ -2777,7 +2777,7 @@
           }
         ],
         "firingTriggerId": [
-          "112"
+          "111"
         ],
         "notes": ""
       },
@@ -2886,7 +2886,7 @@
           }
         ],
         "firingTriggerId": [
-          "113"
+          "112"
         ],
         "notes": ""
       },
@@ -2995,7 +2995,7 @@
           }
         ],
         "firingTriggerId": [
-          "114"
+          "113"
         ],
         "notes": ""
       },
@@ -3149,7 +3149,7 @@
           }
         ],
         "firingTriggerId": [
-          "115"
+          "114"
         ],
         "notes": ""
       },
@@ -3258,7 +3258,7 @@
           }
         ],
         "firingTriggerId": [
-          "116"
+          "115"
         ],
         "notes": ""
       },
@@ -3367,7 +3367,7 @@
           }
         ],
         "firingTriggerId": [
-          "117"
+          "116"
         ],
         "notes": ""
       },
@@ -3461,7 +3461,7 @@
           }
         ],
         "firingTriggerId": [
-          "118"
+          "117"
         ],
         "notes": ""
       },
@@ -3555,7 +3555,7 @@
           }
         ],
         "firingTriggerId": [
-          "119"
+          "118"
         ],
         "notes": ""
       },
@@ -3664,7 +3664,7 @@
           }
         ],
         "firingTriggerId": [
-          "120"
+          "119"
         ],
         "notes": ""
       },
@@ -3758,7 +3758,7 @@
           }
         ],
         "firingTriggerId": [
-          "121"
+          "120"
         ],
         "notes": ""
       },
@@ -3867,7 +3867,7 @@
           }
         ],
         "firingTriggerId": [
-          "122"
+          "121"
         ],
         "notes": ""
       },
@@ -3976,7 +3976,7 @@
           }
         ],
         "firingTriggerId": [
-          "123"
+          "122"
         ],
         "notes": ""
       },
@@ -4085,7 +4085,7 @@
           }
         ],
         "firingTriggerId": [
-          "124"
+          "123"
         ],
         "notes": ""
       },
@@ -4179,7 +4179,7 @@
           }
         ],
         "firingTriggerId": [
-          "125"
+          "124"
         ],
         "notes": ""
       },
@@ -4288,7 +4288,7 @@
           }
         ],
         "firingTriggerId": [
-          "126"
+          "125"
         ],
         "notes": ""
       },
@@ -4397,7 +4397,7 @@
           }
         ],
         "firingTriggerId": [
-          "127"
+          "126"
         ],
         "notes": ""
       },
@@ -4491,7 +4491,7 @@
           }
         ],
         "firingTriggerId": [
-          "128"
+          "127"
         ],
         "notes": ""
       },
@@ -4600,7 +4600,7 @@
           }
         ],
         "firingTriggerId": [
-          "129"
+          "128"
         ],
         "notes": ""
       },
@@ -4724,7 +4724,7 @@
           }
         ],
         "firingTriggerId": [
-          "130"
+          "129"
         ],
         "notes": ""
       },
@@ -4893,7 +4893,7 @@
           }
         ],
         "firingTriggerId": [
-          "131"
+          "130"
         ],
         "notes": "cta_location added (task #374): entry_card | stat_card | hero_button | tab_bar | nav_dropdown | mobile_nav | other"
       },
@@ -4987,7 +4987,7 @@
           }
         ],
         "firingTriggerId": [
-          "132"
+          "131"
         ],
         "notes": ""
       },
@@ -5096,7 +5096,7 @@
           }
         ],
         "firingTriggerId": [
-          "133"
+          "132"
         ],
         "notes": ""
       },
@@ -5220,7 +5220,7 @@
           }
         ],
         "firingTriggerId": [
-          "134"
+          "133"
         ],
         "notes": ""
       },
@@ -5314,7 +5314,7 @@
           }
         ],
         "firingTriggerId": [
-          "135"
+          "134"
         ],
         "notes": ""
       },
@@ -5423,9 +5423,17 @@
           }
         ],
         "firingTriggerId": [
-          "136"
+          "135"
         ],
         "notes": ""
+      }
+    ],
+    "builtInVariable": [
+      {
+        "accountId": "0",
+        "containerId": "0",
+        "type": "EVENT",
+        "name": "Event"
       }
     ]
   }
