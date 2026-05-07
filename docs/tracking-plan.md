@@ -560,7 +560,7 @@ Download it to your local machine (right-click → Download in the Replit file t
 6. Under **Choose workspace** select **Existing** → **Default Workspace**.
 7. Under **Choose an import option** select **Replace** (not Merge — the export contains the complete intended state).
 8. Review the diff GTM shows you:
-   - **New tags:** 34 GA4 Event tags + 1 GA4 Configuration tag.
+   - **New tags:** 35 GA4 Event tags + 1 GA4 Configuration tag = 36 tags total.
    - **Modified tags:** 0 (all old stale tags are replaced).
    - **Deleted tags:** The old `GA4 - cta_afiliate_click` and `GA4 - cta_calculadora_click` tags are removed.
 9. Click **Confirm**.
@@ -597,8 +597,8 @@ Within 30 minutes of publishing:
 | Item | Count | Notes |
 |------|-------|-------|
 | DLV Variables | 25 | 20 kept + 5 new (`cta_id`, `cta_text`, `destination_type`, `form_name`, `page_path_group`). All stale PII variables removed. |
-| Custom Event Triggers | 33 | `CE - cta_click` replaces the two former CTA triggers. |
-| GA4 Event Tags | 34 | One per event name. All parameter names match the 24 registered GA4 custom dimensions. |
+| Custom Event Triggers | 35 | `CE - cta_click` replaces the two former CTA triggers. Includes `CE - package_detail_view` and `CE - quote_start`. |
+| GA4 Event Tags | 35 | One per event name. All parameter names match the 24 registered GA4 custom dimensions. |
 | GA4 Configuration Tag | 1 | Measurement ID `G-B5BPHFRR18` pre-set. |
 
 ### What changed from the previous container version
