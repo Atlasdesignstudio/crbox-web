@@ -1,0 +1,70 @@
+# CRBOX — Full GA4 Analytics Configuration
+
+Configure Google Analytics 4 properly across the CRBOX project.
+
+The goal is to create a clean, scalable, production-ready analytics setup that lets us understand how users move through the website, what actions drive conversion, where users drop off, and which pages or CTAs contribute most to business outcomes.
+
+Do not treat this as a simple “add the GA4 tag” task. Analyze the full project, understand the user journeys, review what already exists, and implement GA4 in a way that is useful for real decision-making.
+
+## What I want you to do
+
+Review the current project structure, pages, scripts, navigation patterns, forms, CTAs, calculator flows, portal flows, and any existing tracking or analytics logic.
+
+Then implement a complete GA4 setup that is:
+
+- Centralized
+- Maintainable
+- Safe
+- Consistent
+- Non-duplicated
+- Easy to debug
+- Easy to extend later
+- Respectful of user privacy
+- Useful for funnels, CRO, UX analysis, and business reporting
+
+## Existing GA4 / Analytics Work
+
+Before implementing anything new, first inspect what has already been built around GA4, Google Tag Manager, analytics helpers, dataLayer events, tracking scripts, custom events, or any existing measurement logic in the project.
+
+Do not duplicate tracking systems.
+
+Build on top of what already exists if it is clean and usable.
+
+If the existing analytics setup is incomplete, inconsistent, fragile, duplicated, or not aligned with GA4 best practices, refactor or replace only what needs to change.
+
+Preserve any useful existing work, but improve the architecture so the final setup is centralized, coherent, maintainable, and production-ready.
+
+Clearly document:
+
+1. What already existed
+2. What was reused
+3. What was changed
+4. What was removed or replaced
+5. Why those changes were necessary
+
+## Core Requirements
+
+Create a reusable analytics layer instead of scattering random tracking code everywhere.
+
+The implementation should include:
+
+- Audit and build on top of any existing GA4 / GTM / analytics implementation before adding new tracking
+- GA4 base setup
+- Page view tracking
+- Key user interaction tracking
+- CTA tracking
+- Navigation tracking
+- Form tracking
+- Funnel tracking
+- Calculator tracking
+- Portal/client-area interaction tracking where relevant
+- Scroll or section visibility tracking where useful
+- Outbound link tracking
+- Error / validation tracking where useful
+- Debug logging for development
+- Documentation of the event map
+
+Use a placeholder Measurement ID for now:
+
+```js
+G-XXXXXXXXXX

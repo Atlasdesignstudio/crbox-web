@@ -1,0 +1,58 @@
+# CRBOX — Refine SEO/GEO/AEO/LLM Plan Before Implementation
+
+The audit findings are useful, but before implementing, refine the SEO strategy with one important correction:
+
+`afiliate.html` should not automatically be treated as private.
+
+For CRBOX, the affiliation page is a public conversion page where users create their casillero / account. Unless there is a strong technical or legal reason to hide it, it should likely be indexable and included in the sitemap.
+
+The current inconsistency is:
+
+- `afiliate.html` has `noindex` in the HTML
+- `afiliate.html` appears in `sitemap.xml`
+- `seo-config.js` may classify it as private
+- robots.txt does not disallow it
+
+Do not blindly remove it from the sitemap.
+
+Instead, evaluate the intent of the page:
+
+- If `afiliate.html` is the public registration / conversion page, remove `noindex`, keep it in the sitemap, optimize its metadata, and classify it as a public conversion page.
+- If there is a separate private registration/account page, keep that private and protected.
+- If the page exposes sensitive account functionality, protect only the sensitive parts, not the public affiliation landing content.
+
+The preferred direction is: `afiliate.html` should be public, indexable, and optimized, while logged-in portal pages remain private.
+
+## Main Objective
+
+Proceed with the full SEO, GEO, AEO, and LLM discoverability optimization, but keep the strategy business-aware:
+
+- Public marketing and conversion pages should be discoverable.
+- Private portal/account/customer pages should stay protected.
+- The site should become more understandable for Google, Bing, LLM crawlers, AI search, and agentic browsing tools.
+- Do not expose customer, package, invoice, account, admin, or API data.
+
+## Preserve What Already Exists
+
+Task #1 already created a foundational SEO layer:
+
+- Canonical URLs
+- Open Graph tags
+- Twitter cards
+- Schema.org JSON-LD
+- robots.txt
+- sitemap.xml
+- seo-config.js
+
+Do not rebuild everything from scratch.
+
+Audit it, preserve what is good, fix what is inconsistent, and extend what is missing.
+
+## Key Corrections To Apply
+
+### 1. Fix the GTM placeholder
+
+`js/seo-config.js` still contains:
+
+```js
+YOUR_GTM_CONTAINER_ID

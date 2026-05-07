@@ -1,0 +1,343 @@
+# CRBOX — Full SEO, GEO, AEO & LLM Discoverability Optimization
+
+Optimize the CRBOX public website so it becomes technically strong, search-engine friendly, AI-answer ready, and easy for LLMs, search agents, and future autonomous browsing systems to understand and recommend.
+
+The goal is not to simply add metadata. The goal is to make the public CRBOX website a clear, trustworthy, crawlable, and structured source of truth for users searching for courier, casillero, and USA-to-Costa Rica shipping services.
+
+Give yourself freedom to analyze the project deeply and decide the best implementation based on the existing codebase, content, structure, and current SEO setup.
+
+Do not over-prescribe the implementation. Use your judgment.
+
+## Main Goal
+
+Make CRBOX stronger for:
+
+- Google Search
+- Bing
+- Local search
+- AI answer engines
+- LLM crawlers
+- Search agents
+- Voice/search assistants
+- Future agentic browsing tools
+
+The website should clearly help AI systems and search engines understand:
+
+- What CRBOX is
+- What services CRBOX offers
+- Who CRBOX serves
+- Where CRBOX operates
+- How the service works
+- Why users would choose CRBOX
+- How users can calculate, contact, or affiliate
+- What information is public and safe to index
+- What should remain private or excluded
+
+## Scope
+
+Focus on the public marketing and conversion website.
+
+Do not optimize private/client portal pages for indexing or LLM discovery.
+
+Private, account, dashboard, invoice, package, admin, login-only, or user-specific pages should not be treated as public SEO assets.
+
+If any private/client-area pages are currently crawlable or included in sitemap-like structures, protect or exclude them appropriately.
+
+The public site should be discoverable. The private portal should remain safe.
+
+## First Step: Audit What Already Exists
+
+Before adding anything new, inspect the current project and identify any existing work related to:
+
+- SEO
+- Metadata
+- Structured data
+- Sitemap
+- Robots rules
+- Canonicals
+- Open Graph / social previews
+- Page headings
+- Internal linking
+- FAQ / answer content
+- Local SEO signals
+- Accessibility semantics
+- LLM-facing files or summaries
+- Performance-related SEO improvements
+
+Build on top of what already exists if it is good.
+
+Refactor what is weak.
+
+Remove or replace what is duplicated, unsafe, outdated, or inconsistent.
+
+Do not duplicate systems.
+
+## Optimization Principles
+
+Use a professional SEO/GEO/AEO strategy, but keep it grounded in the real CRBOX business and the actual public content.
+
+Do not invent facts.
+
+Do not invent reviews, ratings, certifications, addresses, phone numbers, guarantees, legal claims, service coverage, or business claims that are not supported by the project.
+
+Do not use manipulative keyword stuffing.
+
+Do not hide text for SEO.
+
+Do not make exaggerated claims like “best”, “#1”, “fastest”, or “cheapest” unless the project already provides proof and the claim is legally safe.
+
+Prefer clarity, usefulness, and trust.
+
+## Areas to Cover
+
+Make sure the final implementation covers, where relevant:
+
+- Technical SEO
+- On-page SEO
+- Local SEO
+- Structured data / Schema.org
+- AEO — Answer Engine Optimization
+- GEO — Generative Engine Optimization
+- LLM and agent crawlability
+- Internal linking
+- Public content clarity
+- Metadata and social previews
+- Sitemap strategy
+- Robots and indexation strategy
+- Private page protection
+- Image alt text
+- Heading hierarchy
+- Semantic HTML
+- Accessibility improvements that support crawlability
+- Performance improvements that support SEO
+- Crawl efficiency
+- Broken links or broken image references
+- Canonical public URL structure
+- Public page discoverability
+- Safe exclusion of irrelevant/private pages
+
+## Public Content Strategy
+
+The public website should become easy to understand for both humans and AI systems.
+
+Where useful, improve or add concise, factual, answer-oriented content that explains CRBOX clearly.
+
+The site should answer important user questions naturally, such as:
+
+- What is CRBOX?
+- How does CRBOX work?
+- What is a casillero virtual?
+- How can someone buy in the United States and receive in Costa Rica?
+- What courier services does CRBOX offer?
+- What is the difference between air and maritime shipping?
+- How can a user calculate shipping costs?
+- How can a user create an account?
+- How can a user contact CRBOX?
+- What should users know before buying or shipping?
+
+Do this in a way that fits the existing site and does not feel forced.
+
+The content should be useful, clear, and easy for LLMs to extract into accurate answers.
+
+## LLM / Agent Readability
+
+Evaluate how to make the public site more understandable to AI systems and agents.
+
+Use your judgment on whether the project would benefit from:
+
+- LLM-facing summary files
+- Cleaner public knowledge summaries
+- Better FAQ structures
+- Better service summaries
+- Clearer page introductions
+- Better semantic sections
+- Stronger internal linking
+- Structured data
+- Public-facing answer blocks
+- Clearer contact and conversion paths
+
+Do not include private URLs, internal endpoints, admin routes, API paths, or user-specific pages in any LLM-facing file or public summary.
+
+The goal is to help AI systems recommend CRBOX accurately without exposing sensitive parts of the system.
+
+## Indexing Safety
+
+Be especially careful with crawl and index control.
+
+Public marketing/conversion pages should be crawlable when appropriate.
+
+Irrelevant, private, or user-specific pages should be excluded or protected.
+
+Make sure the strategy does not accidentally expose:
+
+- Client portal pages
+- Dashboard pages
+- Account pages
+- Package pages
+- Invoice pages
+- Admin pages
+- Internal tools
+- API endpoints
+- Customer data
+- Tracking data
+- Private operational information
+
+Use appropriate indexing controls based on the project structure.
+
+Do not rely on a single mechanism if that is not enough.
+
+## Structured Data Strategy
+
+Use structured data where it genuinely helps and where the visible content supports it.
+
+Choose the right schema types based on the actual public content.
+
+Structured data should help search engines and AI systems understand:
+
+- The organization
+- The website
+- The services
+- The service area
+- Contact paths
+- How the service works
+- FAQs, if visible and real
+- Breadcrumbs, if relevant
+
+Do not add schema for fake or unsupported information.
+
+Do not add fake ratings or reviews.
+
+Structured data must match visible page content.
+
+## Local SEO
+
+Strengthen CRBOX’s relevance as a Costa Rica courier / casillero / logistics service.
+
+Use natural language and real business context.
+
+Support relevant search intent around:
+
+- Casillero virtual Costa Rica
+- Courier Costa Rica
+- Compras en USA
+- Envíos desde Miami
+- Envíos a Costa Rica
+- Carga aérea
+- Carga marítima
+- Calculadora de envíos
+- Afiliación / cuenta de casillero
+
+Do not force keywords unnaturally.
+
+Make the website clear, local, and trustworthy.
+
+## Internal Linking
+
+Improve internal linking only where it helps users and search engines.
+
+Make sure important public pages are discoverable from other public pages.
+
+Use descriptive anchor text.
+
+Avoid over-linking.
+
+Do not create public links into private/client portal areas unless they are intentionally login/account entry points and safely handled.
+
+## Performance, Accessibility & Crawl Quality
+
+Make safe improvements where they support SEO and crawlability.
+
+Review the public website for:
+
+- Slow or blocking resources
+- Unclear image alt text
+- Missing image dimensions where relevant
+- Broken links
+- Broken image paths
+- Poor heading hierarchy
+- Weak semantic structure
+- Missing labels
+- Unclear buttons or links
+- Mobile crawl/render issues
+- Duplicate scripts or metadata
+- Crawl inefficiencies
+
+Do not perform a risky rewrite.
+
+Prioritize safe, high-impact improvements.
+
+## Documentation
+
+Create or update documentation explaining the final SEO/GEO/AEO/LLM strategy.
+
+The documentation should include:
+
+- What already existed
+- What was reused
+- What was improved
+- What was added
+- What was removed or excluded
+- Public pages included in the SEO strategy
+- Pages intentionally excluded
+- Sitemap/indexing strategy
+- Robots/indexation strategy
+- Structured data strategy
+- LLM/agent crawlability strategy
+- Local SEO strategy
+- Recommended future content opportunities
+- Any missing information needed from CRBOX
+
+## Expected Final Response
+
+When complete, provide a clear summary with:
+
+1. What was implemented
+2. Files created or changed
+3. What already existed
+4. What was reused
+5. What was changed
+6. What was added
+7. What was removed or excluded
+8. How public pages are now optimized
+9. How private/irrelevant pages are protected
+10. Structured data added or improved
+11. Sitemap and robots strategy
+12. LLM/agent discoverability improvements
+13. Recommended target search intents
+14. Recommended next content opportunities
+15. QA checklist
+16. Anything still needed from the CRBOX team
+
+## QA Checklist
+
+Verify at the end:
+
+- Public pages have clear, unique metadata
+- Public pages have appropriate canonical URLs
+- Public pages are included in the crawl/index strategy
+- Private/client/irrelevant pages are excluded or protected
+- Sitemap only contains appropriate public canonical URLs
+- Robots strategy is safe and does not block needed public assets
+- Structured data is valid and truthful
+- Structured data matches visible content
+- LLM-facing content does not expose private information
+- Important public pages are internally linked
+- Headings are logical
+- Image alt text is appropriate
+- No fake claims, reviews, ratings, or unsupported facts were added
+- No customer, package, invoice, account, API, or admin data is exposed
+- Mobile layout still works
+- Existing functionality still works
+- No major performance regression was introduced
+
+## Done Looks Like
+
+The CRBOX public website is technically and semantically optimized so search engines, answer engines, LLMs, and agents can understand it as a trustworthy Costa Rican courier and casillero service.
+
+The site becomes easier to crawl, easier to summarize, easier to recommend, and safer to index.
+
+Public content is clear and discoverable.
+
+Private or irrelevant areas are protected.
+
+The result should position CRBOX as one of the clearest and most AI-readable courier/casillero options for users searching how to buy in the United States and receive packages in Costa Rica.

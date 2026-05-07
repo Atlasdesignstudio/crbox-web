@@ -1,0 +1,82 @@
+# CRBOX — Refine GA4 Portal Coverage Plan Before Implementation
+
+The audit findings are good. Proceed with the GA4 completion task, but refine the implementation so it stays privacy-safe, centralized, and aligned with the current analytics architecture.
+
+The project already has a solid foundation:
+
+- GTM container `GTM-5WD8N53F` is already installed across the site.
+- `js/analytics.js` already exists as the centralized analytics layer.
+- The public website already has strong tracking coverage.
+- Existing tracking documentation already exists in `docs/`.
+
+Do not rebuild analytics from scratch.
+
+Build on top of the existing `js/analytics.js` architecture and extend it carefully.
+
+## Main Objective
+
+Close the remaining GA4 coverage gaps by extending the existing centralized analytics system to relevant non-public and portal flows, while keeping private/user-specific information protected.
+
+This is not a redesign task.
+
+This is not a GTM container task.
+
+This is not a GA4 property configuration task.
+
+This is an implementation task inside the codebase to make sure meaningful user actions are pushed consistently through the existing centralized analytics layer.
+
+## Important Correction
+
+Do not think of portal tracking as “SEO” or public discoverability.
+
+Portal pages should remain private / noindex where relevant.
+
+Portal analytics should only help CRBOX understand product usage, friction, and flow completion.
+
+Never send private or identifying information to GA4.
+
+## Privacy Rules
+
+Do not send:
+
+- Names
+- Emails
+- Phone numbers
+- Identification numbers
+- Addresses
+- Package tracking numbers
+- Invoice numbers
+- Exact package data
+- Exact quote descriptions
+- Uploaded file names
+- Chat message text
+- Customer IDs
+- Auth tokens
+- API responses
+- Any backend payload containing user-specific data
+
+Use only safe values such as:
+
+- Booleans
+- Page type
+- Section name
+- Flow name
+- Status category
+- Error category
+- Input presence
+- Count buckets
+- Value buckets
+- Weight buckets
+- Generic service type
+- Generic action type
+
+Example:
+
+Track:
+
+```js
+package_search
+{
+  search_used: true,
+  query_length_bucket: "6_15"
+}
