@@ -250,6 +250,22 @@
     var _confirmTracker = _makeConfirmTracker();
     var _lastExtractionResult = null;
 
+    // ── Internal: clear values that were filled by a previous AI extraction ──────
+    // Called at the START of every new runExtraction so that a failed extraction
+    // never leaves stale AI-suggested text in the form fields.
+
+    function _clearAiFilledValues(formFields) {
+        var fields = formFields || {};
+        [fields.fName, fields.fValue, fields.fCategory, fields.fWeight,
+         fields.fLength, fields.fWidth, fields.fHeight].forEach(function (el) {
+            if (!el) return;
+            // Only wipe values the AI itself wrote — user-typed values are left alone.
+            if (el.dataset.aiSuggested === '1') {
+                el.value = '';
+            }
+        });
+    }
+
     // ── Public: clearExtractionBadges ──────────────────────────────────────────
 
     function clearExtractionBadges(formFields) {
@@ -500,6 +516,7 @@
 
         _showStepLoader(bannerTarget);
         if (complianceTarget) _removeComplianceCard(complianceTarget);
+        _clearAiFilledValues(formFields);   // wipe stale AI values before the new request lands
         clearExtractionBadges(formFields);
 
         var _ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
