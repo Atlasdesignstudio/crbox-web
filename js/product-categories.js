@@ -2158,19 +2158,19 @@
       teclado_computadora:       'computer_accessories',
       ventiladores_computadora:  'computer_accessories',
       control_remoto:            'computer_accessories',
-      // ── Printers ──────────────────────────────────────────────────────────
-      impresora:                 'printers_scanners',
-      accesorios_impresora:      'printers_scanners',
-      fotocopiadora:             'printers_scanners',
+      // ── Printers (no dedicated Brain cat → closest match) ────────────────
+      impresora:                 'computer_accessories',
+      accesorios_impresora:      'computer_accessories',
+      fotocopiadora:             'computer_accessories',
       // ── Chargers / Cables ─────────────────────────────────────────────────
       adaptador:                 'chargers_cables_adapters',
       // ── Networking ────────────────────────────────────────────────────────
       antena:                    'networking_equipment',
       radio_comunicacion:        'networking_equipment',
       llave_maya:                'networking_equipment',
-      // ── Software / Digital ────────────────────────────────────────────────
-      software:                  'software_digital_goods',
-      dvds:                      'software_digital_goods',
+      // ── Software / Digital (no dedicated Brain cat → fallback) ──────────
+      software:                  'unknown_manual_review',
+      dvds:                      'unknown_manual_review',
       video_juegos:              'gaming_consoles_electronics',
       // ── Audio / Home Theater ─────────────────────────────────────────────
       equipo_sonido:             'speakers_home_audio',
@@ -2282,11 +2282,11 @@
       radio_carro:               'automotive_simple_accessories',
       // ── Batteries ─────────────────────────────────────────────────────────
       baterias:                  'lithium_batteries_powerbanks',
-      // ── Musical Instruments ───────────────────────────────────────────────
-      guitarra_acustica:         'musical_instruments_review',
-      guitarra_electrica:        'musical_instruments_review',
-      teclado_musical:           'musical_instruments_review',
-      instrumentos_musicales:    'musical_instruments_review',
+      // ── Musical Instruments (no dedicated Brain cat → manual review) ─────
+      guitarra_acustica:         'unknown_manual_review',
+      guitarra_electrica:        'unknown_manual_review',
+      teclado_musical:           'unknown_manual_review',
+      instrumentos_musicales:    'unknown_manual_review',
       // ── Fallback ──────────────────────────────────────────────────────────
       electr_otro:               'unknown_manual_review',
       hogar_otro:                'unknown_manual_review',
