@@ -358,9 +358,71 @@
     var kb = (typeof CRBOX_KNOWLEDGE !== 'undefined') ? CRBOX_KNOWLEDGE : null;
     var pageInfo = (kb && kb.page_map && kb.page_map[slug]) ? kb.page_map[slug] : null;
 
+    // Detect product-name-style messages and enrich with brain classification.
+    // Heuristic: short message (≤ 80 chars), no question mark, no common
+    // question words. Runs classify first, then sends to /api/chat with the
+    // result as product_classification context so Gemini can cite correct
+    // tariff rate and compliance status.
+    var _QUESTION_WORDS = ['como', 'cuanto', 'cuánto', 'cuál', 'cual', 'qué', 'que',
+      'donde', 'dónde', 'cuando', 'cuándo', 'por', 'puedo', 'pueden', 'ayuda', 'help',
+      'funciona', 'sirve', 'tienen', 'hay', '?'];
+    function _looksLikeProductName(t) {
+      if (!t || t.length < 3 || t.length > 80) return false;
+      if (t.indexOf('?') !== -1) return false;
+      var lower = t.toLowerCase();
+      for (var i = 0; i < _QUESTION_WORDS.length; i++) {
+        if (lower.indexOf(_QUESTION_WORDS[i]) !== -1) return false;
+      }
+      return true;
+    }
+
     // 20 s timeout — Gemini can be slow but anything beyond this is hung.
     var _ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     var _timer = _ctrl ? setTimeout(function () { _ctrl.abort(); }, 20000) : null;
+
+    function _doSend(productClassification) {
+      fetch(CHAT_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          history: _history,
+          page: slug,
+          context: pageInfo,
+          product_classification: productClassification || null,
+        }),
+        signal: _ctrl ? _ctrl.signal : undefined,
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        _hideTyping();
+        var reply = (data && data.reply) || 'Lo siento, no pude procesar tu consulta. Intenta de nuevo.';
+        var widget = _buildWidget(data && data.widget);
+        var deeplink = data && data.deeplink;
+        _appendAIMessage(reply, widget, deeplink);
+        _history.push({ role: 'assistant', text: reply });
+        if (_history.length > MAX_HISTORY) _history = _history.slice(-MAX_HISTORY);
+      })
+      .catch(function (err) {
+        _hideTyping();
+        var msg = (err && err.name === 'AbortError')
+          ? 'La consulta tomó demasiado tiempo. Intenta de nuevo o contáctanos por WhatsApp.'
+          : 'Hubo un error de conexión. Por favor intenta de nuevo o contáctanos por WhatsApp.';
+        _appendAIMessage(msg);
+      })
+      .finally(function () {
+        if (_timer) clearTimeout(_timer);
+        _pending = false;
+        $send.disabled = false;
+        $input.focus();
+      });
+    }
+
+    if (_looksLikeProductName(text) && typeof CRBOXProductClassifier !== 'undefined') {
+      CRBOXProductClassifier.classify(text, { noFallback: true }).then(function (result) {
+        _doSend(result && result.brainCategoryId !== 'unknown_manual_review' ? result : null);
+      }).catch(function () { _doSend(null); });
+      return; // _doSend handles the rest (including finally)
+    }
 
     fetch(CHAT_ENDPOINT, {
       method: 'POST',
@@ -369,6 +431,7 @@
         history: _history,
         page: slug,
         context: pageInfo,
+        product_classification: null,
       }),
       signal: _ctrl ? _ctrl.signal : undefined,
     })

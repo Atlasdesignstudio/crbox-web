@@ -1090,6 +1090,8 @@
                             <button id="category-suggestion-accept" type="button" class="ml-auto bg-amber-500 hover:bg-amber-600 text-white font-semibold px-3 py-1 rounded-md transition-colors">Usar esta</button>
                             <button id="category-suggestion-ignore" type="button" class="text-amber-700 hover:text-amber-900 font-medium px-2 py-1 rounded-md hover:bg-amber-100 transition-colors">Ignorar</button>
                         </div>
+                        <!-- Brain classifier suggestion bar (injected dynamically by product-classifier.js) -->
+                        <div id="brain-suggest-bar"></div>
                     </div>
                 </div>
             </div>
@@ -1376,6 +1378,7 @@
     <script src="js/main.js?v=6"></script>
     <script src="js/product-categories.js?v=1"></script>
     <script src="js/tariff-adapter.js?v=3"></script>
+    <script src="js/product-classifier.js?v=1"></script>
     <script src="js/calculator-engine.js"></script>
     <script src="js/crbox-knowledge.js"></script>
     <script src="js/chat-calculator.js"></script>
@@ -1724,6 +1727,24 @@
             editingIndex = -1;
         }
 
+        /* ── Brain classifier: name field blur → category suggestion ─── */
+        $('modal-name').addEventListener('blur', function () {
+            const name = (this.value || '').trim();
+            if (name.length < 3) return;
+            if (typeof CRBOXProductClassifier === 'undefined') return;
+            const catEl     = document.getElementById('modal-category');
+            const brainBarEl = document.getElementById('brain-suggest-bar');
+            if (!catEl || !brainBarEl) return;
+            CRBOXProductClassifier.suggest(name, catEl, brainBarEl, null, function () {
+                if (modalCategoryTS) {
+                    const newVal = catEl.value;
+                    if (newVal && modalCategoryTS.getValue() !== newVal) {
+                        modalCategoryTS.setValue(newVal, true);
+                    }
+                }
+            });
+        });
+
         $('btn-open-item-modal').addEventListener('click', () => openModal());
         $('modal-close-btn').addEventListener('click', closeModal);
         $('modal-cancel-btn').addEventListener('click', closeModal);
@@ -1925,41 +1946,6 @@
                 const priceRaw = og('og:price:amount') || og('product:price:amount') || og('twitter:data1') || '';
                 const price = parseFloat(priceRaw.replace(/[^0-9.]/g, '')) || 0;
 
-                // Keyword-to-category suggestion map (codes must match <select> option values)
-                const KEYWORD_HINTS = [
-                    { words: ['laptop','notebook','macbook','chromebook','computer','computadora','portátil'], code: 'computadora' },
-                    { words: ['iphone','samsung','pixel','smartphone','phone','celular','móvil','android'], code: 'celulares' },
-                    { words: ['tablet','ipad'], code: 'tableta_electronica' },
-                    { words: ['auricular','headphone','airpod','earbud','audifonos','headset'], code: 'auricular_telefono' },
-                    { words: ['altavoz','speaker','parlante','bocina'], code: 'parlantes' },
-                    { words: ['reloj','watch','smartwatch'], code: 'relojes' },
-                    { words: ['cámara','camera','gopro','lente','lens'], code: 'camara' },
-                    { words: ['tripode','tripod'], code: 'tripode' },
-                    { words: ['television','televisor','tv '], code: 'televisor' },
-                    { words: ['monitor','pantalla','screen','display'], code: 'monitor' },
-                    { words: ['zapato','zapatilla','shoe','sneaker','boot','calzado','nike','adidas','puma'], code: 'zapatos' },
-                    { words: ['camisa','shirt','pantalon','pants','ropa','clothes','clothing','dress','blusa','hoodie','jacket'], code: 'ropa' },
-                    { words: ['libro','book','textbook'], code: 'libros' },
-                    { words: ['juguete','toy','lego','puzzle','doll','muñeca'], code: 'juguetes' },
-                    { words: ['playstation','xbox','nintendo','switch','consola','console'], code: 'consola_videojuegos' },
-                    { words: ['videogame','video game','video juego','juego ps','juego xbox'], code: 'video_juegos' },
-                    { words: ['herramienta','tool','drill','taladro','sierra','wrench','llave'], code: 'herramientas' },
-                    { words: ['cargador','charger','adaptador','adapter'], code: 'cargador' },
-                    { words: ['procesador','processor','cpu'], code: 'procesador' },
-                    { words: ['memoria','ssd','ram','storage'], code: 'memoria' },
-                    { words: ['impresora','printer'], code: 'impresora' },
-                    { words: ['router','switch','modem','wifi'], code: 'router' },
-                    { words: ['guitarra','guitar'], code: 'guitarra_electrica' },
-                ];
-                function guessCategory(text) {
-                    if (!text) return null;
-                    const lower = text.toLowerCase();
-                    for (const hint of KEYWORD_HINTS) {
-                        if (hint.words.some(w => lower.includes(w))) return hint.code;
-                    }
-                    return null;
-                }
-
                 let filled = 0;
                 if (title && !$('modal-name').value) {
                     $('modal-name').value = title.substring(0, 120);
@@ -1972,29 +1958,33 @@
                     filled++;
                 }
 
-                // Category suggestion: show bar requiring explicit user confirmation
-                // (never auto-applies — user must click "Usar esta")
-                const suggestedCat = guessCategory(title);
-                if (suggestedCat && modalCategoryTS && !modalCategoryTS.getValue()) {
-                    // Look up the human-readable label from the select options
-                    const selectEl = document.getElementById('modal-category');
-                    const opt = selectEl ? selectEl.querySelector(`option[value="${suggestedCat}"]`) : null;
-                    const catLabel = opt ? opt.textContent : suggestedCat;
-                    pendingSuggestedCategory = suggestedCat;
-                    $('category-suggestion-label').textContent = catLabel;
-                    $('category-suggestion-bar').classList.remove('hidden');
-                    $('inferred-notice').classList.remove('hidden');
-                    filled++;
+                // Category suggestion via brain classifier (single source of truth —
+                // no per-page KEYWORD_HINTS duplication).
+                // Never auto-applies: user must click "Usar esta" in the suggestion bar.
+                if (typeof CRBOXProductClassifier !== 'undefined' && title) {
+                    const catEl     = document.getElementById('modal-category');
+                    const brainBarEl = document.getElementById('brain-suggest-bar');
+                    if (brainBarEl && catEl) {
+                        CRBOXProductClassifier.suggest(title, catEl, brainBarEl, null, function (result) {
+                            if (modalCategoryTS) {
+                                const newVal = catEl.value;
+                                if (newVal && modalCategoryTS.getValue() !== newVal) {
+                                    modalCategoryTS.setValue(newVal, true);
+                                }
+                            }
+                            filled++;
+                        });
+                    }
                 }
 
                 if (filled > 0) {
                     $('inferred-notice').classList.remove('hidden');
-                    statusEl.textContent = `✓ Se pre-llenaron ${filled} campo(s). Revisa y confirma.`;
+                    statusEl.textContent = `✓ Se pre-llenaron ${filled} campo(s). Revisa y confirma los datos antes de calcular.`;
                 } else {
-                    statusEl.textContent = 'No se encontraron datos útiles en esa URL. Ingresa los datos manualmente.';
+                    statusEl.textContent = 'No encontramos todos los datos en esa URL. Completa los campos manualmente.';
                 }
             } catch (err) {
-                statusEl.textContent = 'No se pudo leer la URL. Ingresa los datos manualmente.';
+                statusEl.textContent = 'No pudimos leer esa URL. Ingresa los datos manualmente o intenta con otro enlace.';
             } finally {
                 $('btn-fetch-url').disabled = false;
                 $('btn-fetch-url').textContent = 'Extraer info';

@@ -97,6 +97,37 @@ _AI_RATE         = {}           # ip -> [ts, ...]
 _AI_RATE_LOCK    = threading.Lock()
 _AI_RATE_LIMIT   = 200          # calls per IP per hour (Gemini API is the real throttle)
 
+# ── Product Brain — loaded once at startup ─────────────────────────────────────
+def _load_product_brain():
+    """Load data/product-brain.json and index categories by id for fast lookup."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'product-brain.json')
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            raw = json.load(f)
+        cats = raw.get('categories', [])
+        index = {c['id']: c for c in cats if 'id' in c}
+        return cats, index
+    except Exception as ex:
+        print(f'[CLASSIFIER] WARNING: could not load product-brain.json: {ex}')
+        return [], {}
+
+_BRAIN_CATS, _BRAIN_IDX = _load_product_brain()
+
+_CLASSIFY_RATE      = {}
+_CLASSIFY_RATE_LOCK = threading.Lock()
+_CLASSIFY_RATE_LIMIT = 120  # calls per IP per hour
+
+def _classify_rate_check(ip):
+    now = time.time()
+    with _CLASSIFY_RATE_LOCK:
+        ts = _CLASSIFY_RATE.get(ip, [])
+        ts = [t for t in ts if now - t < 3600]
+        if len(ts) >= _CLASSIFY_RATE_LIMIT:
+            return False
+        ts.append(now)
+        _CLASSIFY_RATE[ip] = ts
+    return True
+
 _CRBOX_CATEGORIES = (
     'celulares', 'tableta_electronica', 'computadora', 'consola_videojuegos', 'camara',
     'auricular_telefono', 'bocina', 'televisor',
@@ -1339,6 +1370,240 @@ def _build_search_fallback_result(data, url, grounded=True):
                                       'search' if dims      else 'missing', d_unit),
         },
     }
+
+
+_CLASSIFY_PROMPT = """\
+You are a product classification assistant for CRBOX, a Costa Rica courier company.
+Given a product name, choose the SINGLE best category from this list of category IDs.
+
+Category IDs and their descriptions:
+{category_list}
+
+Product name: {product_name}
+
+Return ONLY valid JSON — no markdown, no code fences, no extra text:
+{{
+  "category_id": "<chosen_id>",
+  "confidence": "high" | "medium" | "low",
+  "reasoning": "<one short sentence>"
+}}
+
+Rules:
+- Choose the most specific applicable category.
+- Use "unknown_manual_review" only when the product truly does not fit any category.
+- Confidence: "high" = very clear match, "medium" = likely match, "low" = best guess.
+"""
+
+
+def _normalize_for_match(s):
+    """Lowercase, remove accents, strip punctuation for fuzzy matching."""
+    import unicodedata
+    s = (s or '').lower()
+    s = unicodedata.normalize('NFD', s)
+    s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+    s = re.sub(r'[^a-z0-9 ]', ' ', s)
+    return re.sub(r'\s+', ' ', s).strip()
+
+
+def _brain_local_match(product_name):
+    """Try to match product_name against BRAIN_CATS aliases/keywords.
+    Returns (category_dict, confidence_str) or (None, None).
+    """
+    if not _BRAIN_CATS or not product_name:
+        return None, None
+    norm = _normalize_for_match(product_name)
+    if not norm:
+        return None, None
+    words = [w for w in norm.split() if len(w) >= 3]
+    best_cat   = None
+    best_score = 0
+    for cat in _BRAIN_CATS:
+        if cat.get('id') == 'unknown_manual_review':
+            continue
+        score = 0
+        aliases = list(cat.get('aliases', [])) + list(cat.get('misspellings', []))
+        for a in aliases:
+            na = _normalize_for_match(a)
+            if not na:
+                continue
+            if norm == na:
+                score = max(score, 130)
+            elif len(na) >= 5 and norm.startswith(na + ' '):
+                # alias is the leading word(s) — strongest positional signal
+                score = max(score, 125)
+            elif len(na) >= 4 and (' ' + na + ' ') in (' ' + norm + ' '):
+                # alias appears as a whole word somewhere in the name
+                score = max(score, 110)
+            elif len(na) >= 4 and na in norm:
+                score = max(score, 90)
+        if score < 90:
+            for kw in cat.get('keywords', []):
+                nk = _normalize_for_match(kw)
+                if not nk or len(nk) < 3:
+                    continue
+                if nk in norm and len(nk) >= 5:
+                    score = max(score, 75)
+                elif any(w == nk for w in words):
+                    score = max(score, 65)
+        if score > best_score:
+            best_score = score
+            best_cat = cat
+    if not best_cat or best_score < 60:
+        return None, None
+    conf = 'high' if best_score >= 100 else 'medium' if best_score >= 70 else 'low'
+    return best_cat, conf
+
+
+def _cat_to_classify_result(cat, confidence, source):
+    """Serialize a brain category dict into the API response shape."""
+    return {
+        'brainCategoryId':          cat.get('id', ''),
+        'legacyCode':               cat.get('code', ''),
+        'displayName':              cat.get('displayName', ''),
+        'categoryGroup':            cat.get('categoryGroup', ''),
+        'confidence':               confidence,
+        'source':                   source,
+        'automaticEstimateAllowed': bool(cat.get('automaticEstimateAllowed', True)),
+        'manualReviewRequired':     bool(cat.get('manualReviewRequired', False)),
+        'regulatedProduct':         bool(cat.get('regulatedProduct', False)),
+        'restrictedProduct':        bool(cat.get('restrictedProduct', False)),
+        'forbiddenProduct':         bool(cat.get('forbiddenProduct', False)),
+        'riskFlags':                cat.get('riskFlags', []),
+        'customerMessage':          cat.get('customerMessage', ''),
+        'adminNotes':               cat.get('adminNotes', ''),
+        'actionForCustomer':        cat.get('actionForCustomer', ''),
+        'actionForAdmin':           cat.get('actionForAdmin', ''),
+        'estimatedRange':           cat.get('estimatedRange', ''),
+    }
+
+
+def _gemini_classify(product_name):
+    """Ask Gemini to pick a CRBOX brain category for the given product name.
+    Returns (result_dict, error_str).
+    """
+    if not _GEMINI_API_KEY or not product_name or not _BRAIN_CATS:
+        return None, 'No API key, product name, or brain data'
+    try:
+        from google import genai as _genai
+        from google.genai import types as _gtypes
+        client = _genai.Client(api_key=_GEMINI_API_KEY)
+
+        cat_lines = '\n'.join(
+            f'  {c["id"]}: {c.get("displayName","")} ({c.get("categoryGroup","")})'
+            for c in _BRAIN_CATS
+        )
+        prompt = _CLASSIFY_PROMPT.format(
+            category_list=cat_lines,
+            product_name=product_name,
+        )
+        response = client.models.generate_content(
+            model=_GEMINI_MODEL,
+            contents=prompt,
+            config=_gtypes.GenerateContentConfig(
+                temperature=0.1,
+                max_output_tokens=256,
+            ),
+        )
+        text = (response.text or '').strip()
+        if text.startswith('```'):
+            text = text.split('\n', 1)[-1] if '\n' in text else text[3:]
+        if text.endswith('```'):
+            text = text[:-3].rstrip()
+        raw = json.loads(text)
+        cat_id = str(raw.get('category_id') or '').strip()
+        confidence = str(raw.get('confidence') or 'medium').strip()
+        if confidence not in ('high', 'medium', 'low'):
+            confidence = 'medium'
+        cat = _BRAIN_IDX.get(cat_id)
+        if not cat:
+            return None, f'Unknown category_id from Gemini: {cat_id!r}'
+        return _cat_to_classify_result(cat, confidence, 'ai_gemini'), None
+    except json.JSONDecodeError as ex:
+        return None, f'JSON parse error: {ex}'
+    except Exception as ex:
+        return None, f'Gemini classify error: {ex}'
+
+
+_CLASSIFY_CACHE      = {}
+_CLASSIFY_CACHE_LOCK = threading.Lock()
+_CLASSIFY_CACHE_TTL  = 3600  # 1 hour
+
+
+def _classify_cache_get(key):
+    with _CLASSIFY_CACHE_LOCK:
+        entry = _CLASSIFY_CACHE.get(key)
+        if entry and time.time() < entry[1]:
+            return entry[0]
+        return None
+
+
+def _classify_cache_set(key, result):
+    with _CLASSIFY_CACHE_LOCK:
+        _CLASSIFY_CACHE[key] = (result, time.time() + _CLASSIFY_CACHE_TTL)
+
+
+def _handle_ai_classify(handler):
+    """POST /api/ai/classify — classify a product name using Brain + optional Gemini."""
+    try:
+        length = int(handler.headers.get('Content-Length', 0))
+        body   = json.loads(handler.rfile.read(length)) if length else {}
+    except Exception:
+        handler._json_response(400, {'error': 'bad_request'})
+        return
+
+    ip = (handler.headers.get('X-Forwarded-For') or
+          handler.client_address[0] or '0.0.0.0').split(',')[0].strip()
+    if not _classify_rate_check(ip):
+        handler._json_response(429, {'error': 'rate_limit'})
+        return
+
+    product_name = str(body.get('product_name') or '').strip()[:300]
+    if not product_name or len(product_name) < 2:
+        handler._json_response(400, {'error': 'product_name required (min 2 chars)'})
+        return
+
+    cache_key = _normalize_for_match(product_name)
+    cached = _classify_cache_get(cache_key)
+    if cached:
+        handler._json_response(200, cached)
+        return
+
+    cat, conf = _brain_local_match(product_name)
+    if cat and conf in ('high', 'medium'):
+        result = _cat_to_classify_result(cat, conf, 'brain_local')
+        _classify_cache_set(cache_key, result)
+        handler._json_response(200, result)
+        return
+
+    local_fallback = _cat_to_classify_result(cat, conf, 'brain_local') if cat else None
+
+    if _GEMINI_SDK_OK and _GEMINI_API_KEY:
+        ai_result, err = _gemini_classify(product_name)
+        if ai_result:
+            _classify_cache_set(cache_key, ai_result)
+            handler._json_response(200, ai_result)
+            return
+        if err:
+            print(f'[CLASSIFIER] Gemini classify failed for {product_name!r}: {err}')
+
+    if local_fallback:
+        handler._json_response(200, local_fallback)
+        return
+
+    # Always return a well-formed result — unknown_manual_review is never a hard failure.
+    unknown_cat = _BRAIN_IDX.get('unknown_manual_review', {})
+    if unknown_cat:
+        handler._json_response(200, _cat_to_classify_result(unknown_cat, 'low', 'no_match'))
+    else:
+        handler._json_response(200, {
+            'brainCategoryId': 'unknown_manual_review', 'legacyCode': 'otros',
+            'displayName': 'Revisión manual requerida', 'categoryGroup': '',
+            'confidence': 'low', 'source': 'no_match',
+            'automaticEstimateAllowed': False, 'manualReviewRequired': True,
+            'regulatedProduct': False, 'restrictedProduct': False, 'forbiddenProduct': False,
+            'riskFlags': [], 'customerMessage': '', 'adminNotes': '',
+            'actionForCustomer': '', 'actionForAdmin': '', 'estimatedRange': '',
+        })
 
 
 def _handle_ai_extract(handler):
@@ -8500,6 +8765,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_send_quote()
         elif self.path == '/api/ai/extract':
             _handle_ai_extract(self)
+        elif self.path == '/api/ai/classify':
+            _handle_ai_classify(self)
         elif self.path == '/api/chat':
             _handle_ai_chat(self)
         elif self.path == '/api/solicitudes':

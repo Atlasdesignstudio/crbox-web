@@ -942,7 +942,10 @@
     <script src="js/auth.js"></script>
     <script src="js/nav-auth.js?v=2" defer></script>
     <script src="js/analytics.js" defer></script>
+    <script src="js/product-categories.js?v=1"></script>
+    <script src="js/tariff-adapter.js?v=3"></script>
     <script src="js/ai-extractor.js?v=6"></script>
+    <script src="js/product-classifier.js?v=1"></script>
     <script>
     (function () {
         'use strict';
@@ -1117,12 +1120,28 @@
                 if (el) { el.addEventListener('input', function() { updateSubmitState(); checkRequiredFilled(); }); }
                 if (el) { el.addEventListener('change', function() { updateSubmitState(); checkRequiredFilled(); }); }
             });
+            var complianceEl = document.getElementById('ai-compliance-' + cardId);
+            var catSuggBarEl = document.createElement('div');
+            catSuggBarEl.id = 'cat-suggest-' + cardId;
+            if (catSel && catSel.parentNode) {
+                catSel.parentNode.insertBefore(catSuggBarEl, catSel.nextSibling);
+            }
             if (nameInput) nameInput.addEventListener('blur', function() {
-                if ((this.value||'').trim().length < 3) markFieldError(this, 'err-name-' + cardId);
-                else clearFieldError(this, 'err-name-' + cardId);
+                var val = (this.value||'').trim();
+                if (val.length < 3) { markFieldError(this, 'err-name-' + cardId); return; }
+                clearFieldError(this, 'err-name-' + cardId);
+                if (typeof CRBOXProductClassifier !== 'undefined') {
+                    CRBOXProductClassifier.suggest(val, catSel, catSuggBarEl, complianceEl, function(result) {
+                        _updateLiveEst();
+                    });
+                }
             });
             if (catSel) catSel.addEventListener('change', function() {
-                if (this.value) clearFieldError(this, 'err-cat-' + cardId);
+                if (this.value) {
+                    clearFieldError(this, 'err-cat-' + cardId);
+                    var bar = document.getElementById('cat-suggest-' + cardId);
+                    if (bar) { var s = bar.querySelector('.pc-suggestion-bar'); if (s) s.parentNode.removeChild(s); }
+                }
             });
             if (valInput) valInput.addEventListener('blur', function() {
                 var v = parseFloat(this.value);
@@ -1219,7 +1238,7 @@
                 btnAnalizar.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analizando\u2026';
                 btnAnalizar.style.background = '#d97706';
             }
-            CRBOXAIExtractor.runExtraction(url, {
+            var _extractFields = {
                 bannerTarget:     cardEl.querySelector('#ai-banner-' + cardId),
                 complianceTarget: cardEl.querySelector('#ai-compliance-' + cardId),
                 fName:            cardEl.querySelector('.f-product-name'),
@@ -1227,7 +1246,8 @@
                 fCategory:        cardEl.querySelector('.f-category'),
                 fWeight: null, fLength: null, fWidth: null, fHeight: null,
                 confirmWrapper:   cardEl.querySelector('#ai-confirm-wrap-' + cardId),
-            }).then(function(result) {
+            };
+            CRBOXAIExtractor.runExtraction(url, _extractFields).then(function(result) {
                 var bannerWrap = cardEl.querySelector('#ai-banner-' + cardId);
                 if (bannerWrap) {
                     var banner = bannerWrap.querySelector('.ai-extract-banner');
@@ -1245,6 +1265,21 @@
                 }
                 if (result && result.data_source) state.aiDataSource = result.data_source;
                 try { state.lastAiResult = CRBOXAIExtractor.getLastResult(); } catch(e) {}
+
+                // Run brain classifier on the extracted product name.
+                // analyzeUrlResult reads fields.product_name from the extractor result.
+                if (typeof CRBOXProductClassifier !== 'undefined') {
+                    var _extractorResult = null;
+                    try { _extractorResult = CRBOXAIExtractor.getLastResult(); } catch(e) {}
+                    CRBOXProductClassifier.analyzeUrlResult(_extractorResult).then(function(classResult) {
+                        if (!classResult) return;
+                        CRBOXProductClassifier.applyToProductCard({
+                            categoryEl:      _extractFields.fCategory,
+                            barContainer:    catSuggBarEl,
+                            noticeContainer: complianceEl,
+                        }, classResult);
+                    });
+                }
             }).finally(function() {
                 state.aiInFlight = false;
                 if (btnAnalizar) {

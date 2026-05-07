@@ -763,6 +763,50 @@
       }
     }
 
+    // Brain classifier compliance notice for the product(s) in this solicitud.
+    // Runs after product details are rendered; shows a notice if the product
+    // is regulated, restricted, or forbidden. Non-blocking — notice appears
+    // asynchronously without affecting existing solicitud data or state.
+    if (typeof CRBOXProductClassifier !== 'undefined') {
+      (function () {
+        var names = _solProducts.length
+          ? _solProducts.map(function (p) { return p.name || ''; }).filter(Boolean)
+          : [(sol.product_name || '')];
+        names = names.filter(function (n) { return n.length >= 2; });
+        if (!names.length) return;
+
+        var _productWrap = document.getElementById('sol-single-product')
+          || document.getElementById('sol-multi-products')
+          || document.querySelector('.px-6.py-2');
+        if (!_productWrap) return;
+
+        var _noticeWrap = document.createElement('div');
+        _noticeWrap.id = 'sol-brain-compliance';
+        _productWrap.appendChild(_noticeWrap);
+
+        // Classify first product name; for multi-product, also classify the rest
+        var classifyAll = names.map(function (n) {
+          return CRBOXProductClassifier.classify(n, { noFallback: true });
+        });
+
+        Promise.all(classifyAll).then(function (results) {
+          results.forEach(function (result, idx) {
+            if (!result || !CRBOXProductClassifier.hasRisk(result)) return;
+            var itemWrap = document.createElement('div');
+            itemWrap.style.cssText = 'margin-top:.25rem;';
+            if (names.length > 1) {
+              var prefix = document.createElement('p');
+              prefix.style.cssText = 'font-size:.75rem;color:#6b7280;margin-bottom:.15rem;font-weight:600;';
+              prefix.textContent = (idx + 1) + '. ' + names[idx];
+              itemWrap.appendChild(prefix);
+            }
+            CRBOXProductClassifier.showComplianceNotice(itemWrap, result);
+            _noticeWrap.appendChild(itemWrap);
+          });
+        });
+      })();
+    }
+
     _setText('sol-service', SERVICE_LABELS[sol.service_type] || 'Aéreo');
 
     // S-2: Destination zone
