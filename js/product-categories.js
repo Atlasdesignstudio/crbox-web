@@ -21,6 +21,15 @@
  * without UI changes — set source to "official_tica" on each entry
  * and populate the rate once the official dataset is integrated.
  *
+ * ── Product Brain extension ───────────────────────────────────────────────────
+ * window.PRODUCT_BRAIN_CATEGORIES  — 53 enriched spec categories
+ * window.PRODUCT_PRODUCTS          — product-level rows for AI/search
+ * window.ProductBrainVersion       — version string
+ * window.CATEGORY_BY_ID            — index: brainId → category object
+ * window.PRODUCT_TO_CATEGORY_INDEX — index: productKey → brainId
+ * window.KEYWORD_INDEX             — index: keyword → [brainId, ...]
+ * window.RISK_FLAG_INDEX           — index: flag → [brainId, ...]
+ *
  * ── Data structure per entry ─────────────────────────────────────────────────
  * {
  *   id:                 string   — same as code, unique key
@@ -36,6 +45,12 @@
  */
 (function () {
   'use strict';
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SECTION 1 — PRODUCT_CATEGORIES (backward-compatible flat list)
+  // Codes consumed by tariff-adapter.js, calculator-engine.js, cotizar.html.
+  // DO NOT remove or rename any existing code without updating those consumers.
+  // ════════════════════════════════════════════════════════════════════════════
 
   var CATEGORIES = [
 
@@ -487,16 +502,9 @@
     },
     {
       id: 'lampara', code: 'lampara',
-      name: 'Lámparas y Luminarias',
+      name: 'Lámparas y Luces',
       group: 'Hogar y Jardín',
-      aliases: ['lámpara', 'luminaria', 'luz', 'foco', 'candil', 'aplique', 'iluminación'],
-      dutyRate: null, totalEstimatedRate: 0.2995, source: 'local_estimated', requiresPermit: false, needsReview: false,
-    },
-    {
-      id: 'cortinas', code: 'cortinas',
-      name: 'Cortinas y Persianas',
-      group: 'Hogar y Jardín',
-      aliases: ['cortina', 'persiana', 'blinds', 'curtain', 'toldo'],
+      aliases: ['lámpara', 'luz', 'light', 'foco', 'iluminación', 'led strip', 'tira led'],
       dutyRate: null, totalEstimatedRate: 0.2995, source: 'local_estimated', requiresPermit: false, needsReview: false,
     },
     {
@@ -1095,6 +1103,213 @@
       dutyRate: null, totalEstimatedRate: 0.1413, source: 'local_estimated', requiresPermit: false, needsReview: false,
     },
 
+    // ── Nuevos códigos Product Brain (solo tariff-lookup, sin UI existente) ──
+    // Estos códigos son usados por PRODUCT_BRAIN_CATEGORIES. Se agregan aquí
+    // para que tariff-adapter.js pueda resolver tasas si son enviadas al calc.
+    {
+      id: 'storage_memory', code: 'storage_memory',
+      name: 'Almacenamiento y Memoria',
+      group: 'Electrónica',
+      aliases: ['ssd externo', 'microsd', 'usb', 'pendrive', 'memoria'],
+      dutyRate: null, totalEstimatedRate: 0.14, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'computer_accessories', code: 'computer_accessories',
+      name: 'Accesorios de Computadora',
+      group: 'Electrónica',
+      aliases: ['teclado', 'mouse', 'webcam', 'hub', 'docking'],
+      dutyRate: null, totalEstimatedRate: 0.1413, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'lithium_batteries', code: 'lithium_batteries',
+      name: 'Baterías de Litio y Power Banks',
+      group: 'Especial',
+      aliases: ['power bank', 'batería externa', 'litio', 'jump starter'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'regulated_telecom', code: 'regulated_telecom',
+      name: 'Equipos de Telecomunicación',
+      group: 'Regulado',
+      aliases: ['walkie talkie', 'satelital', 'radio uhf', 'antena especializada'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'microphones_audio', code: 'microphones_audio',
+      name: 'Micrófonos y Audio Profesional',
+      group: 'Electrónica',
+      aliases: ['micrófono', 'interfaz audio', 'mezcladora'],
+      dutyRate: null, totalEstimatedRate: 0.14, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'gaming_physical', code: 'gaming_physical',
+      name: 'Accesorios Físicos Gaming',
+      group: 'Gaming',
+      aliases: ['silla gaming', 'escritorio gaming', 'volante gaming'],
+      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'clothing_accessories', code: 'clothing_accessories',
+      name: 'Accesorios de Vestir',
+      group: 'Moda',
+      aliases: ['gorra', 'sombrero', 'bufanda', 'guantes textiles', 'corbata'],
+      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'footwear_parts', code: 'footwear_parts',
+      name: 'Partes y Accesorios de Calzado',
+      group: 'Moda',
+      aliases: ['plantillas', 'cordones', 'suelas'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'beauty_fragrance', code: 'beauty_fragrance',
+      name: 'Perfumes y Fragancias',
+      group: 'Belleza',
+      aliases: ['perfume', 'fragancia', 'colonia', 'eau de toilette', 'body mist'],
+      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'beauty_makeup', code: 'beauty_makeup',
+      name: 'Maquillaje y Cosméticos',
+      group: 'Belleza',
+      aliases: ['maquillaje', 'labial', 'mascara', 'esmalte', 'base'],
+      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'beauty_devices', code: 'beauty_devices',
+      name: 'Aparatos de Belleza',
+      group: 'Belleza',
+      aliases: ['secadora pelo', 'plancha pelo', 'rasuradora', 'depiladora'],
+      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'medicines_medical', code: 'medicines_medical',
+      name: 'Medicamentos y Productos Médicos',
+      group: 'Salud / Regulado',
+      aliases: ['medicamento', 'oxímetro', 'glucómetro', 'nebulizador'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'home_decor', code: 'home_decor',
+      name: 'Hogar, Decoración y Organización',
+      group: 'Hogar',
+      aliases: ['organizador', 'decoración', 'sábanas', 'cortinas', 'vajilla'],
+      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'chemicals_aerosols', code: 'chemicals_aerosols',
+      name: 'Químicos, Aerosoles y Adhesivos',
+      group: 'Regulado',
+      aliases: ['aerosol', 'pintura', 'pegamento', 'resina', 'solvente'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'automotive_accessories', code: 'automotive_accessories',
+      name: 'Accesorios Automotrices',
+      group: 'Automotriz',
+      aliases: ['dashcam', 'cámara retroceso', 'radio carro', 'luces LED carro'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'sports_outdoor', code: 'sports_outdoor',
+      name: 'Bicicletas, Pesca y Outdoor',
+      group: 'Deportes',
+      aliases: ['bicicleta montaña', 'smartwatch deportivo', 'pesca', 'surf'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'drones_rc', code: 'drones_rc',
+      name: 'Drones y Control Remoto',
+      group: 'Regulado',
+      aliases: ['drone', 'dron', 'dji', 'carro rc', 'control remoto'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'pet_accessories', code: 'pet_accessories',
+      name: 'Accesorios para Mascotas',
+      group: 'Mascotas',
+      aliases: ['collar mascota', 'arnés mascota', 'cama mascota', 'comedero'],
+      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'pet_food_review', code: 'pet_food_review',
+      name: 'Alimentos y Suplementos para Mascotas',
+      group: 'Mascotas / Regulado',
+      aliases: ['comida mascota', 'dog food', 'cat food', 'suplemento mascota'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'office_stationery', code: 'office_stationery',
+      name: 'Papelería, Oficina y Arte',
+      group: 'Oficina',
+      aliases: ['cuaderno', 'agenda', 'lápices', 'marcadores', 'silla oficina'],
+      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'watches_jewelry', code: 'watches_jewelry',
+      name: 'Relojes y Joyería',
+      group: 'Moda / Lujo',
+      aliases: ['reloj', 'joyería', 'anillo', 'collar', 'pulsera', 'aretes'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: false,
+    },
+    {
+      id: 'eyewear_medical', code: 'eyewear_medical',
+      name: 'Lentes de Contacto y Óptica Médica',
+      group: 'Salud / Regulado',
+      aliases: ['lentes de contacto', 'solución lentes', 'gotas ojos'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'food_beverages', code: 'food_beverages',
+      name: 'Alimentos y Bebidas',
+      group: 'Alimentos / Regulado',
+      aliases: ['snacks', 'chocolate', 'café', 'té', 'alimentos'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'alcohol_tobacco', code: 'alcohol_tobacco',
+      name: 'Alcohol, Tabaco, Vape y Nicotina',
+      group: 'Restringido',
+      aliases: ['vino', 'cerveza', 'licor', 'tabaco', 'vape', 'nicotina'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'plants_seeds', code: 'plants_seeds',
+      name: 'Plantas, Semillas y Productos Agro',
+      group: 'Agro / Regulado',
+      aliases: ['semillas', 'plantas', 'fertilizante', 'sustrato'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'weapons_restricted', code: 'weapons_restricted',
+      name: 'Armas, Partes y Productos Tácticos',
+      group: 'Prohibido / Restringido',
+      aliases: ['armas', 'municiones', 'pistola co2', 'cuchillo táctico', 'taser'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'dangerous_goods', code: 'dangerous_goods',
+      name: 'Productos Peligrosos o Inflamables',
+      group: 'Prohibido / Dangerous Goods',
+      aliases: ['explosivo', 'inflamable', 'corrosivo', 'hazmat'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'illegal_drugs', code: 'illegal_drugs',
+      name: 'Drogas, Narcóticos y Sustancias Controladas',
+      group: 'Prohibido',
+      aliases: ['drogas', 'narcóticos', 'cbd', 'thc', 'marihuana'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: true, needsReview: true,
+    },
+    {
+      id: 'counterfeit_goods', code: 'counterfeit_goods',
+      name: 'Productos Falsificados o Réplicas',
+      group: 'Restringido',
+      aliases: ['réplica', 'fake', 'falsificado', 'imitación'],
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: true,
+    },
+
     // ── Otros ─────────────────────────────────────────────────────────────────
     {
       id: 'otros', code: 'otros',
@@ -1105,7 +1320,7 @@
     },
   ];
 
-  // De-duplicate by code (some aliases were added twice above for safety)
+  // De-duplicate by code (safety guard)
   var _seen = {};
   var DEDUPED = [];
   for (var i = 0; i < CATEGORIES.length; i++) {
@@ -1117,4 +1332,1261 @@
   }
 
   window.PRODUCT_CATEGORIES = DEDUPED;
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SECTION 2 — PRODUCT_BRAIN_CATEGORIES (53 enriched spec categories)
+  // Full schema: id, code, displayName, categoryGroup, subCategory, aliases,
+  // keywords, misspellings, exampleProducts, estimatedDAI, vatRate,
+  // law6946Rate, totalEstimatedRate, estimatedRange, source,
+  // automaticEstimateAllowed, manualReviewRequired, regulatedProduct,
+  // restrictedProduct, forbiddenProduct, riskFlags, possiblePermits,
+  // possibleInstitutions, customerMessage, adminNotes, actionForCustomer,
+  // actionForAdmin, confidenceLevel.
+  // ════════════════════════════════════════════════════════════════════════════
+
+  var BRAIN_CATS = [
+    // 1
+    { id:'phones_smartphones', code:'celulares', displayName:'Celulares', categoryGroup:'Electrónica', subCategory:'Comunicación',
+      aliases:['celular','smartphone','iphone','ifon','aifon','iphon','samsung','galaxy','pixel','xiaomi','android','telefono','mobile phone'],
+      keywords:['celular','smartphone','iphone','samsung','android','teléfono'],
+      commonSearches:['iphone 15','samsung galaxy','celular barato'],
+      misspellings:['ifon','aifon','iphon','celullar','samzung'],
+      exampleProducts:['iPhone','Samsung Galaxy','Google Pixel','Xiaomi phone','Motorola phone','Android phone','celular básico'],
+      estimatedDAI:0, vatRate:13, law6946Rate:1, totalEstimatedRate:0.14, estimatedRange:'~14%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Celulares. Esta categoría suele pagar aproximadamente 14% en impuestos. El monto final puede variar según el valor declarado y la validación final.',
+      adminNotes:'Validar teléfonos satelitales o equipos de telecomunicación no comunes.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 2
+    { id:'tablets_ereaders', code:'tableta_electronica', displayName:'Tablets y lectores electrónicos', categoryGroup:'Electrónica', subCategory:'Computación',
+      aliases:['tablet','ipad','kindle','e-reader','ereader','lector electronico','surface','tableta'],
+      keywords:['tablet','ipad','kindle','ereader','tableta'],
+      commonSearches:['ipad','tablet android','kindle'],
+      misspellings:['tablett','tablea'],
+      exampleProducts:['iPad','Samsung Galaxy Tab','Amazon Fire tablet','Kindle','Kobo','e-reader'],
+      estimatedDAI:0, vatRate:13, law6946Rate:1, totalEstimatedRate:0.14, estimatedRange:'~14%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Tablets o lectores electrónicos. Esta categoría suele pagar aproximadamente 14% en impuestos.',
+      adminNotes:'Revisar modelos con conectividad celular si aplica.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 3
+    { id:'computers_main_parts', code:'computadora', displayName:'Computadoras y partes principales', categoryGroup:'Electrónica', subCategory:'Computación',
+      aliases:['laptop','notebook','macbook','computadora','pc','desktop','monitor','ssd','ram','gpu','tarjeta grafica','motherboard','procesador','cpu'],
+      keywords:['laptop','computadora','macbook','monitor','ssd','ram','gpu'],
+      commonSearches:['laptop gaming','macbook','computadora escritorio','monitor 4k'],
+      misspellings:['labtop','computaodra'],
+      exampleProducts:['Laptop','MacBook','Chromebook','gaming laptop','desktop PC','mini PC','all-in-one','monitor','motherboard','procesador','GPU','SSD'],
+      estimatedDAI:0, vatRate:13, law6946Rate:1, totalEstimatedRate:0.14, estimatedRange:'~14%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Computadoras o partes principales. Esta categoría suele pagar aproximadamente 14% en impuestos.',
+      adminNotes:'Diferenciar partes principales de accesorios simples.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 4
+    { id:'storage_memory', code:'storage_memory', displayName:'Almacenamiento y memoria', categoryGroup:'Electrónica', subCategory:'Computación',
+      aliases:['ssd','hdd','disco duro','hard drive','sd card','microsd','usb drive','ram','pendrive','memoria usb'],
+      keywords:['ssd','hdd','microsd','usb','pendrive','ram'],
+      commonSearches:['ssd 1tb','tarjeta microsd','usb memoria'],
+      misspellings:['micro sd','microsde'],
+      exampleProducts:['SSD','HDD','disco duro externo','disco duro interno','tarjeta SD','microSD','USB drive','RAM','pendrive'],
+      estimatedDAI:0, vatRate:13, law6946Rate:1, totalEstimatedRate:0.14, estimatedRange:'~14%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a almacenamiento o memoria. Esta categoría suele pagar aproximadamente 14% en impuestos.',
+      adminNotes:'Validar si viene dentro de otro equipo o como parte individual.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 5
+    { id:'computer_accessories', code:'computer_accessories', displayName:'Accesorios de computadora', categoryGroup:'Electrónica', subCategory:'Accesorios PC',
+      aliases:['keyboard','teclado','mouse','hub','dock','webcam','cable','hdmi','ethernet'],
+      keywords:['teclado','mouse','webcam','hub','dock','hdmi'],
+      commonSearches:['teclado mecánico','mouse gaming','webcam hd','hub usb'],
+      misspellings:['keybord','raton','webcan'],
+      exampleProducts:['Teclado mecánico','mouse gaming','webcam','hub USB','docking station','cable HDMI','capturadora','tarjeta WiFi','ventilador PC'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'~14%–29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Accesorios de computadora. Esta categoría suele pagar entre 14% y 29% en impuestos, según el tipo exacto.',
+      adminNotes:'Si se requiere estimación única, usar rango o revisión si es ambiguo.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 6
+    { id:'chargers_cables_adapters', code:'cargador', displayName:'Cargadores, cables y adaptadores', categoryGroup:'Electrónica', subCategory:'Accesorios',
+      aliases:['charger','cargador','cable','usb c','usb-c','lightning','magsafe','adapter','adaptador'],
+      keywords:['cargador','cable','adaptador','usb','magsafe'],
+      commonSearches:['cargador iphone','cable usb-c','cargador rápido'],
+      misspellings:['charjer','cargaodor'],
+      exampleProducts:['Cargador rápido USB-C','cargador MagSafe','cargador laptop','cable Lightning','cable USB-C','cable micro USB','adaptador USB-C a HDMI','adaptador viaje'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'~15%–29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Cargadores, cables o adaptadores. Esta categoría suele pagar entre 15% y 29% en impuestos, según el tipo exacto.',
+      adminNotes:'Revisar si es cargador, cable simple, adaptador o dispositivo electrónico.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 7
+    { id:'lithium_batteries_powerbanks', code:'lithium_batteries', displayName:'Baterías y power banks', categoryGroup:'Especial / Riesgo transporte', subCategory:'Baterías',
+      aliases:['powerbank','power bank','bateria externa','portable charger','lithium battery','litio','jumpstarter','power station'],
+      keywords:['powerbank','bateria','litio','power station'],
+      commonSearches:['power bank carga rápida','batería externa','jump starter'],
+      misspellings:['powe bank','bateria extrena'],
+      exampleProducts:['Power bank','batería externa','batería MagSafe','jump starter','UPS','power station','batería litio grande'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['contains_lithium_battery','special_transport','dangerous_goods_possible'],
+      possiblePermits:['transporte especial batería litio'], possibleInstitutions:['MOPT','carrier aereo'],
+      customerMessage:'Detectamos que este producto podría incluir una batería de litio. Estos productos suelen requerir revisión porque pueden tener condiciones especiales de transporte.',
+      adminNotes:'Revisar capacidad Wh/mAh, transporte aéreo/marítimo, carrier y empaque.',
+      actionForCustomer:'Compartir link, modelo, capacidad de batería si aparece y cantidad.',
+      actionForAdmin:'Revisar restricciones de transporte y dangerous goods.', confidenceLevel:'high' },
+    // 8
+    { id:'networking_equipment', code:'router', displayName:'Redes y conectividad', categoryGroup:'Electrónica', subCategory:'Redes',
+      aliases:['router','wifi','mesh','repeater','repetidor','switch','modem','módem','access point'],
+      keywords:['router','wifi','modem','mesh','repetidor'],
+      commonSearches:['router wifi','mesh wifi','extensor wifi'],
+      misspellings:['routher','ruoter','wi fi'],
+      exampleProducts:['Router WiFi','sistema mesh WiFi','repetidor WiFi','switch red','módem','access point'],
+      estimatedDAI:0, vatRate:13, law6946Rate:1, totalEstimatedRate:0.14, estimatedRange:'~14%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['telecom_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Redes y conectividad. Esta categoría suele pagar aproximadamente 14% en impuestos.',
+      adminNotes:'Radios, antenas especializadas y telecom profesional deben revisarse.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 9
+    { id:'regulated_telecom', code:'regulated_telecom', displayName:'Equipos de telecomunicación', categoryGroup:'Regulado', subCategory:'Telecom',
+      aliases:['satellite phone','telefono satelital','walkie','walkie talkie','radio','antenna','antena','telecom'],
+      keywords:['satelital','walkie','radio','antena','telecom'],
+      commonSearches:['walkie talkie','teléfono satelital','radio VHF'],
+      misspellings:['walky talky','walki talki'],
+      exampleProducts:['Teléfono satelital','radio comunicación','walkie talkie','antena especializada','radio VHF','radio UHF','transmisor'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['telecom','permit_possible','radiofrequency_possible'],
+      possiblePermits:['permiso SUTEL','permiso MICITT'], possibleInstitutions:['SUTEL','MICITT'],
+      customerMessage:'Este producto requiere revisión antes de cotizarlo automáticamente. Algunos equipos de telecomunicación pueden necesitar validación o permisos.',
+      adminNotes:'Revisar SUTEL/MICITT o autoridad aplicable si corresponde.',
+      actionForCustomer:'Compartir link y especificaciones técnicas del equipo.',
+      actionForAdmin:'Validar regulación SUTEL/MICITT.', confidenceLevel:'high' },
+    // 10
+    { id:'headphones_audio_personal', code:'auricular_telefono', displayName:'Audífonos y audio personal', categoryGroup:'Electrónica', subCategory:'Audio',
+      aliases:['audifonos','audífonos','airpods','earbuds','headphones','headset','bluetooth headphones','cascos'],
+      keywords:['audífonos','airpods','earbuds','headphones','headset'],
+      commonSearches:['airpods','audífonos bluetooth','headset gaming'],
+      misspellings:['airpod','earpod','audifonos'],
+      exampleProducts:['Audífonos cableados','audífonos Bluetooth','AirPods','earbuds','headset gaming','over-ear headphones','in-ear headphones'],
+      estimatedDAI:1, vatRate:13, law6946Rate:1, totalEstimatedRate:0.15, estimatedRange:'~15%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Audífonos o audio personal. Esta categoría suele pagar aproximadamente 15% en impuestos.',
+      adminNotes:'Distinguir de equipos de audio grandes.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 11
+    { id:'speakers_home_audio', code:'bocina', displayName:'Bocinas y audio para hogar', categoryGroup:'Electrónica', subCategory:'Audio',
+      aliases:['bocina','speaker','speakers','parlantes','soundbar','barra sonido','subwoofer'],
+      keywords:['bocina','speaker','soundbar','subwoofer','parlante'],
+      commonSearches:['bocina bluetooth','barra sonido','subwoofer'],
+      misspellings:['bozina','speker'],
+      exampleProducts:['Bocina Bluetooth','parlantes','bocinas escritorio','barra sonido','subwoofer','amplificador','tocadiscos'],
+      estimatedDAI:1, vatRate:13, law6946Rate:1, totalEstimatedRate:0.15, estimatedRange:'~15%–29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Bocinas o audio para hogar. Esta categoría suele pagar entre 15% y 29% en impuestos, según el tipo exacto.',
+      adminNotes:'Bocinas simples ~15%; equipos grandes pueden variar.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 12
+    { id:'microphones_audio_pro', code:'microphones_audio', displayName:'Micrófonos y audio profesional', categoryGroup:'Electrónica', subCategory:'Audio Profesional',
+      aliases:['microfono','micrófono','microphone','lavalier','interfaz audio','audio interface','mezcladora'],
+      keywords:['micrófono','interfaz audio','mezcladora','lavalier'],
+      commonSearches:['micrófono usb','micrófono podcast','interfaz audio'],
+      misspellings:['microfono','mezclado'],
+      exampleProducts:['Micrófono USB','micrófono lavalier','interfaz audio','mezcladora audio'],
+      estimatedDAI:0, vatRate:13, law6946Rate:1, totalEstimatedRate:0.14, estimatedRange:'~14%–29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Audio profesional o micrófonos. Algunos equipos suelen pagar aproximadamente 14%, aunque puede variar.',
+      adminNotes:'Interfaz o mezcladora puede requerir tasa variable según clasificación.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 13
+    { id:'cameras_photo_video', code:'camara', displayName:'Cámaras, fotografía y video', categoryGroup:'Electrónica', subCategory:'Fotografía',
+      aliases:['camara','cámara','camera','dslr','mirrorless','gopro','action camera','lens','lente','tripod','tripode','gimbal'],
+      keywords:['cámara','dslr','mirrorless','gopro','lente','trípode'],
+      commonSearches:['cámara dslr','gopro','cámara mirrorless','lente 50mm'],
+      misspellings:['camara','cámra','goproo'],
+      exampleProducts:['Cámara DSLR','cámara mirrorless','cámara compacta','GoPro','cámara instantánea','lente cámara','trípode','gimbal','softbox'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'~14%–29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Cámaras, fotografía o video. Esta categoría puede pagar entre 14% y 29% en impuestos, según el tipo exacto.',
+      adminNotes:'Revisar cámara completa vs accesorio.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 14
+    { id:'tv_projectors_streaming', code:'televisor', displayName:'Televisores, proyectores y streaming', categoryGroup:'Electrónica', subCategory:'Pantallas',
+      aliases:['tv','televisor','television','smart tv','projector','proyector','roku','fire tv','apple tv','chromecast'],
+      keywords:['televisor','tv','smart tv','proyector','roku','chromecast'],
+      commonSearches:['smart tv 55','proyector 4k','roku streaming'],
+      misspellings:['televsior','proyetor','cromcast'],
+      exampleProducts:['Televisor','smart TV','proyector','mini proyector','Roku','Fire TV','Apple TV','Chromecast','Blu-ray player'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'~14%–29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Televisores, proyectores o streaming. Esta categoría puede pagar entre 14% y 29% en impuestos.',
+      adminNotes:'Revisar tamaño, tipo y uso.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 15
+    { id:'gaming_consoles_electronics', code:'consola_videojuegos', displayName:'Consolas y gaming electrónico', categoryGroup:'Gaming', subCategory:'Consolas',
+      aliases:['playstation','ps5','xbox','nintendo','switch','steam deck','consola','controller','control','joycon','meta quest','vr'],
+      keywords:['consola','ps5','xbox','nintendo','switch','steam deck','vr'],
+      commonSearches:['ps5','xbox series x','nintendo switch','steam deck'],
+      misspellings:['pleistation','x box','nintedo'],
+      exampleProducts:['PS5','Xbox Series','Nintendo Switch','Steam Deck','control PS','control Xbox','Joy-Con','Meta Quest','visor VR','dock Switch'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'~14%–29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['battery_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Consolas o accesorios gaming. Esta categoría puede pagar entre 14% y 29% en impuestos.',
+      adminNotes:'VR o equipos con batería/conectividad pueden requerir revisión.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 16
+    { id:'gaming_physical_accessories', code:'gaming_physical', displayName:'Accesorios físicos gaming', categoryGroup:'Gaming', subCategory:'Accesorios',
+      aliases:['gaming chair','silla gamer','silla gaming','gaming desk','volante gaming'],
+      keywords:['silla gaming','escritorio gaming','volante gaming','mousepad'],
+      commonSearches:['silla gamer','escritorio gamer','volante gaming'],
+      misspellings:['silla gamers'],
+      exampleProducts:['Silla gaming','escritorio gaming','volante gaming','pedales gaming','joystick','mousepad gaming','figura gaming'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Accesorios físicos gaming. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Distinguir de electrónicos gaming.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 17
+    { id:'clothing_general', code:'ropa', displayName:'Ropa', categoryGroup:'Moda', subCategory:'Ropa',
+      aliases:['ropa','clothing','clothes','shirt','t-shirt','camiseta','camisa','blouse','hoodie','pants','pantalones','jeans','dress','vestido','underwear'],
+      keywords:['ropa','camiseta','jeans','pantalón','hoodie','vestido'],
+      commonSearches:['camiseta','jeans','hoodie nike','ropa deportiva'],
+      misspellings:['camizeta','t shirt'],
+      exampleProducts:['Camiseta','jeans','hoodie','sweatshirt','jacket','blazer','vestido','leggings','boxer','pijama','bikini','ropa deportiva','ropa térmica'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Ropa. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material, composición y tipo de prenda.',
+      adminNotes:'Clasificación puede variar por tejido, material y confección.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 18
+    { id:'clothing_accessories', code:'clothing_accessories', displayName:'Accesorios de vestir', categoryGroup:'Moda', subCategory:'Accesorios',
+      aliases:['cap','hat','gorra','sombrero','beanie','scarf','bufanda','gloves','guantes','belt','cinturon','cinturón'],
+      keywords:['gorra','sombrero','bufanda','guantes','cinturón'],
+      commonSearches:['gorra beanie','bufanda invierno','cinturón cuero'],
+      misspellings:['gora','bufsanda'],
+      exampleProducts:['Gorra','sombrero','beanie','bufanda','guantes textiles','guantes cuero','corbata','pañuelo','cinturón textil','cinturón cuero'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Accesorios de vestir. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Cuero puede variar.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 19
+    { id:'footwear_complete', code:'zapatos', displayName:'Calzado', categoryGroup:'Moda', subCategory:'Calzado',
+      aliases:['zapatos','tenis','tennis','sneakers','shoes','footwear','botas','boots','sandalias','sandals','crocs','heels','tacones'],
+      keywords:['zapatos','tenis','sneakers','botas','sandalias','calzado'],
+      commonSearches:['tenis nike','zapatos cuero','botas montaña','sandalias'],
+      misspellings:['snikers','sneackers','zandalias'],
+      exampleProducts:['Tenis deportivos','sneakers','zapatos cuero','zapatos vestir','botas montaña','botas trabajo','Crocs','sandalias','zapatos fútbol','tacones'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Calzado. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según material y tipo de suela.',
+      adminNotes:'Validar zapatos de seguridad, ortopédicos o partes.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 20
+    { id:'footwear_parts_accessories', code:'footwear_parts', displayName:'Partes y accesorios de calzado', categoryGroup:'Moda', subCategory:'Accesorios calzado',
+      aliases:['insoles','plantillas','laces','cordones','suelas','shoe sole','shoe cleaner'],
+      keywords:['plantillas','cordones','suelas'],
+      commonSearches:['plantillas ortopédicas','cordones','limpiador zapatillas'],
+      misspellings:['cordonez','plantias'],
+      exampleProducts:['Plantillas','cordones','suelas','cremas para zapatos','kit limpieza zapatos'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'~20%–29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['chemical_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Partes o accesorios de calzado. Esta categoría puede pagar entre 20% y 29% en impuestos.',
+      adminNotes:'Suelas ~20%; kits químicos revisar.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 21
+    { id:'beauty_fragrance', code:'beauty_fragrance', displayName:'Perfumes y fragancias', categoryGroup:'Belleza', subCategory:'Fragancias',
+      aliases:['perfume','parfum','fragrance','fragancia','cologne','colonia','edt','edp','body mist'],
+      keywords:['perfume','fragancia','colonia','eau de toilette'],
+      commonSearches:['perfume hombre','perfume mujer','colonia','body mist'],
+      misspellings:['perfum','fragrancia','colonya'],
+      exampleProducts:['Perfume','eau de toilette','eau de parfum','body mist','fragancia','colonia'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['liquid','flammable_possible','cosmetic_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Perfumes o fragancias. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede requerir revisión si son cantidades comerciales.',
+      adminNotes:'Revisar cantidad, alcohol/inflamabilidad y transporte.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 22
+    { id:'beauty_makeup_cosmetics', code:'beauty_makeup', displayName:'Maquillaje y cosméticos', categoryGroup:'Belleza', subCategory:'Maquillaje',
+      aliases:['makeup','maquillaje','makillaje','lip gloss','labial','mascara','rímel','rimel','eyeliner','delineador','foundation','blush','esmalte'],
+      keywords:['maquillaje','labial','mascara','eyeliner','base','esmalte'],
+      commonSearches:['maquillaje','labial','máscara pestañas','esmalte uñas'],
+      misspellings:['makillaje','maquillage','rimel'],
+      exampleProducts:['Labial','lip gloss','máscara pestañas','delineador','sombras ojos','base','corrector','polvo compacto','esmalte uñas','kit manicure','brochas'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['cosmetic_possible','sanitary_possible','liquid_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Maquillaje o cosméticos. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Líquidos, aerosoles o ingredientes activos pueden requerir revisión.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 23
+    { id:'beauty_skincare_personal_care', code:'salud_belleza', displayName:'Skincare y cuidado personal', categoryGroup:'Belleza', subCategory:'Skincare',
+      aliases:['skincare','skin care','crema','serum','sérum','retinol','hyaluronic','sunscreen','protector solar','shampoo','champu','champú','deodorant'],
+      keywords:['skincare','crema','sérum','shampoo','desodorante','protector solar'],
+      commonSearches:['crema facial','sérum vitamina c','shampoo','protector solar'],
+      misspellings:['champu','serun'],
+      exampleProducts:['Crema facial','sérum','retinol','ácido hialurónico','protector solar','shampoo','acondicionador','desodorante','pasta dental','exfoliante','gel baño'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['cosmetic_possible','sanitary_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Cuidado personal o skincare. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Ingredientes activos/medicinales pueden requerir revisión.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 24
+    { id:'beauty_devices', code:'beauty_devices', displayName:'Aparatos de belleza y cuidado personal', categoryGroup:'Belleza', subCategory:'Dispositivos belleza',
+      aliases:['hair dryer','secadora','straightener','plancha pelo','curler','rizadora','shaver','rasuradora','electric toothbrush'],
+      keywords:['secadora','plancha pelo','rasuradora','depiladora','cepillo dental eléctrico'],
+      commonSearches:['secadora de pelo','plancha cabello','rasuradora eléctrica','depiladora'],
+      misspellings:['secaodra','planca pelo'],
+      exampleProducts:['Cepillo dental eléctrico','rasuradora eléctrica','secadora pelo','plancha pelo','rizadora','máquina cortar pelo','depiladora','masajeador eléctrico'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['battery_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Aparatos de belleza o cuidado personal. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Si tiene batería integrada, revisar transporte si corresponde.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 25
+    { id:'supplements_vitamins_nutrition', code:'suplementos', displayName:'Suplementos y vitaminas', categoryGroup:'Salud / Regulado', subCategory:'Suplementos',
+      aliases:['protein','proteina','proteína','whey','creatine','creatina','pre workout','vitamins','vitaminas','melatonin','melatonina','magnesium','magnesio','suplemento'],
+      keywords:['suplemento','proteína','vitamina','creatina','omega 3'],
+      commonSearches:['proteína whey','creatina','vitaminas','suplemento fitness'],
+      misspellings:['protenia','suplements','wey protein'],
+      exampleProducts:['Proteína whey','creatina','pre-workout','BCAA','colágeno','omega 3','multivitamínicos','melatonina','probióticos','ashwagandha'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['supplement','sanitary_review'],
+      possiblePermits:['registro sanitario','permiso CCSS'], possibleInstitutions:['CCSS','Ministerio de Salud'],
+      customerMessage:'Este producto requiere revisión antes de cotizarlo automáticamente. Los suplementos pueden necesitar permisos, registro sanitario o validación especial.',
+      adminNotes:'No calcular como final automático. Requiere revisión sanitaria/documental.',
+      actionForCustomer:'Compartir link, ingredientes, cantidad y presentación.',
+      actionForAdmin:'Revisar requisitos sanitarios y viabilidad courier.', confidenceLevel:'high' },
+    // 26
+    { id:'medicines_medical_products', code:'medicines_medical', displayName:'Medicamentos y productos médicos', categoryGroup:'Salud / Regulado', subCategory:'Medicamentos',
+      aliases:['medicine','medicamento','medication','receta','prescription','medical','oxímetro','oximeter','nebulizer','glucómetro'],
+      keywords:['medicamento','oxímetro','glucómetro','nebulizador','equipo médico'],
+      commonSearches:['medicamento','oxímetro','tensiómetro','equipo médico'],
+      misspellings:['medicamente','oximetro'],
+      exampleProducts:['Medicamento OTC','crema medicinal','termómetro digital','tensiómetro','oxímetro','nebulizador','glucómetro','test embarazo','faja ortopédica','rodillera'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['medical','sanitary_review','prescription_possible'],
+      possiblePermits:['registro sanitario','permiso Ministerio Salud'], possibleInstitutions:['Ministerio de Salud','CCSS'],
+      customerMessage:'Este producto requiere revisión antes de cotizarlo automáticamente. Los medicamentos o equipos médicos pueden requerir permisos o validación especial.',
+      adminNotes:'Revisión obligatoria. No calcular final automático.',
+      actionForCustomer:'Compartir link, uso, cantidad y si requiere receta.',
+      actionForAdmin:'Escalar a revisión sanitaria/documental.', confidenceLevel:'high' },
+    // 27
+    { id:'home_kitchen_appliances', code:'electrodomesticos', displayName:'Electrodomésticos pequeños y cocina', categoryGroup:'Hogar', subCategory:'Cocina',
+      aliases:['coffee maker','cafetera','espresso','air fryer','freidora','blender','licuadora','microwave','microondas'],
+      keywords:['cafetera','air fryer','licuadora','microondas','horno','tostadora'],
+      commonSearches:['air fryer','cafetera espresso','licuadora','olla arrocera'],
+      misspellings:['airfryer','cafeterra'],
+      exampleProducts:['Cafetera','espresso machine','tostadora','air fryer','licuadora','batidora','olla arrocera','slow cooker','hervidor eléctrico','microondas','horno eléctrico'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Electrodomésticos pequeños o cocina. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Electrodomésticos grandes o especiales pueden variar.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 28
+    { id:'home_decor_storage', code:'home_decor', displayName:'Hogar, decoración y organización', categoryGroup:'Hogar', subCategory:'Decoración',
+      aliases:['home','hogar','decor','decoración','organizer','organizador','kitchenware','vajilla','sarten','sartén','towel','toalla','sheets','sabanas','sábanas'],
+      keywords:['decoración','organizador','vajilla','sábanas','cortinas','alfombra'],
+      commonSearches:['organizadores cocina','sábanas algodón','decoración pared'],
+      misspellings:['decoracion','oragnizador'],
+      exampleProducts:['Set cuchillos','vajilla cerámica','vasos','tazas','botella térmica','organizadores','contenedores','cortinas','sábanas','toallas','almohada','edredón','tiras LED','cuadro','espejo decorativo'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Hogar, decoración u organización. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Cuchillos, químicos, velas o líquidos pueden requerir revisión.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 29
+    { id:'tools_hardware_common', code:'herramientas', displayName:'Herramientas y ferretería', categoryGroup:'Herramientas', subCategory:'Herramientas',
+      aliases:['tools','herramientas','drill','taladro','saw','sierra','screwdriver','destornillador','hammer','martillo','hardware','ferreteria','ferretería'],
+      keywords:['herramientas','taladro','sierra','destornillador','ferretería'],
+      commonSearches:['taladro inalámbrico','sierra circular','set herramientas','multímetro'],
+      misspellings:['talador','dreil'],
+      exampleProducts:['Taladro eléctrico','taladro inalámbrico','sierra circular','sierra caladora','lijadora','Dremel','multímetro','nivel láser','set herramientas manuales','brocas','cerraduras','guantes trabajo'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['battery_possible','chemical_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Herramientas o ferretería. Esta categoría suele pagar aproximadamente 29% en impuestos. Puede variar si incluye batería o químicos.',
+      adminNotes:'Herramientas con batería, aerosoles o químicos requieren revisión.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 30
+    { id:'chemicals_aerosols_adhesives', code:'chemicals_aerosols', displayName:'Químicos, aerosoles y adhesivos', categoryGroup:'Regulado / Dangerous Goods', subCategory:'Químicos',
+      aliases:['chemical','químico','quimico','aerosol','paint','pintura','glue','pegamento','epoxy','resin','resina','solvent','pesticide'],
+      keywords:['aerosol','pintura','pegamento','solvente','resina','pesticida'],
+      commonSearches:['aerosol pintura','pegamento fuerte','resina epoxi','solvente'],
+      misspellings:['aerozol','pegamente'],
+      exampleProducts:['Pintura','aerosol pintura','pegamento fuerte','resina epóxica','solvente','fertilizante','pesticida','aerosoles','pinturas inflamables'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['chemical','aerosol','flammable_possible','special_transport'],
+      possiblePermits:['permiso DGME','permiso SETENA'], possibleInstitutions:['SETENA','DGME','MINAE'],
+      customerMessage:'Detectamos que este producto podría ser aerosol, inflamable o contener químicos. CRBOX debe revisarlo antes de confirmar si puede enviarse.',
+      adminNotes:'No calcular final automático. Revisar dangerous goods.',
+      actionForCustomer:'Compartir link, ficha técnica/SDS si existe, cantidad y presentación.',
+      actionForAdmin:'Revisar peligrosidad, dangerous goods y carrier.', confidenceLevel:'high' },
+    // 31
+    { id:'automotive_simple_accessories', code:'automotive_accessories', displayName:'Accesorios automotrices', categoryGroup:'Automotriz', subCategory:'Accesorios auto',
+      aliases:['car accessory','accesorios carro','auto accessory','dashcam','car radio','alfombras carro','luces carro'],
+      keywords:['dashcam','cámara retroceso','radio carro','alfombra carro','luces LED carro'],
+      commonSearches:['cámara retroceso','dashcam','radio carro android'],
+      misspellings:['dash cam','camara retroceso'],
+      exampleProducts:['Cámara retroceso','dashcam','radio carro','pantalla carro','alfombras carro','forros asiento','luces LED carro','escobillas','cargador carro','compresor aire portátil','cera carro'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'~15%–29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Accesorios automotrices. Esta categoría suele pagar entre 15% y 29% en impuestos.',
+      adminNotes:'Diferenciar accesorios simples de repuestos críticos.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 32
+    { id:'automotive_parts_review', code:'vehiculos', displayName:'Repuestos automotrices y moto', categoryGroup:'Automotriz', subCategory:'Repuestos',
+      aliases:['auto parts','repuesto carro','repuestos','car part','brake pads','pastillas freno','sensor','llantas','rims','aros','motorcycle parts'],
+      keywords:['repuesto','autopartes','frenos','sensor','llantas','aros'],
+      commonSearches:['pastillas freno','filtro aceite','sensor oxígeno','aros de carro'],
+      misspellings:['repuetos','autopartes'],
+      exampleProducts:['Filtro aceite','pastillas freno','discos freno','bujías','sensor oxígeno','sensor MAF','sensor ABS','llantas','aros','casco moto','guantes moto','luces moto'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['automotive_part_review'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Este producto requiere revisión antes de cotizarlo automáticamente. Los repuestos pueden variar mucho según tipo, uso y clasificación.',
+      adminNotes:'Validar clasificación, peso, dimensiones y manejo especial.',
+      actionForCustomer:'Compartir link del producto y número de parte si disponible.',
+      actionForAdmin:'Revisar clasificación arancelaria y tasa correcta.', confidenceLevel:'medium' },
+    // 33
+    { id:'sports_fitness_physical', code:'bola', displayName:'Deportes y fitness', categoryGroup:'Deportes', subCategory:'Fitness',
+      aliases:['fitness','gym','gimnasio','yoga mat','dumbbells','mancuernas','kettlebell','resistance bands','raqueta','pelota'],
+      keywords:['yoga mat','mancuernas','gimnasio','fitness','raqueta','pelota'],
+      commonSearches:['yoga mat','mancuernas','bandas resistencia','guantes gym'],
+      misspellings:['yoaga mat','manquernas'],
+      exampleProducts:['Yoga mat','mancuernas','kettlebell','bandas resistencia','guantes gimnasio','botella deportiva','sleeping bag','linterna','pelota fútbol','raqueta tenis','raqueta pádel'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Deportes o fitness. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Electrónicos deportivos pueden variar.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 34
+    { id:'sports_outdoor_variable', code:'sports_outdoor', displayName:'Bicicletas, pesca y outdoor especializado', categoryGroup:'Deportes', subCategory:'Outdoor',
+      aliases:['bike','bicicleta','cycling','pesca','fishing','surf','smartwatch deportivo','sports watch'],
+      keywords:['bicicleta','pesca','surf','smartwatch','outdoor'],
+      commonSearches:['bicicleta de montaña','caña de pescar','smartwatch deportivo','tabla surf'],
+      misspellings:['bicicltea','pezca'],
+      exampleProducts:['Bicicleta','casco bicicleta','luces bicicleta','reloj deportivo','smartwatch deportivo','banda frecuencia cardiaca','equipo pesca','señuelos pesca','caña pesca','tabla surf'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'~14%–29% / Variable',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['battery_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Outdoor, bicicleta o pesca. Esta categoría puede variar según el tipo exacto de producto.',
+      adminNotes:'Bicicletas, pesca y electrónicos deportivos pueden requerir revisión.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 35
+    { id:'toys_common', code:'juguetes', displayName:'Juguetes', categoryGroup:'Juguetes', subCategory:'Juguetes',
+      aliases:['toy','toys','juguete','lego','muñeca','doll','plush','peluche','puzzle','board game'],
+      keywords:['juguete','lego','muñeca','peluche','puzzle','juego de mesa'],
+      commonSearches:['LEGO','muñeca Barbie','juego de mesa','peluche'],
+      misspellings:['leggo','puzle','jugete'],
+      exampleProducts:['LEGO','bloques construcción','muñeca','peluche','figura acción','carrito juguete','tren eléctrico','juego mesa','puzzle','scooter infantil','bicicleta infantil','patines','slime'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['battery_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Juguetes. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Drones, armas de juguete o baterías deben revisarse.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 36
+    { id:'drones_rc_review', code:'drones_rc', displayName:'Drones y productos de control remoto', categoryGroup:'Regulado / Electrónica', subCategory:'Drones',
+      aliases:['drone','dron','rc','remote control','control remoto','quadcopter'],
+      keywords:['drone','dron','control remoto','quadcopter','rc'],
+      commonSearches:['drone DJI','drone cámara','carro RC'],
+      misspellings:['droon','drones'],
+      exampleProducts:['Drone','dron','dron juguete','juguete control remoto','carro RC','avión RC','helicóptero RC','cámara drone'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['drone','lithium_battery','radiofrequency_possible'],
+      possiblePermits:['permiso CETAC','permiso DGAC'], possibleInstitutions:['CETAC','DGAC','SUTEL'],
+      customerMessage:'Detectamos que este producto parece ser un drone o equipo de control remoto. Puede requerir revisión por batería, radiofrecuencia o regulación especial.',
+      adminNotes:'Revisar batería, radiofrecuencia y restricciones.',
+      actionForCustomer:'Compartir link, modelo y especificaciones.',
+      actionForAdmin:'Revisar regulación DGAC/CETAC y batería.', confidenceLevel:'high' },
+    // 37
+    { id:'baby_items', code:'coche_bebe', displayName:'Bebé y artículos infantiles', categoryGroup:'Bebé', subCategory:'Bebé',
+      aliases:['baby','bebé','stroller','coche bebé','car seat','silla bebé','biberon','biberón','pacifier','chupón'],
+      keywords:['bebé','coche bebé','silla bebé','biberón','chupón'],
+      commonSearches:['coche de bebé','silla de carro bebé','monitor bebé'],
+      misspellings:['coche bebe','silla bebe'],
+      exampleProducts:['Coche bebé','silla carro bebé','cuna portátil','monitor bebé','biberón','chupón','esterilizador','pañalera','mochila bebé','ropa bebé'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Artículos de bebé. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Alimentos, suplementos o medicina bebé requieren revisión.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 38
+    { id:'pet_accessories', code:'pet_accessories', displayName:'Accesorios para mascotas', categoryGroup:'Mascotas', subCategory:'Accesorios mascotas',
+      aliases:['pet','mascota','dog','cat','collar mascota','arnés','pet toy','dog bed'],
+      keywords:['mascota','collar','arnés','cama mascota','juguete mascota'],
+      commonSearches:['collar perro','cama gato','comedero automático'],
+      misspellings:['juguet perro'],
+      exampleProducts:['Juguete mascota','collar mascota','arnés mascota','correa mascota','cama mascota','comedero','fuente agua mascota','cepillo mascota'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Accesorios para mascotas. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Alimentos/suplementos mascota requieren revisión.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 39
+    { id:'pet_food_supplements_review', code:'pet_food_review', displayName:'Alimentos y suplementos para mascotas', categoryGroup:'Mascotas / Regulado', subCategory:'Alimentos mascotas',
+      aliases:['pet food','dog food','cat food','comida perro','comida gato','suplemento mascota'],
+      keywords:['comida mascota','alimento perro','alimento gato','suplemento mascota'],
+      commonSearches:['comida para perro','alimento premium gatos'],
+      misspellings:['comida perro','comida gato'],
+      exampleProducts:['Comida mascota','suplemento mascota','vitaminas mascota','shampoo medicinal mascota','treats','dog food','cat food'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['pet_food','veterinary_review','sanitary_review'],
+      possiblePermits:['permiso SENASA'], possibleInstitutions:['SENASA','Ministerio de Agricultura'],
+      customerMessage:'Este producto requiere revisión antes de cotizarlo automáticamente. Alimentos o suplementos para mascotas pueden requerir validación sanitaria.',
+      adminNotes:'Revisar SENASA/sanitario si aplica.',
+      actionForCustomer:'Compartir link, tipo de alimento y marca.',
+      actionForAdmin:'Revisar requisitos SENASA.', confidenceLevel:'high' },
+    // 40
+    { id:'books_printed_material', code:'cds', displayName:'Libros y material impreso', categoryGroup:'Libros / Oficina', subCategory:'Libros',
+      aliases:['book','libro','magazine','revista','comic','manga'],
+      keywords:['libro','revista','comic','manga','material impreso'],
+      commonSearches:['libro inglés','manga','comic','revista'],
+      misspellings:['livro','comik'],
+      exampleProducts:['Libro','revista','comic','manga','material impreso','manual','catálogo'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable/bajo',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['printed_material_review'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Este producto puede tener tratamiento distinto según el tipo de material impreso. Requiere revisión para evitar una estimación incorrecta.',
+      adminNotes:'Validar tratamiento aplicable.',
+      actionForCustomer:'Compartir link o título del producto.',
+      actionForAdmin:'Validar si aplica exención o tasa reducida.', confidenceLevel:'medium' },
+    // 41
+    { id:'office_stationery_art', code:'office_stationery', displayName:'Papelería, oficina y arte', categoryGroup:'Oficina / Arte', subCategory:'Papelería',
+      aliases:['stationery','papeleria','papelería','notebook','cuaderno','agenda','planner','pen','lápices','art supplies'],
+      keywords:['cuaderno','agenda','lápices','brochas','oficina','arte'],
+      commonSearches:['cuaderno','agenda planner','set lápices de color','silla de oficina'],
+      misspellings:['papeleria','agend','lapices'],
+      exampleProducts:['Cuaderno','agenda','planner','lapiceros','marcadores','lápices color','pinceles','papel dibujo','tijeras','silla oficina','escritorio pequeño','soporte laptop','pizarra blanca'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['chemical_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Papelería, oficina o arte. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Pinturas, marcadores especiales, aerosoles o químicos revisar.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 42
+    { id:'bags_luggage_accessories', code:'cinturon', displayName:'Bolsos, maletas y accesorios', categoryGroup:'Moda / Accesorios', subCategory:'Bolsos y maletas',
+      aliases:['bag','bolso','purse','handbag','tote','backpack','mochila','wallet','billetera','luggage','maleta','suitcase'],
+      keywords:['bolso','mochila','maleta','billetera','cartera'],
+      commonSearches:['mochila','bolso de mano','maleta viaje','billetera cuero'],
+      misspellings:['mochilla','mochia','bolsoa'],
+      exampleProducts:['Bolso cuero','tote bag','mochila','billetera cuero','billetera sintética','maleta carry-on','maleta grande','neceser','paraguas','llaveros'],
+      estimatedDAI:15, vatRate:13, law6946Rate:1, totalEstimatedRate:0.29, estimatedRange:'~29%',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:[], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Bolsos, maletas o accesorios. Esta categoría suele pagar aproximadamente 29% en impuestos.',
+      adminNotes:'Cuero o lujo puede requerir validación.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'high' },
+    // 43
+    { id:'watches_jewelry', code:'watches_jewelry', displayName:'Relojes y joyería', categoryGroup:'Moda / Lujo', subCategory:'Relojes / Joyería',
+      aliases:['watch','reloj','smartwatch','jewelry','joyeria','joyería','ring','anillo','necklace','collar','bracelet','pulsera','earrings'],
+      keywords:['reloj','smartwatch','joyería','anillo','collar','pulsera','aretes'],
+      commonSearches:['reloj hombre','apple watch','joyería plata','anillo'],
+      misspellings:['joyeria','relioj','smatchwatch'],
+      exampleProducts:['Reloj analógico','reloj digital','smartwatch','correa reloj','joyería fantasía','joyería plata','joyería oro','anillo','collar','pulsera','aretes'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'~15%–29% / Variable',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['high_value_possible','precious_metal_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Relojes o joyería. Esta categoría puede variar según material, valor y tipo de producto.',
+      adminNotes:'Metales preciosos/alto valor requieren revisión.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 44
+    { id:'eyewear_optical', code:'anteojos', displayName:'Lentes y óptica', categoryGroup:'Moda / Salud', subCategory:'Óptica',
+      aliases:['glasses','lentes','sunglasses','gafas','eyewear','monturas'],
+      keywords:['lentes','gafas','anteojos','monturas','lentes de sol'],
+      commonSearches:['lentes de sol','gafas Ray-Ban','monturas lentes'],
+      misspellings:['lente','anteojo','gazas'],
+      exampleProducts:['Lentes sol','lentes ópticos','monturas lentes','estuche lentes','gafas deportivas'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'~15%–29% / Variable',
+      source:'local_estimated', automaticEstimateAllowed:true, manualReviewRequired:false,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['optical_possible','sanitary_possible'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'Detectamos que este producto pertenece a Lentes u óptica. Esta categoría puede variar según si son lentes de sol, monturas u ópticos.',
+      adminNotes:'Lentes contacto/soluciones pueden requerir revisión sanitaria.',
+      actionForCustomer:'', actionForAdmin:'', confidenceLevel:'medium' },
+    // 45
+    { id:'eyewear_medical_contact_lenses', code:'eyewear_medical', displayName:'Lentes de contacto y óptica médica', categoryGroup:'Salud / Regulado', subCategory:'Óptica médica',
+      aliases:['contact lenses','lentes contacto','solution contacts','solución lentes','artificial tears'],
+      keywords:['lentes de contacto','solución lentes','gotas ojos'],
+      commonSearches:['lentes de contacto','solución lentes','gotas ojos'],
+      misspellings:['lentes contacto','solucion lentes'],
+      exampleProducts:['Lentes contacto','solución lentes contacto','lágrimas artificiales','gotas ojos','lentes ópticos medicados'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['optical_medical','sanitary_review'],
+      possiblePermits:['registro sanitario'], possibleInstitutions:['Ministerio de Salud'],
+      customerMessage:'Este producto puede requerir revisión sanitaria u óptica antes de importarse.',
+      adminNotes:'Revisar sanitario/óptico.',
+      actionForCustomer:'Compartir link y tipo de producto.',
+      actionForAdmin:'Revisar sanitario/óptico.', confidenceLevel:'high' },
+    // 46
+    { id:'food_beverages_review', code:'food_beverages', displayName:'Alimentos y bebidas', categoryGroup:'Alimentos / Regulado', subCategory:'Alimentos',
+      aliases:['food','comida','snacks','chocolate','candy','dulces','coffee','café','tea','té','sauce','salsa'],
+      keywords:['alimentos','snacks','chocolate','café','bebida','salsa'],
+      commonSearches:['snacks americanos','café importado','chocolate','salsas'],
+      misspellings:['snaks','chocolat'],
+      exampleProducts:['Snacks','chocolate','dulces','galletas','café','té','salsas','especias','bebida energética'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['food','sanitary_review'],
+      possiblePermits:['permiso SENASA','registro sanitario'], possibleInstitutions:['SENASA','Ministerio de Salud'],
+      customerMessage:'Este producto requiere revisión antes de cotizarlo automáticamente. Los alimentos y bebidas pueden requerir validación sanitaria.',
+      adminNotes:'Validar si puede ingresar por courier y requisitos sanitarios.',
+      actionForCustomer:'Compartir link, tipo de producto y cantidad.',
+      actionForAdmin:'Validar si puede ingresar por courier y requisitos SENASA.', confidenceLevel:'high' },
+    // 47
+    { id:'alcohol_tobacco_vape_review', code:'alcohol_tobacco', displayName:'Alcohol, tabaco, vape y nicotina', categoryGroup:'Restringido', subCategory:'Alcohol / Tabaco',
+      aliases:['alcohol','wine','vino','beer','cerveza','liquor','licor','tobacco','tabaco','vape','nicotine','nicotina'],
+      keywords:['alcohol','vino','cerveza','licor','tabaco','vape','nicotina'],
+      commonSearches:['vino tinto','cerveza importada','vape'],
+      misspellings:['alchol','tabacco','vap'],
+      exampleProducts:['Alcohol','vino','cerveza','licor','tabaco','cigarros','vape','líquido vape','nicotina'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['alcohol','tobacco','nicotine','restricted_possible'],
+      possiblePermits:['permiso MINSA','permiso MEIC'], possibleInstitutions:['MINSA','MEIC','Hacienda'],
+      customerMessage:'Este producto requiere revisión antes de cotizarlo automáticamente. Alcohol, tabaco, vape o nicotina pueden tener restricciones, permisos o impuestos especiales.',
+      adminNotes:'Validar si CRBOX acepta el producto.',
+      actionForCustomer:'Compartir link, tipo de producto y cantidad.',
+      actionForAdmin:'Validar política CRBOX y requisitos.', confidenceLevel:'high' },
+    // 48
+    { id:'plants_seeds_agro_review', code:'plants_seeds', displayName:'Plantas, semillas y productos agro', categoryGroup:'Agro / Regulado', subCategory:'Agro',
+      aliases:['seeds','semillas','plants','plantas','soil','tierra','fertilizer','fertilizante','pesticide','pesticida'],
+      keywords:['semillas','plantas','fertilizante','sustrato'],
+      commonSearches:['semillas','plantas','fertilizante'],
+      misspellings:['semias','planata'],
+      exampleProducts:['Semillas','plantas','tierra','sustrato','fertilizantes','pesticidas'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['agro','phytosanitary_review'],
+      possiblePermits:['permiso fitosanitario SFE','permiso SENASA'], possibleInstitutions:['SFE','SENASA','MAG'],
+      customerMessage:'Este producto requiere revisión antes de cotizarlo automáticamente. Plantas, semillas o productos agro pueden requerir permisos fitosanitarios.',
+      adminNotes:'Validar fitosanitario/SFE si aplica.',
+      actionForCustomer:'Compartir link y tipo de producto.',
+      actionForAdmin:'Validar fitosanitario/SFE.', confidenceLevel:'high' },
+    // 49
+    { id:'weapons_restricted', code:'weapons_restricted', displayName:'Armas, partes y productos tácticos', categoryGroup:'Prohibido / Restringido', subCategory:'Armas',
+      aliases:['gun','firearm','weapon','arma','municiones','ammunition','tactical knife','cuchillo tactico','cuchillo táctico','taser'],
+      keywords:['armas','municiones','pistola','cuchillo táctico','taser'],
+      commonSearches:['pistola CO2','cuchillo táctico','balines'],
+      misspellings:['arma','municion'],
+      exampleProducts:['Armas fuego','partes armas','municiones','balines','pistolas CO2','cuchillos tácticos','taser','brass knuckles','silenciadores'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Restricted',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:true, forbiddenProduct:true,
+      riskFlags:['weapon','restricted_item'],
+      possiblePermits:['permiso DGA','permiso MINGOB'], possibleInstitutions:['DGA','MINGOB'],
+      customerMessage:'Este producto puede pertenecer a una categoría restringida, como armas, partes de armas, municiones o artículos tácticos. CRBOX debe revisarlo antes de confirmar.',
+      adminNotes:'No calcular automáticamente. Escalar a revisión.',
+      actionForCustomer:'Compartir link y descripción del producto.',
+      actionForAdmin:'Escalar a revisión según política CRBOX.', confidenceLevel:'high' },
+    // 50
+    { id:'dangerous_goods', code:'dangerous_goods', displayName:'Productos peligrosos o inflamables', categoryGroup:'Prohibido / Dangerous Goods', subCategory:'Dangerous Goods',
+      aliases:['hazmat','hazardous','dangerous goods','inflamable','explosive','explosivo','corrosive','corrosivo'],
+      keywords:['explosivo','inflamable','corrosivo','dangerous goods','hazmat'],
+      commonSearches:['productos inflamables','explosivos','corrosivos'],
+      misspellings:['explosibo','inflamale'],
+      exampleProducts:['Explosivos','productos inflamables','corrosivos','aerosoles peligrosos','baterías grandes','fuegos artificiales','gases comprimidos'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Restricted / Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:true, forbiddenProduct:false,
+      riskFlags:['dangerous_goods','flammable','explosive','corrosive','special_transport'],
+      possiblePermits:['permiso especial transporte'], possibleInstitutions:['MOPT','SETENA'],
+      customerMessage:'Este producto puede tener restricciones de transporte, seguridad o permisos. CRBOX debe revisarlo antes de confirmar si puede enviarse.',
+      adminNotes:'Revisar dangerous goods y restricciones de carrier.',
+      actionForCustomer:'Compartir link y ficha técnica/SDS.',
+      actionForAdmin:'Revisar dangerous goods y carrier.', confidenceLevel:'high' },
+    // 51
+    { id:'illegal_drugs_controlled_substances', code:'illegal_drugs', displayName:'Drogas, narcóticos y sustancias controladas', categoryGroup:'Prohibido', subCategory:'Prohibido',
+      aliases:['drugs','narcotics','droga','controlled substance','thc','cbd','marihuana'],
+      keywords:['drogas','narcóticos','sustancias controladas','CBD','THC'],
+      commonSearches:['CBD','marihuana'],
+      misspellings:['drogas','narcotificos'],
+      exampleProducts:['Drogas ilegales','narcóticos','psicotrópicos','sustancias controladas'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Prohibited',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:true, forbiddenProduct:true,
+      riskFlags:['prohibited','controlled_substance'],
+      possiblePermits:[], possibleInstitutions:['IAFA','Poder Judicial','DGA'],
+      customerMessage:'Este producto puede estar prohibido o restringido. CRBOX no debe cotizarlo automáticamente.',
+      adminNotes:'Bloquear/escalar según política.',
+      actionForCustomer:'Contactar a CRBOX directamente para consulta.',
+      actionForAdmin:'Escalar según política CRBOX. No cotizar.', confidenceLevel:'high' },
+    // 52
+    { id:'counterfeit_goods', code:'counterfeit_goods', displayName:'Productos falsificados o réplicas', categoryGroup:'Restringido', subCategory:'Falsificaciones',
+      aliases:['fake','replica','réplica','counterfeit','falso','imitación','imitacion'],
+      keywords:['réplica','falso','falsificado','imitación','fake'],
+      commonSearches:['réplica bolso','fake watches','imitación marca'],
+      misspellings:['replica','imitacion'],
+      exampleProducts:['Réplicas','fake designer bags','fake watches','counterfeit shoes','imitación marca'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Restricted',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:true, restrictedProduct:true, forbiddenProduct:false,
+      riskFlags:['counterfeit','trademark_risk'],
+      possiblePermits:[], possibleInstitutions:['DGA','TICA'],
+      customerMessage:'Este producto puede estar relacionado con mercancía falsificada o réplica. CRBOX debe revisarlo antes de confirmar si puede transportarse.',
+      adminNotes:'Revisar política y riesgo marcario.',
+      actionForCustomer:'Compartir link del producto.',
+      actionForAdmin:'Revisar política CRBOX y riesgo marcario.', confidenceLevel:'high' },
+    // 53
+    { id:'unknown_manual_review', code:'otros', displayName:'Producto por revisar', categoryGroup:'Fallback', subCategory:'Desconocido',
+      aliases:['unknown','other','otro','no sé','no se','no estoy seguro'],
+      keywords:['otro','no sé','desconocido','no identificado'],
+      commonSearches:['otro producto','no sé qué es'],
+      misspellings:['otero'],
+      exampleProducts:['Producto no identificado','categoría no encontrada','otro','producto ambiguo'],
+      estimatedDAI:null, vatRate:13, law6946Rate:1, totalEstimatedRate:null, estimatedRange:'Variable',
+      source:'local_estimated', automaticEstimateAllowed:false, manualReviewRequired:true,
+      regulatedProduct:false, restrictedProduct:false, forbiddenProduct:false,
+      riskFlags:['unknown'], possiblePermits:[], possibleInstitutions:[],
+      customerMessage:'No encontramos una categoría suficientemente clara para este producto. CRBOX debe revisarlo para evitar una estimación incorrecta.',
+      adminNotes:'Fallback seguro para productos no identificados.',
+      actionForCustomer:'Compartir link o descripción del producto.',
+      actionForAdmin:'Clasificar manualmente.', confidenceLevel:'low' },
+  ];
+
+  window.PRODUCT_BRAIN_CATEGORIES = BRAIN_CATS;
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SECTION 3 — PRODUCT_PRODUCTS (product-level rows)
+  // productKey, productName, categoryId, aliases, misspellings,
+  // englishTerms, spanishTerms, riskOverrideFlags, customerHint, adminHint
+  // ════════════════════════════════════════════════════════════════════════════
+
+  var PRODUCTS = [
+    // Phones
+    { productKey:'iphone',         productName:'iPhone',                    categoryId:'phones_smartphones',         aliases:['iphone','apple phone'],                       misspellings:['ifon','aifon','iphon'],        englishTerms:['iphone'],              spanishTerms:['celular apple'],          riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'samsung_galaxy', productName:'Samsung Galaxy',            categoryId:'phones_smartphones',         aliases:['samsung galaxy','galaxy s','galaxy a'],        misspellings:['samzung','galxy'],            englishTerms:['samsung galaxy'],       spanishTerms:['celular samsung'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'google_pixel',   productName:'Google Pixel',              categoryId:'phones_smartphones',         aliases:['google pixel','pixel phone'],                  misspellings:['gogle pixel'],                englishTerms:['pixel'],               spanishTerms:['celular google'],         riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'xiaomi_phone',   productName:'Xiaomi / Motorola / Android',categoryId:'phones_smartphones',        aliases:['xiaomi','motorola','android phone'],            misspellings:['shiaomi','motorrola'],        englishTerms:['xiaomi','motorola'],    spanishTerms:['celular android'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Tablets
+    { productKey:'ipad',           productName:'iPad',                      categoryId:'tablets_ereaders',           aliases:['ipad','ipad pro','ipad air','ipad mini'],       misspellings:['ippad','ipadd'],              englishTerms:['ipad'],                spanishTerms:['tableta apple'],          riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'samsung_tab',    productName:'Samsung Galaxy Tab',        categoryId:'tablets_ereaders',           aliases:['samsung tab','galaxy tab','android tablet'],    misspellings:['tableta samsung'],            englishTerms:['samsung tab'],          spanishTerms:['tableta samsung'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'kindle',         productName:'Kindle / E-reader',         categoryId:'tablets_ereaders',           aliases:['kindle','kobo','e-reader','lector electrónico'],misspellings:['kindl','kinle'],              englishTerms:['kindle','kobo'],        spanishTerms:['lector electrónico'],     riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Computers
+    { productKey:'laptop',         productName:'Laptop / Notebook',         categoryId:'computers_main_parts',       aliases:['laptop','notebook','portátil'],                 misspellings:['labtop','latop'],             englishTerms:['laptop','notebook'],    spanishTerms:['computadora portátil'],   riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'macbook',        productName:'MacBook',                   categoryId:'computers_main_parts',       aliases:['macbook','macbook pro','macbook air'],          misspellings:['macbok','macbuk'],            englishTerms:['macbook'],             spanishTerms:['laptop apple'],           riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'chromebook',     productName:'Chromebook',                categoryId:'computers_main_parts',       aliases:['chromebook'],                                  misspellings:['crombuk','cromebook'],        englishTerms:['chromebook'],          spanishTerms:['chromebook'],             riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'gaming_laptop',  productName:'Laptop Gaming',             categoryId:'computers_main_parts',       aliases:['gaming laptop','laptop gamer'],                 misspellings:['labtop gaming'],              englishTerms:['gaming laptop'],        spanishTerms:['laptop gaming'],          riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'desktop_pc',     productName:'PC de escritorio',          categoryId:'computers_main_parts',       aliases:['desktop','pc','torre pc'],                      misspellings:['computaodra escritorio'],    englishTerms:['desktop pc'],          spanishTerms:['computadora escritorio'], riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'monitor',        productName:'Monitor de Computadora',    categoryId:'computers_main_parts',       aliases:['monitor','pantalla pc','display'],              misspellings:['monito'],                     englishTerms:['monitor','display'],   spanishTerms:['monitor','pantalla pc'],  riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'gpu',            productName:'Tarjeta Gráfica / GPU',     categoryId:'computers_main_parts',       aliases:['gpu','nvidia','amd radeon','tarjeta gráfica'],  misspellings:['tarjeta grafica'],            englishTerms:['gpu','graphics card'], spanishTerms:['tarjeta de video'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Storage
+    { productKey:'ssd_externo',    productName:'SSD / Disco Duro Externo',  categoryId:'storage_memory',             aliases:['ssd externo','disco duro externo'],             misspellings:['ssd extrno'],                 englishTerms:['external ssd'],        spanishTerms:['disco duro externo'],     riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'microsd',        productName:'Tarjeta microSD / SD',      categoryId:'storage_memory',             aliases:['microsd','tarjeta sd','memory card'],           misspellings:['micro sd'],                   englishTerms:['microsd','sd card'],   spanishTerms:['tarjeta de memoria'],     riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'usb_pendrive',   productName:'USB / Pendrive',            categoryId:'storage_memory',             aliases:['usb','pendrive','flash drive'],                 misspellings:['pen drive'],                  englishTerms:['usb drive'],           spanishTerms:['usb','memoria usb'],      riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // PC Accessories
+    { productKey:'teclado_mec',    productName:'Teclado Mecánico',          categoryId:'computer_accessories',       aliases:['teclado mecánico','mechanical keyboard'],       misspellings:['teclado mecanico','keybord'], englishTerms:['mechanical keyboard'], spanishTerms:['teclado mecánico'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'mouse_gaming',   productName:'Mouse Gaming',              categoryId:'computer_accessories',       aliases:['mouse gaming','ratón gaming'],                  misspellings:['mause','raton gaming'],       englishTerms:['gaming mouse'],        spanishTerms:['mouse gaming'],           riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'webcam',         productName:'Webcam',                    categoryId:'computer_accessories',       aliases:['webcam','cámara web'],                          misspellings:['webcan','webcaem'],           englishTerms:['webcam'],              spanishTerms:['cámara web'],             riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'hub_usb',        productName:'Hub USB / Docking Station', categoryId:'computer_accessories',       aliases:['hub usb','docking station'],                    misspellings:['docking'],                    englishTerms:['usb hub','docking'],   spanishTerms:['hub usb'],                riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'cable_hdmi',     productName:'Cable HDMI',                categoryId:'computer_accessories',       aliases:['cable hdmi','hdmi'],                            misspellings:['cable hdm'],                  englishTerms:['hdmi cable'],          spanishTerms:['cable hdmi'],             riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Chargers
+    { productKey:'cargador_usbc',  productName:'Cargador USB-C / Rápido',   categoryId:'chargers_cables_adapters',   aliases:['cargador usb-c','cargador rápido'],             misspellings:['cargaodor'],                  englishTerms:['fast charger'],        spanishTerms:['cargador rápido'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'cable_lightning',productName:'Cable Lightning',           categoryId:'chargers_cables_adapters',   aliases:['cable lightning','cable iphone'],               misspellings:['lightining'],                 englishTerms:['lightning cable'],     spanishTerms:['cable para iphone'],      riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'adaptador_hdmi', productName:'Adaptador USB-C a HDMI',    categoryId:'chargers_cables_adapters',   aliases:['adaptador hdmi','usb c a hdmi'],                misspellings:['adaptaodor hdmi'],            englishTerms:['usb-c to hdmi'],       spanishTerms:['adaptador usb-c hdmi'],   riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Batteries
+    { productKey:'powerbank',      productName:'Power Bank / Batería externa',categoryId:'lithium_batteries_powerbanks',aliases:['power bank','powerbank','batería externa'], misspellings:['powe bank'],                  englishTerms:['power bank'],          spanishTerms:['batería externa'],        riskOverrideFlags:['contains_lithium_battery'], customerHint:'Puede tener condiciones especiales de transporte.', adminHint:'Revisar capacidad mAh/Wh.' },
+    { productKey:'jump_starter',   productName:'Jump Starter',              categoryId:'lithium_batteries_powerbanks',aliases:['jump starter','arrancador portátil'],          misspellings:['jumpstarter'],                englishTerms:['jump starter'],        spanishTerms:['arrancador portátil'],    riskOverrideFlags:['contains_lithium_battery','special_transport'], customerHint:'', adminHint:'Revisar capacidad y restricciones aéreas.' },
+    // Networking
+    { productKey:'router_wifi',    productName:'Router WiFi',               categoryId:'networking_equipment',       aliases:['router wifi','wifi router'],                    misspellings:['routher'],                    englishTerms:['wifi router'],         spanishTerms:['router wifi'],            riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'mesh_wifi',      productName:'Sistema Mesh WiFi',         categoryId:'networking_equipment',       aliases:['mesh wifi','sistema mesh','eero'],              misspellings:['messh wifi'],                 englishTerms:['mesh wifi system'],    spanishTerms:['sistema mesh wifi'],      riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Telecom
+    { productKey:'walkie_talkie',  productName:'Walkie Talkie / Radio',     categoryId:'regulated_telecom',          aliases:['walkie talkie','radio comunicación','handy'],   misspellings:['walky talky'],                englishTerms:['walkie talkie'],       spanishTerms:['walkie talkie'],          riskOverrideFlags:['telecom','radiofrequency_possible'], customerHint:'', adminHint:'Revisar SUTEL.' },
+    // Audio
+    { productKey:'airpods',        productName:'AirPods / Earbuds',         categoryId:'headphones_audio_personal',  aliases:['airpods','earbuds'],                            misspellings:['airpod','earpod'],            englishTerms:['airpods','earbuds'],   spanishTerms:['audífonos apple'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'headset_gaming', productName:'Headset Gaming',            categoryId:'headphones_audio_personal',  aliases:['headset gaming','audífonos gamer'],             misspellings:['headset gamig'],              englishTerms:['gaming headset'],      spanishTerms:['audífonos gaming'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'bocina_bt',      productName:'Bocina Bluetooth',          categoryId:'speakers_home_audio',        aliases:['bocina bluetooth','speaker bluetooth'],          misspellings:['bozina'],                     englishTerms:['bluetooth speaker'],   spanishTerms:['bocina bluetooth'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'soundbar',       productName:'Soundbar / Barra de Sonido',categoryId:'speakers_home_audio',        aliases:['soundbar','barra de sonido'],                   misspellings:['suonbar'],                    englishTerms:['soundbar'],            spanishTerms:['barra de sonido'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'microfono_usb',  productName:'Micrófono USB / Podcast',   categoryId:'microphones_audio_pro',      aliases:['micrófono usb','micrófono podcast'],            misspellings:['microfono usb'],              englishTerms:['usb microphone'],      spanishTerms:['micrófono podcast'],      riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Cameras
+    { productKey:'camara_dslr',    productName:'Cámara DSLR / Mirrorless',  categoryId:'cameras_photo_video',        aliases:['cámara dslr','cámara mirrorless'],              misspellings:['camara dslr'],                englishTerms:['dslr camera'],         spanishTerms:['cámara réflex'],          riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'gopro',          productName:'GoPro / Cámara acción',     categoryId:'cameras_photo_video',        aliases:['gopro','cámara acción','action cam'],           misspellings:['goproo'],                     englishTerms:['gopro'],               spanishTerms:['cámara de acción'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // TV
+    { productKey:'smart_tv',       productName:'Smart TV',                  categoryId:'tv_projectors_streaming',    aliases:['smart tv','televisor','tv 4k'],                 misspellings:['televisisor'],                englishTerms:['smart tv'],            spanishTerms:['televisor'],              riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'streaming_box',  productName:'Roku / Fire TV / Apple TV', categoryId:'tv_projectors_streaming',    aliases:['roku','fire tv','apple tv','chromecast'],       misspellings:['cromcast'],                   englishTerms:['roku','chromecast'],   spanishTerms:['dispositivo streaming'],  riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Gaming
+    { productKey:'ps5',            productName:'PlayStation 5',             categoryId:'gaming_consoles_electronics',aliases:['ps5','playstation 5'],                          misspellings:['pleistation','ps 5'],         englishTerms:['ps5'],                 spanishTerms:['playstation 5'],          riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'xbox_series',    productName:'Xbox Series X/S',           categoryId:'gaming_consoles_electronics',aliases:['xbox','xbox series x'],                         misspellings:['x box'],                      englishTerms:['xbox series x'],       spanishTerms:['xbox'],                   riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'nintendo_switch',productName:'Nintendo Switch',           categoryId:'gaming_consoles_electronics',aliases:['nintendo switch','switch','nintendo oled'],     misspellings:['nintedo switch'],             englishTerms:['nintendo switch'],     spanishTerms:['switch nintendo'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'steam_deck',     productName:'Steam Deck',                categoryId:'gaming_consoles_electronics',aliases:['steam deck'],                                   misspellings:['steamdeck'],                  englishTerms:['steam deck'],          spanishTerms:['consola portátil'],       riskOverrideFlags:['battery_possible'], customerHint:'', adminHint:'' },
+    { productKey:'silla_gaming',   productName:'Silla Gaming',              categoryId:'gaming_physical_accessories',aliases:['silla gaming','silla gamer'],                   misspellings:['silla gamers'],               englishTerms:['gaming chair'],        spanishTerms:['silla gaming'],           riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Clothing
+    { productKey:'camiseta',       productName:'Camiseta / T-shirt',        categoryId:'clothing_general',           aliases:['camiseta','t-shirt','camisa'],                  misspellings:['camizeta'],                   englishTerms:['t-shirt','shirt'],     spanishTerms:['camiseta','camisa'],      riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'jeans',          productName:'Jeans / Pantalón',          categoryId:'clothing_general',           aliases:['jeans','pantalón','vaqueros'],                  misspellings:['yeans'],                      englishTerms:['jeans','pants'],       spanishTerms:['jeans','pantalón'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'hoodie',         productName:'Hoodie / Sudadera',         categoryId:'clothing_general',           aliases:['hoodie','sudadera','sweatshirt'],               misspellings:['hudi'],                       englishTerms:['hoodie'],              spanishTerms:['sudadera'],               riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'leggings',       productName:'Leggings / Ropa deportiva', categoryId:'clothing_general',           aliases:['leggings','ropa deportiva','jogger'],           misspellings:['leggins','legings'],          englishTerms:['leggings'],            spanishTerms:['leggings'],               riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'gorra',          productName:'Gorra / Sombrero / Beanie', categoryId:'clothing_accessories',       aliases:['gorra','sombrero','beanie','cap'],              misspellings:['gora','somrero'],             englishTerms:['cap','hat','beanie'],  spanishTerms:['gorra','sombrero'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'tenis',          productName:'Tenis / Sneakers',          categoryId:'footwear_complete',          aliases:['tenis','sneakers','zapatillas','running shoes'], misspellings:['snikers','sneackers'],        englishTerms:['sneakers','shoes'],    spanishTerms:['tenis','zapatillas'],     riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'zapatos_cuero',  productName:'Zapatos de cuero',          categoryId:'footwear_complete',          aliases:['zapatos cuero','zapatos formales'],             misspellings:['zapato cuero'],               englishTerms:['leather shoes'],       spanishTerms:['zapatos de cuero'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'botas',          productName:'Botas',                     categoryId:'footwear_complete',          aliases:['botas','boots','botas de montaña'],             misspellings:['bota'],                       englishTerms:['boots'],               spanishTerms:['botas'],                  riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'crocs_sandalias',productName:'Crocs / Sandalias',         categoryId:'footwear_complete',          aliases:['crocs','sandalias','chanclas','flip flops'],    misspellings:['zandalias','crocks'],         englishTerms:['crocs','sandals'],     spanishTerms:['crocs','sandalias'],      riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Beauty
+    { productKey:'perfume',        productName:'Perfume / Fragancia',       categoryId:'beauty_fragrance',           aliases:['perfume','eau de toilette','fragancia'],        misspellings:['perfum','fragrancia'],        englishTerms:['perfume','fragrance'], spanishTerms:['perfume','fragancia'],    riskOverrideFlags:['liquid','flammable_possible'], customerHint:'', adminHint:'Revisar cantidades y alcohol.' },
+    { productKey:'maquillaje',     productName:'Maquillaje / Labial',       categoryId:'beauty_makeup_cosmetics',    aliases:['maquillaje','labial','lip gloss'],              misspellings:['makillaje'],                  englishTerms:['makeup','lipstick'],   spanishTerms:['maquillaje','labial'],    riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'rimel',          productName:'Máscara de Pestañas / Rímel',categoryId:'beauty_makeup_cosmetics',   aliases:['máscara pestañas','rimel','rímel','mascara'],   misspellings:['rimel'],                      englishTerms:['mascara'],             spanishTerms:['máscara de pestañas'],   riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'esmalte_unas',   productName:'Esmalte de Uñas',           categoryId:'beauty_makeup_cosmetics',    aliases:['esmalte','esmalte de uñas','nail polish'],     misspellings:['esmalde'],                    englishTerms:['nail polish'],         spanishTerms:['esmalte de uñas'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'crema_facial',   productName:'Crema Facial / Sérum',      categoryId:'beauty_skincare_personal_care',aliases:['crema facial','sérum','serum'],              misspellings:['serun'],                      englishTerms:['serum','moisturizer'], spanishTerms:['crema facial','sérum'],   riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'shampoo',        productName:'Shampoo / Acondicionador',  categoryId:'beauty_skincare_personal_care',aliases:['shampoo','champú','acondicionador'],          misspellings:['champu'],                     englishTerms:['shampoo'],             spanishTerms:['champú','acondicionador'],riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'protector_solar',productName:'Protector Solar',           categoryId:'beauty_skincare_personal_care',aliases:['protector solar','sunscreen','spf'],          misspellings:['protetor solar'],             englishTerms:['sunscreen','spf'],     spanishTerms:['protector solar'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'secadora_pelo',  productName:'Secadora de Pelo',          categoryId:'beauty_devices',             aliases:['secadora de pelo','hair dryer'],                misspellings:['secaodra pelo'],              englishTerms:['hair dryer'],          spanishTerms:['secadora de pelo'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'plancha_pelo',   productName:'Plancha de Pelo / Rizadora',categoryId:'beauty_devices',             aliases:['plancha de pelo','flat iron','rizadora'],       misspellings:['planca pelo'],                englishTerms:['flat iron'],           spanishTerms:['plancha de pelo'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'rasuradora_el',  productName:'Rasuradora Eléctrica',      categoryId:'beauty_devices',             aliases:['rasuradora','afeitadora','shaver','trimmer'],   misspellings:['rasuraodra'],                 englishTerms:['electric shaver'],     spanishTerms:['rasuradora'],             riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Supplements
+    { productKey:'proteina_whey',  productName:'Proteína Whey / Polvo',     categoryId:'supplements_vitamins_nutrition',aliases:['proteína whey','whey protein'],             misspellings:['protenia','wey protein'],     englishTerms:['whey protein'],        spanishTerms:['proteína whey'],          riskOverrideFlags:['supplement','sanitary_review'], customerHint:'Requiere revisión.', adminHint:'Revisar sanitario.' },
+    { productKey:'creatina',       productName:'Creatina',                  categoryId:'supplements_vitamins_nutrition',aliases:['creatina','creatine'],                       misspellings:['creatinna'],                  englishTerms:['creatine'],            spanishTerms:['creatina'],               riskOverrideFlags:['supplement'], customerHint:'', adminHint:'' },
+    { productKey:'vitaminas',      productName:'Vitaminas / Multivitamínicos',categoryId:'supplements_vitamins_nutrition',aliases:['vitaminas','multivitamínicos','vitamina c'],misspellings:['bitaminas'],                  englishTerms:['vitamins'],            spanishTerms:['vitaminas'],              riskOverrideFlags:['supplement'], customerHint:'', adminHint:'' },
+    { productKey:'melatonina',     productName:'Melatonina',                categoryId:'supplements_vitamins_nutrition',aliases:['melatonina','melatonin'],                    misspellings:['melatonina'],                 englishTerms:['melatonin'],           spanishTerms:['melatonina'],             riskOverrideFlags:['supplement','sanitary_review'], customerHint:'', adminHint:'Revisar sanitario.' },
+    // Medical
+    { productKey:'oximetro',       productName:'Oxímetro',                  categoryId:'medicines_medical_products', aliases:['oxímetro','oximeter','pulsioxímetro'],          misspellings:['oximetro'],                   englishTerms:['oximeter'],            spanishTerms:['oxímetro'],               riskOverrideFlags:['medical'], customerHint:'', adminHint:'' },
+    { productKey:'termometro',     productName:'Termómetro Digital',        categoryId:'medicines_medical_products', aliases:['termómetro','thermometer'],                     misspellings:['termometro'],                 englishTerms:['thermometer'],         spanishTerms:['termómetro'],             riskOverrideFlags:['medical'], customerHint:'', adminHint:'' },
+    // Home appliances
+    { productKey:'cafetera',       productName:'Cafetera / Espresso',       categoryId:'home_kitchen_appliances',    aliases:['cafetera','espresso machine','nespresso'],      misspellings:['cafeterra'],                  englishTerms:['coffee maker'],        spanishTerms:['cafetera'],               riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'air_fryer',      productName:'Air Fryer',                 categoryId:'home_kitchen_appliances',    aliases:['air fryer','freidora de aire','airfryer'],      misspellings:['airfryer'],                   englishTerms:['air fryer'],           spanishTerms:['freidora de aire'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'licuadora',      productName:'Licuadora / Blender',       categoryId:'home_kitchen_appliances',    aliases:['licuadora','blender','batidora'],               misspellings:['licuaodra'],                  englishTerms:['blender'],             spanishTerms:['licuadora'],              riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'microondas',     productName:'Microondas',                categoryId:'home_kitchen_appliances',    aliases:['microondas','microwave'],                       misspellings:['microhondas'],                englishTerms:['microwave'],           spanishTerms:['microondas'],             riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Home decor
+    { productKey:'organizador',    productName:'Organizadores / Hogar',     categoryId:'home_decor_storage',         aliases:['organizador','contenedor','decoración hogar'],  misspellings:['oragnizador'],                englishTerms:['organizer'],           spanishTerms:['organizador'],            riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'sabanas_toallas',productName:'Sábanas / Toallas',         categoryId:'home_decor_storage',         aliases:['sábanas','toallas','cobija','edredón'],         misspellings:['sabanas'],                    englishTerms:['sheets','towels'],     spanishTerms:['sábanas','toallas'],      riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Tools
+    { productKey:'taladro',        productName:'Taladro / Drill',           categoryId:'tools_hardware_common',      aliases:['taladro','drill','taladro inalámbrico'],        misspellings:['talador'],                    englishTerms:['drill'],               spanishTerms:['taladro'],                riskOverrideFlags:['battery_possible'], customerHint:'', adminHint:'' },
+    { productKey:'sierra',         productName:'Sierra Circular / Caladora',categoryId:'tools_hardware_common',      aliases:['sierra circular','sierra caladora'],            misspellings:['ciearra'],                    englishTerms:['circular saw'],        spanishTerms:['sierra circular'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'set_herramientas',productName:'Set de Herramientas',      categoryId:'tools_hardware_common',      aliases:['set herramientas','kit herramientas'],          misspellings:['kit herramientas'],           englishTerms:['tool set'],            spanishTerms:['set de herramientas'],    riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Chemicals
+    { productKey:'aerosol',        productName:'Aerosol / Pintura spray',   categoryId:'chemicals_aerosols_adhesives',aliases:['aerosol','pintura spray','spray paint'],       misspellings:['aerozol'],                    englishTerms:['aerosol','spray paint'],spanishTerms:['aerosol'],                riskOverrideFlags:['aerosol','flammable_possible'], customerHint:'', adminHint:'Revisar DG.' },
+    { productKey:'resina',         productName:'Resina Epóxica / Pegamento',categoryId:'chemicals_aerosols_adhesives',aliases:['resina epóxica','epoxy','pegamento fuerte'],    misspellings:['epoxica'],                    englishTerms:['epoxy'],               spanishTerms:['resina epóxica'],         riskOverrideFlags:['chemical'], customerHint:'', adminHint:'Revisar ficha técnica.' },
+    // Auto accessories
+    { productKey:'dashcam',        productName:'Dashcam / Cámara retroceso',categoryId:'automotive_simple_accessories',aliases:['dashcam','cámara retroceso'],                 misspellings:['dash cam'],                   englishTerms:['dashcam'],             spanishTerms:['dashcam'],                riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'radio_carro',    productName:'Radio de Carro Android',    categoryId:'automotive_simple_accessories',aliases:['radio carro','pantalla carro','car stereo'],   misspellings:['radio carro'],                englishTerms:['car stereo'],          spanishTerms:['radio de carro'],         riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Auto parts
+    { productKey:'pastillas_freno',productName:'Pastillas de Freno',        categoryId:'automotive_parts_review',    aliases:['pastillas de freno','brake pads'],              misspellings:['pastillas freno'],            englishTerms:['brake pads'],          spanishTerms:['pastillas de freno'],     riskOverrideFlags:['automotive_part_review'], customerHint:'', adminHint:'Validar clasificación.' },
+    { productKey:'sensor_auto',    productName:'Sensor Automotriz',         categoryId:'automotive_parts_review',    aliases:['sensor oxígeno','sensor maf','sensor abs'],     misspellings:['sencor'],                     englishTerms:['oxygen sensor'],       spanishTerms:['sensor de oxígeno'],      riskOverrideFlags:['automotive_part_review'], customerHint:'', adminHint:'Validar clasificación.' },
+    // Sports
+    { productKey:'yoga_mat',       productName:'Yoga Mat',                  categoryId:'sports_fitness_physical',    aliases:['yoga mat','colchoneta yoga'],                   misspellings:['yoaga mat'],                  englishTerms:['yoga mat'],            spanishTerms:['colchoneta yoga'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'mancuernas',     productName:'Mancuernas / Pesas',        categoryId:'sports_fitness_physical',    aliases:['mancuernas','dumbbells','pesas'],               misspellings:['manquernas'],                 englishTerms:['dumbbells'],           spanishTerms:['mancuernas'],             riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'raqueta',        productName:'Raqueta Tenis / Pádel',     categoryId:'sports_fitness_physical',    aliases:['raqueta tenis','raqueta pádel'],                misspellings:['raqueta'],                    englishTerms:['tennis racket'],       spanishTerms:['raqueta de tenis'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'bicicleta_montana',productName:'Bicicleta montaña / ruta',categoryId:'sports_outdoor_variable',   aliases:['bicicleta de montaña','mountain bike'],         misspellings:['bicicltea'],                  englishTerms:['mountain bike'],       spanishTerms:['bicicleta de montaña'],  riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'smartwatch_dep', productName:'Smartwatch Deportivo',      categoryId:'sports_outdoor_variable',   aliases:['smartwatch deportivo','reloj deportivo','garmin'],misspellings:['smatchwatch'],               englishTerms:['sports watch'],        spanishTerms:['smartwatch deportivo'],   riskOverrideFlags:['battery_possible'], customerHint:'', adminHint:'' },
+    { productKey:'equipo_pesca',   productName:'Equipo de Pesca',           categoryId:'sports_outdoor_variable',   aliases:['caña de pescar','equipo pesca','carrete'],      misspellings:['caña pescar'],                englishTerms:['fishing rod'],         spanishTerms:['caña de pescar'],         riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Toys
+    { productKey:'lego',           productName:'LEGO / Bloques construcción',categoryId:'toys_common',               aliases:['lego','bloques','lego set'],                    misspellings:['leggo','legos'],              englishTerms:['lego'],                spanishTerms:['lego'],                   riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'muneca_peluche', productName:'Muñeca / Peluche',          categoryId:'toys_common',                aliases:['muñeca','peluche','doll','barbie'],             misspellings:['muneca','peluch'],            englishTerms:['doll','plush toy'],    spanishTerms:['muñeca','peluche'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'juego_mesa',     productName:'Juego de Mesa / Puzzle',    categoryId:'toys_common',                aliases:['juego de mesa','board game','puzzle'],          misspellings:['puzle'],                      englishTerms:['board game','puzzle'], spanishTerms:['juego de mesa'],          riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Drones
+    { productKey:'drone',          productName:'Drone / DJI',               categoryId:'drones_rc_review',           aliases:['drone','dron','dji','quadcopter'],              misspellings:['droon'],                      englishTerms:['drone','quadcopter'],  spanishTerms:['dron'],                   riskOverrideFlags:['drone','lithium_battery','radiofrequency_possible'], customerHint:'Requiere revisión especial.', adminHint:'Revisar DGAC y batería.' },
+    { productKey:'carro_rc',       productName:'Carro RC / Control Remoto', categoryId:'drones_rc_review',           aliases:['carro rc','control remoto','rc car'],           misspellings:['carro control remoto'],       englishTerms:['rc car'],              spanishTerms:['carro RC'],               riskOverrideFlags:['radiofrequency_possible'], customerHint:'', adminHint:'Revisar radiofrecuencia.' },
+    // Baby
+    { productKey:'coche_bebe',     productName:'Coche de Bebé / Stroller',  categoryId:'baby_items',                 aliases:['coche de bebé','stroller','carriola'],          misspellings:['coche bebe'],                 englishTerms:['stroller'],            spanishTerms:['coche de bebé'],          riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'silla_carro_bebe',productName:'Silla de Bebé para Carro', categoryId:'baby_items',                 aliases:['silla de bebé carro','car seat'],               misspellings:['silla bebe'],                 englishTerms:['car seat'],            spanishTerms:['silla para bebé'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'biberon',        productName:'Biberón / Chupón',          categoryId:'baby_items',                 aliases:['biberón','chupón','biberon','pacifier'],        misspellings:['biberone','chupoon'],         englishTerms:['baby bottle'],         spanishTerms:['biberón','chupón'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Pets
+    { productKey:'collar_mascota', productName:'Collar / Arnés para Mascota',categoryId:'pet_accessories',            aliases:['collar mascota','arnés mascota','dog collar'],  misspellings:['arnes'],                      englishTerms:['dog collar','harness'],spanishTerms:['collar de mascota'],      riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'cama_mascota',   productName:'Cama para Mascota',         categoryId:'pet_accessories',            aliases:['cama mascota','cama perro','dog bed'],          misspellings:['cama masocta'],               englishTerms:['dog bed'],             spanishTerms:['cama de mascota'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'comida_mascota', productName:'Comida para Mascota',       categoryId:'pet_food_supplements_review',aliases:['comida mascota','dog food','cat food'],          misspellings:['comida perro'],               englishTerms:['dog food','cat food'], spanishTerms:['comida para mascota'],    riskOverrideFlags:['pet_food','sanitary_review'], customerHint:'Requiere revisión.', adminHint:'Revisar SENASA.' },
+    // Books
+    { productKey:'libro',          productName:'Libro / Manual',            categoryId:'books_printed_material',     aliases:['libro','book','manual','textbook'],             misspellings:['livro'],                      englishTerms:['book'],                spanishTerms:['libro'],                  riskOverrideFlags:['printed_material_review'], customerHint:'', adminHint:'Validar tratamiento arancelario.' },
+    { productKey:'manga_comic',    productName:'Manga / Comic',             categoryId:'books_printed_material',     aliases:['manga','comic','cómic'],                        misspellings:['comik','maga'],               englishTerms:['manga','comic book'],  spanishTerms:['manga','cómic'],          riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Office
+    { productKey:'cuaderno',       productName:'Cuaderno / Agenda',         categoryId:'office_stationery_art',      aliases:['cuaderno','agenda','planner'],                  misspellings:['agend'],                      englishTerms:['notebook','planner'],  spanishTerms:['cuaderno','agenda'],      riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'lapices',        productName:'Lápices / Marcadores',      categoryId:'office_stationery_art',      aliases:['lápices','marcadores','colored pencils'],       misspellings:['lapices'],                    englishTerms:['colored pencils'],     spanishTerms:['lápices de color'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'silla_oficina',  productName:'Silla de Oficina',          categoryId:'office_stationery_art',      aliases:['silla de oficina','office chair'],              misspellings:['silla ofisina'],              englishTerms:['office chair'],        spanishTerms:['silla de oficina'],       riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Bags
+    { productKey:'mochila',        productName:'Mochila / Bolso',           categoryId:'bags_luggage_accessories',   aliases:['mochila','bolso','backpack','purse'],           misspellings:['mochilla','mochia'],          englishTerms:['backpack','bag'],      spanishTerms:['mochila','bolso'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'maleta',         productName:'Maleta de Viaje',           categoryId:'bags_luggage_accessories',   aliases:['maleta','suitcase','luggage'],                  misspellings:['valija'],                     englishTerms:['suitcase','luggage'],  spanishTerms:['maleta de viaje'],        riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'billetera',      productName:'Billetera / Cartera',       categoryId:'bags_luggage_accessories',   aliases:['billetera','cartera','wallet'],                 misspellings:['biieltera'],                  englishTerms:['wallet'],              spanishTerms:['billetera'],              riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    // Watches / Jewelry
+    { productKey:'reloj',          productName:'Reloj Analógico / Digital', categoryId:'watches_jewelry',            aliases:['reloj','watch','reloj analógico'],              misspellings:['relioj'],                     englishTerms:['watch'],               spanishTerms:['reloj'],                  riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'joyeria',        productName:'Joyería Plata / Oro',       categoryId:'watches_jewelry',            aliases:['joyería','anillo','collar joyería','aretes'],   misspellings:['joyeria'],                    englishTerms:['jewelry'],             spanishTerms:['joyería'],                riskOverrideFlags:['precious_metal_possible'], customerHint:'', adminHint:'Metales preciosos: revisar.' },
+    // Eyewear
+    { productKey:'lentes_sol',     productName:'Lentes de Sol',             categoryId:'eyewear_optical',            aliases:['lentes de sol','gafas','sunglasses'],           misspellings:['gazas'],                      englishTerms:['sunglasses'],          spanishTerms:['lentes de sol'],          riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'monturas',       productName:'Monturas / Lentes Ópticos', categoryId:'eyewear_optical',            aliases:['monturas','lentes ópticos','frames'],           misspellings:['monturras'],                  englishTerms:['eyeglass frames'],     spanishTerms:['monturas'],               riskOverrideFlags:[], customerHint:'', adminHint:'' },
+    { productKey:'lentes_contacto',productName:'Lentes de Contacto',        categoryId:'eyewear_medical_contact_lenses',aliases:['lentes de contacto','contact lenses'],      misspellings:['lentilals'],                  englishTerms:['contact lenses'],     spanishTerms:['lentes de contacto'],    riskOverrideFlags:['optical_medical','sanitary_review'], customerHint:'Requiere revisión.', adminHint:'Revisar sanitario.' },
+    // Food
+    { productKey:'snacks',         productName:'Snacks / Chocolates',       categoryId:'food_beverages_review',      aliases:['snacks','chocolate','dulces','galletas'],       misspellings:['snaks'],                      englishTerms:['snacks','candy'],      spanishTerms:['snacks','dulces'],        riskOverrideFlags:['food','sanitary_review'], customerHint:'Requiere revisión.', adminHint:'Validar SENASA.' },
+    { productKey:'cafe',           productName:'Café / Té importado',       categoryId:'food_beverages_review',      aliases:['café','coffee','té','tea'],                     misspellings:['cafe'],                       englishTerms:['coffee','tea'],        spanishTerms:['café','té'],              riskOverrideFlags:['food'], customerHint:'', adminHint:'' },
+    // Alcohol / Tobacco
+    { productKey:'vino',           productName:'Vino / Cerveza / Licor',    categoryId:'alcohol_tobacco_vape_review',aliases:['vino','cerveza','licor','alcohol','wine'],      misspellings:['alchol'],                     englishTerms:['wine','beer','liquor'],spanishTerms:['vino','cerveza','licor'],  riskOverrideFlags:['alcohol','restricted_possible'], customerHint:'Requiere revisión.', adminHint:'Validar política CRBOX.' },
+    { productKey:'vape',           productName:'Vape / Nicotina',           categoryId:'alcohol_tobacco_vape_review',aliases:['vape','e-cigarette','nicotina','juul'],         misspellings:['vap'],                        englishTerms:['vape','e-cigarette'],  spanishTerms:['vape'],                   riskOverrideFlags:['nicotine','restricted_possible'], customerHint:'Requiere revisión.', adminHint:'Validar política CRBOX.' },
+    // Plants
+    { productKey:'semillas',       productName:'Semillas / Plantas / Agro', categoryId:'plants_seeds_agro_review',   aliases:['semillas','plantas','seeds','fertilizante'],    misspellings:['semias'],                     englishTerms:['seeds','plants'],      spanishTerms:['semillas','plantas'],     riskOverrideFlags:['agro','phytosanitary_review'], customerHint:'Requiere revisión.', adminHint:'Validar fitosanitario SFE.' },
+    // Weapons
+    { productKey:'pistola_co2',    productName:'Pistola CO2 / Táctica',     categoryId:'weapons_restricted',         aliases:['pistola co2','cuchillo táctico','airsoft','balines'],misspellings:['pistola'],               englishTerms:['co2 gun','airsoft'],   spanishTerms:['pistola CO2'],            riskOverrideFlags:['weapon','restricted_item'], customerHint:'Puede ser restringido.', adminHint:'Escalar a revisión.' },
+    // Dangerous goods
+    { productKey:'explosivos',     productName:'Explosivos / Inflamables',  categoryId:'dangerous_goods',            aliases:['explosivo','inflamable','peligroso','hazmat'],  misspellings:['explosibo'],                  englishTerms:['explosive','flammable'],spanishTerms:['explosivo','inflamable'],  riskOverrideFlags:['dangerous_goods','flammable'], customerHint:'Restricciones de transporte.', adminHint:'Revisar DG y carrier.' },
+    // Fallback
+    { productKey:'desconocido',    productName:'Producto no identificado',  categoryId:'unknown_manual_review',      aliases:['otro','no sé','no identificado'],               misspellings:[],                             englishTerms:['other','unknown'],     spanishTerms:['otro'],                   riskOverrideFlags:['unknown'], customerHint:'Comparta el link de su producto para revisión.', adminHint:'Clasificar manualmente.' },
+  ];
+
+  window.PRODUCT_PRODUCTS = PRODUCTS;
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SECTION 4 — VERSION
+  // ════════════════════════════════════════════════════════════════════════════
+
+  window.ProductBrainVersion = '2026-CRBOX-local-estimated-v1';
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SECTION 5 — HELPER INDEXES
+  // Built once at load time for O(1) / O(k) lookups at runtime.
+  // ════════════════════════════════════════════════════════════════════════════
+
+  /**
+   * CATEGORY_BY_ID — index: brainCategoryId → category object
+   * Covers both PRODUCT_BRAIN_CATEGORIES and PRODUCT_CATEGORIES by code.
+   */
+  var CATEGORY_BY_ID = {};
+  BRAIN_CATS.forEach(function (cat) {
+    CATEGORY_BY_ID[cat.id] = cat;
+    if (cat.code && cat.code !== cat.id) {
+      CATEGORY_BY_ID[cat.code] = cat;
+    }
+  });
+  DEDUPED.forEach(function (cat) {
+    if (!CATEGORY_BY_ID[cat.code]) {
+      CATEGORY_BY_ID[cat.code] = cat;
+    }
+  });
+  window.CATEGORY_BY_ID = CATEGORY_BY_ID;
+
+  /**
+   * PRODUCT_TO_CATEGORY_INDEX — index: productKey → brainCategoryId
+   */
+  var PRODUCT_TO_CATEGORY_INDEX = {};
+  PRODUCTS.forEach(function (p) {
+    PRODUCT_TO_CATEGORY_INDEX[p.productKey] = p.categoryId;
+  });
+  window.PRODUCT_TO_CATEGORY_INDEX = PRODUCT_TO_CATEGORY_INDEX;
+
+  /**
+   * KEYWORD_INDEX — index: normalized-keyword → [brainCategoryId, ...]
+   * Built from aliases, keywords, misspellings, and commonSearches.
+   */
+  var KEYWORD_INDEX = {};
+  function _addKw(word, catId) {
+    var key = word.toLowerCase().trim();
+    if (!key) return;
+    if (!KEYWORD_INDEX[key]) KEYWORD_INDEX[key] = [];
+    if (KEYWORD_INDEX[key].indexOf(catId) === -1) KEYWORD_INDEX[key].push(catId);
+  }
+  BRAIN_CATS.forEach(function (cat) {
+    (cat.aliases || []).forEach(function (a) { _addKw(a, cat.id); });
+    (cat.keywords || []).forEach(function (k) { _addKw(k, cat.id); });
+    (cat.misspellings || []).forEach(function (m) { _addKw(m, cat.id); });
+    (cat.commonSearches || []).forEach(function (s) { _addKw(s, cat.id); });
+    _addKw(cat.displayName, cat.id);
+  });
+  PRODUCTS.forEach(function (p) {
+    (p.aliases || []).forEach(function (a) { _addKw(a, p.categoryId); });
+    (p.misspellings || []).forEach(function (m) { _addKw(m, p.categoryId); });
+    (p.englishTerms || []).forEach(function (e) { _addKw(e, p.categoryId); });
+    (p.spanishTerms || []).forEach(function (s) { _addKw(s, p.categoryId); });
+    _addKw(p.productName, p.categoryId);
+  });
+  window.KEYWORD_INDEX = KEYWORD_INDEX;
+
+  /**
+   * RISK_FLAG_INDEX — index: riskFlag → [brainCategoryId, ...]
+   */
+  var RISK_FLAG_INDEX = {};
+  function _addFlag(flag, catId) {
+    if (!flag) return;
+    if (!RISK_FLAG_INDEX[flag]) RISK_FLAG_INDEX[flag] = [];
+    if (RISK_FLAG_INDEX[flag].indexOf(catId) === -1) RISK_FLAG_INDEX[flag].push(catId);
+  }
+  BRAIN_CATS.forEach(function (cat) {
+    (cat.riskFlags || []).forEach(function (f) { _addFlag(f, cat.id); });
+  });
+  PRODUCTS.forEach(function (p) {
+    (p.riskOverrideFlags || []).forEach(function (f) { _addFlag(f, p.categoryId); });
+  });
+  window.RISK_FLAG_INDEX = RISK_FLAG_INDEX;
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SECTION 6 — UTILITY FUNCTIONS
+  // All exposed on window.ProductBrain namespace.
+  // ════════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Normalize text: lowercase, trim, collapse whitespace, remove accents.
+   * @param {string} text
+   * @returns {string}
+   */
+  function normalizeText(text) {
+    if (!text) return '';
+    return String(text)
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ');
+  }
+
+  /**
+   * Get a Product Brain category by its id or code.
+   * @param {string} id
+   * @returns {object|null}
+   */
+  function getCategoryById(id) {
+    return CATEGORY_BY_ID[id] || CATEGORY_BY_ID[normalizeText(id)] || null;
+  }
+
+  /**
+   * Search products by a free-text query.
+   * Returns an array of { product, category } objects sorted by relevance.
+   * @param {string} query
+   * @param {number} [limit=10]
+   * @returns {Array<{product: object, category: object}>}
+   */
+  function searchProducts(query, limit) {
+    var q = normalizeText(query);
+    if (!q) return [];
+    var catIds = KEYWORD_INDEX[q] || [];
+    // Also try word-by-word match for multi-word queries
+    var words = q.split(' ');
+    if (words.length > 1) {
+      words.forEach(function (w) {
+        (KEYWORD_INDEX[w] || []).forEach(function (id) {
+          if (catIds.indexOf(id) === -1) catIds.push(id);
+        });
+      });
+    }
+    var results = [];
+    catIds.forEach(function (catId) {
+      var cat = CATEGORY_BY_ID[catId];
+      PRODUCTS.forEach(function (p) {
+        if (p.categoryId === catId) {
+          results.push({ product: p, category: cat });
+        }
+      });
+    });
+    return results.slice(0, limit || 10);
+  }
+
+  /**
+   * Classify a free-text product query to the best-matching Product Brain category.
+   * Returns the category object or null.
+   * @param {string} query
+   * @returns {object|null}
+   */
+  function classifyLocal(query) {
+    var q = normalizeText(query);
+    if (!q) return null;
+    // Exact keyword match
+    if (KEYWORD_INDEX[q] && KEYWORD_INDEX[q].length > 0) {
+      return CATEGORY_BY_ID[KEYWORD_INDEX[q][0]] || null;
+    }
+    // Word-by-word with scoring
+    var words = q.split(' ');
+    var scores = {};
+    words.forEach(function (w) {
+      if (w.length < 2) return;
+      (KEYWORD_INDEX[w] || []).forEach(function (catId) {
+        scores[catId] = (scores[catId] || 0) + 1;
+      });
+    });
+    var best = null;
+    var bestScore = 0;
+    Object.keys(scores).forEach(function (catId) {
+      if (scores[catId] > bestScore) {
+        bestScore = scores[catId];
+        best = catId;
+      }
+    });
+    if (best) return CATEGORY_BY_ID[best] || null;
+    // Fallback
+    return CATEGORY_BY_ID['unknown_manual_review'] || null;
+  }
+
+  /**
+   * Get the customer-facing message for a category.
+   * @param {string} categoryId
+   * @returns {string}
+   */
+  function getCustomerMessage(categoryId) {
+    var cat = getCategoryById(categoryId);
+    return cat && cat.customerMessage ? cat.customerMessage : '';
+  }
+
+  /**
+   * Get admin notes for a category.
+   * @param {string} categoryId
+   * @returns {string}
+   */
+  function getAdminNotes(categoryId) {
+    var cat = getCategoryById(categoryId);
+    return cat && cat.adminNotes ? cat.adminNotes : '';
+  }
+
+  /**
+   * Check if a category requires manual review.
+   * @param {string} categoryId
+   * @returns {boolean}
+   */
+  function isManualReview(categoryId) {
+    var cat = getCategoryById(categoryId);
+    return !!(cat && cat.manualReviewRequired);
+  }
+
+  /**
+   * Check if a category is forbidden or restricted.
+   * @param {string} categoryId
+   * @returns {boolean}
+   */
+  function isForbiddenOrRestricted(categoryId) {
+    var cat = getCategoryById(categoryId);
+    return !!(cat && (cat.forbiddenProduct || cat.restrictedProduct));
+  }
+
+  /**
+   * Get risk flags for a category.
+   * @param {string} categoryId
+   * @returns {string[]}
+   */
+  function getRiskFlags(categoryId) {
+    var cat = getCategoryById(categoryId);
+    return (cat && cat.riskFlags) ? cat.riskFlags : [];
+  }
+
+  /**
+   * Export PRODUCT_BRAIN_CATEGORIES as a JSON string.
+   * @returns {string}
+   */
+  function exportJSON() {
+    try {
+      return JSON.stringify({
+        version: window.ProductBrainVersion,
+        categories: BRAIN_CATS,
+        products: PRODUCTS,
+      }, null, 2);
+    } catch (e) {
+      return '{}';
+    }
+  }
+
+  /**
+   * Export PRODUCT_BRAIN_CATEGORIES as a CSV string.
+   * Columns: id, code, displayName, categoryGroup, totalEstimatedRate,
+   *          manualReviewRequired, regulatedProduct, restrictedProduct,
+   *          forbiddenProduct, riskFlags, customerMessage
+   * @returns {string}
+   */
+  function exportCSV() {
+    var header = ['id','code','displayName','categoryGroup','totalEstimatedRate',
+                  'manualReviewRequired','regulatedProduct','restrictedProduct',
+                  'forbiddenProduct','riskFlags','customerMessage'];
+    var rows = [header.join(',')];
+    BRAIN_CATS.forEach(function (cat) {
+      var row = [
+        cat.id,
+        cat.code,
+        '"' + (cat.displayName || '').replace(/"/g, '""') + '"',
+        '"' + (cat.categoryGroup || '').replace(/"/g, '""') + '"',
+        cat.totalEstimatedRate !== null ? cat.totalEstimatedRate : '',
+        cat.manualReviewRequired ? 'true' : 'false',
+        cat.regulatedProduct ? 'true' : 'false',
+        cat.restrictedProduct ? 'true' : 'false',
+        cat.forbiddenProduct ? 'true' : 'false',
+        '"' + (cat.riskFlags || []).join(';') + '"',
+        '"' + (cat.customerMessage || '').replace(/"/g, '""') + '"',
+      ];
+      rows.push(row.join(','));
+    });
+    return rows.join('\n');
+  }
+
+  /**
+   * window.ProductBrain — public utility namespace
+   */
+  window.ProductBrain = {
+    version:               window.ProductBrainVersion,
+    normalizeText:         normalizeText,
+    getCategoryById:       getCategoryById,
+    searchProducts:        searchProducts,
+    classifyLocal:         classifyLocal,
+    getCustomerMessage:    getCustomerMessage,
+    getAdminNotes:         getAdminNotes,
+    isManualReview:        isManualReview,
+    isForbiddenOrRestricted: isForbiddenOrRestricted,
+    getRiskFlags:          getRiskFlags,
+    exportJSON:            exportJSON,
+    exportCSV:             exportCSV,
+  };
+
 })();
