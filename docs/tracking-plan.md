@@ -1,17 +1,17 @@
 # CRBOX Analytics — Tracking Plan
 
-All events are pushed to `window.dataLayer` and consumed by GTM (container `YOUR_GTM_CONTAINER_ID`).  
+All events are pushed to `window.dataLayer` and consumed by GTM (container `GTM-5WD8N53F`).
 Every push carries three automatic standard parameters in addition to the event-specific ones.
 
 ---
 
 ## Standard Parameters (auto-injected on every push)
 
-| Parameter    | Type   | Values / Notes                                                    |
-|-------------|--------|-------------------------------------------------------------------|
-| `page_path`  | string | `window.location.pathname`, e.g. `/calculadora.html`             |
-| `page_name`  | string | `index` · `servicios` · `como_funciona` · `tarifas` · `calculadora` · `contacto` |
-| `page_type`  | string | `home` · `services` · `how_it_works` · `pricing` · `calculator` · `contact` |
+| Parameter   | Type   | Values / Notes                                                                        |
+|-------------|--------|---------------------------------------------------------------------------------------|
+| `page_path` | string | `window.location.pathname`, e.g. `/calculadora.html`                                 |
+| `page_name` | string | `index` · `servicios` · `como_funciona` · `tarifas` · `calculadora` · `contacto` · `login` · `afiliate` · `dashboard` · `mi_cuenta` · `mis_paquetes` · `mis_facturas` · `mis_solicitudes` · `solicitud` · `cotizar` · `404` · `privacidad` · `terminos` |
+| `page_type` | string | `home` · `services` · `how_it_works` · `pricing` · `calculator` · `contact` · `portal_auth` · `registration` · `portal` · `portal_packages` · `portal_invoices` · `portal_requests` · `portal_quotes` · `utility` |
 
 ---
 
@@ -24,8 +24,8 @@ Every push carries three automatic standard parameters in addition to the event-
 | **Event name** | `cta_afiliate_click` |
 | **Parameters** | `cta_location` (section id · `header` · `footer`), `cta_label` (visible button text, max 80 chars) |
 | **Trigger** | Click on any `<a href="afiliate.html">` |
-| **Pages fired on** | All 6 public pages |
-| **Decision question** | Which page and section drives the most afíliate intent? Use to prioritize CTA placement and copy tests. |
+| **Pages fired on** | All public pages |
+| **Decision question** | Which page and section drives the most afíliate intent? |
 
 ---
 
@@ -34,10 +34,10 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `cta_calculadora_click` |
-| **Parameters** | `cta_location` (section id · `header` · `footer`), `cta_label` (visible button text, max 80 chars) |
+| **Parameters** | `cta_location` (section id · `header` · `footer`), `cta_label` |
 | **Trigger** | Click on any `<a href="calculadora.html">` |
-| **Pages fired on** | All 6 public pages |
-| **Decision question** | Which pages and sections funnel the most traffic to the calculator? Use to strengthen calculator-discovery paths. |
+| **Pages fired on** | All public pages |
+| **Decision question** | Which CTAs drive calculator usage? |
 
 ---
 
@@ -46,10 +46,9 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `whatsapp_click` |
-| **Parameters** | `cta_location` (default: `floating_button`) |
-| **Trigger** | Click on any `<a href^="https://wa.me/">` |
-| **Pages fired on** | All pages that include a WhatsApp link (contacto, floating button on all pages) |
-| **Decision question** | Is WhatsApp a significant acquisition channel? Compare volume to `contact_form_submit` to understand preferred contact method. |
+| **Parameters** | `cta_location` (`floating_button` · section id) |
+| **Trigger** | Click on WhatsApp button |
+| **Pages fired on** | All pages with the WhatsApp floating button |
 
 ---
 
@@ -58,10 +57,9 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `phone_click` |
-| **Parameters** | `phone_number` (raw number), `cta_location` (section id · `header` · `footer`) |
-| **Trigger** | Click on any `<a href^="tel:">` |
-| **Pages fired on** | contacto.html (primary), any page with a tel: link |
-| **Decision question** | Are users clicking to call? High volume suggests phone support is important and should be prominently featured. |
+| **Parameters** | `phone_number` (e.g. `+50689794418`), `cta_location` |
+| **Trigger** | Click on any `<a href="tel:...">` |
+| **Pages fired on** | Any page with tel: links |
 
 ---
 
@@ -70,10 +68,9 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `email_click` |
-| **Parameters** | `email_address` (from href), `cta_location` (section id · `header` · `footer`) |
-| **Trigger** | Click on any `<a href^="mailto:">` |
-| **Pages fired on** | contacto.html (primary), any page with a mailto: link |
-| **Decision question** | Do users prefer email over the contact form? If email_click >> contact_form_submit, the form may have friction. |
+| **Parameters** | `email_address`, `cta_location` |
+| **Trigger** | Click on any `<a href="mailto:...">` |
+| **Pages fired on** | Any page with mailto: links |
 
 ---
 
@@ -82,10 +79,9 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `contact_form_submit` |
-| **Parameters** | `contact_subject` (value of `[name="asunto"]` field, or `unknown`) |
-| **Trigger** | `submit` event on `#contact-form` |
-| **Pages fired on** | contacto.html |
-| **Decision question** | Which contact subjects are most common? Use to prioritize FAQ content and pre-qualification messaging. |
+| **Parameters** | `contact_subject` (raw value of `[name=asunto]` input) |
+| **Trigger** | Submit of `#contact-form` |
+| **Pages fired on** | `contacto.html` |
 
 ---
 
@@ -94,10 +90,9 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `form_start` |
-| **Parameters** | `form_id` (`contact-form` · `maritimo-quote-form`) |
-| **Trigger** | First `input` or `change` event on a tracked form. Fires once per form per page load. |
-| **Pages fired on** | contacto.html (`contact-form`), calculadora.html (`maritimo-quote-form`) |
-| **Decision question** | What share of form visitors actually start filling in fields? Low `form_start / page_visit` ratio means users aren't reaching or aren't motivated to use the form. |
+| **Parameters** | `form_id` (element id of the form) |
+| **Trigger** | First input/change interaction inside a tracked form |
+| **Pages fired on** | `contacto.html` (maritimo quote form if present) |
 
 ---
 
@@ -106,10 +101,10 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `form_abandon` |
-| **Parameters** | `form_id` (`contact-form` · `maritimo-quote-form`) |
-| **Trigger** | `beforeunload` when a form was started but not submitted. Best-effort — not guaranteed in all browsers (especially mobile Safari). |
-| **Pages fired on** | contacto.html, calculadora.html |
-| **Decision question** | Are users dropping out mid-form? Use with `form_start` as a directional abandon rate. Investigate which fields cause abandonment by pairing with field-level heatmap tools. |
+| **Parameters** | `form_id` |
+| **Trigger** | Page unload when a form was started but not submitted |
+| **Pages fired on** | `contacto.html` |
+| **Note** | Best-effort — not guaranteed on all browsers/mobile |
 
 ---
 
@@ -118,10 +113,9 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `faq_engage` |
-| **Parameters** | `faq_question` (text of the FAQ `<h3>`), `section_id` (enclosing section id) |
+| **Parameters** | `faq_question` (question text, trimmed), `section_id` |
 | **Trigger** | Click on any `.faq-item` element |
-| **Pages fired on** | como-funciona.html (primary), any page with `.faq-item` |
-| **Decision question** | Which questions do users click most? The top questions reveal gaps in the main page copy or pre-sales objections to address directly. |
+| **Pages fired on** | `como-funciona.html`, `tarifas.html`, any page with FAQ items |
 
 ---
 
@@ -130,10 +124,9 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `nav_click` |
-| **Parameters** | `nav_label` (visible link text, max 60 chars), `nav_destination` (href value) |
-| **Trigger** | Click on any link inside the `<nav>` or desktop action area in `<header>` |
-| **Pages fired on** | All 6 public pages |
-| **Decision question** | Which navigation items drive the most clicks? Low clicks on a key page (e.g. Tarifas) suggest users aren't finding it or don't need it — inform IA and CTA strategy. |
+| **Parameters** | `nav_label` (link text, max 60 chars), `nav_destination` (href value) |
+| **Trigger** | Click on header nav links |
+| **Pages fired on** | All pages with a `<header>` |
 
 ---
 
@@ -142,10 +135,9 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `service_card_click` |
-| **Parameters** | `service_name` (text of the card's `<h3>` heading) |
+| **Parameters** | `service_name` (text of the h3 inside the card) |
 | **Trigger** | Click on any `.service-card` element |
-| **Pages fired on** | servicios.html |
-| **Decision question** | Which services attract the most clicks? Prioritize content depth, pricing detail, and CTAs for top-clicked services. |
+| **Pages fired on** | `servicios.html`, any page with service cards |
 
 ---
 
@@ -155,9 +147,8 @@ Every push carries three automatic standard parameters in addition to the event-
 |-------|--------|
 | **Event name** | `calculator_start` |
 | **Parameters** | `shipping_mode` (`aereo` · `maritimo`) |
-| **Trigger** | First `input` or `focus` on `#aero-weight`, `#aero-purchase-value`, `#aero-length`, or `#nombre` (maritime). Fires once per page load. |
-| **Pages fired on** | calculadora.html |
-| **Decision question** | How many visitors who reach the calculator actually start using it? Low `calculator_start / section_visible[aero-calculator]` ratio means the tool is visible but not compelling. |
+| **Trigger** | First focus/input on weight, value, or dimension fields |
+| **Pages fired on** | `calculadora.html`, `cotizar.html` |
 
 ---
 
@@ -167,9 +158,8 @@ Every push carries three automatic standard parameters in addition to the event-
 |-------|--------|
 | **Event name** | `calculator_tab_switch` |
 | **Parameters** | `to_mode` (`aereo` · `maritimo`) |
-| **Trigger** | Click on `#toggle-aero` or `#toggle-maritimo` |
-| **Pages fired on** | calculadora.html |
-| **Decision question** | How many aero users switch to maritime and vice versa? High switching suggests users are exploring both options — consider showing a comparison or guiding them to the right mode. |
+| **Trigger** | Click on aéreo/marítimo tab toggle |
+| **Pages fired on** | `calculadora.html` |
 
 ---
 
@@ -178,10 +168,9 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `calculator_query` |
-| **Parameters** | `shipping_mode` (`aereo` · `maritimo`), `package_weight_kg` (applied weight), `destination` (province slug), `purchase_value_usd` (declared value) |
-| **Trigger** | Click on "Calcular Envío Aéreo" button; maritime form submit |
-| **Pages fired on** | calculadora.html |
-| **Decision question** | What are the most common weight ranges and destinations? Use to validate tariff table coverage and identify the typical customer profile for pricing and marketing decisions. |
+| **Parameters** | `shipping_mode`, `package_weight_kg`, `destination`, `purchase_value_usd` |
+| **Trigger** | Calculator form submit (legacy; superseded by `calculator_result`) |
+| **Pages fired on** | `calculadora.html` |
 
 ---
 
@@ -190,10 +179,10 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `calculator_result` |
-| **Parameters** | `shipping_mode`, `package_weight_kg`, `destination`, `total_usd`, `shipping_usd`, `handling_usd`, `taxes_usd` |
-| **Trigger** | Fires immediately after `calculator_query` when results are displayed |
-| **Pages fired on** | calculadora.html |
-| **Decision question** | What is the typical estimated cost? Use to validate competitiveness, identify high-value shipments, and understand whether result totals align with actual invoices. Mark as a conversion in GA4. |
+| **Parameters** | `shipping_mode`, `weight_bucket` (`lt_1kg` · `1_5kg` · `5_15kg` · `15_30kg` · `gt_30kg`), `value_bucket` (`lt_25` · `25_100` · `100_500` · `500_1000` · `gt_1000`), `destination_country`, `total_usd`, `shipping_usd`, `handling_usd`, `taxes_usd` |
+| **Trigger** | `calcSinglePackage()` or `calcConsolidated()` returns a result |
+| **Pages fired on** | `calculadora.html`, `cotizar.html`, `mis-solicitudes.html` |
+| **Privacy** | No raw weights or values — only bucketed ranges |
 
 ---
 
@@ -202,10 +191,9 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `scroll_depth` |
-| **Parameters** | `depth_percent` (`25` · `50` · `75` · `90`) |
-| **Trigger** | Debounced scroll listener (200 ms). Each milestone fires at most once per page load. |
-| **Pages fired on** | All 6 public pages |
-| **Decision question** | How far do users read on each page? Pages with high 25% but low 75% rates have content that drops off — investigate copy quality, page length, or CTA placement mid-page. |
+| **Parameters** | `depth_percent` (25 · 50 · 75 · 90) |
+| **Trigger** | User scrolls past each milestone (debounced 200 ms) |
+| **Pages fired on** | All pages |
 
 ---
 
@@ -214,98 +202,257 @@ Every push carries three automatic standard parameters in addition to the event-
 | Field | Detail |
 |-------|--------|
 | **Event name** | `section_visible` |
-| **Parameters** | `section_id` (HTML id of the observed section) |
-| **Trigger** | IntersectionObserver at ~40% visibility threshold. Fires once per section per page load then disconnects. |
-| **Pages fired on** | All 6 public pages (only sections with IDs listed below are observed) |
-| **Decision question** | Which high-value sections are actually being seen? Low visibility on `cta-afiliate` or `formulario` means users aren't scrolling far enough — consider page restructuring or mid-page CTAs. |
-
-**Observed sections by page:**
-
-| Page           | Section IDs observed                                                                                |
-|---------------|------------------------------------------------------------------------------------------------------|
-| index          | `main-content`, `stats`, `servicios`, `cta-afiliate`                                               |
-| servicios      | `main-content`, `servicios-destacados`, `casillero`, `compras`, `carga-aerea`, `carga-maritima`     |
-| como-funciona  | `main-content`, `proceso`, `faq`, `cta-como-funciona`                                              |
-| tarifas        | `main-content`, `aerea`, `maritima`, `cta-tarifas`                                                 |
-| calculadora    | `main-content`, `aero-calculator`                                                                   |
-| contacto       | `main-content`, `sucursales`, `formulario`                                                          |
+| **Parameters** | `section_id` |
+| **Trigger** | 40% of a tracked section enters the viewport (IntersectionObserver, fires once) |
+| **Pages fired on** | Public pages with tracked section IDs |
 
 ---
 
-## GTM Configuration Files
+### outbound_click
 
-The GTM container for this project is pre-built and ready to import:
-
-- **`docs/gtm-container-export.json`** — importable GTM container with 1 Constant variable (GA4 Measurement ID) + 24 Data Layer Variables, 17 Custom Event triggers, 18 tags (GA4 Configuration + 17 GA4 Event tags), and all parameter mappings already wired.
-
-Import via GTM → Admin → Import Container. See `docs/measurement-guide.md` Section 5 for step-by-step import instructions.
-
-**Conversions marked in GA4** (GA4 Admin → Events → "Mark as conversion" toggle enabled for all four):
-
-- [x] `cta_afiliate_click` — primary acquisition signal
-- [x] `contact_form_submit` — lead generation
-- [x] `calculator_result` — high-intent engagement
-- [x] `whatsapp_click` — direct sales channel contact
-
-All four events now appear in **Reports → Monetisation → Conversions** and count toward Goals in the Acquisition overview. See `docs/measurement-guide.md` Section 6 for step-by-step toggle instructions.
+| Field | Detail |
+|-------|--------|
+| **Event name** | `outbound_click` |
+| **Parameters** | `link_domain` (hostname only, never full URL), `link_context` (`nav` · `header` · `footer` · section id · `content`) |
+| **Trigger** | Click on any `<a>` pointing to a different hostname |
+| **Pages fired on** | All pages |
+| **Privacy** | Only domain captured — no path, query params, or fragment |
 
 ---
 
-## Complete Data Layer Variable Reference
+### login_start
 
-All 24 Data Layer Variables created in GTM (Data Layer Version 2). A separate Constant variable holds the GA4 Measurement ID.
-
-| GTM Variable Name        | Data Layer Key         | Used by events                                         |
-|--------------------------|------------------------|--------------------------------------------------------|
-| `dlv - page_path`        | `page_path`            | all events                                             |
-| `dlv - page_name`        | `page_name`            | all events                                             |
-| `dlv - page_type`        | `page_type`            | all events                                             |
-| `dlv - cta_location`     | `cta_location`         | cta_afiliate_click, cta_calculadora_click, whatsapp_click, phone_click, email_click |
-| `dlv - cta_label`        | `cta_label`            | cta_afiliate_click, cta_calculadora_click              |
-| `dlv - phone_number`     | `phone_number`         | phone_click                                            |
-| `dlv - email_address`    | `email_address`        | email_click                                            |
-| `dlv - contact_subject`  | `contact_subject`      | contact_form_submit                                    |
-| `dlv - form_id`          | `form_id`              | form_start, form_abandon                               |
-| `dlv - faq_question`     | `faq_question`         | faq_engage                                             |
-| `dlv - section_id`       | `section_id`           | faq_engage, section_visible                            |
-| `dlv - nav_label`        | `nav_label`            | nav_click                                              |
-| `dlv - nav_destination`  | `nav_destination`      | nav_click                                              |
-| `dlv - service_name`     | `service_name`         | service_card_click                                     |
-| `dlv - shipping_mode`    | `shipping_mode`        | calculator_start, calculator_query, calculator_result  |
-| `dlv - to_mode`          | `to_mode`              | calculator_tab_switch                                  |
-| `dlv - package_weight`   | `package_weight_kg`    | calculator_query, calculator_result                    |
-| `dlv - destination`      | `destination`          | calculator_query, calculator_result                    |
-| `dlv - purchase_value`   | `purchase_value_usd`   | calculator_query                                       |
-| `dlv - total_usd`        | `total_usd`            | calculator_result                                      |
-| `dlv - shipping_usd`     | `shipping_usd`         | calculator_result                                      |
-| `dlv - handling_usd`     | `handling_usd`         | calculator_result                                      |
-| `dlv - taxes_usd`        | `taxes_usd`            | calculator_result                                      |
-| `dlv - depth_percent`    | `depth_percent`        | scroll_depth                                           |
+| Field | Detail |
+|-------|--------|
+| **Event name** | `login_start` |
+| **Parameters** | _(none beyond standard)_ |
+| **Trigger** | `CRBOXAuth.doLogin()` is called (login form submit) |
+| **Pages fired on** | `login.html` |
 
 ---
 
-## JavaScript API Reference
+### login_success
 
-All methods live on `window.CRBOX.track`. Loaded via `js/analytics.js` (deferred, before `</body>` on all 6 public pages).
+| Field | Detail |
+|-------|--------|
+| **Event name** | `login_success` |
+| **Parameters** | _(none beyond standard)_ |
+| **Trigger** | `doLogin()` resolves with a valid access token |
+| **Pages fired on** | `login.html` |
 
-```js
-CRBOX.track.afiliate_cta(location, label)
-CRBOX.track.calculadora_cta(location, label)
-CRBOX.track.whatsapp_click(location)
-CRBOX.track.phone_click(phone, location)
-CRBOX.track.email_click(email, location)
-CRBOX.track.contact_form_submit(subject)
-CRBOX.track.form_start(form_id)
-CRBOX.track.form_abandon(form_id)
-CRBOX.track.faq_engage(question, section_id)
-CRBOX.track.nav_click(label, destination)
-CRBOX.track.service_card_click(service_name)
-CRBOX.track.calculator_start(mode)
-CRBOX.track.calculator_tab_switch(to_mode)
-CRBOX.track.calculator_query(params)
-CRBOX.track.calculator_result(params)
-CRBOX.track.scroll_depth(depth_percent)
-CRBOX.track.section_visible(section_id)
-```
+---
 
-All events in this catalogue fire automatically via DOM binding in `DOMContentLoaded`. Manual calls from HTML files are limited to calculator results in `calculadora.html` where the result value is only available after inline computation.
+### login_error
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `login_error` |
+| **Parameters** | `error_category` (`invalid_credentials` · `network` · `unknown`) |
+| **Trigger** | `doLogin()` rejects |
+| **Pages fired on** | `login.html` |
+
+---
+
+### signup_start
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `signup_start` |
+| **Parameters** | _(none beyond standard)_ |
+| **Trigger** | User advances from step 1 in the personal or business registration form for the first time |
+| **Pages fired on** | `afiliate.html` |
+
+---
+
+### signup_step
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `signup_step` |
+| **Parameters** | `step_name` (e.g. `personal_step_2` · `business_step_3`) |
+| **Trigger** | User advances to each subsequent step |
+| **Pages fired on** | `afiliate.html` |
+
+---
+
+### signup_success
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `signup_success` |
+| **Parameters** | `account_type` (`personal` · `business`) |
+| **Trigger** | `doRegister()` returns `StatusResult === 'OK'` |
+| **Pages fired on** | `afiliate.html` |
+
+---
+
+### signup_error
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `signup_error` |
+| **Parameters** | `error_category` (`duplicate_email` · `duplicate_id` · `validation` · `network` · `unknown`) |
+| **Trigger** | `doRegister()` returns an error or rejects |
+| **Pages fired on** | `afiliate.html` |
+
+---
+
+### package_search
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `package_search` |
+| **Parameters** | `query_length_bucket` (`1_5` · `6_15` · `16_plus`), `search_used` (`true`) |
+| **Trigger** | User types in the `#search-input` field (debounced 600 ms) and the filter fires with a non-empty query |
+| **Pages fired on** | `mis-paquetes.html` |
+| **Privacy** | Only query length captured — never the query text itself |
+
+---
+
+### package_search_result
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `package_search_result` |
+| **Parameters** | `result_found` (boolean), `status_category` (status label of first result, or `no_result`) |
+| **Trigger** | `_loadPackages()` completes with a search filter active |
+| **Pages fired on** | `mis-paquetes.html` |
+
+---
+
+### package_detail_view
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `package_detail_view` |
+| **Parameters** | _(none beyond standard)_ |
+| **Trigger** | User opens the package detail modal |
+| **Pages fired on** | `mis-paquetes.html` |
+| **Note** | Wired but currently unused — hook into `_openDetailsModal` if needed |
+
+---
+
+### invoice_upload_start
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `invoice_upload_start` |
+| **Parameters** | `file_type` (extension bucket: `pdf` · `jpg` · `png` · `gif` · `webp` · `unknown`) |
+| **Trigger** | Invoice form passes client-side validation and begins the two-step upload |
+| **Pages fired on** | `mis-paquetes.html` |
+| **Privacy** | MIME type normalized to extension string — no filename, raw MIME, size, or invoice content captured |
+
+---
+
+### invoice_upload_success
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `invoice_upload_success` |
+| **Parameters** | _(none beyond standard)_ |
+| **Trigger** | Both write steps (upload + bill creation) succeed; OR refresh step fails after both writes succeeded (partial-success branch) |
+| **Pages fired on** | `mis-paquetes.html` |
+
+---
+
+### invoice_upload_error
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `invoice_upload_error` |
+| **Parameters** | `error_category` (`upload_failed` · `bill_creation_failed` · `unknown`) |
+| **Trigger** | Any step of the invoice upload pipeline fails |
+| **Pages fired on** | `mis-paquetes.html` |
+
+---
+
+### quote_submit
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `quote_submit` |
+| **Parameters** | `service_type` (e.g. `aereo` · `maritimo`), `destination_country` (ISO code), `has_dimensions` (boolean), `item_count_bucket` (string, 1–10) |
+| **Trigger** | Quote form (`/api/solicitudes`) responds with `ok: true` |
+| **Pages fired on** | `cotizar.html` |
+| **Privacy** | No PII — no email, name, item description, or raw value |
+| **Replaces** | Legacy `quote_submitted` with `scb_id` and `category` (PII-risk fields removed) |
+
+---
+
+### portal_section_view
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `portal_section_view` |
+| **Parameters** | `section_name` (e.g. `dashboard` · `mis_paquetes` · `mi_cuenta`) |
+| **Trigger** | `CRBOX.track.portal_section_view()` called from portal navigation |
+| **Pages fired on** | All portal pages |
+
+---
+
+### chat_open
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `chat_open` |
+| **Parameters** | _(none beyond standard)_ |
+| **Trigger** | User opens the chat panel for the first time per session |
+| **Pages fired on** | All pages where `chat-panel.js` is loaded |
+
+---
+
+### chat_message_sent
+
+| Field | Detail |
+|-------|--------|
+| **Event name** | `chat_message_sent` |
+| **Parameters** | `message_type` (`text`) |
+| **Trigger** | User sends a message via the chat panel |
+| **Pages fired on** | All pages where `chat-panel.js` is loaded |
+| **Privacy** | No message content captured |
+
+---
+
+## Privacy Principles
+
+1. **No PII** — never capture email, name, ID number, tracking number, invoice number, MAWB/HAWB, or any raw user-supplied string.
+2. **Bucket sensitive numbers** — weights and values are rounded into discrete buckets (see `calculator_result`).
+3. **No query text** — search queries are measured by length bucket only.
+4. **No raw URLs in outbound links** — only the hostname is captured.
+5. **No file content** — invoice uploads capture MIME type only.
+6. **Guard all calls** — every analytics call is wrapped in `try/catch` and checks `window.CRBOX && CRBOX.track` to be resilient to load-order issues.
+
+---
+
+## Pages Coverage
+
+| Page | analytics.js | Events wired |
+|------|-------------|--------------|
+| `index.html` | ✅ existing | cta_afiliate_click, cta_calculadora_click, whatsapp_click, phone_click, email_click, nav_click, faq_engage, scroll_depth, section_visible, outbound_click |
+| `servicios.html` | ✅ existing | + service_card_click |
+| `como-funciona.html` | ✅ existing | + faq_engage |
+| `tarifas.html` | ✅ existing | + faq_engage |
+| `calculadora.html` | ✅ existing | + calculator_start, calculator_tab_switch, calculator_result |
+| `contacto.html` | ✅ existing | + contact_form_submit, form_start, form_abandon |
+| `cotizar.html` | ✅ existing | + quote_submit (replaces legacy quote_submitted with PII) |
+| `login.html` | ✅ added | login_start, login_success, login_error (wired in auth.js) |
+| `afiliate.html` | ✅ added | signup_start, signup_step, signup_success, signup_error |
+| `dashboard.html` | ✅ added | outbound_click, nav_click, scroll_depth |
+| `mi-cuenta.html` | ✅ added | outbound_click, nav_click, scroll_depth |
+| `mis-paquetes.html` | ✅ added | package_search, package_search_result, invoice_upload_start, invoice_upload_success, invoice_upload_error |
+| `mis-facturas.html` | ✅ added | outbound_click, nav_click, scroll_depth |
+| `mis-solicitudes.html` | ✅ added | + calculator_result (from calculator-engine.js) |
+| `solicitud.html` | ✅ added | outbound_click, scroll_depth |
+| `404.html` | ✅ added | outbound_click, scroll_depth |
+| `privacidad.html` | ✅ added | outbound_click, scroll_depth |
+| `terminos.html` | ✅ added | outbound_click, scroll_depth |
+| All pages with chat | (via chat-panel.js) | chat_open, chat_message_sent |
+
+---
+
+## GTM Setup Notes
+
+- Container: `GTM-5WD8N53F`
+- All events arrive as custom dataLayer events with the standard `page_path / page_name / page_type` context.
+- GA4 Configuration tag should forward all custom events. Recommend using a GA4 Event trigger with "All custom events" for each event listed above.
+- `quote_submit` replaces the previous `quote_submitted` event — update any GA4 / Looker Studio reports that reference the old name.

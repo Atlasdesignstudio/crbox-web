@@ -173,6 +173,45 @@ const CALCULATOR_ENGINE = (function () {
    * @param {string}  item.destination  — destination zone key
    * @returns {object} full cost breakdown (see buildBreakdown)
    */
+  // ── Privacy-safe value bucket helpers ──────────────────────────────────────
+  function _weightBucket(kg) {
+    if (kg < 1)   return 'lt_1kg';
+    if (kg < 5)   return '1_5kg';
+    if (kg < 15)  return '5_15kg';
+    if (kg < 30)  return '15_30kg';
+    return 'gt_30kg';
+  }
+
+  function _valueBucket(usd) {
+    if (usd < 25)   return 'lt_25';
+    if (usd < 100)  return '25_100';
+    if (usd < 500)  return '100_500';
+    if (usd < 1000) return '500_1000';
+    return 'gt_1000';
+  }
+
+  // Flag: set to true inside calcSeparate to prevent per-item events
+  var _suppressNextAnalytics = false;
+
+  function _fireCalculatorResult(breakdown, mode) {
+    if (_suppressNextAnalytics) return;
+    if (window.CRBOX && CRBOX.track) {
+      try {
+        CRBOX.track.calculator_result({
+          mode:               mode || 'aereo',
+          weight_bucket:      _weightBucket(breakdown.billableKg),
+          value_bucket:       _valueBucket(breakdown.total || 0),
+          // All CRBOX destinations are within Costa Rica — zone keys are internal
+          destination_country: 'CR',
+          total_usd:          Math.round((breakdown.total || 0) * 100) / 100,
+          shipping_usd:       Math.round(((breakdown.freight || 0) + (breakdown.fuel || 0)) * 100) / 100,
+          handling_usd:       Math.round((breakdown.handling || 0) * 100) / 100,
+          taxes_usd:          Math.round((breakdown.taxes || 0) * 100) / 100
+        });
+      } catch (e) {}
+    }
+  }
+
   function calcSinglePackage(item) {
     const realKg = parseFloat(item.weight) || 0;
     const l = parseFloat(item.length) || 0;
@@ -185,7 +224,10 @@ const CALCULATOR_ENGINE = (function () {
       ? TARIFF_ADAPTER.getTariffRate(item.category)
       : { rate: 0.2995, source: 'local_estimated' };
 
-    return buildBreakdown(billableKg, realKg, volKg, totalValue, tariff.rate, item.destination, tariff.source);
+    const breakdown = buildBreakdown(billableKg, realKg, volKg, totalValue, tariff.rate, item.destination, tariff.source);
+    breakdown.destination = item.destination;
+    _fireCalculatorResult(breakdown, 'aereo');
+    return breakdown;
   }
 
   /**
@@ -196,11 +238,14 @@ const CALCULATOR_ENGINE = (function () {
    * @returns {{ items: object[], subtotals: object[], total: number, grandTotal: number }}
    */
   function calcSeparate(items, destination) {
+    // Suppress per-item analytics — caller fires a single aggregate event if needed
+    _suppressNextAnalytics = true;
     const results = items.map(item => ({
       name: item.name,
       category: item.category || 'otros',
       ...calcSinglePackage({ ...item, destination })
     }));
+    _suppressNextAnalytics = false;
     const grandTotal = results.reduce((s, r) => s + r.total, 0);
     return { results, grandTotal };
   }
@@ -265,6 +310,8 @@ const CALCULATOR_ENGINE = (function () {
     breakdown.taxes = sumTaxes;
     breakdown.total = breakdown.freight + breakdown.fuel + breakdown.handling + sumTaxes + breakdown.insurance + breakdown.delivery;
     breakdown.taxRate = null; // mixed rates; display handled in UI
+    breakdown.destination = destination;
+    _fireCalculatorResult(breakdown, 'aereo');
     return breakdown;
   }
 

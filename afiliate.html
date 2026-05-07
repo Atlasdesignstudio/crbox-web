@@ -1520,6 +1520,7 @@
         <i class="fab fa-whatsapp"></i>
     </a>
 
+    <script src="js/analytics.js" defer></script>
     <script src="js/cr-locations.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/nav-auth.js?v=2" defer></script>
@@ -2541,6 +2542,15 @@ const locationDatabase = {
             return true;
         }
 
+        // Fire signup_start on first field interaction (not first next-click)
+        var _personalSignupStartFired = false;
+        form.addEventListener('input', function() {
+            if (!_personalSignupStartFired) {
+                _personalSignupStartFired = true;
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_start(); } catch (e) {} }
+            }
+        }, { passive: true });
+
         form.parentElement.addEventListener('click', function (e) {
             var nextBtn = e.target.closest('.signup-next-btn');
             var prevBtn = e.target.closest('.signup-prev-btn');
@@ -2549,6 +2559,7 @@ const locationDatabase = {
                 if (!validateStep(currentStep)) return;
                 var target = parseInt(nextBtn.getAttribute('data-next'), 10) || (currentStep + 1);
                 setStep(target);
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_step('personal_step_' + target); } catch (e) {} }
             } else if (prevBtn) {
                 e.preventDefault();
                 var target = parseInt(prevBtn.getAttribute('data-prev'), 10) || (currentStep - 1);
@@ -2826,6 +2837,15 @@ const locationDatabase = {
             return true;
         }
 
+        // Fire signup_start on first field interaction (not first next-click)
+        var _bizSignupStartFired = false;
+        form.addEventListener('input', function() {
+            if (!_bizSignupStartFired) {
+                _bizSignupStartFired = true;
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_start(); } catch (e) {} }
+            }
+        }, { passive: true });
+
         form.closest('#business-form').addEventListener('click', function (e) {
             var nextBtn = e.target.closest('.signup-next-btn');
             var prevBtn = e.target.closest('.signup-prev-btn');
@@ -2834,6 +2854,7 @@ const locationDatabase = {
                 if (!validateBusinessStep(currentStep)) return;
                 var target = parseInt(nextBtn.getAttribute('data-next'), 10) || (currentStep + 1);
                 bizSetStep(target);
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_step('business_step_' + target); } catch (e) {} }
             } else if (prevBtn) {
                 e.preventDefault();
                 var target2 = parseInt(prevBtn.getAttribute('data-prev'), 10) || (currentStep - 1);
@@ -3124,6 +3145,7 @@ const locationDatabase = {
         CRBOXAuth.doRegister(params.toString())
             .then(function (res) {
                 if (res.StatusResult === 'OK') {
+                    if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_success('business'); } catch (e) {} }
                     showRegSuccess(form, email, password);
                 } else {
                     var msg = res.Message || '';
@@ -3135,12 +3157,14 @@ const locationDatabase = {
                     } else {
                         friendly = msg || 'Ocurrió un error al procesar el registro. Intente de nuevo.';
                     }
+                    if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_error(msg.indexOf('correo') !== -1 ? 'duplicate_email' : msg.indexOf('identificaci') !== -1 ? 'duplicate_id' : 'validation'); } catch (e) {} }
                     showRegError(form, friendly);
                     if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
                 }
             })
             .catch(function (err) {
                 console.error('[CRBOX] Business registration network error:', err);
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_error('network'); } catch (e) {} }
                 showRegError(form, 'Error de conexión. Intente de nuevo más tarde.');
                 if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
             });
@@ -3332,6 +3356,7 @@ const locationDatabase = {
         CRBOXAuth.doRegister(params.toString())
             .then(function (res) {
                 if (res.StatusResult === 'OK') {
+                    if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_success('personal'); } catch (e) {} }
                     showRegSuccess(form, email, password);
                 } else {
                     var msg = res.Message || '';
@@ -3343,12 +3368,14 @@ const locationDatabase = {
                     } else {
                         friendly = 'Ocurrió un error al procesar el registro. Intente de nuevo.';
                     }
+                    if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_error(msg.indexOf('correo') !== -1 ? 'duplicate_email' : msg.indexOf('identificaci') !== -1 ? 'duplicate_id' : 'validation'); } catch (e) {} }
                     showRegError(form, friendly);
                     if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
                 }
             })
             .catch(function (err) {
                 console.error('[CRBOX] Registration network error:', err);
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_error('network'); } catch (e) {} }
                 showRegError(form, 'Error de conexión. Intente de nuevo más tarde.');
                 if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
             });

@@ -1296,6 +1296,18 @@
         var btnAddProduct = document.getElementById('btn-add-product');
         if (btnAddProduct) btnAddProduct.addEventListener('click', addProductCard);
 
+        // ── GA4: quote_start on first field interaction ───────────────────
+        var _quoteStartFired = false;
+        if (form) {
+            form.addEventListener('input', function() {
+                if (!_quoteStartFired) {
+                    _quoteStartFired = true;
+                    var st = fServiceType ? (fServiceType.value || 'aereo') : 'aereo';
+                    if (window.CRBOX && CRBOX.track) { try { CRBOX.track.quote_start(st); } catch (_e) {} }
+                }
+            }, { passive: true });
+        }
+
         // ── Duplicate check helpers ────────────────────────────
         var dupWarningCotizar = document.getElementById('dup-warning-cotizar');
         var dupLinkCotizar    = document.getElementById('dup-link-cotizar');
@@ -1528,7 +1540,7 @@
                 var data = await res.json();
                 if (res.ok && data.ok && data.id) {
                     _formSubmitted = true;
-                    if (window.dataLayer) window.dataLayer.push({ event: 'quote_submitted', scb_id: data.id, category: p0.category, service_type: payload.service_type, destination: destination });
+                    if (window.CRBOX && CRBOX.track) { try { var _ic = products ? products.length : 1; CRBOX.track.quote_submit({ service_type: payload.service_type, destination_country: 'CR', has_dimensions: !!(p0 && (p0.length || p0.width || p0.height)), item_count_bucket: _ic <= 1 ? '1' : _ic <= 5 ? '2_5' : '6_plus' }); } catch (_) {} }
                     if (data.email_warnings && data.email_warnings.length) showSmtpFailure(data.id, payload);
                     else showConfirmation(data.id, payload, products);
                 } else {

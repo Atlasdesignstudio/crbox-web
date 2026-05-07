@@ -128,6 +128,9 @@
     }
     $panel.classList.add('open');
     setTimeout(function () { $input.focus(); }, 350);
+    if (window.CRBOX && CRBOX.track) {
+      try { CRBOX.track.chat_open(); } catch (e) {}
+    }
   }
 
   function _closePanel() {
@@ -280,15 +283,20 @@
   }
 
   // ── Build inline widget from AI widget payload ────────────────────────────
+  // Tracks the last AI widget type rendered; used to classify next user message.
+  var _lastWidgetType = 'text';
+
   function _buildWidget(widgetPayload) {
     if (!widgetPayload || !widgetPayload.type) return null;
     var type = widgetPayload.type;
     var data = widgetPayload.data || {};
 
     if (type === 'calculator' && global.CHAT_CALCULATOR) {
+      _lastWidgetType = 'calculator';
       return CHAT_CALCULATOR.createCalcWidget(data.weight, data.category);
     }
     if (type === 'quote-form' && global.CHAT_QUOTE) {
+      _lastWidgetType = 'quote';
       return CHAT_QUOTE.createQuoteWidget({ url: data.url });
     }
     if (type === 'compliance') {
@@ -328,6 +336,11 @@
   function _sendMessage() {
     var text = $input.value.trim().slice(0, MAX_MSG_CHARS);
     if (!text || _pending) return;
+
+    if (window.CRBOX && CRBOX.track) {
+      try { CRBOX.track.chat_message_sent(_lastWidgetType); } catch (e) {}
+    }
+    _lastWidgetType = 'text'; // reset after each user send
 
     _removeFAQPills();
     _openPanel();

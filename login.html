@@ -227,6 +227,7 @@
         </div>
     </div>
 
+    <script src="js/analytics.js" defer></script>
     <script src="js/cr-locations.js"></script>
     <script src="js/portal-api.js"></script>
     <script src="js/auth.js"></script>
@@ -323,6 +324,17 @@
         // Real login handler — wired to the CRBOX auth endpoint via CRBOXAuth.doLogin
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
+            // Fire login_start on first keystroke in any login field
+            var _loginStartFired = false;
+            loginForm.querySelectorAll('input').forEach(function(inp) {
+                inp.addEventListener('input', function() {
+                    if (!_loginStartFired) {
+                        _loginStartFired = true;
+                        if (window.CRBOX && CRBOX.track) { try { CRBOX.track.login_start(); } catch (_e) {} }
+                    }
+                }, { once: false });
+            });
+
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
 

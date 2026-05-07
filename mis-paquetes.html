@@ -1416,6 +1416,7 @@
         }
     </style>
 
+    <script src="js/analytics.js" defer></script>
     <script src="js/cr-locations.js"></script>
     <script src="js/portal-api.js"></script>
     <script src="js/auth.js"></script>
@@ -1771,6 +1772,7 @@
                     tab.classList.add('active');
                     
                     const statusFilter = tab.getAttribute('data-status');
+                    if (window.CRBOX && CRBOX.track) { try { CRBOX.track.portal_section_view('paquetes_' + (statusFilter || 'all')); } catch (_e) {} }
 
                     // Re-render with data-level filtering and pagination reset
                     if (window._crbRerender) {
@@ -2722,6 +2724,15 @@
 
           _renderStats(_displayPackages);
           _renderAll(_displayPackages, true);
+          if (tracking && window.CRBOX && CRBOX.track) {
+            try {
+              var _firstPkg = _displayPackages && _displayPackages[0];
+              CRBOX.track.package_search_result(
+                _displayPackages.length > 0,
+                _firstPkg ? (_firstPkg.statusLabel || _firstPkg.status || 'unknown') : 'no_result'
+              );
+            } catch (_e) {}
+          }
           if (_highlightOnRender) {
             setTimeout(function () {
               var _tb = document.getElementById('packages-tbody');
@@ -2749,6 +2760,7 @@
         var detailsModal = document.getElementById('package-details-modal');
         if (!detailsModal) return;
         _currentModalPkg = pkg;
+        if (window.CRBOX && CRBOX.track) { try { CRBOX.track.package_detail_view(); } catch (_e) {} }
 
         var setText = function(id, val) {
           var el = document.getElementById(id);
@@ -3055,6 +3067,16 @@
           _setInvoiceSuccess(false);
           _setInvoiceSubmitting(true);
 
+          // GA4: invoice upload started — normalize to extension bucket, never raw filename
+          var _uploadFileType = (function(f) {
+            if (!f) return 'unknown';
+            var mimeMap = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/jpg': 'jpg',
+                            'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp' };
+            if (f.type && mimeMap[f.type]) return mimeMap[f.type];
+            return (f.name.split('.').pop() || 'unknown').toLowerCase().slice(0, 8);
+          }(file));
+          if (window.CRBOX && CRBOX.track) { try { CRBOX.track.invoice_upload_start(_uploadFileType); } catch (_e) {} }
+
           var pkg       = _currentInvoicePkg;
           var wrId      = pkg.idwarehousereceipt;
           var userEmail = '';
@@ -3090,6 +3112,7 @@
               // so we can detect and report a refresh failure distinctly.
               if (!_cachedConsigneeId) {
                 // No consignee id to refresh with; treat as success, user can reload manually
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.invoice_upload_success(); } catch (_e) {} }
                 _setInvoiceSuccess(true);
                 _setInvoiceSubmitting(false);
                 setTimeout(_closeInvoiceModal, 1800);
@@ -3114,6 +3137,7 @@
                 _renderStats(packages);
                 _renderAll(packages, true);
                 // Show success in modal, then close
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.invoice_upload_success(); } catch (_e) {} }
                 _setInvoiceSuccess(true);
                 _setInvoiceSubmitting(false);
                 setTimeout(_closeInvoiceModal, 1800);
@@ -3142,21 +3166,25 @@
                 var _uploadMsg = _detail
                   ? 'No se pudo subir el archivo. ' + _detail
                   : 'No se pudo subir el archivo al servidor. Verifica tu conexión e inténtalo de nuevo.';
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.invoice_upload_error('upload_failed'); } catch (_e) {} }
                 _setInvoiceError(_uploadMsg, true);
               } else if (err && err.step === 'createPurchaseBill') {
                 // File uploaded but bill record creation failed — delete the orphaned upload
                 if (_savedInvoiceFile) {
                   CRBOXPortalAPI.deleteInvoiceUpload(_savedInvoiceFile);
                 }
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.invoice_upload_error('bill_creation_failed'); } catch (_e) {} }
                 _setInvoicePartial(
                   'El archivo se subió correctamente, pero no se pudo registrar la factura en el sistema. ' +
                   'Por favor contacta a soporte con el número de recibo ' + (pkg.number || pkg.idwarehousereceipt) + '.', true);
               } else if (err && err.step === 'refresh') {
                 // Both writes succeeded but the page refresh failed — partial success
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.invoice_upload_success(); } catch (_e) {} }
                 _setInvoicePartial(
                   'La factura se registró correctamente. No se pudo actualizar la lista en este momento — ' +
                   'por favor recarga la página para ver el estado actualizado.', true);
               } else {
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.invoice_upload_error('unknown'); } catch (_e) {} }
                 _setInvoiceError(
                   'Ocurrió un error inesperado. Por favor inténtalo de nuevo o contacta a soporte.', true);
               }
@@ -3344,6 +3372,12 @@
             var dateFilter    = document.getElementById('date-filter');
 
             function _onFilterChange() {
+              var _si = document.getElementById('search-input');
+              var _q = (_si && _si.value) ? _si.value.trim() : '';
+              if (_q && window.CRBOX && CRBOX.track) {
+                var _qBucket = _q.length <= 5 ? '1_5' : _q.length <= 15 ? '6_15' : '16_plus';
+                try { CRBOX.track.package_search(_qBucket); } catch (_e) {}
+              }
               if (_cachedConsigneeId) _applyFiltersFromUI(_cachedConsigneeId);
             }
 

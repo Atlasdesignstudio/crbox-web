@@ -1,12 +1,14 @@
 /**
  * CRBOX Analytics — dataLayer event taxonomy
  * GTM-ready dataLayer push helpers with automatic page context injection.
- * Replace YOUR_GTM_CONTAINER_ID with your real container ID before going live.
  *
  * Event naming: strict lowercase_snake_case for all event names and params.
  * Every push includes: page_path, page_name, page_type.
  *
- * page_type values: home | services | how_it_works | pricing | calculator | contact
+ * page_type values:
+ *   Public:  home | services | how_it_works | pricing | calculator | contact
+ *   Portal:  portal_auth | registration | portal | portal_packages |
+ *            portal_invoices | portal_requests | portal_quotes | utility
  */
 
 window.dataLayer = window.dataLayer || [];
@@ -14,13 +16,32 @@ window.dataLayer = window.dataLayer || [];
 // ─── Page context map ─────────────────────────────────────────────────────────
 
 var _CRBOX_PAGE_MAP = {
-  '/':                   { name: 'index',         type: 'home' },
-  '/index.html':         { name: 'index',         type: 'home' },
-  '/servicios.html':     { name: 'servicios',     type: 'services' },
-  '/como-funciona.html': { name: 'como_funciona', type: 'how_it_works' },
-  '/tarifas.html':       { name: 'tarifas',       type: 'pricing' },
-  '/calculadora.html':   { name: 'calculadora',   type: 'calculator' },
-  '/contacto.html':      { name: 'contacto',      type: 'contact' }
+  // ── Public pages ──────────────────────────────────────────────────────────
+  '/':                      { name: 'index',            type: 'home' },
+  '/index.html':            { name: 'index',            type: 'home' },
+  '/servicios.html':        { name: 'servicios',        type: 'services' },
+  '/como-funciona.html':    { name: 'como_funciona',    type: 'how_it_works' },
+  '/tarifas.html':          { name: 'tarifas',          type: 'pricing' },
+  '/calculadora.html':      { name: 'calculadora',      type: 'calculator' },
+  '/contacto.html':         { name: 'contacto',         type: 'contact' },
+
+  // ── Auth pages ────────────────────────────────────────────────────────────
+  '/login.html':            { name: 'login',            type: 'portal_auth' },
+  '/afiliate.html':         { name: 'afiliate',         type: 'registration' },
+
+  // ── Portal pages ──────────────────────────────────────────────────────────
+  '/dashboard.html':        { name: 'dashboard',        type: 'portal' },
+  '/mi-cuenta.html':        { name: 'mi_cuenta',        type: 'portal' },
+  '/mis-paquetes.html':     { name: 'mis_paquetes',     type: 'portal_packages' },
+  '/mis-facturas.html':     { name: 'mis_facturas',     type: 'portal_invoices' },
+  '/mis-solicitudes.html':  { name: 'mis_solicitudes',  type: 'portal_requests' },
+  '/solicitud.html':        { name: 'solicitud',        type: 'portal_requests' },
+  '/cotizar.html':          { name: 'cotizar',          type: 'portal_quotes' },
+
+  // ── Utility pages ─────────────────────────────────────────────────────────
+  '/404.html':              { name: '404',              type: 'utility' },
+  '/privacidad.html':       { name: 'privacidad',       type: 'utility' },
+  '/terminos.html':         { name: 'terminos',         type: 'utility' }
 };
 
 function _crboxPageCtx() {
@@ -137,8 +158,9 @@ CRBOX.track = {
     params = params || {};
     this.push('calculator_result', {
       shipping_mode: params.mode || null,
-      package_weight_kg: params.weight_kg || null,
-      destination: params.destination || null,
+      weight_bucket: params.weight_bucket || null,
+      value_bucket: params.value_bucket || null,
+      destination_country: params.destination_country || null,
       total_usd: params.total_usd || null,
       shipping_usd: params.shipping_usd || null,
       handling_usd: params.handling_usd || null,
@@ -156,6 +178,129 @@ CRBOX.track = {
     this.push('section_visible', { section_id: section_id || 'unknown' });
   },
 
+  // ── Auth events ──────────────────────────────────────────────────────────────
+
+  login_start: function() {
+    this.push('login_start', {});
+  },
+
+  login_success: function() {
+    this.push('login_success', {});
+  },
+
+  login_error: function(error_category) {
+    this.push('login_error', {
+      error_category: error_category || 'unknown'
+    });
+  },
+
+  signup_start: function() {
+    this.push('signup_start', {});
+  },
+
+  signup_step: function(step_name) {
+    this.push('signup_step', {
+      step_name: step_name || 'unknown'
+    });
+  },
+
+  signup_success: function(account_type) {
+    this.push('signup_success', {
+      account_type: account_type || 'personal'
+    });
+  },
+
+  signup_error: function(error_category) {
+    this.push('signup_error', {
+      error_category: error_category || 'unknown'
+    });
+  },
+
+  // ── Package events ───────────────────────────────────────────────────────────
+
+  package_search: function(query_length_bucket) {
+    this.push('package_search', {
+      query_length_bucket: query_length_bucket || '1_5',
+      search_used: true
+    });
+  },
+
+  package_search_result: function(result_found, status_category) {
+    this.push('package_search_result', {
+      result_found: !!result_found,
+      status_category: status_category || 'unknown'
+    });
+  },
+
+  package_detail_view: function() {
+    this.push('package_detail_view', {});
+  },
+
+  // ── Invoice events ───────────────────────────────────────────────────────────
+
+  invoice_upload_start: function(file_type) {
+    this.push('invoice_upload_start', {
+      file_type: file_type || 'unknown'
+    });
+  },
+
+  invoice_upload_success: function() {
+    this.push('invoice_upload_success', {});
+  },
+
+  invoice_upload_error: function(error_category) {
+    this.push('invoice_upload_error', {
+      error_category: error_category || 'unknown'
+    });
+  },
+
+  // ── Quote events ─────────────────────────────────────────────────────────────
+
+  quote_start: function(service_type) {
+    this.push('quote_start', {
+      service_type: service_type || 'aereo'
+    });
+  },
+
+  quote_submit: function(params) {
+    params = params || {};
+    this.push('quote_submit', {
+      service_type:        params.service_type        || 'aereo',
+      destination_country: params.destination_country || 'CR',
+      has_dimensions:      !!params.has_dimensions,
+      item_count_bucket:   params.item_count_bucket   || '1'
+    });
+  },
+
+  // ── Portal navigation events ──────────────────────────────────────────────────
+
+  portal_section_view: function(section_name) {
+    this.push('portal_section_view', {
+      section_name: section_name || 'unknown'
+    });
+  },
+
+  // ── Chat events ───────────────────────────────────────────────────────────────
+
+  chat_open: function() {
+    this.push('chat_open', {});
+  },
+
+  chat_message_sent: function(message_type) {
+    this.push('chat_message_sent', {
+      message_type: message_type || 'text'
+    });
+  },
+
+  // ── Outbound link events ──────────────────────────────────────────────────────
+
+  outbound_click: function(link_domain, link_context) {
+    this.push('outbound_click', {
+      link_domain:  link_domain  || 'unknown',
+      link_context: link_context || 'content'
+    });
+  },
+
   // ── Backward-compat aliases (camelCase → snake_case) ─────────────────────────
 
   afiliateCTA:         function(l) { this.afiliate_cta(l); },
@@ -171,6 +316,32 @@ CRBOX.track = {
 };
 
 window.CRBOX = CRBOX;
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+/**
+ * Derive a privacy-safe query-length bucket from an input string's length.
+ * Never captures the actual string.
+ */
+function _crboxQueryLengthBucket(str) {
+  var len = (str || '').length;
+  if (len <= 5)  return '1_5';
+  if (len <= 15) return '6_15';
+  return '16_plus';
+}
+
+/**
+ * Derive the nearest semantic ancestor context label for an element.
+ * Returns one of: nav, header, footer, or the closest section id, or 'content'.
+ */
+function _crboxLinkContext(el) {
+  if (el.closest('nav'))    return 'nav';
+  if (el.closest('header')) return 'header';
+  if (el.closest('footer')) return 'footer';
+  var section = el.closest('section[id]');
+  if (section) return section.id;
+  return 'content';
+}
 
 // ─── Auto-bind on DOMContentLoaded ───────────────────────────────────────────
 
@@ -391,5 +562,34 @@ document.addEventListener('DOMContentLoaded', function() {
       if (el) _sectionObserver.observe(el);
     });
   }
+
+  // ── portal_section_view — auto-fire on every portal page load ───────────────
+  // Each portal page is a separate HTML file; firing on DOMContentLoaded is the
+  // reliable hook without touching every portal page individually.
+  (function() {
+    try {
+      var ctx = _crboxPageCtx();
+      if (ctx.page_type && ctx.page_type.indexOf('portal') === 0) {
+        CRBOX.track.portal_section_view(ctx.page_name);
+      }
+    } catch (e) {}
+  }());
+
+  // ── Outbound link clicks ────────────────────────────────────────────────────
+  // Fires outbound_click for any <a> pointing to a different hostname.
+  // Only captures domain (never full URL or query params) + nearest ancestor context.
+  var _currentHost = window.location.hostname;
+  document.querySelectorAll('a[href]').forEach(function(el) {
+    var href = el.getAttribute('href') || '';
+    if (!href || href.charAt(0) === '/' || href.charAt(0) === '#' || href.charAt(0) === '.') return;
+    try {
+      var parsed = new URL(href, window.location.href);
+      if (parsed.hostname && parsed.hostname !== _currentHost) {
+        el.addEventListener('click', function() {
+          CRBOX.track.outbound_click(parsed.hostname, _crboxLinkContext(el));
+        });
+      }
+    } catch (e) { /* malformed href — skip */ }
+  });
 
 });

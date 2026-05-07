@@ -121,6 +121,20 @@
   }
 
   // ─── Login ────────────────────────────────────────────────────────────────
+  // ─── Login error → safe category mapper ──────────────────────────────────
+  function _loginErrorCategory(err) {
+    var msg = (err && err.message) ? err.message.toLowerCase() : '';
+    if (msg.indexOf('credenciales') !== -1 || msg.indexOf('invalid') !== -1 ||
+        msg.indexOf('incorrect') !== -1 || msg.indexOf('contraseña') !== -1) {
+      return 'invalid_credentials';
+    }
+    if (msg.indexOf('network') !== -1 || msg.indexOf('conexión') !== -1 ||
+        msg.indexOf('connection') !== -1 || msg.indexOf('failed to fetch') !== -1) {
+      return 'network';
+    }
+    return 'unknown';
+  }
+
   function doLogin(email, password, remember) {
     var body = new URLSearchParams({
       grant_type: 'password',
@@ -146,7 +160,15 @@
       }
       saveToken(data.access_token, data.expires_in || 86399, remember);
       saveEmail(email);
+      if (window.CRBOX && CRBOX.track) {
+        try { CRBOX.track.login_success(); } catch (e) {}
+      }
       return data.access_token;
+    }).catch(function (err) {
+      if (window.CRBOX && CRBOX.track) {
+        try { CRBOX.track.login_error(_loginErrorCategory(err)); } catch (e) {}
+      }
+      throw err;
     });
   }
 
@@ -164,6 +186,23 @@
         }
         return data.access_token;
       });
+  }
+
+  // ─── Registration error → safe category mapper ───────────────────────────
+  function _registerErrorCategory(err) {
+    var msg = (err && err.message) ? err.message.toLowerCase() : '';
+    if (msg.indexOf('duplicate') !== -1 || msg.indexOf('duplicado') !== -1 ||
+        msg.indexOf('ya existe') !== -1 || msg.indexOf('email') !== -1) {
+      return 'duplicate_email';
+    }
+    if (msg.indexOf('network') !== -1 || msg.indexOf('conexión') !== -1 ||
+        msg.indexOf('failed to fetch') !== -1) {
+      return 'network';
+    }
+    if (msg.indexOf('validaci') !== -1 || msg.indexOf('invalid') !== -1) {
+      return 'validation';
+    }
+    return 'unknown';
   }
 
   function doRegister(payloadString) {
@@ -466,7 +505,8 @@
     buildUpdateProfilePayload: buildUpdateProfilePayload,
     updateHeaderAuthState:     updateHeaderAuthState,
     SUCURSAL_ID_MAP:           SUCURSAL_ID_MAP,
-    PENDING:                   PENDING
+    PENDING:                   PENDING,
+    _registerErrorCategory:    _registerErrorCategory
   };
 
 }(window));
