@@ -37,6 +37,8 @@ Run this review every Monday (15–20 minutes):
 - [ ] `whatsapp_click` count — compare to prior week.
 - [ ] Calculator funnel: `calculator_start` → `calculator_query` → `calculator_result` — which step has the biggest drop-off? Check against the alert thresholds in Section 9; escalate if any step falls below its alert threshold.
 - [ ] Contact funnel: `form_start` → `contact_form_submit` — check each form against its threshold (Section 9): `contact-form` ≤ 40% and `maritimo-quote-form` ≤ 35% are alert levels. Flag any form below its threshold for investigation.
+- [ ] Portal login funnel: `login_start` → `login_success` rate — alert if success rate ≤ 70% (Section 9.3). If `login_error` events appear, open **`CRBOX — Login Error Analysis`** and review the `error_category` breakdown (`invalid_credentials`, `network`, `unknown`).
+- [ ] Invoice upload pipeline: `invoice_upload_start` → `invoice_upload_success` rate — alert if success rate ≤ 70% (Section 9.3). If errors appear, open **`CRBOX — Invoice Upload Error Analysis`** to identify whether the failure is at the upload step or the bill-creation step.
 
 ### Content Engagement
 - [ ] Which `section_id` values appear most in `section_visible` events? Are high-intent sections (e.g. `cta-afiliate`, `formulario`, `aero-calculator`) being reached?
@@ -56,6 +58,10 @@ Run this deeper review once a month (45–60 minutes):
 - [ ] Open the saved **`CRBOX — Calculator Funnel`** exploration in GA4 Explore (see Section 7.1 to build it if not yet saved). Identify the weakest step by comparing completion rates across `calculator_start` → `calculator_query` → `calculator_result` → `cta_afiliate_click`. Compare each step against the alert thresholds in **Section 9**; any step at or below its alert threshold requires an investigation ticket before the next monthly review.
 - [ ] Compare `shipping_mode = aereo` vs `shipping_mode = maritimo` on `calculator_result` — which service has more demand?
 - [ ] Review `destination` dimension on `calculator_result` — which provinces drive the most calculator completions?
+- [ ] Open the saved **`CRBOX — Login Funnel`** exploration (see Section 7.6.1). Review the overall login success rate and check against Section 9.3 thresholds. Open **`CRBOX — Login Error Analysis`** and compare the distribution of `error_category` values to the prior month.
+- [ ] Open the saved **`CRBOX — Signup Funnel`** exploration (see Section 7.6.2). Check overall signup completion rate against the Section 9.3 alert threshold (≤ 40%). Open **`CRBOX — Signup Step Drop-off`** to identify the highest-friction step. Compare `business` vs `personal` completion rates.
+- [ ] Open the saved **`CRBOX — Invoice Upload Pipeline`** exploration (see Section 7.6.3). Review the success rate against the Section 9.3 alert threshold (≤ 70%). Open **`CRBOX — Invoice Upload Error Analysis`** and compare the error distribution to the prior month.
+- [ ] Open the saved **`CRBOX — Quote Submit Breakdown`** exploration (see Section 7.6.4). Review the `service_type` and `destination_country` distribution. Check the overall completion rate against the Section 9.3 alert threshold (≤ 45%). Flag any service type with zero submissions over the past 30 days.
 
 ### Content Performance
 - [ ] Which FAQ questions (`faq_question` param) are clicked most? These reveal user confusion.
@@ -367,7 +373,20 @@ Complete these steps in order. Each item must be done manually in the GA4 web in
 - [x] Exploration saved
 - [x] Shared with property (Share icon → Share with property)
 
-> **Where to find saved explorations:** Once shared, both explorations appear in the GA4 Explore library for all users with at least Viewer access to the property. Open GA4 → Explore → look for the CRBOX entries in the "Shared with me" or "All explorations" tab.
+**Portal Funnel Analysis (Section 7.6) — complete once portal event data is flowing in GA4**
+- [ ] 6 portal custom dimensions registered in GA4 Admin → Custom definitions → Custom dimensions (Section 7.6 table)
+- [ ] `error_category`, `account_type`, `step_name`, `file_type`, `service_type`, `destination_country` confirmed visible in Explore under Custom → Event-scoped
+- [ ] **`CRBOX — Login Funnel`** exploration created, saved, and shared (Section 7.6.1)
+- [ ] **`CRBOX — Login Error Analysis`** free-form exploration created, saved, and shared (Section 7.6.1)
+- [ ] **`CRBOX — Signup Funnel`** exploration created, saved, and shared (Section 7.6.2)
+- [ ] **`CRBOX — Signup Step Drop-off`** free-form exploration created, saved, and shared (Section 7.6.2)
+- [ ] **`CRBOX — Signup Error Analysis`** free-form exploration created, saved, and shared (Section 7.6.2)
+- [ ] **`CRBOX — Invoice Upload Pipeline`** exploration created, saved, and shared (Section 7.6.3)
+- [ ] **`CRBOX — Invoice Upload Error Analysis`** free-form exploration created, saved, and shared (Section 7.6.3)
+- [ ] **`CRBOX — Quote Submit`** exploration created, saved, and shared (Section 7.6.4)
+- [ ] **`CRBOX — Quote Submit Breakdown`** free-form exploration created, saved, and shared (Section 7.6.4)
+
+> **Where to find saved explorations:** Once shared, all explorations appear in the GA4 Explore library for all users with at least Viewer access to the property. Open GA4 → Explore → look for the CRBOX entries in the "Shared with me" or "All explorations" tab.
 
 ---
 
@@ -711,6 +730,256 @@ After adding the segment comparison (see Section 7.2), look at the `form_start �
 
 ---
 
+### 7.6 Portal Funnel Analysis
+
+These explorations cover the four authenticated user journeys that are now tracked in GTM but not yet represented in any saved GA4 exploration. Build and save them proactively so they are ready to review the moment data starts flowing.
+
+> **Prerequisite for all portal funnels:** Events must have been received by GA4 at least once before they appear as options in the Explore step picker. Portal events only fire when an authenticated user is on a portal page. If an event is missing from the step picker, log in to the site and trigger the action while GTM Preview Mode is active (Section 6.1), then wait up to 24 hours.
+
+> **No data after 24 hours?** Go to Section 6 for the GTM troubleshooting checklist. Confirm the portal pages carry the GTM snippet and that `js/auth.js` / `js/analytics.js` are loaded before the actions you are testing.
+
+#### Custom dimensions required for portal funnel breakdowns
+
+Register the following event-scoped custom dimensions in GA4 Admin → Custom definitions → Custom dimensions before using them as breakdown dimensions. Follow the same registration steps as Section 7.3.1. All six are within the 50-dimension free-tier limit.
+
+| Dimension name | Scope | Event parameter | Used by events |
+|----------------|-------|-----------------|----------------|
+| **Error Category** ⬅ funnel breakdown | Event | `error_category` | `login_error`, `signup_error`, `invoice_upload_error` |
+| **Account Type** ⬅ funnel breakdown | Event | `account_type` | `signup_success` |
+| **Step Name** ⬅ funnel breakdown | Event | `step_name` | `signup_step` |
+| **File Type** ⬅ funnel breakdown | Event | `file_type` | `invoice_upload_start` |
+| **Service Type** ⬅ funnel breakdown | Event | `service_type` | `quote_start`, `quote_submit` |
+| **Destination Country** ⬅ funnel breakdown | Event | `destination_country` | `calculator_result`, `quote_submit` |
+
+> **Registration reminder:** Custom dimensions take up to 24 hours to appear in Explore and standard reports after they are saved in GA4 Admin. Register them before building the explorations below.
+
+---
+
+#### 7.6.1 Login Funnel — `login_start → login_success`
+
+##### Build steps
+
+1. In GA4, click **Explore** → **Create a new exploration** → choose **Funnel exploration**.
+2. Name the exploration: **`CRBOX — Login Funnel`**.
+3. Under **Steps**, click **+ Add step** twice and configure each step:
+
+   | Step # | Step name (label) | Condition |
+   |--------|-------------------|-----------|
+   | 1 | Login Attempt | Event name `exactly matches` `login_start` |
+   | 2 | Login Success | Event name `exactly matches` `login_success` |
+
+4. Enable **Make steps indirect** to correctly count users who retry login before succeeding.
+5. Leave the date range at **Last 28 days** for a recurring view; switch to **Last 7 days** for weekly checks.
+6. Click **Save**.
+
+##### Login error breakdown (separate free-form exploration)
+
+The funnel measures the success rate. To understand why logins fail, build a companion free-form exploration:
+
+1. In GA4, click **Explore** → **Create a new exploration** → choose **Free form**.
+2. Name it: **`CRBOX — Login Error Analysis`**.
+3. In the **Variables** panel, add the dimension **`error_category`** (custom, registered above) and the metric **Event count**.
+4. In **Tab settings**, drag **`error_category`** to **Rows** and **Event count** to **Values**.
+5. Add a **Filter**: Event name `exactly matches` `login_error`.
+6. This shows how many login errors fell into each `error_category`: `invalid_credentials`, `network`, `unknown`.
+7. Click **Save**.
+
+##### Share with the team
+
+1. Open **`CRBOX — Login Funnel`** → click the **Share** icon → **Share with property** → confirm.
+2. Repeat for **`CRBOX — Login Error Analysis`**.
+
+##### Verify data is flowing
+
+1. **Check Step 1 shows users.** Open **`CRBOX — Login Funnel`** and confirm Step 1 (Login Attempt) has a user count greater than zero. A zero count means `login_start` is not firing — verify the GTM tag is attached to the `CE - login_start` trigger and that `CRBOXAuth.doLogin()` in `js/auth.js` pushes the event.
+2. **Verify the date range.** Set the date range to **Last 7 days** and confirm Step 1 has activity. Allow up to 24 hours for newly received events to appear.
+3. **Check the error exploration.** Open **`CRBOX — Login Error Analysis`** and confirm at least one `error_category` row has a count if login failures have occurred. If no rows appear, `login_error` has either not fired yet or the `error_category` custom dimension is not yet registered.
+
+> **Testing tip:** Log out of the portal, then visit `login.html` and submit the login form. A single successful login produces both a `login_start` and a `login_success` event. To test `login_error`, intentionally enter wrong credentials.
+
+##### Interpret the results
+
+| What to check | Healthy signal | Concerning signal |
+|---------------|---------------|-------------------|
+| **Login success rate** (`login_start` → `login_success`) | > 80% — most users who attempt login succeed | < 70% — high failure rate. Open `CRBOX — Login Error Analysis` and check which `error_category` dominates. |
+| **`invalid_credentials` share of `login_error` events** | < 10% of all login attempts | > 20% — users are consistently entering wrong credentials. Ensure the "Forgot password" prompt is discoverable and the error message is clear. |
+| **`network` share of `login_error` events** | < 5% of all login attempts | > 10% — API availability issues. Check the CRBOX Portal API auth endpoint for outages around the same time window. |
+| **`unknown` share of `login_error` events** | < 2% of all login attempts | Any sustained volume — unclassified backend errors. Add more specific error categorisation in `js/auth.js` `doLogin()` to diagnose the root cause. |
+
+---
+
+#### 7.6.2 Signup Funnel — `signup_start → signup_step → signup_success`
+
+##### Build steps
+
+1. In GA4, click **Explore** → **Create a new exploration** → choose **Funnel exploration**.
+2. Name the exploration: **`CRBOX — Signup Funnel`**.
+3. Under **Steps**, click **+ Add step** three times and configure each step:
+
+   | Step # | Step name (label) | Condition |
+   |--------|-------------------|-----------|
+   | 1 | Signup Start | Event name `exactly matches` `signup_start` |
+   | 2 | Signup Step Progress | Event name `exactly matches` `signup_step` |
+   | 3 | Signup Success | Event name `exactly matches` `signup_success` |
+
+4. Enable **Make steps indirect** — `signup_step` fires multiple times per user (once each time the user advances a form step), so indirect mode ensures the funnel counts each user correctly rather than penalising them for completing multiple steps.
+5. Under **Breakdowns**, click **+ Add dimension** and select **`account_type`** (custom, registered above). This splits the funnel by `personal` vs `business` registrations.
+6. Set the date range to **Last 28 days**.
+7. Click **Save**.
+
+##### Step-by-step drop-off exploration (free-form)
+
+The funnel exploration collapses all `signup_step` events into a single step. To see per-step drop-off (e.g. how many users reached `personal_step_2` vs `personal_step_3`), build a separate free-form exploration:
+
+1. In GA4, click **Explore** → **Create a new exploration** → choose **Free form**.
+2. Name it: **`CRBOX — Signup Step Drop-off`**.
+3. Add dimension **`step_name`** (custom, registered above) and metric **Event count**.
+4. In **Tab settings**, drag **`step_name`** to **Rows** and **Event count** to **Values**.
+5. Add a **Filter**: Event name `exactly matches` `signup_step`.
+6. This shows counts per `step_name` value (e.g. `personal_step_2`, `personal_step_3`, `business_step_2`, `business_step_3`). Declining counts across successive step numbers reveal exactly where users drop out of the registration flow.
+7. Click **Save**.
+
+##### Signup error breakdown (free-form)
+
+1. In GA4, click **Explore** → **Create a new exploration** → choose **Free form**.
+2. Name it: **`CRBOX — Signup Error Analysis`**.
+3. Add dimension **`error_category`** and metric **Event count**.
+4. Add a **Filter**: Event name `exactly matches` `signup_error`.
+5. This shows the distribution of `duplicate_email`, `duplicate_id`, `validation`, `network`, and `unknown` errors.
+6. Click **Save**.
+
+##### Share with the team
+
+1. Open **`CRBOX — Signup Funnel`** → **Share** icon → **Share with property** → confirm.
+2. Repeat for **`CRBOX — Signup Step Drop-off`** and **`CRBOX — Signup Error Analysis`**.
+
+##### Verify data is flowing
+
+1. **Check Step 1 shows users.** Open **`CRBOX — Signup Funnel`** and confirm Step 1 (Signup Start) has a user count greater than zero. `signup_start` fires when a user advances from step 1 of the registration form on `afiliate.html` for the first time. A zero count means the tag is not firing — verify the GTM trigger for `signup_start`.
+2. **Check the step drop-off exploration.** Open **`CRBOX — Signup Step Drop-off`** and confirm multiple `step_name` values appear. If only one step appears, only test registrations may have completed.
+3. **Check the error exploration.** Open **`CRBOX — Signup Error Analysis`** and confirm at least one `error_category` row appears if any registration failures have been recorded.
+
+> **Low signup volume is expected.** Signups are far less frequent than calculator or contact form interactions. The funnel may show low absolute counts even after several weeks of traffic — focus on completion rates rather than absolute numbers, and extend the date range to **Last 90 days** if per-step counts are below 50.
+
+##### Interpret the results
+
+| What to check | Healthy signal | Concerning signal |
+|---------------|---------------|-------------------|
+| **Overall completion rate** (`signup_start` → `signup_success`) | > 60% — most users who begin registration complete it | < 40% — high drop-off. Open `CRBOX — Signup Step Drop-off` to find the highest-friction step. |
+| **`business` vs `personal` completion rate** | Similar completion rates for both account types | Business completion significantly lower than personal — the business form has more required fields; review whether any step is unusually long or confusing. |
+| **`signup_step` count by `step_name`** | Smooth decline across steps (each step loses a small percentage of users) | Sharp drop at one specific step — that step likely has a confusing field, an undiscovered validation error, or an unexpected required input. |
+| **`duplicate_email` errors** | < 5% of signup attempts | > 10% — significant re-registration attempts. Ensure the "already have an account?" prompt is visible before the user begins the form. |
+| **`validation` errors** | < 10% of signup attempts | > 20% — field validation is rejecting too many entries. Review whether validation rules (e.g. ID format, phone format) are clearly communicated to users in the field labels or helper text. |
+
+---
+
+#### 7.6.3 Invoice Upload Pipeline — `invoice_upload_start → invoice_upload_success`
+
+##### Build steps
+
+1. In GA4, click **Explore** → **Create a new exploration** → choose **Funnel exploration**.
+2. Name the exploration: **`CRBOX — Invoice Upload Pipeline`**.
+3. Under **Steps**, click **+ Add step** twice and configure each step:
+
+   | Step # | Step name (label) | Condition |
+   |--------|-------------------|-----------|
+   | 1 | Upload Start | Event name `exactly matches` `invoice_upload_start` |
+   | 2 | Upload Success | Event name `exactly matches` `invoice_upload_success` |
+
+4. Enable **Make steps indirect**.
+5. Under **Breakdowns**, click **+ Add dimension** and select **`file_type`** (custom, registered above). This splits upload attempts by file format (`pdf`, `jpg`, `png`, `gif`, `webp`, `unknown`) so you can identify whether specific file types have disproportionately higher failure rates.
+6. Set the date range to **Last 28 days**.
+7. Click **Save**.
+
+##### Invoice upload error breakdown (free-form)
+
+1. In GA4, click **Explore** → **Create a new exploration** → choose **Free form**.
+2. Name it: **`CRBOX — Invoice Upload Error Analysis`**.
+3. Add dimension **`error_category`** and metric **Event count**.
+4. Add a **Filter**: Event name `exactly matches` `invoice_upload_error`.
+5. This shows the distribution of `upload_failed`, `bill_creation_failed`, and `unknown` errors — distinguishing whether failures are happening at the file upload step (server proxy) or the bill-creation step (CRBOX Portal API).
+6. Click **Save**.
+
+##### Share with the team
+
+1. Open **`CRBOX — Invoice Upload Pipeline`** → **Share** icon → **Share with property** → confirm.
+2. Repeat for **`CRBOX — Invoice Upload Error Analysis`**.
+
+##### Verify data is flowing
+
+1. **Check Step 1 shows users.** Open **`CRBOX — Invoice Upload Pipeline`** and confirm Step 1 (Upload Start) has a user count greater than zero. `invoice_upload_start` fires after client-side validation passes on `mis-paquetes.html` and the two-step upload begins. A zero count means no uploads have been attempted or the GTM tag is not firing.
+2. **Check the error exploration.** If `invoice_upload_error` events have occurred, they should appear in **`CRBOX — Invoice Upload Error Analysis`** with at least one `error_category` row.
+3. **Check the `file_type` breakdown.** If `file_type` shows only `(not set)`, the custom dimension is not yet registered — revisit the registration table at the top of Section 7.6 and add it in GA4 Admin.
+
+> **Invoice uploads are user-initiated on `mis-paquetes.html` and require at least one package in `pending_invoice` status.** Data volume will be low until real users have qualifying packages. Extend the date range to **Last 90 days** if counts are below 20 per step.
+
+##### Interpret the results
+
+| What to check | Healthy signal | Concerning signal |
+|---------------|---------------|-------------------|
+| **Upload success rate** (`invoice_upload_start` → `invoice_upload_success`) | > 85% — the vast majority of upload attempts complete both pipeline steps | < 70% — the upload pipeline is failing frequently. Open the error breakdown to identify which step is failing. |
+| **`upload_failed` share of `invoice_upload_error` events** | < 10% of all upload attempts | > 15% — the file upload to the server proxy (`server.py`) is failing before reaching the CRBOX Portal API. Check `server.py` logs and the WordPress invoice endpoint it forwards to. |
+| **`bill_creation_failed` share of `invoice_upload_error` events** | < 5% of all upload attempts | > 10% — the file uploaded successfully but the `postcreatepurchasebill` call to the CRBOX Portal API is failing. Verify the endpoint is available and that uploaded invoices are visible in the CRBOX admin. |
+| **`unknown` errors** | < 2% of all upload attempts | Any sustained volume — unclassified failures. Add more specific error handling in `mis-paquetes.html` to diagnose the root cause. |
+| **`file_type` breakdown** | `pdf` dominates (most invoices are PDF); other types show healthy success rates | High error rate on a specific file type (e.g. `jpg`) may indicate a server-side MIME type rejection — check the allowed types in `server.py`. |
+
+---
+
+#### 7.6.4 Quote Submit Analysis — `quote_start → quote_submit`
+
+##### Build steps
+
+The quote flow is tracked from service type selection (`quote_start`) through to confirmed submission (`quote_submit`). Build one funnel exploration and one breakdown free-form exploration.
+
+1. In GA4, click **Explore** → **Create a new exploration** → choose **Funnel exploration**.
+2. Name the exploration: **`CRBOX — Quote Submit`**.
+3. Under **Steps**, click **+ Add step** twice and configure each step:
+
+   | Step # | Step name (label) | Condition |
+   |--------|-------------------|-----------|
+   | 1 | Quote Start | Event name `exactly matches` `quote_start` |
+   | 2 | Quote Submit | Event name `exactly matches` `quote_submit` |
+
+4. Enable **Make steps indirect** to accommodate users who pause and return to the form.
+5. Under **Breakdowns**, click **+ Add dimension** and select **`service_type`** (custom, registered above). This splits submissions by shipping service (e.g. `aereo`, `maritimo`).
+6. Set the date range to **Last 28 days**.
+7. Click **Save**.
+
+##### Service type and destination breakdown (free-form)
+
+To see both `service_type` and `destination_country` together on submitted quotes:
+
+1. In GA4, click **Explore** → **Create a new exploration** → choose **Free form**.
+2. Name it: **`CRBOX — Quote Submit Breakdown`**.
+3. Add dimensions **`service_type`** and **`destination_country`** (both custom, registered above). Add metric **Event count**.
+4. In **Tab settings**, drag **`service_type`** to **Rows**, **`destination_country`** to **Columns**, and **Event count** to **Values**.
+5. Add a **Filter**: Event name `exactly matches` `quote_submit`.
+6. This produces a pivot table showing how many quotes were submitted per service type per destination country — a compact demand signal for the quote pipeline.
+7. Click **Save**.
+
+##### Share with the team
+
+1. Open **`CRBOX — Quote Submit`** → **Share** icon → **Share with property** → confirm.
+2. Repeat for **`CRBOX — Quote Submit Breakdown`**.
+
+##### Verify data is flowing
+
+1. **Check Step 1 shows users.** Open **`CRBOX — Quote Submit`** and confirm Step 1 (Quote Start) has a user count greater than zero. `quote_start` fires when a user selects a service type on `cotizar.html`. A zero count means no authenticated users have reached the quote page or the GTM tag is not firing.
+2. **Check the breakdown exploration.** Open **`CRBOX — Quote Submit Breakdown`** and confirm `service_type` values appear (e.g. `aereo`, `maritimo`). If the `destination_country` columns show only `(not set)`, register the `destination_country` custom dimension and wait up to 24 hours.
+
+> **Note on `destination_country`:** The `destination_country` parameter carries the ISO 3166-1 alpha-2 code from the quote form. For CRBOX, this is typically `CR` (Costa Rica deliveries). A consistent `CR` value still confirms the parameter is flowing correctly and establishes a baseline for any future multi-country expansion.
+
+##### Interpret the results
+
+| What to check | Healthy signal | Concerning signal |
+|---------------|---------------|-------------------|
+| **Quote completion rate** (`quote_start` → `quote_submit`) | > 65% — most users who select a service type complete and submit the form | < 45% — significant drop-off. Check `cotizar.html` for long or confusing form fields; open the browser console during a test submission to check for JavaScript errors. |
+| **`service_type` breakdown** | Both `aereo` and `maritimo` receive quote submissions; distribution reflects current marketing emphasis | One service type with zero submissions over 30 days — test the quote flow for that service type manually to rule out a form or tag issue. |
+| **`destination_country` distribution** | `CR` is the dominant or sole destination code | Any unexpected country code may indicate a data quality issue in how `cotizar.html` reads and passes the destination field — inspect the `dataLayer.push` for `quote_submit` in `js/analytics.js`. |
+| **Quote start volume vs `portal_section_view` on `cotizar`** | `quote_start` should represent ≥ 50% of `portal_section_view` events on `cotizar.html` | Very low ratio means users visit the quote page but do not select a service — consider making the service selection UI more prominent or adding a pre-selection shortcut from the dashboard. |
+
+---
+
 ## 8. Preview and Debug
 
 1. Open **GTM Preview Mode** (Submit → Preview).
@@ -764,7 +1033,71 @@ Use this table during every weekly and monthly review. If any funnel step's comp
 
 ---
 
-### 9.3 Escalation Protocol
+### 9.3 Portal Funnel Thresholds
+
+Use this table during every weekly and monthly review once portal event data is flowing in GA4. If any metric reaches or drops below its **Alert Threshold**, stop and investigate before moving on — do not wait for the next review cycle.
+
+> **How to calculate a rate:** Divide the completing-step event count by the entering-step event count for the same date range in GA4 Explore. Use **Last 7 days** for weekly checks and **Last 28 days** for monthly checks. For error rates, divide the error event count by the starting-step event count (e.g. `login_error` count ÷ `login_start` count).
+
+#### Login Funnel
+
+| Metric | Healthy Baseline | Alert Threshold | When to Escalate |
+|--------|-----------------|-----------------|------------------|
+| `login_start` → `login_success` success rate | > 80% | ≤ 70% | High failure rate — open **`CRBOX — Login Error Analysis`** and identify the dominant `error_category`. Check the CRBOX Portal API auth endpoint for availability issues. |
+| `invalid_credentials` share of all `login_error` events | < 10% | > 20% | Users are consistently entering wrong credentials — verify the "Forgot password" prompt is discoverable; review whether the error message clearly communicates the problem. |
+| `network` share of all `login_error` events | < 5% | > 10% | API connectivity issue — check CRBOX Portal API status and server.py proxy health around the same time window. |
+| `unknown` share of all `login_error` events | < 2% | Any sustained volume | Unclassified backend errors — add more specific `error_category` values in the `doLogin()` rejection handler in `js/auth.js`. |
+
+**Weekly check:** Confirm the login success rate is above the alert threshold. A sudden drop almost always signals either a backend issue or a GTM tag that stopped firing — check both before concluding there is a UX problem.
+
+**Monthly check:** Compare the `error_category` distribution to the prior month. Growing `invalid_credentials` share may indicate an account management problem (users forgetting passwords); growing `network` share warrants an infrastructure check.
+
+---
+
+#### Signup Funnel
+
+| Metric | Healthy Baseline | Alert Threshold | When to Escalate |
+|--------|-----------------|-----------------|------------------|
+| `signup_start` → `signup_success` overall completion rate | > 60% | ≤ 40% | High overall drop-off — open **`CRBOX — Signup Step Drop-off`** to identify which step is losing the most users and investigate the fields on that step. |
+| `signup_error` rate (`signup_error` ÷ `signup_start`) | < 10% | > 20% | High registration failure rate — open **`CRBOX — Signup Error Analysis`** and review the `error_category` breakdown. Common causes: `duplicate_email`, `duplicate_id`, `validation`. |
+| `duplicate_email` share of all `signup_error` events | < 5% | > 10% | Users are re-attempting registration with existing accounts — ensure the "already have an account?" prompt is visible early in the flow. |
+| `validation` share of all `signup_error` events | < 10% | > 20% | Field validation is blocking many submissions — review whether format requirements (ID, phone) are clearly communicated in field labels or helper text. |
+
+**Weekly check:** Check the overall signup completion rate. Because signup volume is inherently low, compute the rate over **Last 28 days** rather than Last 7 days to avoid small-sample distortion.
+
+**Monthly check:** Compare `personal` vs `business` completion rates using the `account_type` breakdown in **`CRBOX — Signup Funnel`**. A widening gap between the two account types signals that one registration path has accumulated friction over the month.
+
+---
+
+#### Invoice Upload Pipeline
+
+| Metric | Healthy Baseline | Alert Threshold | When to Escalate |
+|--------|-----------------|-----------------|------------------|
+| `invoice_upload_start` → `invoice_upload_success` success rate | > 85% | ≤ 70% | Pipeline failure — open **`CRBOX — Invoice Upload Error Analysis`** to distinguish `upload_failed` (server proxy issue) from `bill_creation_failed` (Portal API issue). |
+| `upload_failed` share of all `invoice_upload_error` events | < 10% | > 15% | The file upload to `server.py` is failing — check server logs and the WordPress invoice endpoint it posts to. |
+| `bill_creation_failed` share of all `invoice_upload_error` events | < 5% | > 10% | The file uploaded but bill creation failed — verify the `postcreatepurchasebill` endpoint in the CRBOX Portal API; confirm uploaded invoices are visible in the admin panel. |
+| `unknown` share of all `invoice_upload_error` events | < 2% | Any sustained volume | Unclassified failures — add more specific error handling in `mis-paquetes.html` to capture the root cause. |
+
+**Weekly check:** Confirm the upload success rate is above the alert threshold. A drop in invoice_upload_success without a corresponding spike in error events may indicate the GTM tag for `invoice_upload_success` has stopped firing — verify with GTM Preview Mode.
+
+**Monthly check:** Review the `file_type` breakdown in **`CRBOX — Invoice Upload Pipeline`**. If a specific file type (e.g. `jpg`) shows a disproportionately high failure rate, investigate the allowed MIME types in `server.py`.
+
+---
+
+#### Quote Submit
+
+| Metric | Healthy Baseline | Alert Threshold | When to Escalate |
+|--------|-----------------|-----------------|------------------|
+| `quote_start` → `quote_submit` completion rate | > 65% | ≤ 45% | Significant quote form abandonment — review `cotizar.html` for form friction; test the full quote flow manually for each `service_type` and check the browser console for JavaScript errors. |
+| `service_type` coverage (over 30 days) | Both `aereo` and `maritimo` present | Either service type at zero over 30 days | A form or tag issue specific to that service type — test manually and verify the GTM trigger fires on `quote_start` for that service type. |
+
+**Weekly check:** Monitor total `quote_submit` event count. A drop in absolute volume (not just rate) alongside stable traffic suggests users are not reaching `cotizar.html` — check `portal_section_view` events for `cotizar` to confirm page views are still occurring.
+
+**Monthly check:** Open **`CRBOX — Quote Submit Breakdown`** and compare the `service_type` × `destination_country` pivot to the prior month. Shifts in distribution can inform which service types need marketing emphasis or UX improvements.
+
+---
+
+### 9.4 Escalation Protocol
 
 When any threshold is breached:
 
