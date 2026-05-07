@@ -115,6 +115,22 @@
                 "mainEntity": [
                     {
                         "@type": "Question",
+                        "name": "¿Qué es CRBOX?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "CRBOX es un servicio de casillero virtual y courier costarricense con más de 20 años de experiencia. Te asigna una dirección física gratuita en Miami, Florida, para que puedas comprar en tiendas de USA y recibir tus paquetes en Costa Rica. El casillero es 100% gratuito y sin cuotas mensuales."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "¿Cómo funciona un casillero virtual?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Un casillero virtual te proporciona una dirección en Miami, FL. Usás esa dirección al comprar en tiendas de USA. Cuando llega el paquete a la bodega de CRBOX en Miami, te notifican por correo. Luego CRBOX lo envía a Costa Rica y lo recibís en tu domicilio o en una sucursal."
+                        }
+                    },
+                    {
+                        "@type": "Question",
                         "name": "¿Cuánto tiempo tarda en llegar mi paquete?",
                         "acceptedAnswer": {
                             "@type": "Answer",
@@ -123,10 +139,26 @@
                     },
                     {
                         "@type": "Question",
+                        "name": "¿Cuál es la diferencia entre carga aérea y carga marítima?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "La carga aérea tarda entre 3 y 5 días hábiles y es ideal para paquetes urgentes o de tamaño mediano. La carga marítima tarda aproximadamente 6 a 7 días y es más económica para cargas de gran volumen o peso. La tarifa aérea se cobra por libra; la marítima por pie cúbico."
+                        }
+                    },
+                    {
+                        "@type": "Question",
                         "name": "¿Puedo consolidar varios paquetes?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "¡Sí! Espera a que todos tus paquetes lleguen a nuestra bodega en Miami y ahorra significativamente en costos de envío consolidándolos."
+                            "text": "¡Sí! Espera a que todos tus paquetes lleguen a nuestra bodega en Miami y ahorra significativamente en costos de envío consolidándolos en un solo envío."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "¿Cómo me registro en CRBOX?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "El registro es gratuito y toma solo unos minutos. Visitá crbox.cr/afiliate.html, completá el formulario con tus datos personales y recibirás de inmediato tu número de casillero y dirección en Miami. No se requiere tarjeta de crédito."
                         }
                     },
                     {
@@ -134,7 +166,7 @@
                         "name": "¿Qué pasa si no tengo la factura?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "La factura es indispensable para trámites aduanales. Si no tienes la original, puedes enviar un comprobante de pago que muestre claramente el valor de la compra."
+                            "text": "La factura es indispensable para trámites aduanales. Si no tenés la original, podés enviar un comprobante de pago que muestre claramente el valor de la compra."
                         }
                     },
                     {
@@ -142,7 +174,15 @@
                         "name": "¿Cómo puedo rastrear mi paquete?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "Te mantenemos informado en tiempo real: al iniciar sesión puedes ver el estado de cada envío y recibirás notificaciones por correo en cada cambio importante."
+                            "text": "Te mantenemos informado en tiempo real: al iniciar sesión podés ver el estado de cada envío y recibirás notificaciones por correo en cada cambio importante."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "¿Cómo contacto al servicio al cliente de CRBOX?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Podés contactarnos por teléfono al 4000-1114, por correo a servicioalcliente@crbox.cr, o visitarnos en nuestras sucursales en Sabana Norte o Calle Blancos, San José. También podés enviarnos un mensaje desde crbox.cr/contacto.html."
                         }
                     }
                 ]
@@ -182,6 +222,18 @@
                         "name": "Recibe en Costa Rica en 2-4 días",
                         "text": "Elige entrega a domicilio o recoge gratis en nuestras sucursales en San José. Tiempo promedio: 2 a 4 días hábiles tras la salida de Miami."
                     }
+                ]
+            }
+        </script>
+
+        <!-- Structured Data: BreadcrumbList -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://crbox.cr/" },
+                    { "@type": "ListItem", "position": 2, "name": "Cómo Funciona el Casillero Virtual", "item": "https://crbox.cr/como-funciona.html" }
                 ]
             }
         </script>
@@ -1429,9 +1481,119 @@
                             <div class="faq-answer">
                                 <p class="text-gray-600 mt-2 sm:ml-14">
                                     Te mantenemos informado en tiempo real: al
-                                    iniciar sesión puedes ver el estado de cada
+                                    iniciar sesión podés ver el estado de cada
                                     envío y recibirás notificaciones por correo
                                     en cada cambio importante.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 5 -->
+                        <div class="feature-card p-6 faq-item">
+                            <div class="flex items-start mb-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0"
+                                >
+                                    <i class="fas fa-info-circle"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold flex-1">
+                                    ¿Qué es CRBOX?
+                                </h3>
+                                <i
+                                    class="fas fa-chevron-down faq-chevron ml-3 mt-1"
+                                ></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-gray-600 mt-2 sm:ml-14">
+                                    CRBOX es un servicio de casillero virtual y courier costarricense con más de 20 años de experiencia. Te asigna una dirección física gratuita en Miami, Florida, para que puedas comprar en tiendas de USA y recibir tus paquetes en Costa Rica. El casillero es 100% gratuito y sin cuotas mensuales.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 6 -->
+                        <div class="feature-card p-6 faq-item">
+                            <div class="flex items-start mb-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0"
+                                >
+                                    <i class="fas fa-mailbox"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold flex-1">
+                                    ¿Cómo funciona un casillero virtual?
+                                </h3>
+                                <i
+                                    class="fas fa-chevron-down faq-chevron ml-3 mt-1"
+                                ></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-gray-600 mt-2 sm:ml-14">
+                                    Un casillero virtual te proporciona una dirección en Miami, FL. Usás esa dirección al comprar en tiendas de USA. Cuando llega el paquete a la bodega de CRBOX en Miami, te notifican por correo. Luego CRBOX lo envía a Costa Rica y lo recibís en tu domicilio o en una sucursal.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 7 -->
+                        <div class="feature-card p-6 faq-item">
+                            <div class="flex items-start mb-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0"
+                                >
+                                    <i class="fas fa-plane"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold flex-1">
+                                    ¿Cuál es la diferencia entre carga aérea y carga marítima?
+                                </h3>
+                                <i
+                                    class="fas fa-chevron-down faq-chevron ml-3 mt-1"
+                                ></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-gray-600 mt-2 sm:ml-14">
+                                    La carga aérea tarda entre 3 y 5 días hábiles y es ideal para paquetes urgentes o de tamaño mediano. La carga marítima tarda aproximadamente 6 a 7 días y es más económica para cargas de gran volumen o peso. La tarifa aérea se cobra por libra; la marítima por pie cúbico.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 8 -->
+                        <div class="feature-card p-6 faq-item">
+                            <div class="flex items-start mb-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0"
+                                >
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold flex-1">
+                                    ¿Cómo me registro en CRBOX?
+                                </h3>
+                                <i
+                                    class="fas fa-chevron-down faq-chevron ml-3 mt-1"
+                                ></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-gray-600 mt-2 sm:ml-14">
+                                    El registro es gratuito y toma solo unos minutos. Visitá <a href="afiliate.html" class="text-orange-600 hover:underline font-medium">crbox.cr/afiliate.html</a>, completá el formulario con tus datos personales y recibirás de inmediato tu número de casillero y dirección en Miami. No se requiere tarjeta de crédito.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 9 -->
+                        <div class="feature-card p-6 faq-item">
+                            <div class="flex items-start mb-3">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 mr-4 flex-shrink-0"
+                                >
+                                    <i class="fas fa-headset"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold flex-1">
+                                    ¿Cómo contacto al servicio al cliente de CRBOX?
+                                </h3>
+                                <i
+                                    class="fas fa-chevron-down faq-chevron ml-3 mt-1"
+                                ></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p class="text-gray-600 mt-2 sm:ml-14">
+                                    Podés contactarnos por teléfono al <a href="tel:+50640001114" class="text-orange-600 hover:underline font-medium">4000-1114</a>, por correo a <a href="mailto:servicioalcliente@crbox.cr" class="text-orange-600 hover:underline font-medium">servicioalcliente@crbox.cr</a>, o desde nuestra <a href="contacto.html" class="text-orange-600 hover:underline font-medium">página de contacto</a>. También podés visitarnos en nuestras sucursales en Sabana Norte o Calle Blancos, San José.
                                 </p>
                             </div>
                         </div>

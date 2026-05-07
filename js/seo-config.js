@@ -16,7 +16,7 @@
  */
 
 window.CRBOX_CONFIG = {
-    gtmId: 'YOUR_GTM_CONTAINER_ID',
+    gtmId: 'GTM-5WD8N53F',
 
     site: {
         name: 'CRBOX',
@@ -59,7 +59,6 @@ window.CRBOX_CONFIG = {
 
     privatePages: [
         '/login.html',
-        '/afiliate.html',
         '/dashboard.html',
         '/mis-paquetes.html',
         '/mis-facturas.html',
@@ -72,6 +71,7 @@ window.CRBOX_CONFIG = {
         { path: '/como-funciona.html', canonical: 'https://crbox.cr/como-funciona.html' },
         { path: '/tarifas.html', canonical: 'https://crbox.cr/tarifas.html' },
         { path: '/calculadora.html', canonical: 'https://crbox.cr/calculadora.html' },
-        { path: '/contacto.html', canonical: 'https://crbox.cr/contacto.html' }
+        { path: '/contacto.html', canonical: 'https://crbox.cr/contacto.html' },
+        { path: '/afiliate.html', canonical: 'https://crbox.cr/afiliate.html' }
     ]
 };

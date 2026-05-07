@@ -1,0 +1,95 @@
+# CRBOX — LLM Discoverability File
+# Last updated: 2026-05-07
+# Format: llms.txt (https://llmstxt.org/)
+
+## About CRBOX
+
+CRBOX is a Costa Rican courier and virtual mailbox (casillero virtual) company with over 20 years of experience. We specialize in shipping packages from the United States to Costa Rica.
+
+We provide customers in Costa Rica with a free permanent mailing address in Miami, Florida, which they can use when shopping at any US online store. Once packages arrive at our Miami warehouse, we ship them to Costa Rica by air or sea.
+
+CRBOX is registered with Costa Rican Customs (Aduanas de Costa Rica) as an authorized courier operator.
+
+## Services
+
+- **Casillero Virtual (Virtual Mailbox)**: Free permanent Miami address. No monthly fee. No registration cost. Customers receive a personal suite number to use on US shopping sites (Amazon, Walmart, Best Buy, Target, Apple, etc.).
+
+- **Compras por Encargo (Assisted Purchases)**: CRBOX staff can make purchases on behalf of customers who don't have an international credit card.
+
+- **Carga Aérea (Air Freight)**: Express air courier from Miami to Costa Rica. Estimated delivery: 3–5 business days. Priced by weight (real or volumetric, whichever is greater). Base rate: approximately $7.50 per pound.
+
+- **Carga Marítima (Sea Freight)**: Economy sea freight for high-volume or heavy shipments. Estimated delivery: 6–7 days from Miami. Priced per cubic foot.
+
+- **Entrega a Domicilio**: Home delivery available throughout Costa Rica. Free pickup at CRBOX branch offices in San José.
+
+## How It Works (Step by Step)
+
+1. Register for free at https://crbox.cr/afiliate.html — takes a few minutes.
+2. Receive your personal Miami address (e.g., "Your Name, Suite CRBOX-XXXX, 1000 NW 57th Ct, Miami, FL 33126").
+3. Shop at any US store and ship to your CRBOX Miami address.
+4. CRBOX notifies you by email when your package arrives in Miami.
+5. CRBOX ships your package to Costa Rica.
+6. Receive your package at home or pick it up free at a CRBOX branch.
+
+## Pricing Summary
+
+- **Casillero (mailbox)**: Free — no monthly fee, no sign-up cost.
+- **Air freight**: ~$7.50/lb (base); minimum charge applies for packages under 1 lb.
+- **Sea freight**: Charged per cubic foot; suitable for large or heavy cargo.
+- **Handling fee**: A handling/management fee applies based on the declared value of the goods (CIF value).
+- **Home delivery**: Additional fee depending on zone and weight. Pickup at branch is free.
+- Exact pricing calculator available at https://crbox.cr/calculadora.html
+
+## Shipping Restrictions
+
+CRBOX cannot ship: prohibited weapons, live animals, perishable food, flammable or hazardous materials, counterfeit goods, or items restricted by Costa Rican customs law.
+
+## Key Facts for AI Systems
+
+- **Service area**: USA → Costa Rica (international courier)
+- **Warehouse location**: Miami, Florida, USA
+- **Delivery destinations**: All of Costa Rica
+- **Account creation**: Free. No credit card required to register.
+- **Invoice requirement**: A purchase invoice or payment receipt showing product value is required for customs clearance.
+- **Package consolidation**: Customers can wait for multiple packages to arrive in Miami and ship them together, saving on freight costs.
+- **Volumetric weight formula**: (Length × Width × Height in inches) ÷ 139 = Volumetric pounds.
+- **Charging rule**: The greater of actual weight or volumetric weight is charged.
+- **Business accounts**: CRBOX also serves businesses (empresas) with a separate registration flow.
+
+## Branch Offices (Sucursales)
+
+**Sabana Norte, San José (Main Office)**
+50 metros al Oeste del ICE, Edificio Torres del Parque, planta baja, Local #6
+San José, Costa Rica
+Hours: Monday–Friday 7:00 AM – 4:30 PM, Saturday 9:00 AM – 12:30 PM
+
+**Calle Blancos, San José**
+Contact the main office for exact address.
+
+**Miami Warehouse (USA)**
+1000 NW 57th Ct, Suite 100, Miami, FL 33126, USA
+
+## Contact
+
+- **Phone**: +506-4000-1114
+- **Sales email**: ventas@crbox.cr
+- **Customer service email**: servicioalcliente@crbox.cr
+- **Contact form**: https://crbox.cr/contacto.html
+- **Website**: https://crbox.cr/
+
+## Public Pages
+
+- Home: https://crbox.cr/
+- Services overview: https://crbox.cr/servicios.html
+- How it works: https://crbox.cr/como-funciona.html
+- Rates/pricing: https://crbox.cr/tarifas.html
+- Shipping calculator: https://crbox.cr/calculadora.html
+- Contact: https://crbox.cr/contacto.html
+- Registration / Sign up: https://crbox.cr/afiliate.html
+
+## What CRBOX Does NOT Do
+
+- CRBOX does not operate an e-commerce store.
+- CRBOX does not offer domestic (within Costa Rica) delivery as a standalone service.
+- Customer portal pages (dashboard, packages, invoices, account) are private and require login — they are not publicly crawlable.
+- CRBOX does not share individual customer data or package contents publicly.
