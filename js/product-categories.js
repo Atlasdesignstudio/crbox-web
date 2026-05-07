@@ -2125,16 +2125,173 @@
   window.PRODUCT_BRAIN_CATEGORIES = BRAIN_CATS;
 
   // ── Merge Brain fields into every PRODUCT_CATEGORIES entry ─────────────────
-  // DEDUPED entries are the same live objects as window.PRODUCT_CATEGORIES,
-  // so mutating them here enriches window.PRODUCT_CATEGORIES in place with
-  // all Product Brain spec fields (displayName, categoryGroup, customerMessage,
-  // adminNotes, riskFlags, manualReviewRequired, regulatedProduct, etc.).
+  // Pass 1: direct match by id/code.
+  // Pass 2: legacy-code fallback table — maps every legacy PRODUCT_CATEGORIES
+  //         code that has no direct Brain match to the most appropriate Brain
+  //         category id so ALL 177 entries receive the full field set.
+  // DEDUPED entries are live object refs identical to window.PRODUCT_CATEGORIES,
+  // so mutations here are reflected immediately on window.PRODUCT_CATEGORIES.
   (function _mergeBrainIntoCats() {
+    // Build direct lookup from Brain category id and code.
     var brainMap = {};
     BRAIN_CATS.forEach(function (bc) {
       brainMap[bc.id] = bc;
       if (bc.code && bc.code !== bc.id) { brainMap[bc.code] = bc; }
     });
+
+    // Legacy PRODUCT_CATEGORIES code → Brain category id fallback.
+    // Covers every code that has no Brain entry of its own.
+    var LEGACY_MAP = {
+      // ── Phones / Electronics ──────────────────────────────────────────────
+      telefonos:                 'phones_smartphones',
+      // ── Computers / Parts ─────────────────────────────────────────────────
+      procesador:                'computers_main_parts',
+      disco_duro:                'storage_memory',
+      memoria:                   'storage_memory',
+      tarjeta_video_sonido:      'computers_main_parts',
+      tarjeta_madre:             'computers_main_parts',
+      fuente_poder:              'computers_main_parts',
+      case_cpu:                  'computers_main_parts',
+      quemador_cd_dvd:           'computers_main_parts',
+      // ── Computer Accessories ──────────────────────────────────────────────
+      monitor:                   'computer_accessories',
+      teclado_computadora:       'computer_accessories',
+      ventiladores_computadora:  'computer_accessories',
+      control_remoto:            'computer_accessories',
+      // ── Printers ──────────────────────────────────────────────────────────
+      impresora:                 'printers_scanners',
+      accesorios_impresora:      'printers_scanners',
+      fotocopiadora:             'printers_scanners',
+      // ── Chargers / Cables ─────────────────────────────────────────────────
+      adaptador:                 'chargers_cables_adapters',
+      // ── Networking ────────────────────────────────────────────────────────
+      antena:                    'networking_equipment',
+      radio_comunicacion:        'networking_equipment',
+      llave_maya:                'networking_equipment',
+      // ── Software / Digital ────────────────────────────────────────────────
+      software:                  'software_digital_goods',
+      dvds:                      'software_digital_goods',
+      video_juegos:              'gaming_consoles_electronics',
+      // ── Audio / Home Theater ─────────────────────────────────────────────
+      equipo_sonido:             'speakers_home_audio',
+      equipo_karaoke:            'speakers_home_audio',
+      home_teather:              'speakers_home_audio',
+      amplificador:              'speakers_home_audio',
+      parlantes:                 'speakers_home_audio',
+      amplificador_grabador:     'microphones_audio_pro',
+      ipod_mp3_mp4:              'headphones_audio_personal',
+      diskman_walkman:           'headphones_audio_personal',
+      // ── TV / Streaming / Projectors ───────────────────────────────────────
+      lector_dvd_cd:             'tv_projectors_streaming',
+      reproductor_bluray:        'tv_projectors_streaming',
+      proyector_video:           'tv_projectors_streaming',
+      video_monitor:             'tv_projectors_streaming',
+      // ── Cameras / Photo ───────────────────────────────────────────────────
+      tripode:                   'cameras_photo_video',
+      sombrilla_fotografia:      'cameras_photo_video',
+      lente_camara:              'cameras_photo_video',
+      binoculares:               'cameras_photo_video',
+      // ── Clothing / Accessories ────────────────────────────────────────────
+      pelucas:                   'clothing_general',
+      ropa_otro:                 'clothing_general',
+      gorras:                    'clothing_accessories',
+      maletines_bolsos:          'bags_luggage_accessories',
+      joyeria_bisuteria:         'watches_jewelry',
+      relojes:                   'watches_jewelry',
+      // ── Home Appliances / Kitchen ─────────────────────────────────────────
+      refrigerador:              'home_kitchen_appliances',
+      aspiradora:                'home_kitchen_appliances',
+      ollas_sartenes:            'home_kitchen_appliances',
+      mixer:                     'home_kitchen_appliances',
+      filtro_agua:               'home_kitchen_appliances',
+      // ── Home Décor / Storage ─────────────────────────────────────────────
+      colchon:                   'home_decor_storage',
+      muebles:                   'home_decor_storage',
+      lampara:                   'home_decor_storage',
+      alfombra:                  'home_decor_storage',
+      sabanas:                   'home_decor_storage',
+      platos_ceramica:           'home_decor_storage',
+      vaso_vidrio:               'home_decor_storage',
+      bombillos:                 'home_decor_storage',
+      fluorescente:              'home_decor_storage',
+      adornos:                   'home_decor_storage',
+      articulos_fiesta:          'home_decor_storage',
+      panos:                     'home_decor_storage',
+      sombrilla:                 'home_decor_storage',
+      // ── Tools / Hardware ─────────────────────────────────────────────────
+      griferia:                  'tools_hardware_common',
+      manguera:                  'tools_hardware_common',
+      cables_electricos:         'tools_hardware_common',
+      maquina_coser_soldar:      'tools_hardware_common',
+      romana:                    'tools_hardware_common',
+      gata_hidraulica:           'tools_hardware_common',
+      // ── Beauty / Personal Care ────────────────────────────────────────────
+      plancha_pelo:              'beauty_devices',
+      secadoras_pelo:            'beauty_devices',
+      rasuradora_electrica:      'beauty_devices',
+      // ── Office / Stationery ───────────────────────────────────────────────
+      calculadora:               'office_stationery_art',
+      papel:                     'office_stationery_art',
+      posters:                   'office_stationery_art',
+      libros:                    'office_stationery_art',
+      // ── Medical ───────────────────────────────────────────────────────────
+      microscopio:               'medicines_medical_products',
+      lente_contacto:            'eyewear_optical',
+      // ── Sports / Fitness ─────────────────────────────────────────────────
+      bicicleta_economica:       'sports_outdoor_variable',
+      bicicleta_cara:            'sports_outdoor_variable',
+      raqueta:                   'sports_fitness_physical',
+      tabla_surf:                'sports_outdoor_variable',
+      palos_golf:                'sports_outdoor_variable',
+      cana_pescar:               'sports_outdoor_variable',
+      aros_bicicleta:            'sports_outdoor_variable',
+      tienda_campana:            'sports_outdoor_variable',
+      casco_seguridad:           'sports_outdoor_variable',
+      deporte_otro:              'sports_outdoor_variable',
+      patines:                   'toys_common',
+      sleeping_bag:              'sports_fitness_physical',
+      // ── Baby / Kids ───────────────────────────────────────────────────────
+      silla_bebe_carro:          'baby_items',
+      bebe_otro:                 'baby_items',
+      juego_mesa:                'toys_common',
+      // ── Automotive Parts (review) ─────────────────────────────────────────
+      amortiguadores:            'automotive_parts_review',
+      aros_carro_moto:           'automotive_parts_review',
+      partes_carroceria:         'automotive_parts_review',
+      suspension_carro:          'automotive_parts_review',
+      suspension_moto:           'automotive_parts_review',
+      bujias:                    'automotive_parts_review',
+      cluth:                     'automotive_parts_review',
+      molduras_vehiculo:         'automotive_parts_review',
+      mufla:                     'automotive_parts_review',
+      radiador:                  'automotive_parts_review',
+      filtro_aceite_aire:        'automotive_parts_review',
+      llantas_vehiculo:          'automotive_parts_review',
+      parabrisas:                'automotive_parts_review',
+      arrancador:                'automotive_parts_review',
+      pinon:                     'automotive_parts_review',
+      valvulas:                  'automotive_parts_review',
+      bomba_aceite_agua:         'automotive_parts_review',
+      repuestos_vehiculo:        'automotive_parts_review',
+      vehic_otro:                'automotive_parts_review',
+      // ── Automotive Simple Accessories ─────────────────────────────────────
+      luces_carro:               'automotive_simple_accessories',
+      retrovisor:                'automotive_simple_accessories',
+      rack_carro:                'automotive_simple_accessories',
+      alarma:                    'automotive_simple_accessories',
+      radio_carro:               'automotive_simple_accessories',
+      // ── Batteries ─────────────────────────────────────────────────────────
+      baterias:                  'lithium_batteries_powerbanks',
+      // ── Musical Instruments ───────────────────────────────────────────────
+      guitarra_acustica:         'musical_instruments_review',
+      guitarra_electrica:        'musical_instruments_review',
+      teclado_musical:           'musical_instruments_review',
+      instrumentos_musicales:    'musical_instruments_review',
+      // ── Fallback ──────────────────────────────────────────────────────────
+      electr_otro:               'unknown_manual_review',
+      hogar_otro:                'unknown_manual_review',
+    };
+
     var BRAIN_FIELDS = [
       'displayName','categoryGroup','subCategory','keywords','commonSearches',
       'misspellings','exampleProducts','estimatedDAI','vatRate','law6946Rate',
@@ -2143,12 +2300,21 @@
       'possiblePermits','possibleInstitutions','customerMessage','adminNotes',
       'actionForCustomer','actionForAdmin','confidenceLevel',
     ];
+
     DEDUPED.forEach(function (cat) {
+      // Pass 1: direct match on Brain id or code.
       var bc = brainMap[cat.id] || brainMap[cat.code] || null;
+      // Pass 2: legacy code fallback.
+      if (!bc) {
+        var fallbackId = LEGACY_MAP[cat.id] || LEGACY_MAP[cat.code] || null;
+        if (fallbackId) { bc = brainMap[fallbackId] || null; }
+      }
       if (bc) {
         BRAIN_FIELDS.forEach(function (f) {
           if (bc[f] !== undefined) { cat[f] = bc[f]; }
         });
+        // Tag the entry so callers can detect the merge origin.
+        if (!cat._brainId) { cat._brainId = bc.id; }
       }
     });
   }());
