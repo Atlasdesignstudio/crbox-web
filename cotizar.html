@@ -68,44 +68,63 @@
 
         /* ── HERO ── */
         #cq-hero {
-            min-height: 100vh;
-            background: radial-gradient(ellipse at 20% 30%, rgba(255,107,0,.18) 0%, transparent 55%),
-                        radial-gradient(ellipse at 80% 70%, rgba(255,107,0,.12) 0%, transparent 55%),
-                        linear-gradient(160deg, #0c0c0c 0%, #141414 50%, #1a0d00 100%);
+            min-height: calc(100vh - 4.5rem);
+            background: linear-gradient(175deg, #ffffff 0%, #fffcf9 55%, #fff7ee 100%);
             display: flex; align-items: center; justify-content: center;
-            padding: 5rem 1.5rem 4rem;
+            padding: 4rem 1.5rem 5rem;
             position: relative; overflow: hidden;
+            border-bottom: 1px solid #f0ece6;
+            transition: min-height 0.7s cubic-bezier(0.22,1,0.36,1),
+                        padding-top 0.7s cubic-bezier(0.22,1,0.36,1),
+                        padding-bottom 0.7s cubic-bezier(0.22,1,0.36,1);
         }
         #cq-hero::before {
             content:''; position:absolute; inset:0; pointer-events:none;
-            background-image:
-                radial-gradient(circle at 15% 85%, rgba(255,107,0,.06) 0%, transparent 40%),
-                radial-gradient(circle at 85% 15%, rgba(255,107,0,.04) 0%, transparent 40%);
+            background:
+                radial-gradient(ellipse at 88% 12%, rgba(255,107,0,.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 12% 88%, rgba(255,107,0,.06) 0%, transparent 45%);
         }
         .cq-hero-inner { max-width:680px; width:100%; text-align:center; position:relative; z-index:1; }
         .cq-hero-badge {
             display:inline-flex; align-items:center; gap:.4rem;
-            background:rgba(255,107,0,.14); border:1px solid rgba(255,107,0,.28);
-            color:#fb923c; font-size:.7rem; font-weight:700; letter-spacing:.12em;
+            background:#fff7ed; border:1px solid #fed7aa;
+            color:#ea580c; font-size:.7rem; font-weight:700; letter-spacing:.1em;
             text-transform:uppercase; padding:.35rem .9rem; border-radius:99px; margin-bottom:1.5rem;
+            transition: opacity 0.4s ease, height 0.4s ease;
         }
         .cq-hero-title {
             font-size: clamp(2.2rem, 5.5vw, 4rem);
-            font-weight:900; color:#fff; line-height:1.06;
-            letter-spacing:-.035em; margin-bottom:.85rem;
+            font-weight:900; color:#111827; line-height:1.06;
+            letter-spacing:-.03em; margin-bottom:.85rem;
+            transition: font-size 0.55s cubic-bezier(0.22,1,0.36,1), margin-bottom 0.4s ease;
         }
         .cq-hero-title em { font-style:normal; color:#FF6B00; }
         .cq-hero-sub {
             font-size:clamp(.95rem, 1.8vw, 1.1rem);
-            color:rgba(255,255,255,.52); margin-bottom:2.25rem; line-height:1.65;
+            color:#6b7280; margin-bottom:2.25rem; line-height:1.65;
+            transition: opacity 0.3s ease;
         }
+
+        /* Hero compact state — after first product typed */
+        #cq-hero.cq-hero-compact { min-height:0; padding-top:1.25rem; padding-bottom:1rem; }
+        #cq-hero.cq-hero-compact .cq-hero-badge { display:none; }
+        #cq-hero.cq-hero-compact .cq-hero-sub { display:none; }
+        #cq-hero.cq-hero-compact .cq-hero-title { font-size:clamp(1.3rem,3vw,1.65rem); margin-bottom:.45rem; }
+        #cq-hero.cq-hero-compact .cq-hero-trust { display:none; }
+        #cq-hero.cq-hero-compact .cq-inspirations { display:none; }
+        #cq-hero.cq-hero-compact .cq-chips { margin-bottom:.5rem; }
 
         /* Search box */
         .cq-search-box {
             display:flex; align-items:stretch; gap:0;
-            background:#fff; border-radius:1rem;
-            box-shadow:0 24px 64px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08);
+            background:#fff; border-radius:1rem; border:1.5px solid #e5e7eb;
+            box-shadow: 0 4px 20px rgba(0,0,0,.07), 0 1px 4px rgba(0,0,0,.04);
             overflow:hidden; margin-bottom:.875rem;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .cq-search-box:focus-within {
+            border-color: #FF6B00;
+            box-shadow: 0 0 0 3px rgba(255,107,0,.1), 0 4px 20px rgba(0,0,0,.07);
         }
         .cq-search-input {
             flex:1; padding:1.05rem 1.25rem; font-size:1rem; color:#111827;
@@ -123,32 +142,34 @@
         /* Chips */
         .cq-chips { display:flex; flex-wrap:wrap; justify-content:center; gap:.38rem; margin-bottom:.875rem; }
         .cq-chip {
-            padding:.38rem .8rem; background:rgba(255,255,255,.07);
-            border:1px solid rgba(255,255,255,.13); border-radius:99px;
-            color:rgba(255,255,255,.75); font-size:.81rem; font-weight:500;
+            padding:.38rem .8rem; background:#f3f4f6; border:1.5px solid #e5e7eb;
+            border-radius:99px; color:#4b5563; font-size:.81rem; font-weight:500;
             cursor:pointer; transition:background .15s, border-color .15s, color .15s;
         }
         .cq-chip:hover, .cq-chip.cq-chip-active {
-            background:rgba(255,107,0,.22); border-color:rgba(255,107,0,.5); color:#fb923c;
+            background:#fff7ed; border-color:#fdba74; color:#ea580c;
         }
 
         /* Inspirations */
         .cq-inspirations { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:.35rem .55rem; }
-        .cq-insp-label { font-size:.73rem; color:rgba(255,255,255,.35); font-weight:500; }
+        .cq-insp-label { font-size:.73rem; color:#9ca3af; font-weight:500; }
         .cq-insp-pill {
-            font-size:.77rem; color:rgba(255,255,255,.45); background:none; border:none;
+            font-size:.77rem; color:#6b7280; background:none; border:none;
             cursor:pointer; text-decoration:underline; text-underline-offset:2px;
-            text-decoration-color:rgba(255,255,255,.18); transition:color .15s; padding:0;
+            text-decoration-color:rgba(107,114,128,.3); transition:color .15s; padding:0;
         }
-        .cq-insp-pill:hover { color:rgba(255,255,255,.8); }
+        .cq-insp-pill:hover { color:#FF6B00; }
 
         /* Hero trust strip */
         .cq-hero-trust { display:flex; flex-wrap:wrap; justify-content:center; gap:.65rem 1.5rem; margin-top:1.75rem; }
-        .cq-trust-item { font-size:.73rem; color:rgba(255,255,255,.4); display:flex; align-items:center; gap:.3rem; }
-        .cq-trust-item i { color:rgba(255,107,0,.6); font-size:.68rem; }
+        .cq-trust-item { font-size:.73rem; color:#9ca3af; display:flex; align-items:center; gap:.3rem; }
+        .cq-trust-item i { color:#FF6B00; font-size:.68rem; opacity:.7; }
 
         /* ── FLOW ── */
-        #cq-flow { background:#f4f4ef; min-height:100vh; padding:2.5rem 1.25rem 4rem; display:none; }
+        #cq-flow {
+            background:#f7f6f2; padding:2.5rem 1.25rem 4rem; display:none;
+            border-top: 1px solid #ede9e3;
+        }
         #cq-flow.cq-flow-visible { display:block; }
 
         .cq-flow-layout {
@@ -1057,6 +1078,46 @@
             if (e.key === 'Enter') { e.preventDefault(); var v = this.value.trim(); if (v.length >= 2) _startProductEntry(v); }
         });
 
+        // ── Flow reveal / hide animations ─────────────────────
+        function _revealFlow() {
+            if (!flowSection) return;
+            var already = flowSection.classList.contains('cq-flow-visible');
+            flowSection.style.display = 'block';
+            flowSection.style.opacity = '0';
+            flowSection.style.transform = 'translateY(32px)';
+            flowSection.style.transition = 'none';
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    flowSection.style.transition = 'opacity 0.5s ease, transform 0.6s cubic-bezier(0.22,1,0.36,1)';
+                    flowSection.style.opacity = '1';
+                    flowSection.style.transform = 'translateY(0)';
+                    flowSection.classList.add('cq-flow-visible');
+                    if (!already) {
+                        setTimeout(function () {
+                            var stepEl = document.getElementById('cq-step-product');
+                            if (stepEl) stepEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 180);
+                    }
+                });
+            });
+            if (heroSection) heroSection.classList.add('cq-hero-compact');
+        }
+
+        function _hideFlow() {
+            if (!flowSection) return;
+            flowSection.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            flowSection.style.opacity = '0';
+            flowSection.style.transform = 'translateY(12px)';
+            setTimeout(function () {
+                flowSection.style.display = 'none';
+                flowSection.style.transition = '';
+                flowSection.style.opacity = '';
+                flowSection.style.transform = '';
+                flowSection.classList.remove('cq-flow-visible');
+            }, 320);
+            if (heroSection) heroSection.classList.remove('cq-hero-compact');
+        }
+
         // ── Start product entry ───────────────────────────────
         function _startProductEntry(productName) {
             if (!productName || productName.length < 2) return;
@@ -1068,12 +1129,10 @@
             if (productBubble) productBubble.style.display = 'flex';
             if (productFields) productFields.style.display = 'none';
             if (intelArea) { intelArea.innerHTML = ''; intelArea.style.display = 'none'; }
-            // Show flow, hide hero
-            if (heroSection) heroSection.style.display = 'none';
-            if (flowSection) { flowSection.classList.add('cq-flow-visible'); }
+            // Reveal flow below hero (no page jump — hero stays, compresses)
+            _revealFlow();
             // Hide later steps until confirmed
             _hideEl('cq-step-shipping'); _hideEl('cq-step-contact'); _hideEl('cq-add-product-area');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
             // Classify
             if (heroBtn) { heroBtn.classList.add('loading'); heroBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; }
             if (typeof CRBOXProductClassifier !== 'undefined') {
@@ -1118,13 +1177,12 @@
         function _hideEl(id) { var el = document.getElementById(id); if (el) el.style.display = 'none'; }
         function _showEl(id) { var el = document.getElementById(id); if (el) { el.style.display = ''; el.classList.add('cq-fade-in'); } }
 
-        // ── Bubble edit (back to hero) ────────────────────────
+        // ── Bubble edit (scroll back up to hero search) ───────
         if (bubbleEditBtn) bubbleEditBtn.addEventListener('click', function() {
             var name = bubbleText ? bubbleText.textContent : '';
-            if (heroSection) heroSection.style.display = '';
-            if (flowSection) flowSection.classList.remove('cq-flow-visible');
-            if (heroInput) { heroInput.value = name; setTimeout(function() { heroInput.focus(); heroInput.select(); }, 100); }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (heroInput) { heroInput.value = name; }
+            if (heroSection) heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setTimeout(function() { if (heroInput) { heroInput.focus(); heroInput.select(); } }, 350);
         });
 
         // ── URL auto-extract on paste ─────────────────────────
@@ -1602,8 +1660,7 @@
         }
 
         function _hideSections() {
-            if (heroSection) heroSection.style.display = 'none';
-            if (flowSection) { flowSection.classList.remove('cq-flow-visible'); }
+            _hideFlow();
             if (confirmScreen) confirmScreen.classList.remove('visible');
             if (failureScreen) failureScreen.classList.remove('visible');
         }
@@ -1644,8 +1701,10 @@
             if (fNotes) fNotes.value = '';
             if (notesCharCount) notesCharCount.textContent = '0';
             if (conversionPanel) conversionPanel.style.display = '';
-            _hideSections();
-            if (heroSection) heroSection.style.display = '';
+            // Hide flow + screens; hero re-expands via _hideFlow()
+            _hideFlow();
+            if (confirmScreen) confirmScreen.classList.remove('visible');
+            if (failureScreen) failureScreen.classList.remove('visible');
             if (heroInput) heroInput.value = '';
             _resetEntryFields();
             ['err-destination','err-email','cq-err-price'].forEach(function(id) { var e = document.getElementById(id); if (e) e.style.display = 'none'; });
@@ -1657,9 +1716,12 @@
         if (btnNewAfterSmtp) btnNewAfterSmtp.addEventListener('click', resetFlow);
         if (btnRetry) btnRetry.addEventListener('click', function() {
             if (failureScreen) failureScreen.classList.remove('visible');
-            if (flowSection && _confirmedProducts.length) { flowSection.classList.add('cq-flow-visible'); }
-            else { if (heroSection) heroSection.style.display = ''; }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (_confirmedProducts.length) {
+                _revealFlow();
+            } else {
+                if (heroSection) heroSection.classList.remove('cq-hero-compact');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         });
         if (btnDismiss) btnDismiss.addEventListener('click', function() { if (conversionPanel) conversionPanel.style.display = 'none'; });
 
@@ -1667,6 +1729,7 @@
         function _renderIntelCard(result, productName, price) {
             if (!intelArea) return;
             if (!result) { intelArea.innerHTML = ''; intelArea.style.display = 'none'; return; }
+            intelArea.style.display = '';
             var hasKnownCat  = result.displayName && result.brainCategoryId !== 'unknown_manual_review';
             var hasRisk      = typeof CRBOXProductClassifier !== 'undefined' && CRBOXProductClassifier.hasRisk && CRBOXProductClassifier.hasRisk(result);
             var guidance     = result.geminiGuidance || '';
