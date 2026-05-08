@@ -540,6 +540,19 @@
                 </div>
             </div>
 
+            <!-- Brain manual-review guardrail notice -->
+            <div id="brain-manual-review-notice" class="hidden mb-4">
+                <div class="estimate-notice" style="background:#fffbeb;border-left-color:#f59e0b;">
+                    <div class="en-icon-wrap">
+                        <i class="fas fa-exclamation-triangle en-icon" style="color:#d97706;"></i>
+                    </div>
+                    <div class="en-text">
+                        <strong style="color:#92400e;">Uno o más artículos requieren revisión manual</strong>
+                        <p>El estimado se muestra como referencia, pero el costo final para estos artículos será confirmado por el equipo de CRBOX antes de procesar la solicitud.</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Estimate framing notice -->
             <div id="estimate-notice-wrap" class="hidden mb-6">
                 <div class="estimate-notice">
@@ -1092,6 +1105,8 @@
                         </div>
                         <!-- Brain classifier suggestion bar (injected dynamically by product-classifier.js) -->
                         <div id="brain-suggest-bar"></div>
+                        <!-- Brain compliance notice (shown for risk/forbidden/regulated products) -->
+                        <div id="brain-compliance-wrap"></div>
                     </div>
                 </div>
             </div>
@@ -1378,7 +1393,7 @@
     <script src="js/main.js?v=6"></script>
     <script src="js/product-categories.js?v=1"></script>
     <script src="js/tariff-adapter.js?v=3"></script>
-    <script src="js/product-classifier.js?v=1"></script>
+    <script src="js/product-classifier.js?v=2"></script>
     <script src="js/calculator-engine.js"></script>
     <script src="js/crbox-knowledge.js"></script>
     <script src="js/chat-calculator.js"></script>
@@ -1716,6 +1731,11 @@
                 $('url-input').value    = '';
                 if (modalCategoryTS) { modalCategoryTS.clear(); }
             }
+            // Clear brain suggestion bar and compliance notice on every modal open
+            const _bBar  = document.getElementById('brain-suggest-bar');
+            const _bComp = document.getElementById('brain-compliance-wrap');
+            if (_bBar)  _bBar.innerHTML  = '';
+            if (_bComp) _bComp.innerHTML = '';
 
             updateVolPreview();
             backdrop.classList.add('open');
@@ -1732,10 +1752,11 @@
             const name = (this.value || '').trim();
             if (name.length < 3) return;
             if (typeof CRBOXProductClassifier === 'undefined') return;
-            const catEl     = document.getElementById('modal-category');
-            const brainBarEl = document.getElementById('brain-suggest-bar');
+            const catEl            = document.getElementById('modal-category');
+            const brainBarEl       = document.getElementById('brain-suggest-bar');
+            const brainComplianceEl = document.getElementById('brain-compliance-wrap');
             if (!catEl || !brainBarEl) return;
-            CRBOXProductClassifier.suggest(name, catEl, brainBarEl, null, function () {
+            CRBOXProductClassifier.suggest(name, catEl, brainBarEl, brainComplianceEl, function (result) {
                 if (modalCategoryTS) {
                     const newVal = catEl.value;
                     if (newVal && modalCategoryTS.getValue() !== newVal) {
@@ -1962,10 +1983,11 @@
                 // no per-page KEYWORD_HINTS duplication).
                 // Never auto-applies: user must click "Usar esta" in the suggestion bar.
                 if (typeof CRBOXProductClassifier !== 'undefined' && title) {
-                    const catEl     = document.getElementById('modal-category');
-                    const brainBarEl = document.getElementById('brain-suggest-bar');
+                    const catEl            = document.getElementById('modal-category');
+                    const brainBarEl       = document.getElementById('brain-suggest-bar');
+                    const brainComplianceEl = document.getElementById('brain-compliance-wrap');
                     if (brainBarEl && catEl) {
-                        CRBOXProductClassifier.suggest(title, catEl, brainBarEl, null, function (result) {
+                        CRBOXProductClassifier.suggest(title, catEl, brainBarEl, brainComplianceEl, function (result) {
                             if (modalCategoryTS) {
                                 const newVal = catEl.value;
                                 if (newVal && modalCategoryTS.getValue() !== newVal) {
@@ -2044,6 +2066,21 @@
 
             /* ── Show estimate notice ── */
             $('estimate-notice-wrap').classList.remove('hidden');
+
+            /* ── Brain manual-review guardrail ── */
+            (function () {
+                const mrWrap = $('brain-manual-review-notice');
+                if (mrWrap) mrWrap.classList.add('hidden');
+                if (typeof CRBOXProductClassifier === 'undefined' || !items.length) return;
+                const names = items.map(it => it.name).filter(n => n && n.length >= 2);
+                if (!names.length) return;
+                Promise.all(names.map(n => CRBOXProductClassifier.classify(n, { noFallback: true })))
+                    .then(results => {
+                        const anyManual = results.some(r =>
+                            r && !CRBOXProductClassifier.shouldAllowAutomaticEstimate(r));
+                        if (anyManual && mrWrap) mrWrap.classList.remove('hidden');
+                    });
+            })();
 
             /* ── Update consolidated dossier ── */
             // tariffSource is set by engine: reflects per-item rates for mixed carts

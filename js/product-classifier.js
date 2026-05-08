@@ -148,7 +148,9 @@
             confidence: 'low', source: source || 'no_match',
             automaticEstimateAllowed: false, manualReviewRequired: true,
             regulatedProduct: false, restrictedProduct: false, forbiddenProduct: false,
-            riskFlags: [], customerMessage: '', adminNotes: '', actionForCustomer: '',
+            riskFlags: [],
+            customerMessage: 'Este producto requiere revisión por parte del equipo de CRBOX. Te contactaremos para confirmar si puede importarse y cuál sería el costo.',
+            adminNotes: '', actionForCustomer: '',
             actionForAdmin: '', estimatedRange: '',
         };
     }

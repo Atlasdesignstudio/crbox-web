@@ -1601,7 +1601,9 @@ def _handle_ai_classify(handler):
             'confidence': 'low', 'source': 'no_match',
             'automaticEstimateAllowed': False, 'manualReviewRequired': True,
             'regulatedProduct': False, 'restrictedProduct': False, 'forbiddenProduct': False,
-            'riskFlags': [], 'customerMessage': '', 'adminNotes': '',
+            'riskFlags': [],
+            'customerMessage': 'Este producto requiere revisión por parte del equipo de CRBOX. Te contactaremos para confirmar si puede importarse y cuál sería el costo.',
+            'adminNotes': '',
             'actionForCustomer': '', 'actionForAdmin': '', 'estimatedRange': '',
         })
 
@@ -2328,18 +2330,23 @@ def _send_smtp(msg, recipients):
             srv.sendmail(user, recipients, msg.as_string())
 
 
-def _build_customer_confirmation_html(scb_id, product_name, declared_value_usd,
-                                      category, submitted_at, products=None):
-    esc = _html.escape
-    cat_labels = {
-        # Legacy keys
+def _brain_display_name(category_code: str) -> str:
+    """Return a human-readable category name using the Product Brain, falling back
+    to a hardcoded label map if the brain doesn't know the code."""
+    if category_code:
+        brain_cat = _BRAIN_IDX.get(category_code)
+        if not brain_cat:
+            # Try by legacy code (some brain entries have a different ID than their legacy code)
+            brain_cat = next((c for c in _BRAIN_CATS if c.get('code') == category_code), None)
+        if brain_cat and brain_cat.get('displayName'):
+            return brain_cat['displayName']
+    _fallback_labels = {
         'ropa': 'Ropa y calzado', 'electronico': 'Electrónico',
         'computadora': 'Computadoras', 'celular': 'Celulares',
         'auricular_telefono': 'Auriculares', 'electrodomestico': 'Electrodoméstico',
         'cosmetico': 'Cosméticos', 'suplemento': 'Suplementos',
         'libro': 'Libros', 'juguete': 'Juguetes', 'herramienta': 'Herramientas',
         'equipo_medico': 'Equipo médico', 'deportivo': 'Deportivo', 'otros': 'Otros',
-        # Modern keys
         'celulares': 'Celulares', 'tableta_electronica': 'Tabletas',
         'consola_videojuegos': 'Consolas', 'camara': 'Cámaras', 'bocina': 'Bocinas',
         'televisor': 'Televisores', 'anteojos': 'Anteojos', 'cinturon': 'Cinturones',
@@ -2354,6 +2361,23 @@ def _build_customer_confirmation_html(scb_id, product_name, declared_value_usd,
         'hogar_otro': 'Otro — Hogar', 'deporte_otro': 'Otro — Deportes',
         'bebe_otro': 'Otro — Bebé', 'vehic_otro': 'Otro — Vehículos',
     }
+    return _fallback_labels.get(category_code, category_code or 'Otros')
+
+
+def _brain_customer_message(category_code: str) -> str:
+    """Return the brain's customerMessage for a category code, or ''."""
+    if not category_code:
+        return ''
+    brain_cat = _BRAIN_IDX.get(category_code)
+    if not brain_cat:
+        brain_cat = next((c for c in _BRAIN_CATS if c.get('code') == category_code), None)
+    return (brain_cat or {}).get('customerMessage', '') if brain_cat else ''
+
+
+def _build_customer_confirmation_html(scb_id, product_name, declared_value_usd,
+                                      category, submitted_at, products=None):
+    esc = _html.escape
+
     # Build product rows — list if multi-product, otherwise single row
     if products and isinstance(products, list) and len(products) > 1:
         prod_rows = (
@@ -2362,7 +2386,7 @@ def _build_customer_confirmation_html(scb_id, product_name, declared_value_usd,
             + ''.join(
                 f'<div style="margin-bottom:4px;">'
                 f'<span style="font-weight:600;">{esc(str(p.get("name") or "Producto"))}</span>'
-                + (f' &mdash; <span style="color:#6b7280;font-size:12px;">{esc(cat_labels.get(str(p.get("category") or "otros"), str(p.get("category") or "Otros")))}</span>' if p.get("category") else '')
+                + (f' &mdash; <span style="color:#6b7280;font-size:12px;">{esc(_brain_display_name(str(p.get("category") or "")))}</span>' if p.get("category") else '')
                 + (f' &mdash; <span style="color:#374151;font-size:12px;">${float(p.get("declared_value_usd") or 0):,.2f} USD</span>' if p.get("declared_value_usd") else '')
                 + '</div>'
                 for p in products
@@ -2374,12 +2398,34 @@ def _build_customer_confirmation_html(scb_id, product_name, declared_value_usd,
             f'<tr><td style="padding:5px 0;color:#666;">Valor total declarado</td>'
             f'<td style="padding:5px 0;color:#111;">${total_val:,.2f} USD</td></tr>'
         )
+        # Gather any risk-related customerMessages from brain for the listed products
+        _brain_msgs = list({
+            _brain_customer_message(str(p.get('category') or ''))
+            for p in products
+            if _brain_customer_message(str(p.get('category') or ''))
+        })
     else:
+        _cat_display = _brain_display_name(category or '')
         prod_rows = (
             f'<tr><td style="padding:5px 0;color:#666;width:40%;">Producto</td><td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
             f'<tr><td style="padding:5px 0;color:#666;">Valor declarado</td><td style="padding:5px 0;color:#111;">${declared_value_usd:,.2f} USD</td></tr>'
-            f'<tr><td style="padding:5px 0;color:#666;">Categoría</td><td style="padding:5px 0;color:#111;">{esc(cat_labels.get(category, category))}</td></tr>'
+            f'<tr><td style="padding:5px 0;color:#666;">Categoría</td><td style="padding:5px 0;color:#111;">{esc(_cat_display)}</td></tr>'
         )
+        _single_brain_msg = _brain_customer_message(category or '')
+        _brain_msgs = [_single_brain_msg] if _single_brain_msg else []
+
+    # Build brain compliance notice block (shown only when brain has a relevant message)
+    _brain_notice_block = ''
+    if _brain_msgs:
+        for _msg in _brain_msgs:
+            _brain_notice_block += (
+                '<div style="background:#fffbeb;border-left:4px solid #f59e0b;border-radius:4px;'
+                'padding:12px 16px;margin-bottom:12px;">'
+                '<p style="margin:0;font-size:13px;color:#78350f;line-height:1.6;">'
+                '<strong style="color:#92400e;">Nota sobre tu producto:</strong> '
+                f'{esc(_msg)}</p>'
+                '</div>'
+            )
 
     return (
         '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;'
@@ -2395,6 +2441,7 @@ def _build_customer_confirmation_html(scb_id, product_name, declared_value_usd,
         'padding:28px;border-radius:0 0 8px 8px;">'
         '<p style="font-size:15px;color:#111;margin:0 0 20px;">Hemos recibido tu solicitud de compra. '
         'El equipo de CRBOX la revisará y te contactará pronto.</p>'
+        + _brain_notice_block +
         '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:16px 20px;margin-bottom:20px;">'
         '<p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#FF6B00;text-transform:uppercase;letter-spacing:.06em;">Detalles de tu solicitud</p>'
         '<table style="width:100%;border-collapse:collapse;font-size:14px;">'
@@ -12271,6 +12318,28 @@ def _handle_ai_chat(handler):
     page_context = f'El usuario está en la página "{page_label}" ({page}.html). '
     if server_greeting:
         page_context += f'Contexto de página: {server_greeting} '
+
+    # Product classification context — sent by chat-panel.js when the user has a
+    # classified product in scope. Injected as structured context, not raw user input.
+    _pc = body.get('product_classification')
+    if isinstance(_pc, dict) and isinstance(_pc.get('brainCategoryId'), str):
+        _pc_parts = []
+        if _pc.get('displayName'):
+            _pc_parts.append(f'categoría: {str(_pc["displayName"])[:80]}')
+        if _pc.get('estimatedRange'):
+            _pc_parts.append(f'arancel estimado: {str(_pc["estimatedRange"])[:40]}')
+        if _pc.get('forbiddenProduct'):
+            _pc_parts.append('producto PROHIBIDO para importación')
+        elif _pc.get('restrictedProduct'):
+            _pc_parts.append('producto RESTRINGIDO (requiere gestión especial)')
+        elif _pc.get('regulatedProduct'):
+            _pc_parts.append('producto regulado (puede requerir documentación)')
+        if _pc.get('manualReviewRequired'):
+            _pc_parts.append('requiere revisión manual por CRBOX')
+        if _pc.get('customerMessage'):
+            _pc_parts.append(f'mensaje al cliente: {str(_pc["customerMessage"])[:200]}')
+        if _pc_parts:
+            page_context += f'[Producto clasificado — {"; ".join(_pc_parts)}] '
 
     # ── 4. Build Gemini contents from sanitised history ───────────────────────
     contents = []
