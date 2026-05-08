@@ -1,0 +1,600 @@
+#404 - Concierge-Style AI Product Intake Experience (Public + Portal Quote Flow)
+
+What & Why
+
+The current quote/category flow still feels too technical and form-heavy.
+
+Even with Product Brain and the classifier implemented, the experience still behaves like:
+- “fill fields”
+- “pick category”
+- “paste URL”
+- “hope the AI extracts correctly”
+
+This does not feel modern, concierge-like, AI-native, or emotionally smooth.
+
+The goal of this task is to redesign the quote intake experience across the PUBLIC quote flow and the CLIENT PORTAL quote flow into a more human, guided, conversational product-intake experience.
+
+The experience should feel less like:
+“Fill a shipping form.”
+
+And more like:
+“Tell CRBOX what you want to bring and we’ll help you understand it.”
+
+This task focuses on UX + interaction architecture + AI orchestration.
+
+NOT on changing calculator math or admin quote logic.
+
+---
+
+CORE EXPERIENCE SHIFT
+
+Move from:
+technical form-first UX
+
+To:
+AI concierge product understanding UX.
+
+The first interaction should not feel like:
+- category selection
+- forms
+- dropdowns
+- customs language
+- courier complexity
+
+The first interaction should feel like:
+- product discovery
+- product understanding
+- import guidance
+- conversational assistance
+- progressive disclosure
+
+The system should help the customer understand:
+- what category the product belongs to
+- what taxes it usually pays
+- whether it may require permits
+- whether it may need review
+- whether CRBOX can likely bring it
+- what information is still needed
+
+WITHOUT overwhelming the user.
+
+---
+
+TOUCHPOINTS REQUIRED
+
+Apply this experience to:
+
+1. Public cotizar flow
+2. Client portal quote creation flow
+3. Multi-product flows
+4. Product URL interpretation
+5. Product understanding step before calculation
+6. Transition into calculadora
+7. Transition into final CRBOX quote request
+8. Floating CRBOX AI assistant/chat
+
+Admin/sales must still receive ALL structured information internally.
+
+---
+
+NEW UX DIRECTION
+
+Instead of starting with:
+- Product name
+- Category dropdown
+- Declared value
+- URL
+
+The experience should begin with:
+
+“What would you like to bring?”
+
+Then:
+optional URL input
+
+Then:
+AI interpretation
+
+Then:
+friendly explanation
+
+Then:
+next action
+
+The user should feel guided by a smart assistant.
+
+---
+
+NEW PRODUCT INTAKE COMPONENT
+
+Create a modern AI concierge intake component.
+
+This component should visually feel:
+- modern
+- conversational
+- lightweight
+- calm
+- premium
+- human
+- less like a logistics form
+
+It should NOT feel like:
+- customs software
+- enterprise ERP
+- spreadsheet UI
+- courier backoffice
+
+Think:
+- modern AI assistant
+- concierge intake
+- Apple-like simplicity
+- linear onboarding
+- progressive guidance
+
+---
+
+INITIAL STATE
+
+Instead of showing category dropdowns immediately:
+
+Show:
+
+Headline:
+“¿Qué te gustaría traer?”
+
+Subheadline:
+“Cuéntanos el producto y CRBOX te ayudará a entender impuestos, restricciones y próximos pasos.”
+
+Input:
+“Describe tu producto”
+
+Examples below:
+- “AirPods Pro”
+- “Tenis Nike”
+- “Computadora gaming”
+- “Perfume Dior”
+- “Stanley Quencher”
+- “Proteína Whey”
+
+Optional secondary input:
+“Agregar enlace del producto (opcional)”
+
+CTA:
+“Obtener información”
+
+The URL should feel optional and supportive.
+
+NOT mandatory.
+
+---
+
+IMPORTANT CHANGE — URL IS CONTEXT, NOT SCRAPING MISSION
+
+The current AI crawling/scraping approach is too fragile and creates broken-feeling UX.
+
+Do NOT optimize for:
+- perfect crawling
+- perfect extraction
+- perfect dimensions
+- perfect scraping
+
+Instead:
+
+Treat the URL as contextual assistance.
+
+The real intelligence should come from:
+- Gemini interpretation
+- Product Brain
+- semantic approximation
+- natural language understanding
+
+The system may attempt to extract:
+- title
+- category hints
+- price if available
+
+But if the crawl is incomplete:
+the UX should still feel successful and guided.
+
+Examples:
+
+“Ya entendimos el tipo de producto.”
+“Detectamos una categoría probable.”
+“Solo falta confirmar algunos detalles.”
+
+NOT:
+- “No se pudo analizar”
+- “AI failed”
+- “No match”
+- “Extraction error”
+
+---
+
+AI INTERPRETATION RESULT EXPERIENCE
+
+After clicking:
+“Obtener información”
+
+The user receives a friendly AI understanding card.
+
+This card should feel:
+- informative
+- calm
+- useful
+- human
+- reassuring
+
+NOT technical.
+
+---
+
+EXAMPLE RESULT — NORMAL PRODUCT
+
+User:
+“Tenis Nike”
+
+Result card:
+
+Headline:
+“Esto normalmente pertenece a Calzado”
+
+Supporting text:
+“Los productos de esta categoría suelen pagar aproximadamente 29% en impuestos.”
+
+Secondary text:
+“El monto final puede variar según materiales y revisión aduanera.”
+
+Next-step helper:
+“Si quieres una estimación más cercana del costo de envío, puedes continuar hacia la calculadora.”
+
+Buttons:
+- “Continuar a calculadora”
+- “Solicitar cotización con CRBOX”
+
+---
+
+EXAMPLE RESULT — MANUAL REVIEW PRODUCT
+
+User:
+“Proteína Whey”
+
+Headline:
+“Este producto puede requerir revisión especial”
+
+Supporting text:
+“Los suplementos pueden requerir validación sanitaria antes de importarse.”
+
+Secondary:
+“CRBOX puede ayudarte a revisarlo antes de que realices la compra.”
+
+Buttons:
+- “Solicitar revisión con CRBOX”
+- “Continuar de todas formas”
+
+No misleading automatic totals.
+
+---
+
+EXAMPLE RESULT — BATTERY PRODUCT
+
+User:
+“Power bank”
+
+Headline:
+“Este producto contiene batería de litio”
+
+Supporting text:
+“Los productos con batería pueden requerir validación especial de transporte.”
+
+Secondary:
+“CRBOX revisará si puede enviarse y bajo qué condiciones.”
+
+---
+
+EXAMPLE RESULT — FORBIDDEN/RESTRICTED PRODUCT
+
+User:
+“Arma”
+
+Headline:
+“Este producto puede estar restringido”
+
+Supporting text:
+“No recomendamos comprarlo antes de que CRBOX confirme si puede importarse o transportarse.”
+
+Secondary:
+“Algunos productos requieren validación legal especial o no pueden enviarse por courier.”
+
+No aggressive red error UI.
+
+Still feels guided and human.
+
+---
+
+MULTI-PRODUCT EXPERIENCE
+
+The user must still be able to add:
+- multiple products
+- multiple URLs
+- multiple product descriptions
+
+up to the current existing limits.
+
+But the experience should feel modular and conversational.
+
+Each product becomes:
+- an interpreted AI product card
+- with category understanding
+- tax guidance
+- compliance guidance
+- next-step guidance
+
+NOT a rigid form row.
+
+---
+
+TRANSITION TO CALCULADORA
+
+The AI intake should intelligently guide users into:
+- calculadora
+- or CRBOX quote submission
+
+depending on intent.
+
+---
+
+IF USER WANTS GENERAL UNDERSTANDING
+
+Example:
+“How much do shoes pay?”
+
+Guide them toward:
+- friendly explanation
+- category understanding
+- optional calculator
+
+---
+
+IF USER WANTS SHIPPING ESTIMATE
+
+Guide toward:
+“Continuar a calculadora”
+
+AND preload:
+- detected product
+- category
+- Product Brain result
+- any extracted title
+- URL if present
+
+The calculadora should hydrate automatically with this context.
+
+The user should NOT need to repeat information.
+
+---
+
+IF USER WANTS HUMAN REVIEW / FULL QUOTE
+
+Guide toward:
+“Solicitar cotización con CRBOX”
+
+OR:
+“Enviar a revisión”
+
+The existing quote flow should receive:
+- all detected metadata
+- Product Brain classification
+- customer input
+- URL
+- extracted title
+- semantic approximation
+- risk flags
+- category
+- tax range
+- all AI interpretation context
+
+---
+
+IMPORTANT — ADMIN MUST RECEIVE FULL STRUCTURED DATA
+
+Even though the customer-facing UX becomes lighter and more conversational:
+
+CRBOX admin/sales must receive ALL structured metadata internally.
+
+Nothing should be lost.
+
+The admin panel should still receive:
+- original input
+- URL
+- extracted title
+- Product Brain category
+- legacy category code
+- semantic approximation
+- estimatedDAI
+- IVA
+- totalEstimatedRate
+- manualReviewRequired
+- regulatedProduct
+- restrictedProduct
+- forbiddenProduct
+- riskFlags
+- customerMessage
+- adminNotes
+- actionForAdmin
+- extraction source
+- any AI reasoning metadata needed internally
+
+The UX can feel simple to the customer while remaining extremely structured internally.
+
+---
+
+FLOATING AI CHAT ASSISTANT
+
+The floating CRBOX AI assistant must become part of this ecosystem.
+
+The assistant should:
+- behave like the same concierge
+- use the same Product Brain
+- use the same classifier
+- use the same customerMessage logic
+- use the same semantic approximation
+- use the same risk handling
+
+The assistant should feel connected to the quote flow.
+
+NOT like a separate generic chatbot.
+
+---
+
+EXAMPLES
+
+User:
+“Quiero traer unos AirPods”
+
+Assistant:
+“Los AirPods normalmente pertenecen a Electrónica y suelen pagar aproximadamente 14–15% en impuestos.”
+
+Then:
+“¿Quieres recibir una estimación de envío o prefieres solicitar una cotización con CRBOX?”
+
+---
+
+User:
+“Quiero traer proteína”
+
+Assistant:
+“Los suplementos pueden requerir validación sanitaria antes de importarse.”
+
+Then:
+“CRBOX puede ayudarte a revisarlo antes de que hagas la compra.”
+
+---
+
+User:
+“Quiero traer esto”
+[pastes URL]
+
+Assistant:
+“Ya entendimos el tipo de producto.”
+
+Then:
+“Parece pertenecer a la categoría Calzado.”
+
+Then:
+“¿Quieres calcular un estimado o enviar una solicitud a CRBOX?”
+
+---
+
+IMPORTANT UX PRINCIPLES
+
+The system should feel:
+- human
+- guided
+- modern
+- intelligent
+- calm
+- premium
+- concierge-like
+- friction-light
+
+NOT:
+- robotic
+- technical
+- customs-heavy
+- logistics-software-like
+- aggressive
+- error-driven
+
+---
+
+NO HARD FAILURE UX
+
+Never show:
+- “AI failed”
+- “Producto no encontrado”
+- “Unknown category”
+- “No se pudo analizar”
+- “No match”
+- “Extraction error”
+
+Always reframe uncertainty positively.
+
+Examples:
+- “Detectamos una categoría probable.”
+- “Ya entendimos parte del producto.”
+- “Solo falta confirmar algunos detalles.”
+- “CRBOX puede ayudarte a revisarlo.”
+
+---
+
+TECHNICAL REQUIREMENTS
+
+Use existing:
+- Product Brain
+- CRBOXProductClassifier
+- Gemini infrastructure
+- existing quote payloads
+- existing calculator
+- existing reminder/email flows
+- existing admin flows
+
+Do NOT:
+- rewrite calculator math
+- break legacy category codes
+- break quote payloads
+- break emails
+- break reminders
+- break old records
+- duplicate classification logic
+
+---
+
+CLASSIFICATION FLOW
+
+The ideal flow should be:
+
+User input  
+→ Gemini interpretation  
+→ Product Brain validation  
+→ semantic approximation if needed  
+→ normalized classification result  
+→ friendly concierge explanation  
+→ next-step routing  
+→ existing calculator/admin systems
+
+---
+
+IMPLEMENTATION PRIORITIES
+
+1. Redesign intake UX around conversational product understanding.
+2. Downgrade category dropdown importance.
+3. Make URL optional/contextual.
+4. Improve partial-success states.
+5. Build AI understanding cards.
+6. Add next-step guidance.
+7. Hydrate calculadora automatically.
+8. Hydrate quote flow automatically.
+9. Keep admin extremely structured.
+10. Integrate floating AI assistant into same ecosystem.
+
+---
+
+ACCEPTANCE CRITERIA
+
+- Public quote flow feels AI-first and concierge-like.
+- Client portal quote flow feels AI-first and concierge-like.
+- User can describe products naturally.
+- URL is optional/contextual.
+- AI interpretation feels helpful even when partial.
+- Product Brain explanations are visible.
+- Tax guidance is understandable.
+- Regulated/restricted products are handled gracefully.
+- Calculadora can preload from intake flow.
+- Quote requests preserve all metadata internally.
+- Floating AI assistant uses same logic.
+- No duplicated classification logic exists.
+- Existing backend infrastructure still works.
+- Existing calculator math remains unchanged.
+- Existing quote lifecycle remains unchanged.
+- Existing admin flows remain unchanged.
+- UX feels modern, premium, human, and low-friction.

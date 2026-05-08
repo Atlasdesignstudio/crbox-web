@@ -2897,6 +2897,21 @@ def _build_response_email_html(scb_id, product_name, customer_name,
 
     greeting = f'Hola {esc(customer_name)},' if customer_name else 'Hola,'
 
+    # Brain compliance notice — use product name to find category data
+    _brain_resp_cat, _brain_resp_conf = _brain_local_match(product_name or '')
+    _brain_resp_msg = (_brain_resp_cat.get('customerMessage', '') if _brain_resp_cat else '') or ''
+    _brain_resp_display = (_brain_resp_cat.get('displayName', '') if _brain_resp_cat else '') or ''
+    _brain_resp_notice = ''
+    if _brain_resp_msg:
+        _brain_resp_notice = (
+            '<div style="background:#fffbeb;border-left:4px solid #f59e0b;border-radius:4px;'
+            'padding:12px 16px;margin:16px 0;">'
+            '<p style="margin:0;font-size:13px;color:#78350f;line-height:1.6;">'
+            '<strong style="color:#92400e;">Nota sobre tu producto:</strong> '
+            f'{esc(_brain_resp_msg)}</p>'
+            '</div>'
+        )
+
     price_rows = ''
     if availability != 'no_disponible':
         price_rows = (
@@ -3233,6 +3248,7 @@ def _build_response_email_html(scb_id, product_name, customer_name,
         '</table>'
         '</div>'
         f'{conditions_block}'
+        f'{_brain_resp_notice}'
         f'{message_block}'
         f'{diff_block}'
         f'{breakdown_block}'
@@ -12338,6 +12354,8 @@ def _handle_ai_chat(handler):
             _pc_parts.append('requiere revisión manual por CRBOX')
         if _pc.get('customerMessage'):
             _pc_parts.append(f'mensaje al cliente: {str(_pc["customerMessage"])[:200]}')
+        if _pc.get('actionForCustomer'):
+            _pc_parts.append(f'acción recomendada al cliente: {str(_pc["actionForCustomer"])[:200]}')
         if _pc_parts:
             page_context += f'[Producto clasificado — {"; ".join(_pc_parts)}] '
 

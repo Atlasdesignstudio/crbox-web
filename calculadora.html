@@ -885,8 +885,17 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del producto *</label>
-                    <input type="text" id="modal-name" class="calc-input" placeholder="Ej: Auriculares Sony WH-1000XM5">
+                    <div class="flex gap-2">
+                        <input type="text" id="modal-name" class="calc-input flex-1" placeholder="Ej: Auriculares Sony WH-1000XM5">
+                        <button type="button" id="btn-brain-analyze"
+                            class="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap flex-shrink-0 flex items-center gap-1.5"
+                            title="Clasificar este producto con IA">
+                            <i class="fas fa-wand-magic-sparkles text-xs"></i> Analizar
+                        </button>
+                    </div>
                     <span id="badge-name" class="badge-inferred mt-1.5 hidden"><i class="fas fa-wand-magic-sparkles text-xs"></i> Inferido — confirmar</span>
+                    <!-- Brain customer classification view (injected dynamically after explicit Analizar click) -->
+                    <div id="brain-customer-view" class="mt-2"></div>
                 </div>
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                     <div>
@@ -1731,11 +1740,13 @@
                 $('url-input').value    = '';
                 if (modalCategoryTS) { modalCategoryTS.clear(); }
             }
-            // Clear brain suggestion bar and compliance notice on every modal open
-            const _bBar  = document.getElementById('brain-suggest-bar');
-            const _bComp = document.getElementById('brain-compliance-wrap');
-            if (_bBar)  _bBar.innerHTML  = '';
-            if (_bComp) _bComp.innerHTML = '';
+            // Clear brain suggestion bar, compliance notice and customer view on every modal open
+            const _bBar   = document.getElementById('brain-suggest-bar');
+            const _bComp  = document.getElementById('brain-compliance-wrap');
+            const _bCView = document.getElementById('brain-customer-view');
+            if (_bBar)   _bBar.innerHTML   = '';
+            if (_bComp)  _bComp.innerHTML  = '';
+            if (_bCView) _bCView.innerHTML = '';
 
             updateVolPreview();
             backdrop.classList.add('open');
@@ -1765,6 +1776,60 @@
                 }
             });
         });
+
+        /* ── "Analizar producto" button — explicit classify + customer view ──── */
+        (function () {
+            const btnAnalyze = $('btn-brain-analyze');
+            if (!btnAnalyze) return;
+            btnAnalyze.addEventListener('click', function () {
+                const name = ($('modal-name').value || '').trim();
+                if (!name || name.length < 2) return;
+                if (typeof CRBOXProductClassifier === 'undefined') return;
+
+                // Visual feedback while classifying
+                btnAnalyze.disabled = true;
+                const origHtml = btnAnalyze.innerHTML;
+                btnAnalyze.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> Analizando…';
+
+                const catEl            = document.getElementById('modal-category');
+                const brainBarEl       = document.getElementById('brain-suggest-bar');
+                const brainComplianceEl = document.getElementById('brain-compliance-wrap');
+                const customerViewEl    = document.getElementById('brain-customer-view');
+
+                CRBOXProductClassifier.classify(name).then(function (result) {
+                    btnAnalyze.disabled = false;
+                    btnAnalyze.innerHTML = origHtml;
+                    if (!result) return;
+
+                    // Auto-select category (if not already set and result has a matching option)
+                    if (catEl && !catEl.value && result.legacyCode) {
+                        const opt = catEl.querySelector('option[value="' + result.legacyCode + '"]');
+                        if (opt) {
+                            catEl.value = result.legacyCode;
+                            catEl.dispatchEvent(new Event('change', { bubbles: true }));
+                            if (modalCategoryTS && modalCategoryTS.getValue() !== result.legacyCode) {
+                                modalCategoryTS.setValue(result.legacyCode, true);
+                            }
+                            // Clear suggestion bar since we just applied it
+                            if (brainBarEl) brainBarEl.innerHTML = '';
+                        }
+                    }
+
+                    // Show compliance notice for risk/forbidden products
+                    if (brainComplianceEl) {
+                        brainComplianceEl.innerHTML = '';
+                        CRBOXProductClassifier.showComplianceNotice(brainComplianceEl, result);
+                    }
+
+                    // Show customer classification view (category badge + tariff range + actionForCustomer)
+                    if (customerViewEl) {
+                        customerViewEl.innerHTML = '';
+                        const view = CRBOXProductClassifier.buildCustomerClassificationView(result);
+                        if (view) customerViewEl.appendChild(view);
+                    }
+                });
+            });
+        })();
 
         $('btn-open-item-modal').addEventListener('click', () => openModal());
         $('modal-close-btn').addEventListener('click', closeModal);
@@ -2074,11 +2139,30 @@
                 if (typeof CRBOXProductClassifier === 'undefined' || !items.length) return;
                 const names = items.map(it => it.name).filter(n => n && n.length >= 2);
                 if (!names.length) return;
+                const _REVIEW_PLACEHOLDER = 'Por confirmar — revisión CRBOX';
                 Promise.all(names.map(n => CRBOXProductClassifier.classify(n, { noFallback: true })))
                     .then(results => {
                         const anyManual = results.some(r =>
                             r && !CRBOXProductClassifier.shouldAllowAutomaticEstimate(r));
-                        if (anyManual && mrWrap) mrWrap.classList.remove('hidden');
+                        if (!anyManual) return;
+
+                        // Show the informational banner
+                        if (mrWrap) mrWrap.classList.remove('hidden');
+
+                        // Hard-suppress any final-looking totals so users can't anchor on
+                        // an estimate that CRBOX has not yet confirmed.
+                        const conTotal = $('d-con-total');
+                        const sepTotal = $('d-sep-grand-total');
+                        if (conTotal) conTotal.textContent = _REVIEW_PLACEHOLDER;
+                        if (sepTotal) sepTotal.textContent = _REVIEW_PLACEHOLDER;
+
+                        // Also replace hero savings amount with a neutral label
+                        const heroAmt = $('hero-savings-amount');
+                        const heroPct = $('hero-savings-pct');
+                        const heroWhy = $('hero-savings-why');
+                        if (heroAmt) heroAmt.textContent = 'Por confirmar';
+                        if (heroPct) heroPct.textContent = '';
+                        if (heroWhy) heroWhy.textContent = 'Uno o más artículos requieren revisión manual. CRBOX confirmará el costo exacto.';
                     });
             })();
 
