@@ -780,6 +780,11 @@
           || document.querySelector('.px-6.py-2');
         if (!_productWrap) return;
 
+        // Idempotent: remove any prior classification block before re-rendering
+        // (prevents duplicate notices on repeated renderSolicitud() calls).
+        var _stale = document.getElementById('sol-brain-compliance');
+        if (_stale) _stale.parentNode.removeChild(_stale);
+
         var _noticeWrap = document.createElement('div');
         _noticeWrap.id = 'sol-brain-compliance';
         _productWrap.appendChild(_noticeWrap);

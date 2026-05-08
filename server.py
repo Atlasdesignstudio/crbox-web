@@ -3907,8 +3907,15 @@ def _send_quote_reminder_customer(scb_id, customer_email, customer_name,
         _brain_rem_display = (_brain_rem_cat.get('displayName', '') if _brain_rem_cat else '') or ''
         _brain_rem_msg     = (_brain_rem_cat.get('customerMessage', '') if _brain_rem_cat else '') or ''
         _brain_rem_manual  = bool(_brain_rem_cat.get('manualReviewRequired', False) if _brain_rem_cat else False)
-    # Use display name for the product label if the brain recognised the product
-    _product_label = _brain_rem_display if _brain_rem_display else (product_name or '')
+    # Always keep the original product name for customer clarity; append the brain
+    # category display name in parentheses when it differs (adds context without
+    # replacing the name the customer actually used in their request).
+    _pn_base = (product_name or '').strip()
+    _product_label = (
+        (_pn_base + ' (' + _brain_rem_display + ')')
+        if _brain_rem_display and _brain_rem_display.lower() not in _pn_base.lower()
+        else (_pn_base or _brain_rem_display or '')
+    )
     # Compliance notice block for the reminder body
     _brain_rem_notice = ''
     if _brain_rem_msg:
