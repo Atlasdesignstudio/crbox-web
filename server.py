@@ -8996,11 +8996,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
     def _json_response(self, status, payload):
         body = json.dumps(payload).encode()
-        self.send_response(status)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Content-Length', str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.send_response(status)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
 
     def _json_error(self, status, message):
         self._json_response(status, {'error': message})
