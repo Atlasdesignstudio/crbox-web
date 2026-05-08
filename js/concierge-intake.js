@@ -189,12 +189,12 @@
 
     var headingEl = document.createElement('p');
     headingEl.className = 'ci-heading';
-    headingEl.textContent = '¿Qué te gustaría traer?';
+    headingEl.textContent = '¿Qué te gustaría traer a Costa Rica?';
     wrap.appendChild(headingEl);
 
     var subEl = document.createElement('p');
     subEl.className = 'ci-sub';
-    subEl.textContent = 'Escríbenos qué quieres comprar en USA y te mostramos categoría, arancel estimado y si hay algún requisito especial.';
+    subEl.textContent = 'Cuéntanos el producto que quieres traer y te ayudamos a entender su categoría, impuestos estimados y si requiere alguna revisión especial.';
     wrap.appendChild(subEl);
 
     var inputRow = document.createElement('div');
@@ -212,7 +212,7 @@
     var analyzeBtn = document.createElement('button');
     analyzeBtn.type = 'button';
     analyzeBtn.className = 'ci-btn';
-    analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Obtener información';
+    analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Analizar';
     analyzeBtn.disabled = true;
     inputRow.appendChild(analyzeBtn);
     wrap.appendChild(inputRow);
@@ -237,36 +237,30 @@
       wrap.appendChild(chipsWrap);
     }
 
-    var extraFieldsVisible = false;
     var extraFieldsEl = null;
     var urlInput = null;
     var priceInput = null;
 
     if (showUrl || showPrice) {
-      var expandRow = document.createElement('div');
-      expandRow.className = 'ci-expand-row';
-      var expandToggle = document.createElement('button');
-      expandToggle.type = 'button';
-      expandToggle.className = 'ci-expand-toggle';
-      expandToggle.innerHTML = '<i class="fas fa-plus" style="font-size:.65rem;margin-right:.25rem;"></i>Agregar URL o precio (mejora el análisis)';
-      expandRow.appendChild(expandToggle);
-      wrap.appendChild(expandRow);
-
       extraFieldsEl = document.createElement('div');
       extraFieldsEl.className = 'ci-extra-fields';
-      extraFieldsEl.style.display = 'none';
 
       if (showUrl) {
         var urlWrap = document.createElement('div');
         urlWrap.className = 'ci-field-wrap';
         var urlLabel = document.createElement('label');
         urlLabel.className = 'ci-field-label';
-        urlLabel.textContent = 'URL del producto (mejora la clasificación)';
+        urlLabel.textContent = 'Enlace del producto';
         urlInput = document.createElement('input');
         urlInput.type = 'url';
         urlInput.className = 'ci-field-input';
         urlInput.placeholder = 'https://www.amazon.com/dp/...';
         urlInput.maxLength = 500;
+
+        var urlHint = document.createElement('span');
+        urlHint.className = 'ci-field-label';
+        urlHint.style.cssText = 'font-size:.7rem;color:#9ca3af;font-weight:400;margin-top:.15rem;display:block;';
+        urlHint.textContent = 'Opcional — nos ayuda a revisar mejor el producto.';
 
         // When URL is pasted and name is empty, try to auto-populate
         urlInput.addEventListener('change', function () {
@@ -292,6 +286,7 @@
 
         urlWrap.appendChild(urlLabel);
         urlWrap.appendChild(urlInput);
+        urlWrap.appendChild(urlHint);
         extraFieldsEl.appendChild(urlWrap);
       }
 
@@ -300,28 +295,25 @@
         priceWrap.className = 'ci-field-wrap';
         var priceLabel = document.createElement('label');
         priceLabel.className = 'ci-field-label';
-        priceLabel.textContent = 'Precio aprox. en USD (calcula impuesto en dólares)';
+        priceLabel.textContent = 'Precio aproximado (USD)';
         priceInput = document.createElement('input');
         priceInput.type = 'number';
         priceInput.className = 'ci-field-input';
-        priceInput.placeholder = 'Ej: 150';
+        priceInput.placeholder = 'Ej: 49.99';
         priceInput.min = '0';
         priceInput.step = '0.01';
         priceInput.inputMode = 'decimal';
+        var priceHint = document.createElement('span');
+        priceHint.className = 'ci-field-label';
+        priceHint.style.cssText = 'font-size:.7rem;color:#9ca3af;font-weight:400;margin-top:.15rem;display:block;';
+        priceHint.textContent = 'Opcional — ayuda a orientar impuestos y valor declarado.';
         priceWrap.appendChild(priceLabel);
         priceWrap.appendChild(priceInput);
+        priceWrap.appendChild(priceHint);
         extraFieldsEl.appendChild(priceWrap);
       }
 
       wrap.appendChild(extraFieldsEl);
-
-      expandToggle.addEventListener('click', function () {
-        extraFieldsVisible = !extraFieldsVisible;
-        extraFieldsEl.style.display = extraFieldsVisible ? '' : 'none';
-        expandToggle.innerHTML = extraFieldsVisible
-          ? '<i class="fas fa-minus" style="font-size:.65rem;margin-right:.25rem;"></i>Ocultar campos adicionales'
-          : '<i class="fas fa-plus" style="font-size:.65rem;margin-right:.25rem;"></i>Agregar URL o precio (mejora el análisis)';
-      });
     }
 
     var resultEl = document.createElement('div');
@@ -386,12 +378,12 @@
 
       CRBOXProductClassifier.classify(ctx.classifyQuery, { url: ctx.url || undefined, priceUsd: ctx.price || undefined }).then(function (result) {
         analyzeBtn.disabled = false;
-        analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Obtener información';
+        analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Analizar';
         if (!result) return;
         _renderResult(result, ctx.name, ctx.price);
       }).catch(function () {
         analyzeBtn.disabled = false;
-        analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Obtener información';
+        analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Analizar';
       });
     }
 

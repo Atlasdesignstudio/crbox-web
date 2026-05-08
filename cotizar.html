@@ -7,8 +7,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://clients.crbox.cr https://www.google-analytics.com; frame-src https://www.googletagmanager.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cotizar Compra desde USA | CRBOX Costa Rica</title>
-    <meta name="description" content="Solicita una cotización de compra desde USA a Costa Rica sin crear cuenta. Completa el formulario y el equipo CRBOX te contactará con precio y próximos pasos.">
+    <title>Cotizar Importación a Costa Rica | CRBOX</title>
+    <meta name="description" content="Solicita una cotización para traer productos a Costa Rica sin crear cuenta. CRBOX gestiona tu importación y te contacta con el precio final en menos de 24 horas.">
     <link rel="canonical" href="https://crbox.cr/cotizar.html">
     <meta name="theme-color" content="#FF6B00">
 
@@ -19,16 +19,16 @@
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://crbox.cr/cotizar.html">
-    <meta property="og:title" content="Cotizar Compra desde USA | CRBOX Costa Rica">
-    <meta property="og:description" content="Solicita una cotización de compra sin crear cuenta. CRBOX gestiona tu compra en USA y la entrega en Costa Rica.">
+    <meta property="og:title" content="Cotizar Importación a Costa Rica | CRBOX">
+    <meta property="og:description" content="Solicita una cotización para traer productos a Costa Rica sin crear cuenta. CRBOX gestiona tu importación y te contacta en menos de 24 horas.">
     <meta property="og:image" content="https://crbox.cr/img/fotoindex.webp">
     <meta property="og:locale" content="es_CR">
     <meta property="og:site_name" content="CRBOX">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://crbox.cr/cotizar.html">
-    <meta name="twitter:title" content="Cotizar Compra desde USA | CRBOX Costa Rica">
-    <meta name="twitter:description" content="Solicita una cotización de compra sin crear cuenta. CRBOX gestiona tu compra en USA y la entrega en Costa Rica.">
+    <meta name="twitter:title" content="Cotizar Importación a Costa Rica | CRBOX">
+    <meta name="twitter:description" content="Solicita una cotización para traer productos a Costa Rica sin crear cuenta. CRBOX gestiona tu importación y te contacta en menos de 24 horas.">
     <meta name="twitter:image" content="https://crbox.cr/img/fotoindex.webp">
 
     <meta name="geo.region" content="CR-SJ">
@@ -41,16 +41,16 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/styles.css?v=6">
-    <link rel="stylesheet" href="css/responsive.css?v=15">
+    <link rel="stylesheet" href="css/styles.css?v=7">
+    <link rel="stylesheet" href="css/responsive.css?v=16">
 
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebPage",
-      "name": "Cotizar Compra desde USA | CRBOX",
+      "name": "Cotizar Importación a Costa Rica | CRBOX",
       "url": "https://crbox.cr/cotizar.html",
-      "description": "Solicita una cotización de compra desde USA a Costa Rica sin crear cuenta.",
+      "description": "Solicita una cotización para traer productos a Costa Rica sin crear cuenta. CRBOX gestiona tu importación.",
       "provider": { "@type": "Organization", "name": "CRBOX", "url": "https://crbox.cr/" }
     }
     </script>
@@ -105,6 +105,25 @@
             gap: .3rem;
         }
         .q-error-msg.visible { display: flex; }
+
+        /* ── Product intelligence inline card ── */
+        .card-intel-wrap {
+            animation: ci-fadein .25s ease;
+        }
+        @keyframes ci-fadein {
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        /* ── Category collapsible disclosure ── */
+        .card-cat-details > summary { display: flex; align-items: center; gap: .35rem; }
+        .card-cat-details > summary::-webkit-details-marker { display: none; }
+        .card-cat-details > summary::before {
+            content: '▸';
+            font-size: .6rem;
+            color: #9ca3af;
+            transition: transform .15s;
+        }
+        .card-cat-details[open] > summary::before { transform: rotate(90deg); }
 
         /* ── Section heading ── */
         .q-section-head {
@@ -561,10 +580,10 @@
             <div class="max-w-2xl mx-auto text-center">
                 <span class="inline-block bg-white bg-opacity-20 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-5 tracking-widest uppercase">Sin necesidad de cuenta</span>
                 <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-4 leading-tight tracking-tight">
-                    Solicita tu compra<br>desde USA
+                    Trae lo que quieres<br>a Costa Rica
                 </h1>
                 <p class="text-base md:text-lg text-white mb-8 leading-relaxed" style="opacity:.92;">
-                    Cuéntanos qué quieres y en menos de 24 horas el equipo CRBOX te envía el precio final con todos los detalles.
+                    Descríbenos el producto, calculamos impuestos al instante y en menos de 24 horas te enviamos el precio final.
                 </p>
                 <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
                     <span class="trust-badge"><i class="fas fa-shield-alt"></i> Sin cuenta requerida</span>
@@ -605,12 +624,6 @@
                     </div>
                 </div>
 
-                <!-- ── AI Concierge intake block ─────────────────────────────── -->
-                <div id="ci-cotizar-block" class="mb-5"></div>
-
-                <!-- ── Progressive reveal: hidden until concierge CTA or skip ── -->
-                <div id="ci-form-reveal" style="display:none">
-
                 <!-- ── Draft restore banner ─────────────────────────────────── -->
                 <div id="draft-restore-bar" class="hidden mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3" role="alert">
                     <div class="flex flex-wrap items-start gap-3">
@@ -643,6 +656,7 @@
                         <button type="button" id="btn-add-product" class="btn-add-product">
                             <i class="fas fa-plus"></i> Agregar otro producto
                         </button>
+                        <p style="font-size:.76rem;color:#9ca3af;margin-top:.45rem;">Puedes incluir varios productos en una misma solicitud.</p>
                     </div>
 
                     <!-- ── CARD 2: Shipping ── -->
@@ -786,16 +800,18 @@
                         </button>
                         <!-- C-7: Incomplete hint -->
                         <p id="submit-incomplete-hint" class="text-center text-xs mt-2" style="color:#d97706;display:none;">
-                            Completa todos los campos requeridos (*) para enviar.
+                            Revisa los campos marcados — falta completar algunos datos.
                         </p>
                         <p class="text-center text-xs text-gray-400 mt-2">
                             <i class="fas fa-lock mr-1"></i>
                             Tus datos están protegidos. No los compartimos con terceros.
                         </p>
+                        <p class="text-center text-xs mt-2" style="color:#9ca3af;">
+                            ¿Tienes dudas? <a href="#" onclick="if(window.ChatPanel)ChatPanel.open();return false;" style="color:#FF6B00;font-weight:600;text-decoration:none;">Chatea con nosotros</a> antes de enviar.
+                        </p>
                     </div>
 
                 </form>
-                </div><!-- /ci-form-reveal -->
             </div><!-- /#quote-form-section -->
 
             <!-- ══ CONFIRMATION SCREEN ══ -->
@@ -1062,56 +1078,64 @@
                 + '<div class="q-section-icon"><i class="fas fa-box"></i></div>'
                 + '<div>'
                 + '<div class="q-section-title product-card-num">Producto ' + num + '</div>'
-                + '<div class="q-section-sub">Pega el enlace para autocompletar o llena los campos</div>'
+                + '<div class="q-section-sub">Describe lo que quieres traer a Costa Rica</div>'
                 + '</div>'
                 + '</div>'
                 + '<button type="button" class="btn-remove-card" data-card="' + id + '" aria-label="Eliminar producto">'
                 + '<i class="fas fa-times"></i>'
                 + '</button>'
                 + '</div>'
-                + '<div class="mb-4" style="margin-top:1.25rem;">'
-                + '<label class="q-label" for="f-url-' + id + '">URL del producto <span class="q-optional">(opcional — autocompleta los datos)</span></label>'
+                // 1. Product name — primary field
+                + '<div class="mb-3" style="margin-top:1.25rem;">'
+                + '<label class="q-label" for="f-name-' + id + '">¿Qué quieres traer? <span class="q-required">*</span></label>'
+                + '<input type="text" id="f-name-' + id + '" class="q-input f-product-name" placeholder="Ej: AirPods Pro, tenis Nike, computadora gaming…" autocomplete="off" maxlength="200">'
+                + '<div class="q-error-msg" id="err-name-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Ingresa el nombre del producto (mínimo 3 caracteres).</span></div>'
+                + '</div>'
+                // Inline intelligence card — populated after auto-classify on blur
+                + '<div id="card-intel-' + id + '" class="card-intel-wrap" style="display:none;margin-bottom:.85rem;"></div>'
+                // AI compliance area (from URL extractor)
+                + '<div class="ai-compliance-wrap" id="ai-compliance-' + id + '"></div>'
+                + '<div id="ai-banner-' + id + '"></div>'
+                // 2. Product URL — visible secondary
+                + '<div class="mb-3">'
+                + '<label class="q-label" for="f-url-' + id + '">Enlace del producto <span class="q-optional">(opcional)</span></label>'
                 + '<div style="display:flex;gap:.5rem;align-items:center;">'
-                + '<input type="url" id="f-url-' + id + '" class="q-input f-product-url" placeholder="https://www.amazon.com/dp/..." autocomplete="off" style="flex:1;">'
+                + '<input type="url" id="f-url-' + id + '" class="q-input f-product-url" placeholder="https://www.amazon.com/dp/…" autocomplete="off" style="flex:1;">'
                 + '<button type="button" class="btn-ai-analizar" data-card="' + id + '" style="flex-shrink:0;padding:.65rem 1rem;background:#FF6B00;color:#fff;border:none;border-radius:.6rem;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s;">'
                 + '<i class="fas fa-magic"></i> Analizar'
                 + '</button>'
                 + '</div>'
-                + '<div class="q-hint">Pega el enlace del producto y presiona "Analizar" para completar los datos automáticamente.</div>'
-                + '<div class="ai-compliance-wrap" id="ai-compliance-' + id + '"></div>'
-                + '<div id="ai-banner-' + id + '"></div>'
+                + '<div class="q-hint">Opcional — si tienes el enlace, lo usamos como referencia para revisar tu solicitud.</div>'
                 + '</div>'
+                // 3. Price — visible (required)
                 + '<div class="mb-4">'
-                + '<label class="q-label" for="f-name-' + id + '">Nombre del producto <span class="q-required">*</span></label>'
-                + '<div style="display:flex;gap:.5rem;align-items:center;">'
-                + '<input type="text" id="f-name-' + id + '" class="q-input f-product-name" placeholder="Ej: iPhone 15 Pro Max 256GB Negro" autocomplete="off" maxlength="200" style="flex:1;">'
-                + '<button type="button" class="btn-analizar-name" data-card="' + id + '" title="Clasificar producto automáticamente" style="flex-shrink:0;padding:.65rem .9rem;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:.6rem;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s;" onmouseover="this.style.background=\'#e5e7eb\'" onmouseout="this.style.background=\'#f3f4f6\'">'
-                + '<i class="fas fa-brain" style="color:#FF6B00;margin-right:.25rem;"></i>Analizar'
-                + '</button>'
-                + '</div>'
-                + '<div class="q-error-msg" id="err-name-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Ingresa el nombre del producto (mínimo 3 caracteres).</span></div>'
-                + '</div>'
-                + '<div class="mb-4">'
-                + '<label class="q-label" for="f-cat-' + id + '">Categoría <span class="q-required">*</span></label>'
-                + '<select id="f-cat-' + id + '" class="q-input f-category" style="background:' + SELECT_ARROW + ';background-repeat:no-repeat;padding-right:2.5rem;">'
-                + CATEGORY_OPTS_HTML
-                + '</select>'
-                + '<div class="q-error-msg" id="err-cat-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Selecciona una categoría.</span></div>'
-                + '</div>'
-                + '<div class="mb-0">'
-                + '<label class="q-label" for="f-val-' + id + '">Valor declarado <span class="q-required">*</span></label>'
+                + '<label class="q-label" for="f-val-' + id + '">Precio aproximado <span class="q-required">*</span></label>'
                 + '<div class="relative">'
                 + '<span style="position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-weight:600;pointer-events:none;font-size:.9rem;">$</span>'
                 + '<input type="number" id="f-val-' + id + '" class="q-input f-declared-value" style="padding-left:1.75rem;" placeholder="Ej: 49.99" min="0.01" step="0.01">'
                 + '<span style="position:absolute;right:.9rem;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:.8rem;pointer-events:none;">USD</span>'
                 + '</div>'
-                + '<div class="q-hint">Precio de venta del producto en USD, sin incluir envío ni impuestos.</div>'
-                + '<div class="q-error-msg" id="err-val-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Ingresa el valor declarado mayor a $0.</span></div>'
+                + '<div class="q-hint">Precio del producto en USD, sin envío ni impuestos. Nos ayuda a estimar aranceles.</div>'
+                + '<div class="q-error-msg" id="err-val-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Indica el precio aproximado para continuar.</span></div>'
                 + '<div id="live-est-' + id + '" style="display:none;margin-top:.35rem;padding:.25rem 0;"></div>'
                 + '</div>'
+                // 4. Category — collapsible (auto-populated by classifier, editable)
+                + '<details class="card-cat-details" id="cat-details-' + id + '" style="margin-bottom:.5rem;">'
+                + '<summary style="font-size:.8rem;color:#6b7280;cursor:pointer;user-select:none;padding:.3rem 0;list-style:none;display:flex;align-items:center;gap:.35rem;">'
+                + '<i class="fas fa-sliders-h" style="font-size:.7rem;color:#9ca3af;"></i>'
+                + 'Ajustar categoría <span style="color:#9ca3af;font-size:.74rem;">(se completa automáticamente)</span>'
+                + '</summary>'
+                + '<div style="margin-top:.5rem;">'
+                + '<select id="f-cat-' + id + '" class="q-input f-category" style="background:' + SELECT_ARROW + ';background-repeat:no-repeat;padding-right:2.5rem;">'
+                + CATEGORY_OPTS_HTML
+                + '</select>'
+                + '<div class="q-error-msg" id="err-cat-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Selecciona una categoría para continuar.</span></div>'
+                + '<div id="cat-suggest-' + id + '"></div>'
+                + '</div>'
+                + '</details>'
                 + '<label id="ai-confirm-wrap-' + id + '" class="ai-confirm-wrapper" style="display:none;margin-top:.75rem;">'
                 + '<input type="checkbox" id="ai-confirm-chk-' + id + '" class="ai-confirm-chk">'
-                + '<span>Confirmo que todos los datos extraídos automáticamente son correctos antes de enviar.</span>'
+                + '<span>Confirmo que los datos extraídos son correctos antes de enviar.</span>'
                 + '</label>';
         }
 
@@ -1122,41 +1146,6 @@
             if (removeBtn) removeBtn.addEventListener('click', function() { removeProductCard(cardId); });
             var btnAnalizar = cardEl.querySelector('.btn-ai-analizar');
             if (btnAnalizar) btnAnalizar.addEventListener('click', function() { _doAiExtract(cardId); });
-            // Name-based classify button — works without a URL, classifies the typed product name
-            var btnAnalizarName = cardEl.querySelector('.btn-analizar-name');
-            if (btnAnalizarName) btnAnalizarName.addEventListener('click', function() {
-                var val = (nameInput ? nameInput.value : '').trim();
-                if (val.length < 3) {
-                    if (nameInput) markFieldError(nameInput, 'err-name-' + cardId);
-                    return;
-                }
-                if (nameInput) clearFieldError(nameInput, 'err-name-' + cardId);
-                if (typeof CRBOXProductClassifier === 'undefined') return;
-                btnAnalizarName.disabled = true;
-                btnAnalizarName.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:#FF6B00;margin-right:.25rem;"></i>Analizando…';
-                // Use classify() directly so button restoration is unconditional —
-                // suggest()'s onApplied only fires when the user clicks "Usar esta",
-                // which would leave the button stuck in the disabled/spinner state.
-                // No noFallback — unknown products get the guided _unknownResult()
-                // fallback with a helpful customerMessage instead of null.
-                CRBOXProductClassifier.classify(val).then(function(result) {
-                    // Always restore button regardless of classification outcome
-                    btnAnalizarName.disabled = false;
-                    btnAnalizarName.innerHTML = '<i class="fas fa-brain" style="color:#FF6B00;margin-right:.25rem;"></i>Analizar';
-                    if (!result) return;
-                    // Pipe through applyToProductCard for suggestion bar + compliance notice
-                    CRBOXProductClassifier.applyToProductCard({
-                        categoryEl:      catSel,
-                        barContainer:    catSuggBarEl,
-                        noticeContainer: complianceEl,
-                        onApplied:       function() { _updateLiveEst(); }
-                    }, result);
-                }).catch(function() {
-                    // Ensure button always re-enables even on unexpected errors
-                    btnAnalizarName.disabled = false;
-                    btnAnalizarName.innerHTML = '<i class="fas fa-brain" style="color:#FF6B00;margin-right:.25rem;"></i>Analizar';
-                });
-            });
             var fUrl = cardEl.querySelector('.f-product-url');
             if (fUrl) fUrl.addEventListener('input', function() {
                 if (!(this.value || '').trim()) _resetCardExtraction(cardId);
@@ -1164,40 +1153,75 @@
             var nameInput = cardEl.querySelector('.f-product-name');
             var catSel    = cardEl.querySelector('.f-category');
             var valInput  = cardEl.querySelector('.f-declared-value');
-            [nameInput, catSel, valInput].forEach(function(el) {
+            [nameInput, catSel].forEach(function(el) {
                 if (el) { el.addEventListener('input', function() { updateSubmitState(); checkRequiredFilled(); }); }
                 if (el) { el.addEventListener('change', function() { updateSubmitState(); checkRequiredFilled(); }); }
             });
-            var complianceEl = document.getElementById('ai-compliance-' + cardId);
-            var catSuggBarEl = document.createElement('div');
-            catSuggBarEl.id = 'cat-suggest-' + cardId;
-            if (catSel && catSel.parentNode) {
-                catSel.parentNode.insertBefore(catSuggBarEl, catSel.nextSibling);
-            }
+
+            // Auto-classify on name blur — sets category + shows intel card
             if (nameInput) nameInput.addEventListener('blur', function() {
                 var val = (this.value||'').trim();
                 if (val.length < 3) { markFieldError(this, 'err-name-' + cardId); return; }
                 clearFieldError(this, 'err-name-' + cardId);
-                if (typeof CRBOXProductClassifier !== 'undefined') {
-                    CRBOXProductClassifier.suggest(val, catSel, catSuggBarEl, complianceEl, function(result) {
-                        _updateLiveEst();
-                    });
-                }
+                if (typeof CRBOXProductClassifier === 'undefined') return;
+                var urlEl = cardEl.querySelector('.f-product-url');
+                var url   = urlEl ? (urlEl.value || '').trim() : '';
+                var price = parseFloat(valInput ? valInput.value : '') || 0;
+                var opts  = (url || price > 0) ? { url: url || undefined, priceUsd: price || undefined } : undefined;
+                CRBOXProductClassifier.classify(val, opts).then(function(result) {
+                    if (!result) return;
+                    // Auto-set category select
+                    var catSet = false;
+                    if (result.legacyCode && catSel) {
+                        var opt = catSel.querySelector('option[value="' + result.legacyCode + '"]');
+                        if (opt) { catSel.value = result.legacyCode; catSel.dispatchEvent(new Event('change', { bubbles: true })); catSet = true; }
+                    }
+                    // Open category disclosure if not auto-set so user can pick
+                    if (!catSet) {
+                        var det = document.getElementById('cat-details-' + cardId);
+                        if (det) det.open = true;
+                    }
+                    // Store on card state for live-updating with price changes
+                    var state = _getCardState(cardId);
+                    if (state) state.brainClassification = result;
+                    _renderCardIntelligence(cardId, result, val, parseFloat(valInput ? valInput.value : '') || 0);
+                    _updateLiveEst();
+                    updateSubmitState();
+                });
             });
+
             if (catSel) catSel.addEventListener('change', function() {
                 if (this.value) {
                     clearFieldError(this, 'err-cat-' + cardId);
                     var bar = document.getElementById('cat-suggest-' + cardId);
                     if (bar) { var s = bar.querySelector('.pc-suggestion-bar'); if (s) s.parentNode.removeChild(s); }
                 }
+                _updateLiveEst();
+                updateSubmitState(); checkRequiredFilled();
             });
-            if (valInput) valInput.addEventListener('blur', function() {
-                var v = parseFloat(this.value);
-                if (isNaN(v) || v <= 0) markFieldError(this, 'err-val-' + cardId);
-                else clearFieldError(this, 'err-val-' + cardId);
-            });
+
+            if (valInput) {
+                valInput.addEventListener('input', function() {
+                    var price = parseFloat(this.value) || 0;
+                    var state = _getCardState(cardId);
+                    if (state && state.brainClassification) {
+                        var nameEl = cardEl.querySelector('.f-product-name');
+                        _renderCardIntelligence(cardId, state.brainClassification, nameEl ? nameEl.value : '', price);
+                    }
+                    _updateLiveEst();
+                    updateSubmitState(); checkRequiredFilled();
+                });
+                valInput.addEventListener('change', function() { _updateLiveEst(); updateSubmitState(); checkRequiredFilled(); });
+                valInput.addEventListener('blur', function() {
+                    var v = parseFloat(this.value);
+                    if (isNaN(v) || v <= 0) markFieldError(this, 'err-val-' + cardId);
+                    else clearFieldError(this, 'err-val-' + cardId);
+                });
+            }
+
             var aiChk = cardEl.querySelector('.ai-confirm-chk');
             if (aiChk) aiChk.addEventListener('change', function() { updateSubmitState(); });
+
             // C-10: Live tariff estimate
             function _updateLiveEst() {
                 var estEl = document.getElementById('live-est-' + cardId);
@@ -1210,8 +1234,6 @@
                 estEl.style.display = '';
                 estEl.innerHTML = '<span style="font-size:.78rem;color:#6b7280;">Arancel est.: <strong style="color:#374151;">~$' + est.toFixed(2) + ' USD</strong> <span style="color:#9ca3af;font-size:.73rem;">(' + (t.rate * 100).toFixed(1) + '% del valor declarado, solo impuestos)</span></span>';
             }
-            if (catSel) catSel.addEventListener('change', _updateLiveEst);
-            if (valInput) { valInput.addEventListener('input', _updateLiveEst); valInput.addEventListener('change', _updateLiveEst); }
         }
 
         function addProductCard() {
@@ -1323,8 +1345,8 @@
                         if (!classResult) return;
                         CRBOXProductClassifier.applyToProductCard({
                             categoryEl:      _extractFields.fCategory,
-                            barContainer:    catSuggBarEl,
-                            noticeContainer: complianceEl,
+                            barContainer:    document.getElementById('cat-suggest-' + cardId),
+                            noticeContainer: document.getElementById('ai-compliance-' + cardId),
                         }, classResult);
                     });
                 }
@@ -1587,7 +1609,7 @@
                 var catEl  = cardEl.querySelector('.f-category');
                 var valEl  = cardEl.querySelector('.f-declared-value');
                 if (!p.name || p.name.length < 3) { markFieldError(nameEl, 'err-name-' + cardId); valid = false; }
-                if (!p.category) { markFieldError(catEl, 'err-cat-' + cardId); valid = false; }
+                if (!p.category) { markFieldError(catEl, 'err-cat-' + cardId); var catDet = document.getElementById('cat-details-' + cardId); if (catDet) catDet.open = true; valid = false; }
                 if (isNaN(p.declared_value_usd) || p.declared_value_usd <= 0) { markFieldError(valEl, 'err-val-' + cardId); valid = false; }
             });
             var destination = (fDestination.value||'').trim();
@@ -1981,53 +2003,68 @@
             userDropdown.addEventListener('click', function(e) { e.stopPropagation(); });
         }
 
-        // ── AI Concierge intake — mounts above the form cards ──
-        function _showCiForm() {
-            var reveal = document.getElementById('ci-form-reveal');
-            if (reveal) reveal.style.display = '';
+        // ── Product intelligence card helpers ───────────────────
+        function _escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        function _taxDollarsFromRange(rangeStr, price) {
+            if (!rangeStr || price <= 0) return null;
+            var m = rangeStr.match(/(\d+(?:\.\d+)?)\s*%?\s*[-\u2013\u2014]\s*(\d+(?:\.\d+)?)%?/);
+            if (m) { var lo = parseFloat(m[1])/100*price, hi = parseFloat(m[2])/100*price; return { low: Math.round(lo), high: Math.round(hi) }; }
+            var m2 = rangeStr.match(/(\d+(?:\.\d+)?)%/);
+            if (m2) { var est = parseFloat(m2[1])/100*price; return { low: Math.round(est), high: Math.round(est) }; }
+            return null;
         }
 
-        if (typeof ConciergeIntake !== 'undefined') {
-            ConciergeIntake.mount('ci-cotizar-block', {
-                calcRedirect: true,
-                onRequestQuote: function (name, approxPrice, classResult) {
-                    _showCiForm();
-                    var firstCard = _cards[0];
-                    if (!firstCard) return;
-                    var cardEl = document.querySelector('[data-card-id="' + firstCard.id + '"]');
-                    if (!cardEl) return;
-                    var nameInput = cardEl.querySelector('.f-product-name');
-                    if (nameInput) { nameInput.value = name; nameInput.dispatchEvent(new Event('input', { bubbles: true })); }
-                    if (classResult && classResult.legacyCode) {
-                        var catSel = cardEl.querySelector('.f-category');
-                        if (catSel) { catSel.value = classResult.legacyCode; catSel.dispatchEvent(new Event('change', { bubbles: true })); }
-                    }
-                    if (approxPrice > 0) {
-                        var valInput = cardEl.querySelector('.f-declared-value');
-                        if (valInput && !valInput.value) { valInput.value = approxPrice; valInput.dispatchEvent(new Event('input', { bubbles: true })); }
-                    }
-                    firstCard.brainClassification = classResult || null;
-                    checkRequiredFilled();
-                    updateSubmitState();
-                    var productsSection = document.getElementById('products-container');
-                    if (productsSection) setTimeout(function () { productsSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
-                },
-            });
+        function _warmIntroForProduct(productName, result) {
+            var name = (productName || 'Este producto').trim();
+            var cat  = result.displayName || '';
+            var rate = result.estimatedRange || '';
+            var intros = [
+                '¡Perfecto! ' + name + ' normalmente entra en la categoría ' + cat + '.',
+                '¡Buena elección! ' + name + ' se clasifica como ' + cat + '.',
+                name + ' normalmente se importa dentro de ' + cat + '.',
+            ];
+            var intro = intros[(name.charCodeAt(0) || 0) % intros.length];
+            if (rate) intro += ' Esta categoría suele pagar aproximadamente ' + rate + ' en impuestos.';
+            return intro;
+        }
 
-            // "Llenar manualmente" skip link — reveals form without going through concierge
-            var skipWrap = document.createElement('p');
-            skipWrap.className = 'ci-skip-link';
-            skipWrap.innerHTML = '<a href="#" id="ci-skip-link">Prefiero llenar el formulario manualmente &rarr;</a>';
-            var ciBlock = document.getElementById('ci-cotizar-block');
-            if (ciBlock) ciBlock.appendChild(skipWrap);
-            document.addEventListener('click', function (e) {
-                if (e.target && e.target.id === 'ci-skip-link') {
-                    e.preventDefault();
-                    _showCiForm();
-                    var pc = document.getElementById('products-container');
-                    if (pc) setTimeout(function () { pc.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+        function _renderCardIntelligence(cardId, result, productName, price) {
+            var el = document.getElementById('card-intel-' + cardId);
+            if (!el) return;
+            if (!result) { el.style.display = 'none'; el.innerHTML = ''; return; }
+            var hasKnownCat = result.displayName && result.brainCategoryId !== 'unknown_manual_review';
+            var hasRisk = typeof CRBOXProductClassifier !== 'undefined' && CRBOXProductClassifier.hasRisk && CRBOXProductClassifier.hasRisk(result);
+            var rate = result.estimatedRange || '';
+            var html = '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:.75rem;padding:.875rem 1rem;">';
+            if (hasKnownCat && !hasRisk) {
+                html += '<p style="font-size:.83rem;color:#374151;line-height:1.55;margin:0 0 .45rem;">' + _escHtml(_warmIntroForProduct(productName, result)) + '</p>';
+                if (rate) {
+                    html += '<div style="display:inline-flex;align-items:center;gap:.35rem;background:#fff7ed;border:1px solid #fed7aa;border-radius:99px;padding:.2rem .65rem;font-size:.76rem;font-weight:600;color:#9a3412;">'
+                        + '<i class="fas fa-percent" style="font-size:.65rem;color:#f97316;"></i> '
+                        + _escHtml(rate) + ' en aranceles estimados</div>';
+                    var td = _taxDollarsFromRange(rate, price || 0);
+                    if (td && price > 0) {
+                        var dtxt = td.low === td.high ? '~$' + td.low : '~$' + td.low + '\u2013$' + td.high;
+                        html += '<p style="font-size:.78rem;color:#6b7280;margin:.35rem 0 0;">'
+                            + '<i class="fas fa-coins" style="color:#f59e0b;margin-right:.3rem;font-size:.7rem;"></i>'
+                            + 'En impuestos aproximados: <strong style="color:#374151;">' + dtxt + ' USD</strong></p>';
+                    } else if (!price) {
+                        html += '<p style="font-size:.75rem;color:#9ca3af;margin:.35rem 0 0;font-style:italic;">'
+                            + '<i class="fas fa-lightbulb" style="font-size:.68rem;margin-right:.25rem;"></i>'
+                            + 'Agrega el precio para ver el estimado en d\u00f3lares.</p>';
+                    }
                 }
-            });
+            } else if (hasKnownCat && hasRisk) {
+                html += '<p style="font-size:.83rem;color:#374151;line-height:1.55;margin:0;">'
+                    + _escHtml(result.customerMessage || 'Este producto requiere gesti\u00f3n especial. CRBOX lo revisar\u00e1 al recibir tu solicitud.') + '</p>';
+            } else {
+                html += '<p style="font-size:.83rem;color:#374151;line-height:1.55;margin:0;">'
+                    + _escHtml(result.customerMessage || 'No encontramos clasificaci\u00f3n autom\u00e1tica. CRBOX revisar\u00e1 este producto y te contactar\u00e1 con los detalles.') + '</p>';
+            }
+            html += '</div>';
+            el.innerHTML = html;
+            el.style.display = '';
         }
 
         // ── Initialize — first product card ────────────────────
