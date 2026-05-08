@@ -1,0 +1,939 @@
+#404 - Concierge-Style AI Product Intake Experience Across Public + Portal Quote Flow
+
+What & Why
+
+CRBOX already has the Product Brain and AI-first classifier foundation. However, the visible quote experience still feels too technical, form-heavy, and dropdown-first.
+
+The goal of this task is to redesign the product intake experience into a more human, concierge-style, AI-native flow across:
+
+- Public Cotizar page
+- Client portal quote/cotización flow
+- Multi-product quote flow
+- Product URL interpretation
+- Calculadora handoff
+- Floating CRBOX AI assistant
+- Admin/sales structured quote context
+
+The user should not feel like they are filling out customs software.
+
+The user should feel like:
+
+“Tell CRBOX what you want to bring, and we’ll help you understand taxes, restrictions, and next steps.”
+
+This task is UX + interaction + AI orchestration.
+
+Do not rewrite calculator math.
+Do not break existing quote submission.
+Do not break admin quote logic.
+Do not break legacy category codes.
+Do not remove existing functionality.
+
+---
+
+## Core Experience Shift
+
+Move from:
+
+- form-first
+- dropdown-first
+- technical category selection
+- fragile URL crawling
+- hard validation errors
+
+To:
+
+- AI concierge intake
+- natural product description
+- optional link
+- optional price/value
+- product understanding
+- tax guidance
+- restriction guidance
+- progressive next steps
+
+The first interaction should not be:
+
+“Choose category.”
+
+It should be:
+
+“¿Qué te gustaría traer?”
+
+---
+
+## Main UX Concept
+
+Create a modern AI product intake component.
+
+This component should feel:
+
+- modern
+- conversational
+- warm
+- low-friction
+- premium
+- guided
+- human
+- intelligent
+
+It should not feel:
+
+- robotic
+- technical
+- customs-heavy
+- spreadsheet-like
+- ERP-like
+- error-driven
+
+---
+
+## Initial State
+
+Instead of showing product category dropdowns immediately, show a concierge intake block.
+
+Headline:
+
+“¿Qué te gustaría traer?”
+
+Subheadline:
+
+“Cuéntanos el producto y CRBOX te ayudará a entender impuestos, restricciones y próximos pasos.”
+
+Primary input:
+
+“Describe tu producto”
+
+Placeholder examples:
+
+“Ej: AirPods Pro, tenis Nike, computadora gaming, perfume Dior…”
+
+Example chips:
+
+- AirPods Pro
+- Tenis Nike
+- Computadora gaming
+- Perfume Dior
+- Stanley Quencher
+- Proteína Whey
+- Power bank
+- Drone DJI
+
+Optional URL input:
+
+“Agregar enlace del producto (opcional)”
+
+Optional price/value input:
+
+“¿Cuánto cuesta aproximadamente?”
+
+Placeholder examples:
+
+- “Ej: $49”
+- “Ej: $299”
+- “Ej: ₡120,000”
+
+Helper copy:
+
+“Esto ayuda a darte una orientación más precisa sobre impuestos y restricciones.”
+
+CTA:
+
+“Obtener información”
+
+---
+
+## Product Price / Value Input
+
+The user should be able to optionally provide the approximate product price early in the flow.
+
+The price field is useful because it helps:
+
+- give more accurate tax guidance
+- improve Gemini/Product Brain context
+- improve admin quote context
+- improve estimate ranges
+- reduce uncertainty
+
+Important:
+
+The price field is optional.
+
+Do not block the experience if the user does not provide it.
+
+Do not make it feel like a mandatory customs value field at the first step.
+
+This field is for guidance, not final liquidation.
+
+---
+
+## If Price Is Provided
+
+Gemini + Product Brain should use:
+
+- product description
+- optional URL
+- approximate product value
+- category
+- risk flags
+
+to provide more useful guidance.
+
+Example:
+
+User:
+“Tenis Nike”
+
+Price:
+“$180”
+
+Response:
+
+“Los productos de esta categoría suelen pagar aproximadamente 29% en impuestos.”
+
+Then:
+
+“Para productos de este rango de valor, normalmente es importante considerar impuestos y costo de envío antes de realizar la compra.”
+
+Example:
+
+User:
+“iPhone 15 Pro”
+
+Price:
+“$1200”
+
+Response:
+
+“Los celulares normalmente pertenecen a Electrónica y suelen pagar aproximadamente 14% en impuestos.”
+
+Then:
+
+“Para productos de alto valor recomendamos solicitar una cotización más precisa con CRBOX antes de comprar.”
+
+Example:
+
+User:
+“Proteína Whey”
+
+Price:
+“$90”
+
+Response:
+
+“Los suplementos pueden requerir validación sanitaria antes de importarse.”
+
+Then:
+
+“El valor del producto puede influir en revisión aduanera y costos finales.”
+
+---
+
+## If Price Is Not Provided
+
+The UX should still feel complete and successful.
+
+Gemini should still provide:
+
+- category understanding
+- approximate tax guidance
+- compliance guidance
+- next-step guidance
+
+using category-level ranges only.
+
+Example:
+
+“Los zapatos normalmente pagan alrededor de 29% en impuestos, aunque el monto final depende del valor, materiales y revisión final.”
+
+Do not show:
+
+“Price missing error.”
+
+Instead show:
+
+“Puedes agregar el precio para recibir una orientación más precisa.”
+
+---
+
+## If Gemini / URL Can Infer Price
+
+If the URL provides a detectable price:
+
+- prefill the price field softly
+- mark as “Precio detectado automáticamente”
+- allow the user to edit it
+
+Never block the experience if price extraction fails.
+
+---
+
+## URL Is Context, Not a Scraping Mission
+
+The current crawling/scraping approach is too fragile and creates broken-feeling UX.
+
+Do not optimize the experience around perfect scraping.
+
+The URL should be treated as contextual assistance.
+
+The system may attempt to extract:
+
+1. product title/name
+2. category hints
+3. price if available
+
+But the experience should not depend on extracting:
+
+- exact dimensions
+- exact weight
+- perfect title
+- perfect price
+- complete specs
+
+If extraction is incomplete, the UX should still feel successful.
+
+Examples:
+
+“Ya entendimos el tipo de producto.”
+
+“Detectamos una categoría probable.”
+
+“Solo falta confirmar algunos detalles.”
+
+Avoid:
+
+- “No se pudo analizar”
+- “AI failed”
+- “No match”
+- “Extraction error”
+- “Producto no encontrado”
+
+---
+
+## AI Interpretation Flow
+
+The ideal flow:
+
+User input  
+→ optional URL  
+→ optional price  
+→ Gemini interpretation  
+→ Product Brain validation  
+→ semantic approximation if needed  
+→ friendly concierge explanation  
+→ next-step routing  
+→ existing calculator/admin systems
+
+Gemini interprets.
+
+Product Brain decides.
+
+Calculator calculates.
+
+Admin reviews.
+
+---
+
+## Product Brain + Gemini Rules
+
+Use the existing:
+
+- Product Brain
+- CRBOXProductClassifier
+- Gemini infrastructure
+- legacy category mapping
+- existing calculator engine
+- existing quote payloads
+- existing admin flow
+
+Gemini may:
+
+- interpret natural language
+- infer product type
+- use the URL as context
+- use price as context
+- semantically approximate to closest category
+- detect risk patterns
+
+Gemini must not:
+
+- invent tax rates
+- invent Product Brain categories
+- calculate final shipping totals
+- make final legal/customs decisions
+- bypass Product Brain
+- expose raw reasoning to customers
+
+Product Brain must provide:
+
+- category
+- legacy category code
+- estimated tax range
+- totalEstimatedRate
+- customerMessage
+- manualReviewRequired
+- automaticEstimateAllowed
+- regulatedProduct
+- restrictedProduct
+- forbiddenProduct
+- riskFlags
+- adminNotes
+- actionForCustomer
+- actionForAdmin
+
+---
+
+## Result Card Experience
+
+After the user clicks “Obtener información”, show a friendly AI understanding card.
+
+The card should include:
+
+- interpreted product
+- detected/probable category
+- tax guidance
+- restriction/permit guidance if relevant
+- what CRBOX may need to review
+- next best action
+- optional missing-field guidance
+
+---
+
+## Example Result — Normal Product
+
+User:
+
+“Tenis Nike”
+
+Result card headline:
+
+“Esto normalmente pertenece a Calzado”
+
+Supporting text:
+
+“Los productos de esta categoría suelen pagar aproximadamente 29% en impuestos.”
+
+Secondary text:
+
+“El monto final puede variar según materiales, valor y revisión aduanera.”
+
+If price was provided:
+
+“Con el valor aproximado que indicaste, puedes continuar a la calculadora para obtener una orientación más completa.”
+
+Buttons:
+
+- “Continuar a calculadora”
+- “Solicitar cotización con CRBOX”
+
+---
+
+## Example Result — Manual Review Product
+
+User:
+
+“Proteína Whey”
+
+Result card headline:
+
+“Este producto puede requerir revisión especial”
+
+Supporting text:
+
+“Los suplementos pueden requerir validación sanitaria antes de importarse.”
+
+Secondary text:
+
+“CRBOX puede ayudarte a revisarlo antes de que realices la compra.”
+
+Buttons:
+
+- “Solicitar revisión con CRBOX”
+- “Continuar de todas formas”
+
+Do not show misleading automatic totals.
+
+---
+
+## Example Result — Battery Product
+
+User:
+
+“Power bank”
+
+Headline:
+
+“Este producto contiene batería de litio”
+
+Supporting text:
+
+“Los productos con batería pueden requerir validación especial de transporte.”
+
+Secondary text:
+
+“CRBOX revisará si puede enviarse y bajo qué condiciones.”
+
+Buttons:
+
+- “Solicitar revisión con CRBOX”
+- “Consultar por WhatsApp”
+
+---
+
+## Example Result — Restricted Product
+
+User:
+
+“Arma”
+
+Headline:
+
+“Este producto puede estar restringido”
+
+Supporting text:
+
+“No recomendamos comprarlo antes de que CRBOX confirme si puede importarse o transportarse.”
+
+Secondary text:
+
+“Algunos productos requieren validación legal especial o no pueden enviarse por courier.”
+
+No aggressive red error UI.
+
+Still guide the user calmly.
+
+---
+
+## Multi-Product Experience
+
+The user must still be able to add multiple products.
+
+Respect the existing product limit.
+
+Each product should become an interpreted AI product card with:
+
+- product description
+- optional URL
+- optional price
+- Product Brain classification
+- tax guidance
+- risk/compliance guidance
+- missing-field guidance
+- next-step guidance
+
+Do not reduce functionality.
+
+Do not break existing add/duplicate/remove product behavior.
+
+---
+
+## Transition to Calculadora
+
+If the user chooses:
+
+“Continuar a calculadora”
+
+Then calculadora should hydrate/preload with:
+
+- product description
+- interpreted product name
+- optional URL
+- optional price/value
+- Product Brain category
+- legacy category code
+- customerMessage
+- manualReviewRequired status
+- risk flags if needed
+
+The user should not have to re-enter the same information.
+
+If the product is automaticEstimateAllowed:
+
+- allow normal calculator estimate
+
+If manualReviewRequired:
+
+- show review message
+- do not show misleading final-looking automatic total
+
+---
+
+## Transition to CRBOX Quote Request
+
+If the user chooses:
+
+“Solicitar cotización con CRBOX”
+
+Then the quote flow should preserve all detected data.
+
+The existing quote submission should receive:
+
+- original user input
+- product description
+- URL
+- optional price
+- extracted title if available
+- Product Brain category
+- legacy category code
+- estimatedDAI
+- estimatedRange
+- totalEstimatedRate
+- customerMessage
+- manualReviewRequired
+- automaticEstimateAllowed
+- regulatedProduct
+- restrictedProduct
+- forbiddenProduct
+- riskFlags
+- adminNotes
+- actionForCustomer
+- actionForAdmin
+- semanticApproximationUsed
+- source
+
+Do not remove existing required fields.
+
+Do not break current payloads.
+
+Add metadata optionally and backward-compatibly.
+
+---
+
+## Admin / Sales Must Receive Full Structured Data
+
+Even though the customer-facing UX becomes simple and conversational, CRBOX admin/sales must receive the full structured context.
+
+Admin should receive:
+
+- original input
+- optional URL
+- optional price
+- extracted title
+- Product Brain category
+- legacy category code
+- semantic approximation status
+- estimatedDAI
+- IVA
+- Ley 6946
+- totalEstimatedRate
+- estimatedRange
+- manualReviewRequired
+- automaticEstimateAllowed
+- regulatedProduct
+- restrictedProduct
+- forbiddenProduct
+- riskFlags
+- customerMessage
+- adminNotes
+- actionForCustomer
+- actionForAdmin
+- extraction source
+- classification source
+- AI interpretation context
+
+Admin UX should expose:
+
+- customer-friendly summary
+- adminNotes
+- actionForAdmin
+- risk flags
+- manual override category selector
+
+---
+
+## Public Cotizar Page Requirements
+
+Apply the concierge intake experience to the public cotizar flow.
+
+The public quote experience should no longer feel like:
+
+- start with category dropdown
+- fill technical fields
+- hope URL scan works
+
+It should feel like:
+
+- describe product
+- optional link
+- optional price
+- get product guidance
+- choose next step
+
+The existing detailed fields can appear progressively after the AI intake result.
+
+Do not remove required quote data.
+
+Reorder or progressively reveal it.
+
+---
+
+## Client Portal Quote Flow Requirements
+
+Apply the same concierge intake to the logged-in client portal quote creation flow.
+
+The portal version should feel even smarter because CRBOX may already know the client.
+
+If user is logged in:
+
+- do not ask redundant profile data
+- use known client context where safe
+- still ask product description, optional URL, optional price
+- use the same Product Brain/Gemini logic
+- preserve all classification metadata
+- allow multi-product
+- allow quote submission
+
+Do not break:
+
+- auth/session
+- profile
+- package tracking
+- invoices
+- existing portal flows
+
+---
+
+## Floating CRBOX AI Assistant
+
+The floating CRBOX AI assistant must become part of this same product intake ecosystem.
+
+It should not feel like a separate generic chatbot.
+
+It should behave like the same concierge.
+
+The assistant should use:
+
+- CRBOXProductClassifier
+- Product Brain
+- same Gemini prompt
+- same customerMessage
+- same semantic approximation
+- same risk handling
+- same next-step routing
+
+Examples:
+
+User:
+
+“Quiero traer unos AirPods”
+
+Assistant:
+
+“Los AirPods normalmente pertenecen a Electrónica y suelen pagar aproximadamente 14–15% en impuestos.”
+
+Then:
+
+“¿Quieres recibir una estimación de envío o prefieres solicitar una cotización con CRBOX?”
+
+---
+
+User:
+
+“Quiero traer proteína”
+
+Assistant:
+
+“Los suplementos pueden requerir validación sanitaria antes de importarse. CRBOX puede ayudarte a revisarlo antes de que hagas la compra.”
+
+---
+
+User:
+
+“Quiero traer esto: [URL]”
+
+Assistant:
+
+“Ya entendimos el tipo de producto. Parece pertenecer a la categoría Calzado. ¿Quieres calcular un estimado o enviar una solicitud a CRBOX?”
+
+---
+
+User:
+
+“Cuesta como $180”
+
+Assistant should use the approximate value to give better guidance and suggest the calculator/quote flow.
+
+---
+
+## Calculadora Relationship
+
+The calculadora should remain available for users who want an estimate.
+
+But the intake experience should make it easier to reach calculadora with prefilled context.
+
+Calculadora should not be the first required step.
+
+It is one possible next step.
+
+The concierge card should route users toward calculadora when:
+
+- product is common
+- automaticEstimateAllowed is true
+- price is available or user wants estimate
+
+Route toward CRBOX quote/review when:
+
+- manualReviewRequired is true
+- regulatedProduct is true
+- forbidden/restrictedProduct is true
+- product is ambiguous
+- user wants precise quote
+- product is high-value
+
+---
+
+## User-Facing Copy Rules
+
+Never show:
+
+- raw JSON
+- confidence score
+- categoryId
+- legacyCode
+- riskFlags
+- source
+- local_estimated
+- Gemini reasoning
+- technical errors
+- “AI failed”
+- “No match”
+- “Producto no encontrado”
+
+Use:
+
+- “Detectamos que…”
+- “Parece pertenecer a…”
+- “Esta categoría suele pagar aproximadamente…”
+- “El monto final puede variar…”
+- “CRBOX debe revisarlo antes de confirmar…”
+- “Solo falta completar…”
+- “Puedes continuar a…”
+
+---
+
+## No Hard Failure UX
+
+Normal uncertainty should never feel like failure.
+
+If the exact product does not exist in the Product Brain:
+
+Use semantic approximation.
+
+If still unclear:
+
+Use helpful guidance.
+
+Example:
+
+“Detectamos una categoría probable, pero CRBOX puede revisarla antes de confirmar.”
+
+If the URL provides little data:
+
+“No pudimos leer todos los datos del enlace, pero puedes completar lo que falta manualmente.”
+
+If price is missing:
+
+“Puedes agregar el precio para recibir una orientación más precisa.”
+
+---
+
+## Technical Constraints
+
+Do not break:
+
+- calculator-engine.js math
+- tariff-adapter.js public API
+- legacy category codes
+- quote submission payloads
+- quote IDs
+- status system
+- response_json
+- reminder logic
+- email sending
+- localStorage drafts
+- duplicate check
+- product card cloning
+- max product count
+- admin authentication
+- old quote records
+
+Do not create separate classification logic per page.
+
+Do not duplicate keyword maps.
+
+Use one shared classification pipeline.
+
+---
+
+## Suggested Implementation Steps
+
+1. Review existing Product Brain + classifier from previous tasks.
+2. Identify current public cotizar product-card flow.
+3. Identify current portal quote creation flow.
+4. Design concierge intake component.
+5. Add optional product price field.
+6. Treat URL as optional context.
+7. Connect intake to CRBOXProductClassifier.
+8. Render AI understanding/result cards.
+9. Add next-step routing: calculadora vs quote request vs review.
+10. Hydrate calculadora with existing product context.
+11. Hydrate quote request with full structured metadata.
+12. Ensure multi-product still works.
+13. Ensure admin receives full structured data.
+14. Integrate floating chat assistant with same intake logic.
+15. Preserve existing calculator/admin/email/reminder lifecycle.
+16. Test common, regulated, restricted, unknown, and URL scenarios.
+
+---
+
+## Test Scenarios
+
+Test:
+
+- “AirPods Pro”
+- “Tenis Nike”, $180
+- “iPhone 15 Pro”, $1200
+- “Proteína Whey”, $90
+- “Power bank”
+- “Perfume Dior”
+- “Stanley Quencher”
+- “Air fryer”
+- “Drone DJI”
+- “Repuesto Honda Civic”
+- “Maquillaje Sephora”
+- “Vape”
+- “Semillas”
+- “Arma”
+- Unknown product
+- Product URL with no price
+- Product URL with title only
+- Product URL with price detected
+- Multi-product quote with 3 products
+- Portal client quote with known profile
+- Chat asking about taxes
+- Chat providing product + price
+- Chat providing URL
+
+---
+
+## Acceptance Criteria
+
+- Public cotizar feels concierge-like and AI-first.
+- Client portal quote flow feels concierge-like and AI-first.
+- User can describe products naturally.
+- URL is optional and contextual.
+- Price/value is optional and improves guidance.
+- AI interpretation feels helpful even when partial.
+- Product Brain explanations are visible.
+- Tax guidance is understandable.
+- Regulated/restricted products are handled gracefully.
+- Calculadora can preload from intake flow.
+- Quote request can preload from intake flow.
+- Multi-product quote flow remains supported.
+- Admin receives full structured classification data.
+- Floating AI assistant uses the same logic.
+- No duplicated classification logic exists.
+- Existing calculator math remains unchanged.
+- Existing quote lifecycle remains unchanged.
+- Existing admin flows remain unchanged.
+- Existing emails/reminders are not broken.
+- UX feels modern, premium, human, and low-friction.

@@ -2899,9 +2899,11 @@ def _build_response_email_html(scb_id, product_name, customer_name,
 
     # Brain compliance notice — use product name to find category data
     _brain_resp_cat, _brain_resp_conf = _brain_local_match(product_name or '')
-    _brain_resp_msg = (_brain_resp_cat.get('customerMessage', '') if _brain_resp_cat else '') or ''
-    _brain_resp_display = (_brain_resp_cat.get('displayName', '') if _brain_resp_cat else '') or ''
-    _brain_resp_notice = ''
+    _brain_resp_msg     = (_brain_resp_cat.get('customerMessage', '') if _brain_resp_cat else '') or ''
+    _brain_resp_display = (_brain_resp_cat.get('displayName', '')     if _brain_resp_cat else '') or ''
+    _brain_resp_manual  = bool(_brain_resp_cat.get('manualReviewRequired', False) if _brain_resp_cat else False)
+    _brain_resp_auto    = bool(_brain_resp_cat.get('automaticEstimateAllowed', True) if _brain_resp_cat else True)
+    _brain_resp_notice  = ''
     if _brain_resp_msg:
         _brain_resp_notice = (
             '<div style="background:#fffbeb;border-left:4px solid #f59e0b;border-radius:4px;'
@@ -2912,15 +2914,31 @@ def _build_response_email_html(scb_id, product_name, customer_name,
             '</div>'
         )
 
+    # Determine whether the admin has set an explicit confirmed price
+    _has_confirmed_price = bool(confirmed_price_usd and float(confirmed_price_usd) > 0)
+    # Manual-review guardrail: when the brain flags this product type as requiring human
+    # review AND the admin has not yet set a confirmed price, show a pending-review notice
+    # instead of rendering "$0.00 USD" or any auto-generated figure.
+    _price_suppressed = _brain_resp_manual and not _has_confirmed_price
+
     price_rows = ''
     if availability != 'no_disponible':
-        price_rows = (
-            f'<tr><td style="padding:5px 0;color:#666;width:40%;">Precio de env&iacute;o</td>'
-            f'<td style="padding:5px 0;font-weight:700;color:#FF6B00;font-size:16px;">'
-            f'${confirmed_price_usd:,.2f} USD</td></tr>'
-            f'<tr><td style="padding:5px 0;color:#666;">Tiempo estimado</td>'
-            f'<td style="padding:5px 0;color:#111;">{esc(delivery_timeline)}</td></tr>'
-        )
+        if _price_suppressed:
+            price_rows = (
+                f'<tr><td style="padding:5px 0;color:#666;width:40%;">Precio de env&iacute;o</td>'
+                f'<td style="padding:5px 0;font-weight:600;color:#d97706;">'
+                f'Por confirmar &mdash; revisi&oacute;n CRBOX</td></tr>'
+                f'<tr><td style="padding:5px 0;color:#666;">Tiempo estimado</td>'
+                f'<td style="padding:5px 0;color:#111;">{esc(delivery_timeline)}</td></tr>'
+            )
+        else:
+            price_rows = (
+                f'<tr><td style="padding:5px 0;color:#666;width:40%;">Precio de env&iacute;o</td>'
+                f'<td style="padding:5px 0;font-weight:700;color:#FF6B00;font-size:16px;">'
+                f'${confirmed_price_usd:,.2f} USD</td></tr>'
+                f'<tr><td style="padding:5px 0;color:#666;">Tiempo estimado</td>'
+                f'<td style="padding:5px 0;color:#111;">{esc(delivery_timeline)}</td></tr>'
+            )
 
     no_disponible_block = ''
     if availability == 'no_disponible':
@@ -3848,11 +3866,37 @@ def _send_quote_reminder_customer(scb_id, customer_email, customer_name,
 
     portal_url = f'https://crbox.cr/solicitud?id={scb_id}'
 
-    price_plain = f'${confirmed_price:,.2f} USD' if confirmed_price else 'Ver detalle en el portal'
+    # Brain lookup — use category display name and customerMessage if available
+    _brain_rem_cat, _brain_rem_conf = _brain_local_match(product_name or '')
+    _brain_rem_display = (_brain_rem_cat.get('displayName', '') if _brain_rem_cat else '') or ''
+    _brain_rem_msg     = (_brain_rem_cat.get('customerMessage', '') if _brain_rem_cat else '') or ''
+    _brain_rem_manual  = bool(_brain_rem_cat.get('manualReviewRequired', False) if _brain_rem_cat else False)
+    # Use display name for the product label if the brain recognised the product
+    _product_label = _brain_rem_display if _brain_rem_display else (product_name or '')
+    # Compliance notice block for the reminder body
+    _brain_rem_notice = ''
+    if _brain_rem_msg:
+        _brain_rem_notice = (
+            '<div style="background:#fffbeb;border-left:4px solid #f59e0b;border-radius:4px;'
+            'padding:12px 16px;margin:16px 0;">'
+            '<p style="margin:0;font-size:13px;color:#78350f;line-height:1.6;">'
+            '<strong style="color:#92400e;">Nota sobre tu producto:</strong> '
+            f'{esc(_brain_rem_msg)}</p>'
+            '</div>'
+        )
+
+    # Manual-review guardrail: don't show a confident price when the product
+    # type requires human review and no confirmed price has been set yet.
+    _rem_has_price    = bool(confirmed_price and float(confirmed_price) > 0)
+    _rem_suppressed   = _brain_rem_manual and not _rem_has_price
+
+    price_plain = f'${confirmed_price:,.2f} USD' if _rem_has_price else 'Por confirmar — revisión CRBOX' if _rem_suppressed else 'Ver detalle en el portal'
     price_html  = (
         f'<strong style="color:#FF6B00;font-size:16px;">${confirmed_price:,.2f} USD</strong>'
-        if confirmed_price else
-        '<span style="color:#374151;">Ver detalle en el portal</span>'
+        if _rem_has_price else
+        ('<span style="font-weight:600;color:#d97706;">Por confirmar &mdash; revisi&oacute;n CRBOX</span>'
+         if _rem_suppressed else
+         '<span style="color:#374151;">Ver detalle en el portal</span>')
     )
 
     deadline_plain = ''
@@ -3870,7 +3914,7 @@ def _send_quote_reminder_customer(scb_id, customer_email, customer_name,
         f'El equipo de CRBOX ya revisó tu pedido y preparó una cotización para ti.\n\n'
         f'Resumen de tu solicitud:\n'
         f'  ID: {scb_id}\n'
-        f'  Producto: {product_name}\n'
+        f'  Producto: {_product_label}\n'
         f'  Precio de envío cotizado: {price_plain}\n'
         f'{deadline_plain}'
         f'\nPara aceptar, rechazar o hacer preguntas, visita:\n'
@@ -3903,12 +3947,13 @@ def _send_quote_reminder_customer(scb_id, customer_email, customer_name,
         f'<tr><td style="padding:5px 0;color:#666;width:40%;">ID</td>'
         f'<td style="padding:5px 0;font-weight:700;color:#111;">{esc(scb_id)}</td></tr>'
         f'<tr><td style="padding:5px 0;color:#666;">Producto</td>'
-        f'<td style="padding:5px 0;color:#111;">{esc(product_name)}</td></tr>'
+        f'<td style="padding:5px 0;color:#111;">{esc(_product_label)}</td></tr>'
         f'<tr><td style="padding:5px 0;color:#666;">Precio de env&iacute;o</td>'
         f'<td style="padding:5px 0;">{price_html}</td></tr>'
         '</table>'
         f'{deadline_html}'
         '</div>'
+        f'{_brain_rem_notice}'
         f'<a href="{esc(portal_url)}" style="display:inline-block;background:#FF6B00;color:#fff;'
         'font-weight:700;font-size:14px;padding:12px 28px;border-radius:8px;'
         'text-decoration:none;margin-bottom:20px;">Ver mi solicitud</a>'
