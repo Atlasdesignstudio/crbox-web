@@ -2206,6 +2206,12 @@
 
                 const _REVIEW_PLACEHOLDER = 'Por confirmar — revisión CRBOX';
 
+                // Run-token: each calculation gets a unique id so that a stale
+                // async classification result from a previous run can never
+                // overwrite the totals rendered by a more-recent calculation.
+                if (typeof window._calcBrainRunId === 'undefined') window._calcBrainRunId = 0;
+                const _thisRunId = ++window._calcBrainRunId;
+
                 // Capture the real formatted values just written to the DOM
                 const _realConTotal  = $('d-con-total')  ? $('d-con-total').textContent  : '';
                 const _realSepTotal  = $('d-sep-grand-total') ? $('d-sep-grand-total').textContent : '';
@@ -2225,6 +2231,9 @@
 
                 Promise.all(names.map(n => CRBOXProductClassifier.classify(n, { noFallback: true })))
                     .then(results => {
+                        // Ignore stale results from an earlier calculation run
+                        if (_thisRunId !== window._calcBrainRunId) return;
+
                         // Treat null (unclassified/unknown) as unsafe — conservative guardrail.
                         // A product we cannot identify should not get a confident automatic estimate.
                         const anyManual = results.some(r =>
