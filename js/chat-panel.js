@@ -432,8 +432,28 @@
       });
     }
 
-    if (_looksLikeProductName(text) && typeof CRBOXProductClassifier !== 'undefined') {
-      CRBOXProductClassifier.classify(text, { noFallback: true }).then(function (result) {
+    // Also detect purchase-intent phrasing and extract the product term.
+    // Handles: "quiero traer un iPhone", "me gustaría comprar zapatillas Adidas"
+    function _extractProductIntent(t) {
+      if (!t || t.length > 150) return null;
+      var m = t.match(/(?:quiero|quisiera|me gustar[íi]a|necesito|busco)\s+(?:traer|comprar|importar|pedir|ordenar|buscar|un[ao]s?\s+)?(.{3,80}?)(?:\s+que\s+|\s+por\s+|\s*$)/i);
+      if (m) {
+        var prod = m[1].trim().replace(/^(?:un[ao]s?\s+)/i, '').trim();
+        return prod.length >= 3 ? prod : null;
+      }
+      return null;
+    }
+
+    var _productText = null;
+    if (_looksLikeProductName(text)) {
+      _productText = text;
+    } else {
+      var _intentProduct = _extractProductIntent(text);
+      if (_intentProduct) _productText = _intentProduct;
+    }
+
+    if (_productText && typeof CRBOXProductClassifier !== 'undefined') {
+      CRBOXProductClassifier.classify(_productText, { noFallback: true }).then(function (result) {
         _doSend(result && result.brainCategoryId !== 'unknown_manual_review' ? result : null);
       }).catch(function () { _doSend(null); });
       return;

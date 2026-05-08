@@ -469,31 +469,62 @@
     // Draft: check for saved draft and offer restore (skip when duplicating)
     _checkPortalDraftOnOpen(prefill || null);
 
-    // Mount AI concierge intake above the product name field
+    // Mount AI concierge intake above the product name field (leading intake pattern)
     _portalBrainClassification = null;
+    var _portalFormFields = document.getElementById('ci-portal-form-fields');
+    if (_portalFormFields) _portalFormFields.style.display = 'none'; // hidden until concierge CTA or skip
+
+    function _showPortalForm() {
+      if (_portalFormFields) _portalFormFields.style.display = '';
+      var nameEl = document.getElementById('form-product-name');
+      if (nameEl) setTimeout(function () { nameEl.focus(); }, 80);
+    }
+
     if (typeof ConciergeIntake !== 'undefined') {
       var ciContainer = document.getElementById('ci-portal-block');
       if (ciContainer) ciContainer.innerHTML = '';
       ConciergeIntake.mount('ci-portal-block', {
         compact: true,
         calcRedirect: false,
-        showUrl: false,
-        showPrice: false,
-        placeholder: '¿Qué producto quieres traer? (opcional)',
+        showUrl: true,
+        showPrice: true,
+        placeholder: '¿Qué producto quieres traer?',
         onRequestQuote: function (name, approxPrice, classResult) {
           _portalBrainClassification = classResult || null;
+          _showPortalForm();
           var nameEl = document.getElementById('form-product-name');
           if (nameEl && name) { nameEl.value = name; nameEl.dispatchEvent(new Event('input', { bubbles: true })); }
           if (classResult && classResult.legacyCode && _portalTomSelect) {
             try { _portalTomSelect.setValue(classResult.legacyCode, false); } catch (e) {}
           }
+          if (approxPrice > 0) {
+            var valEl = document.getElementById('form-declared-value');
+            if (valEl && !valEl.value) { valEl.value = approxPrice; valEl.dispatchEvent(new Event('input', { bubbles: true })); }
+          }
         },
         onCalcTax: function (name, classResult) {
           _portalBrainClassification = classResult || null;
+          _showPortalForm();
           var nameEl = document.getElementById('form-product-name');
           if (nameEl && name) { nameEl.value = name; nameEl.dispatchEvent(new Event('input', { bubbles: true })); }
         },
       });
+
+      // "Llenar directamente" skip link
+      var skipWrap = document.createElement('p');
+      skipWrap.className = 'ci-skip-link';
+      skipWrap.innerHTML = '<a href="#" class="ci-portal-skip">Llenar el formulario directamente &rarr;</a>';
+      var ciBlock = document.getElementById('ci-portal-block');
+      if (ciBlock) ciBlock.appendChild(skipWrap);
+      ciBlock.addEventListener('click', function (e) {
+        if (e.target && e.target.classList.contains('ci-portal-skip')) {
+          e.preventDefault();
+          _showPortalForm();
+        }
+      });
+    } else {
+      // Classifier not available — reveal form immediately
+      _showPortalForm();
     }
   }
 

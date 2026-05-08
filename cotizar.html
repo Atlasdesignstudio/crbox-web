@@ -608,6 +608,9 @@
                 <!-- ── AI Concierge intake block ─────────────────────────────── -->
                 <div id="ci-cotizar-block" class="mb-5"></div>
 
+                <!-- ── Progressive reveal: hidden until concierge CTA or skip ── -->
+                <div id="ci-form-reveal" style="display:none">
+
                 <!-- ── Draft restore banner ─────────────────────────────────── -->
                 <div id="draft-restore-bar" class="hidden mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3" role="alert">
                     <div class="flex flex-wrap items-start gap-3">
@@ -792,6 +795,7 @@
                     </div>
 
                 </form>
+                </div><!-- /ci-form-reveal -->
             </div><!-- /#quote-form-section -->
 
             <!-- ══ CONFIRMATION SCREEN ══ -->
@@ -1978,10 +1982,16 @@
         }
 
         // ── AI Concierge intake — mounts above the form cards ──
+        function _showCiForm() {
+            var reveal = document.getElementById('ci-form-reveal');
+            if (reveal) reveal.style.display = '';
+        }
+
         if (typeof ConciergeIntake !== 'undefined') {
             ConciergeIntake.mount('ci-cotizar-block', {
                 calcRedirect: true,
                 onRequestQuote: function (name, approxPrice, classResult) {
+                    _showCiForm();
                     var firstCard = _cards[0];
                     if (!firstCard) return;
                     var cardEl = document.querySelector('[data-card-id="' + firstCard.id + '"]');
@@ -2002,6 +2012,21 @@
                     var productsSection = document.getElementById('products-container');
                     if (productsSection) setTimeout(function () { productsSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
                 },
+            });
+
+            // "Llenar manualmente" skip link — reveals form without going through concierge
+            var skipWrap = document.createElement('p');
+            skipWrap.className = 'ci-skip-link';
+            skipWrap.innerHTML = '<a href="#" id="ci-skip-link">Prefiero llenar el formulario manualmente &rarr;</a>';
+            var ciBlock = document.getElementById('ci-cotizar-block');
+            if (ciBlock) ciBlock.appendChild(skipWrap);
+            document.addEventListener('click', function (e) {
+                if (e.target && e.target.id === 'ci-skip-link') {
+                    e.preventDefault();
+                    _showCiForm();
+                    var pc = document.getElementById('products-container');
+                    if (pc) setTimeout(function () { pc.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+                }
             });
         }
 
