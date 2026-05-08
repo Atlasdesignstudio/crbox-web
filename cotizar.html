@@ -228,9 +228,14 @@
             display:flex; align-items:center; justify-content:center; font-size:.8rem; flex-shrink:0;
         }
         .cq-gem-label { font-size:.67rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#ea580c; }
-        .cq-gem-message {
-            font-size:.97rem; font-weight:500; color:#1f2937; line-height:1.72; margin:0 0 .85rem;
+        /* Message hierarchy: lead (hook sentence) + body (detail) */
+        .cq-gem-lead {
+            font-size:1.02rem; font-weight:700; color:#111827; line-height:1.55; margin:0 0 .42rem;
         }
+        .cq-gem-body {
+            font-size:.875rem; font-weight:400; color:#4b5563; line-height:1.7; margin:0 0 .85rem;
+        }
+        .cq-gem-body:empty { display:none; margin:0; }
         .cq-gem-separator { height:1px; background:#f3ebe1; margin:.65rem 0; }
         .cq-gem-badges { display:flex; flex-wrap:wrap; gap:.32rem; }
         .cq-gem-badge {
@@ -622,6 +627,14 @@
     <div id="cq-flow" aria-live="polite">
         <div class="cq-flow-inner">
 
+            <!-- Draft restore bar — visible when a saved quote draft is detected -->
+            <div id="cq-draft-bar" style="display:none;margin-bottom:.6rem;padding:.52rem 1rem;background:#fef3c7;border:1px solid #fde68a;border-radius:.75rem;font-size:.83rem;color:#92400e;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;">
+                <span><i class="fas fa-clock-rotate-left" style="margin-right:.35rem;"></i>Tienes una cotización guardada sin enviar.</span>
+                <div style="display:flex;gap:.36rem;">
+                    <button type="button" id="cq-draft-discard-btn" style="padding:.24rem .62rem;background:transparent;border:1px solid #d97706;color:#92400e;border-radius:.42rem;font-size:.76rem;cursor:pointer;">Descartar</button>
+                </div>
+            </div>
+
             <!-- Confirmed products pill row -->
             <div id="cq-confirmed-pills">
                 <div class="cq-pills-row" id="cq-pills-row"></div>
@@ -768,18 +781,7 @@
                             <div class="cq-step-sub">¿Qué más quieres traer en esta solicitud?</div>
                         </div>
                     </div>
-                    <div class="cq-mini-search">
-                        <input type="text" id="cq-add-input" class="cq-mini-input" placeholder="Describe el producto…" autocomplete="off" maxlength="200">
-                        <button type="button" id="cq-add-search-btn" class="cq-mini-btn"><i class="fas fa-arrow-right"></i></button>
-                    </div>
-                    <div class="cq-mini-chips" id="cq-add-chips">
-                        <button class="cq-mini-chip" data-query="laptop computadora">💻 Laptop</button>
-                        <button class="cq-mini-chip" data-query="celular smartphone">📱 Celular</button>
-                        <button class="cq-mini-chip" data-query="tenis zapatos Nike">👟 Calzado</button>
-                        <button class="cq-mini-chip" data-query="ropa">👗 Ropa</button>
-                        <button class="cq-mini-chip" data-query="consola videojuegos">🎮 Juegos</button>
-                        <button class="cq-mini-chip" data-query="smartwatch reloj">⌚ Reloj</button>
-                    </div>
+                    <div id="cq-add-concierge-mount" style="margin-top:.15rem;"></div>
                 </div>
 
                 <!-- Step: Shipping preferences -->
@@ -1163,6 +1165,9 @@
             if (bubbleText) bubbleText.textContent = productName;
             if (productBubble) productBubble.style.display = 'flex';
             if (productFields) productFields.style.display = 'none';
+            // Ensure product card is visible (may have been hidden after previous confirm)
+            var stepProdFirst = document.getElementById('cq-step-product');
+            if (stepProdFirst) stepProdFirst.style.display = '';
             // Show loading skeleton in AI card while Gemini processes
             if (intelArea) {
                 intelArea.innerHTML = '<div class="cq-gem-wrap"><div class="cq-gem-card">'
@@ -1379,15 +1384,16 @@
 
             _renderConfirmedList();
 
-            // Hide entry, show shipping
-            if (productBubble) productBubble.style.display = 'none';
-            if (intelArea) intelArea.style.display = 'none';
-            if (productFields) productFields.style.display = 'none';
-            if (btnAddAnother) btnAddAnother.style.display = '';
+            // Collapse the product card — show add-another and shipping below
+            var stepProdEl = document.getElementById('cq-step-product');
+            if (stepProdEl) stepProdEl.style.display = 'none';
+            _showEl('cq-add-product-area');
+            if (_ciAddInst) _ciAddInst.reset();
             _showEl('cq-step-shipping');
             setTimeout(function() {
-                var s = document.getElementById('cq-step-shipping');
-                if (s) s.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                var aa = document.getElementById('cq-add-product-area');
+                if (aa) aa.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                if (_ciAddInst) setTimeout(function() { _ciAddInst.focus(); }, 80);
             }, 200);
         }
 
@@ -1415,43 +1421,68 @@
             if (btnAddAnother) btnAddAnother.style.display = _confirmedProducts.length ? '' : 'none';
         }
 
-        // ── Add another product ───────────────────────────────
+        // ── Add another pill button → scroll to / reveal add-another card ──
         if (btnAddAnother) btnAddAnother.addEventListener('click', function() {
-            _resetEntryFields();
-            _currentBrainResult = null;
-            _currentAiState = { active: false, dataSource: 'manual', inFlight: false };
-            _showEl('cq-add-product-area');
-            _hideEl('cq-step-shipping'); _hideEl('cq-step-contact');
+            var a = document.getElementById('cq-add-product-area');
+            if (a && a.style.display === 'none') _showEl('cq-add-product-area');
+            if (_ciAddInst) { _ciAddInst.reset(); }
             setTimeout(function() {
-                var a = document.getElementById('cq-add-product-area');
-                if (a) a.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                var ai = document.getElementById('cq-add-input');
-                if (ai) ai.focus();
-            }, 150);
+                var aa = document.getElementById('cq-add-product-area');
+                if (aa) aa.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                if (_ciAddInst) _ciAddInst.focus();
+            }, 100);
         });
 
-        // Add-another mini search
+        // Add-another mini search — elements removed; this block is kept as a no-op guard
         (function() {
-            var addInput = document.getElementById('cq-add-input');
-            var addBtn   = document.getElementById('cq-add-search-btn');
-            var addChips = document.getElementById('cq-add-chips');
-            if (!addInput || !addBtn) return;
+            if (!document.getElementById('cq-add-input')) return; // concierge-mount replaces this
+        })();
 
-            function _doAdd() {
-                var val = (addInput ? addInput.value : '').trim();
-                if (val.length < 2) return;
-                _hideEl('cq-add-product-area');
-                _startAddEntry(val);
-            }
-            addBtn.addEventListener('click', _doAdd);
-            addInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); _doAdd(); } });
-            if (addChips) addChips.querySelectorAll('.cq-mini-chip').forEach(function(chip) {
-                chip.addEventListener('click', function() {
-                    var q = chip.dataset.query || chip.textContent.replace(/[^\w\sáéíóúñü]/gi,'').trim();
-                    if (addInput) addInput.value = q;
+        // ── ConciergeIntake for "add another product" card ───────────────────
+        var _ciAddInst = null;
+        if (typeof ConciergeIntake !== 'undefined') {
+            _ciAddInst = ConciergeIntake.mount('cq-add-concierge-mount', {
+                compact:      true,
+                showUrl:      false,
+                showPrice:    true,
+                calcRedirect: true,
+                placeholder:  'Describe el siguiente producto…',
+                onRequestQuote: function(name, approxPrice, result) {
                     _hideEl('cq-add-product-area');
-                    _startAddEntry(q);
-                });
+                    _startAddEntry(name);
+                    // Pre-fill declared value if concierge captured a price
+                    if (approxPrice > 0) {
+                        var prEl = document.getElementById('cq-f-price');
+                        if (prEl) { prEl.value = approxPrice; prEl.dispatchEvent(new Event('input')); }
+                    }
+                    // Pre-fill category via TomSelect if available
+                    if (result && result.legacyCode) {
+                        var catEl = document.getElementById('cq-f-category');
+                        if (catEl) { catEl.value = result.legacyCode; catEl.dispatchEvent(new Event('change')); }
+                    }
+                },
+            });
+        }
+
+        // ── Draft discard bar — uses the literal key so it runs before _DRAFT_KEY is assigned
+        (function() {
+            var discardBtn = document.getElementById('cq-draft-discard-btn');
+            var draftBar   = document.getElementById('cq-draft-bar');
+            if (!discardBtn || !draftBar) return;
+            // Show bar if a draft exists (use literal key — same value as _DRAFT_KEY)
+            try {
+                var raw = localStorage.getItem('crbox-draft-cq-v1');
+                if (raw) {
+                    var parsed = JSON.parse(raw);
+                    if (parsed && (parsed.contact_name || (parsed.products && parsed.products.length > 0))) {
+                        draftBar.style.display = 'flex';
+                    }
+                }
+            } catch(e) {}
+            discardBtn.addEventListener('click', function() {
+                if (typeof _clearDraft === 'function') _clearDraft();
+                else try { localStorage.removeItem('crbox-draft-cq-v1'); } catch(e) {}
+                draftBar.style.display = 'none';
             });
         })();
 
@@ -1463,8 +1494,24 @@
             if (bubbleText) bubbleText.textContent = productName;
             if (productBubble) productBubble.style.display = 'flex';
             if (productFields) productFields.style.display = 'none';
-            if (intelArea) { intelArea.innerHTML = ''; intelArea.style.display = 'none'; }
+            // Show loading skeleton while Gemini processes
+            if (intelArea) {
+                intelArea.innerHTML = '<div class="cq-gem-wrap"><div class="cq-gem-card">'
+                    + '<div class="cq-gem-header"><div class="cq-gem-avatar">✨</div>'
+                    + '<span class="cq-gem-label">Analizando producto…</span></div>'
+                    + '<div class="cq-skel-row" style="height:14px;width:52%;margin-bottom:.65rem;"></div>'
+                    + '<div class="cq-skel-row" style="height:13px;width:100%;margin-bottom:.38rem;"></div>'
+                    + '<div class="cq-skel-row" style="height:13px;width:82%;margin-bottom:.75rem;"></div>'
+                    + '<div style="display:flex;gap:.32rem;">'
+                    + '<div class="cq-skel-row" style="height:26px;width:90px;border-radius:.52rem;"></div>'
+                    + '<div class="cq-skel-row" style="height:26px;width:110px;border-radius:.52rem;"></div>'
+                    + '</div></div></div>';
+                intelArea.style.display = '';
+            }
+            // Re-show product card and hide steps that await completion
             var stepProd = document.getElementById('cq-step-product');
+            if (stepProd) stepProd.style.display = '';
+            _hideEl('cq-step-shipping'); _hideEl('cq-step-contact');
             if (stepProd) setTimeout(function() { stepProd.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
             if (typeof CRBOXProductClassifier !== 'undefined') {
                 CRBOXProductClassifier.classify(productName).then(function(result) {
@@ -1751,6 +1798,9 @@
             if (pillsRow) pillsRow.innerHTML = '';
             if (pillsCont) pillsCont.style.display = 'none';
             if (btnAddAnother) btnAddAnother.style.display = 'none';
+            // Restore product card visibility for next entry
+            var stepProdReset = document.getElementById('cq-step-product');
+            if (stepProdReset) stepProdReset.style.display = '';
             if (fServiceType) fServiceType.value = 'aereo';
             document.querySelectorAll('.cq-svc-card').forEach(function(c) { c.classList.remove('cq-svc-active'); });
             var aereoCard = document.querySelector('[data-service="aereo"]');
@@ -1834,6 +1884,18 @@
 
             var hasBadges = badgeHtml || taxEstBadge;
 
+            // ── Split message: first sentence → lead hook, rest → body ──
+            var gemLead = '', gemBody = '';
+            if (primaryText) {
+                var sentMatch = primaryText.match(/^([^.!?]+[.!?]+)\s*([\s\S]*)$/);
+                if (sentMatch && sentMatch[2].trim().length > 0) {
+                    gemLead = sentMatch[1].trim();
+                    gemBody = sentMatch[2].trim();
+                } else {
+                    gemLead = primaryText.trim();
+                }
+            }
+
             // ── Compose card ──
             var html = '<div class="cq-gem-wrap"><div class="cq-gem-card">'
                 + '<div class="cq-gem-header">'
@@ -1841,9 +1903,8 @@
                 + '<span class="cq-gem-label">Análisis CRBOX</span>'
                 + '</div>';
 
-            if (primaryText) {
-                html += '<p class="cq-gem-message">' + _escHtml(primaryText) + '</p>';
-            }
+            if (gemLead) html += '<p class="cq-gem-lead">' + _escHtml(gemLead) + '</p>';
+            if (gemBody) html += '<p class="cq-gem-body">' + _escHtml(gemBody) + '</p>';
 
             if (hasBadges) {
                 if (primaryText) html += '<div class="cq-gem-separator"></div>';

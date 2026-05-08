@@ -366,9 +366,20 @@
     var _QUESTION_WORDS = ['como', 'cuanto', 'cuánto', 'cuál', 'cual', 'qué', 'que',
       'donde', 'dónde', 'cuando', 'cuándo', 'por', 'puedo', 'pueden', 'ayuda', 'help',
       'funciona', 'sirve', 'tienen', 'hay', '?'];
+    // Detect "ProductName cuesta/vale $X" — returns the product name part, or null.
+    // Used to extract a clean product name before classification when a price is embedded.
+    function _extractProductFromPriceContext(t) {
+      if (!t) return null;
+      var m = t.match(/^(.+?)\s+(?:cuesta|vale|sale|costs?|is)\s+\$?([\d,]+)/i);
+      if (m && m[1].trim().length >= 2) return m[1].trim();
+      return null;
+    }
+
     function _looksLikeProductName(t) {
       if (!t || t.length < 3 || t.length > 100) return false;
       if (t.indexOf('?') !== -1) return false;
+      // "ProductName cuesta $X" style messages — treat the whole message as product context
+      if (_extractProductFromPriceContext(t)) return true;
       var lower = t.toLowerCase();
       for (var i = 0; i < _QUESTION_WORDS.length; i++) {
         if (lower.indexOf(_QUESTION_WORDS[i]) !== -1) return false;
@@ -500,7 +511,8 @@
     // ── Product name / intent path ────────────────────────────────────────────
     var _productText = null;
     if (_looksLikeProductName(text)) {
-      _productText = text;
+      // Extract just the product name when text is "ProductName cuesta $X"
+      _productText = _extractProductFromPriceContext(text) || text;
     } else {
       var _intentProduct = _extractProductIntent(text);
       if (_intentProduct) _productText = _intentProduct;

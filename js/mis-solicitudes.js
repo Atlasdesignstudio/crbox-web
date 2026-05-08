@@ -20,6 +20,7 @@
   var _portalWeightToggle      = null; // UnitConverter toggle for weight
   var _portalDimToggle         = null; // UnitConverter toggle for dims
   var _portalBrainClassification = null; // last brain result from concierge intake
+  var _portalCiInst              = null; // ConciergeIntake instance mounted above the form
 
   // ── beforeunload: warn if panel has data and user navigates away ───────────
   window.addEventListener('beforeunload', function (e) {
@@ -471,6 +472,41 @@
 
     // Show the portal form directly — no concierge pre-step
     _portalBrainClassification = null;
+
+    // Mount (or reset) ConciergeIntake above the product section so users can do
+    // an AI product lookup before filling in the form fields manually.
+    if (typeof ConciergeIntake !== 'undefined') {
+      if (_portalCiInst) {
+        _portalCiInst.reset();
+      } else {
+        _portalCiInst = ConciergeIntake.mount('portal-concierge-mount', {
+          compact:      true,
+          showUrl:      false,
+          showPrice:    true,
+          calcRedirect: true,
+          placeholder:  'Ej: Sony WH-1000XM5, iPad Pro, tenis Nike…',
+          onRequestQuote: function (name, approxPrice, result) {
+            // Fill product name
+            var nameEl = document.getElementById('form-product-name');
+            if (nameEl) { nameEl.value = name; nameEl.dispatchEvent(new Event('input')); }
+            // Fill declared value
+            var valEl = document.getElementById('form-declared-value');
+            if (valEl && approxPrice > 0) { valEl.value = approxPrice; valEl.dispatchEvent(new Event('input')); }
+            // Store brain result + set TomSelect category + render intel card
+            if (result) {
+              _portalBrainClassification = result;
+              if (result.legacyCode && _portalTomSelect) {
+                try { _portalTomSelect.setValue(result.legacyCode, false); } catch (e) {}
+              }
+              _renderPortalIntelCard(result, name, approxPrice || 0);
+            }
+            // Scroll to and focus the name field so user can review/complete
+            var fEl = document.getElementById('form-product-name');
+            if (fEl) setTimeout(function () { fEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); fEl.focus(); }, 120);
+          },
+        });
+      }
+    }
 
     function _showPortalForm() {
       var nameEl = document.getElementById('form-product-name');

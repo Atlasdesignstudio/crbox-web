@@ -578,6 +578,17 @@
     return {
       focus:    function () { if (inputEl) inputEl.focus(); },
       setValue: function (v) { inputEl.value = v || ''; },
+      reset:    function () {
+        if (inputEl)    inputEl.value = '';
+        if (urlInput)   urlInput.value = '';
+        if (priceInput) priceInput.value = '';
+        resultEl.style.display = 'none';
+        resultEl.innerHTML   = '';
+        resultEl._lastResult = null;
+        resultEl._lastName   = null;
+        if (chipsWrap) chipsWrap.querySelectorAll('.ci-chip').forEach(function (ch) { ch.classList.remove('ci-active'); });
+        searchWrap.classList.remove('ci-thinking');
+      },
     };
   }
 
