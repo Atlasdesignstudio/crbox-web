@@ -1801,8 +1801,10 @@
                     btnAnalyze.innerHTML = origHtml;
                     if (!result) return;
 
-                    // Auto-select category (if not already set and result has a matching option)
-                    if (catEl && !catEl.value && result.legacyCode) {
+                    // Auto-select category — always update when classify returns a
+                    // confident match, even if a category is already selected.
+                    // Low-confidence results are skipped to avoid unwanted overrides.
+                    if (catEl && result.legacyCode && result.confidence !== 'low') {
                         const opt = catEl.querySelector('option[value="' + result.legacyCode + '"]');
                         if (opt) {
                             catEl.value = result.legacyCode;

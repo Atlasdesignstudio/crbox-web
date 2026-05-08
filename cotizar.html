@@ -1129,7 +1129,9 @@
                 // Use classify() directly so button restoration is unconditional —
                 // suggest()'s onApplied only fires when the user clicks "Usar esta",
                 // which would leave the button stuck in the disabled/spinner state.
-                CRBOXProductClassifier.classify(val, { noFallback: true }).then(function(result) {
+                // No noFallback — unknown products get the guided _unknownResult()
+                // fallback with a helpful customerMessage instead of null.
+                CRBOXProductClassifier.classify(val).then(function(result) {
                     // Always restore button regardless of classification outcome
                     btnAnalizarName.disabled = false;
                     btnAnalizarName.innerHTML = '<i class="fas fa-brain" style="color:#FF6B00;margin-right:.25rem;"></i>Analizar';

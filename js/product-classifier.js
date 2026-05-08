@@ -308,7 +308,8 @@
     function hasRisk(result) {
         if (!result) return false;
         return !!(result.forbiddenProduct || result.restrictedProduct ||
-                  result.regulatedProduct || (result.riskFlags && result.riskFlags.length));
+                  result.regulatedProduct || result.manualReviewRequired ||
+                  (result.riskFlags && result.riskFlags.length));
     }
 
     function riskLevel(result) {
@@ -316,6 +317,9 @@
         if (result.forbiddenProduct)  return 'forbidden';
         if (result.restrictedProduct) return 'restricted';
         if (result.regulatedProduct || (result.riskFlags && result.riskFlags.length)) return 'regulated';
+        // Manual-review-only categories use amber "restricted" styling so the
+        // notice is visually distinct from an informational/blue regulated notice.
+        if (result.manualReviewRequired) return 'restricted';
         return 'none';
     }
 
