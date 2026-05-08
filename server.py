@@ -2897,12 +2897,30 @@ def _build_response_email_html(scb_id, product_name, customer_name,
 
     greeting = f'Hola {esc(customer_name)},' if customer_name else 'Hola,'
 
-    # Brain compliance notice — use product name to find category data
-    _brain_resp_cat, _brain_resp_conf = _brain_local_match(product_name or '')
-    _brain_resp_msg     = (_brain_resp_cat.get('customerMessage', '') if _brain_resp_cat else '') or ''
-    _brain_resp_display = (_brain_resp_cat.get('displayName', '')     if _brain_resp_cat else '') or ''
-    _brain_resp_manual  = bool(_brain_resp_cat.get('manualReviewRequired', False) if _brain_resp_cat else False)
-    _brain_resp_auto    = bool(_brain_resp_cat.get('automaticEstimateAllowed', True) if _brain_resp_cat else True)
+    # Brain compliance notice — prefer stored category code from quote_breakdown
+    # (set by the admin when confirming the response) over product-name matching,
+    # which can be ambiguous.  Fall back to _brain_local_match only when absent.
+    _brain_resp_manual  = False
+    _brain_resp_msg     = ''
+    _brain_resp_display = ''
+    _brain_cat_code = None
+    if quote_breakdown and isinstance(quote_breakdown, dict):
+        _bd_prods_brain = quote_breakdown.get('products') or []
+        if _bd_prods_brain and isinstance(_bd_prods_brain[0], dict):
+            _brain_cat_code = (_bd_prods_brain[0].get('brainCategoryId')
+                               or _bd_prods_brain[0].get('category') or None)
+    if _brain_cat_code:
+        _brain_resp_display = _brain_display_name(_brain_cat_code)
+        _brain_resp_msg     = _brain_customer_message(_brain_cat_code)
+        for _bc in (_BRAIN_CATS or []):
+            if _bc.get('id') == _brain_cat_code or _bc.get('code') == _brain_cat_code:
+                _brain_resp_manual = bool(_bc.get('manualReviewRequired', False))
+                break
+    else:
+        _brain_resp_cat, _brain_resp_conf = _brain_local_match(product_name or '')
+        _brain_resp_msg     = (_brain_resp_cat.get('customerMessage', '') if _brain_resp_cat else '') or ''
+        _brain_resp_display = (_brain_resp_cat.get('displayName', '')     if _brain_resp_cat else '') or ''
+        _brain_resp_manual  = bool(_brain_resp_cat.get('manualReviewRequired', False) if _brain_resp_cat else False)
     _brain_resp_notice  = ''
     if _brain_resp_msg:
         _brain_resp_notice = (
@@ -3858,7 +3876,7 @@ def _send_reminder_digest(rows, reminder_hours: int) -> tuple[bool, str]:
 
 def _send_quote_reminder_customer(scb_id, customer_email, customer_name,
                                    product_name, confirmed_price, expires_at,
-                                   smtp_user) -> tuple[bool, str]:
+                                   smtp_user, quote_breakdown=None) -> tuple[bool, str]:
     """Send a single reminder email to a customer whose quote is awaiting their reply."""
     esc = _html.escape
     greeting = f'Hola {customer_name},' if customer_name else 'Hola,'
@@ -3866,11 +3884,29 @@ def _send_quote_reminder_customer(scb_id, customer_email, customer_name,
 
     portal_url = f'https://crbox.cr/solicitud?id={scb_id}'
 
-    # Brain lookup — use category display name and customerMessage if available
-    _brain_rem_cat, _brain_rem_conf = _brain_local_match(product_name or '')
-    _brain_rem_display = (_brain_rem_cat.get('displayName', '') if _brain_rem_cat else '') or ''
-    _brain_rem_msg     = (_brain_rem_cat.get('customerMessage', '') if _brain_rem_cat else '') or ''
-    _brain_rem_manual  = bool(_brain_rem_cat.get('manualReviewRequired', False) if _brain_rem_cat else False)
+    # Brain lookup — prefer stored category code from quote_breakdown (reliable)
+    # over product-name re-matching (ambiguous).
+    _brain_rem_manual  = False
+    _brain_rem_msg     = ''
+    _brain_rem_display = ''
+    _rem_cat_code = None
+    if quote_breakdown and isinstance(quote_breakdown, dict):
+        _rem_bd_prods = quote_breakdown.get('products') or []
+        if _rem_bd_prods and isinstance(_rem_bd_prods[0], dict):
+            _rem_cat_code = (_rem_bd_prods[0].get('brainCategoryId')
+                             or _rem_bd_prods[0].get('category') or None)
+    if _rem_cat_code:
+        _brain_rem_display = _brain_display_name(_rem_cat_code)
+        _brain_rem_msg     = _brain_customer_message(_rem_cat_code)
+        for _rc in (_BRAIN_CATS or []):
+            if _rc.get('id') == _rem_cat_code or _rc.get('code') == _rem_cat_code:
+                _brain_rem_manual = bool(_rc.get('manualReviewRequired', False))
+                break
+    else:
+        _brain_rem_cat, _brain_rem_conf = _brain_local_match(product_name or '')
+        _brain_rem_display = (_brain_rem_cat.get('displayName', '') if _brain_rem_cat else '') or ''
+        _brain_rem_msg     = (_brain_rem_cat.get('customerMessage', '') if _brain_rem_cat else '') or ''
+        _brain_rem_manual  = bool(_brain_rem_cat.get('manualReviewRequired', False) if _brain_rem_cat else False)
     # Use display name for the product label if the brain recognised the product
     _product_label = _brain_rem_display if _brain_rem_display else (product_name or '')
     # Compliance notice block for the reminder body
@@ -4067,18 +4103,21 @@ def _check_and_send_reminders(reminder_hours: int):
         product_name   = row['product_name']
         expires_at     = row['expires_at']
 
-        confirmed_price = None
+        confirmed_price        = None
+        quote_breakdown_for_rem = None
         resp_raw = row['response_json']
         if resp_raw:
             try:
                 resp_data = json.loads(resp_raw)
-                confirmed_price = resp_data.get('confirmed_shipping_price_usd')
+                confirmed_price         = resp_data.get('confirmed_shipping_price_usd')
+                quote_breakdown_for_rem = resp_data.get('quote_breakdown')
             except Exception:
                 pass
 
         ok, err = _send_quote_reminder_customer(
             scb_id, customer_email, customer_name,
-            product_name, confirmed_price, expires_at, smtp_user
+            product_name, confirmed_price, expires_at, smtp_user,
+            quote_breakdown=quote_breakdown_for_rem
         )
         if ok:
             sent_ids.append(scb_id)

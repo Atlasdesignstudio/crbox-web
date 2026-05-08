@@ -390,6 +390,19 @@
             wrap.appendChild(badge);
         }
 
+        // customerMessage — show the friendly info note for the category.
+        // For non-risk products this is the primary explanatory text
+        // (e.g. "Esta categoría suele pagar 13-20% de impuestos…").
+        // For risky products showComplianceNotice() below also uses customerMessage
+        // as its body text; we show it here only when there is no risk notice to
+        // avoid duplication.
+        if (result.customerMessage && !hasRisk(result)) {
+            var msg = document.createElement('p');
+            msg.style.cssText = 'font-size:.78rem;color:#6b7280;margin:.3rem 0 .1rem;line-height:1.5;';
+            msg.textContent = result.customerMessage;
+            wrap.appendChild(msg);
+        }
+
         if (hasRisk(result)) showComplianceNotice(wrap, result);
 
         if (result.actionForCustomer) {
