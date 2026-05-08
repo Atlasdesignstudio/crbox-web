@@ -1573,14 +1573,18 @@ def _handle_ai_classify(handler):
         handler._json_response(400, {'error': 'product_name required (min 2 chars)'})
         return
 
+    # Context-free requests use cache; contextual requests (URL/price) bypass it
+    # to prevent context-influenced results from polluting the name-only cache.
+    has_context = bool(product_url or price_usd)
     cache_key = _normalize_for_match(product_name)
-    cached = _classify_cache_get(cache_key)
-    if cached:
-        handler._json_response(200, cached)
-        return
+    if not has_context:
+        cached = _classify_cache_get(cache_key)
+        if cached:
+            handler._json_response(200, cached)
+            return
 
     cat, conf = _brain_local_match(product_name)
-    if cat and conf in ('high', 'medium') and not product_url and not price_usd:
+    if cat and conf in ('high', 'medium') and not has_context:
         result = _cat_to_classify_result(cat, conf, 'brain_local')
         _classify_cache_set(cache_key, result)
         handler._json_response(200, result)
@@ -1591,7 +1595,8 @@ def _handle_ai_classify(handler):
     if _GEMINI_SDK_OK and _GEMINI_API_KEY:
         ai_result, err = _gemini_classify(product_name, product_url=product_url, price_usd=price_usd)
         if ai_result:
-            _classify_cache_set(cache_key, ai_result)
+            if not has_context:
+                _classify_cache_set(cache_key, ai_result)
             handler._json_response(200, ai_result)
             return
         if err:

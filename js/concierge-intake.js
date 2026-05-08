@@ -384,7 +384,7 @@
       resultEl.style.display = 'none';
       resultEl.innerHTML = '';
 
-      CRBOXProductClassifier.classify(ctx.name, { url: ctx.url || undefined, priceUsd: ctx.price || undefined }).then(function (result) {
+      CRBOXProductClassifier.classify(ctx.classifyQuery, { url: ctx.url || undefined, priceUsd: ctx.price || undefined }).then(function (result) {
         analyzeBtn.disabled = false;
         analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Obtener información';
         if (!result) return;
