@@ -602,8 +602,15 @@
     _panelSubmitted = false;
     _dupWarningDismissedPortal = false;
     // Reset AI state
-    _portalAiActive     = false;
-    _portalAiDataSource = 'manual';
+    _portalAiActive          = false;
+    _portalAiDataSource      = 'manual';
+    _portalBrainClassification = null;
+    // Clear intel card so stale content never shows on next open
+    var intelCard = document.getElementById('portal-intel-card');
+    if (intelCard) { intelCard.innerHTML = ''; intelCard.style.display = 'none'; }
+    // Close category disclosure so it returns to collapsed state
+    var catDetails = document.getElementById('portal-cat-details');
+    if (catDetails) catDetails.open = false;
     if (typeof CRBOXAIExtractor !== 'undefined') {
       CRBOXAIExtractor.resetExtraction({
         bannerTarget:     document.getElementById('ai-extract-banner-portal'),
