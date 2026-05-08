@@ -1185,6 +1185,22 @@
                     b.classList.contains('ai-banner-partial'))) {
             _portalAiActive = true;
           }
+          // Run classifier on extracted name → persist brainClassification + render intel card
+          if (typeof CRBOXProductClassifier !== 'undefined') {
+            var extractorResult = null;
+            try { extractorResult = CRBOXAIExtractor.getLastResult(); } catch(e) {}
+            CRBOXProductClassifier.analyzeUrlResult(extractorResult).then(function(classResult) {
+              if (!classResult) return;
+              _portalBrainClassification = classResult;
+              // Auto-open disclosure when category set so user sees it was populated
+              if (classResult.legacyCode && _portalTomSelect) {
+                try { _portalTomSelect.setValue(classResult.legacyCode, false); } catch(e) {}
+                var catDetails = document.getElementById('portal-cat-details');
+                if (catDetails && classResult.brainCategoryId !== 'unknown_manual_review') catDetails.open = true;
+              }
+              _renderPortalIntelCard(classResult, fPortalName ? fPortalName.value : '', parseFloat(fPortalValue ? fPortalValue.value : '') || 0);
+            });
+          }
         });
       }
 
