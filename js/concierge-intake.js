@@ -212,7 +212,7 @@
     var analyzeBtn = document.createElement('button');
     analyzeBtn.type = 'button';
     analyzeBtn.className = 'ci-btn';
-    analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Consultar';
+    analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Obtener información';
     analyzeBtn.disabled = true;
     inputRow.appendChild(analyzeBtn);
     wrap.appendChild(inputRow);
@@ -380,18 +380,18 @@
       if (typeof CRBOXProductClassifier === 'undefined') return;
 
       analyzeBtn.disabled = true;
-      analyzeBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Consultando…';
+      analyzeBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analizando…';
       resultEl.style.display = 'none';
       resultEl.innerHTML = '';
 
-      CRBOXProductClassifier.classify(ctx.classifyQuery).then(function (result) {
+      CRBOXProductClassifier.classify(ctx.name, { url: ctx.url || undefined, priceUsd: ctx.price || undefined }).then(function (result) {
         analyzeBtn.disabled = false;
-        analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Consultar';
+        analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Obtener información';
         if (!result) return;
         _renderResult(result, ctx.name, ctx.price);
       }).catch(function () {
         analyzeBtn.disabled = false;
-        analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Consultar';
+        analyzeBtn.innerHTML = '<i class="fas fa-search"></i> Obtener información';
       });
     }
 
@@ -466,7 +466,7 @@
       var ctaCalc = document.createElement('button');
       ctaCalc.type = 'button';
       ctaCalc.className = 'ci-cta-secondary';
-      ctaCalc.innerHTML = '<i class="fas fa-calculator" style="margin-right:.3rem;font-size:.8rem;"></i>Calcular impuesto';
+      ctaCalc.innerHTML = '<i class="fas fa-calculator" style="margin-right:.3rem;font-size:.8rem;"></i>Continuar a calculadora';
       ctaCalc.addEventListener('click', function () {
         if (calcRedirect) {
           try {
@@ -485,7 +485,7 @@
       var ctaQuote = document.createElement('button');
       ctaQuote.type = 'button';
       ctaQuote.className = 'ci-cta-primary';
-      ctaQuote.innerHTML = '<i class="fas fa-shopping-cart" style="margin-right:.3rem;font-size:.8rem;"></i>Solicitar compra';
+      ctaQuote.innerHTML = '<i class="fas fa-shopping-cart" style="margin-right:.3rem;font-size:.8rem;"></i>Solicitar cotización con CRBOX';
       ctaQuote.addEventListener('click', function () {
         if (typeof opts.onRequestQuote === 'function') {
           opts.onRequestQuote(name, approxPrice, result);

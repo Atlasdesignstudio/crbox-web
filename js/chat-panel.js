@@ -432,6 +432,42 @@
       });
     }
 
+    // URL detection helpers — extract product name from pasted product URLs.
+    function _extractUrlFromMsg(t) {
+      var m = (t || '').match(/https?:\/\/[^\s]+\.[^\s]{2,}/i);
+      return m ? m[0].replace(/[,.)]+$/, '') : null;
+    }
+    function _nameFromUrlChat(rawUrl) {
+      try {
+        var u = new URL(/^https?:\/\//i.test(rawUrl) ? rawUrl : 'https://' + rawUrl);
+        var host = u.hostname.replace(/^www\./, '');
+        var path = u.pathname;
+        // Amazon: title from search param or product slug after /dp/ASIN/
+        if (/amazon\./i.test(host)) {
+          var pq = u.searchParams.get('k') || u.searchParams.get('s') || '';
+          if (pq.length > 3) return pq.replace(/\+/g, ' ').trim().substring(0, 80);
+          var parts = path.split('/').filter(Boolean);
+          for (var i = 0; i < parts.length; i++) {
+            if (/^[A-Z0-9]{10}$/.test(parts[i]) && parts[i + 1])
+              return parts[i + 1].replace(/-/g, ' ').substring(0, 80);
+          }
+        }
+        // eBay: /itm/product-title/...
+        if (/ebay\./i.test(host)) {
+          var m2 = path.match(/\/itm\/([^\/]+)/);
+          if (m2) return decodeURIComponent(m2[1]).replace(/-/g, ' ').substring(0, 80);
+        }
+        // Generic: longest slug-like path segment
+        var segs = path.split('/').filter(function (s) {
+          return s.length > 5 && /[a-zA-Z]/.test(s) && !/^\d+$/.test(s);
+        });
+        segs.sort(function (a, b) { return b.length - a.length; });
+        if (segs[0]) return decodeURIComponent(segs[0]).replace(/[-_+]+/g, ' ')
+          .replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9\s]/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 80);
+      } catch (e) {}
+      return '';
+    }
+
     // Also detect purchase-intent phrasing and extract the product term.
     // Handles: "quiero traer un iPhone", "me gustaría comprar zapatillas Adidas"
     function _extractProductIntent(t) {
@@ -444,6 +480,24 @@
       return null;
     }
 
+    // ── URL+price concierge path — dedicated structured context route ──────────
+    // When the user pastes a product URL (optionally with price), run
+    // classify() with structured {url, priceUsd} opts so the AI has full context.
+    var _msgUrl = _extractUrlFromMsg(text);
+    if (_msgUrl && typeof CRBOXProductClassifier !== 'undefined') {
+      var _urlName = _nameFromUrlChat(_msgUrl);
+      var _urlPrice = _extractPriceContext(text);
+      if (_urlName && _urlName.length >= 3) {
+        CRBOXProductClassifier.classify(_urlName, {
+          url: _msgUrl, priceUsd: _urlPrice || undefined, noFallback: true,
+        }).then(function (result) {
+          _doSend(result && result.brainCategoryId !== 'unknown_manual_review' ? result : null);
+        }).catch(function () { _doSend(null); });
+        return;
+      }
+    }
+
+    // ── Product name / intent path ────────────────────────────────────────────
     var _productText = null;
     if (_looksLikeProductName(text)) {
       _productText = text;

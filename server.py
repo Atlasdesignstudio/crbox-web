@@ -1374,12 +1374,12 @@ def _build_search_fallback_result(data, url, grounded=True):
 
 _CLASSIFY_PROMPT = """\
 You are a product classification assistant for CRBOX, a Costa Rica courier company.
-Given a product name, choose the SINGLE best category from this list of category IDs.
+Given a product name (and optional URL + price context), choose the SINGLE best category from this list of category IDs.
 
 Category IDs and their descriptions:
 {category_list}
 
-Product name: {product_name}
+Product name: {product_name}{url_context}{price_context}
 
 Return ONLY valid JSON — no markdown, no code fences, no extra text:
 {{
@@ -1390,6 +1390,7 @@ Return ONLY valid JSON — no markdown, no code fences, no extra text:
 
 Rules:
 - Choose the most specific applicable category.
+- Use the URL and price context to resolve ambiguity (e.g. a $2000 "bag" is likely a handbag luxury item, not a grocery bag).
 - Use "unknown_manual_review" only when the product truly does not fit any category.
 - Confidence: "high" = very clear match, "medium" = likely match, "low" = best guess.
 """
@@ -1477,8 +1478,9 @@ def _cat_to_classify_result(cat, confidence, source):
     }
 
 
-def _gemini_classify(product_name):
+def _gemini_classify(product_name, product_url=None, price_usd=None):
     """Ask Gemini to pick a CRBOX brain category for the given product name.
+    Accepts optional product_url and price_usd for richer context.
     Returns (result_dict, error_str).
     """
     if not _GEMINI_API_KEY or not product_name or not _BRAIN_CATS:
@@ -1492,9 +1494,13 @@ def _gemini_classify(product_name):
             f'  {c["id"]}: {c.get("displayName","")} ({c.get("categoryGroup","")})'
             for c in _BRAIN_CATS
         )
+        url_ctx   = f'\nProduct URL: {product_url}' if product_url else ''
+        price_ctx = f'\nApprox. price (USD): ${price_usd:.2f}' if price_usd else ''
         prompt = _CLASSIFY_PROMPT.format(
             category_list=cat_lines,
             product_name=product_name,
+            url_context=url_ctx,
+            price_context=price_ctx,
         )
         response = client.models.generate_content(
             model=_GEMINI_MODEL,
@@ -1558,6 +1564,11 @@ def _handle_ai_classify(handler):
         return
 
     product_name = str(body.get('product_name') or '').strip()[:300]
+    product_url  = str(body.get('product_url') or '').strip()[:500] or None
+    try:
+        price_usd = float(body.get('price_usd') or 0) or None
+    except (TypeError, ValueError):
+        price_usd = None
     if not product_name or len(product_name) < 2:
         handler._json_response(400, {'error': 'product_name required (min 2 chars)'})
         return
@@ -1569,7 +1580,7 @@ def _handle_ai_classify(handler):
         return
 
     cat, conf = _brain_local_match(product_name)
-    if cat and conf in ('high', 'medium'):
+    if cat and conf in ('high', 'medium') and not product_url and not price_usd:
         result = _cat_to_classify_result(cat, conf, 'brain_local')
         _classify_cache_set(cache_key, result)
         handler._json_response(200, result)
@@ -1578,7 +1589,7 @@ def _handle_ai_classify(handler):
     local_fallback = _cat_to_classify_result(cat, conf, 'brain_local') if cat else None
 
     if _GEMINI_SDK_OK and _GEMINI_API_KEY:
-        ai_result, err = _gemini_classify(product_name)
+        ai_result, err = _gemini_classify(product_name, product_url=product_url, price_usd=price_usd)
         if ai_result:
             _classify_cache_set(cache_key, ai_result)
             handler._json_response(200, ai_result)

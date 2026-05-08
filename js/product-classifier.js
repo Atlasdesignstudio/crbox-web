@@ -157,18 +157,28 @@
 
     // ── Server API call ───────────────────────────────────────────────────────
 
-    function _apiClassify(productName) {
+    /**
+     * _apiClassify — POST to /api/ai/classify with optional URL + price context.
+     * ctx: { url?: string, priceUsd?: number }
+     */
+    function _apiClassify(productName, ctx) {
         var key = _norm(productName);
-        if (_cache[key]) return Promise.resolve(_cache[key]);
-        if (_inflight[key]) return _inflight[key];
+        if (_cache[key] && !(ctx && (ctx.url || ctx.priceUsd))) return Promise.resolve(_cache[key]);
+        if (_inflight[key] && !(ctx && (ctx.url || ctx.priceUsd))) return _inflight[key];
 
         var ctrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
         var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 9000) : null;
 
+        var bodyObj = { product_name: productName };
+        if (ctx) {
+            if (ctx.url) bodyObj.product_url = ctx.url;
+            if (ctx.priceUsd > 0) bodyObj.price_usd = ctx.priceUsd;
+        }
+
         var p = fetch(CLASSIFY_ENDPOINT, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ product_name: productName }),
+            body:    JSON.stringify(bodyObj),
             signal:  ctrl ? ctrl.signal : undefined,
         })
         .then(function (resp) {
@@ -203,6 +213,8 @@
      * @param {object} [opts]
      *   opts.localOnly  {boolean} — skip API, use local match only
      *   opts.noFallback {boolean} — return null instead of unknown_manual_review
+     *   opts.url        {string}  — product URL forwarded to API for richer Gemini context
+     *   opts.priceUsd   {number}  — approx price in USD forwarded to API for richer Gemini context
      * @returns {Promise<object>}
      */
     function classify(productName, opts) {
@@ -213,11 +225,13 @@
         }
 
         var local = _localMatch(name);
+        var ctx = (opts.url || opts.priceUsd) ? { url: opts.url, priceUsd: opts.priceUsd } : null;
 
         if (opts.localOnly) return Promise.resolve(local || (opts.noFallback ? null : _unknownResult('local_no_match')));
-        if (local && local.confidence === 'high') return Promise.resolve(local);
+        // When URL/price context is provided, always go to API for richer classification
+        if (local && local.confidence === 'high' && !ctx) return Promise.resolve(local);
 
-        return _apiClassify(name).then(function (api) {
+        return _apiClassify(name, ctx).then(function (api) {
             if (api && api.brainCategoryId && api.brainCategoryId !== 'unknown_manual_review') return api;
             if (local) return local;
             if (api && api.brainCategoryId) return api;
