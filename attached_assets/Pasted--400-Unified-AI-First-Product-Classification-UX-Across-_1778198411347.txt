@@ -1,0 +1,634 @@
+#400 - Unified AI-First Product Classification UX Across All CRBOX Quote Touchpoints
+
+What & Why
+
+CRBOX already has the Product Brain and the AI-first classification pipeline foundation. However, the experience still feels dropdown-first or inconsistent in some places.
+
+The goal of this task is to make the AI-first product/category experience visible, useful, and consistent across the entire CRBOX quote ecosystem.
+
+This is NOT only for cotizar.html.
+
+The same intelligence must work across:
+
+- Public Cotizar page
+- Public Calculadora page
+- Product URL “Analizar”
+- Client portal quote/cotización flow
+- Internal sales/admin quote panel
+- Admin calculator
+- Quote response email
+- Portal quote response
+- Reminder email
+- Floating CRBOX AI chat assistant
+
+Every place where the user, client, or admin interacts with product category, product tax estimate, product URL analysis, product quote calculation, or product explanation must use the same Product Brain + Gemini classification logic.
+
+---
+
+## Core Objective
+
+The user should not feel they are choosing from a technical category dropdown.
+
+The user should feel that CRBOX understands what they want to bring.
+
+A customer should be able to type or paste:
+
+- “zapatos rosados Nike”
+- “iPhone 15 Pro Max”
+- “proteína whey”
+- “power bank”
+- “perfume Dior”
+- “Stanley quencher”
+- “air fryer”
+- “drone DJI”
+- “repuesto para Honda Civic”
+- “maquillaje Sephora”
+- Amazon / eBay / Walmart / Shein / Nike / Apple / Best Buy product URLs
+
+And the system should:
+
+1. Interpret the product naturally.
+2. Assign the closest valid Product Brain category.
+3. Auto-populate the compatible legacy category code.
+4. Explain the estimated tax behavior in friendly Spanish.
+5. Detect if the product may require manual review.
+6. Detect if the product may be regulated, restricted, or forbidden.
+7. Ask only for the missing fields.
+8. Preserve the existing calculator and quote flow.
+
+---
+
+## Unified Classification Architecture
+
+All touchpoints must use ONE shared pipeline:
+
+Gemini interpretation  
+→ Product Brain validation  
+→ semantic approximation if exact product is missing  
+→ normalized classification result  
+→ existing calculator math  
+→ friendly UX message  
+→ admin metadata if needed
+
+Use the shared module:
+
+CRBOXProductClassifier
+
+Do not create separate category logic per page.
+
+Do not create separate keyword maps per page.
+
+Do not create separate Gemini prompts per page unless they all call the same shared classification logic.
+
+---
+
+## Product Brain Role
+
+Product Brain is the source of truth for:
+
+- category
+- legacy category code
+- estimated tax range
+- totalEstimatedRate
+- manualReviewRequired
+- automaticEstimateAllowed
+- regulatedProduct
+- restrictedProduct
+- forbiddenProduct
+- customerMessage
+- adminNotes
+- actionForCustomer
+- actionForAdmin
+- riskFlags
+
+Gemini interprets.
+
+Product Brain decides.
+
+Calculator calculates.
+
+---
+
+## Gemini Role
+
+Gemini should act as a Costa Rica courier/logistics product interpretation assistant.
+
+Gemini should:
+
+- interpret natural language product names
+- interpret ecommerce product titles
+- interpret product URL extraction results
+- detect likely category
+- detect missing fields
+- detect risk patterns
+- detect whether semantic approximation is needed
+
+Gemini must NOT:
+
+- invent tax rates
+- invent Product Brain categories
+- calculate final quote totals
+- make final legal/customs decisions
+- bypass Product Brain
+- show raw reasoning to customers
+
+If exact product does not exist in Product Brain, Gemini may map it semantically to the closest valid category.
+
+Example:
+
+“Stanley quencher pastel pink”
+→ likely reusable tumbler / bottle
+→ home/kitchen category
+→ friendly explanation
+
+Not:
+“Product not found.”
+
+---
+
+## Critical UX Principle: No Hard Failure States
+
+The system should not make normal uncertainty feel like failure.
+
+Avoid user-facing messages like:
+
+- “Producto no encontrado”
+- “Categoría no encontrada”
+- “AI failed”
+- “No match”
+- “Unknown category”
+- “Error clasificando”
+- “No se pudo analizar”
+
+Use progressive, helpful language:
+
+- “Detectamos una categoría probable para este producto.”
+- “Parece pertenecer a Calzado.”
+- “Solo falta completar el precio.”
+- “CRBOX revisará algunos detalles para confirmar la cotización final.”
+- “Este producto puede requerir revisión especial.”
+- “No pudimos leer todos los datos del enlace, pero puedes completar lo que falta manualmente.”
+
+The user should always feel guided forward.
+
+---
+
+## Global Touchpoints Required
+
+Apply the same behavior to ALL of these:
+
+### 1. Public Cotizar Page
+
+File:
+cotizar.html
+
+Requirements:
+
+- Product URL input uses the shared classifier after extraction.
+- Manual product name input can be analyzed naturally.
+- Category is auto-populated from Product Brain legacy code.
+- Friendly classification card appears inside each product card.
+- Missing fields are shown as helpful next steps.
+- Manual category override remains available but secondary.
+- Long dropdown must not feel like the primary UX.
+- Manual review products suppress final-looking automatic totals.
+- Forbidden/restricted products show stronger warnings.
+- Existing submission still works.
+
+---
+
+### 2. Public Calculadora Page
+
+File:
+calculadora.html
+
+Requirements:
+
+- User can type product name naturally.
+- User can click “Analizar producto”.
+- Gemini/Product Brain classifies the product.
+- Category auto-selects.
+- Friendly Product Brain customerMessage appears.
+- Tax percentage/range appears in friendly language.
+- Manual review products show review message.
+- Forbidden/restricted products do not show misleading final totals.
+- Calculator math remains unchanged.
+
+---
+
+### 3. Product URL “Analizar” Flow
+
+Files:
+js/ai-extractor.js
+cotizar.html
+calculadora.html if applicable
+portal quote flow if applicable
+
+Requirements:
+
+URL analysis should prioritize:
+
+1. Product name/title
+2. Product category
+3. Price
+4. Weight/dimensions only if available
+
+If only partial information is extracted, preserve it.
+
+Examples:
+
+Only category detected:
+“Detectamos una categoría probable. Solo falta completar el nombre y precio.”
+
+Name + category detected:
+“Detectamos el producto y su categoría. Solo falta confirmar el precio.”
+
+Name + category + price detected:
+“Producto detectado correctamente. Revisa la información antes de continuar.”
+
+No full scrape:
+“No pudimos leer todos los datos del enlace, pero puedes completar lo que falta manualmente.”
+
+Do not make the experience depend on scraping everything.
+
+---
+
+### 4. Client Portal Cotizaciones / Solicitudes
+
+Files:
+portal quote/solicitud files
+mis-solicitudes.html / JS if applicable
+solicitud.html / js/solicitud.js if applicable
+
+Requirements:
+
+- Logged-in quote creation must use the same classifier.
+- Product name and URL input must behave like public Cotizar.
+- Category auto-detection must use Product Brain.
+- Same customerMessage must appear.
+- Same manual review warnings must appear.
+- Same semantic approximation behavior must apply.
+- Product classification metadata should be stored optionally and backward-compatibly.
+- Do not break auth/session/profile/package/invoice logic.
+
+---
+
+### 5. Internal CRBOX Admin / Sales Quote Panel
+
+Files:
+server.py admin detail block
+admin quote JS if embedded
+calculator/admin quote sections
+
+Requirements:
+
+Admin must see classification context per product:
+
+- original input
+- URL
+- Gemini detected product
+- Product Brain category
+- legacy category code
+- estimatedDAI
+- IVA
+- Ley 6946
+- totalEstimatedRate
+- estimatedRange
+- customerMessage
+- adminNotes
+- actionForAdmin
+- manualReviewRequired
+- regulatedProduct
+- restrictedProduct
+- forbiddenProduct
+- riskFlags
+- category override selector
+
+If admin overrides:
+
+Show both:
+- AI/Product Brain detected category
+- category used for quote calculation
+
+Manual review products:
+- clearly show why
+- show actionForAdmin
+- allow admin decision if business rules permit
+
+Forbidden/restricted products:
+- show stronger visual warning
+- avoid normal automatic quote behavior unless intentionally overridden
+
+---
+
+### 6. Quote Response Email
+
+Files:
+server.py email builders
+
+Requirements:
+
+Where product/category/tax explanation appears:
+
+- Use Product Brain.customerMessage
+- Use friendly percentage/range
+- Do not show raw category codes
+- Do not show technical metadata
+- Include manual review explanation if relevant
+- Include special risk explanation only if relevant
+
+Do not rewrite the entire email template unless required.
+
+Do not break email sending.
+
+---
+
+### 7. Portal Quote Response
+
+Files:
+solicitud.html
+js/solicitud.js
+
+Requirements:
+
+Where quote response shows product/category/tax:
+
+- Use Product Brain.customerMessage
+- Show per-product category explanation if useful
+- For multi-product quotes, show consistent classification messages
+- For manual review products, show friendly warning
+- Do not show technical metadata to customers
+- Old records must still render
+
+---
+
+### 8. Reminder Email
+
+Files:
+server.py reminder email builder / reminder loop
+
+Requirements:
+
+If reminder email includes product/category/quote summary:
+
+- Keep category language consistent with Product Brain
+- Do not use raw category codes
+- Do not imply automatic certainty if manual review was involved
+- Do not change reminder timing
+- Do not change reminder status logic
+- Do not break reminder sending
+
+---
+
+### 9. Floating CRBOX AI Chat Assistant
+
+Files:
+chat assistant files
+chat-calculator.js
+chat-panel.js
+crbox knowledge base files
+Gemini/chat backend if applicable
+
+Requirements:
+
+The floating CRBOX AI assistant must also use the same Product Brain + CRBOXProductClassifier logic.
+
+This is critical.
+
+If a user asks in the floating chat:
+
+- “¿Cuánto paga traer unos zapatos?”
+- “Quiero traer un iPhone”
+- “¿Puedo traer proteína?”
+- “¿Puedo traer un power bank?”
+- “¿Cuánto paga un perfume?”
+- “¿Puedo traer un drone?”
+- “¿Qué pasa si trae batería?”
+- “¿Puedo traer un arma?”
+- “Quiero traer esto de Amazon: [URL]”
+
+The assistant must:
+
+1. Route the product query through the shared classifier.
+2. Use Product Brain category/rate/message.
+3. Never answer from generic Gemini memory.
+4. Never invent official rates.
+5. Never present estimates as final customs liquidation.
+6. Give friendly, useful explanations.
+7. Ask for missing fields when needed.
+8. Recommend manual CRBOX review for regulated/restricted products.
+9. Direct the user to Cotizar/Calculadora when appropriate.
+
+Examples:
+
+User:
+“¿Cuánto paga traer unos zapatos?”
+
+Assistant:
+“Los zapatos normalmente pertenecen a Calzado y suelen pagar aproximadamente 29% en impuestos. El monto final puede variar según material, valor y revisión aduanera. Puedes cotizarlo con el enlace o el nombre del producto.”
+
+User:
+“¿Puedo traer proteína whey?”
+
+Assistant:
+“La proteína whey puede requerir revisión sanitaria antes de importarse. CRBOX debe revisar el producto específico antes de confirmar si puede enviarse y cuánto pagaría.”
+
+User:
+“¿Puedo traer un power bank?”
+
+Assistant:
+“Un power bank contiene batería de litio, por lo que puede requerir revisión adicional de transporte. Compártenos el enlace o modelo para revisarlo.”
+
+User:
+“¿Puedo traer un arma?”
+
+Assistant:
+“Ese tipo de producto puede estar restringido o prohibido para courier. No recomendamos comprarlo antes de que CRBOX confirme si puede transportarse o importarse.”
+
+The chat assistant should feel connected to the quote system, not like a separate generic bot.
+
+---
+
+## Unified Normalized Classification Metadata
+
+Where backward-compatible, every product can include:
+
+product_classification: {
+  originalInput,
+  detectedProductName,
+  normalizedProductName,
+  categoryId,
+  legacyCode,
+  displayName,
+  estimatedDAI,
+  vatRate,
+  law6946Rate,
+  estimatedRange,
+  totalEstimatedRate,
+  automaticEstimateAllowed,
+  manualReviewRequired,
+  regulatedProduct,
+  restrictedProduct,
+  forbiddenProduct,
+  riskFlags,
+  customerMessage,
+  adminNotes,
+  actionForCustomer,
+  actionForAdmin,
+  source,
+  semanticApproximationUsed
+}
+
+Do not remove old fields:
+
+- name
+- category
+- declared_value_usd
+- url
+- data_source
+
+Metadata must be optional and backward-compatible.
+
+---
+
+## Customer-Facing Copy Rules
+
+Never show customers:
+
+- raw JSON
+- confidence score
+- categoryId
+- legacyCode
+- source
+- local_estimated
+- riskFlags
+- raw Gemini output
+- technical errors
+- “AI failed”
+- “unknown category”
+
+Use:
+
+- “Detectamos que…”
+- “Parece pertenecer a…”
+- “Esta categoría suele pagar aproximadamente…”
+- “El monto final puede variar…”
+- “CRBOX debe revisarlo antes de confirmar…”
+- “Solo falta completar…”
+
+---
+
+## Manual Review Rules
+
+If Product Brain says:
+
+- automaticEstimateAllowed: false
+- manualReviewRequired: true
+- regulatedProduct: true
+- restrictedProduct: true
+- forbiddenProduct: true
+
+Then:
+
+- do not show final-looking automatic total
+- show friendly review explanation
+- allow user to submit for review if business rules allow
+- mark product clearly for admin
+- include actionForCustomer/actionForAdmin where useful
+
+---
+
+## Technical Constraints
+
+Do not break:
+
+- calculator-engine.js math
+- tariff-adapter.js public API
+- existing category codes
+- legacy category mapping
+- quote submission payloads
+- quote IDs
+- status system
+- response_json
+- reminder logic
+- email sending
+- localStorage drafts
+- duplicate check
+- product card cloning
+- max 8 products
+- admin authentication
+- old quote records
+
+---
+
+## Suggested Implementation Steps
+
+1. Confirm Product Brain exports and ProductBrain utilities are available.
+2. Confirm CRBOXProductClassifier exists or create/complete it.
+3. Ensure classifier supports Gemini-first interpretation + Product Brain validation.
+4. Ensure semantic approximation is supported.
+5. Integrate into public cotizar.html product cards.
+6. Integrate into URL “Analizar” flow.
+7. Integrate into manual product name analysis.
+8. Integrate into calculadora.html.
+9. Integrate into client portal quote creation.
+10. Integrate into admin quote detail and admin calculator.
+11. Integrate into quote response email copy where safe.
+12. Integrate into portal quote response where safe.
+13. Integrate into reminder email copy where safe.
+14. Integrate into floating CRBOX AI chat assistant.
+15. Remove or bypass duplicated local category-matching logic.
+16. Preserve existing category dropdowns as manual override only.
+17. Test all flows end to end.
+
+---
+
+## Test Products / Scenarios
+
+Test across public Cotizar, Calculadora, Portal, Admin, Email/Portal response where applicable, and Floating Chat:
+
+- iPhone 15
+- zapatos rosados Nike
+- Stanley quencher
+- proteína whey
+- power bank
+- perfume Dior
+- air fryer
+- drone DJI
+- monitor gaming
+- repuesto Honda Civic
+- camiseta
+- maquillaje Sephora
+- vape
+- semillas
+- arma
+- producto desconocido
+- Amazon URL with only partial extraction
+- Amazon URL with no price extraction
+- product URL that only gives title/category
+
+---
+
+## Acceptance Criteria
+
+- The same AI-first category experience exists across all quote touchpoints.
+- Public Cotizar no longer feels dropdown-first.
+- Public Calculadora supports natural product analysis.
+- Client portal quote flow uses the same classifier.
+- Admin quote panel shows classification context and override.
+- Floating CRBOX AI chat uses Product Brain/classifier for product/category/tax answers.
+- URL Analyze produces helpful partial-success states.
+- Category is auto-populated from Product Brain/legacy code.
+- Product Brain customerMessage is visible to customers.
+- Admin sees adminNotes/risk metadata.
+- Manual-review products do not show final-looking automatic totals.
+- Forbidden/restricted products are clearly flagged.
+- Semantic approximation works for products not exactly listed.
+- No hard failure messages appear for normal classification uncertainty.
+- Existing quote submission still works.
+- Existing calculator still works.
+- Existing emails still send.
+- Existing reminder flow still works.
+- Existing old records still render.
+- No duplicated category maps are introduced.
+- No console errors.
