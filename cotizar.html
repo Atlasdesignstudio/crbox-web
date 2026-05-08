@@ -1126,8 +1126,23 @@
                 if (typeof CRBOXProductClassifier === 'undefined') return;
                 btnAnalizarName.disabled = true;
                 btnAnalizarName.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:#FF6B00;margin-right:.25rem;"></i>Analizando…';
-                CRBOXProductClassifier.suggest(val, catSel, catSuggBarEl, complianceEl, function(result) {
-                    _updateLiveEst();
+                // Use classify() directly so button restoration is unconditional —
+                // suggest()'s onApplied only fires when the user clicks "Usar esta",
+                // which would leave the button stuck in the disabled/spinner state.
+                CRBOXProductClassifier.classify(val, { noFallback: true }).then(function(result) {
+                    // Always restore button regardless of classification outcome
+                    btnAnalizarName.disabled = false;
+                    btnAnalizarName.innerHTML = '<i class="fas fa-brain" style="color:#FF6B00;margin-right:.25rem;"></i>Analizar';
+                    if (!result) return;
+                    // Pipe through applyToProductCard for suggestion bar + compliance notice
+                    CRBOXProductClassifier.applyToProductCard({
+                        categoryEl:      catSel,
+                        barContainer:    catSuggBarEl,
+                        noticeContainer: complianceEl,
+                        onApplied:       function() { _updateLiveEst(); }
+                    }, result);
+                }).catch(function() {
+                    // Ensure button always re-enables even on unexpected errors
                     btnAnalizarName.disabled = false;
                     btnAnalizarName.innerHTML = '<i class="fas fa-brain" style="color:#FF6B00;margin-right:.25rem;"></i>Analizar';
                 });
