@@ -1403,6 +1403,7 @@
     <script src="js/product-categories.js?v=1"></script>
     <script src="js/tariff-adapter.js?v=3"></script>
     <script src="js/product-classifier.js?v=2"></script>
+    <script src="js/concierge-intake.js?v=1"></script>
     <script src="js/calculator-engine.js"></script>
     <script src="js/crbox-knowledge.js"></script>
     <script src="js/chat-calculator.js"></script>
@@ -2533,6 +2534,40 @@
 
         /* ── Init ─────────────────────────────────────────────── */
         renderItemList();
+
+        /* ── Concierge prefill consumer ────────────────────────
+           If the user landed here via the "Calcular impuesto" CTA in the
+           concierge block (cotizar.html or chat), we read the prefill from
+           localStorage, open the add-item modal, and pre-populate it.       */
+        (function _consumeConciergePreFill() {
+            if (typeof ConciergeIntake === 'undefined') return;
+            var pf = ConciergeIntake.readCalcPrefill();
+            if (!pf) return;
+            // Wait one tick so TomSelect / toggles are fully initialised.
+            setTimeout(function () {
+                openModal();
+                var nameEl = $('modal-name');
+                if (nameEl) { nameEl.value = pf.name || ''; nameEl.dispatchEvent(new Event('input')); }
+                if (pf.approxPrice > 0) {
+                    var valEl = $('modal-value');
+                    if (valEl) { valEl.value = pf.approxPrice; valEl.dispatchEvent(new Event('input')); }
+                }
+                if (pf.legacyCode && modalCategoryTS) {
+                    try {
+                        modalCategoryTS.setValue(pf.legacyCode, true);
+                    } catch (e) {
+                        var catEl = $('modal-category');
+                        if (catEl) catEl.value = pf.legacyCode;
+                    }
+                }
+                // Trigger brain analysis if name was populated
+                var brainBtn = $('btn-brain-analyze');
+                if (brainBtn && pf.name) {
+                    setTimeout(function () { brainBtn.click(); }, 300);
+                }
+            }, 150);
+        })();
+
     });
     </script>
 

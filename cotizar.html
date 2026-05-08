@@ -605,6 +605,9 @@
                     </div>
                 </div>
 
+                <!-- ── AI Concierge intake block ─────────────────────────────── -->
+                <div id="ci-cotizar-block" class="mb-5"></div>
+
                 <!-- ── Draft restore banner ─────────────────────────────────── -->
                 <div id="draft-restore-bar" class="hidden mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3" role="alert">
                     <div class="flex flex-wrap items-start gap-3">
@@ -946,6 +949,7 @@
     <script src="js/tariff-adapter.js?v=3"></script>
     <script src="js/ai-extractor.js?v=7"></script>
     <script src="js/product-classifier.js?v=2"></script>
+    <script src="js/concierge-intake.js?v=1"></script>
     <script>
     (function () {
         'use strict';
@@ -1221,7 +1225,7 @@
                 return;
             }
             var id = _nextCardId++;
-            _cards.push({ id: id, aiActive: false, aiDataSource: 'manual', aiInFlight: false, lastAiResult: null });
+            _cards.push({ id: id, aiActive: false, aiDataSource: 'manual', aiInFlight: false, lastAiResult: null, brainClassification: null });
             var container = document.getElementById('products-container');
             var cardDiv = document.createElement('div');
             cardDiv.className = 'form-card mb-4 product-card anim-fadeslide';
@@ -1363,6 +1367,7 @@
                     declared_value_usd: parseFloat(valEl ? valEl.value : '') || 0,
                     url: (urlEl ? urlEl.value : '').trim(),
                     data_source: c.aiDataSource,
+                    brain_classification: c.brainClassification || null,
                 };
             }).filter(Boolean);
         }
@@ -1970,6 +1975,34 @@
             });
             document.addEventListener('click', function() { userDropdown.classList.add('opacity-0','scale-95','pointer-events-none'); userDropdown.classList.remove('opacity-100','scale-100','pointer-events-auto'); userMenuBtn.setAttribute('aria-expanded','false'); });
             userDropdown.addEventListener('click', function(e) { e.stopPropagation(); });
+        }
+
+        // ── AI Concierge intake — mounts above the form cards ──
+        if (typeof ConciergeIntake !== 'undefined') {
+            ConciergeIntake.mount('ci-cotizar-block', {
+                calcRedirect: true,
+                onRequestQuote: function (name, approxPrice, classResult) {
+                    var firstCard = _cards[0];
+                    if (!firstCard) return;
+                    var cardEl = document.querySelector('[data-card-id="' + firstCard.id + '"]');
+                    if (!cardEl) return;
+                    var nameInput = cardEl.querySelector('.f-product-name');
+                    if (nameInput) { nameInput.value = name; nameInput.dispatchEvent(new Event('input', { bubbles: true })); }
+                    if (classResult && classResult.legacyCode) {
+                        var catSel = cardEl.querySelector('.f-category');
+                        if (catSel) { catSel.value = classResult.legacyCode; catSel.dispatchEvent(new Event('change', { bubbles: true })); }
+                    }
+                    if (approxPrice > 0) {
+                        var valInput = cardEl.querySelector('.f-declared-value');
+                        if (valInput && !valInput.value) { valInput.value = approxPrice; valInput.dispatchEvent(new Event('input', { bubbles: true })); }
+                    }
+                    firstCard.brainClassification = classResult || null;
+                    checkRequiredFilled();
+                    updateSubmitState();
+                    var productsSection = document.getElementById('products-container');
+                    if (productsSection) setTimeout(function () { productsSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+                },
+            });
         }
 
         // ── Initialize — first product card ────────────────────

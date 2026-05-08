@@ -367,7 +367,7 @@
       'donde', 'dónde', 'cuando', 'cuándo', 'por', 'puedo', 'pueden', 'ayuda', 'help',
       'funciona', 'sirve', 'tienen', 'hay', '?'];
     function _looksLikeProductName(t) {
-      if (!t || t.length < 3 || t.length > 80) return false;
+      if (!t || t.length < 3 || t.length > 100) return false;
       if (t.indexOf('?') !== -1) return false;
       var lower = t.toLowerCase();
       for (var i = 0; i < _QUESTION_WORDS.length; i++) {
@@ -376,20 +376,35 @@
       return true;
     }
 
+    // Extract a price mention from a message like "cuesta $180" or "vale 50 dólares".
+    // Returns numeric value or 0.
+    function _extractPriceContext(t) {
+      if (!t) return 0;
+      var m = t.match(/\$\s*([\d,]+(?:\.\d+)?)/);
+      if (m) return parseFloat(m[1].replace(/,/g, '')) || 0;
+      var m2 = t.match(/([\d,]+(?:\.\d+)?)\s*(?:dólar|dollar|usd)/i);
+      if (m2) return parseFloat(m2[1].replace(/,/g, '')) || 0;
+      return 0;
+    }
+
     // 20 s timeout — Gemini can be slow but anything beyond this is hung.
     var _ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
     var _timer = _ctrl ? setTimeout(function () { _ctrl.abort(); }, 20000) : null;
 
+    var _priceCtx = _extractPriceContext(text);
+
     function _doSend(productClassification) {
+      var body = {
+        history: _history,
+        page: slug,
+        context: pageInfo,
+        product_classification: productClassification || null,
+      };
+      if (_priceCtx > 0) body.price_context = _priceCtx;
       fetch(CHAT_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          history: _history,
-          page: slug,
-          context: pageInfo,
-          product_classification: productClassification || null,
-        }),
+        body: JSON.stringify(body),
         signal: _ctrl ? _ctrl.signal : undefined,
       })
       .then(function (r) { return r.json(); })
@@ -421,43 +436,10 @@
       CRBOXProductClassifier.classify(text, { noFallback: true }).then(function (result) {
         _doSend(result && result.brainCategoryId !== 'unknown_manual_review' ? result : null);
       }).catch(function () { _doSend(null); });
-      return; // _doSend handles the rest (including finally)
+      return;
     }
 
-    fetch(CHAT_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        history: _history,
-        page: slug,
-        context: pageInfo,
-        product_classification: null,
-      }),
-      signal: _ctrl ? _ctrl.signal : undefined,
-    })
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      _hideTyping();
-      var reply = (data && data.reply) || 'Lo siento, no pude procesar tu consulta. Intenta de nuevo.';
-      var widget = _buildWidget(data && data.widget);
-      var deeplink = data && data.deeplink;
-      _appendAIMessage(reply, widget, deeplink);
-      _history.push({ role: 'assistant', text: reply });
-      if (_history.length > MAX_HISTORY) _history = _history.slice(-MAX_HISTORY);
-    })
-    .catch(function (err) {
-      _hideTyping();
-      var msg = (err && err.name === 'AbortError')
-        ? 'La consulta tomó demasiado tiempo. Intenta de nuevo o contáctanos por WhatsApp.'
-        : 'Hubo un error de conexión. Por favor intenta de nuevo o contáctanos por WhatsApp.';
-      _appendAIMessage(msg);
-    })
-    .finally(function () {
-      if (_timer) clearTimeout(_timer);
-      _pending = false;
-      $send.disabled = false;
-      $input.focus();
-    });
+    _doSend(null);
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────

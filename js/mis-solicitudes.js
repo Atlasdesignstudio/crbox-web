@@ -13,12 +13,13 @@
   var _panelHasData = false;
   var _panelSubmitted = false;
   var _dupWarningDismissedPortal = false;
-  var _portalAiActive     = false;
-  var _portalAiDataSource = 'manual';
-  var _portalTomSelect    = null;
-  var _portalAutoEstimate = null;
-  var _portalWeightToggle = null; // UnitConverter toggle for weight
-  var _portalDimToggle    = null; // UnitConverter toggle for dims
+  var _portalAiActive          = false;
+  var _portalAiDataSource      = 'manual';
+  var _portalTomSelect         = null;
+  var _portalAutoEstimate      = null;
+  var _portalWeightToggle      = null; // UnitConverter toggle for weight
+  var _portalDimToggle         = null; // UnitConverter toggle for dims
+  var _portalBrainClassification = null; // last brain result from concierge intake
 
   // ── beforeunload: warn if panel has data and user navigates away ───────────
   window.addEventListener('beforeunload', function (e) {
@@ -467,6 +468,33 @@
 
     // Draft: check for saved draft and offer restore (skip when duplicating)
     _checkPortalDraftOnOpen(prefill || null);
+
+    // Mount AI concierge intake above the product name field
+    _portalBrainClassification = null;
+    if (typeof ConciergeIntake !== 'undefined') {
+      var ciContainer = document.getElementById('ci-portal-block');
+      if (ciContainer) ciContainer.innerHTML = '';
+      ConciergeIntake.mount('ci-portal-block', {
+        compact: true,
+        calcRedirect: false,
+        showUrl: false,
+        showPrice: false,
+        placeholder: '¿Qué producto quieres traer? (opcional)',
+        onRequestQuote: function (name, approxPrice, classResult) {
+          _portalBrainClassification = classResult || null;
+          var nameEl = document.getElementById('form-product-name');
+          if (nameEl && name) { nameEl.value = name; nameEl.dispatchEvent(new Event('input', { bubbles: true })); }
+          if (classResult && classResult.legacyCode && _portalTomSelect) {
+            try { _portalTomSelect.setValue(classResult.legacyCode, false); } catch (e) {}
+          }
+        },
+        onCalcTax: function (name, classResult) {
+          _portalBrainClassification = classResult || null;
+          var nameEl = document.getElementById('form-product-name');
+          if (nameEl && name) { nameEl.value = name; nameEl.dispatchEvent(new Event('input', { bubbles: true })); }
+        },
+      });
+    }
   }
 
   function hideNewRequestPanel() {
@@ -564,7 +592,8 @@
       dimension_unit: formData.dimension_unit || null,
       customer_notes: formData.customer_notes || null,
       service_type: formData.service_type || 'aereo',
-      data_source: formData.data_source || 'manual'
+      data_source: formData.data_source || 'manual',
+      brain_classification: formData.brain_classification || null,
     };
     // Attach AI extraction snapshot for admin visibility
     if (_portalAiActive && typeof CRBOXAIExtractor !== 'undefined') {
@@ -1233,6 +1262,7 @@
           customer_notes:    form.querySelector('#form-notes').value.trim(),
           service_type:      form.querySelector('#form-service-type').value,
           data_source:       _portalAiActive ? (_portalAiDataSource || 'ai_extracted') : 'manual',
+          brain_classification: _portalBrainClassification || null,
         };
 
         // Duplicate check (skip if user already dismissed)
