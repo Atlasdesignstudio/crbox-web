@@ -163,6 +163,29 @@
             box-shadow: 0 3px 10px rgba(255,107,0,.3);
             transform: translateY(-2px);
         }
+        /* ── Name input wrapper + confirm button ── */
+        .f-name-wrap { display: flex; gap: .45rem; align-items: center; }
+        .f-name-wrap .q-input { flex: 1; }
+        .btn-card-confirm {
+            flex-shrink: 0;
+            width: 2.65rem;
+            height: 2.65rem;
+            background: linear-gradient(135deg,#FF6B00,#f97316);
+            color: #fff;
+            border: none;
+            border-radius: .65rem;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform .17s, box-shadow .17s, opacity .17s;
+            box-shadow: 0 3px 12px rgba(255,107,0,.28);
+        }
+        .btn-card-confirm:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,107,0,.42); }
+        .btn-card-confirm:active { transform: scale(.94); }
+        .btn-card-confirm.loading { opacity: .65; pointer-events: none; }
+
         /* ── URL field wrapper (spinner position) ── */
         .f-url-wrap { position: relative; }
         .f-url-spinner {
@@ -1150,7 +1173,10 @@
                 // 1. Product name — primary field
                 + '<div class="mb-2" style="margin-top:1.25rem;">'
                 + '<label class="q-label" for="f-name-' + id + '">¿Qué quieres traer? <span class="q-required">*</span></label>'
+                + '<div class="f-name-wrap">'
                 + '<input type="text" id="f-name-' + id + '" class="q-input f-product-name" placeholder="Ej: AirPods Pro, tenis Nike, computadora gaming…" autocomplete="off" maxlength="200">'
+                + '<button type="button" class="btn-card-confirm" id="btn-confirm-' + id + '" title="Clasificar producto"><i class="fas fa-arrow-right"></i></button>'
+                + '</div>'
                 + '<div class="q-error-msg" id="err-name-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Ingresa el nombre del producto (mínimo 3 caracteres).</span></div>'
                 + '</div>'
                 // Quick category chips
@@ -1214,29 +1240,61 @@
             var catSel    = cardEl.querySelector('.f-category');
             var valInput  = cardEl.querySelector('.f-declared-value');
 
-            // Quick chip clicks — pre-fill name and immediately classify
-            var chipsEl = document.getElementById('card-chips-' + cardId);
+            var confirmBtn = document.getElementById('btn-confirm-' + cardId);
+            var chipsEl    = document.getElementById('card-chips-' + cardId);
+
+            // Shared classify-and-show function — used by confirm button, Enter key, and chip clicks
+            function _doCardClassify(overrideQuery) {
+                var val = overrideQuery || (nameInput ? (nameInput.value || '').trim() : '');
+                if (val.length < 2) {
+                    if (nameInput) markFieldError(nameInput, 'err-name-' + cardId);
+                    return;
+                }
+                if (nameInput) clearFieldError(nameInput, 'err-name-' + cardId);
+                if (typeof CRBOXProductClassifier === 'undefined') return;
+                if (confirmBtn) { confirmBtn.classList.add('loading'); confirmBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; }
+                var urlEl = cardEl.querySelector('.f-product-url');
+                var url   = urlEl ? (urlEl.value || '').trim() : '';
+                var price = parseFloat(valInput ? valInput.value : '') || 0;
+                var classOpts = (url || price > 0) ? { url: url || undefined, priceUsd: price || undefined } : undefined;
+                CRBOXProductClassifier.classify(val, classOpts).then(function(result) {
+                    if (!result) return;
+                    var catSet = false;
+                    if (result.legacyCode && catSel) {
+                        var opt = catSel.querySelector('option[value="' + result.legacyCode + '"]');
+                        if (opt) { catSel.value = result.legacyCode; catSel.dispatchEvent(new Event('change', { bubbles: true })); catSet = true; }
+                    }
+                    if (!catSet) {
+                        var det = document.getElementById('cat-details-' + cardId);
+                        if (det) det.open = true;
+                    }
+                    var state = _getCardState(cardId);
+                    if (state) state.brainClassification = result;
+                    _renderCardIntelligence(cardId, result, val, parseFloat(valInput ? valInput.value : '') || 0);
+                    _updateLiveEst();
+                    updateSubmitState();
+                }).finally(function() {
+                    if (confirmBtn) { confirmBtn.classList.remove('loading'); confirmBtn.innerHTML = '<i class="fas fa-arrow-right"></i>'; }
+                });
+            }
+
+            // Confirm button click → classify
+            if (confirmBtn) confirmBtn.addEventListener('click', function() { _doCardClassify(); });
+
+            // Enter key in name input → classify
+            if (nameInput) nameInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); _doCardClassify(); }
+            });
+
+            // Quick chip clicks — pre-fill name and immediately classify; chips deselect when user types
             if (chipsEl) {
                 chipsEl.querySelectorAll('.card-chip').forEach(function(chip) {
                     chip.addEventListener('click', function() {
                         chipsEl.querySelectorAll('.card-chip').forEach(function(c) { c.classList.remove('card-chip-active'); });
                         chip.classList.add('card-chip-active');
                         var query = chip.dataset.query || chip.textContent.replace(/[^\w\s]/g,'').trim();
-                        if (nameInput) { nameInput.value = query; nameInput.dispatchEvent(new Event('input', { bubbles: true })); }
-                        if (typeof CRBOXProductClassifier === 'undefined') return;
-                        var price = parseFloat(valInput ? valInput.value : '') || 0;
-                        CRBOXProductClassifier.classify(query, price > 0 ? { priceUsd: price } : undefined).then(function(result) {
-                            if (!result) return;
-                            var state = _getCardState(cardId);
-                            if (state) state.brainClassification = result;
-                            if (result.legacyCode && catSel) {
-                                var opt = catSel.querySelector('option[value="' + result.legacyCode + '"]');
-                                if (opt) { catSel.value = result.legacyCode; catSel.dispatchEvent(new Event('change', { bubbles: true })); }
-                            }
-                            _renderCardIntelligence(cardId, result, query, price);
-                            _updateLiveEst();
-                            updateSubmitState();
-                        });
+                        if (nameInput) { nameInput.value = query; }
+                        _doCardClassify(query);
                     });
                 });
             }
@@ -1255,52 +1313,29 @@
                     }, 350);
                 });
             }
-            [nameInput, catSel].forEach(function(el) {
-                if (el) { el.addEventListener('input', function() { updateSubmitState(); checkRequiredFilled(); }); }
-                if (el) { el.addEventListener('change', function() { updateSubmitState(); checkRequiredFilled(); }); }
-            });
 
-            // Auto-classify on name blur — sets category + shows intel card
-            if (nameInput) nameInput.addEventListener('blur', function() {
-                var val = (this.value||'').trim();
-                if (val.length < 3) { markFieldError(this, 'err-name-' + cardId); return; }
-                clearFieldError(this, 'err-name-' + cardId);
-                if (typeof CRBOXProductClassifier === 'undefined') return;
-                var urlEl = cardEl.querySelector('.f-product-url');
-                var url   = urlEl ? (urlEl.value || '').trim() : '';
-                var price = parseFloat(valInput ? valInput.value : '') || 0;
-                var opts  = (url || price > 0) ? { url: url || undefined, priceUsd: price || undefined } : undefined;
-                CRBOXProductClassifier.classify(val, opts).then(function(result) {
-                    if (!result) return;
-                    // Auto-set category select
-                    var catSet = false;
-                    if (result.legacyCode && catSel) {
-                        var opt = catSel.querySelector('option[value="' + result.legacyCode + '"]');
-                        if (opt) { catSel.value = result.legacyCode; catSel.dispatchEvent(new Event('change', { bubbles: true })); catSet = true; }
-                    }
-                    // Open category disclosure if not auto-set so user can pick
-                    if (!catSet) {
-                        var det = document.getElementById('cat-details-' + cardId);
-                        if (det) det.open = true;
-                    }
-                    // Store on card state for live-updating with price changes
-                    var state = _getCardState(cardId);
-                    if (state) state.brainClassification = result;
-                    _renderCardIntelligence(cardId, result, val, parseFloat(valInput ? valInput.value : '') || 0);
-                    _updateLiveEst();
-                    updateSubmitState();
-                });
-            });
-
-            if (catSel) catSel.addEventListener('change', function() {
-                if (this.value) {
-                    clearFieldError(this, 'err-cat-' + cardId);
-                    var bar = document.getElementById('cat-suggest-' + cardId);
-                    if (bar) { var s = bar.querySelector('.pc-suggestion-bar'); if (s) s.parentNode.removeChild(s); }
-                }
-                _updateLiveEst();
+            // Name input: deselect chips + validation state on each keystroke
+            if (nameInput) nameInput.addEventListener('input', function() {
+                if (chipsEl) chipsEl.querySelectorAll('.card-chip').forEach(function(c) { c.classList.remove('card-chip-active'); });
                 updateSubmitState(); checkRequiredFilled();
             });
+            if (nameInput) nameInput.addEventListener('blur', function() {
+                var val = (this.value || '').trim();
+                if (val.length > 0 && val.length < 3) markFieldError(this, 'err-name-' + cardId);
+                else clearFieldError(this, 'err-name-' + cardId);
+            });
+            if (catSel) {
+                catSel.addEventListener('input', function() { updateSubmitState(); checkRequiredFilled(); });
+                catSel.addEventListener('change', function() {
+                    if (this.value) {
+                        clearFieldError(this, 'err-cat-' + cardId);
+                        var bar = document.getElementById('cat-suggest-' + cardId);
+                        if (bar) { var s = bar.querySelector('.pc-suggestion-bar'); if (s) s.parentNode.removeChild(s); }
+                    }
+                    _updateLiveEst();
+                    updateSubmitState(); checkRequiredFilled();
+                });
+            }
 
             if (valInput) {
                 valInput.addEventListener('input', function() {
