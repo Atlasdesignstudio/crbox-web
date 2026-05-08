@@ -166,87 +166,128 @@
         .cq-trust-item i { color:#FF6B00; font-size:.68rem; opacity:.7; }
 
         /* ── FLOW ── */
-        #cq-flow {
-            background:#f7f6f2; padding:2.5rem 1.25rem 4rem; display:none;
-            border-top: 1px solid #ede9e3;
-        }
+        #cq-flow { background:#f4f3ee; display:none; border-top:1px solid #ede9e3; }
         #cq-flow.cq-flow-visible { display:block; }
+        .cq-flow-inner { max-width:700px; margin:0 auto; padding:2rem 1.25rem 4rem; }
 
-        .cq-flow-layout {
-            max-width:1120px; margin:0 auto;
-            display:grid; grid-template-columns:260px 1fr; gap:2rem; align-items:start;
+        /* ── Confirmed pills row ── */
+        #cq-confirmed-pills { display:none; margin-bottom:1.1rem; }
+        .cq-pills-row { display:flex; flex-wrap:wrap; align-items:center; gap:.38rem; }
+        .cq-conf-pill {
+            display:inline-flex; align-items:center; gap:.35rem;
+            background:#fff; border:1.5px solid #a7f3d0; border-radius:99px;
+            padding:.28rem .62rem .28rem .48rem; font-size:.78rem; font-weight:600; color:#065f46;
+            animation:cqPillIn .28s ease both;
         }
-        @media (max-width:839px) { .cq-flow-layout { grid-template-columns:1fr; gap:1.25rem; } }
+        @keyframes cqPillIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+        .cq-conf-pill-icon { color:#10b981; font-size:.62rem; }
+        .cq-conf-pill-name { max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .cq-conf-pill-del {
+            width:16px; height:16px; border-radius:50%; background:none; border:none;
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+            color:#9ca3af; font-size:.52rem; margin-left:.05rem; transition:background .15s,color .15s;
+        }
+        .cq-conf-pill-del:hover { background:#fee2e2; color:#ef4444; }
+        .cq-pill-add {
+            display:inline-flex; align-items:center; gap:.28rem;
+            background:none; border:1.5px dashed #d1d5db; border-radius:99px;
+            padding:.28rem .68rem; font-size:.77rem; font-weight:600; color:#9ca3af;
+            cursor:pointer; transition:border-color .2s,color .2s;
+        }
+        .cq-pill-add:hover { border-color:#FF6B00; color:#FF6B00; }
 
-        /* Sidebar */
-        .cq-sidebar { position:sticky; top:5.5rem; }
-        @media (max-width:839px) { .cq-sidebar { position:static; } }
-        .cq-sidebar-label {
-            font-size:.66rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase;
-            color:#9ca3af; margin-bottom:.75rem;
-        }
-
-        /* Confirmed entries */
-        .cq-entry {
-            background:#fff; border-radius:.875rem; padding:.8rem .95rem;
-            margin-bottom:.5rem; border:1.5px solid #e5e7eb; position:relative;
-            animation:cqSlide .3s ease both;
-        }
-        @keyframes cqSlide { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
-        .cq-entry-name { font-size:.855rem; font-weight:700; color:#111827; padding-right:1.5rem; }
-        .cq-entry-meta { font-size:.74rem; color:#6b7280; margin-top:.15rem; }
-        .cq-entry-del {
-            position:absolute; top:.6rem; right:.6rem; width:22px; height:22px;
-            border-radius:50%; background:#f3f4f6; border:none; cursor:pointer;
-            display:flex; align-items:center; justify-content:center;
-            color:#9ca3af; font-size:.62rem; transition:background .15s,color .15s;
-        }
-        .cq-entry-del:hover { background:#fee2e2; color:#ef4444; }
-
-        .cq-btn-add-another {
-            display:flex; align-items:center; justify-content:center; gap:.4rem;
-            font-size:.82rem; font-weight:600; color:#FF6B00;
-            background:none; border:1.5px dashed #fed7aa; border-radius:.75rem;
-            padding:.6rem .875rem; cursor:pointer; width:100%;
-            transition:background .15s,border-color .15s; margin-top:.25rem;
-        }
-        .cq-btn-add-another:hover { background:#fff7ed; border-color:#fdba74; }
-
-        /* Step cards */
-        .cq-card {
-            background:#fff; border-radius:1.25rem; border:1.5px solid #e5e7eb;
-            padding:1.6rem 1.65rem; margin-bottom:1rem;
+        /* ── Unified product card ── */
+        .cq-pcard {
+            background:#fff; border-radius:1.5rem; border:1.5px solid #e5e7eb;
+            margin-bottom:1rem; overflow:hidden;
+            box-shadow:0 2px 16px rgba(0,0,0,.05),0 1px 3px rgba(0,0,0,.03);
             animation:cqFadeUp .35s ease both;
         }
-        @keyframes cqFadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
-        @media (max-width:600px) { .cq-card { padding:1.1rem 1rem; border-radius:1rem; } }
-        .cq-fade-in { animation:cqFadeUp .3s ease both; }
-
-        /* Product bubble */
+        /* Bubble strip at top of pcard */
         .cq-bubble {
             display:flex; align-items:center; justify-content:space-between; gap:.75rem;
-            background:linear-gradient(135deg,#FF6B00,#f97316); color:#fff;
-            border-radius:1rem 1rem .25rem 1rem; padding:.9rem 1.1rem;
-            margin-bottom:1rem; box-shadow:0 4px 18px rgba(255,107,0,.28);
+            background:linear-gradient(135deg,#FF6B00,#f97316); padding:1rem 1.25rem;
         }
-        .cq-bubble-text { font-size:.95rem; font-weight:700; line-height:1.4; flex:1; min-width:0; }
+        .cq-bubble-text { font-size:.97rem; font-weight:700; color:#fff; line-height:1.4; flex:1; min-width:0; }
         .cq-bubble-edit {
             flex-shrink:0; background:rgba(255,255,255,.22); border:none; border-radius:.4rem;
             color:#fff; width:30px; height:30px; display:flex; align-items:center;
             justify-content:center; cursor:pointer; font-size:.74rem; transition:background .15s;
         }
         .cq-bubble-edit:hover { background:rgba(255,255,255,.35); }
-
-        /* Field rows inside cards */
-        .cq-field-row { margin-bottom:1.1rem; }
-        .cq-field-row:last-child { margin-bottom:0; }
-        .cq-field-header { display:flex; align-items:flex-start; gap:.7rem; margin-bottom:.55rem; }
-        .cq-field-icon {
-            width:30px; height:30px; border-radius:.45rem; background:#fff7ed; color:#FF6B00;
-            display:flex; align-items:center; justify-content:center; font-size:.77rem; flex-shrink:0;
+        /* AI gem card inside pcard */
+        .cq-gem-wrap { padding:1.15rem 1.3rem 0; }
+        .cq-gem-card {
+            background:linear-gradient(158deg,#fffbf5 0%,#fff8ef 100%);
+            border:1px solid #fed7aa; border-radius:1.1rem; padding:1.1rem 1.2rem;
         }
-        .cq-field-title { font-size:.855rem; font-weight:700; color:#111827; line-height:1.35; }
-        .cq-field-desc { font-size:.765rem; color:#6b7280; margin-top:.12rem; line-height:1.5; }
+        .cq-gem-header { display:flex; align-items:center; gap:.45rem; margin-bottom:.6rem; }
+        .cq-gem-avatar {
+            width:25px; height:25px; border-radius:.42rem;
+            background:linear-gradient(135deg,#FF6B00,#f97316);
+            display:flex; align-items:center; justify-content:center; font-size:.8rem; flex-shrink:0;
+        }
+        .cq-gem-label { font-size:.67rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#ea580c; }
+        .cq-gem-message {
+            font-size:.97rem; font-weight:500; color:#1f2937; line-height:1.72; margin:0 0 .85rem;
+        }
+        .cq-gem-separator { height:1px; background:#f3ebe1; margin:.65rem 0; }
+        .cq-gem-badges { display:flex; flex-wrap:wrap; gap:.32rem; }
+        .cq-gem-badge {
+            display:inline-flex; align-items:center; gap:.28rem;
+            border-radius:.52rem; padding:.32rem .68rem; font-size:.77rem; font-weight:700; border:1px solid;
+        }
+        .cq-gem-badge i { font-size:.65rem; }
+        .cq-gem-badge-cat { background:#f3f4f6; border-color:#e5e7eb; color:#374151; }
+        .cq-gem-badge-tax { background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+        .cq-gem-badge-air { background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8; }
+        .cq-gem-badge-sea { background:#f0fdf4; border-color:#86efac; color:#15803d; }
+        .cq-gem-badge-req { background:#faf5ff; border-color:#e9d5ff; color:#7c3aed; }
+        .cq-gem-notice {
+            display:flex; align-items:flex-start; gap:.42rem;
+            background:#fffbeb; border:1px solid #fcd34d; border-radius:.6rem;
+            padding:.55rem .72rem; font-size:.79rem; color:#92400e; line-height:1.55; margin-top:.6rem;
+        }
+        .cq-gem-notice i { flex-shrink:0; margin-top:.1rem; }
+        /* Skeleton loader */
+        .cq-skel-row { border-radius:.42rem; background:linear-gradient(90deg,#f0ebe3 25%,#fde8cc 50%,#f0ebe3 75%); background-size:200% 100%; animation:cqSkel 1.4s ease infinite; }
+        @keyframes cqSkel { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        /* Fields section inside pcard */
+        .cq-pcard-fields { padding:1.15rem 1.3rem 1.3rem; border-top:1px solid #f3f4f6; }
+        .cq-fields-divider {
+            display:flex; align-items:center; gap:.6rem;
+            font-size:.69rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+            color:#9ca3af; margin-bottom:.95rem;
+        }
+        .cq-fields-divider::before,.cq-fields-divider::after { content:''; flex:1; height:1px; background:#ede9e4; }
+        .cq-field-block { margin-bottom:.9rem; }
+        .cq-field-label {
+            display:flex; align-items:center; gap:.37rem;
+            font-size:.81rem; font-weight:700; color:#374151; margin-bottom:.42rem;
+        }
+        .cq-field-label i { color:#FF6B00; font-size:.7rem; opacity:.85; }
+        .cq-opt-tag { font-weight:400; color:#9ca3af; font-size:.73rem; margin-left:.15rem; }
+        .cq-req-tag { color:#ef4444; margin-left:.1rem; }
+        .cq-field-hint { font-size:.73rem; color:#9ca3af; margin-top:.22rem; line-height:1.5; }
+        .cq-field-input {
+            width:100%; padding:.72rem 1rem; font-size:.94rem; color:#111827;
+            background:#f9fafb; border:1.5px solid #e5e7eb; border-radius:.75rem;
+            outline:none; transition:border-color .2s,background .2s,box-shadow .2s;
+            box-sizing:border-box; font-family:inherit;
+        }
+        .cq-field-input:focus { border-color:#FF6B00; background:#fff; box-shadow:0 0 0 3px rgba(255,107,0,.1); }
+        .cq-field-input.cq-error-state { border-color:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,.08); }
+        .cq-field-input::placeholder { color:#9ca3af; }
+
+        /* Step cards (shipping, contact, add-another) */
+        .cq-card {
+            background:#fff; border-radius:1.25rem; border:1.5px solid #e5e7eb;
+            padding:1.5rem 1.6rem; margin-bottom:1rem;
+            animation:cqFadeUp .35s ease both;
+        }
+        @keyframes cqFadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        @media (max-width:600px) { .cq-card { padding:1.1rem 1rem; border-radius:1rem; } }
+        .cq-fade-in { animation:cqFadeUp .3s ease both; }
 
         /* URL input */
         .cq-url-wrap { position:relative; }
@@ -256,21 +297,22 @@
         /* Price input */
         .cq-price-wrap {
             display:flex; align-items:stretch; border:1.5px solid #e5e7eb;
-            border-radius:.75rem; overflow:hidden; background:#fff;
+            border-radius:.75rem; overflow:hidden; background:#f9fafb;
             transition:border-color .2s,box-shadow .2s;
         }
         .cq-price-wrap:focus-within { border-color:#FF6B00; box-shadow:0 0 0 3px rgba(255,107,0,.12); }
+        .cq-price-wrap.cq-error-state { border-color:#ef4444; box-shadow:0 0 0 3px rgba(239,68,68,.08); }
         .cq-price-fix {
-            padding:.78rem .75rem; font-size:.88rem; font-weight:600; color:#9ca3af;
-            background:#f9fafb; user-select:none; white-space:nowrap; display:flex; align-items:center;
+            padding:.72rem .75rem; font-size:.88rem; font-weight:600; color:#9ca3af;
+            background:#eeecea; user-select:none; white-space:nowrap; display:flex; align-items:center;
         }
         .cq-price-fix.left { border-right:1.5px solid #e5e7eb; }
         .cq-price-fix.right { border-left:1.5px solid #e5e7eb; }
-        .cq-price-input { border:none !important; border-radius:0 !important; box-shadow:none !important; flex:1; min-width:0; padding-left:.75rem; padding-right:.75rem; }
-        .cq-price-input:focus { border:none !important; box-shadow:none !important; outline:none; }
+        .cq-price-input { border:none !important; border-radius:0 !important; box-shadow:none !important; flex:1; min-width:0; padding:.72rem .75rem; background:#f9fafb; font-family:inherit; font-size:.94rem; color:#111827; outline:none; }
+        .cq-price-input:focus { background:#fff; }
 
         /* Live estimate */
-        .cq-live-est { margin-top:.35rem; font-size:.77rem; color:#6b7280; }
+        .cq-live-est { margin-top:.3rem; font-size:.77rem; color:#6b7280; }
 
         /* Category collapsible */
         .cq-cat-details { margin-top:.9rem; border-top:1px solid #f3f4f6; padding-top:.65rem; }
@@ -578,23 +620,23 @@
 
     <!-- ══ FLOW ══ -->
     <div id="cq-flow" aria-live="polite">
-        <div class="cq-flow-layout">
+        <div class="cq-flow-inner">
 
-            <!-- SIDEBAR: confirmed products -->
-            <aside class="cq-sidebar">
-                <div class="cq-sidebar-label">Tu solicitud</div>
-                <div id="cq-confirmed-list" aria-label="Productos confirmados"></div>
-                <button type="button" id="cq-btn-add-another" class="cq-btn-add-another" style="display:none;">
-                    <i class="fas fa-plus"></i> Agregar otro producto
+            <!-- Confirmed products pill row -->
+            <div id="cq-confirmed-pills">
+                <div class="cq-pills-row" id="cq-pills-row"></div>
+                <button type="button" id="cq-btn-add-another" class="cq-pill-add" style="display:none;">
+                    <i class="fas fa-plus"></i> Agregar otro
                 </button>
-            </aside>
+            </div>
 
-            <!-- STEPS AREA -->
+            <!-- Steps area -->
             <div id="cq-steps-area">
 
-                <!-- Step: product entry (bubble + intel + fields) -->
-                <div id="cq-step-product" class="cq-card">
-                    <!-- Bubble shows after search -->
+                <!-- Unified product card: bubble + AI analysis + detail fields -->
+                <div id="cq-step-product" class="cq-pcard">
+
+                    <!-- Orange chat bubble with product name -->
                     <div id="cq-product-bubble" class="cq-bubble" style="display:none;">
                         <span id="cq-bubble-text" class="cq-bubble-text"></span>
                         <button type="button" id="cq-bubble-edit" class="cq-bubble-edit" title="Editar nombre">
@@ -602,43 +644,36 @@
                         </button>
                     </div>
 
-                    <!-- Gemini intel card -->
+                    <!-- AI analysis: loading skeleton → Gemini result card -->
                     <div id="cq-intel-area" style="display:none;"></div>
 
-                    <!-- Product fields (URL + price) -->
-                    <div id="cq-product-fields" style="display:none;">
-
-                        <!-- AI extraction banner -->
+                    <!-- Product detail fields — revealed after AI card -->
+                    <div id="cq-product-fields" class="cq-pcard-fields" style="display:none;">
                         <div id="cq-ai-banner" style="margin-bottom:.5rem;"></div>
                         <div id="cq-ai-compliance"></div>
 
+                        <div class="cq-fields-divider"><span>Cuéntanos más del producto</span></div>
+
                         <!-- URL -->
-                        <div class="cq-field-row">
-                            <div class="cq-field-header">
-                                <div class="cq-field-icon"><i class="fas fa-link"></i></div>
-                                <div>
-                                    <div class="cq-field-title">Enlace del producto <span class="cq-optional">— opcional</span></div>
-                                    <div class="cq-field-desc">Pégalo y lo analizamos automáticamente. Funciona con Amazon, Walmart, eBay y más.</div>
-                                </div>
+                        <div class="cq-field-block">
+                            <div class="cq-field-label">
+                                <i class="fas fa-link"></i> Enlace del producto <span class="cq-opt-tag">— opcional</span>
                             </div>
                             <div class="cq-url-wrap">
-                                <input type="url" id="cq-f-url" class="cq-input" placeholder="https://www.amazon.com/dp/…" autocomplete="off">
+                                <input type="url" id="cq-f-url" class="cq-field-input" placeholder="https://amazon.com/dp/…" autocomplete="off">
                                 <span class="cq-url-spinner" id="cq-url-spinner"><i class="fas fa-circle-notch fa-spin"></i></span>
                             </div>
+                            <div class="cq-field-hint">Pégalo y lo analizamos — Amazon, Walmart, eBay y más.</div>
                         </div>
 
                         <!-- Price -->
-                        <div class="cq-field-row">
-                            <div class="cq-field-header">
-                                <div class="cq-field-icon"><i class="fas fa-dollar-sign"></i></div>
-                                <div>
-                                    <div class="cq-field-title">Precio aproximado <span class="cq-required">*</span></div>
-                                    <div class="cq-field-desc">En USD, sin envío ni impuestos. Lo usamos para calcular los aranceles exactos en Costa Rica.</div>
-                                </div>
+                        <div class="cq-field-block">
+                            <div class="cq-field-label">
+                                <i class="fas fa-dollar-sign"></i> Precio aproximado <span class="cq-req-tag">*</span>
                             </div>
-                            <div class="cq-price-wrap">
+                            <div class="cq-price-wrap" id="cq-price-wrap">
                                 <span class="cq-price-fix left">$</span>
-                                <input type="number" id="cq-f-price" class="cq-input cq-price-input" placeholder="0.00" min="0.01" step="0.01">
+                                <input type="number" id="cq-f-price" class="cq-price-input" placeholder="0.00" min="0.01" step="0.01">
                                 <span class="cq-price-fix right">USD</span>
                             </div>
                             <div class="cq-err" id="cq-err-price" style="display:none;">
@@ -1028,7 +1063,7 @@
         var aiConfirmWrap  = document.getElementById('cq-ai-confirm-wrap');
         var aiConfirmChk   = document.getElementById('cq-ai-confirm-chk');
         var btnConfirmProd = document.getElementById('cq-btn-confirm-product');
-        var confirmedList  = document.getElementById('cq-confirmed-list');
+        /* confirmedList removed — pills row used instead via _renderConfirmedList() */
         var btnAddAnother  = document.getElementById('cq-btn-add-another');
         var fServiceType   = document.getElementById('f-service-type');
         var fDestination   = document.getElementById('f-destination-zone');
@@ -1128,7 +1163,24 @@
             if (bubbleText) bubbleText.textContent = productName;
             if (productBubble) productBubble.style.display = 'flex';
             if (productFields) productFields.style.display = 'none';
-            if (intelArea) { intelArea.innerHTML = ''; intelArea.style.display = 'none'; }
+            // Show loading skeleton in AI card while Gemini processes
+            if (intelArea) {
+                intelArea.innerHTML = '<div class="cq-gem-wrap"><div class="cq-gem-card">'
+                    + '<div class="cq-gem-header">'
+                    + '<div class="cq-gem-avatar">✨</div>'
+                    + '<span class="cq-gem-label">Analizando producto…</span>'
+                    + '</div>'
+                    + '<div class="cq-skel-row" style="height:14px;width:52%;margin-bottom:.65rem;"></div>'
+                    + '<div class="cq-skel-row" style="height:13px;width:100%;margin-bottom:.38rem;"></div>'
+                    + '<div class="cq-skel-row" style="height:13px;width:88%;margin-bottom:.38rem;"></div>'
+                    + '<div class="cq-skel-row" style="height:13px;width:72%;margin-bottom:.75rem;"></div>'
+                    + '<div style="display:flex;gap:.32rem;">'
+                    + '<div class="cq-skel-row" style="height:26px;width:90px;border-radius:.52rem;"></div>'
+                    + '<div class="cq-skel-row" style="height:26px;width:110px;border-radius:.52rem;"></div>'
+                    + '</div>'
+                    + '</div></div>';
+                intelArea.style.display = '';
+            }
             // Reveal flow below hero (no page jump — hero stays, compresses)
             _revealFlow();
             // Hide later steps until confirmed
@@ -1155,7 +1207,9 @@
 
         function _resetEntryFields() {
             if (fUrl) fUrl.value = '';
-            if (fPrice) { fPrice.value = ''; fPrice.classList.remove('cq-error-state'); }
+            if (fPrice) fPrice.value = '';
+            var pwEl = document.getElementById('cq-price-wrap');
+            if (pwEl) pwEl.classList.remove('cq-error-state');
             if (fCategory) fCategory.value = '';
             if (liveEstEl) liveEstEl.style.display = 'none';
             if (aiConfirmWrap) aiConfirmWrap.style.display = 'none';
@@ -1300,13 +1354,14 @@
             var cat   = fCategory ? fCategory.value : '';
             var errPrice = document.getElementById('cq-err-price');
 
+            var priceWrapEl = document.getElementById('cq-price-wrap');
             if (!price || price <= 0) {
-                if (fPrice) fPrice.classList.add('cq-error-state');
+                if (priceWrapEl) priceWrapEl.classList.add('cq-error-state');
                 if (errPrice) errPrice.style.display = 'flex';
                 if (fPrice) fPrice.focus();
                 return;
             }
-            if (fPrice) fPrice.classList.remove('cq-error-state');
+            if (priceWrapEl) priceWrapEl.classList.remove('cq-error-state');
             if (errPrice) errPrice.style.display = 'none';
             if (_currentAiState.active && aiConfirmWrap && aiConfirmWrap.style.display !== 'none' && aiConfirmChk && !aiConfirmChk.checked) {
                 aiConfirmChk.focus(); return;
@@ -1336,26 +1391,28 @@
             }, 200);
         }
 
-        // ── Confirmed products list ───────────────────────────
+        // ── Confirmed products pill row ───────────────────────
         function _renderConfirmedList() {
-            if (!confirmedList) return;
-            confirmedList.innerHTML = '';
+            var pillsRow       = document.getElementById('cq-pills-row');
+            var pillsContainer = document.getElementById('cq-confirmed-pills');
+            if (!pillsRow) return;
+            pillsRow.innerHTML = '';
             _confirmedProducts.forEach(function(p, idx) {
-                var entry = document.createElement('div');
-                entry.className = 'cq-entry';
-                var metaParts = [];
-                if (p.declared_value_usd > 0) metaParts.push('$' + p.declared_value_usd.toFixed(2));
-                if (p.brainClassification && p.brainClassification.displayName) metaParts.push(p.brainClassification.displayName);
-                entry.innerHTML = '<div class="cq-entry-name">' + _escHtml(p.name) + '</div>'
-                    + (metaParts.length ? '<div class="cq-entry-meta">' + _escHtml(metaParts.join(' · ')) + '</div>' : '')
-                    + '<button type="button" class="cq-entry-del" data-idx="' + idx + '" aria-label="Eliminar"><i class="fas fa-times"></i></button>';
-                entry.querySelector('.cq-entry-del').addEventListener('click', function() {
+                var pill = document.createElement('span');
+                pill.className = 'cq-conf-pill';
+                pill.innerHTML = '<i class="fas fa-check cq-conf-pill-icon"></i>'
+                    + '<span class="cq-conf-pill-name">' + _escHtml(p.name) + '</span>'
+                    + '<button type="button" class="cq-conf-pill-del" data-idx="' + idx + '" aria-label="Eliminar">'
+                    + '<i class="fas fa-times"></i></button>';
+                pill.querySelector('.cq-conf-pill-del').addEventListener('click', function() {
                     _confirmedProducts.splice(parseInt(this.dataset.idx), 1);
                     _renderConfirmedList();
                     if (_confirmedProducts.length === 0) resetFlow();
                 });
-                confirmedList.appendChild(entry);
+                pillsRow.appendChild(pill);
             });
+            if (pillsContainer) pillsContainer.style.display = _confirmedProducts.length ? '' : 'none';
+            if (btnAddAnother) btnAddAnother.style.display = _confirmedProducts.length ? '' : 'none';
         }
 
         // ── Add another product ───────────────────────────────
@@ -1689,7 +1746,10 @@
             _confirmedProducts = []; _currentBrainResult = null;
             _currentAiState = { active: false, dataSource: 'manual', inFlight: false };
             _dupWarningDismissed = false; _formSubmitted = false; lastSubmitPayload = null;
-            if (confirmedList) confirmedList.innerHTML = '';
+            var pillsRow = document.getElementById('cq-pills-row');
+            var pillsCont = document.getElementById('cq-confirmed-pills');
+            if (pillsRow) pillsRow.innerHTML = '';
+            if (pillsCont) pillsCont.style.display = 'none';
             if (btnAddAnother) btnAddAnother.style.display = 'none';
             if (fServiceType) fServiceType.value = 'aereo';
             document.querySelectorAll('.cq-svc-card').forEach(function(c) { c.classList.remove('cq-svc-active'); });
@@ -1730,6 +1790,7 @@
             if (!intelArea) return;
             if (!result) { intelArea.innerHTML = ''; intelArea.style.display = 'none'; return; }
             intelArea.style.display = '';
+
             var hasKnownCat  = result.displayName && result.brainCategoryId !== 'unknown_manual_review';
             var hasRisk      = typeof CRBOXProductClassifier !== 'undefined' && CRBOXProductClassifier.hasRisk && CRBOXProductClassifier.hasRisk(result);
             var guidance     = result.geminiGuidance || '';
@@ -1738,40 +1799,63 @@
             var needsConfirm = !!result.needsTeamConfirmation;
             var rate         = (!needsConfirm && result.estimatedRange) ? result.estimatedRange : '';
 
-            var html = '<div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:.875rem;padding:1rem 1.1rem;margin-bottom:.875rem;">';
-
-            if (hasKnownCat) {
-                html += '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:.38rem;margin-bottom:.45rem;">'
-                    + '<span style="font-size:.77rem;color:#6b7280;display:inline-flex;align-items:center;gap:.28rem;"><i class="fas fa-tag" style="color:#f97316;font-size:.66rem;"></i><strong style="color:#374151;">' + _escHtml(result.displayName) + '</strong></span>';
-                if (rate) html += '<span style="display:inline-flex;align-items:center;gap:.25rem;background:#fff7ed;border:1px solid #fed7aa;border-radius:99px;padding:.16rem .55rem;font-size:.71rem;font-weight:700;color:#9a3412;"><i class="fas fa-percent" style="font-size:.6rem;color:#f97316;"></i>' + _escHtml(rate) + '</span>';
-                html += '</div>';
-            }
-
+            // ── Primary AI message (Gemini guidance takes top priority) ──
             var primaryText = guidance || (!hasKnownCat
                 ? (result.customerMessage || 'Un asesor CRBOX revisará este producto y te confirmará si puede importarse.')
-                : (hasRisk ? result.customerMessage || '' : _warmIntro(productName, result)));
-            if (primaryText) html += '<p style="font-size:.845rem;color:#374151;line-height:1.65;margin:0' + (rate || reqs.length || ship ? ' 0 .45rem' : '') + ';">' + _escHtml(primaryText) + '</p>';
+                : (hasRisk ? (result.customerMessage || '') : _warmIntro(productName, result)));
 
+            // ── Build badge HTML ──
+            var badgeHtml = '';
+            if (hasKnownCat) {
+                badgeHtml += '<span class="cq-gem-badge cq-gem-badge-cat"><i class="fas fa-tag"></i>' + _escHtml(result.displayName) + '</span>';
+            }
+            if (rate) {
+                badgeHtml += '<span class="cq-gem-badge cq-gem-badge-tax"><i class="fas fa-percent"></i>' + _escHtml(rate) + ' en impuestos</span>';
+            }
+            if (ship === 'maritimo') {
+                badgeHtml += '<span class="cq-gem-badge cq-gem-badge-sea"><i class="fas fa-ship"></i>Envío marítimo</span>';
+            } else if (ship === 'aereo') {
+                badgeHtml += '<span class="cq-gem-badge cq-gem-badge-air"><i class="fas fa-plane"></i>Envío aéreo</span>';
+            }
+            reqs.forEach(function(r) {
+                badgeHtml += '<span class="cq-gem-badge cq-gem-badge-req"><i class="fas fa-clipboard-check"></i>' + _escHtml(r) + '</span>';
+            });
+            // Tax dollar estimate badge (when price is known)
+            var taxEstBadge = '';
             if (rate && price > 0) {
                 var td = _taxRange(rate, price);
                 if (td) {
                     var dtxt = td.low === td.high ? '~$' + td.low : '~$' + td.low + '\u2013$' + td.high;
-                    html += '<p style="font-size:.77rem;color:#6b7280;margin:.28rem 0 0;"><i class="fas fa-coins" style="color:#f59e0b;margin-right:.28rem;font-size:.68rem;"></i>En impuestos aprox.: <strong style="color:#374151;">' + dtxt + ' USD</strong></p>';
+                    taxEstBadge = '<span class="cq-gem-badge cq-gem-badge-tax" style="font-weight:800;"><i class="fas fa-coins"></i>' + dtxt + ' USD aprox.</span>';
                 }
             } else if (rate && !price) {
-                html += '<p style="font-size:.74rem;color:#9ca3af;margin:.28rem 0 0;font-style:italic;"><i class="fas fa-lightbulb" style="font-size:.67rem;margin-right:.22rem;"></i>Agrega el precio para ver el estimado en d\u00f3lares.</p>';
+                taxEstBadge = '<span class="cq-gem-badge" style="background:#f9fafb;border-color:#e5e7eb;color:#9ca3af;font-style:italic;"><i class="fas fa-lightbulb"></i>Agrega el precio para ver el estimado</span>';
             }
 
-            if (reqs.length) {
-                html += '<div style="display:flex;flex-wrap:wrap;gap:.26rem;margin-top:.5rem;">';
-                reqs.forEach(function(r) { html += '<span style="display:inline-flex;align-items:center;gap:.22rem;padding:.18rem .5rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:99px;font-size:.7rem;font-weight:600;color:#1d4ed8;"><i class="fas fa-clipboard-check" style="font-size:.6rem;"></i>' + _escHtml(r) + '</span>'; });
-                html += '</div>';
-            }
-            if (ship === 'maritimo') html += '<div style="display:inline-flex;align-items:center;gap:.3rem;margin-top:.45rem;padding:.22rem .6rem;background:#f0fdf4;border:1px solid #86efac;border-radius:99px;font-size:.72rem;font-weight:700;color:#15803d;"><i class="fas fa-ship" style="font-size:.66rem;"></i>Envío marítimo recomendado</div>';
-            else if (ship === 'aereo') html += '<div style="display:inline-flex;align-items:center;gap:.3rem;margin-top:.45rem;padding:.22rem .6rem;background:#f0f9ff;border:1px solid #7dd3fc;border-radius:99px;font-size:.72rem;font-weight:700;color:#0369a1;"><i class="fas fa-plane" style="font-size:.66rem;"></i>Envío aéreo</div>';
-            if (needsConfirm) html += '<div style="display:flex;align-items:flex-start;gap:.45rem;margin-top:.55rem;padding:.5rem .7rem;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:.55rem;font-size:.78rem;color:#92400e;line-height:1.5;"><i class="fas fa-user-check" style="flex-shrink:0;margin-top:.1rem;color:#d97706;font-size:.78rem;"></i><span>Un asesor CRBOX revisará este producto y te confirmará el proceso y los costos.</span></div>';
+            var hasBadges = badgeHtml || taxEstBadge;
 
-            html += '</div>';
+            // ── Compose card ──
+            var html = '<div class="cq-gem-wrap"><div class="cq-gem-card">'
+                + '<div class="cq-gem-header">'
+                + '<div class="cq-gem-avatar">✨</div>'
+                + '<span class="cq-gem-label">Análisis CRBOX</span>'
+                + '</div>';
+
+            if (primaryText) {
+                html += '<p class="cq-gem-message">' + _escHtml(primaryText) + '</p>';
+            }
+
+            if (hasBadges) {
+                if (primaryText) html += '<div class="cq-gem-separator"></div>';
+                html += '<div class="cq-gem-badges">' + badgeHtml + taxEstBadge + '</div>';
+            }
+
+            if (needsConfirm) {
+                html += '<div class="cq-gem-notice"><i class="fas fa-user-check"></i>'
+                    + '<span>Un asesor CRBOX revisará este producto y te confirmará el proceso y los costos exactos.</span></div>';
+            }
+
+            html += '</div></div>'; // .cq-gem-card / .cq-gem-wrap
             intelArea.innerHTML = html;
         }
 
