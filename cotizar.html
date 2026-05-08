@@ -108,10 +108,10 @@
 
         /* ── Product intelligence inline card ── */
         .card-intel-wrap {
-            animation: ci-fadein .25s ease;
+            animation: ci-fadein .3s cubic-bezier(.22,.61,.36,1);
         }
         @keyframes ci-fadein {
-            from { opacity: 0; transform: translateY(-4px); }
+            from { opacity: 0; transform: translateY(8px); }
             to   { opacity: 1; transform: translateY(0); }
         }
         /* ── Category collapsible disclosure ── */
@@ -124,6 +124,57 @@
             transition: transform .15s;
         }
         .card-cat-details[open] > summary::before { transform: rotate(90deg); }
+
+        /* ── Quick chips inside product cards ── */
+        .card-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .35rem;
+            margin: .55rem 0 .9rem;
+        }
+        .card-chip {
+            padding: .28rem .7rem;
+            background: #f9fafb;
+            color: #374151;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 99px;
+            font-size: .78rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all .17s ease;
+            opacity: 0;
+            animation: card-chipin .38s ease forwards;
+        }
+        @keyframes card-chipin {
+            from { opacity: 0; transform: scale(.8) translateY(5px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .card-chip:hover {
+            background: #fff7ed;
+            border-color: #fdba74;
+            color: #c2410c;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(255,107,0,.15);
+        }
+        .card-chip.card-chip-active {
+            background: linear-gradient(135deg,#FF6B00,#f97316);
+            border-color: #FF6B00;
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(255,107,0,.3);
+            transform: translateY(-2px);
+        }
+        /* ── URL field wrapper (spinner position) ── */
+        .f-url-wrap { position: relative; }
+        .f-url-spinner {
+            display: none;
+            position: absolute;
+            right: .85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: .75rem;
+            color: #f97316;
+        }
+        .f-url-spinner.show { display: block; }
 
         /* ── Section heading ── */
         .q-section-head {
@@ -969,7 +1020,7 @@
     <script src="js/tariff-adapter.js?v=3"></script>
     <script src="js/ai-extractor.js?v=7"></script>
     <script src="js/product-classifier.js?v=2"></script>
-    <script src="js/concierge-intake.js?v=1"></script>
+    <script src="js/concierge-intake.js?v=2"></script>
     <script>
     (function () {
         'use strict';
@@ -1009,6 +1060,17 @@
         let lastSubmitPayload = null;
         let _dupWarningDismissed = false;
         let _formSubmitted    = false;
+
+        // Quick chips for product cards — tap to pre-fill name + auto-classify
+        const CARD_CHIPS = [
+            { label: '💻 Laptop',      query: 'laptop computadora' },
+            { label: '📱 Celular',     query: 'celular smartphone' },
+            { label: '👟 Calzado',     query: 'tenis zapatos Nike' },
+            { label: '👗 Ropa',        query: 'ropa' },
+            { label: '🎮 Juegos',      query: 'consola videojuegos' },
+            { label: '🏠 Hogar',       query: 'aspiradora electrodoméstico' },
+            { label: '⌚ Reloj',       query: 'smartwatch reloj' },
+        ];
 
         // Category options HTML reused per card
         const CATEGORY_OPTS_HTML = [
@@ -1086,26 +1148,30 @@
                 + '</button>'
                 + '</div>'
                 // 1. Product name — primary field
-                + '<div class="mb-3" style="margin-top:1.25rem;">'
+                + '<div class="mb-2" style="margin-top:1.25rem;">'
                 + '<label class="q-label" for="f-name-' + id + '">¿Qué quieres traer? <span class="q-required">*</span></label>'
                 + '<input type="text" id="f-name-' + id + '" class="q-input f-product-name" placeholder="Ej: AirPods Pro, tenis Nike, computadora gaming…" autocomplete="off" maxlength="200">'
                 + '<div class="q-error-msg" id="err-name-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Ingresa el nombre del producto (mínimo 3 caracteres).</span></div>'
                 + '</div>'
-                // Inline intelligence card — populated after auto-classify on blur
+                // Quick category chips
+                + '<div class="card-chips" id="card-chips-' + id + '">'
+                + CARD_CHIPS.map(function(c, i) {
+                    return '<button type="button" class="card-chip" data-query="' + c.query.replace(/"/g,'&quot;') + '" style="animation-delay:' + (i * .048) + 's">' + c.label + '</button>';
+                }).join('')
+                + '</div>'
+                // Inline intelligence card — populated after auto-classify
                 + '<div id="card-intel-' + id + '" class="card-intel-wrap" style="display:none;margin-bottom:.85rem;"></div>'
                 // AI compliance area (from URL extractor)
                 + '<div class="ai-compliance-wrap" id="ai-compliance-' + id + '"></div>'
                 + '<div id="ai-banner-' + id + '"></div>'
-                // 2. Product URL — visible secondary
+                // 2. Product URL — auto-extracts on paste, no Analizar button
                 + '<div class="mb-3">'
                 + '<label class="q-label" for="f-url-' + id + '">Enlace del producto <span class="q-optional">(opcional)</span></label>'
-                + '<div style="display:flex;gap:.5rem;align-items:center;">'
-                + '<input type="url" id="f-url-' + id + '" class="q-input f-product-url" placeholder="https://www.amazon.com/dp/…" autocomplete="off" style="flex:1;">'
-                + '<button type="button" class="btn-ai-analizar" data-card="' + id + '" style="flex-shrink:0;padding:.65rem 1rem;background:#FF6B00;color:#fff;border:none;border-radius:.6rem;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s;">'
-                + '<i class="fas fa-magic"></i> Analizar'
-                + '</button>'
+                + '<div class="f-url-wrap">'
+                + '<input type="url" id="f-url-' + id + '" class="q-input f-product-url" placeholder="https://www.amazon.com/dp/… — pégalo y lo analizamos" autocomplete="off">'
+                + '<span class="f-url-spinner" id="url-spinner-' + id + '"><i class="fas fa-circle-notch fa-spin"></i></span>'
                 + '</div>'
-                + '<div class="q-hint">Opcional — si tienes el enlace, lo usamos como referencia para revisar tu solicitud.</div>'
+                + '<div class="q-hint">Opcional — pega el enlace y lo usamos como referencia para tu solicitud.</div>'
                 + '</div>'
                 // 3. Price — visible (required)
                 + '<div class="mb-4">'
@@ -1144,15 +1210,51 @@
             if (!cardEl) return;
             var removeBtn = cardEl.querySelector('.btn-remove-card');
             if (removeBtn) removeBtn.addEventListener('click', function() { removeProductCard(cardId); });
-            var btnAnalizar = cardEl.querySelector('.btn-ai-analizar');
-            if (btnAnalizar) btnAnalizar.addEventListener('click', function() { _doAiExtract(cardId); });
-            var fUrl = cardEl.querySelector('.f-product-url');
-            if (fUrl) fUrl.addEventListener('input', function() {
-                if (!(this.value || '').trim()) _resetCardExtraction(cardId);
-            });
             var nameInput = cardEl.querySelector('.f-product-name');
             var catSel    = cardEl.querySelector('.f-category');
             var valInput  = cardEl.querySelector('.f-declared-value');
+
+            // Quick chip clicks — pre-fill name and immediately classify
+            var chipsEl = document.getElementById('card-chips-' + cardId);
+            if (chipsEl) {
+                chipsEl.querySelectorAll('.card-chip').forEach(function(chip) {
+                    chip.addEventListener('click', function() {
+                        chipsEl.querySelectorAll('.card-chip').forEach(function(c) { c.classList.remove('card-chip-active'); });
+                        chip.classList.add('card-chip-active');
+                        var query = chip.dataset.query || chip.textContent.replace(/[^\w\s]/g,'').trim();
+                        if (nameInput) { nameInput.value = query; nameInput.dispatchEvent(new Event('input', { bubbles: true })); }
+                        if (typeof CRBOXProductClassifier === 'undefined') return;
+                        var price = parseFloat(valInput ? valInput.value : '') || 0;
+                        CRBOXProductClassifier.classify(query, price > 0 ? { priceUsd: price } : undefined).then(function(result) {
+                            if (!result) return;
+                            var state = _getCardState(cardId);
+                            if (state) state.brainClassification = result;
+                            if (result.legacyCode && catSel) {
+                                var opt = catSel.querySelector('option[value="' + result.legacyCode + '"]');
+                                if (opt) { catSel.value = result.legacyCode; catSel.dispatchEvent(new Event('change', { bubbles: true })); }
+                            }
+                            _renderCardIntelligence(cardId, result, query, price);
+                            _updateLiveEst();
+                            updateSubmitState();
+                        });
+                    });
+                });
+            }
+
+            // URL field: auto-extract on paste (no Analizar button)
+            var fUrl = cardEl.querySelector('.f-product-url');
+            if (fUrl) {
+                fUrl.addEventListener('input', function() {
+                    if (!(this.value || '').trim()) _resetCardExtraction(cardId);
+                });
+                fUrl.addEventListener('paste', function() {
+                    var self = this;
+                    setTimeout(function() {
+                        var url = (self.value || '').trim();
+                        if (url && /^https?:\/\//i.test(url)) _doAiExtract(cardId);
+                    }, 350);
+                });
+            }
             [nameInput, catSel].forEach(function(el) {
                 if (el) { el.addEventListener('input', function() { updateSubmitState(); checkRequiredFilled(); }); }
                 if (el) { el.addEventListener('change', function() { updateSubmitState(); checkRequiredFilled(); }); }
@@ -1302,12 +1404,8 @@
             state.aiInFlight = true;
             state.aiActive = false;
             state.aiDataSource = 'manual';
-            var btnAnalizar = cardEl.querySelector('.btn-ai-analizar');
-            if (btnAnalizar) {
-                btnAnalizar.disabled = true;
-                btnAnalizar.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analizando\u2026';
-                btnAnalizar.style.background = '#d97706';
-            }
+            var urlSpinner = document.getElementById('url-spinner-' + cardId);
+            if (urlSpinner) urlSpinner.classList.add('show');
             var _extractFields = {
                 bannerTarget:     cardEl.querySelector('#ai-banner-' + cardId),
                 complianceTarget: cardEl.querySelector('#ai-compliance-' + cardId),
@@ -1357,11 +1455,7 @@
                 }
             }).finally(function() {
                 state.aiInFlight = false;
-                if (btnAnalizar) {
-                    btnAnalizar.disabled = false;
-                    btnAnalizar.innerHTML = '<i class="fas fa-magic"></i> Analizar';
-                    btnAnalizar.style.background = '#FF6B00';
-                }
+                if (urlSpinner) urlSpinner.classList.remove('show');
                 updateSubmitState();
             });
         }
