@@ -1075,7 +1075,12 @@
                 + '</div>'
                 + '<div class="mb-4">'
                 + '<label class="q-label" for="f-name-' + id + '">Nombre del producto <span class="q-required">*</span></label>'
-                + '<input type="text" id="f-name-' + id + '" class="q-input f-product-name" placeholder="Ej: iPhone 15 Pro Max 256GB Negro" autocomplete="off" maxlength="200">'
+                + '<div style="display:flex;gap:.5rem;align-items:center;">'
+                + '<input type="text" id="f-name-' + id + '" class="q-input f-product-name" placeholder="Ej: iPhone 15 Pro Max 256GB Negro" autocomplete="off" maxlength="200" style="flex:1;">'
+                + '<button type="button" class="btn-analizar-name" data-card="' + id + '" title="Clasificar producto automáticamente" style="flex-shrink:0;padding:.65rem .9rem;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:.6rem;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s;" onmouseover="this.style.background=\'#e5e7eb\'" onmouseout="this.style.background=\'#f3f4f6\'">'
+                + '<i class="fas fa-brain" style="color:#FF6B00;margin-right:.25rem;"></i>Analizar'
+                + '</button>'
+                + '</div>'
                 + '<div class="q-error-msg" id="err-name-' + id + '"><i class="fas fa-exclamation-circle"></i><span>Ingresa el nombre del producto (mínimo 3 caracteres).</span></div>'
                 + '</div>'
                 + '<div class="mb-4">'
@@ -1109,6 +1114,24 @@
             if (removeBtn) removeBtn.addEventListener('click', function() { removeProductCard(cardId); });
             var btnAnalizar = cardEl.querySelector('.btn-ai-analizar');
             if (btnAnalizar) btnAnalizar.addEventListener('click', function() { _doAiExtract(cardId); });
+            // Name-based classify button — works without a URL, classifies the typed product name
+            var btnAnalizarName = cardEl.querySelector('.btn-analizar-name');
+            if (btnAnalizarName) btnAnalizarName.addEventListener('click', function() {
+                var val = (nameInput ? nameInput.value : '').trim();
+                if (val.length < 3) {
+                    if (nameInput) markFieldError(nameInput, 'err-name-' + cardId);
+                    return;
+                }
+                if (nameInput) clearFieldError(nameInput, 'err-name-' + cardId);
+                if (typeof CRBOXProductClassifier === 'undefined') return;
+                btnAnalizarName.disabled = true;
+                btnAnalizarName.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:#FF6B00;margin-right:.25rem;"></i>Analizando…';
+                CRBOXProductClassifier.suggest(val, catSel, catSuggBarEl, complianceEl, function(result) {
+                    _updateLiveEst();
+                    btnAnalizarName.disabled = false;
+                    btnAnalizarName.innerHTML = '<i class="fas fa-brain" style="color:#FF6B00;margin-right:.25rem;"></i>Analizar';
+                });
+            });
             var fUrl = cardEl.querySelector('.f-product-url');
             if (fUrl) fUrl.addEventListener('input', function() {
                 if (!(this.value || '').trim()) _resetCardExtraction(cardId);

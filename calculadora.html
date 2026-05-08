@@ -2225,8 +2225,10 @@
 
                 Promise.all(names.map(n => CRBOXProductClassifier.classify(n, { noFallback: true })))
                     .then(results => {
+                        // Treat null (unclassified/unknown) as unsafe — conservative guardrail.
+                        // A product we cannot identify should not get a confident automatic estimate.
                         const anyManual = results.some(r =>
-                            r && !CRBOXProductClassifier.shouldAllowAutomaticEstimate(r));
+                            !r || !CRBOXProductClassifier.shouldAllowAutomaticEstimate(r));
 
                         if (!anyManual) {
                             // All clear — restore real computed values

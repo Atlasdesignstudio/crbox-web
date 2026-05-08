@@ -791,16 +791,33 @@
 
         Promise.all(classifyAll).then(function (results) {
           results.forEach(function (result, idx) {
-            if (!result || !CRBOXProductClassifier.hasRisk(result)) return;
+            // Show the full classification card for any recognised product,
+            // and the compliance notice for risky ones.
+            var hasClassification = result && result.brainCategoryId;
+            var hasRisk = result && CRBOXProductClassifier.hasRisk(result);
+            if (!hasClassification && !hasRisk) return;
+
             var itemWrap = document.createElement('div');
-            itemWrap.style.cssText = 'margin-top:.25rem;';
+            itemWrap.style.cssText = 'margin-top:.5rem;';
+
             if (names.length > 1) {
               var prefix = document.createElement('p');
-              prefix.style.cssText = 'font-size:.75rem;color:#6b7280;margin-bottom:.15rem;font-weight:600;';
+              prefix.style.cssText = 'font-size:.75rem;color:#6b7280;margin-bottom:.25rem;font-weight:600;';
               prefix.textContent = (idx + 1) + '. ' + names[idx];
               itemWrap.appendChild(prefix);
             }
-            CRBOXProductClassifier.showComplianceNotice(itemWrap, result);
+
+            // Show the customer-facing classification card (category + tariff range + action)
+            if (hasClassification && typeof CRBOXProductClassifier.buildCustomerClassificationView === 'function') {
+              var cardEl = CRBOXProductClassifier.buildCustomerClassificationView(result);
+              if (cardEl) itemWrap.appendChild(cardEl);
+            }
+
+            // Show compliance notice for risky products (may overlap with card — card takes priority)
+            if (hasRisk) {
+              CRBOXProductClassifier.showComplianceNotice(itemWrap, result);
+            }
+
             _noticeWrap.appendChild(itemWrap);
           });
         });
