@@ -558,11 +558,13 @@
                 <p class="section-eyebrow">Producto</p>
 
                 <div class="sol-field">
-                    <label class="sol-label" for="form-product-name">Nombre del producto <span class="text-red-500">*</span></label>
+                    <label class="sol-label" for="form-product-name">¿Qué quieres traer? <span class="text-red-500">*</span></label>
                     <input type="text" id="form-product-name" name="product_name" required minlength="3" maxlength="200"
-                           placeholder="Ej: Sony WH-1000XM5, Teclado mecánico Logitech…"
+                           placeholder="Ej: Sony WH-1000XM5, tenis Nike, computadora gaming…"
                            class="sol-input">
                 </div>
+                <!-- Inline intelligence card — populated on name blur via auto-classify -->
+                <div id="portal-intel-card" style="display:none;margin-bottom:.75rem;"></div>
 
                 <div class="sol-field">
                     <label class="sol-label" for="form-product-url">Enlace del producto <span class="text-gray-400 font-normal text-xs">(autocompleta los datos)</span></label>

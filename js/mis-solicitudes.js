@@ -478,6 +478,90 @@
     }
 
     _showPortalForm();
+
+    // Auto-classify on portal name blur — sets category + renders intel card
+    var _pNameEl = document.getElementById('form-product-name');
+    if (_pNameEl && typeof CRBOXProductClassifier !== 'undefined') {
+      _pNameEl.removeEventListener('blur', _pNameEl._portalClassifyFn); // clear stale listener
+      _pNameEl._portalClassifyFn = function() {
+        var val = (this.value||'').trim();
+        if (val.length < 3) return;
+        var valEl = document.getElementById('form-declared-value');
+        var price = parseFloat(valEl ? valEl.value : '') || 0;
+        CRBOXProductClassifier.classify(val, price > 0 ? { priceUsd: price } : undefined).then(function(result) {
+          if (!result) return;
+          _portalBrainClassification = result;
+          // Auto-set TomSelect category
+          if (result.legacyCode && _portalTomSelect) {
+            try { _portalTomSelect.setValue(result.legacyCode, false); } catch(e) {}
+          }
+          // Render portal intel card
+          _renderPortalIntelCard(result, val, price);
+        });
+      };
+      _pNameEl.addEventListener('blur', _pNameEl._portalClassifyFn);
+
+      // Re-render intel card when price changes (update dollar estimate)
+      var _pValEl = document.getElementById('form-declared-value');
+      if (_pValEl) {
+        _pValEl.addEventListener('input', function() {
+          if (_portalBrainClassification) {
+            _renderPortalIntelCard(_portalBrainClassification, (_pNameEl ? _pNameEl.value : ''), parseFloat(this.value) || 0);
+          }
+        });
+      }
+    }
+  }
+
+  function _escPortalHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function _portalTaxRange(rangeStr, price) {
+    if (!rangeStr || price <= 0) return null;
+    var m = rangeStr.match(/(\d+(?:\.\d+)?)\s*%?\s*[-\u2013\u2014]\s*(\d+(?:\.\d+)?)%?/);
+    if (m) { var lo = parseFloat(m[1])/100*price, hi = parseFloat(m[2])/100*price; return { low: Math.round(lo), high: Math.round(hi) }; }
+    var m2 = rangeStr.match(/(\d+(?:\.\d+)?)%/);
+    if (m2) { var est = parseFloat(m2[1])/100*price; return { low: Math.round(est), high: Math.round(est) }; }
+    return null;
+  }
+
+  function _renderPortalIntelCard(result, productName, price) {
+    var el = document.getElementById('portal-intel-card');
+    if (!el) return;
+    if (!result) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    var hasKnownCat = result.displayName && result.brainCategoryId !== 'unknown_manual_review';
+    var hasRisk = CRBOXProductClassifier && CRBOXProductClassifier.hasRisk && CRBOXProductClassifier.hasRisk(result);
+    var rate = result.estimatedRange || '';
+    var name = (productName || 'Este producto').trim();
+    var html = '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:.75rem;padding:.75rem .875rem;font-size:.82rem;color:#374151;line-height:1.55;">';
+    if (hasKnownCat && !hasRisk) {
+      var cat = result.displayName || '';
+      var intros = [
+        '\u00a1Perfecto! ' + name + ' entra en la categor\u00eda ' + cat + '.',
+        '\u00a1Buena elecci\u00f3n! ' + name + ' se clasifica como ' + cat + '.',
+        name + ' se importa dentro de ' + cat + '.',
+      ];
+      html += '<p style="margin:0 0 .35rem;">' + _escPortalHtml(intros[(name.charCodeAt(0)||0)%intros.length]) + '</p>';
+      if (rate) {
+        html += '<span style="display:inline-flex;align-items:center;gap:.3rem;background:#fff7ed;border:1px solid #fed7aa;border-radius:99px;padding:.15rem .55rem;font-size:.74rem;font-weight:600;color:#9a3412;">'
+          + '<i class="fas fa-percent" style="font-size:.62rem;color:#f97316;"></i> ' + _escPortalHtml(rate) + ' en aranceles estimados</span>';
+        var td = _portalTaxRange(rate, price||0);
+        if (td && price > 0) {
+          var dtxt = td.low===td.high ? '~$'+td.low : '~$'+td.low+'\u2013$'+td.high;
+          html += '<p style="margin:.3rem 0 0;font-size:.77rem;color:#6b7280;">'
+            + '<i class="fas fa-coins" style="color:#f59e0b;font-size:.68rem;margin-right:.25rem;"></i>'
+            + 'Impuestos aprox.: <strong style="color:#374151;">' + dtxt + ' USD</strong></p>';
+        } else if (!price) {
+          html += '<p style="margin:.3rem 0 0;font-size:.74rem;color:#9ca3af;font-style:italic;">'
+            + '<i class="fas fa-lightbulb" style="font-size:.66rem;margin-right:.2rem;"></i>'
+            + 'Agrega el precio para ver el estimado en d\u00f3lares.</p>';
+        }
+      }
+    } else {
+      html += '<p style="margin:0;">' + _escPortalHtml(result.customerMessage || 'CRBOX revisar\u00e1 este producto y te contactar\u00e1 con los detalles.') + '</p>';
+    }
+    html += '</div>';
+    el.innerHTML = html;
+    el.style.display = '';
   }
 
   function hideNewRequestPanel() {

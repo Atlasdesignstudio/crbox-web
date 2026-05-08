@@ -1343,6 +1343,11 @@
                     try { _extractorResult = CRBOXAIExtractor.getLastResult(); } catch(e) {}
                     CRBOXProductClassifier.analyzeUrlResult(_extractorResult).then(function(classResult) {
                         if (!classResult) return;
+                        // Persist brainClassification and render inline intel card
+                        state.brainClassification = classResult;
+                        _renderCardIntelligence(cardId, classResult,
+                            _extractFields.fName ? _extractFields.fName.value : '',
+                            parseFloat(_extractFields.fValue ? _extractFields.fValue.value : '') || 0);
                         CRBOXProductClassifier.applyToProductCard({
                             categoryEl:      _extractFields.fCategory,
                             barContainer:    document.getElementById('cat-suggest-' + cardId),
@@ -1586,9 +1591,30 @@
             btnStickySubmit.disabled = !allReady;
             if (allReady) { btnStickySubmit.style.background = '#FF6B00'; btnStickySubmit.style.cursor = 'pointer'; btnStickySubmit.style.color = '#fff'; }
             else { btnStickySubmit.style.background = '#e5e7eb'; btnStickySubmit.style.color = '#9ca3af'; btnStickySubmit.style.cursor = 'not-allowed'; }
-            // C-7: Show incomplete hint when user has started filling but form is not ready
+            // C-7: Contextual incomplete hint when user has started filling
             var incHint = document.getElementById('submit-incomplete-hint');
-            if (incHint) incHint.style.display = (!allReady && hasRequiredField) ? '' : 'none';
+            if (incHint) {
+                if (!allReady && hasRequiredField) {
+                    var products = getProducts();
+                    var emailVal = (fEmail.value||'').trim();
+                    var destVal  = (fDestination.value||'').trim();
+                    var hintMsg  = 'Revisa los campos marcados para continuar.';
+                    if (products.some(function(p) { return p.name.length < 3; }))
+                        hintMsg = 'Describe el producto con al menos 3 caracteres.';
+                    else if (products.some(function(p) { return !(p.declared_value_usd > 0); }))
+                        hintMsg = 'Indica el precio aproximado del producto.';
+                    else if (products.some(function(p) { return !p.category; }))
+                        hintMsg = 'Falta indicar la categoría de algún producto.';
+                    else if (!destVal)
+                        hintMsg = 'Indica tu zona de entrega para continuar.';
+                    else if (!isValidEmail(emailVal))
+                        hintMsg = 'Solo falta tu correo electrónico — ¡casi listo!';
+                    incHint.textContent = hintMsg;
+                    incHint.style.display = '';
+                } else {
+                    incHint.style.display = 'none';
+                }
+            }
             updateStepProgress();
         }
 
