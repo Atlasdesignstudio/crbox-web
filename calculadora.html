@@ -2132,40 +2132,6 @@
             /* ── Show estimate notice ── */
             $('estimate-notice-wrap').classList.remove('hidden');
 
-            /* ── Brain manual-review guardrail ── */
-            (function () {
-                const mrWrap = $('brain-manual-review-notice');
-                if (mrWrap) mrWrap.classList.add('hidden');
-                if (typeof CRBOXProductClassifier === 'undefined' || !items.length) return;
-                const names = items.map(it => it.name).filter(n => n && n.length >= 2);
-                if (!names.length) return;
-                const _REVIEW_PLACEHOLDER = 'Por confirmar — revisión CRBOX';
-                Promise.all(names.map(n => CRBOXProductClassifier.classify(n, { noFallback: true })))
-                    .then(results => {
-                        const anyManual = results.some(r =>
-                            r && !CRBOXProductClassifier.shouldAllowAutomaticEstimate(r));
-                        if (!anyManual) return;
-
-                        // Show the informational banner
-                        if (mrWrap) mrWrap.classList.remove('hidden');
-
-                        // Hard-suppress any final-looking totals so users can't anchor on
-                        // an estimate that CRBOX has not yet confirmed.
-                        const conTotal = $('d-con-total');
-                        const sepTotal = $('d-sep-grand-total');
-                        if (conTotal) conTotal.textContent = _REVIEW_PLACEHOLDER;
-                        if (sepTotal) sepTotal.textContent = _REVIEW_PLACEHOLDER;
-
-                        // Also replace hero savings amount with a neutral label
-                        const heroAmt = $('hero-savings-amount');
-                        const heroPct = $('hero-savings-pct');
-                        const heroWhy = $('hero-savings-why');
-                        if (heroAmt) heroAmt.textContent = 'Por confirmar';
-                        if (heroPct) heroPct.textContent = '';
-                        if (heroWhy) heroWhy.textContent = 'Uno o más artículos requieren revisión manual. CRBOX confirmará el costo exacto.';
-                    });
-            })();
-
             /* ── Update consolidated dossier ── */
             // tariffSource is set by engine: reflects per-item rates for mixed carts
             const conSource = consolidated.tariffSource;
@@ -2223,6 +2189,63 @@
                 sepContainer.appendChild(card);
             });
             $('d-sep-grand-total').textContent = fmt(separateTotal);
+
+            /* ── Brain manual-review guardrail ───────────────────────────────────
+             * Runs immediately after the sync total writes (same JS event-loop tick).
+             * The browser cannot repaint between the sync writes above and the
+             * synchronous placeholder overwrite below, so users will never see a
+             * confident estimate for manual-review products — only the placeholder.
+             * Real values are restored asynchronously when classification is clear.
+             * ─────────────────────────────────────────────────────────────────── */
+            (function () {
+                const mrWrap = $('brain-manual-review-notice');
+                if (mrWrap) mrWrap.classList.add('hidden');
+                if (typeof CRBOXProductClassifier === 'undefined' || !items.length) return;
+                const names = items.map(it => it.name).filter(n => n && n.length >= 2);
+                if (!names.length) return;
+
+                const _REVIEW_PLACEHOLDER = 'Por confirmar — revisión CRBOX';
+
+                // Capture the real formatted values just written to the DOM
+                const _realConTotal  = $('d-con-total')  ? $('d-con-total').textContent  : '';
+                const _realSepTotal  = $('d-sep-grand-total') ? $('d-sep-grand-total').textContent : '';
+                const _heroAmt = $('hero-savings-amount');
+                const _heroPct = $('hero-savings-pct');
+                const _heroWhy = $('hero-savings-why');
+                const _realHeroAmt = _heroAmt ? _heroAmt.textContent : '';
+                const _realHeroPct = _heroPct ? _heroPct.textContent : '';
+                const _realHeroWhy = _heroWhy ? _heroWhy.textContent : '';
+
+                // Immediately pre-suppress totals (same tick — no browser repaint yet)
+                if ($('d-con-total'))       $('d-con-total').textContent       = _REVIEW_PLACEHOLDER;
+                if ($('d-sep-grand-total')) $('d-sep-grand-total').textContent = _REVIEW_PLACEHOLDER;
+                if (_heroAmt) _heroAmt.textContent = 'Verificando…';
+                if (_heroPct) _heroPct.textContent = '';
+                if (_heroWhy) _heroWhy.textContent = '';
+
+                Promise.all(names.map(n => CRBOXProductClassifier.classify(n, { noFallback: true })))
+                    .then(results => {
+                        const anyManual = results.some(r =>
+                            r && !CRBOXProductClassifier.shouldAllowAutomaticEstimate(r));
+
+                        if (!anyManual) {
+                            // All clear — restore real computed values
+                            if ($('d-con-total'))       $('d-con-total').textContent       = _realConTotal;
+                            if ($('d-sep-grand-total')) $('d-sep-grand-total').textContent = _realSepTotal;
+                            if (_heroAmt) _heroAmt.textContent = _realHeroAmt;
+                            if (_heroPct) _heroPct.textContent = _realHeroPct;
+                            if (_heroWhy) _heroWhy.textContent = _realHeroWhy;
+                        } else {
+                            // Manual review required — keep placeholder, show notice, neutralise hero
+                            if (mrWrap) mrWrap.classList.remove('hidden');
+                            if ($('d-con-total'))       $('d-con-total').textContent       = _REVIEW_PLACEHOLDER;
+                            if ($('d-sep-grand-total')) $('d-sep-grand-total').textContent = _REVIEW_PLACEHOLDER;
+                            if (_heroAmt) _heroAmt.textContent = 'Por confirmar';
+                            if (_heroPct) _heroPct.textContent = '';
+                            if (_heroWhy) _heroWhy.textContent = 'Uno o más artículos requieren revisión manual. CRBOX confirmará el costo exacto.';
+                        }
+                    });
+            })();
 
             $('results-dossier').classList.add('visible');
             $('results-dossier').classList.add('anim-fadeslide');
