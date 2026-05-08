@@ -1,0 +1,735 @@
+Public Cotizar UX Polish: Concierge Intake + Complete Submission Flow
+
+What & Why
+
+The new AI concierge intake on cotizar.html is a good direction, but the current UI still feels partially like a form experiment and partially like the old quote flow.
+
+We need to polish the public Cotizar experience so it feels more intentional, modern, on-brand, and clear.
+
+The goal is NOT to create a separate “get information” flow and then a separate “manual form” flow.
+
+The goal is one unified quote request flow:
+
+1. User describes what they want to bring.
+
+2. User can optionally add URL and product price.
+
+3. User completes shipping preferences and contact info.
+
+4. User sends the request.
+
+5. After submission or before final confirmation where technically safest, the system shows a friendly product intelligence summary using Product Brain/Gemini.
+
+6. CRBOX sales receives all structured product/classification metadata.
+
+This should feel less like:
+
+“Fill out a technical logistics form.”
+
+And more like:
+
+“Tell us what you want to bring to Costa Rica and CRBOX will guide you.”
+
+---
+
+## Main UX Problems To Fix
+
+### 1. Copy is too USA-specific
+
+Current copy says something like:
+
+“Escríbenos qué quieres comprar en USA…”
+
+CRBOX does not only work with USA.
+
+Update copy to be more global.
+
+Use:
+
+Headline:
+
+“¿Qué te gustaría traer a Costa Rica?”
+
+Supporting copy:
+
+“Cuéntanos el producto que quieres traer y te ayudamos a entender su categoría, impuestos estimados y si requiere alguna revisión especial.”
+
+Avoid:
+
+“comprar en USA”
+
+Use broader language:
+
+- traer a Costa Rica
+
+- desde cualquier parte del mundo
+
+- compras internacionales
+
+- producto que quieres importar
+
+---
+
+### 2. URL and price are hidden behind a weak text link
+
+Current:
+
+“Agregar URL o precio (mejora el análisis)”
+
+This feels legacy, small, and unclear.
+
+Change this.
+
+The URL and price fields should be visible by default.
+
+They should feel secondary, but present.
+
+Recommended hierarchy:
+
+Primary:
+
+- Product description input
+
+Secondary:
+
+- Product URL input
+
+- Approximate price input
+
+The user should not have to expand hidden fields to add URL or price.
+
+---
+
+### 3. Remove “Prefiero llenar el formulario manualmente”
+
+This creates two competing flows and duplicates the intake.
+
+Remove this link/flow.
+
+There should not be a separate “manual form” path.
+
+The concierge intake is the quote form.
+
+All users should use the same flow.
+
+---
+
+### 4. Avoid separate “Obtener información” vs “Enviar solicitud” confusion
+
+The current flow creates confusion:
+
+- “Obtener información”
+
+- then another flow
+
+- then “Enviar solicitud”
+
+Instead, use one coherent flow.
+
+The main final CTA should be:
+
+“Enviar solicitud”
+
+The AI/Product Brain summary should support the request, not replace the submission.
+
+Suggested behavior:
+
+- The user fills product info, shipping preferences, and contact details.
+
+- “Enviar solicitud” becomes active only when required fields are complete.
+
+- When the user submits, the system can show a friendly intelligence summary / confirmation state based on Product Brain classification.
+
+- If classification already exists before submit, show it inline as guidance.
+
+- The request still goes to CRBOX sales/admin with all metadata.
+
+Do not create a separate dead-end “information only” step unless it is clearly secondary.
+
+---
+
+## Updated Public Cotizar Page Structure
+
+The page should have one clear flow:
+
+### Step 1 — Product
+
+Section title:
+
+“¿Qué te gustaría traer a Costa Rica?”
+
+Subtitle:
+
+“Describe el producto, agrega el enlace si lo tienes y te ayudamos a preparar la solicitud.”
+
+Product card fields:
+
+1. Product description / name
+
+Label:
+
+“Producto”
+
+Placeholder:
+
+“Ej: AirPods Pro, tenis Nike, computadora gaming…”
+
+2. Product URL
+
+Label:
+
+“Enlace del producto”
+
+Helper:
+
+“Opcional, pero nos ayuda a revisar mejor el producto.”
+
+Placeholder:
+
+“https://www.amazon.com/dp/…”
+
+3. Approximate price
+
+Label:
+
+“Precio aproximado”
+
+Helper:
+
+“Opcional, ayuda a orientar impuestos y valor declarado.”
+
+Placeholder:
+
+“Ej: 49.99”
+
+Currency:
+
+USD
+
+4. Product intelligence / classification summary area
+
+This appears after the product is analyzed or once enough info is available.
+
+5. Add another product
+
+Keep this functionality.
+
+Make it more intuitive and visible.
+
+Button:
+
+“+ Agregar otro producto”
+
+Helper copy:
+
+“Puedes incluir varios productos en una misma solicitud.”
+
+---
+
+### Step 2 — Shipping Preferences
+
+Keep the existing module:
+
+- Tipo de servicio
+
+- Aéreo / Marítimo
+
+- Zona de destino
+
+But visually polish it to match the new concierge style.
+
+The user must complete this before sending the request.
+
+---
+
+### Step 3 — Contact Info
+
+Keep:
+
+- Nombre
+
+- Correo electrónico
+
+- Notas adicionales
+
+This must be completed before sending, especially email.
+
+The system should save/send the user’s email with the request as it already does.
+
+Do not make this optional if the backend requires it.
+
+---
+
+### Final CTA
+
+Final CTA:
+
+“Enviar solicitud”
+
+The button should be inactive until required fields are complete.
+
+When inactive, helper copy should explain what is missing in friendly language.
+
+Examples:
+
+- “Completa el producto, destino y correo para enviar tu solicitud.”
+
+- “Solo falta indicar tu correo.”
+
+- “Solo falta seleccionar la provincia de destino.”
+
+Avoid harsh red errors until the user attempts to submit.
+
+---
+
+## Product Intelligence Summary
+
+After product classification, show a friendly card.
+
+Tone should be human, positive, and CRBOX-like.
+
+Avoid robotic copy like:
+
+“Este producto pertenece a la categoría X.”
+
+Use warmer copy:
+
+Example — shoes:
+
+“¡Perfecto! Los tenis normalmente entran dentro de Calzado. Esta categoría suele pagar aproximadamente 29% en impuestos. El monto final puede variar según el material, valor y revisión aduanera.”
+
+Example — AirPods:
+
+“Buena elección. Los AirPods normalmente se clasifican dentro de audífonos o audio personal. Esta categoría suele pagar alrededor de 15% en impuestos.”
+
+Example — iPhone:
+
+“Este tipo de producto normalmente entra dentro de Celulares. Suele pagar aproximadamente 14% en impuestos.”
+
+Example — supplement:
+
+“Este producto puede requerir una revisión especial. Los suplementos pueden necesitar validación sanitaria antes de importarse, por eso CRBOX debe revisarlo antes de confirmar.”
+
+Example — power bank:
+
+“Este producto puede requerir revisión por batería de litio. CRBOX validará si puede transportarse y bajo qué condiciones.”
+
+The copy should be:
+
+- helpful
+
+- positive
+
+- clear
+
+- not too technical
+
+- not scary
+
+- not robotic
+
+---
+
+## Chat Assistant Prompt
+
+Near the product intelligence summary or below the form, add a small friendly prompt pointing to the floating CRBOX AI assistant.
+
+Example:
+
+“¿Tienes dudas sobre impuestos, permisos o si puedes traer este producto? Puedes preguntarle al asistente CRBOX en la esquina inferior derecha.”
+
+This should not compete with the main submit CTA.
+
+It should be secondary/supportive.
+
+---
+
+## Product URL Behavior
+
+Remove the idea that URL analysis must perfectly scrape everything.
+
+The URL is just supportive context.
+
+If a URL is provided:
+
+- include it in the request
+
+- pass it to Gemini/Product Brain if useful
+
+- preserve it for admin
+
+- optionally try to infer title/category
+
+- do not block if extraction fails
+
+Do not show:
+
+- “No se pudo analizar”
+
+- “Error leyendo enlace”
+
+- “AI failed”
+
+Use:
+
+“Usaremos este enlace como referencia para revisar mejor tu solicitud.”
+
+---
+
+## Price Behavior
+
+The price field should be visible.
+
+If price is provided:
+
+- use it as declared value / approximate value where compatible
+
+- pass it into classification metadata
+
+- pass it to quote submission
+
+- show better tax guidance
+
+If price is missing:
+
+- still allow product intelligence if product description exists
+
+- but final submit may still require declared value if current backend requires it
+
+If backend currently requires declared_value_usd:
+
+- keep validation requirement
+
+- but make copy friendly:
+
+“Indica el precio aproximado para que podamos preparar tu solicitud.”
+
+Do not make the UX feel like an error.
+
+---
+
+## Multi-Product Behavior
+
+Keep the current multi-product support.
+
+User must be able to add another product.
+
+Make this clearer near the product section.
+
+For each product:
+
+- product description
+
+- URL
+
+- price
+
+- classification summary
+
+- hidden/compatible legacy category
+
+- optional classification metadata
+
+Each product should be independently classified.
+
+All products should be submitted together in the existing products[] payload.
+
+---
+
+## Category Dropdown Behavior
+
+The long category dropdown should no longer be prominent.
+
+It may remain as:
+
+“Cambiar categoría manualmente”
+
+or:
+
+“Ajustar categoría”
+
+Rules:
+
+- Keep the underlying category field for compatibility.
+
+- Auto-populate it from Product Brain / classifier.
+
+- Allow manual override.
+
+- Do not force the user to open a huge dropdown by default.
+
+- If visible, make it secondary.
+
+The user’s primary interaction should be product description, not category selection.
+
+---
+
+## Visual Design Direction
+
+Make the page feel more polished and less like a simple form.
+
+Improve:
+
+- spacing
+
+- hierarchy
+
+- card design
+
+- microcopy
+
+- field grouping
+
+- CTA clarity
+
+- product card personality
+
+- helpful hints
+
+Use CRBOX brand:
+
+- orange accent
+
+- navy/charcoal text
+
+- soft white cards
+
+- rounded corners
+
+- subtle shadows
+
+- friendly icons
+
+- clean structure
+
+The “¿Qué te gustaría traer?” card should have more character.
+
+Possible improvements:
+
+- stronger headline
+
+- warmer helper text
+
+- subtle icon or badge
+
+- better input hierarchy
+
+- visible secondary fields
+
+- more polished product chips/examples
+
+Keep the current general design system, but make it feel less legacy.
+
+---
+
+## Required Data Sent To Admin
+
+Very important:
+
+Even though the customer-facing UI becomes lighter, CRBOX sales/admin must receive all structured data.
+
+For every product, submit/preserve:
+
+- product name/description
+
+- URL
+
+- price/value
+
+- service type
+
+- destination
+
+- customer name
+
+- customer email
+
+- notes
+
+- Product Brain category
+
+- legacy category code
+
+- customerMessage
+
+- estimatedDAI
+
+- totalEstimatedRate
+
+- estimatedRange
+
+- manualReviewRequired
+
+- automaticEstimateAllowed
+
+- regulatedProduct
+
+- restrictedProduct
+
+- forbiddenProduct
+
+- riskFlags
+
+- adminNotes
+
+- actionForCustomer
+
+- actionForAdmin
+
+- semanticApproximationUsed
+
+- classification source
+
+- Gemini/Product Brain interpretation metadata where safe
+
+Do not simplify the admin payload.
+
+The customer sees a simple experience.
+
+Admin gets the full structured context.
+
+---
+
+## Submission Behavior
+
+When the user clicks “Enviar solicitud”:
+
+1. Validate required fields.
+
+2. If product has not been classified yet, classify before submit where possible.
+
+3. Submit using the existing /api/solicitudes flow.
+
+4. Preserve existing success/error behavior.
+
+5. Show the normal success state with SCB-ID.
+
+6. Where possible, include friendly product intelligence in the success confirmation.
+
+Do not break:
+
+- duplicate check
+
+- localStorage draft
+
+- max 8 products
+
+- existing payload shape
+
+- existing emails
+
+- existing admin notification
+
+---
+
+## Portal Requirement
+
+Apply the same UX principles to the client portal quote creation flow.
+
+The portal should also:
+
+- avoid dropdown-first UX
+
+- show visible URL and price fields
+
+- use product description as primary input
+
+- show Product Brain intelligence
+
+- support multiple products
+
+- preserve full metadata
+
+- use known client profile where available
+
+Do not break portal auth/session/profile/package/invoice flows.
+
+---
+
+## Floating Chat Assistant
+
+The floating assistant remains important.
+
+The Cotizar page should gently mention it as support, not as the main flow.
+
+The assistant should help with:
+
+- “¿Puedo traer esto?”
+
+- “¿Cuánto paga este producto?”
+
+- “¿Necesita permiso?”
+
+- “¿Puedo traer un power bank?”
+
+- “¿Qué pasa con suplementos?”
+
+It should use Product Brain and classifier, not generic answers.
+
+---
+
+## Copy Updates
+
+Replace:
+
+“Escríbenos qué quieres comprar en USA…”
+
+With:
+
+“Cuéntanos qué quieres traer a Costa Rica y te ayudamos a entender impuestos, restricciones y próximos pasos.”
+
+Replace:
+
+“Agregar URL o precio (mejora el análisis)”
+
+With visible fields:
+
+- “Enlace del producto”
+
+- “Precio aproximado”
+
+Remove:
+
+“Prefiero llenar el formulario manualmente”
+
+Replace robotic category copy with warmer, conversational copy.
+
+---
+
+## Acceptance Criteria
+
+- Public cotizar no longer says “comprar en USA”.
+
+- Product URL and price fields are visible by default.
+
+- “Prefiero llenar el formulario manualmente” is removed.
+
+- The flow uses one unified “Enviar solicitud” path.
+
+- Product section feels more modern, warm, and on-brand.
+
+- Category dropdown is secondary/manual override.
+
+- Product intelligence card uses friendly human copy.
+
+- User must still complete shipping preferences and contact info before submission.
+
+- Add another product remains clear and intuitive.
+
+- Multi-product submission still works.
+
+- Existing backend submission still works.
+
+- Admin receives all structured classification metadata.
+
+- Product Brain/Gemini logic remains connected.
+
+- Floating chat assistant is referenced as optional help.
+
+- No hard-failure AI/crawler messages.
+
+- No calculator math changes.
+
+- No quote lifecycle changes.
+
+- No console errors.
