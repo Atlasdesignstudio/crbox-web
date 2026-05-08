@@ -1373,26 +1373,52 @@ def _build_search_fallback_result(data, url, grounded=True):
 
 
 _CLASSIFY_PROMPT = """\
-You are a product classification assistant for CRBOX, a Costa Rica courier company.
-Given a product name (and optional URL + price context), choose the SINGLE best category from this list of category IDs.
+You are a CRBOX product specialist. CRBOX is a Miami-based courier that ships packages from the USA to Costa Rica.
+A customer has described something they want to import. Your job has three steps:
 
-Category IDs and their descriptions:
+STEP 1 — UNDERSTAND: Figure out what the product actually is. Handle typos, Spanish/English mixing, colloquial names, brand names, and abbreviations. Write your understanding in "reasoning".
+
+STEP 2 — CLASSIFY: Choose the SINGLE best category ID from this list:
 {category_list}
 
-Product name: {product_name}{url_context}{price_context}
+STEP 3 — GUIDE: Write 2-3 friendly sentences in Spanish (customer_guidance) that explain:
+  • What the product is and whether CRBOX can import it normally
+  • Any special process, permit, or requirement (e.g. vehicles need COSEVI/RITEVE and maritime freight)
+  • Approximate tax range if it is a standard product
+  • If it cannot travel as a standard package, say so clearly but warmly
+
+Product: {product_name}{url_context}{price_context}
 
 Return ONLY valid JSON — no markdown, no code fences, no extra text:
 {{
   "category_id": "<chosen_id>",
   "confidence": "high" | "medium" | "low",
-  "reasoning": "<one short sentence>"
+  "reasoning": "<one sentence: what you understood the product to be>",
+  "customer_guidance": "<2-3 friendly sentences in Spanish>",
+  "special_requirements": ["<requirement 1>", "..."],
+  "shipping_recommendation": "maritimo" | "aereo" | "estandar" | "",
+  "needs_team_confirmation": true | false
 }}
 
-Rules:
+Classification rules:
 - Choose the most specific applicable category.
-- Use the URL and price context to resolve ambiguity (e.g. a $2000 "bag" is likely a handbag luxury item, not a grocery bag).
-- Use "unknown_manual_review" only when the product truly does not fit any category.
-- Confidence: "high" = very clear match, "medium" = likely match, "low" = best guess.
+- Use URL and price to resolve ambiguity.
+- "unknown_manual_review" only for products that truly don't fit, require special permits, or cannot ship as a standard parcel.
+
+customer_guidance rules (always write something helpful, never leave empty):
+- Standard products (electronics, clothing, shoes, accessories, books, toys, home goods): mention tax range and that CRBOX handles the import normally.
+- Vehicles (cars, motorcycles, trucks, ATVs): explain maritime freight, COSEVI registration, RITEVE inspection, marchamo, and that the process is different from a standard package.
+- Boats/watercraft: maritime freight, INCOPESCA/MOPT permits.
+- Firearms/weapons: restricted — require DGAM permits, professional guidance needed.
+- Live animals/plants: require SENASA phytosanitary permits.
+- Medications/supplements: may require CCSS/MINSA import authorization.
+- Large appliances or furniture (over ~68 kg): usually shipped by sea for cost reasons.
+- If truly unknown: say CRBOX will review the product and confirm whether it can be imported and at what cost.
+
+needs_team_confirmation: true for vehicles, boats, firearms, regulated items, live animals, large custom items. false for standard packages.
+shipping_recommendation: "maritimo" for vehicles/boats/large furniture; "aereo" for standard packages; "" if unclear.
+special_requirements: [] for standard items; list permits/registrations otherwise.
+Confidence: "high" = very clear, "medium" = likely, "low" = best guess.
 """
 
 
@@ -1455,9 +1481,12 @@ def _brain_local_match(product_name):
     return best_cat, conf
 
 
-def _cat_to_classify_result(cat, confidence, source):
-    """Serialize a brain category dict into the API response shape."""
-    return {
+def _cat_to_classify_result(cat, confidence, source, gemini_extra=None):
+    """Serialize a brain category dict into the API response shape.
+    gemini_extra: optional dict with keys customer_guidance, special_requirements,
+                  shipping_recommendation, needs_team_confirmation from Gemini.
+    """
+    result = {
         'brainCategoryId':          cat.get('id', ''),
         'legacyCode':               cat.get('code', ''),
         'displayName':              cat.get('displayName', ''),
@@ -1475,7 +1504,24 @@ def _cat_to_classify_result(cat, confidence, source):
         'actionForCustomer':        cat.get('actionForCustomer', ''),
         'actionForAdmin':           cat.get('actionForAdmin', ''),
         'estimatedRange':           cat.get('estimatedRange', ''),
+        # Gemini-enriched fields (empty/false when from local brain only)
+        'geminiGuidance':           '',
+        'specialRequirements':      [],
+        'shippingRecommendation':   '',
+        'needsTeamConfirmation':    bool(cat.get('manualReviewRequired', False)),
     }
+    if gemini_extra:
+        guidance = str(gemini_extra.get('customer_guidance') or '').strip()
+        if guidance:
+            result['geminiGuidance'] = guidance
+        reqs = gemini_extra.get('special_requirements')
+        if isinstance(reqs, list):
+            result['specialRequirements'] = [str(r) for r in reqs if r]
+        ship = str(gemini_extra.get('shipping_recommendation') or '').strip()
+        if ship in ('maritimo', 'aereo', 'estandar'):
+            result['shippingRecommendation'] = ship
+        result['needsTeamConfirmation'] = bool(gemini_extra.get('needs_team_confirmation', result['needsTeamConfirmation']))
+    return result
 
 
 def _gemini_classify(product_name, product_url=None, price_usd=None):
@@ -1520,10 +1566,21 @@ def _gemini_classify(product_name, product_url=None, price_usd=None):
         confidence = str(raw.get('confidence') or 'medium').strip()
         if confidence not in ('high', 'medium', 'low'):
             confidence = 'medium'
+        gemini_extra = {
+            'customer_guidance':       raw.get('customer_guidance') or '',
+            'special_requirements':    raw.get('special_requirements') or [],
+            'shipping_recommendation': raw.get('shipping_recommendation') or '',
+            'needs_team_confirmation': bool(raw.get('needs_team_confirmation', False)),
+        }
         cat = _BRAIN_IDX.get(cat_id)
         if not cat:
+            # Gemini returned an unrecognised id — use unknown_manual_review
+            # but keep Gemini's rich guidance so the customer still gets a helpful answer
+            unknown = _BRAIN_IDX.get('unknown_manual_review', {})
+            if unknown:
+                return _cat_to_classify_result(unknown, confidence, 'ai_gemini', gemini_extra), None
             return None, f'Unknown category_id from Gemini: {cat_id!r}'
-        return _cat_to_classify_result(cat, confidence, 'ai_gemini'), None
+        return _cat_to_classify_result(cat, confidence, 'ai_gemini', gemini_extra), None
     except json.JSONDecodeError as ex:
         return None, f'JSON parse error: {ex}'
     except Exception as ex:

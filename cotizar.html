@@ -2188,35 +2188,78 @@
             var el = document.getElementById('card-intel-' + cardId);
             if (!el) return;
             if (!result) { el.style.display = 'none'; el.innerHTML = ''; return; }
-            var hasKnownCat = result.displayName && result.brainCategoryId !== 'unknown_manual_review';
-            var hasRisk = typeof CRBOXProductClassifier !== 'undefined' && CRBOXProductClassifier.hasRisk && CRBOXProductClassifier.hasRisk(result);
-            var rate = result.estimatedRange || '';
+            var hasKnownCat  = result.displayName && result.brainCategoryId !== 'unknown_manual_review';
+            var hasRisk      = typeof CRBOXProductClassifier !== 'undefined' && CRBOXProductClassifier.hasRisk && CRBOXProductClassifier.hasRisk(result);
+            var guidance     = result.geminiGuidance || '';
+            var reqs         = result.specialRequirements || [];
+            var ship         = result.shippingRecommendation || '';
+            var needsConfirm = !!result.needsTeamConfirmation;
+            var rate         = (!needsConfirm && result.estimatedRange) ? result.estimatedRange : '';
+
             var html = '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:.75rem;padding:.875rem 1rem;">';
-            if (hasKnownCat && !hasRisk) {
-                html += '<p style="font-size:.83rem;color:#374151;line-height:1.55;margin:0 0 .45rem;">' + _escHtml(_warmIntroForProduct(productName, result)) + '</p>';
+
+            /* ── Category + tariff pill ── */
+            if (hasKnownCat) {
+                html += '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;margin-bottom:.5rem;">'
+                    + '<span style="font-size:.78rem;color:#6b7280;display:inline-flex;align-items:center;gap:.3rem;">'
+                    + '<i class="fas fa-tag" style="color:#f97316;font-size:.68rem;"></i>'
+                    + '<strong style="color:#374151;">' + _escHtml(result.displayName) + '</strong></span>';
                 if (rate) {
-                    html += '<div style="display:inline-flex;align-items:center;gap:.35rem;background:#fff7ed;border:1px solid #fed7aa;border-radius:99px;padding:.2rem .65rem;font-size:.76rem;font-weight:600;color:#9a3412;">'
-                        + '<i class="fas fa-percent" style="font-size:.65rem;color:#f97316;"></i> '
-                        + _escHtml(rate) + ' en aranceles estimados</div>';
-                    var td = _taxDollarsFromRange(rate, price || 0);
-                    if (td && price > 0) {
-                        var dtxt = td.low === td.high ? '~$' + td.low : '~$' + td.low + '\u2013$' + td.high;
-                        html += '<p style="font-size:.78rem;color:#6b7280;margin:.35rem 0 0;">'
-                            + '<i class="fas fa-coins" style="color:#f59e0b;margin-right:.3rem;font-size:.7rem;"></i>'
-                            + 'En impuestos aproximados: <strong style="color:#374151;">' + dtxt + ' USD</strong></p>';
-                    } else if (!price) {
-                        html += '<p style="font-size:.75rem;color:#9ca3af;margin:.35rem 0 0;font-style:italic;">'
-                            + '<i class="fas fa-lightbulb" style="font-size:.68rem;margin-right:.25rem;"></i>'
-                            + 'Agrega el precio para ver el estimado en d\u00f3lares.</p>';
-                    }
+                    html += '<span style="display:inline-flex;align-items:center;gap:.28rem;background:#fff7ed;border:1px solid #fed7aa;border-radius:99px;padding:.18rem .58rem;font-size:.73rem;font-weight:700;color:#9a3412;">'
+                        + '<i class="fas fa-percent" style="font-size:.62rem;color:#f97316;"></i>' + _escHtml(rate) + '</span>';
                 }
-            } else if (hasKnownCat && hasRisk) {
-                html += '<p style="font-size:.83rem;color:#374151;line-height:1.55;margin:0;">'
-                    + _escHtml(result.customerMessage || 'Este producto requiere gesti\u00f3n especial. CRBOX lo revisar\u00e1 al recibir tu solicitud.') + '</p>';
-            } else {
-                html += '<p style="font-size:.83rem;color:#374151;line-height:1.55;margin:0;">'
-                    + _escHtml(result.customerMessage || 'No encontramos clasificaci\u00f3n autom\u00e1tica. CRBOX revisar\u00e1 este producto y te contactar\u00e1 con los detalles.') + '</p>';
+                html += '</div>';
             }
+
+            /* ── Gemini guidance — primary human text ── */
+            var primaryText = guidance || (!hasKnownCat
+                ? (result.customerMessage || 'Un asesor CRBOX revisará este producto y te confirmará si puede importarse y cuál sería el costo total.')
+                : (hasRisk ? result.customerMessage || '' : _warmIntroForProduct(productName, result)));
+            if (primaryText) {
+                html += '<p style="font-size:.83rem;color:#374151;line-height:1.6;margin:0' + (rate || reqs.length || ship ? ' 0 .5rem' : '') + ';">' + _escHtml(primaryText) + '</p>';
+            }
+
+            /* ── Dollar estimate ── */
+            if (rate && price > 0) {
+                var td = _taxDollarsFromRange(rate, price);
+                if (td) {
+                    var dtxt = td.low === td.high ? '~$' + td.low : '~$' + td.low + '\u2013$' + td.high;
+                    html += '<p style="font-size:.78rem;color:#6b7280;margin:.3rem 0 0;">'
+                        + '<i class="fas fa-coins" style="color:#f59e0b;margin-right:.3rem;font-size:.7rem;"></i>'
+                        + 'En impuestos aproximados: <strong style="color:#374151;">' + dtxt + ' USD</strong></p>';
+                }
+            } else if (rate && !price) {
+                html += '<p style="font-size:.75rem;color:#9ca3af;margin:.3rem 0 0;font-style:italic;">'
+                    + '<i class="fas fa-lightbulb" style="font-size:.68rem;margin-right:.25rem;"></i>'
+                    + 'Agrega el precio para ver el estimado en d\u00f3lares.</p>';
+            }
+
+            /* ── Special requirements tags ── */
+            if (reqs.length) {
+                html += '<div style="display:flex;flex-wrap:wrap;gap:.28rem;margin-top:.55rem;">';
+                reqs.forEach(function(r) {
+                    html += '<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.2rem .55rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:99px;font-size:.72rem;font-weight:600;color:#1d4ed8;">'
+                        + '<i class="fas fa-clipboard-check" style="font-size:.62rem;"></i>' + _escHtml(r) + '</span>';
+                });
+                html += '</div>';
+            }
+
+            /* ── Shipping badge ── */
+            if (ship === 'maritimo') {
+                html += '<div style="display:inline-flex;align-items:center;gap:.32rem;margin-top:.5rem;padding:.25rem .65rem;background:#f0fdf4;border:1px solid #86efac;border-radius:99px;font-size:.74rem;font-weight:700;color:#15803d;">'
+                    + '<i class="fas fa-ship" style="font-size:.68rem;"></i>Envío marítimo recomendado</div>';
+            } else if (ship === 'aereo') {
+                html += '<div style="display:inline-flex;align-items:center;gap:.32rem;margin-top:.5rem;padding:.25rem .65rem;background:#f0f9ff;border:1px solid #7dd3fc;border-radius:99px;font-size:.74rem;font-weight:700;color:#0369a1;">'
+                    + '<i class="fas fa-plane" style="font-size:.68rem;"></i>Envío aéreo</div>';
+            }
+
+            /* ── Team confirmation notice ── */
+            if (needsConfirm) {
+                html += '<div style="display:flex;align-items:flex-start;gap:.5rem;margin-top:.6rem;padding:.55rem .75rem;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:.6rem;font-size:.79rem;color:#92400e;line-height:1.5;">'
+                    + '<i class="fas fa-user-check" style="flex-shrink:0;margin-top:.1rem;color:#d97706;font-size:.8rem;"></i>'
+                    + '<span>Un asesor CRBOX revisará este producto y te confirmará el proceso y los costos.</span></div>';
+            }
+
             html += '</div>';
             el.innerHTML = html;
             el.style.display = '';

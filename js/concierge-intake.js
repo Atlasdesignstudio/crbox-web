@@ -105,6 +105,28 @@
       '.ci-result-msg{font-size:.82rem;color:#374151;margin:.3rem 0 0;line-height:1.6;}',
       '.ci-result-hint{font-size:.78rem;color:#9ca3af;margin:.3rem 0 0;font-style:italic;line-height:1.5;}',
 
+      /* Gemini guidance paragraph */
+      '.ci-guidance{font-size:.84rem;color:#374151;line-height:1.65;margin:.45rem 0 0;}',
+
+      /* Special requirements tag list */
+      '.ci-req-list{display:flex;flex-wrap:wrap;gap:.3rem;margin:.6rem 0 0;}',
+      '.ci-req-tag{display:inline-flex;align-items:center;gap:.28rem;padding:.22rem .6rem;',
+        'background:#eff6ff;border:1px solid #bfdbfe;border-radius:99px;',
+        'font-size:.73rem;font-weight:600;color:#1d4ed8;}',
+      '.ci-req-tag i{font-size:.65rem;}',
+
+      /* Shipping recommendation badge */
+      '.ci-ship-badge{display:inline-flex;align-items:center;gap:.35rem;margin-top:.6rem;',
+        'padding:.3rem .75rem;border-radius:99px;font-size:.76rem;font-weight:700;}',
+      '.ci-ship-maritimo{background:#f0fdf4;border:1px solid #86efac;color:#15803d;}',
+      '.ci-ship-aereo{background:#f0f9ff;border:1px solid #7dd3fc;color:#0369a1;}',
+
+      /* Team confirmation notice */
+      '.ci-team-notice{display:flex;align-items:flex-start;gap:.55rem;margin-top:.7rem;',
+        'padding:.65rem .85rem;background:#fffbeb;border:1.5px solid #fcd34d;',
+        'border-radius:.65rem;font-size:.8rem;color:#92400e;line-height:1.5;}',
+      '.ci-team-notice i{flex-shrink:0;margin-top:.1rem;color:#d97706;font-size:.82rem;}',
+
       /* CTAs */
       '.ci-result-actions{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1rem;}',
       '.ci-cta-primary{flex:1;min-width:140px;padding:.65rem 1rem;',
@@ -413,22 +435,47 @@
       resultEl.innerHTML   = '';
       resultEl.style.display = '';
 
-      var hasKnownCat = result.displayName && result.displayName !== 'Revisión manual requerida';
+      var hasKnownCat    = result.displayName && result.brainCategoryId !== 'unknown_manual_review';
+      var guidance       = result.geminiGuidance || '';
+      var reqs           = result.specialRequirements || [];
+      var ship           = result.shippingRecommendation || '';
+      var needsConfirm   = !!result.needsTeamConfirmation;
+      var hasRisk        = typeof CRBOXProductClassifier !== 'undefined' && CRBOXProductClassifier.hasRisk(result);
 
-      /* Category + tariff badge */
+      /* ── Category + tariff badge ── */
       if (hasKnownCat) {
         var catLine = document.createElement('div');
         catLine.className = 'ci-result-cat';
         catLine.innerHTML = '<i class="fas fa-tag"></i> ' + _esc(result.displayName);
-        if (result.estimatedRange) {
+        if (result.estimatedRange && !needsConfirm) {
           catLine.innerHTML += '<span class="ci-tax-badge"><i class="fas fa-percent" style="font-size:.6rem;"></i> '
             + _esc(result.estimatedRange) + '</span>';
         }
         resultEl.appendChild(catLine);
       }
 
-      /* Dollar tax estimate */
-      if (hasKnownCat && result.estimatedRange) {
+      /* ── Gemini guidance — primary human-readable text ── */
+      if (guidance) {
+        var guidanceEl = document.createElement('p');
+        guidanceEl.className = 'ci-guidance';
+        guidanceEl.textContent = guidance;
+        resultEl.appendChild(guidanceEl);
+      } else if (!hasKnownCat) {
+        /* Fallback when no Gemini guidance at all */
+        var fallbackEl = document.createElement('p');
+        fallbackEl.className = 'ci-guidance';
+        fallbackEl.textContent = result.customerMessage
+          || 'Un asesor CRBOX revisará este producto y te confirmará si puede importarse y cuál sería el costo total.';
+        resultEl.appendChild(fallbackEl);
+      } else if (result.customerMessage && !hasRisk) {
+        var cmEl = document.createElement('p');
+        cmEl.className = 'ci-guidance';
+        cmEl.textContent = result.customerMessage;
+        resultEl.appendChild(cmEl);
+      }
+
+      /* ── Dollar tax estimate (only for standard products with a known tariff) ── */
+      if (hasKnownCat && result.estimatedRange && !needsConfirm) {
         if (approxPrice > 0) {
           var td = _taxDollars(result.estimatedRange, approxPrice);
           if (td) {
@@ -439,7 +486,7 @@
               + 'Pagarías aprox. <strong>' + dtxt + '</strong> en impuestos al entrar a Costa Rica.';
             resultEl.appendChild(dollarEl);
           }
-        } else {
+        } else if (!guidance) {
           var hintEl = document.createElement('p');
           hintEl.className = 'ci-result-hint';
           hintEl.innerHTML = '<i class="fas fa-lightbulb" style="font-size:.7rem;margin-right:.25rem;"></i>'
@@ -448,60 +495,83 @@
         }
       }
 
-      /* Customer message (no risk) */
-      if (result.customerMessage && !CRBOXProductClassifier.hasRisk(result)) {
-        var msgEl = document.createElement('p');
-        msgEl.className = 'ci-result-msg';
-        msgEl.textContent = result.customerMessage;
-        resultEl.appendChild(msgEl);
+      /* ── Special requirements tags ── */
+      if (reqs.length) {
+        var reqList = document.createElement('div');
+        reqList.className = 'ci-req-list';
+        reqs.forEach(function (r) {
+          var tag = document.createElement('span');
+          tag.className = 'ci-req-tag';
+          tag.innerHTML = '<i class="fas fa-clipboard-check"></i>' + _esc(r);
+          reqList.appendChild(tag);
+        });
+        resultEl.appendChild(reqList);
       }
 
-      /* Unknown category */
-      if (!hasKnownCat) {
-        var unknownEl = document.createElement('p');
-        unknownEl.className = 'ci-result-msg';
-        unknownEl.textContent = result.customerMessage
-          || 'Un asesor CRBOX revisará este producto y te contactará con todos los detalles.';
-        resultEl.appendChild(unknownEl);
+      /* ── Shipping recommendation badge ── */
+      if (ship === 'maritimo') {
+        var shipEl = document.createElement('div');
+        shipEl.className = 'ci-ship-badge ci-ship-maritimo';
+        shipEl.innerHTML = '<i class="fas fa-ship"></i> Envío marítimo recomendado';
+        resultEl.appendChild(shipEl);
+      } else if (ship === 'aereo') {
+        var shipEl2 = document.createElement('div');
+        shipEl2.className = 'ci-ship-badge ci-ship-aereo';
+        shipEl2.innerHTML = '<i class="fas fa-plane"></i> Envío aéreo';
+        resultEl.appendChild(shipEl2);
       }
 
-      /* Compliance notice */
-      if (CRBOXProductClassifier.hasRisk(result)) {
+      /* ── Team confirmation notice ── */
+      if (needsConfirm) {
+        var noticeEl = document.createElement('div');
+        noticeEl.className = 'ci-team-notice';
+        noticeEl.innerHTML = '<i class="fas fa-user-check"></i>'
+          + '<span>Un asesor CRBOX revisará los detalles de este producto y te contactará para confirmar el proceso y los costos.</span>';
+        resultEl.appendChild(noticeEl);
+      }
+
+      /* ── Compliance notice (risk flags from brain) ── */
+      if (hasRisk && !needsConfirm) {
         CRBOXProductClassifier.showComplianceNotice(resultEl, result);
       }
 
-      /* CTAs */
+      /* ── CTAs ── */
       var actions = document.createElement('div');
       actions.className = 'ci-result-actions';
 
-      var ctaCalc = document.createElement('button');
-      ctaCalc.type = 'button';
-      ctaCalc.className = 'ci-cta-secondary';
-      ctaCalc.innerHTML = '<i class="fas fa-calculator" style="margin-right:.35rem;font-size:.78rem;"></i>Calcular impuestos';
-      ctaCalc.addEventListener('click', function () {
-        if (calcRedirect) {
-          try {
-            localStorage.setItem(_PREFILL_KEY, JSON.stringify({
-              name: name, legacyCode: result.legacyCode || '',
-              brainResult: result, approxPrice: approxPrice || 0, _ts: Date.now(),
-            }));
-          } catch (e) {}
-          window.location.href = 'calculadora.html';
-        } else if (typeof opts.onCalcTax === 'function') {
-          opts.onCalcTax(name, result);
-        }
-      });
+      /* Calculator CTA — only for standard, taxable products */
+      if (hasKnownCat && result.estimatedRange && !needsConfirm) {
+        var ctaCalc = document.createElement('button');
+        ctaCalc.type = 'button';
+        ctaCalc.className = 'ci-cta-secondary';
+        ctaCalc.innerHTML = '<i class="fas fa-calculator" style="margin-right:.35rem;font-size:.78rem;"></i>Calcular impuestos';
+        ctaCalc.addEventListener('click', function () {
+          if (calcRedirect) {
+            try {
+              localStorage.setItem(_PREFILL_KEY, JSON.stringify({
+                name: name, legacyCode: result.legacyCode || '',
+                brainResult: result, approxPrice: approxPrice || 0, _ts: Date.now(),
+              }));
+            } catch (e) {}
+            window.location.href = 'calculadora.html';
+          } else if (typeof opts.onCalcTax === 'function') {
+            opts.onCalcTax(name, result);
+          }
+        });
+        actions.appendChild(ctaCalc);
+      }
 
       var ctaQuote = document.createElement('button');
       ctaQuote.type = 'button';
       ctaQuote.className = 'ci-cta-primary';
-      ctaQuote.innerHTML = '<i class="fas fa-shopping-cart" style="margin-right:.35rem;font-size:.78rem;"></i>Solicitar cotización';
+      ctaQuote.innerHTML = needsConfirm
+        ? '<i class="fas fa-comments" style="margin-right:.35rem;font-size:.78rem;"></i>Hablar con un asesor'
+        : '<i class="fas fa-shopping-cart" style="margin-right:.35rem;font-size:.78rem;"></i>Solicitar cotización';
       ctaQuote.addEventListener('click', function () {
         if (typeof opts.onRequestQuote === 'function') opts.onRequestQuote(name, approxPrice, result);
       });
-
-      actions.appendChild(ctaCalc);
       actions.appendChild(ctaQuote);
+
       resultEl.appendChild(actions);
     }
 
