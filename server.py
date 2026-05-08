@@ -1381,11 +1381,20 @@ STEP 1 — UNDERSTAND: Figure out what the product actually is. Handle typos, Sp
 STEP 2 — CLASSIFY: Choose the SINGLE best category ID from this list:
 {category_list}
 
-STEP 3 — GUIDE: Write 2-3 friendly sentences in Spanish (customer_guidance) that explain:
-  • What the product is and whether CRBOX can import it normally
-  • Any special process, permit, or requirement (e.g. vehicles need COSEVI/RITEVE and maritime freight)
-  • Approximate tax range if it is a standard product
-  • If it cannot travel as a standard package, say so clearly but warmly
+STEP 3 — GUIDE: Write 2-3 sentences in Spanish (customer_guidance) with warm, elegant wit — like a knowledgeable friend who genuinely enjoys what the customer is buying.
+
+  Tone rules:
+  • Open with a brief, product-specific remark that shows you GET what this item is for
+    — a coffee maker → mention great coffee; sneakers → mention comfort or style; a drone → mention the shots they'll get; a car → warmth about the process being different but manageable.
+  • Keep it elegant and conversational, NOT cheesy or over-exclamatory.
+  • When relevant and natural, suggest one complementary product or use ("te recomendamos acompañarla con…" / "ideal para llevar junto con…").
+  • Close with the practical info: whether CRBOX handles it normally, approximate tax range, or any special process needed.
+
+  Tone examples:
+  • Coffee maker → "Una cafetera como esta hace la diferencia en el primer café del día. La podemos importar sin problema — los impuestos rondan el 13–20% del valor. Si ya tienes en mente un café de especialidad para estrenarla, ¡mejor aún."
+  • Sneakers Nike → "Buen gusto en calzado. Las podemos traer directamente a Costa Rica — en calzado los impuestos están alrededor del 29%. Si quieres traer también unas medias o un segundo par, podemos consolidarlos en el mismo pedido."
+  • Car → "Importar un vehículo es un proceso diferente al de un paquete, pero totalmente manejable con el acompañamiento correcto. Se realiza por vía marítima y requiere registro ante COSEVI, inspección RITEVE y marchamo. Un asesor CRBOX te guía paso a paso."
+  • Unknown product → "Con gusto revisamos si este producto puede ingresar a Costa Rica y qué impuestos aplicarían — CRBOX se encarga de los trámites."
 
 Product: {product_name}{url_context}{price_context}
 
@@ -1394,7 +1403,7 @@ Return ONLY valid JSON — no markdown, no code fences, no extra text:
   "category_id": "<chosen_id>",
   "confidence": "high" | "medium" | "low",
   "reasoning": "<one sentence: what you understood the product to be>",
-  "customer_guidance": "<2-3 friendly sentences in Spanish>",
+  "customer_guidance": "<2-3 sentences in Spanish with warm, elegant wit>",
   "special_requirements": ["<requirement 1>", "..."],
   "shipping_recommendation": "maritimo" | "aereo" | "estandar" | "",
   "needs_team_confirmation": true | false
@@ -1405,15 +1414,15 @@ Classification rules:
 - Use URL and price to resolve ambiguity.
 - "unknown_manual_review" only for products that truly don't fit, require special permits, or cannot ship as a standard parcel.
 
-customer_guidance rules (always write something helpful, never leave empty):
-- Standard products (electronics, clothing, shoes, accessories, books, toys, home goods): mention tax range and that CRBOX handles the import normally.
-- Vehicles (cars, motorcycles, trucks, ATVs): explain maritime freight, COSEVI registration, RITEVE inspection, marchamo, and that the process is different from a standard package.
+customer_guidance rules:
+- Standard products (electronics, clothing, shoes, accessories, books, toys, home goods): open with product-specific warmth, mention tax range, offer a natural complementary suggestion when it fits.
+- Vehicles (cars, motorcycles, trucks, ATVs): warm but informative — maritime freight, COSEVI, RITEVE, marchamo. Different process, manageable with CRBOX support.
 - Boats/watercraft: maritime freight, INCOPESCA/MOPT permits.
-- Firearms/weapons: restricted — require DGAM permits, professional guidance needed.
+- Firearms/weapons: restricted — require DGAM permits, handle delicately.
 - Live animals/plants: require SENASA phytosanitary permits.
 - Medications/supplements: may require CCSS/MINSA import authorization.
-- Large appliances or furniture (over ~68 kg): usually shipped by sea for cost reasons.
-- If truly unknown: say CRBOX will review the product and confirm whether it can be imported and at what cost.
+- Large appliances or furniture (over ~68 kg): usually shipped by sea.
+- If truly unknown: warm, helpful — CRBOX will review and confirm.
 
 needs_team_confirmation: true for vehicles, boats, firearms, regulated items, live animals, large custom items. false for standard packages.
 shipping_recommendation: "maritimo" for vehicles/boats/large furniture; "aereo" for standard packages; "" if unclear.
@@ -1641,12 +1650,8 @@ def _handle_ai_classify(handler):
             return
 
     cat, conf = _brain_local_match(product_name)
-    if cat and conf in ('high', 'medium') and not has_context:
-        result = _cat_to_classify_result(cat, conf, 'brain_local')
-        _classify_cache_set(cache_key, result)
-        handler._json_response(200, result)
-        return
-
+    # Keep local match as a fallback only — always try Gemini when available so
+    # it can enrich the response with geminiGuidance, specialRequirements, etc.
     local_fallback = _cat_to_classify_result(cat, conf, 'brain_local') if cat else None
 
     if _GEMINI_SDK_OK and _GEMINI_API_KEY:
@@ -1659,7 +1664,10 @@ def _handle_ai_classify(handler):
         if err:
             print(f'[CLASSIFIER] Gemini classify failed for {product_name!r}: {err}')
 
+    # Gemini unavailable or failed — use local brain match (no guidance enrichment)
     if local_fallback:
+        if not has_context:
+            _classify_cache_set(cache_key, local_fallback)
         handler._json_response(200, local_fallback)
         return
 
