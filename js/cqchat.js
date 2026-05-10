@@ -340,20 +340,25 @@
         var docsReq  = result && result.documentsRequired && result.documentsRequired.length;
         var hasInfo  = cat && cat !== 'otros';
 
-        /* Warm, category-aware intro */
-        var open  = hasInfo ? catIntro(cat) : '¡Con gusto lo cotizamos!';
-        var emoji = catEmoji(cat);
+        /* Warm intro: Gemini natural language → category-aware fallback */
         var intro;
-        if (hasInfo && taxRange) {
-            intro = open + ' Podemos traer <strong>' + esc(label) + '</strong> ' + emoji
-                + ' directo de Miami. Arancel orientativo: <strong>~' + esc(taxRange) + '</strong>. '
-                + 'Ingresá el precio para ver el estimado de impuestos.';
-        } else if (hasInfo) {
-            intro = open + ' Podemos cotizar <strong>' + esc(label) + '</strong> ' + emoji
-                + ' sin problema — ingresá el precio aproximado en USD.';
+        if (result && result.geminiGuidance) {
+            /* Gemini's own words — natural, product-specific, warm */
+            intro = esc(result.geminiGuidance) + ' Ingresá el precio aproximado para ver el estimado de impuestos.';
         } else {
-            intro = 'Podemos traer <strong>' + esc(label) + '</strong> para vos. '
-                + 'Ingresá el precio y un asesor CRBOX te confirma impuestos y requisitos. 📧';
+            var open  = hasInfo ? catIntro(cat) : '¡Con gusto lo cotizamos!';
+            var emoji = catEmoji(cat);
+            if (hasInfo && taxRange) {
+                intro = open + ' Podemos traer <strong>' + esc(label) + '</strong> ' + emoji
+                    + ' directo de Miami. Arancel orientativo: <strong>~' + esc(taxRange) + '</strong>. '
+                    + 'Ingresá el precio para ver el estimado de impuestos.';
+            } else if (hasInfo) {
+                intro = open + ' Podemos cotizar <strong>' + esc(label) + '</strong> ' + emoji
+                    + ' sin problema — ingresá el precio aproximado en USD.';
+            } else {
+                intro = 'Podemos traer <strong>' + esc(label) + '</strong> para vos. '
+                    + 'Ingresá el precio y un asesor CRBOX te confirma impuestos y requisitos. 📧';
+            }
         }
         say(intro);
 

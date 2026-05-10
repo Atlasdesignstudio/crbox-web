@@ -1573,8 +1573,8 @@ def _gemini_classify(product_name, product_url=None, price_usd=None):
             model=_GEMINI_MODEL,
             contents=prompt,
             config=_gtypes.GenerateContentConfig(
-                temperature=0.1,
-                max_output_tokens=256,
+                temperature=0.4,
+                max_output_tokens=320,
             ),
         )
         text = (response.text or '').strip()

@@ -3912,31 +3912,18 @@
             return null;
         }
 
+        // _warmIntro / _ambiguousIntro are emergency fallbacks only — shown when Gemini
+        // is unavailable or the server call fails. Under normal conditions geminiGuidance
+        // from the classify API is used instead (see _renderIntelCard primaryText logic).
         function _warmIntro(productName, result) {
             var name = (productName || 'este producto').trim();
             var cat  = result.displayName || 'esta categoría';
-            var templates = [
-                '¡Buena elección! ' + name + ' entra como ' + cat + ' — ingresá el precio aproximado y te mostramos una guía de impuestos orientativa. El equipo CRBOX confirma los montos exactos antes de proceder.',
-                'Podemos traer ' + name + ' directo de Miami a Costa Rica. Como ' + cat + ', calculamos el estimado de impuestos con el precio que ingreses — el equipo revisa y te envía la cotización final.',
-                name + ' es uno de los artículos que más traemos. Como ' + cat + ', con CRBOX gestionamos la compra, el envío y los trámites — ingresá el precio para ver el estimado de impuestos.',
-                '¡Con gusto! ' + name + ' se clasifica como ' + cat + '. Ingresá el precio aproximado y verás cuánto podrías pagar orientativamente de impuestos — el equipo CRBOX confirma los costos reales antes de continuar.',
-                'Sin complicaciones para importar ' + name + '. Entra como ' + cat + ' — con el precio que ingreses calculamos una estimación inicial de impuestos y el equipo confirma los detalles finales.',
-                '¡Perfecto! ' + name + ' ingresa como ' + cat + '. Agregá el precio y te mostramos el arancel estimado; el equipo CRBOX verifica peso, dimensiones y te envía la cotización exacta.',
-                name + ' se importa regularmente como ' + cat + '. Ingresá el precio y calculamos cuánto podrías pagar de impuestos orientativamente — el equipo CRBOX confirma antes de proceder.',
-                '¡Qué buena elección! ' + name + ' entra en la categoría ' + cat + '. Con el precio que ingreses te mostramos un estimado de impuestos; el equipo CRBOX revisa y confirma los costos finales.',
-            ];
-            return templates[(name.charCodeAt(0) + (cat.charCodeAt(0) || 0)) % templates.length];
+            return 'Podemos importar ' + name + ' como ' + cat + '. Ingresá el precio aproximado y el equipo CRBOX confirma impuestos y cotización final.';
         }
 
         function _ambiguousIntro(productName) {
             var name = (productName || 'este producto').trim();
-            var templates = [
-                'Podemos revisar ' + name + ' para vos. Con la descripción actual no logramos determinar la categoría exacta — si agregás el enlace del producto o una aclaración breve, el equipo CRBOX confirma impuestos y requisitos en menos de 24 horas.',
-                'Con gusto cotizamos ' + name + '. Para afinar el estimado de impuestos nos ayuda tener más contexto — el enlace del producto o el tipo exacto de artículo, y el equipo lo confirma muy pronto.',
-                name + ' puede caer en varias categorías de importación dependiendo del modelo exacto. Agregá el enlace del producto o describí el tipo y el equipo CRBOX confirma la clasificación y los costos en breve.',
-                '¡Sin problema! Revisaremos ' + name + ' para vos. Un poco más de detalle — el enlace o el tipo exacto — le permite al equipo CRBOX confirmarte si puede importarse y cuál sería el estimado de costo.',
-            ];
-            return templates[name.charCodeAt(0) % templates.length];
+            return 'Podemos revisar ' + name + ' para vos. Agregá el enlace del producto o describí el tipo exacto y el equipo CRBOX confirma clasificación y costos en menos de 24 horas.';
         }
 
         var _CAT_LABEL_MAP = {

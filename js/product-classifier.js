@@ -228,8 +228,8 @@
         var ctx = (opts.url || opts.priceUsd) ? { url: opts.url, priceUsd: opts.priceUsd } : null;
 
         if (opts.localOnly) return Promise.resolve(local || (opts.noFallback ? null : _unknownResult('local_no_match')));
-        // When URL/price context is provided, always go to API for richer classification
-        if (local && local.confidence === 'high' && !ctx) return Promise.resolve(local);
+        // Always call the server so Gemini can generate natural geminiGuidance.
+        // The server caches by product name (1h TTL) so repeat calls are instant.
 
         return _apiClassify(name, ctx).then(function (api) {
             if (api && api.brainCategoryId && api.brainCategoryId !== 'unknown_manual_review') return api;
