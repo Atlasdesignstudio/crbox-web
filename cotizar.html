@@ -1366,8 +1366,9 @@
             #cq-chat  {
                 display: flex !important;
                 flex-direction: column;
+                height: calc(100svh - 64px);
                 min-height: calc(100svh - 64px);
-                background: #f2f2f7;
+                background: #f0efe9;
                 overflow: hidden;
             }
 
@@ -1445,9 +1446,13 @@
                 box-shadow: 0 1px 3px rgba(0,0,0,.07);
             }
             .cqc-row.user .cqc-bubble {
-                background: #FF6B00; color: #fff;
+                background: linear-gradient(145deg, #ff7a1a 0%, #e55500 100%);
+                color: #fff;
                 border-radius: 1.1rem 1.1rem .35rem 1.1rem;
+                box-shadow: 0 2px 10px rgba(255,107,0,.22);
             }
+            .cqc-row.bot.no-av .cqc-mini-av { opacity: 0; pointer-events: none; }
+            .cqc-row.bot.no-av { margin-top: -.18rem; }
             .cqc-widget {
                 background: #fff;
                 border-radius: 1rem;
@@ -1582,10 +1587,12 @@
             }
             .cqc-submit-cta:disabled { background: #e5e7eb; color: #9ca3af; box-shadow: none; cursor: not-allowed; }
 
-            /* ── Input bar ── */
+            /* ── Input bar — frosted glass ── */
             .cqc-input-bar {
-                background: #fff;
-                border-top: 1px solid #f0f0f5;
+                background: rgba(255,255,255,.88);
+                backdrop-filter: blur(22px);
+                -webkit-backdrop-filter: blur(22px);
+                border-top: 1px solid rgba(0,0,0,.06);
                 padding: .6rem .875rem max(.6rem, env(safe-area-inset-bottom, .6rem));
                 flex-shrink: 0;
             }
@@ -1611,11 +1618,12 @@
             }
             .cqc-send-btn:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
 
-            /* ── Fade-in for new messages ── */
-            .cqc-in { animation: cqcIn .28s cubic-bezier(.22,1,.36,1) both; }
+            /* ── Fade-in for new messages — iOS spring physics ── */
+            .cqc-in { animation: cqcIn .36s cubic-bezier(.175,.885,.32,1.28) both; }
             @keyframes cqcIn {
-                from { opacity: 0; transform: translateY(8px); }
-                to   { opacity: 1; transform: translateY(0); }
+                0%   { opacity: 0; transform: translateY(12px) scale(.97); }
+                65%  { opacity: 1; transform: translateY(-2px) scale(1.01); }
+                100% { opacity: 1; transform: translateY(0) scale(1); }
             }
 
             /* ── Hide page footer on mobile ── */
@@ -1928,7 +1936,13 @@
         </div>
 
         <!-- Scrollable messages -->
-        <div id="cqc-messages" class="cqc-messages" role="log" aria-live="polite" aria-label="Conversación"></div>
+        <div id="cqc-messages" class="cqc-messages" role="log" aria-live="polite" aria-label="Conversación">
+            <!-- Static greeting: always visible on load; JS updates text + adds chips -->
+            <div class="cqc-row bot" id="cqcg-hello">
+                <div class="cqc-mini-av">CR</div>
+                <div class="cqc-bubble" id="cqcg-hello-txt">¡Hola! 👋 Soy el asistente de <strong>CRBOX</strong>. ¿Qué querés traer de USA hoy?</div>
+            </div>
+        </div>
 
         <!-- Input bar -->
         <div class="cqc-input-bar" id="cqc-input-bar">
@@ -3902,14 +3916,14 @@
             var name = (productName || 'este producto').trim();
             var cat  = result.displayName || 'esta categoría';
             var templates = [
-                name + ' se importa sin problema. Entra como ' + cat + ' — agrega el precio aproximado y te mostramos una guía de impuestos antes de que el equipo CRBOX confirme la cotización.',
-                'Podemos traer ' + name + ' directo a Costa Rica. Se clasifica como ' + cat + ' — con el precio que ingreses calculamos una estimación orientativa de impuestos; el equipo revisa y confirma los detalles finales.',
-                name + ' generalmente entra como ' + cat + '. Con CRBOX gestionamos la compra en Miami, el envío y los trámites aduaneros — agrega el precio para ver un estimado inicial de impuestos.',
-                name + ' cae dentro de la categoría ' + cat + '. Agrega el precio aproximado y te mostramos cuánto podrías pagar de impuestos orientativos; el equipo CRBOX confirma los montos exactos antes de proceder.',
-                'Sin problema para importar ' + name + '. Como ' + cat + ', calculamos una estimación de impuestos con el precio que ingreses — el equipo CRBOX confirma los montos finales antes de continuar.',
-                name + ' se importa como ' + cat + '. Ingresa el precio aproximado y te mostramos una guía de impuestos; el equipo CRBOX revisará peso, dimensiones y confirmará la cotización completa.',
-                'Con gusto cotizamos ' + name + '. Bajo la categoría ' + cat + ', calculamos una estimación orientativa de impuestos con el precio que ingreses — el equipo CRBOX confirma todo antes de proceder.',
-                name + ' se clasifica como ' + cat + ' para fines aduaneros. Agrega el precio y verás el estimado de impuestos; el equipo CRBOX revisa los detalles y te envía la cotización final.',
+                '¡Buena elección! ' + name + ' entra como ' + cat + ' — ingresá el precio aproximado y te mostramos una guía de impuestos orientativa. El equipo CRBOX confirma los montos exactos antes de proceder.',
+                'Podemos traer ' + name + ' directo de Miami a Costa Rica. Como ' + cat + ', calculamos el estimado de impuestos con el precio que ingreses — el equipo revisa y te envía la cotización final.',
+                name + ' es uno de los artículos que más traemos. Como ' + cat + ', con CRBOX gestionamos la compra, el envío y los trámites — ingresá el precio para ver el estimado de impuestos.',
+                '¡Con gusto! ' + name + ' se clasifica como ' + cat + '. Ingresá el precio aproximado y verás cuánto podrías pagar orientativamente de impuestos — el equipo CRBOX confirma los costos reales antes de continuar.',
+                'Sin complicaciones para importar ' + name + '. Entra como ' + cat + ' — con el precio que ingreses calculamos una estimación inicial de impuestos y el equipo confirma los detalles finales.',
+                '¡Perfecto! ' + name + ' ingresa como ' + cat + '. Agregá el precio y te mostramos el arancel estimado; el equipo CRBOX verifica peso, dimensiones y te envía la cotización exacta.',
+                name + ' se importa regularmente como ' + cat + '. Ingresá el precio y calculamos cuánto podrías pagar de impuestos orientativamente — el equipo CRBOX confirma antes de proceder.',
+                '¡Qué buena elección! ' + name + ' entra en la categoría ' + cat + '. Con el precio que ingreses te mostramos un estimado de impuestos; el equipo CRBOX revisa y confirma los costos finales.',
             ];
             return templates[(name.charCodeAt(0) + (cat.charCodeAt(0) || 0)) % templates.length];
         }
@@ -3917,10 +3931,10 @@
         function _ambiguousIntro(productName) {
             var name = (productName || 'este producto').trim();
             var templates = [
-                'Con gusto revisamos ' + name + '. Con la descripción actual no podemos determinar la categoría exacta — si agregas el enlace del producto o una breve aclaración, el equipo CRBOX te confirma impuestos y requisitos en menos de 24 horas.',
-                'Podemos traer ' + name + ' a Costa Rica. Para afinar la estimación de impuestos necesitamos un poco más de contexto — agrega el enlace o descríbenos el tipo exacto y el equipo lo confirma pronto.',
-                name + ' puede corresponder a varias categorías de importación. Agrega el enlace del producto o una descripción más detallada y el equipo CRBOX confirma clasificación y costos en breve.',
-                'Revisaremos ' + name + ' para ti. Un poco más de detalle — el enlace o el tipo exacto de producto — le permite al equipo CRBOX confirmarte si puede importarse y cuál sería el costo estimado.',
+                'Podemos revisar ' + name + ' para vos. Con la descripción actual no logramos determinar la categoría exacta — si agregás el enlace del producto o una aclaración breve, el equipo CRBOX confirma impuestos y requisitos en menos de 24 horas.',
+                'Con gusto cotizamos ' + name + '. Para afinar el estimado de impuestos nos ayuda tener más contexto — el enlace del producto o el tipo exacto de artículo, y el equipo lo confirma muy pronto.',
+                name + ' puede caer en varias categorías de importación dependiendo del modelo exacto. Agregá el enlace del producto o describí el tipo y el equipo CRBOX confirma la clasificación y los costos en breve.',
+                '¡Sin problema! Revisaremos ' + name + ' para vos. Un poco más de detalle — el enlace o el tipo exacto — le permite al equipo CRBOX confirmarte si puede importarse y cuál sería el estimado de costo.',
             ];
             return templates[name.charCodeAt(0) % templates.length];
         }
