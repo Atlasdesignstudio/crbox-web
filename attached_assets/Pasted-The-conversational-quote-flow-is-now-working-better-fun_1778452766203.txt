@@ -1,0 +1,386 @@
+The conversational quote flow is now working better functionally, but visually it still feels too plain, too generic, and too WhatsApp-like.
+
+Please redesign the visual language of the chat / conversational quote interface so it feels as premium, futuristic, and editorial as the landing page.
+
+This is a UI/UX visual refinement task. The goal is not to change the backend, quote logic, Product Brain, Gemini behavior, or submission flow. The goal is to elevate the chat experience visually so it feels like a modern AI-powered CRBOX quote concierge, not a basic messaging screen.
+
+Current issue:
+The landing page feels modern, spacious, warm, and futuristic.
+But once the user enters the conversational quote flow, the interface becomes too plain:
+- large empty white areas
+- basic chat bubbles
+- generic message layout
+- weak visual hierarchy
+- modules that feel functional but not beautiful
+- cards that look like simple forms
+- no strong futuristic/editorial identity
+- the chat feels closer to WhatsApp/customer support than a premium quote builder
+
+Desired direction:
+The quote chat should feel like a futuristic CRBOX concierge experience.
+
+It should feel:
+- intelligent
+- premium
+- editorial
+- spacious
+- warm
+- modern
+- guided
+- trustworthy
+- visually polished
+- clearly connected to the landing page design language
+
+It should not feel:
+- like WhatsApp
+- like a plain chatbot
+- like a support ticket
+- like a generic form
+- like an admin dashboard
+- like a normal messaging app
+
+Core design principle:
+This is not a chat app.
+This is an intelligent quote-building workspace with conversational guidance.
+
+The chat should visually support the idea that CRBOX is helping the user build an import request step by step.
+
+Visual system direction:
+Use the landing page as the visual reference:
+- warm off-white / cream background
+- subtle orange accents
+- soft grid or abstract background details
+- refined shadows
+- glassy or soft card surfaces
+- rounded but elegant modules
+- premium spacing
+- strong typography hierarchy
+- orange used intentionally, not everywhere
+- subtle futuristic details
+- calm, airy composition
+
+The conversation area should visually feel like it belongs to the same product as the landing page.
+
+1. Redesign the main chat canvas
+
+The current chat canvas is too empty and flat.
+
+Create a more intentional workspace:
+- use a soft warm background instead of plain white
+- add subtle depth or surface separation
+- create a refined central conversation area
+- avoid an endless blank white chat room
+- make the input area feel like part of a premium assistant interface
+- create a stronger relationship between the chat, product cards, and request cart
+
+The screen should feel designed, not empty.
+
+2. Make the assistant identity more premium
+
+The CRBOX assistant should not look like a basic small chat avatar.
+
+Create a stronger assistant identity:
+- refined CRBOX avatar / badge
+- “CRBOX Cotizador” should feel like a smart concierge
+- online/status information should be subtle and elegant
+- avoid generic WhatsApp-like status treatment
+- use microcopy that feels premium and helpful
+
+Suggested direction:
+“CRBOX Cotizador”
+“Tu concierge de importaciones”
+“Guía inicial · respuesta del equipo CRBOX”
+
+The assistant presence should feel like a branded product interface, not a support chat.
+
+3. Replace generic chat bubbles with richer message modules
+
+Do not rely only on simple chat bubbles.
+
+The assistant responses should use structured, beautiful modules when useful:
+- product understanding card
+- estimate card
+- next-step card
+- cart update card
+- clarification prompt
+- final quote step card
+
+A message can still feel conversational, but important information should be presented in designed components, not only paragraphs.
+
+Example:
+Instead of a plain assistant paragraph, use a module with:
+- small label: “Análisis CRBOX”
+- product-specific headline
+- short explanation
+- category badge
+- next action
+- quiet orientative disclaimer
+
+The chat should blend conversation + structured quote UI.
+
+4. Make product cards feel futuristic and editorial
+
+Current product cards/modules are functional but not visually elevated enough.
+
+Improve:
+- card rhythm
+- spacing
+- borders
+- shadows
+- background surfaces
+- typography
+- icon treatments
+- tags/pills
+- empty states
+- hover/focus states
+- transitions
+
+The cards should feel like premium quote components, not form blocks.
+
+Use:
+- softer surfaces
+- subtle gradients
+- controlled orange highlights
+- crisp typography
+- elegant badges
+- better grouping
+- large meaningful numbers
+- quiet secondary text
+
+Avoid:
+- dense borders
+- plain white cards everywhere
+- heavy orange blocks everywhere
+- generic form fields
+- visually equal modules
+
+5. Make the bottom input feel like an intelligent command bar
+
+The current input feels like a normal chat input.
+
+It should feel like a futuristic quote command bar.
+
+Design direction:
+- elevated floating input
+- soft glow or shadow
+- premium rounded shape
+- clear placeholder
+- strong submit icon/action
+- subtle contextual hints
+- visually connected to the CRBOX brand
+- not too bulky
+
+The input should feel like:
+“Tell CRBOX what you want to bring next.”
+
+Not:
+“Type a WhatsApp message.”
+
+Suggested placeholder:
+“Escribí otro producto, una aclaración o una pregunta…”
+
+Or:
+“Contanos qué querés traer o agregá otro producto…”
+
+If the user is in product-building mode, the placeholder should be contextual:
+“Agregá otro producto a tu solicitud…”
+
+6. Improve visual state transitions
+
+The current flow changes states, but the visual transitions do not feel polished enough.
+
+Add smoother state transitions:
+- landing → chat/builder
+- product submitted → assistant thinking
+- analysis appears
+- price entered → estimate updates
+- product added → cart item appears
+- continue → details form
+
+These transitions should feel refined and purposeful.
+
+Avoid:
+- sudden jumps
+- abrupt scrolls
+- layout popping
+- empty white gaps
+- footer appearing unexpectedly
+- content appearing without hierarchy
+
+7. Make the cart/sidebar visually stronger and more premium
+
+The “Tu solicitud” area is useful, but it should feel like a premium quote cart, not a simple side panel.
+
+Improve:
+- heading hierarchy
+- product cards
+- status badges
+- edit/remove buttons
+- consolidation note
+- spacing
+- surface treatment
+
+The cart should feel reassuring:
+“The products I added are safe here.”
+
+It should be visually persistent and elegant.
+
+Suggested visual direction:
+- soft sticky panel
+- subtle border/glass effect
+- orange count badge
+- green status used carefully
+- cards with clear hierarchy
+- quiet metadata
+- no clutter
+
+8. Make the final shipping/details step feel visually connected
+
+The final step currently feels like a form card inside the chat. It should feel like the next stage of the same futuristic quote journey.
+
+Improve the visual treatment of:
+- “¿Cómo recibís tu pedido?”
+- Aéreo / Marítimo cards
+- province dropdown
+- submit button
+- right-side request summary
+
+The final step should feel like:
+“Now we are completing your quote request.”
+
+Not:
+“Here is a separate form.”
+
+Keep the existing fields and logic, but improve the visual composition and hierarchy.
+
+9. Improve typography hierarchy
+
+The chat currently lacks enough typographic contrast.
+
+Use clearer hierarchy:
+- large section headings
+- medium-weight product titles
+- smaller helper text
+- subtle metadata
+- prominent estimate numbers
+- quiet disclaimers
+
+Important information should be immediately scannable.
+
+The user should not have to read everything to understand:
+- what product was understood
+- what category it is
+- what estimate exists
+- what action comes next
+- what products are in the request
+
+10. Use futuristic visual accents carefully
+
+Add subtle futuristic touches, but do not overdo it.
+
+Possible elements:
+- soft grid background
+- warm glow behind important modules
+- subtle animated assistant indicator
+- thin gradient dividers
+- glass-like surfaces
+- elegant orange focus rings
+- microinteractions on cards
+- refined icon containers
+- smooth command-bar glow
+
+Avoid:
+- sci-fi clichés
+- neon overload
+- too much animation
+- dark mode dashboard look
+- cluttered visual effects
+
+The result should be modern and premium, not gimmicky.
+
+11. Keep trust and clarity above decoration
+
+The visual design can be more futuristic, but it must remain clear and trustworthy.
+
+Do not sacrifice:
+- readability
+- contrast
+- form usability
+- mobile usability
+- estimate clarity
+- CTA clarity
+- cart persistence
+- orientative disclaimer visibility
+
+Every visual improvement should support comprehension.
+
+12. Mobile must feel premium too
+
+On mobile, avoid making it feel like WhatsApp.
+
+Mobile should have:
+- refined assistant header
+- premium command input
+- structured cards instead of only bubbles
+- compact but beautiful cart summary
+- clear product modules
+- sticky or easy-to-access input
+- no horizontal overflow
+- large tap targets
+- calm spacing
+
+Mobile should feel like a product experience, not a chat thread.
+
+13. Copy tone should support the new visual direction
+
+The copy should still feel friendly and Costa Rica-oriented, but more polished.
+
+Avoid:
+- overly casual chat app language
+- generic bot phrases
+- cold system copy
+
+Use:
+- concise, warm, helpful language
+- CRBOX as a concierge
+- clear guidance
+- trust-building microcopy
+
+Example:
+“Con gusto te ayudo a armar tu solicitud.”
+“Agregá el precio aproximado para mostrarte una guía inicial.”
+“Tu solicitud se va construyendo aquí.”
+“El equipo CRBOX revisará los detalles antes de confirmarte el precio final.”
+
+14. Keep existing logic intact
+
+Do not change:
+- Product Brain numerical logic
+- Gemini response logic unless absolutely necessary
+- backend behavior
+- data contracts
+- submission logic
+- analytics
+- other pages
+
+This task is about visual UX/UI elevation of the conversational quote interface.
+
+15. Acceptance criteria
+
+The task is complete when:
+
+- The chat no longer feels like WhatsApp or a generic chatbot.
+- The interface feels visually connected to the landing page.
+- The assistant feels like a premium CRBOX quote concierge.
+- Important responses appear as structured, beautiful modules, not only text bubbles.
+- The input feels like a modern command bar.
+- The product cards feel editorial and premium.
+- The cart/sidebar feels persistent, elegant, and reassuring.
+- The final details step feels like part of the same journey.
+- The layout uses space intentionally and avoids large empty dead zones.
+- Orange is used intentionally as a brand accent, not everywhere.
+- Mobile feels polished and product-like.
+- All existing quote logic still works.
+
+Final design target:
+Make the conversational cotizar flow feel like a futuristic CRBOX import concierge — a guided, intelligent, editorial quote-building experience — not a plain chat and not a form.
