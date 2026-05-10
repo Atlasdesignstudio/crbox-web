@@ -1,0 +1,135 @@
+Before continuing with the large visual redesign of the conversational quote experience, please run a functional audit of the current quote submission flow.
+
+This is critical.
+
+The UI can look great, but the quote flow is only valid if the submitted request is actually reaching all required destinations correctly.
+
+Main objective:
+Verify exactly what happens when a user submits a quote request from `cotizar.html`.
+
+We need to confirm whether the current flow sends the quote request correctly to:
+
+1. The customer’s email
+   - The person who submitted the quote should receive a confirmation email.
+   - Confirm what email address is used.
+   - Confirm what subject/body is sent.
+   - Confirm whether the email includes the submitted products, prices, destination, shipping preference, and contact details.
+
+2. CRBOX sales email
+   - Confirm whether the request is sent to the CRBOX sales/team email.
+   - Identify the exact recipient email address currently used.
+   - Confirm what information is included in that email.
+   - Confirm whether the email content is complete enough for the sales team to follow up.
+
+3. The internal sales/quote platform
+   - Before this redesign, there was apparently an internal sales platform where CRBOX could see all quote requests.
+   - It may be related to the Mercado Libre/internal sales workflow, but we need to identify exactly what it is.
+   - Confirm whether the current quote submission still creates or sends the request into that internal platform.
+   - Identify the endpoint, integration, email forwarding, webhook, form action, or backend process responsible for this.
+   - Confirm whether the submitted quote appears somewhere internally for CRBOX to manage it.
+   - If the destination is unclear, document what evidence exists and what is still unknown.
+
+Important:
+Do not assume the flow works.
+Trace it from the front end to the final destinations.
+
+Audit the full path:
+- What happens when the user clicks the final submit button?
+- What JS function handles it?
+- What data is collected?
+- What endpoint or service is called?
+- What payload is sent?
+- What emails are triggered?
+- What internal records are created?
+- What success/failure state is shown to the user?
+- Are errors handled?
+- Are all products in the request included?
+- Are multi-product requests included correctly?
+- Are user clarifications included?
+- Are product links included?
+- Are approximate prices and estimated taxes included?
+- Are selected shipping method and province included?
+- Is the customer email preserved correctly?
+- Is the CRBOX sales/internal team notified correctly?
+
+Please produce a clear audit report with:
+
+1. Current submission flow summary
+Explain the current flow in plain language.
+
+2. Destinations confirmed
+List every destination that receives the quote:
+- customer email
+- CRBOX sales email
+- internal platform / quote dashboard / Mercado Libre-related system if present
+
+3. Evidence
+For each destination, cite the relevant code path, function, form action, endpoint, email recipient, payload, or integration.
+
+4. Data included
+List exactly what information is included in the submitted request.
+
+5. Missing or broken pieces
+Identify anything that is not being sent, not confirmed, duplicated, unclear, or at risk.
+
+6. Multi-product compatibility
+Confirm whether multiple products are sent correctly, not just the last product.
+
+7. Recommendation
+Before the large redesign continues, recommend what must be preserved so the new chat/builder UI does not break the operational quote flow.
+
+Strict rules:
+- Do not change backend behavior during this audit.
+- Do not redesign the UI during this audit.
+- Do not modify the submission flow yet unless there is a small obvious bug and it is safe to fix.
+- Do not remove any existing hidden fields, form fields, or integration logic.
+- Do not assume the internal sales platform works unless the code proves it.
+- If the Mercado Libre/internal platform is unclear, explicitly say so and identify what access or information is needed.
+
+Second objective:
+Plan how to replicate the same conversational quote experience inside the logged-in client portal.
+
+After the submission audit, evaluate how the new conversational quote experience should be reused inside the client portal.
+
+The goal:
+The client portal should eventually have the same natural, intelligent quote-building experience, adapted to the portal UI.
+
+This should feel like the same product experience, but with advantages for logged-in users.
+
+Inside the client portal, the experience should:
+- allow the user to describe naturally what they want to bring
+- use the same Gemini/Product Brain quote logic
+- allow multiple products to be added to a request
+- show a cart-like quote summary
+- allow product links, approximate prices, clarifications, and category corrections
+- preserve estimated/orientative language
+- feel adapted to the portal’s dashboard visual system
+- use logged-in user data when available
+- avoid asking for name/email again if already known
+- prefill or use account information from the user profile
+- allow the user to see quote requests later if the backend supports it
+- not fake quote history or request tracking if the backend does not support it yet
+
+Important portal adaptation principles:
+- Do not simply iframe or visually copy the public page.
+- Reuse the experience pattern and logic, but adapt the UI to the portal/dashboard context.
+- The public `cotizar` page is for non-logged-in or new users.
+- The portal version is for existing clients and should feel more efficient and account-aware.
+- Keep the same conversational intelligence, but make the portal version feel integrated into the user dashboard.
+
+Please include in the audit/report:
+
+1. What code/logic from public `cotizar.html` can be reused.
+2. What should be abstracted/shared if possible.
+3. What would need to change for logged-in users.
+4. What profile/account data can be used to prefill the request.
+5. What backend endpoints or data structures are needed to save/show quote requests in the portal.
+6. What should not be faked if the backend does not support it.
+7. Recommended phased approach:
+   - Phase 1: verify existing quote submission flow.
+   - Phase 2: protect and preserve submission destinations during redesign.
+   - Phase 3: complete public conversational quote redesign.
+   - Phase 4: replicate/adapt the quote builder inside the client portal.
+   - Phase 5: connect portal quote history/status only if real backend support exists.
+
+Do not proceed with the large redesign until the submission audit clearly confirms where quote requests are going and what must be preserved.
