@@ -1796,304 +1796,292 @@
         .cqc-footer-total { font-size: .97rem; font-weight: 700; color: #1a1a2e; }
 
         /* ═══════════════════════════════════════════════════════════════════
-           DESKTOP CHAT — full-viewport chat UI shown at ≥641px
-           Replaces #cq-hero + #cq-flow with a modern split-pane experience
+           DESKTOP CHAT — white + CRBOX orange theme, Claude-style layout ≥641px
            ═══════════════════════════════════════════════════════════════════ */
         #cqd { display: none; }
 
         @media (min-width: 641px) {
-            /* Hide old layout pieces — desktop chat takes full viewport */
             body { overflow: hidden; }
             #cq-hero, #cq-flow, #site-footer { display: none !important; }
 
-            /* ── Root container ── */
             #cqd {
                 display: flex;
-                position: fixed;
-                top: 64px; left: 0; right: 0; bottom: 0;
-                z-index: 50;
-                overflow: hidden;
-                font-family: inherit;
+                position: fixed; top: 64px; left: 0; right: 0; bottom: 0;
+                z-index: 50; overflow: hidden; background: #fafaf8;
             }
 
-            /* ── LEFT: dark conversation pane ── */
+            /* ── LEFT: white conversation pane ── */
             .cqd-left {
                 flex: 1; min-width: 0;
                 display: flex; flex-direction: column;
-                background: #0d0d14;
-                overflow: hidden; position: relative;
+                background: #fafaf8; overflow: hidden; position: relative;
             }
-            /* Subtle ambient glow */
             .cqd-left::before {
-                content: ''; position: absolute; inset: 0; pointer-events: none;
-                background:
-                    radial-gradient(ellipse at 85% 0%, rgba(255,107,0,.09) 0%, transparent 50%),
-                    radial-gradient(ellipse at 15% 100%, rgba(255,107,0,.06) 0%, transparent 45%);
+                content: ''; position: absolute; top: -80px; left: 50%;
+                transform: translateX(-50%);
+                width: 760px; height: 300px; pointer-events: none; z-index: 0;
+                background: radial-gradient(ellipse at center top,
+                    rgba(255,107,0,.07) 0%, transparent 60%);
             }
 
             /* Header */
             .cqd-header {
                 display: flex; align-items: center; gap: .875rem;
-                padding: .9rem 1.5rem;
-                border-bottom: 1px solid rgba(255,255,255,.07);
+                padding: .85rem 1.75rem;
+                background: #fff; border-bottom: 1px solid rgba(0,0,0,.07);
                 flex-shrink: 0; position: relative; z-index: 1;
             }
             .cqd-av {
-                width: 38px; height: 38px; border-radius: .7rem; flex-shrink: 0;
+                width: 36px; height: 36px; border-radius: .6rem; flex-shrink: 0;
                 background: linear-gradient(135deg, #FF6B00, #f97316);
                 display: flex; align-items: center; justify-content: center;
-                font-size: .78rem; font-weight: 800; color: #fff; letter-spacing: .04em;
-                box-shadow: 0 0 0 2px rgba(255,107,0,.3), 0 2px 8px rgba(255,107,0,.2);
+                font-size: .74rem; font-weight: 800; color: #fff; letter-spacing: .04em;
+                box-shadow: 0 2px 8px rgba(255,107,0,.28);
             }
             .cqd-name-wrap { flex: 1; min-width: 0; }
-            .cqd-name { font-size: .95rem; font-weight: 700; color: #fff; }
+            .cqd-name { font-size: .92rem; font-weight: 700; color: #111827; }
             .cqd-sub {
-                font-size: .71rem; color: rgba(255,255,255,.4);
+                font-size: .7rem; color: #9ca3af;
                 display: flex; align-items: center; gap: .3rem; margin-top: .06rem;
             }
             .cqd-dot {
                 width: 7px; height: 7px; border-radius: 50%; background: #22c55e;
                 display: inline-block; flex-shrink: 0;
-                box-shadow: 0 0 6px rgba(34,197,94,.6);
+                box-shadow: 0 0 5px rgba(34,197,94,.5);
             }
             .cqd-header-trust {
                 display: flex; align-items: center; gap: .5rem;
-                font-size: .7rem; color: rgba(255,255,255,.3);
+                font-size: .7rem; color: #9ca3af;
             }
-            .cqd-trust-sep { opacity: .4; }
+            .cqd-trust-sep { opacity: .5; }
 
-            /* Messages area */
+            /* Scrollable messages — centered column (Claude layout) */
             .cqd-messages {
                 flex: 1; overflow-y: auto; overflow-x: hidden;
-                padding: 1.75rem 1.5rem 1rem;
-                display: flex; flex-direction: column; gap: .55rem;
-                position: relative; z-index: 1;
-                scroll-behavior: smooth;
-                scrollbar-width: thin;
-                scrollbar-color: rgba(255,255,255,.1) transparent;
+                padding: 2rem 2rem 1rem;
+                display: flex; flex-direction: column; gap: 0;
+                position: relative; z-index: 1; scroll-behavior: smooth;
+                scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.1) transparent;
             }
             .cqd-messages::-webkit-scrollbar { width: 4px; }
-            .cqd-messages::-webkit-scrollbar-thumb {
-                background: rgba(255,255,255,.1); border-radius: 2px;
-            }
+            .cqd-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,.1); border-radius: 2px; }
 
-            /* Message row */
+            /* Message rows — all center-column aligned */
             .cqd-row {
-                display: flex; align-items: flex-end; gap: .55rem;
-                max-width: 78%; animation: cqdIn .35s cubic-bezier(.175,.885,.32,1.25) both;
+                display: flex; align-items: flex-start; gap: .72rem;
+                max-width: 740px; width: 100%; margin: 0 auto;
+                padding-bottom: 1.2rem;
+                animation: cqdIn .3s ease-out both;
             }
-            .cqd-row.bot  { align-self: flex-start; }
-            .cqd-row.user { align-self: flex-end; flex-direction: row-reverse; max-width: 68%; }
-            .cqd-row.wide { max-width: 88%; align-self: flex-start; }
+            .cqd-row.user { flex-direction: row-reverse; gap: 0; }
+            .cqd-row.wide { display: block; max-width: 740px; padding-bottom: 1.2rem; }
             .cqd-row.no-av .cqd-mini-av { opacity: 0; pointer-events: none; }
-            .cqd-row.no-av { margin-top: -.15rem; }
+            .cqd-row.no-av { padding-top: 0; }
 
-            /* Mini avatar */
+            /* Mini avatar — small orange square */
             .cqd-mini-av {
-                width: 26px; height: 26px; border-radius: .45rem; flex-shrink: 0;
+                width: 26px; height: 26px; border-radius: .4rem; flex-shrink: 0;
                 background: linear-gradient(135deg, #FF6B00, #f97316);
                 display: flex; align-items: center; justify-content: center;
-                font-size: .6rem; font-weight: 800; color: #fff;
+                font-size: .58rem; font-weight: 800; color: #fff; margin-top: .1rem;
             }
+            .cqd-row.wide .cqd-mini-av { display: none; }
 
-            /* Bubbles */
-            .cqd-bubble {
-                padding: .72rem 1rem; font-size: .88rem; line-height: 1.58;
-                word-break: break-word; max-width: 100%;
-            }
+            /* Bot message — plain text on white, no bubble (Claude style) */
             .cqd-row.bot .cqd-bubble {
-                background: rgba(255,255,255,.08);
-                border: 1px solid rgba(255,255,255,.1);
-                color: rgba(255,255,255,.88);
-                border-radius: .4rem 1.2rem 1.2rem 1.2rem;
+                background: transparent; border: none; padding: 0;
+                color: #1f2937; font-size: .93rem; line-height: 1.72;
+                flex: 1; min-width: 0;
             }
+            /* User message — orange-tinted pill, right-aligned */
             .cqd-row.user .cqd-bubble {
-                background: linear-gradient(145deg, #ff7a1a 0%, #e55000 100%);
-                color: #fff; border-radius: 1.2rem 1.2rem .4rem 1.2rem;
-                box-shadow: 0 2px 14px rgba(255,107,0,.3);
+                background: #fff7ed; border: 1.5px solid #fed7aa;
+                color: #c2410c; border-radius: .75rem 0 .75rem .75rem;
+                padding: .6rem 1rem; font-size: .88rem; line-height: 1.55;
+                max-width: 72%;
             }
 
             /* Typing dots */
             .cqd-typing {
-                display: flex; align-items: center; gap: .32rem;
-                padding: .72rem 1rem;
-                background: rgba(255,255,255,.08);
-                border: 1px solid rgba(255,255,255,.1);
-                border-radius: .4rem 1.2rem 1.2rem 1.2rem;
+                display: inline-flex; align-items: center; gap: .32rem;
+                padding: .58rem .9rem;
+                background: #fff; border: 1px solid #e5e7eb; border-radius: .7rem;
+                box-shadow: 0 1px 4px rgba(0,0,0,.06);
             }
             .cqd-typing span {
                 width: 7px; height: 7px; border-radius: 50%;
-                background: rgba(255,107,0,.7);
-                animation: cqdPulse 1.1s infinite ease-in-out;
+                background: #FF6B00; animation: cqdPulse 1.1s infinite ease-in-out;
             }
             .cqd-typing span:nth-child(2) { animation-delay: .17s; }
             .cqd-typing span:nth-child(3) { animation-delay: .34s; }
             @keyframes cqdPulse {
-                0%,80%,100% { transform: scale(1); opacity: .4; }
-                40%          { transform: scale(1.4); opacity: 1; }
+                0%,80%,100% { transform: scale(1); opacity: .35; }
+                40%          { transform: scale(1.45); opacity: 1; }
             }
 
-            /* Wide widget (product card / chip tray) */
+            /* Interactive module card — clean white card with orange top accent */
             .cqd-widget {
-                background: rgba(255,255,255,.06);
-                border: 1px solid rgba(255,255,255,.1);
-                border-radius: 1.15rem;
-                padding: 1.1rem 1.15rem 1.15rem;
-                color: rgba(255,255,255,.85);
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
-                max-width: 100%;
+                background: #fff;
+                border: 1.5px solid #e5e7eb;
+                border-top: 3px solid #FF6B00;
+                border-radius: 0 0 1rem 1rem;
+                padding: 1.15rem 1.25rem 1.2rem;
+                box-shadow: 0 2px 16px rgba(0,0,0,.07);
             }
             .cqd-gem-badge {
                 display: inline-flex; align-items: center; gap: .28rem;
-                background: rgba(255,107,0,.18); border: 1px solid rgba(255,107,0,.35);
-                color: #fb923c; border-radius: 99px;
+                background: #fff7ed; border: 1px solid #fed7aa;
+                color: #ea580c; border-radius: 99px;
                 padding: .2rem .68rem; font-size: .71rem; font-weight: 700;
                 margin-bottom: .72rem;
             }
             .cqd-gem-text {
-                font-size: .86rem; line-height: 1.62;
-                color: rgba(255,255,255,.75); margin-bottom: .8rem;
+                font-size: .86rem; line-height: 1.62; color: #4b5563; margin-bottom: .8rem;
             }
             .cqd-tax-pill {
-                display: inline-flex; align-items: center; gap: .4rem;
-                background: rgba(255,255,255,.06);
-                border: 1px solid rgba(255,255,255,.1);
-                border-radius: .6rem; padding: .42rem .78rem;
-                font-size: .78rem; margin-bottom: .85rem;
+                display: inline-flex; align-items: center; gap: .5rem;
+                background: #fff7ed; border: 1px solid #fed7aa;
+                border-radius: .6rem; padding: .42rem .85rem;
+                font-size: .79rem; margin-bottom: .85rem;
             }
-            .cqd-tax-pill-label { color: rgba(255,255,255,.42); }
-            .cqd-tax-pill-val   { color: #fb923c; font-weight: 700; }
+            .cqd-tax-pill-label { color: #9ca3af; }
+            .cqd-tax-pill-val   { color: #ea580c; font-weight: 700; }
 
             /* Inline price input */
-            .cqd-price-lbl { font-size: .78rem; color: rgba(255,255,255,.45); margin-bottom: .38rem; }
+            .cqd-price-lbl { font-size: .78rem; color: #6b7280; margin-bottom: .38rem; font-weight: 500; }
             .cqd-price-row { display: flex; align-items: center; gap: .4rem; }
-            .cqd-price-cur { color: rgba(255,255,255,.4); font-size: .85rem; }
+            .cqd-price-cur { color: #9ca3af; font-size: .9rem; }
             .cqd-price-inp {
-                flex: 1; background: rgba(255,255,255,.09);
-                border: 1.5px solid rgba(255,255,255,.15);
-                border-radius: .65rem; padding: .58rem .75rem;
-                color: #fff; font-size: .98rem; font-family: inherit;
-                outline: none; transition: border-color .18s, background .18s;
+                flex: 1; background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: .65rem;
+                padding: .6rem .8rem; color: #111827; font-size: 1rem; font-family: inherit;
+                font-weight: 500; outline: none; transition: border-color .18s, box-shadow .18s;
             }
-            .cqd-price-inp:focus { border-color: #FF6B00; background: rgba(255,107,0,.09); }
-            .cqd-price-inp::placeholder { color: rgba(255,255,255,.28); }
+            .cqd-price-inp:focus {
+                border-color: #FF6B00; box-shadow: 0 0 0 3px rgba(255,107,0,.1); background: #fff;
+            }
+            .cqd-price-inp::placeholder { color: #d1d5db; font-weight: 400; }
             .cqd-price-inp::-webkit-inner-spin-button,
             .cqd-price-inp::-webkit-outer-spin-button { -webkit-appearance: none; }
-            .cqd-price-unit { font-size: .75rem; color: rgba(255,255,255,.35); }
+            .cqd-price-unit { font-size: .75rem; color: #9ca3af; }
             .cqd-price-err {
-                display: none; font-size: .74rem; color: #f87171;
-                margin-top: .3rem; align-items: center; gap: .28rem;
+                display: none; font-size: .74rem; color: #ef4444;
+                margin-top: .35rem; align-items: center; gap: .28rem;
             }
             .cqd-price-err.show { display: flex; }
 
             /* Action buttons */
-            .cqd-actions { display: flex; gap: .38rem; flex-wrap: wrap; margin-top: .82rem; }
+            .cqd-actions { display: flex; gap: .38rem; flex-wrap: wrap; margin-top: .85rem; }
             .cqd-btn {
-                padding: .5rem .95rem; border-radius: 2rem;
-                font-size: .8rem; font-weight: 600;
-                border: 1.5px solid rgba(255,255,255,.18);
-                color: rgba(255,255,255,.65);
-                background: transparent; cursor: pointer; font-family: inherit;
-                transition: all .16s ease; white-space: nowrap;
+                padding: .52rem 1.05rem; border-radius: .65rem; font-size: .82rem;
+                font-weight: 600; border: 1.5px solid #e5e7eb; color: #374151;
+                background: #fff; cursor: pointer; font-family: inherit;
+                transition: all .15s ease; white-space: nowrap;
             }
-            .cqd-btn:hover { border-color: rgba(255,255,255,.38); color: #fff; }
+            .cqd-btn:hover { border-color: #FF6B00; color: #FF6B00; background: #fff7ed; }
             .cqd-btn.primary {
                 background: #FF6B00; color: #fff; border-color: transparent;
-                box-shadow: 0 2px 12px rgba(255,107,0,.35);
+                box-shadow: 0 2px 10px rgba(255,107,0,.3);
             }
             .cqd-btn.primary:hover { background: #e85e00; }
-            .cqd-btn:active { transform: scale(.94); }
-            .cqd-btn:disabled { opacity: .38; cursor: not-allowed; transform: none !important; }
+            .cqd-btn:active { transform: scale(.95); }
+            .cqd-btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
 
-            /* Chips tray */
+            /* Chip tray */
             .cqd-chips-tray { display: flex; flex-wrap: wrap; gap: .38rem; }
             .cqd-chip {
-                padding: .38rem .85rem; border-radius: 2rem;
-                background: rgba(255,255,255,.08);
-                border: 1px solid rgba(255,255,255,.13);
-                color: rgba(255,255,255,.72); font-size: .81rem;
-                cursor: pointer; transition: all .14s; white-space: nowrap;
-                font-family: inherit;
+                padding: .38rem .88rem; border-radius: 2rem;
+                background: #fff; border: 1.5px solid #e5e7eb;
+                color: #374151; font-size: .82rem; cursor: pointer;
+                transition: all .14s; white-space: nowrap; font-family: inherit;
             }
-            .cqd-chip:hover {
-                background: rgba(255,107,0,.2);
-                border-color: rgba(255,107,0,.45); color: #fb923c;
-            }
+            .cqd-chip:hover { background: #fff7ed; border-color: #fed7aa; color: #ea580c; }
 
-            /* Confirmed badge inside chat */
+            /* Confirmed product badge */
             .cqd-confirm-badge {
                 display: inline-flex; align-items: center; gap: .35rem;
-                background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.35);
-                color: #4ade80; border-radius: 99px;
-                padding: .22rem .72rem; font-size: .72rem; font-weight: 700;
+                background: #f0fdf4; border: 1px solid #bbf7d0;
+                color: #15803d; border-radius: .65rem;
+                padding: .35rem .85rem; font-size: .78rem; font-weight: 600;
                 margin-bottom: .65rem;
             }
 
             /* Entrance animation */
             @keyframes cqdIn {
-                0%   { opacity: 0; transform: translateY(14px) scale(.97); }
-                65%  { opacity: 1; transform: translateY(-2px) scale(1.01); }
-                100% { opacity: 1; transform: translateY(0)   scale(1); }
+                from { opacity: 0; transform: translateY(8px); }
+                to   { opacity: 1; transform: translateY(0); }
             }
 
-            /* Input bar */
+            /* ── Input bar with orange glow (reference-image inspired) ── */
             .cqd-input-bar {
-                background: rgba(10,10,18,.92);
-                backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-                border-top: 1px solid rgba(255,255,255,.07);
-                padding: .85rem 1.5rem calc(.85rem + env(safe-area-inset-bottom, 0px));
+                background: #fafaf8; padding: 1rem 2rem 1.4rem;
                 flex-shrink: 0; position: relative; z-index: 1;
             }
             .cqd-input-wrap {
-                display: flex; align-items: center; gap: .45rem;
-                background: rgba(255,255,255,.07);
-                border: 1.5px solid rgba(255,255,255,.12);
-                border-radius: 1.6rem;
-                padding: .3rem .3rem .3rem 1.1rem;
-                transition: border-color .2s, background .2s;
+                max-width: 740px; margin: 0 auto; position: relative;
             }
-            .cqd-input-wrap:focus-within {
-                border-color: rgba(255,107,0,.5);
-                background: rgba(255,107,0,.06);
+            /* Orange glow aura that bleeds outside the box */
+            .cqd-input-wrap::before {
+                content: '';
+                position: absolute; inset: -14px;
+                border-radius: 2rem;
+                background:
+                    radial-gradient(ellipse at 10% 50%, rgba(255,107,0,.22) 0%, transparent 48%),
+                    radial-gradient(ellipse at 90% 50%, rgba(255,140,0,.13) 0%, transparent 48%);
+                filter: blur(18px);
+                z-index: 0; pointer-events: none;
+                transition: opacity .3s;
+            }
+            .cqd-input-wrap:focus-within::before {
+                background:
+                    radial-gradient(ellipse at 10% 50%, rgba(255,107,0,.36) 0%, transparent 48%),
+                    radial-gradient(ellipse at 90% 50%, rgba(255,140,0,.2) 0%, transparent 48%);
+            }
+            /* Visible input card */
+            .cqd-input-inner {
+                position: relative; z-index: 1;
+                display: flex; align-items: center; gap: .5rem;
+                background: #fff;
+                border: 1.5px solid rgba(255,107,0,.22);
+                border-radius: 1.25rem;
+                padding: .4rem .4rem .4rem 1.25rem;
+                box-shadow: 0 0 0 4px rgba(255,107,0,.07), 0 2px 12px rgba(0,0,0,.07);
+                transition: border-color .2s, box-shadow .2s;
+            }
+            .cqd-input-inner:focus-within {
+                border-color: rgba(255,107,0,.55);
+                box-shadow: 0 0 0 5px rgba(255,107,0,.12), 0 2px 18px rgba(0,0,0,.09);
             }
             .cqd-input-field {
                 flex: 1; background: transparent; border: none; outline: none;
-                font-size: .93rem; font-family: inherit;
-                color: rgba(255,255,255,.9); padding: .42rem 0;
+                font-size: .95rem; font-family: inherit;
+                color: #1f2937; padding: .44rem 0;
             }
-            .cqd-input-field::placeholder { color: rgba(255,255,255,.28); }
+            .cqd-input-field::placeholder { color: #9ca3af; }
             .cqd-send-btn {
                 width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
                 background: #FF6B00; color: #fff; border: none;
                 display: flex; align-items: center; justify-content: center;
                 cursor: pointer; font-size: .82rem;
                 transition: background .14s, transform .14s;
-                box-shadow: 0 2px 10px rgba(255,107,0,.35);
+                box-shadow: 0 2px 8px rgba(255,107,0,.35);
             }
             .cqd-send-btn:hover { background: #e85e00; transform: scale(1.06); }
-            .cqd-send-btn:disabled {
-                background: rgba(255,255,255,.15); box-shadow: none; cursor: not-allowed;
-            }
+            .cqd-send-btn:disabled { background: #d1d5db; box-shadow: none; cursor: not-allowed; }
             .cqd-send-btn:active { transform: scale(.92); }
 
-            /* ── RIGHT: quote panel ── */
+            /* ── RIGHT: quote panel slides in on first product ── */
             .cqd-right {
-                width: 370px; flex-shrink: 0;
-                background: #fafaf8;
-                border-left: 1px solid rgba(0,0,0,.09);
-                overflow-y: auto;
-                scrollbar-width: thin;
-                scrollbar-color: rgba(0,0,0,.1) transparent;
+                width: 0; flex-shrink: 0; overflow: hidden;
+                background: #fff; border-left: 1px solid transparent;
+                transition: width 0.48s cubic-bezier(0.22,1,0.36,1),
+                            border-color 0.48s ease;
             }
-            .cqd-right .cqw-right-inner {
-                padding: 1.4rem 1.2rem 2rem;
+            .cqd-right.cqd-panel-visible {
+                width: 370px; overflow-y: auto;
+                border-left-color: rgba(0,0,0,.08);
             }
-            /* Keep right panel sections always unlocked on desktop chat */
-            .cqd-right .cqw-locked {
-                opacity: 1; pointer-events: auto;
-                filter: none;
-            }
+            .cqd-right .cqw-right-inner { padding: 1.4rem 1.2rem 2rem; }
+            .cqd-right .cqw-locked { opacity: 1; pointer-events: auto; filter: none; }
         }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
@@ -2279,12 +2267,14 @@
             <div id="cqd-messages" class="cqd-messages" role="log" aria-live="polite" aria-label="Conversación"></div>
             <div class="cqd-input-bar">
                 <div class="cqd-input-wrap">
-                    <input type="text" id="cqd-input" class="cqd-input-field"
-                           placeholder="Ej: MacBook Air M2, tenis Nike, cafetera Nespresso…"
-                           autocomplete="off" maxlength="200" aria-label="¿Qué querés traer?">
-                    <button type="button" id="cqd-send" class="cqd-send-btn" aria-label="Enviar">
-                        <i class="fas fa-arrow-up"></i>
-                    </button>
+                    <div class="cqd-input-inner">
+                        <input type="text" id="cqd-input" class="cqd-input-field"
+                               placeholder="Ej: MacBook Air M2, tenis Nike, cafetera Nespresso…"
+                               autocomplete="off" maxlength="200" aria-label="¿Qué querés traer?">
+                        <button type="button" id="cqd-send" class="cqd-send-btn" aria-label="Enviar">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -4567,6 +4557,16 @@
                 _currentAiState     = { active: false, dataSource: brainResult ? 'ai_gemini' : 'manual', inFlight: false };
                 _currentClarification = '';
                 _currentEntryId     = _nextProductId++;
+
+                // Reveal right panel on first confirmed product
+                (function() {
+                    var rp = document.querySelector('.cqd-right');
+                    if (rp && !rp.classList.contains('cqd-panel-visible')) {
+                        requestAnimationFrame(function() {
+                            rp.classList.add('cqd-panel-visible');
+                        });
+                    }
+                })();
 
                 // Delegate — updates right panel: summary cards, unlocks shipping/contact, badge, etc.
                 _confirmCurrentProduct();
