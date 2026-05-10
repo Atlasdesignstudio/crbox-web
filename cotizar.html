@@ -2117,17 +2117,49 @@
             #cqd.cqd-chatting .cqd-landing {
                 opacity: 0; pointer-events: none; transform: translateY(-12px);
             }
+            /* ── Two-column landing layout ── */
             .cqd-lo-inner {
-                max-width: 680px; width: 100%;
+                max-width: 960px; width: 100%;
                 padding: 0 2rem 2rem;
-                text-align: center;
+                display: flex; gap: 3.5rem; align-items: center;
                 animation: cqdIn .45s ease-out both;
+            }
+            .cqd-lo-left {
+                flex: 1; min-width: 0; text-align: left;
+            }
+            .cqd-lo-right {
+                width: 270px; flex-shrink: 0;
+                display: flex; flex-direction: column; gap: .75rem;
+            }
+            /* Info cards */
+            .cqd-info-card {
+                display: flex; gap: .75rem; align-items: flex-start;
+                background: #fff; border: 1px solid #f3f4f6;
+                border-radius: 1rem; padding: .85rem .95rem;
+                animation: cqdSlideUp .42s cubic-bezier(.22,1,.36,1) both;
+                transition: box-shadow .2s, border-color .2s;
+            }
+            .cqd-info-card:hover {
+                box-shadow: 0 4px 18px rgba(0,0,0,.07);
+                border-color: rgba(255,107,0,.2);
+            }
+            .cqd-info-icon {
+                font-size: 1.45rem; line-height: 1; flex-shrink: 0;
+                margin-top: .05rem;
+            }
+            .cqd-info-body { min-width: 0; }
+            .cqd-info-title {
+                font-size: .82rem; font-weight: 700; color: #111827;
+                margin-bottom: .22rem;
+            }
+            .cqd-info-text {
+                font-size: .74rem; color: #6b7280; line-height: 1.5;
             }
             .cqd-lo-eyebrow {
                 display: inline-flex; align-items: center; gap: .55rem;
                 font-size: .75rem; font-weight: 600; letter-spacing: .1em;
                 text-transform: uppercase; color: #9ca3af;
-                margin-bottom: 1.5rem;
+                margin-bottom: 1.2rem;
             }
             .cqd-lo-av {
                 width: 22px; height: 22px; border-radius: .3rem;
@@ -2136,14 +2168,14 @@
                 font-size: .6rem; font-weight: 800; color: #fff; flex-shrink: 0;
             }
             .cqd-lo-title {
-                font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800;
+                font-size: clamp(1.7rem, 3.2vw, 2.5rem); font-weight: 800;
                 color: #111827; line-height: 1.18;
-                margin: 0 0 1rem; letter-spacing: -.02em;
+                margin: 0 0 .85rem; letter-spacing: -.02em;
             }
             .cqd-lo-title em { font-style: normal; color: #FF6B00; }
             .cqd-lo-sub {
-                font-size: .98rem; color: #6b7280; line-height: 1.65;
-                margin: 0 0 2rem;
+                font-size: .94rem; color: #6b7280; line-height: 1.6;
+                margin: 0 0 1.4rem;
             }
             /* Chips in landing — larger, more editorial */
             .cqd-lo-chips {
@@ -2347,6 +2379,143 @@
                 border-left: 3px solid rgba(255,107,0,.3);
                 font-style: italic;
             }
+
+            /* ── In-chat shipping widget ── */
+            .cqd-ship-card {
+                background: #fff; border: 1.5px solid rgba(255,107,0,.18);
+                border-radius: 1.15rem; overflow: hidden;
+                animation: cqdSlideUp .4s cubic-bezier(.22,1,.36,1) both;
+            }
+            .cqd-ship-header {
+                padding: 1rem 1.25rem .6rem;
+                border-bottom: 1px solid #f3f4f6;
+            }
+            .cqd-ship-label {
+                font-size: .7rem; font-weight: 700; letter-spacing: .08em;
+                text-transform: uppercase; color: #9ca3af; margin-bottom: .2rem;
+            }
+            .cqd-ship-title {
+                font-size: 1rem; font-weight: 800; color: #111827;
+            }
+            .cqd-ship-options {
+                display: grid; grid-template-columns: 1fr 1fr;
+                gap: .75rem; padding: .9rem 1.25rem .75rem;
+            }
+            .cqd-ship-opt {
+                border: 2px solid #e5e7eb; border-radius: .9rem;
+                padding: .9rem .75rem; cursor: pointer; text-align: center;
+                background: #fff; font-family: inherit;
+                transition: border-color .18s, background .18s, transform .12s;
+                position: relative; overflow: hidden;
+            }
+            .cqd-ship-opt:hover { border-color: rgba(255,107,0,.4); transform: translateY(-1px); }
+            .cqd-ship-opt.cqd-ship-active {
+                border-color: #FF6B00; background: #fff7ed;
+            }
+            .cqd-ship-opt.cqd-ship-active::after {
+                content: ''; position: absolute; top: .45rem; right: .45rem;
+                width: 7px; height: 7px; border-radius: 50%; background: #FF6B00;
+            }
+            .cqd-ship-emoji { font-size: 1.6rem; margin-bottom: .35rem; display: block; }
+            .cqd-ship-name {
+                font-size: .88rem; font-weight: 700; color: #111827;
+                margin-bottom: .2rem;
+            }
+            .cqd-ship-desc { font-size: .7rem; color: #6b7280; line-height: 1.45; }
+            .cqd-ship-badge {
+                display: inline-block; font-size: .63rem; font-weight: 700;
+                padding: .12rem .42rem; border-radius: 99px; margin-bottom: .3rem;
+            }
+            .cqd-ship-badge.fast {
+                background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;
+            }
+            .cqd-ship-badge.eco {
+                background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;
+            }
+            .cqd-ship-fields {
+                padding: 0 1.25rem .85rem;
+                display: flex; flex-direction: column; gap: .6rem;
+            }
+            .cqd-ship-field-label {
+                font-size: .74rem; font-weight: 600; color: #374151;
+                margin-bottom: .28rem; display: block;
+            }
+            .cqd-ship-select, .cqd-ship-email-inp {
+                width: 100%; padding: .65rem .9rem; box-sizing: border-box;
+                border: 1.5px solid #e5e7eb; border-radius: .75rem;
+                font-size: .88rem; font-family: inherit; color: #111827;
+                background: #fff; outline: none;
+                transition: border-color .18s, box-shadow .18s;
+            }
+            .cqd-ship-select:focus, .cqd-ship-email-inp:focus {
+                border-color: #FF6B00; box-shadow: 0 0 0 3px rgba(255,107,0,.1);
+            }
+            .cqd-ship-confirm-wrap {
+                padding: 0 1.25rem 1.25rem;
+                display: flex; flex-direction: column; gap: .4rem;
+            }
+            .cqd-ship-submit-btn {
+                width: 100%; padding: .82rem 1rem;
+                background: linear-gradient(135deg, #FF6B00, #f97316);
+                color: #fff; border: none; border-radius: .85rem;
+                font-size: .95rem; font-weight: 700; font-family: inherit;
+                cursor: pointer; display: flex; align-items: center;
+                justify-content: center; gap: .5rem;
+                box-shadow: 0 4px 16px rgba(255,107,0,.3);
+                transition: transform .15s, box-shadow .15s;
+            }
+            .cqd-ship-submit-btn:hover:not(:disabled) {
+                transform: translateY(-1px); box-shadow: 0 6px 22px rgba(255,107,0,.4);
+            }
+            .cqd-ship-submit-btn:disabled { opacity: .6; cursor: not-allowed; }
+            .cqd-ship-err {
+                font-size: .78rem; color: #ef4444; text-align: center;
+                padding: .3rem 0; display: none;
+            }
+            .cqd-ship-trust {
+                font-size: .71rem; color: #9ca3af; text-align: center;
+            }
+
+            /* ── Post-confirm: yes/no CTA card ── */
+            .cqd-addmore-card {
+                background: #fff; border: 1.5px solid rgba(255,107,0,.15);
+                border-radius: 1.1rem; padding: 1.1rem 1.2rem;
+                animation: cqdSlideUp .38s cubic-bezier(.22,1,.36,1) both;
+            }
+            .cqd-addmore-q {
+                font-size: .93rem; font-weight: 600; color: #111827;
+                margin-bottom: .75rem; line-height: 1.4;
+            }
+            .cqd-addmore-btns {
+                display: grid; grid-template-columns: 1fr 1fr; gap: .55rem;
+            }
+            .cqd-addmore-yes {
+                padding: .72rem 1rem;
+                background: linear-gradient(135deg, #FF6B00, #f97316);
+                color: #fff; border: none; border-radius: .8rem;
+                font-size: .88rem; font-weight: 700; font-family: inherit;
+                cursor: pointer; display: flex; align-items: center;
+                justify-content: center; gap: .38rem;
+                box-shadow: 0 3px 12px rgba(255,107,0,.28);
+                transition: transform .15s, box-shadow .15s;
+            }
+            .cqd-addmore-yes:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(255,107,0,.38); }
+            .cqd-addmore-no {
+                padding: .72rem 1rem;
+                background: #f9fafb; color: #374151;
+                border: 1.5px solid #e5e7eb; border-radius: .8rem;
+                font-size: .88rem; font-weight: 600; font-family: inherit;
+                cursor: pointer; transition: background .15s, border-color .15s;
+            }
+            .cqd-addmore-no:hover { background: #f3f4f6; border-color: #d1d5db; }
+            .cqd-addmore-consolidation {
+                margin-top: .65rem; padding: .55rem .75rem;
+                background: linear-gradient(135deg, #fff7ed, #fafaf8);
+                border: 1px solid rgba(255,107,0,.12); border-radius: .75rem;
+                font-size: .74rem; color: #6b7280; line-height: 1.5;
+                display: flex; gap: .4rem; align-items: flex-start;
+            }
+            .cqd-addmore-consolidation i { color: #FF6B00; flex-shrink: 0; margin-top: .1rem; }
         }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
@@ -2521,30 +2690,66 @@
             <!-- EDITORIAL LANDING — shown on load, fades out on first interaction -->
             <div id="cqd-landing" class="cqd-landing" aria-hidden="false">
                 <div class="cqd-lo-inner">
-                    <div class="cqd-lo-eyebrow">
-                        <span class="cqd-lo-av">CR</span>
-                        Cotizador CRBOX
-                    </div>
-                    <h1 class="cqd-lo-title">¿Qué querés importar<br>desde <em>USA</em>?</h1>
-                    <p class="cqd-lo-sub">Cotizá en segundos con un asesor virtual. Sin cuenta, sin compromiso.</p>
-                    <!-- Concierge name + email form -->
-                    <div class="cqd-lo-form" id="cqd-lo-form">
-                        <div class="cqd-lo-fields">
-                            <input type="text" id="cqd-lo-name" class="cqd-lo-field"
-                                placeholder="¿Cómo te llamás?" autocomplete="given-name" maxlength="60">
-                            <input type="email" id="cqd-lo-email" class="cqd-lo-field"
-                                placeholder="Tu correo (te enviamos el estimado)" autocomplete="email" maxlength="120">
+
+                    <!-- LEFT: concierge form -->
+                    <div class="cqd-lo-left">
+                        <div class="cqd-lo-eyebrow">
+                            <span class="cqd-lo-av">CR</span>
+                            Cotizador CRBOX
                         </div>
-                        <button class="cqd-lo-start-btn" id="cqd-lo-start" type="button">
-                            Empezar cotización &nbsp;<i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
-                        </button>
-                        <div class="cqd-lo-form-note">
-                            <i class="fas fa-lock" style="font-size:.65rem;margin-right:.28rem;color:#d1d5db;"></i>
-                            Datos seguros · Sin spam · Solo para tu estimado
+                        <h1 class="cqd-lo-title">¿Qué querés<br>importar desde <em>USA</em>?</h1>
+                        <p class="cqd-lo-sub">Cotizá en segundos con tu concierge personal de importaciones.</p>
+                        <div class="cqd-lo-form" id="cqd-lo-form">
+                            <div class="cqd-lo-fields">
+                                <input type="text" id="cqd-lo-name" class="cqd-lo-field"
+                                    placeholder="¿Cómo te llamás?" autocomplete="given-name" maxlength="60">
+                                <input type="email" id="cqd-lo-email" class="cqd-lo-field"
+                                    placeholder="Tu correo (te enviamos el estimado)" autocomplete="email" maxlength="120">
+                            </div>
+                            <button class="cqd-lo-start-btn" id="cqd-lo-start" type="button">
+                                Empezar cotización &nbsp;<i class="fas fa-arrow-right" style="font-size:.75rem;"></i>
+                            </button>
+                            <div class="cqd-lo-form-note">
+                                <i class="fas fa-lock" style="font-size:.62rem;margin-right:.25rem;color:#d1d5db;"></i>
+                                Datos seguros · Sin spam · Solo para tu estimado
+                            </div>
+                        </div>
+                        <div class="cqd-lo-divider"><span>o explorá por categoría</span></div>
+                        <div class="cqd-lo-chips" id="cqd-lo-chips"></div>
+                    </div>
+
+                    <!-- RIGHT: info cards -->
+                    <div class="cqd-lo-right" aria-hidden="true">
+                        <div class="cqd-info-card" style="animation-delay:.05s">
+                            <div class="cqd-info-icon">📦</div>
+                            <div class="cqd-info-body">
+                                <div class="cqd-info-title">Consolidá tu envío</div>
+                                <div class="cqd-info-text">Traé varios productos en un solo paquete y dividí el flete. Ahorrás hasta un 60% en comparación a envíos separados.</div>
+                            </div>
+                        </div>
+                        <div class="cqd-info-card" style="animation-delay:.13s">
+                            <div class="cqd-info-icon">⚡</div>
+                            <div class="cqd-info-body">
+                                <div class="cqd-info-title">Estimado en minutos</div>
+                                <div class="cqd-info-text">Describís el producto y nuestro sistema calcula impuestos, flete y costos al instante — sin formularios largos.</div>
+                            </div>
+                        </div>
+                        <div class="cqd-info-card" style="animation-delay:.21s">
+                            <div class="cqd-info-icon">🛡️</div>
+                            <div class="cqd-info-body">
+                                <div class="cqd-info-title">Sin cuenta requerida</div>
+                                <div class="cqd-info-text">No necesitás crear cuenta para cotizar. Solo tu nombre y correo — nuestro equipo te escribe con el estimado.</div>
+                            </div>
+                        </div>
+                        <div class="cqd-info-card" style="animation-delay:.29s">
+                            <div class="cqd-info-icon">🇨🇷</div>
+                            <div class="cqd-info-body">
+                                <div class="cqd-info-title">10+ años importando</div>
+                                <div class="cqd-info-text">Más de una década trayendo productos de USA a Costa Rica. Conocemos cada trámite, arancel y ruta.</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="cqd-lo-divider"><span>o explorá por categoría</span></div>
-                    <div class="cqd-lo-chips" id="cqd-lo-chips"></div>
+
                 </div>
             </div>
 
@@ -2596,24 +2801,11 @@
                     <div id="cq-product-summary-cards" style="display:none;"></div>
                 </div>
 
-                <!-- Shipping section — unlocked after first product confirmed -->
-                <div id="cq-step-shipping" class="cqw-section cqw-locked">
-                    <div class="cqw-section-label"><i class="fas fa-shipping-fast"></i> Tipo de envío</div>
-                    <div class="cqw-svc-row">
-                        <button type="button" class="cqw-svc-btn cq-svc-active" data-service="aereo" id="cq-svc-aereo">
-                            <div class="cqw-svc-icon"><i class="fas fa-plane"></i></div>
-                            <div class="cqw-svc-name">Aéreo</div>
-                        </button>
-                        <button type="button" class="cqw-svc-btn" data-service="maritimo" id="cq-svc-maritimo">
-                            <div class="cqw-svc-icon"><i class="fas fa-ship"></i></div>
-                            <div class="cqw-svc-name">Marítimo</div>
-                        </button>
-                    </div>
-                    <div id="cq-service-hint" class="cq-hint" style="margin-bottom:.75rem;font-size:.73rem;">Más rápido, ideal para electrónica, ropa y artículos menores a 50 kg.</div>
+                <!-- Hidden form stubs — keep IDs for JS compatibility, not shown in right panel -->
+                <div style="display:none;" aria-hidden="true">
                     <input type="hidden" id="f-service-type" value="aereo">
-                    <label class="cq-label" for="f-destination-zone" style="font-size:.77rem;">Provincia de entrega <span class="cq-required">*</span></label>
-                    <select id="f-destination-zone" class="cq-input cq-select" style="font-size:.84rem;padding:.65rem .9rem;margin-top:.3rem;">
-                        <option value="" disabled selected>Selecciona tu provincia</option>
+                    <select id="f-destination-zone">
+                        <option value="" disabled selected></option>
                         <option value="sanjose">San José</option>
                         <option value="heredia">Heredia</option>
                         <option value="alajuela">Alajuela</option>
@@ -2622,20 +2814,12 @@
                         <option value="puntarenas">Puntarenas</option>
                         <option value="limon">Limón</option>
                     </select>
-                    <div class="cq-err" id="err-destination" style="display:none;">
-                        <i class="fas fa-exclamation-circle"></i><span>Selecciona tu zona de entrega.</span>
-                    </div>
-                    <div id="zone-remote-hint" class="cq-hint-warn" style="display:none;margin-top:.4rem;">
-                        <i class="fas fa-info-circle"></i> Las zonas alejadas (Guanacaste, Puntarenas, Limón) pueden tener un cargo adicional.
-                    </div>
-                    <!-- Stub kept for JS compat — not shown on desktop -->
-                    <button type="button" id="cq-btn-shipping-done" style="display:none;" aria-hidden="true">
-                        <i class="fas fa-arrow-right"></i> Continuar
-                    </button>
-                </div><!-- /#cq-step-shipping -->
+                    <div id="cq-step-shipping"></div>
+                    <button type="button" id="cq-btn-shipping-done">Continuar</button>
+                </div>
 
-                <!-- Contact section — unlocked after first product confirmed -->
-                <div id="cq-step-contact" class="cqw-section cqw-locked">
+                <!-- Contact + submit — hidden in right panel, collected in chat -->
+                <div id="cq-step-contact" class="cqw-section cqw-locked" style="display:none;" aria-hidden="true">
                     <div class="cqw-section-label"><i class="fas fa-user"></i> Tus datos</div>
                     <div style="margin-bottom:.6rem;">
                         <label class="cq-label" for="f-customer-name" style="font-size:.77rem;">Nombre <span class="cq-optional">(opcional)</span></label>
@@ -2672,12 +2856,12 @@
                     </div>
                 </div><!-- /#cq-step-contact -->
 
-                <!-- Submit CTA -->
-                <div class="cqw-submit-wrap">
+                <!-- Submit button — triggered programmatically from in-chat shipping widget -->
+                <div class="cqw-submit-wrap" style="display:none;" aria-hidden="true">
                     <button type="button" id="btn-submit-quote" class="cq-btn-submit" style="margin-top:0;">
                         <i class="fas fa-paper-plane"></i> Enviar solicitud
                     </button>
-                    <p class="cq-privacy" style="margin-top:.5rem;font-size:.74rem;"><i class="fas fa-lock" style="margin-right:.25rem;"></i>Tus datos están protegidos. <a href="#" onclick="if(window.ChatPanel)ChatPanel.open();return false;" style="color:#FF6B00;font-weight:600;text-decoration:none;">¿Dudas? Chatea con nosotros.</a></p>
+                    <p class="cq-privacy" style="margin-top:.5rem;font-size:.74rem;"><i class="fas fa-lock" style="margin-right:.25rem;"></i>Tus datos están protegidos.</p>
                 </div>
 
             </div><!-- /.cqw-right-inner -->
@@ -4822,6 +5006,125 @@
             }
 
             // ── Product card widget ───────────────────────────────────────────
+            // ── In-chat shipping + contact widget ─────────────────────────────
+            function _showShippingWidget() {
+                var swId = 'cqd-sw-' + Date.now();
+                var greeting = _userFirstName
+                    ? 'Casi listos, <strong>' + _esc(_userFirstName) + '</strong>. Último paso: elegí cómo querés recibir tu pedido y nos ponemos en contacto.'
+                    : 'Casi listos. Último paso: elegí el tipo de envío y dejanos tu correo para enviarte el estimado.';
+                _say(greeting);
+
+                setTimeout(function() {
+                    var needEmail = !_userEmail;
+                    _addRow(
+                        '<div class="cqd-ship-card" id="' + swId + '">'
+                        +   '<div class="cqd-ship-header">'
+                        +     '<div class="cqd-ship-label">Paso final</div>'
+                        +     '<div class="cqd-ship-title">¿Cómo recibís tu pedido?</div>'
+                        +   '</div>'
+                        +   '<div class="cqd-ship-options">'
+                        +     '<button class="cqd-ship-opt cqd-ship-active" id="' + swId + '-aereo" type="button">'
+                        +       '<span class="cqd-ship-badge fast">Más rápido</span>'
+                        +       '<span class="cqd-ship-emoji">✈️</span>'
+                        +       '<div class="cqd-ship-name">Aéreo</div>'
+                        +       '<div class="cqd-ship-desc">7–14 días · Ideal para electrónica, ropa y artículos menores de 50 kg</div>'
+                        +     '</button>'
+                        +     '<button class="cqd-ship-opt" id="' + swId + '-maritimo" type="button">'
+                        +       '<span class="cqd-ship-badge eco">Más económico</span>'
+                        +       '<span class="cqd-ship-emoji">🚢</span>'
+                        +       '<div class="cqd-ship-name">Marítimo</div>'
+                        +       '<div class="cqd-ship-desc">3–6 semanas · Muebles, vehículos y artículos de más de 50 kg</div>'
+                        +     '</button>'
+                        +   '</div>'
+                        +   '<div class="cqd-ship-fields">'
+                        +     '<div>'
+                        +       '<label class="cqd-ship-field-label" for="' + swId + '-zone">Provincia de entrega <span style="color:#ef4444">*</span></label>'
+                        +       '<select class="cqd-ship-select" id="' + swId + '-zone">'
+                        +         '<option value="" disabled selected>Seleccioná tu provincia</option>'
+                        +         '<option value="sanjose">San José</option>'
+                        +         '<option value="heredia">Heredia</option>'
+                        +         '<option value="alajuela">Alajuela</option>'
+                        +         '<option value="cartago">Cartago</option>'
+                        +         '<option value="guanacaste">Guanacaste</option>'
+                        +         '<option value="puntarenas">Puntarenas</option>'
+                        +         '<option value="limon">Limón</option>'
+                        +       '</select>'
+                        +     '</div>'
+                        +     (needEmail
+                        +         ? '<div>'
+                        +           '<label class="cqd-ship-field-label" for="' + swId + '-email">Tu correo electrónico <span style="color:#ef4444">*</span></label>'
+                        +           '<input type="email" class="cqd-ship-email-inp" id="' + swId + '-email" placeholder="tucorreo@ejemplo.com" autocomplete="email">'
+                        +           '</div>'
+                        +         : '<div style="font-size:.78rem;color:#6b7280;padding:.3rem 0;">📧 Enviamos el estimado a <strong>' + _esc(_userEmail) + '</strong></div>')
+                        +   '</div>'
+                        +   '<div class="cqd-ship-confirm-wrap">'
+                        +     '<button class="cqd-ship-submit-btn" id="' + swId + '-submit" type="button">'
+                        +       '<i class="fas fa-paper-plane"></i> Enviar solicitud'
+                        +     '</button>'
+                        +     '<div class="cqd-ship-err" id="' + swId + '-err">Por favor completá todos los campos requeridos.</div>'
+                        +     '<div class="cqd-ship-trust"><i class="fas fa-lock" style="margin-right:.25rem;"></i>Datos protegidos · Respuesta en menos de 24 h</div>'
+                        +   '</div>'
+                        + '</div>',
+                        'wide'
+                    );
+
+                    // ── Service toggle
+                    var aereoBtn = document.getElementById(swId + '-aereo');
+                    var maritBtn = document.getElementById(swId + '-maritimo');
+                    var fSvc     = document.getElementById('f-service-type');
+                    var curSvc   = 'aereo';
+
+                    function _setSvc(svc) {
+                        curSvc = svc;
+                        if (aereoBtn) aereoBtn.classList.toggle('cqd-ship-active', svc === 'aereo');
+                        if (maritBtn) maritBtn.classList.toggle('cqd-ship-active', svc === 'maritimo');
+                        if (fSvc)     fSvc.value = svc;
+                    }
+                    if (aereoBtn) aereoBtn.addEventListener('click', function() { _setSvc('aereo'); });
+                    if (maritBtn) maritBtn.addEventListener('click', function() { _setSvc('maritimo'); });
+
+                    // ── Submit
+                    var submitBtn = document.getElementById(swId + '-submit');
+                    var errEl     = document.getElementById(swId + '-err');
+
+                    if (submitBtn) submitBtn.addEventListener('click', function() {
+                        var zoneEl  = document.getElementById(swId + '-zone');
+                        var emailEl = document.getElementById(swId + '-email');
+                        var zone    = zoneEl  ? zoneEl.value.trim()  : '';
+                        var email   = emailEl ? emailEl.value.trim() : _userEmail;
+
+                        if (!zone || (!email && needEmail)) {
+                            if (errEl) errEl.style.display = 'block';
+                            if (!zone && zoneEl) zoneEl.focus();
+                            else if (!email && emailEl) emailEl.focus();
+                            return;
+                        }
+                        if (errEl) errEl.style.display = 'none';
+
+                        // Sync to hidden form fields
+                        var fZone  = document.getElementById('f-destination-zone');
+                        var fEmail = document.getElementById('f-customer-email');
+                        var fName  = document.getElementById('f-customer-name');
+                        if (fZone)  fZone.value  = zone;
+                        if (email && fEmail) fEmail.value = email;
+                        if (_userFirstName && fName) fName.value = _userFirstName;
+                        if (email) _userEmail = email;
+
+                        submitBtn.disabled    = true;
+                        submitBtn.innerHTML   = '<i class="fas fa-circle-notch fa-spin"></i> Enviando...';
+
+                        // Trigger legacy submit
+                        var legacyBtn = document.getElementById('btn-submit-quote');
+                        if (legacyBtn) legacyBtn.click();
+                    });
+
+                    setTimeout(function() {
+                        var sw = document.getElementById(swId);
+                        if (sw) sw.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 300);
+                }, 420);
+            }
+
             // Category emoji lookup
             function _productEmoji(name, catName) {
                 var s = ((name || '') + ' ' + (catName || '')).toLowerCase();
@@ -4938,18 +5241,17 @@
             // Both modules are in the same IIFE so we have direct access to all
             // private state vars and functions.
             function _bridgeConfirm(name, price, brainResult) {
-                // Populate the hidden form fields that _confirmCurrentProduct() reads
+                // Populate hidden form fields for JS compat
                 if (bubbleText)    bubbleText.textContent     = name;
                 if (productBubble) productBubble.style.display = 'flex';
                 if (fPrice)        fPrice.value               = String(price);
                 if (fCategory && brainResult && brainResult.legacyCode)
                     fCategory.value = brainResult.legacyCode;
 
-                // Set shared state
-                _currentBrainResult = brainResult || null;
-                _currentAiState     = { active: false, dataSource: brainResult ? 'ai_gemini' : 'manual', inFlight: false };
+                _currentBrainResult   = brainResult || null;
+                _currentAiState       = { active: false, dataSource: brainResult ? 'ai_gemini' : 'manual', inFlight: false };
                 _currentClarification = '';
-                _currentEntryId     = _nextProductId++;
+                _currentEntryId       = _nextProductId++;
 
                 // Reveal right panel on first confirmed product
                 (function() {
@@ -4959,78 +5261,60 @@
                     }
                 })();
 
-                // Delegate to existing confirm logic
                 _confirmCurrentProduct();
                 _updateStepIndicator(2);
 
-                // Inject a rich in-chat post-confirm card
                 var nProds = _confirmedProducts.length;
-                var guidance = brainResult && brainResult.geminiGuidance ? brainResult.geminiGuidance : '';
-                var pcId = 'cqd-pc-' + _currentEntryId;
+                var amId   = 'cqd-am-' + _currentEntryId;
 
                 D.lastSender = null;
                 setTimeout(function() {
-                    // Build the post-confirm card HTML
-                    var consolidationHtml = '';
-                    if (nProds >= 2) {
-                        consolidationHtml =
-                            '<div class="cqd-pc-consolidation">'
-                            + '<i class="fas fa-boxes"></i>'
-                            + '<span><strong>Consolidación:</strong> Al enviar ' + nProds + ' productos juntos, el costo de flete se divide entre todos — ahorrás significativamente en comparación a envíos separados.</span>'
-                            + '</div>';
-                    } else {
-                        consolidationHtml =
-                            '<div class="cqd-pc-consolidation">'
-                            + '<i class="fas fa-lightbulb"></i>'
-                            + '<span><strong>Tip:</strong> Si agregás más productos al mismo envío, el flete se divide y bajás el costo por ítem.</span>'
-                            + '</div>';
-                    }
+                    // Build "add another?" decision card
+                    var consHtml = nProds >= 2
+                        ? '<div class="cqd-addmore-consolidation"><i class="fas fa-boxes"></i><span><strong>Tip de ahorro:</strong> Con ' + nProds + ' productos en el mismo envío el flete se divide — pagás menos por ítem.</span></div>'
+                        : '<div class="cqd-addmore-consolidation"><i class="fas fa-lightbulb"></i><span><strong>Sabías que</strong> podés agregar más productos y dividir el flete entre todos? Ahorrás significativamente.</span></div>';
+
+                    var nameStr = _userFirstName ? ', <strong>' + _esc(_userFirstName) + '</strong>' : '';
 
                     _addRow(
-                        '<div class="cqd-pc-card" id="' + pcId + '">'
-                        +   '<div class="cqd-pc-success">'
-                        +     '<div class="cqd-pc-check"><i class="fas fa-check"></i></div>'
-                        +     '<div class="cqd-pc-meta">'
-                        +       '<div class="cqd-pc-name">' + _esc(name) + '</div>'
-                        +       '<div class="cqd-pc-price">$' + price.toFixed(2) + ' USD · '
-                        +         (nProds > 1 ? nProds + ' productos en tu solicitud' : 'Primer producto agregado')
-                        +       '</div>'
-                        +     '</div>'
+                        '<div class="cqd-addmore-card" id="' + amId + '">'
+                        +   '<div class="cqd-addmore-q">✅ <strong>' + _esc(name) + '</strong> agregado — $' + price.toFixed(2) + ' USD.<br>'
+                        +   'Genial' + nameStr + ', ¿querés agregar otro producto al mismo envío?'
                         +   '</div>'
-                        +   (guidance ? '<div class="cqd-pc-guidance">' + _esc(guidance) + '</div>' : '')
-                        +   '<div class="cqd-pc-actions">'
-                        +     '<button class="cqd-pc-add-btn" id="' + pcId + '-add">'
-                        +       '<i class="fas fa-plus"></i> Agregar otro producto'
+                        +   '<div class="cqd-addmore-btns">'
+                        +     '<button class="cqd-addmore-yes" id="' + amId + '-yes">'
+                        +       '<i class="fas fa-plus"></i> Sí, agregar otro'
                         +     '</button>'
-                        +     '<button class="cqd-pc-done-link" id="' + pcId + '-done">'
-                        +       'Ya terminé · ir al panel derecho'
+                        +     '<button class="cqd-addmore-no" id="' + amId + '-no">'
+                        +       'No, ya terminé'
                         +     '</button>'
                         +   '</div>'
-                        +   consolidationHtml
+                        +   consHtml
                         + '</div>',
                         'wide'
                     );
 
-                    // Bind buttons
-                    var addBtn  = document.getElementById(pcId + '-add');
-                    var doneBtn = document.getElementById(pcId + '-done');
+                    var yesBtn = document.getElementById(amId + '-yes');
+                    var noBtn  = document.getElementById(amId + '-no');
 
-                    if (addBtn) addBtn.addEventListener('click', function() {
+                    if (yesBtn) yesBtn.addEventListener('click', function() {
+                        // Disable both buttons to prevent re-click
+                        yesBtn.disabled = true; noBtn.disabled = true;
+                        yesBtn.style.opacity = '.5'; noBtn.style.opacity = '.5';
                         var prompt = _userFirstName
-                            ? '¡Genial, ' + _esc(_userFirstName) + '! ¿Qué otro producto querés agregar?'
-                            : '¡Genial! ¿Qué otro producto querés agregar?';
+                            ? '¡Perfecto! ¿Qué más querés traer, <strong>' + _esc(_userFirstName) + '</strong>?'
+                            : '¡Perfecto! ¿Qué otro producto querés agregar?';
                         _say(prompt);
                         D.phase = 'intro';
                         setTimeout(function() { inputEl.focus({ preventScroll: true }); }, 300);
                     });
 
-                    if (doneBtn) doneBtn.addEventListener('click', function() {
-                        var rp = document.querySelector('.cqd-right');
-                        if (rp) rp.scrollTo({ top: 0, behavior: 'smooth' });
-                        _say('Perfecto — completá el tipo de envío y tus datos en el panel derecho. Nuestro equipo te contacta en menos de 24 horas.');
+                    if (noBtn) noBtn.addEventListener('click', function() {
+                        yesBtn.disabled = true; noBtn.disabled = true;
+                        yesBtn.style.opacity = '.5'; noBtn.style.opacity = '.5';
+                        _showShippingWidget();
                     });
 
-                    setTimeout(function() { inputEl.focus({ preventScroll: true }); }, 400);
                 }, 380);
 
                 D.phase = 'intro';
