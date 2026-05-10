@@ -994,7 +994,7 @@
         /* Responsive stacking */
         @media (max-width: 940px) {
             .cqw-split { grid-template-columns: 1fr; gap: 1.25rem; }
-            .cqw-right { position: static; max-height: none; overflow-y: visible; order: -1; }
+            .cqw-right { position: static; max-height: none; overflow-y: visible; }
             .cqw-left .cq-pcard-right { flex: 0 0 320px; }
         }
         @media (max-width: 640px) {
@@ -1185,8 +1185,19 @@
                 box-shadow: none;
             }
 
-            /* ── Right panel (stacks at top on mobile via order:-1) ── */
-            .cqw-right { order: -1; }
+            /* ── Right panel — concierge: hidden until product confirmed ── */
+            .cqw-right {
+                order: 0;
+                display: none;
+            }
+            .cqw-right.cqw-mobile-revealed {
+                display: block;
+                animation: cqwReveal .45s cubic-bezier(.22,1,.36,1) both;
+            }
+            @keyframes cqwReveal {
+                from { opacity: 0; transform: translateY(22px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
             .cqw-right-inner {
                 border: none;
                 border-radius: 1.25rem;
@@ -1229,7 +1240,7 @@
                 border-radius: .5rem;
             }
 
-            /* Section dividers */
+            /* Section dividers — step cards in concierge flow */
             .cqw-section {
                 border-top: 1px solid #f3f4f6;
                 padding: .85rem 1.05rem .9rem;
@@ -1241,6 +1252,39 @@
                 letter-spacing: .1em;
                 margin-bottom: .55rem;
             }
+            /* Step number badge before each section label on mobile */
+            #cq-step-shipping .cqw-section-label::before {
+                content: '2';
+                display: inline-flex; align-items: center; justify-content: center;
+                width: 18px; height: 18px; border-radius: 50%;
+                background: #FF6B00; color: #fff;
+                font-size: .6rem; font-weight: 800;
+                margin-right: .38rem; flex-shrink: 0;
+            }
+            #cq-step-contact .cqw-section-label::before {
+                content: '3';
+                display: inline-flex; align-items: center; justify-content: center;
+                width: 18px; height: 18px; border-radius: 50%;
+                background: #FF6B00; color: #fff;
+                font-size: .6rem; font-weight: 800;
+                margin-right: .38rem; flex-shrink: 0;
+            }
+            /* Continuar button — shown only on mobile concierge flow */
+            #cq-btn-shipping-done {
+                display: flex !important;
+                width: 100%; margin-top: .875rem;
+                padding: .875rem 1.5rem;
+                background: #FF6B00; color: #fff;
+                border: none; border-radius: 1rem;
+                font-size: .97rem; font-weight: 700;
+                cursor: pointer; font-family: inherit;
+                align-items: center; justify-content: center; gap: .5rem;
+                box-shadow: 0 4px 16px rgba(255,107,0,.28);
+                transition: background .2s;
+            }
+            #cq-btn-shipping-done:hover { background: #e85e00; }
+            /* Contact section — slides in when shipping step done */
+            #cq-step-contact { animation: cqwReveal .38s cubic-bezier(.22,1,.36,1) both; }
 
             /* Service toggle — orange fill when active */
             .cqw-svc-btn { border-radius: .875rem; padding: .58rem .45rem; }
@@ -1706,8 +1750,10 @@
                             <div id="zone-remote-hint" class="cq-hint-warn" style="display:none;margin-top:.4rem;">
                                 <i class="fas fa-info-circle"></i> Las zonas alejadas (Guanacaste, Puntarenas, Limón) pueden tener un cargo adicional.
                             </div>
-                            <!-- Hidden Continuar stub for JS compat -->
-                            <button type="button" id="cq-btn-shipping-done" style="display:none;" aria-hidden="true"></button>
+                            <!-- Continuar: hidden on desktop (sidebar flow), shown on mobile (concierge step) -->
+                            <button type="button" id="cq-btn-shipping-done" style="display:none;" aria-hidden="true">
+                                <i class="fas fa-arrow-right"></i> Continuar
+                            </button>
                         </div><!-- /#cq-step-shipping -->
 
                         <!-- Contact section — locked until first product confirmed -->
@@ -2476,6 +2522,24 @@
             if (shippingSection) shippingSection.classList.remove('cqw-locked');
             if (contactSection)  contactSection.classList.remove('cqw-locked');
 
+            // ── Mobile concierge mode: sequential steps ──
+            var _isMobile = window.innerWidth <= 640;
+            if (_isMobile) {
+                // Keep contact hidden until shipping step is completed
+                if (contactSection) { contactSection.classList.add('cqw-locked'); contactSection.style.display = 'none'; }
+                // Reveal right panel below the product card
+                var _rp = document.querySelector('.cqw-right');
+                if (_rp) {
+                    _rp.classList.add('cqw-mobile-revealed');
+                    // Fix aria-hidden on the shipping continue button
+                    var _sd = document.getElementById('cq-btn-shipping-done');
+                    if (_sd) _sd.removeAttribute('aria-hidden');
+                    setTimeout(function() {
+                        _rp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 300);
+                }
+            }
+
             // Hide empty state, show badge + summary cards
             var emptyState = document.getElementById('cqw-empty-state');
             if (emptyState) emptyState.style.display = 'none';
@@ -2939,6 +3003,9 @@
             if (fDestination) fDestination.classList.remove('cq-error-state');
             if (errDest) errDest.style.display = 'none';
             _updateStepIndicator(3);
+            // Unlock contact (may have been re-locked in mobile concierge mode)
+            var _cs = document.getElementById('cq-step-contact');
+            if (_cs) { _cs.classList.remove('cqw-locked'); _cs.style.display = ''; }
             _showEl('cq-step-contact');
             setTimeout(function() {
                 var sc = document.getElementById('cq-step-contact');
@@ -3201,7 +3268,12 @@
             var shippingSection = document.getElementById('cq-step-shipping');
             var contactSection  = document.getElementById('cq-step-contact');
             if (shippingSection) shippingSection.classList.add('cqw-locked');
-            if (contactSection)  contactSection.classList.add('cqw-locked');
+            if (contactSection)  { contactSection.classList.add('cqw-locked'); contactSection.style.display = ''; }
+            // Mobile concierge: re-hide right panel for next session
+            var _rpReset = document.querySelector('.cqw-right');
+            if (_rpReset) _rpReset.classList.remove('cqw-mobile-revealed');
+            var _sdReset = document.getElementById('cq-btn-shipping-done');
+            if (_sdReset) _sdReset.setAttribute('aria-hidden', 'true');
             var emptyState = document.getElementById('cqw-empty-state');
             if (emptyState) emptyState.style.display = '';
             var cartBadge = document.getElementById('cq-cart-badge');
