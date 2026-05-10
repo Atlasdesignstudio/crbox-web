@@ -420,17 +420,19 @@
         .cq-cat-result-tax { font-size:.72rem; color:#b45309; font-weight:500; }
 
         /* ── Secondary add-another card ── */
-        #cq-add-product-area {
-            margin-bottom:1rem;
-            border-style:dashed !important;
-            border-color:#d1d5db !important;
-            background:#fafafa !important;
+        #cq-add-product-area { margin-bottom:.25rem; }
+
+        /* ── Consolidation benefit banner (right panel — shown when 2+ products) ── */
+        .cqw-consolidation-banner {
+            display:flex; align-items:flex-start; gap:.55rem;
+            margin-top:.55rem; padding:.65rem .9rem;
+            background:linear-gradient(135deg,#fff7ed 0%,#fef9f5 100%);
+            border:1.5px solid #fed7aa; border-radius:.875rem;
+            animation:cqFadeUp .3s ease both;
         }
-        #cq-add-product-area .cq-step-title { font-size:.92rem !important; color:#6b7280 !important; }
-        #cq-add-product-area .cq-step-num {
-            background:none !important; border:2px solid #d1d5db !important;
-            color:#9ca3af !important; font-size:.75rem !important;
-        }
+        .cqw-cb-icon { font-size:.95rem; flex-shrink:0; margin-top:.05rem; }
+        .cqw-cb-title { font-size:.74rem; font-weight:700; color:#c2410c; margin-bottom:.1rem; }
+        .cqw-cb-text { font-size:.7rem; color:#92400e; line-height:1.55; }
         /* Fields section inside pcard */
         .cq-pcard-fields { padding:1.15rem 1.3rem 1.3rem; border-top:1px solid #f3f4f6; }
         .cq-fields-divider {
@@ -1125,6 +1127,31 @@
     <div id="cq-flow" aria-live="polite">
         <div class="cq-flow-inner">
 
+            <!-- ── Builder bar — step indicator + product count — shown with the flow ── -->
+            <div class="cq-builder-bar" aria-label="Progreso de tu solicitud">
+                <div class="cq-builder-info">
+                    <span class="cq-builder-label">Solicitud</span>
+                    <span id="cq-builder-count" class="cq-builder-count" style="display:none;"></span>
+                    <span id="cq-mobile-step-label" class="cq-mobile-step-label"></span>
+                </div>
+                <div class="cq-step-ind" aria-label="Progreso">
+                    <div class="cq-si-step cq-si-active" id="cq-si-1">
+                        <div class="cq-si-num">1</div>
+                        <span class="cq-si-label">Producto</span>
+                    </div>
+                    <div class="cq-si-line" id="cq-si-line-1"></div>
+                    <div class="cq-si-step" id="cq-si-2">
+                        <div class="cq-si-num">2</div>
+                        <span class="cq-si-label">Solicitud</span>
+                    </div>
+                    <div class="cq-si-line" id="cq-si-line-2"></div>
+                    <div class="cq-si-step" id="cq-si-3">
+                        <div class="cq-si-num">3</div>
+                        <span class="cq-si-label">Datos</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Draft restore bar — visible when a saved quote draft is detected -->
             <div id="cq-draft-bar" style="display:none;margin-bottom:.875rem;padding:.52rem 1rem;background:#fef3c7;border:1px solid #fde68a;border-radius:.75rem;font-size:.83rem;color:#92400e;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;">
                 <span><i class="fas fa-clock-rotate-left" style="margin-right:.35rem;"></i>Tienes una cotización guardada sin enviar.</span>
@@ -1146,10 +1173,8 @@
                             <i class="fas fa-plus"></i> Agregar otro
                         </button>
                     </div>
-                    <!-- Compatibility stubs (no longer rendered but JS still references them) -->
-                    <div id="cq-cart-section-header" style="display:none;"></div>
+                    <!-- Compatibility stubs (referenced by JS) -->
                     <div id="cq-quote-summary" style="display:none;"></div>
-                    <div id="cq-builder-bar" style="display:none;"></div>
 
                     <!-- Unified product card: bubble + AI analysis + detail fields -->
                     <div id="cq-step-product" class="cq-pcard">
@@ -1316,16 +1341,9 @@
                     </div><!-- /.cq-pcard-body -->
                 </div><!-- /#cq-step-product -->
 
-                <!-- Add another product mini area -->
-                <div id="cq-add-product-area" class="cq-card" style="display:none;">
-                    <div class="cq-step-header" style="margin-bottom:.75rem;padding-bottom:.75rem;">
-                        <div class="cq-step-num"><i class="fas fa-plus" style="font-size:.75rem;"></i></div>
-                        <div>
-                            <div class="cq-step-title">Agregar otro producto</div>
-                            <div class="cq-step-sub">¿Qué más quieres traer en esta solicitud?</div>
-                        </div>
-                    </div>
-                    <div id="cq-add-concierge-mount" style="margin-top:.15rem;"></div>
+                <!-- Add another product — full ConciergeIntake module (same experience as first) -->
+                <div id="cq-add-product-area" style="display:none;">
+                    <div id="cq-add-concierge-mount"></div>
                 </div>
 
                 </div><!-- /.cqw-left -->
@@ -2281,6 +2299,17 @@
 
                 container.appendChild(card);
             });
+
+            // Consolidation benefit — shown when 2+ products confirmed
+            if (_confirmedProducts.length >= 2) {
+                var _cb = document.createElement('div');
+                _cb.className = 'cqw-consolidation-banner';
+                _cb.innerHTML = '<div class="cqw-cb-icon">📦</div>'
+                    + '<div><div class="cqw-cb-title">Envío consolidado</div>'
+                    + '<div class="cqw-cb-text">Traer tus ' + _confirmedProducts.length + ' productos en un solo pedido puede reducir el costo de envío. El equipo CRBOX lo revisa al cotizar.</div>'
+                    + '</div>';
+                container.appendChild(_cb);
+            }
         }
 
         // ── Quote summary guidance block ──────────────────────
@@ -2481,14 +2510,14 @@
         var _ciAddInst = null;
         if (typeof ConciergeIntake !== 'undefined') {
             _ciAddInst = ConciergeIntake.mount('cq-add-concierge-mount', {
-                compact:      true,
-                showUrl:      false,
+                compact:      false,
+                showUrl:      true,
                 showPrice:    true,
-                calcRedirect: true,
+                calcRedirect: false,
                 placeholder:  'Describe el siguiente producto…',
                 onRequestQuote: function(name, approxPrice, result) {
                     _hideEl('cq-add-product-area');
-                    _startAddEntry(name);
+                    _startAddEntry(name, result);
                     // Pre-fill declared value if concierge captured a price
                     if (approxPrice > 0) {
                         var prEl = document.getElementById('cq-f-price');
@@ -2525,7 +2554,7 @@
             });
         })();
 
-        function _startAddEntry(productName) {
+        function _startAddEntry(productName, preloadedResult) {
             _currentEntryId     = _nextProductId++;
             _currentBrainResult = null;
             _currentAiState     = { active: false, dataSource: 'manual', inFlight: false };
@@ -2561,12 +2590,21 @@
             if (stepProd) stepProd.style.display = '';
             if (stepProd) setTimeout(function() { stepProd.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
             if (typeof CRBOXProductClassifier !== 'undefined') {
-                var _addIntent = _normalizeForClassify(productName);
-                CRBOXProductClassifier.classify(_addIntent).then(function(result) {
-                    _currentBrainResult = result;
-                    _renderIntelCard(result, productName, 0);
+                if (preloadedResult) {
+                    // Reuse result from ConciergeIntake — skip redundant network classify call
+                    _clearLoadingInterval();
+                    _currentBrainResult = preloadedResult;
+                    _renderIntelCard(preloadedResult, productName, 0);
                     if (intelArea) intelArea.style.display = '';
-                }).catch(function() {}).finally(function() { _finishClassify(); });
+                    _finishClassify();
+                } else {
+                    var _addIntent = _normalizeForClassify(productName);
+                    CRBOXProductClassifier.classify(_addIntent).then(function(result) {
+                        _currentBrainResult = result;
+                        _renderIntelCard(result, productName, 0);
+                        if (intelArea) intelArea.style.display = '';
+                    }).catch(function() {}).finally(function() { _finishClassify(); });
+                }
             } else { _finishClassify(); }
         }
 
@@ -3013,17 +3051,16 @@
 
         function _warmIntro(productName, result) {
             var name = (productName || 'este producto').trim();
-            var cap  = name.charAt(0).toUpperCase() + name.slice(1);
             var cat  = result.displayName || 'esta categoría';
             var templates = [
-                'Con gusto te ayudamos a traer ' + name + ' a Costa Rica. Este tipo de producto normalmente se importa como ' + cat + ' — agrega el precio aproximado y te mostramos una guía inicial de impuestos antes de que el equipo CRBOX confirme la cotización final.',
-                'Perfecto, podemos importar ' + name + ' para ti. Suele clasificarse como ' + cat + ' al ingresar a Costa Rica — con el precio aproximado calculamos una estimación orientativa de impuestos; luego el equipo confirma los detalles.',
-                'Buenísimo. ' + name + ' generalmente entra como ' + cat + ' al importarse a Costa Rica. Agréganos el precio aproximado y te mostramos una guía inicial de impuestos; el equipo CRBOX revisará peso, dimensiones y confirmará la cotización final.',
-                cap + ' pertenece a la categoría ' + cat + '. Con CRBOX, gestionamos la compra en Miami, el envío y la documentación aduanera — agrega el precio para ver una estimación orientativa de lo que podrías pagar de impuestos.',
-                'Con gusto revisamos ' + name + '. Como ' + cat + ', podemos darte una guía de impuestos orientativa una vez que ingreses el precio aproximado — el equipo CRBOX confirma los montos exactos antes de proceder.',
-                '¡Excelente elección! Para ' + name + ' — categoría ' + cat + ' — calculamos una estimación orientativa de impuestos con el precio que nos des; luego el equipo CRBOX te confirma el costo total con todos los detalles del envío.',
-                cap + ' se clasifica como ' + cat + ' para importarse a Costa Rica. Agrega el precio aproximado para que te mostremos cuánto podrías pagar de impuestos — el equipo CRBOX confirmará los montos exactos antes de proceder.',
-                'Todo listo para cotizar ' + name + '. Bajo la categoría ' + cat + ', te damos una estimación orientativa de impuestos con el precio que ingreses — luego el equipo CRBOX revisa los detalles y te envía la cotización final.',
+                name + ' se importa sin problema. Entra como ' + cat + ' — agrega el precio aproximado y te mostramos una guía de impuestos antes de que el equipo CRBOX confirme la cotización.',
+                'Podemos traer ' + name + ' directo a Costa Rica. Se clasifica como ' + cat + ' — con el precio que ingreses calculamos una estimación orientativa de impuestos; el equipo revisa y confirma los detalles finales.',
+                name + ' generalmente entra como ' + cat + '. Con CRBOX gestionamos la compra en Miami, el envío y los trámites aduaneros — agrega el precio para ver un estimado inicial de impuestos.',
+                name + ' cae dentro de la categoría ' + cat + '. Agrega el precio aproximado y te mostramos cuánto podrías pagar de impuestos orientativos; el equipo CRBOX confirma los montos exactos antes de proceder.',
+                'Sin problema para importar ' + name + '. Como ' + cat + ', calculamos una estimación de impuestos con el precio que ingreses — el equipo CRBOX confirma los montos finales antes de continuar.',
+                name + ' se importa como ' + cat + '. Ingresa el precio aproximado y te mostramos una guía de impuestos; el equipo CRBOX revisará peso, dimensiones y confirmará la cotización completa.',
+                'Con gusto cotizamos ' + name + '. Bajo la categoría ' + cat + ', calculamos una estimación orientativa de impuestos con el precio que ingreses — el equipo CRBOX confirma todo antes de proceder.',
+                name + ' se clasifica como ' + cat + ' para fines aduaneros. Agrega el precio y verás el estimado de impuestos; el equipo CRBOX revisa los detalles y te envía la cotización final.',
             ];
             return templates[(name.charCodeAt(0) + (cat.charCodeAt(0) || 0)) % templates.length];
         }
@@ -3031,10 +3068,10 @@
         function _ambiguousIntro(productName) {
             var name = (productName || 'este producto').trim();
             var templates = [
-                'Podemos ayudarte a traer ' + name + ' a Costa Rica. Con la descripción actual no tenemos suficiente contexto para determinar la categoría exacta — si agregas el enlace del producto o una breve aclaración abajo, el equipo CRBOX podrá confirmarlo con más precisión.',
-                'Con gusto revisamos ' + name + '. Para darte una guía de impuestos más precisa necesitamos un poco más de contexto — agrega el enlace o acláranos el tipo exacto de producto y el equipo CRBOX lo confirma en menos de 24 horas.',
-                'Puedo ayudarte con ' + name + ', aunque con esta descripción no es del todo claro cuál es la categoría exacta de importación. Si agregas el enlace o describes el producto con más detalle, te damos una estimación más precisa.',
-                'Revisaremos ' + name + ' para ti. Este tipo de producto podría requerir clasificación especial — agrega el enlace o una aclaración y el equipo CRBOX te confirmará si puede importarse y cuál sería el costo estimado.',
+                'Con gusto revisamos ' + name + '. Con la descripción actual no podemos determinar la categoría exacta — si agregas el enlace del producto o una breve aclaración, el equipo CRBOX te confirma impuestos y requisitos en menos de 24 horas.',
+                'Podemos traer ' + name + ' a Costa Rica. Para afinar la estimación de impuestos necesitamos un poco más de contexto — agrega el enlace o descríbenos el tipo exacto y el equipo lo confirma pronto.',
+                name + ' puede corresponder a varias categorías de importación. Agrega el enlace del producto o una descripción más detallada y el equipo CRBOX confirma clasificación y costos en breve.',
+                'Revisaremos ' + name + ' para ti. Un poco más de detalle — el enlace o el tipo exacto de producto — le permite al equipo CRBOX confirmarte si puede importarse y cuál sería el costo estimado.',
             ];
             return templates[name.charCodeAt(0) % templates.length];
         }
