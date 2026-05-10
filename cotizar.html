@@ -4864,10 +4864,12 @@
         })();
 
         // ── Desktop chat module (≥641px) ────────────────────────────────────
-        // Runs inside the IIFE so it has full access to all private state vars
-        // and functions: _confirmCurrentProduct, _renderSummaryCards, etc.
+        // Deferred via double-rAF so window.innerWidth is reliable in iframes.
+        requestAnimationFrame(function() { requestAnimationFrame(function() {
         (function _deskChat() {
-            if (window.innerWidth <= 640) return;
+            // Defer init until after iframe sizing; treat width==0 as desktop
+            var _iw = window.innerWidth || document.documentElement.clientWidth || 9999;
+            if (_iw > 0 && _iw <= 640) return;
             var cqd     = document.getElementById('cqd');
             var msgsEl  = document.getElementById('cqd-messages');
             var inputEl = document.getElementById('cqd-input');
@@ -5413,6 +5415,7 @@
             // ── Boot ─────────────────────────────────────────────────────────
             requestAnimationFrame(function() { requestAnimationFrame(function() { _boot(); }); });
         })(); // end _deskChat
+        }); }); // end double-rAF deferral
 
     })();
     </script>
