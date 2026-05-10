@@ -1,0 +1,28 @@
+This plan is now strong and aligned. Please apply only these final refinements before implementation:
+
+1. Keep the quote summary as guidance, not a new submission layer. It should help the user understand what has been added and then continue into the existing shipping/contact/final flow. Do not create a second submit path or duplicate the final submission logic.
+
+2. Be careful with the primary CTA wording. If the existing flow requires shipping/contact details before the final request can be sent, do not show “Enviar solicitud de cotización” too early in a way that skips those steps. In that case, use a forward-moving CTA such as “Continuar con la solicitud” until the real final step.
+
+3. For the follow-up clarification field, do not overpromise that it will always intelligently update category/taxes. It should add context, re-evaluate when possible, and display the clarification clearly for the CRBOX team. If the analysis cannot confidently change, keep the original analysis and show the user’s clarification as an added note.
+
+4. The searchable category correction should be simple and robust. Prioritize a lightweight search/filter experience that updates the selected category and visible estimate cleanly. Avoid adding fragile re-render behavior if it risks breaking the existing product card.
+
+5. If implementing Edit/Remove for collapsed confirmed cards becomes risky, prioritize visibility of confirmed product cards and Remove first. Edit can be simple: reopen the product details in the current form state without duplicating the product. Do not overbuild a complex editing system.
+
+6. Keep the “wider layout” subtle. Do not turn the page into a heavy dashboard or two-column app unless the existing structure naturally supports it. The goal is a more spacious quote builder, not a completely different product.
+
+7. Make sure “estimated/orientative” language also applies to the total declared value and any quote summary numbers, not only tax percentages.
+
+8. The consolidation tip must remain general and non-guaranteed. It should say users can “aprovechar mejor el envío,” not that they will definitely pay less.
+
+9. Preserve all existing data submission fields and values. Any new visual summary or note should not remove information currently needed by the existing flow.
+
+10. Final priority order should be:
+   1) no clipping / smooth loading transition
+   2) warm consistent loading across all entry points
+   3) clearer product analysis hierarchy
+   4) estimated/orientative wording
+   5) product visibility after confirming
+   6) wider layout and CTA hierarchy
+   7) follow-up/category/search enhancements

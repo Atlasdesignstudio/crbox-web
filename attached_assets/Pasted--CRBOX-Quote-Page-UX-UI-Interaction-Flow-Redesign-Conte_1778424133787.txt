@@ -1,0 +1,68 @@
+# CRBOX Quote Page — UX/UI + Interaction Flow Redesign
+
+## Context
+
+We need to improve the current `cotizar` experience. The page already has a strong hero/search interaction, but once the user submits a product, the experience becomes too form-like, visually cramped, and inconsistent depending on whether the product was typed manually, selected from a category chip, or clicked from “Populares hoy”.
+
+The goal is to make the quote flow feel modern, friendly, fluid, and premium — closer to the experience quality of Apple, Shopify, or a modern product configurator — while keeping the CRBOX brand language: warm, clear, orange-forward, approachable, and non-technical.
+
+This should not feel like a traditional form. It should feel like a guided product quote builder where the user adds one or multiple products, receives friendly AI-assisted guidance, understands the estimated taxes/shipping in a visual way, and can either add another product or submit the full quote request.
+
+---
+
+# Main Objective
+
+Redesign and refine the quote experience so that:
+
+1. Product analysis/loading feels smooth and friendly.
+2. The AI/product response has clear visual hierarchy instead of appearing as one long paragraph.
+3. Product details are easier to edit, correct, and enrich.
+4. The user can add multiple products naturally.
+5. Added products remain visible as clean, collapsible product cards.
+6. The layout uses more of the viewport on desktop instead of feeling like a narrow centered form.
+7. The experience remains fully responsive and excellent on mobile.
+8. All entry points behave consistently: manual search, arrow click, Enter key, category chips, and “Populares hoy” links.
+9. All financial/tax information is clearly framed as estimated/orientative, not final.
+10. The final flow clearly separates “add another product” from “submit quote request”.
+
+---
+
+# Problems to Fix
+
+## 1. Broken/clipped loading state
+
+When the user enters a product and presses Enter or clicks the arrow, the lower module starts loading but the inner orange analysis card appears clipped/cut off during the transition.
+
+### Required fix
+
+- Fix the layout/height/overflow issue so the orange analysis module never appears visually cut off.
+- Avoid sudden jumps, clipped corners, or content being hidden during loading.
+- Use proper container min-height, transition timing, and overflow rules.
+- The loading state should reserve enough space for the incoming product card.
+
+---
+
+## 2. Improve the loading experience
+
+The current loading state feels too abrupt. We need something more friendly and contextual.
+
+### Required behavior
+
+When a product starts processing, show a warm loading module such as:
+
+- “Analizando tu producto…”
+- “Buscando la categoría más probable…”
+- “Estimando impuestos y tipo de envío…”
+- “Preparando una cotización orientativa…”
+
+Use a lightweight animated state: shimmer, pulsing dots, progress steps, or small CRBOX-style assistant indicator.
+
+### Important
+
+Do not overcomplicate it. It should feel calm, fast, and reassuring, not like a chatbot waiting forever.
+
+Suggested microcopy in Spanish:
+
+```txt
+Analizando tu producto...
+Estamos identificando la categoría, impuestos estimados y la mejor forma de traerlo a Costa Rica.

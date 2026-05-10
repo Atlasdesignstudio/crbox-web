@@ -1,0 +1,454 @@
+Improve the CRBOX `cotizar` page experience based on the following full UX/UI refinement request.
+
+The current page already has a good foundation, but the quote flow still feels too form-like, visually cramped, and inconsistent across different product entry points. The goal is to turn it into a smoother, more modern, friendly quote-builder experience: closer to Apple / Shopify-level clarity and polish, while still feeling practical, warm, and aligned with CRBOX.
+
+This is not a backend task. Do not change backend behavior. This is a UX/UI and interaction-flow refinement of the existing `cotizar` experience.
+
+Main goal:
+Make the `cotizar` flow feel less like a static form and more like a guided product quote builder where the user can analyze a product, understand the estimate, add details, add more products, and submit a quote request clearly.
+
+Specific improvements required:
+
+1. Fix the clipped loading state
+
+When the user types a product and presses Enter or clicks the arrow, the lower product analysis module appears and the inner orange area/card briefly looks cut off or cropped.
+
+This must be fixed.
+
+Expected behavior:
+- The orange product analysis card should never appear clipped, cut off, cropped, or visually broken.
+- The loading-to-result transition should feel smooth.
+- No corners, orange areas, or internal card elements should be visually cut.
+- No awkward jump, flicker, or collapse should happen while the result loads.
+
+2. Improve the loading state
+
+The current loading state feels too generic and mechanical. Replace it with something warmer, more friendly, and contextual.
+
+The loading state should feel like CRBOX is actively helping the user analyze the product.
+
+Suggested Spanish loading messages:
+- “Analizando tu producto…”
+- “Identificando la categoría más probable…”
+- “Estimando impuestos y tipo de envío…”
+- “Preparando una cotización orientativa…”
+
+Optional supporting line:
+“Esto nos ayuda a darte una guía inicial antes de que el equipo CRBOX confirme el precio final.”
+
+Visual direction:
+- Warm orange/cream CRBOX palette.
+- Friendly assistant/avatar/icon detail.
+- Gentle movement: soft pulse, subtle dots, or light progress shimmer.
+- Calm and reassuring, not robotic.
+- Avoid cold generic grey skeleton bars as the main experience.
+- Do not make it feel slow or overly animated.
+
+3. Make all product entry points behave consistently
+
+Right now, manually typing a product and pressing Enter behaves differently from clicking category chips or “Populares hoy” pills.
+
+This inconsistency needs to be fixed.
+
+All of these entry points should trigger the same type of flow:
+- Manual search.
+- Pressing Enter.
+- Clicking the arrow button.
+- Clicking category chips.
+- Clicking “Populares hoy” pills.
+- Any suggested/recommended product button.
+
+Expected behavior:
+- The selected/entered product should be treated as the active product.
+- The same friendly loading state should appear.
+- The same product analysis logic and visual result structure should appear.
+- No entry point should produce a generic robot-like/default response.
+- No entry point should feel like a shortcut or fallback.
+
+4. Redesign the AI/product analysis message hierarchy
+
+When the product analysis finishes, the current message appears too much like one paragraph. It needs much stronger visual hierarchy.
+
+The current structure usually includes:
+- A short headline like “¡Excelente elección con ese iPhone!”
+- A positive product message.
+- Tax/impost information.
+- A suggestion for a complementary item.
+- Informational tags/pills.
+
+This should no longer appear as a single paragraph. Split it into clear visual sections/cards/modules.
+
+Required structure:
+
+A. Friendly headline
+Keep or improve the short headline.
+
+Example:
+“¡Excelente elección con ese iPhone!”
+
+B. Positive product context
+Show this separately from the tax information.
+
+Example:
+“Ideal para mantenerte conectado y aprovechar una compra internacional con entrega directa en Costa Rica.”
+
+Or:
+“Perfecto para traer por courier aéreo. Es un producto común, fácil de identificar y normalmente no requiere manejo especial.”
+
+C. Tax estimate module
+The tax information should become its own visual module, with the percentage/amount clearly highlighted.
+
+Example:
+“Impuestos estimados”
+“aprox. 13%–20%”
+“Según la categoría detectada y el valor declarado.”
+
+Design direction:
+- The number should be visually prominent.
+- The label must clearly say estimated/approximate/orientative.
+- This should be easy to scan.
+- Do not present any tax number as final.
+
+D. Shipping/service recommendation module
+If the experience suggests an air or maritime service, show that separately.
+
+Example:
+“Tipo de envío sugerido”
+“Aéreo”
+“Recomendado para productos pequeños o de alto valor.”
+
+E. Complement suggestion module
+The complementary product suggestion should not be buried inside a paragraph.
+
+Example:
+“Sugerencia para aprovechar el envío”
+“Si también estás pensando en audífonos, case o cargador, podrías traerlos juntos y aprovechar mejor la consolidación.”
+
+This should connect to the business idea that bringing multiple products together can help users take better advantage of consolidation, but do not promise exact savings unless the system can calculate it.
+
+F. Metadata/tags
+The current tags feel too form-like. Make them cleaner, softer, and more modern.
+
+Example tags:
+- “Celulares”
+- “Impuestos aprox. 13%–20%”
+- “Envío aéreo recomendado”
+- “Cotización orientativa”
+
+These should feel like modern metadata pills, not default form badges.
+
+5. Clearly frame all taxes, prices, and estimates as orientative
+
+Every tax percentage, dollar amount, tariff badge, price estimate, or financial message must clearly say it is approximate, estimated, or orientative.
+
+Use language such as:
+- “aprox.”
+- “estimado”
+- “estimación orientativa”
+- “impuestos estimados”
+- “precio orientativo”
+
+Examples:
+
+Instead of:
+“~14% en impuestos”
+
+Use:
+“aprox. 14% en impuestos estimados”
+
+Instead of:
+“Impuestos: $42.00”
+
+Use:
+“Impuestos estimados: aprox. $42.00”
+
+Add a small subtle disclaimer inside the product analysis card:
+“Los impuestos son estimados orientativos. El monto exacto lo determina la DGA al momento de la importación.”
+
+Also include a softer general note where relevant:
+“El equipo CRBOX revisará los datos antes de confirmar el precio final.”
+
+Important:
+- Do not make it sound legal-heavy.
+- Do not make it look like an error/warning.
+- Make it visible but subtle.
+- Never imply the result is a final confirmed price.
+
+6. Improve product link helper copy
+
+The product link field is fine, but the helper copy currently implies that the link is analyzed instantly. That is misleading.
+
+Replace any copy like:
+“Pégalo y lo analizamos…”
+
+With something clearer and friendlier.
+
+Suggested copy:
+“Pega el enlace para que el equipo CRBOX pueda revisar el producto con más precisión.”
+
+Or:
+“Opcional: ayuda al equipo CRBOX a revisar el producto con mayor precisión.”
+
+Suggested label:
+“Enlace del producto — opcional”
+
+7. Fix approximate price input scroll behavior
+
+The approximate price input works, but when the user scrolls while the cursor is inside the number field, the value changes accidentally.
+
+That should not happen.
+
+Expected behavior:
+- The user can type the price normally.
+- Scrolling the page should not accidentally change the price.
+- This should apply to all similar numeric fields where accidental scroll changes could happen.
+
+8. Replace category dropdown with a searchable correction experience
+
+The current “Ajustar categoría” control feels too form-like because it is just a dropdown.
+
+Make it feel more modern and useful.
+
+Expected behavior:
+- It should be optional and secondary.
+- It should say something like:
+  “¿La categoría no parece correcta?”
+- Then allow the user to search for another category.
+- The search placeholder could be:
+  “Buscar categoría: celular, zapatos, laptop…”
+- Results should show category names and estimated tax information when available.
+- Selecting a category should update the product analysis/tax metadata visually.
+
+Important:
+- Keep the detected category visible.
+- Do not make category correction feel mandatory.
+- Avoid making the UI feel like an internal admin tool.
+
+9. Add a natural-language follow-up/details field
+
+After the product analysis appears, the user should be able to add a small comment or clarification about the product.
+
+The purpose is to let the user say things like:
+- “No era un iPhone, era un iPad.”
+- “Es usado.”
+- “Son 2 unidades.”
+- “Viene con accesorios.”
+- “Es un pack de 3.”
+- “No me refería a ese producto.”
+- “Quiero traerlo junto con audífonos.”
+- “Es para uso médico.”
+
+Suggested label:
+“¿Quieres aclarar algo sobre este producto?”
+
+Suggested placeholder:
+“Ej: es usado, son 2 unidades, no era ese modelo, viene con accesorios…”
+
+Suggested button:
+“Actualizar análisis”
+
+Expected behavior:
+- The follow-up should use the current product context.
+- It should allow the product analysis to be updated without resetting the entire flow.
+- It can correct the product name, adjust the category, update notes, or add helpful context for the CRBOX team.
+- It should feel conversational, friendly, and simple.
+
+10. Redesign the confirm/add product flow
+
+Right now, when a user confirms a product, the UI moves into an “Agregar producto” state and the product that was just added is not clearly visible. This feels unnatural.
+
+The user should always be able to see what they have added.
+
+Expected flow:
+- After the product has enough information, show clear actions:
+  Primary or main action:
+  “Agregar producto a la cotización”
+  Secondary/final action:
+  “Enviar solicitud de cotización” or “Cotizar ahora”
+
+After the user adds the product:
+- Collapse it into a clean product summary card.
+- Keep the added product visible in the quote builder.
+- Show product name, category, estimated tax range, approximate price if entered, and status.
+- Allow edit/expand/remove.
+
+Example collapsed product card:
+“1. iPhone”
+“Celulares · Impuestos aprox. 13%–20% · Envío aéreo”
+“Precio aprox: $800”
+Actions: “Editar” / “Eliminar”
+
+Then show the same product input/analyzer module again so the user can add another product.
+
+11. Make the page feel like a product quote dashboard/builder, not a narrow form
+
+The current flow feels too centered and narrow on desktop. It should use more of the viewport and feel more like a modern guided workspace.
+
+Expected desktop direction:
+- Use a wider layout.
+- The main quote flow should not feel boxed into a tiny centered column.
+- Added products should feel like part of a quote builder.
+- There can be a quote summary area or clearer internal card hierarchy.
+- The page should feel open, organized, and modern.
+
+Possible structure:
+- Main area: current product analysis/input module + added products.
+- Supporting area or summary area: quote summary, product count, estimate note, submit CTA.
+
+Do not force this exact structure if the current page is better served by a refined one-column layout, but the final result must feel less form-like and more spacious.
+
+Mobile requirements:
+- Everything should stack cleanly.
+- No horizontal overflow.
+- Product cards should be full-width.
+- Buttons should stack clearly.
+- The final CTA should remain easy to reach.
+
+12. Keep the add-another-product form consistent
+
+When the user adds another product, the form/analysis flow should feel like the same experience as the first product.
+
+Expected behavior:
+- Same visual style.
+- Same loading state.
+- Same analysis hierarchy.
+- Same fields.
+- Same ability to add details, product link, price, and category correction.
+
+It should feel like a quote builder where the user keeps adding products to the same request, not like the UI suddenly changes modes.
+
+13. Add a quote summary / request summary
+
+As products are added, show a clear summary of the request.
+
+Suggested content:
+“Tu solicitud”
+“2 productos agregados”
+“Valor aproximado declarado: $___”
+“Impuestos: estimación orientativa”
+“Flete: pendiente de confirmar según peso/dimensiones”
+
+Add a friendly consolidation note:
+“Tip CRBOX: si traes varios productos juntos, puedes aprovechar mejor la consolidación y optimizar el costo del envío.”
+
+Important:
+- Do not promise exact savings unless there is real calculation.
+- If using examples, make them clearly illustrative.
+
+Example:
+“Ejemplo orientativo: agregar accesorios pequeños como un case o audífonos puede ayudarte a aprovechar mejor el mismo envío, siempre sujeto a peso, dimensiones y revisión final.”
+
+14. Make “Agregar otro producto” secondary and “Enviar solicitud” primary
+
+The visual hierarchy should be very clear.
+
+“Agregar otro producto” should feel useful but optional.
+
+“Enviar solicitud de cotización” should feel like the main conversion action.
+
+Expected result:
+- Add-another area: lighter, softer, secondary.
+- Submit action: primary, clear, decisive.
+- The user should not be confused about whether they are adding another product or submitting the request.
+
+Suggested CTA labels:
+Primary:
+“Enviar solicitud de cotización”
+
+Secondary:
+“Agregar otro producto”
+
+15. Keep the language friendly, simple, and non-technical
+
+Use Spanish that feels:
+- Friendly.
+- Clear.
+- Human.
+- Practical.
+- Reassuring.
+- Costa Rica-friendly.
+- Not technical.
+- Not legal-heavy.
+
+Avoid:
+- Robotic AI language.
+- Cold system language.
+- Overly technical customs wording.
+- Overpromising exact final prices.
+- Anything that sounds like a final legal quote.
+
+Suggested phrases:
+“Buenísimo, estamos revisando tu producto.”
+“Agrega el precio aproximado para darte una estimación más útil.”
+“El equipo CRBOX revisará los datos antes de confirmar el precio final.”
+“Puedes agregar varios productos en una misma solicitud.”
+“Traer varios productos juntos puede ayudarte a aprovechar mejor el envío.”
+“Esta es una guía inicial para ayudarte a decidir antes de comprar.”
+
+16. Preserve what should not change
+
+Do not redesign unrelated parts of the page.
+
+Preserve:
+- Existing hero search section.
+- Existing overall page identity.
+- Existing shipping/contact/confirmation flow, unless small visual consistency changes are needed.
+- Existing backend behavior.
+- Existing quote submission logic.
+- Existing integrations.
+- Existing public site structure.
+
+Do not change:
+- Backend/server logic.
+- Other pages.
+- Tracking/analytics behavior unless needed to preserve existing events.
+- Anything outside the `cotizar` flow.
+
+17. QA expectations
+
+Before finishing, verify the following:
+
+Desktop:
+- Type a product and press Enter.
+- Type a product and click the arrow.
+- Click category chips.
+- Click “Populares hoy” pills.
+- Confirm all paths show the same warm loading state.
+- Confirm no orange analysis card appears clipped or broken.
+- Confirm the loading-to-result transition is smooth.
+- Confirm the result card has clear visual hierarchy.
+- Confirm the tax estimate is visually prominent but clearly labeled as estimated.
+- Confirm the product link copy no longer implies instant link analysis.
+- Confirm scrolling inside price fields does not accidentally change the value.
+- Confirm category correction feels searchable, not like a basic dropdown.
+- Confirm the follow-up/comment field works naturally.
+- Confirm added products remain visible as product summary cards.
+- Confirm the layout feels wider and less like a narrow form.
+- Confirm “Agregar otro producto” feels secondary.
+- Confirm “Enviar solicitud de cotización” feels primary.
+
+Mobile:
+- Repeat manual search.
+- Repeat chip and “Populares hoy” interactions.
+- Confirm no clipping happens.
+- Confirm no horizontal overflow.
+- Confirm product cards stack cleanly.
+- Confirm buttons are clear and easy to tap.
+- Confirm the quote summary is readable.
+- Confirm the flow remains easy and focused.
+
+Regression:
+- Existing quote flow still works.
+- Existing shipping/contact/confirmation steps still work.
+- No unrelated pages are changed.
+- No fake final price is implied.
+- No guaranteed savings are claimed.
+- No broken visual states appear after multiple product searches in a row.
+- No visible console errors or broken interactions.
+
+Final design principle:
+The page should stop feeling like a static form and start feeling like a guided quote builder.
+
+The user is not just filling fields. They are building a shipment request with CRBOX’s help.
+
+The final result should feel smoother, warmer, more premium, more trustworthy, and more modern, while still feeling like the same CRBOX page.

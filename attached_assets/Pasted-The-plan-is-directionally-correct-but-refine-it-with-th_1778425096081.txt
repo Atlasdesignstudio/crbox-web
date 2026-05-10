@@ -1,0 +1,53 @@
+The plan is directionally correct, but refine it with the following adjustments before implementation:
+
+1. Keep this as a controlled redesign/refinement of the existing `cotizar` flow, not a full rebuild. Preserve the existing flow logic as much as possible and avoid introducing unnecessary new complexity.
+
+2. Prioritize the critical UX issues first:
+   - no clipped orange analysis card
+   - warmer loading state
+   - consistent behavior across manual search, Enter key, arrow button, category chips, and “Populares hoy”
+   - clearer analysis hierarchy
+   - estimated/orientative tax framing
+
+3. Be careful with the “Quote summary panel.” It should not duplicate or conflict with the existing shipping/contact/final submission steps. If there is already a submit step later in the flow, the summary should act as a review/summary and guide users forward, not create a second competing submission flow.
+
+4. The primary CTA label should stay consistent with the current flow. Use “Enviar solicitud de cotización” only if that matches the existing final action. Otherwise, keep the current final CTA behavior and only improve its visual hierarchy.
+
+5. For the follow-up clarification field, do not simply append the user’s clarification to the product name. The clarification should be treated as contextual information. It can update the product analysis, category, notes, or displayed context, but it should not create awkward product names like “iPhone es usado son 2 unidades.” Preserve a clean product name and store/show the clarification separately when needed.
+
+6. The searchable category correction should feel lightweight and optional. Do not make it look like an admin tool. The detected category should remain visible, and the correction control should only expand when the user wants to adjust it.
+
+7. Collapsed confirmed product cards are important, but keep them simple for this pass. They should show only the essential information:
+   - product name
+   - category
+   - estimated tax range
+   - approximate price if provided
+   - edit/remove actions
+   Avoid adding too much operational detail.
+
+8. If Edit is added, it should not break the multi-product flow. Editing a product should clearly reopen that product’s details, allow changes, and return to the summary state without duplicating the product.
+
+9. If Remove is added, make sure the quote summary and product count update immediately and clearly.
+
+10. Keep the consolidation tip clearly orientative. Do not suggest guaranteed savings or calculate exact consolidation benefits unless the existing logic already supports it. Use language like:
+   “Traer varios productos juntos puede ayudarte a aprovechar mejor el envío, sujeto a peso, dimensiones y revisión final.”
+
+11. Keep the loading animation polished but fast. Do not introduce artificial waiting time just to show the animation. The result should appear as soon as it is ready.
+
+12. Make sure rotating loading messages do not continue running after the result appears, after a new search starts, or after the user navigates to another step.
+
+13. For price-field scroll behavior, apply the fix to numeric inputs carefully so normal typing and mobile behavior remain unaffected.
+
+14. For the estimated framing audit, include not only tax badges but also any total, subtotal, declared value, live estimate, shipping estimate, or generated financial phrase that could be misread as final.
+
+15. Keep the wider desktop layout elegant. Increasing width is good, but avoid making cards feel stretched or empty. Use better internal spacing and hierarchy rather than simply making everything wider.
+
+16. Mobile should remain a first-class experience. The new hierarchy, product cards, category search, follow-up field, and quote summary must stack cleanly with no horizontal overflow.
+
+17. Do not modify unrelated files or pages. Keep the scope limited to `cotizar.html` unless an existing local asset/style dependency is absolutely required.
+
+18. Do not change backend/server behavior, analytics behavior, or submission data contracts unless strictly necessary to preserve the current flow.
+
+19. Add one final QA requirement: test multiple product searches in a row, including changing from one product to another quickly, to make sure there are no stale loading states, duplicated cards, broken intervals, or old analysis content flashing.
+
+20. Final outcome: the page should feel like the same CRBOX quote page, but smoother, warmer, more spacious, more trustworthy, and more guided — not like a completely new product or a heavy dashboard.
