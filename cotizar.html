@@ -1003,6 +1003,310 @@
             .cqw-products-wrap { padding: .6rem .75rem; }
             .cqw-left .cq-pcard-right { flex: none; width: 100%; }
         }
+
+        /* ══════════════════════════════════════════════════════════
+           MOBILE CLEAN EDITORIAL REDESIGN  (≤ 640px)
+           Aesthetic: pure white, editorial typography, dark CTAs,
+           horizontal-scroll chips, minimal decoration.
+           All rules are scoped to mobile only — desktop unchanged.
+        ══════════════════════════════════════════════════════════ */
+        @media (max-width: 640px) {
+
+            /* ── Page foundation ── */
+            body { background: #f2f2f7 !important; }
+
+            /* ── Hero ── */
+            #cq-hero {
+                background: #ffffff !important;
+                border-bottom: none;
+                padding: 2.75rem 1.25rem 2.25rem;
+                min-height: 0;
+            }
+            #cq-hero::before { display: none; }
+            .cq-hero-inner { text-align: left; }
+            .cq-hero-badge {
+                background: #f2f2f7;
+                border-color: #e5e7eb;
+                color: #374151;
+                font-weight: 600;
+                letter-spacing: .07em;
+            }
+            .cq-hero-title {
+                font-size: 2.45rem;
+                letter-spacing: -.04em;
+                line-height: 1.04;
+                margin-bottom: .7rem;
+            }
+            .cq-hero-sub {
+                text-align: left;
+                font-size: .9rem;
+                margin-bottom: 1.75rem;
+            }
+
+            /* Search box — filled pill, focus glows orange */
+            .cq-search-box {
+                background: #f2f2f7;
+                border: 1.5px solid #e5e7eb;
+                box-shadow: none;
+                border-radius: 1.15rem;
+            }
+            .cq-search-box:focus-within {
+                background: #fff;
+                border-color: #FF6B00;
+                box-shadow: 0 0 0 3px rgba(255,107,0,.11);
+            }
+            .cq-search-input { background: transparent; font-size: .95rem; }
+            .cq-search-btn { border-radius: 0 .9rem .9rem 0; }
+
+            /* Chips — horizontal scroll, black active fill */
+            .cq-chips {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                justify-content: flex-start;
+                gap: .42rem;
+                padding-bottom: .2rem;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                -webkit-mask-image: linear-gradient(to right, black 0%, black 88%, transparent 100%);
+                mask-image: linear-gradient(to right, black 0%, black 88%, transparent 100%);
+                margin-bottom: .75rem;
+            }
+            .cq-chips::-webkit-scrollbar { display: none; }
+            .cq-chip {
+                flex-shrink: 0;
+                white-space: nowrap;
+                padding: .44rem 1.05rem;
+                font-size: .84rem;
+                font-weight: 600;
+                background: #fff;
+                border: 1.5px solid #e5e7eb;
+                color: #374151;
+            }
+            .cq-chip:hover, .cq-chip.cq-chip-active {
+                background: #111827;
+                border-color: #111827;
+                color: #fff;
+            }
+
+            /* Inspirations */
+            .cq-inspirations { justify-content: flex-start; gap: .28rem .45rem; }
+            .cq-insp-label { font-size: .72rem; }
+            .cq-insp-pill { font-size: .75rem; }
+
+            /* Trust strip */
+            .cq-hero-trust { margin-top: 1.25rem; gap: .45rem 1rem; justify-content: flex-start; }
+            .cq-trust-item { font-size: .7rem; }
+
+            /* ── Hero compact state ── */
+            #cq-hero.cq-hero-compact {
+                padding-top: .875rem;
+                padding-bottom: .75rem;
+                background: #fff !important;
+            }
+            #cq-hero.cq-hero-compact .cq-hero-title {
+                font-size: 1.25rem;
+                text-align: left;
+            }
+
+            /* ── Flow ── */
+            #cq-flow { background: #f2f2f7; border-top: none; }
+            .cq-flow-inner { padding: .875rem .875rem 4.5rem; }
+
+            /* ── Builder bar — borderless, minimal ── */
+            .cq-builder-bar {
+                background: transparent;
+                border: none;
+                box-shadow: none;
+                border-radius: 0;
+                padding: .2rem 0 .8rem;
+                margin-bottom: .35rem;
+            }
+            .cq-builder-label { font-size: .65rem; }
+            .cq-si-num { width: 22px; height: 22px; font-size: .6rem; }
+            .cq-si-line { width: 16px; }
+            .cq-si-label { font-size: .68rem; }
+
+            /* ── Product card ── */
+            .cq-pcard {
+                border-radius: 1.25rem;
+                border: none;
+                box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.06);
+                margin-bottom: .875rem;
+            }
+            .cq-bubble {
+                border-radius: 1.2rem 1.2rem 0 0;
+                padding: .875rem 1.1rem;
+            }
+            .cq-bubble-text { font-size: .92rem; }
+            .cq-gem-wrap { padding: .95rem 1.05rem 0; }
+            .cq-gem-card {
+                border-radius: .875rem;
+                padding: .875rem 1rem;
+                background: #fafaf9;
+            }
+            .cq-gem-lead { font-size: .93rem; line-height: 1.5; }
+            .cq-gem-body { font-size: .84rem; }
+
+            /* Product right-column fields */
+            .cq-pcard-fields-right { padding: .875rem 1.05rem 1.1rem; }
+            .cq-field-label { font-size: .79rem; }
+            .cq-field-input { padding: .68rem .875rem; font-size: .9rem; border-radius: .75rem; }
+            .cq-price-input { font-size: .9rem; }
+            .cq-price-fix { font-size: .85rem; padding: .68rem .7rem; }
+
+            /* Tax estimate */
+            #cq-tax-dollar-module { padding: .875rem .95rem; margin-bottom: .65rem; }
+            .cq-tdm-amount { font-size: 1.5rem; }
+            .cq-tdm-rate { font-size: .73rem; }
+
+            /* Cost breakdown */
+            .cq-breakdown-preview { padding: .72rem .875rem; }
+            .cq-bdp-list li { font-size: .76rem; }
+            .cq-bdp-title { font-size: .72rem; }
+
+            /* ── Primary CTA buttons — dark/black ── */
+            .cq-btn-confirm {
+                background: #111827;
+                background-image: none;
+                box-shadow: none;
+                border-radius: 1rem;
+                padding: .95rem 1.5rem;
+                font-size: .97rem;
+                font-weight: 700;
+            }
+            .cq-btn-confirm:hover {
+                background: #1f2937;
+                transform: none;
+                box-shadow: none;
+            }
+            .cq-btn-confirm:disabled {
+                background: #e5e7eb;
+                color: #9ca3af;
+                box-shadow: none;
+            }
+
+            /* ── Right panel (stacks at top on mobile via order:-1) ── */
+            .cqw-right { order: -1; }
+            .cqw-right-inner {
+                border: none;
+                border-radius: 1.25rem;
+                box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.06);
+                overflow: hidden;
+            }
+            .cqw-panel-header {
+                background: #fff;
+                border-bottom: 1px solid #f3f4f6;
+                padding: .875rem 1.1rem;
+            }
+            .cqw-panel-title {
+                font-size: .75rem;
+                font-weight: 800;
+                color: #111827;
+                letter-spacing: .07em;
+            }
+            .cqw-panel-badge { background: #FF6B00; }
+
+            /* Empty state */
+            .cqw-empty { padding: 1.5rem 1rem 1.25rem; }
+            .cqw-empty-icon { font-size: 1.55rem; opacity: .3; margin-bottom: .4rem; }
+            .cqw-empty-title { font-size: .84rem; }
+            .cqw-empty-sub { font-size: .74rem; }
+            .cqw-products-wrap { padding: .55rem .75rem; background: #fff; }
+
+            /* Product summary rows — clean cart-row style */
+            .cqw-products-wrap .cq-summary-card {
+                border: 1px solid #f0f0f0;
+                border-radius: .875rem;
+                padding: .7rem .875rem;
+                margin-bottom: .38rem;
+                background: #fff;
+            }
+            .cqw-products-wrap .cq-summary-card-name { font-size: .88rem; font-weight: 700; }
+            .cqw-products-wrap .cq-summary-card-meta { font-size: .72rem; }
+            .cq-summary-card-btn {
+                width: 28px;
+                height: 28px;
+                border-radius: .5rem;
+            }
+
+            /* Section dividers */
+            .cqw-section {
+                border-top: 1px solid #f3f4f6;
+                padding: .85rem 1.05rem .9rem;
+                background: #fff;
+            }
+            .cqw-section-label {
+                font-size: .65rem;
+                color: #9ca3af;
+                letter-spacing: .1em;
+                margin-bottom: .55rem;
+            }
+
+            /* Service toggle — dark fill when active */
+            .cqw-svc-btn { border-radius: .875rem; padding: .58rem .45rem; }
+            .cqw-svc-btn:hover { background: #f5f5f7; border-color: #e5e7eb; }
+            .cqw-svc-btn.cq-svc-active {
+                background: #111827;
+                border-color: #111827;
+                box-shadow: none;
+            }
+            .cqw-svc-btn.cq-svc-active .cqw-svc-icon { color: #fff; }
+            .cqw-svc-btn.cq-svc-active .cqw-svc-name { color: #fff; }
+            .cqw-svc-icon { font-size: 1rem; }
+            .cqw-svc-name { font-size: .77rem; }
+
+            /* Inputs */
+            .cq-input {
+                font-size: .88rem;
+                padding: .72rem .875rem;
+                border-radius: .875rem;
+                background: #f9fafb;
+            }
+            .cq-input:focus { background: #fff; }
+
+            /* Submit — dark/black */
+            .cqw-submit-wrap { padding: .1rem 1.05rem 1.1rem; background: #fff; }
+            .cq-btn-submit {
+                background: #111827;
+                background-image: none;
+                box-shadow: none;
+                border-radius: 1rem;
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+                font-weight: 800;
+                letter-spacing: .005em;
+            }
+            .cq-btn-submit:hover {
+                background: #1f2937;
+                transform: none;
+                box-shadow: none;
+            }
+            .cq-btn-submit:disabled { background: #e5e7eb; color: #9ca3af; }
+            .cq-privacy { font-size: .73rem; margin-top: .5rem; }
+
+            /* Step cards (cq-card) */
+            .cq-card { padding: 1rem .9rem; border-radius: 1rem; }
+
+            /* Confirmed product pills row — hidden on mobile (sidebar handles this) */
+            #cq-confirmed-pills { display: none !important; }
+
+            /* Consolidation banner */
+            .cqw-consolidation-banner {
+                margin-top: .45rem;
+                padding: .6rem .875rem;
+                border-radius: .875rem;
+            }
+
+            /* Confirm screen */
+            #confirm-screen { background: #f2f2f7; padding: 2.5rem 1rem 4rem; }
+            .form-card { padding: 1rem .95rem; border-radius: 1.1rem; }
+        }
+
+        /* Tiny screens ≤ 390px */
+        @media (max-width: 390px) {
+            .cq-hero-title { font-size: 2.1rem; }
+            .cq-flow-inner { padding: .75rem .75rem 4rem; }
+        }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
 </head>
