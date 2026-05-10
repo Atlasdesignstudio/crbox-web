@@ -1969,6 +1969,24 @@
             }
             .cqd-price-err.show { display: flex; }
 
+            /* Optional URL field inside chat product card */
+            .cqd-url-row { margin-top: .75rem; }
+            .cqd-url-lbl {
+                display: block; font-size: .73rem; font-weight: 600;
+                color: #6b7280; margin-bottom: .3rem; letter-spacing: .01em;
+            }
+            .cqd-url-opt { font-weight: 400; color: #9ca3af; }
+            .cqd-url-inp {
+                width: 100%; padding: .45rem .65rem; border-radius: .55rem;
+                border: 1.5px solid #e5e7eb; font-size: .8rem; color: #374151;
+                background: #fafafa; font-family: inherit; box-sizing: border-box;
+                transition: border-color .18s;
+            }
+            .cqd-url-inp:focus {
+                outline: none; border-color: #FF6B00; background: #fff;
+            }
+            .cqd-url-inp::placeholder { color: #c0c4cc; }
+
             /* Action buttons */
             .cqd-actions { display: flex; gap: .38rem; flex-wrap: wrap; margin-top: .85rem; }
             .cqd-btn {
@@ -4968,7 +4986,7 @@
                 var sal = h < 12 ? '¡Buenos días! ☀️' : h < 19 ? '¡Buenas tardes! 👋' : '¡Buenas noches! 🌙';
                 var greeting = _userFirstName
                     ? sal + ' <strong>' + _esc(_userFirstName) + '</strong> — con mucho gusto te ayudo a cotizar. Soy el asistente de <strong>CRBOX</strong>, tu concierge de importaciones desde USA. ¿Qué querés traer hoy?'
-                    : sal + ' Soy el asistente de <strong>CRBOX</strong> — más de 10 años ayudando a costarricenses a importar desde USA. ¿Qué querés traer?';
+                    : sal + ' Soy el asistente de <strong>CRBOX</strong> — más de 20 años ayudando a costarricenses a importar desde USA. ¿Qué querés traer?';
                 setTimeout(function() {
                     _say(greeting);
                     if (cb) setTimeout(cb, 350);
@@ -5296,6 +5314,14 @@
                     + '<div id="' + uid + 'e" class="cqd-price-err">'
                     +   '<i class="fas fa-exclamation-circle"></i> Ingresá un precio mayor a cero.'
                     + '</div>'
+                    + '<div class="cqd-url-row">'
+                    +   '<label class="cqd-url-lbl" for="' + uid + 'u">'
+                    +     '<i class="fas fa-link" style="font-size:.65rem;margin-right:.25rem;opacity:.55;"></i>'
+                    +     'Enlace del producto <span class="cqd-url-opt">(opcional)</span>'
+                    +   '</label>'
+                    +   '<input type="url" id="' + uid + 'u" class="cqd-url-inp"'
+                    +       ' placeholder="https://www.amazon.com/..." inputmode="url" autocomplete="off">'
+                    + '</div>'
                     + '<div class="cqd-actions" style="margin-top:1rem;">'
                     +   '<button class="cqd-btn primary cqd-btn-full" id="' + uid + 'a">'
                     +     '<i class="fas fa-plus" style="font-size:.68rem;margin-right:.28rem;"></i>Agregar a solicitud'
@@ -5307,6 +5333,7 @@
 
                 var priceEl   = document.getElementById(uid);
                 var errEl     = document.getElementById(uid + 'e');
+                var urlEl     = document.getElementById(uid + 'u');
                 var addBtn    = document.getElementById(uid + 'a');
                 var cancelBtn = document.getElementById(uid + 'c');
 
@@ -5320,9 +5347,10 @@
                         return;
                     }
                     if (errEl) errEl.classList.remove('show');
+                    var productUrl = urlEl ? urlEl.value.trim() : '';
                     if (addBtn)    addBtn.disabled    = true;
                     if (cancelBtn) cancelBtn.disabled = true;
-                    _bridgeConfirm(name, price, result);
+                    _bridgeConfirm(name, price, result, productUrl);
                 }
 
                 if (priceEl)   priceEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); _doConfirm(); } });
@@ -5339,11 +5367,12 @@
             // ── Bridge to existing IIFE quote logic ───────────────────────────
             // Both modules are in the same IIFE so we have direct access to all
             // private state vars and functions.
-            function _bridgeConfirm(name, price, brainResult) {
+            function _bridgeConfirm(name, price, brainResult, productUrl) {
                 // Populate hidden form fields for JS compat
                 if (bubbleText)    bubbleText.textContent     = name;
                 if (productBubble) productBubble.style.display = 'flex';
                 if (fPrice)        fPrice.value               = String(price);
+                if (fUrl && productUrl) fUrl.value            = productUrl;
                 if (fCategory && brainResult && brainResult.legacyCode)
                     fCategory.value = brainResult.legacyCode;
 
