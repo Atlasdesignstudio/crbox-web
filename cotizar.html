@@ -2016,6 +2016,15 @@
                 background: #fafaf8; padding: 1rem 2rem 1.4rem;
                 flex-shrink: 0; position: relative; z-index: 1;
             }
+            /* Hide input bar while on the editorial landing screen */
+            #cqd:not(.cqd-chatting) .cqd-input-wrap {
+                opacity: 0; pointer-events: none; visibility: hidden;
+            }
+            #cqd.cqd-chatting .cqd-input-wrap {
+                opacity: 1; pointer-events: auto; visibility: visible;
+                transition: opacity .3s ease .1s;
+            }
+
             .cqd-input-wrap {
                 max-width: 740px; margin: 0 auto; position: relative;
             }
