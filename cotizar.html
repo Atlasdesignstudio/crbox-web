@@ -2143,6 +2143,68 @@
             .cqd-lo-chips .cqd-chip {
                 padding: .48rem 1.05rem; font-size: .84rem;
             }
+
+            /* ── Visual product card ── */
+            .cqd-card-emoji {
+                font-size: 3.2rem; text-align: center; margin-bottom: .6rem;
+                line-height: 1; display: block;
+            }
+            .cqd-card-title {
+                font-size: 1.3rem; font-weight: 800; color: #111827;
+                text-align: center; margin-bottom: .7rem; line-height: 1.25;
+            }
+            .cqd-card-chips {
+                display: flex; gap: .38rem; flex-wrap: wrap;
+                justify-content: center; margin-bottom: .65rem;
+            }
+            .cqd-card-insight {
+                font-size: .84rem; color: #6b7280; line-height: 1.55;
+                text-align: center; margin-bottom: .85rem;
+                max-width: 420px; margin-left: auto; margin-right: auto;
+            }
+            .cqd-card-divider {
+                height: 1px; background: #f3f4f6; margin: .8rem 0 .9rem;
+            }
+            .cqd-tax-standalone {
+                display: inline-flex; align-items: center;
+                background: #fff7ed; border: 1px solid #fed7aa;
+                color: #ea580c; border-radius: 99px;
+                padding: .2rem .68rem; font-size: .71rem; font-weight: 700;
+            }
+            .cqd-btn-full { width: 100%; justify-content: center; display: flex; }
+            .cqd-btn-ghost {
+                background: transparent; border-color: transparent;
+                color: #9ca3af; font-size: .78rem; padding: .35rem .75rem;
+                margin-top: .25rem;
+            }
+            .cqd-btn-ghost:hover {
+                color: #6b7280; background: #f9fafb; border-color: transparent;
+            }
+
+            /* ── Right-panel injected actions ── */
+            .cqd-rp-actions {
+                margin-top: .85rem; padding-top: .75rem;
+                border-top: 1px solid #f3f4f6;
+            }
+            .cqd-rp-add-btn {
+                width: 100%; padding: .65rem 1rem;
+                background: #fff; border: 1.5px dashed rgba(255,107,0,.4);
+                border-radius: .8rem; color: #ea580c;
+                font-size: .83rem; font-weight: 600; cursor: pointer;
+                font-family: inherit; transition: all .15s;
+                margin-bottom: .55rem; display: flex;
+                align-items: center; justify-content: center; gap: .35rem;
+            }
+            .cqd-rp-add-btn:hover {
+                background: #fff7ed; border-color: #FF6B00;
+                border-style: solid;
+            }
+            .cqd-rp-consolidation {
+                font-size: .74rem; color: #6b7280; line-height: 1.5;
+                padding: .5rem .65rem;
+                background: #fafaf8; border-radius: .6rem;
+                border: 1px solid #f3f4f6;
+            }
         }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
@@ -3483,7 +3545,7 @@
                 if (cartBadge) cartBadge.style.display = 'none';
                 return;
             }
-            container.style.display = '';
+            container.style.display = 'block';
             if (emptyState) emptyState.style.display = 'none';
             if (cartBadge) { cartBadge.textContent = _confirmedProducts.length; cartBadge.style.display = ''; }
             _confirmedProducts.forEach(function(p, idx) {
@@ -4419,6 +4481,15 @@
 
             var D = { lastSender: null, classifying: false, phase: 'intro' };
 
+            // Dynamically pin #cqd below the actual rendered navbar height
+            (function() {
+                var hdr = document.querySelector('header') || document.querySelector('[role="banner"]');
+                if (hdr) {
+                    var h = Math.round(hdr.getBoundingClientRect().height);
+                    if (h > 0) cqd.style.top = h + 'px';
+                }
+            })();
+
             // ── Helpers ──────────────────────────────────────────────────────
             function _esc(s) {
                 return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -4559,6 +4630,38 @@
             }
 
             // ── Product card widget ───────────────────────────────────────────
+            // Category emoji lookup
+            function _productEmoji(name, catName) {
+                var s = ((name || '') + ' ' + (catName || '')).toLowerCase();
+                var map = [
+                    [/laptop|macbook|computadora|notebook|pc|imac/,'💻'],
+                    [/celular|smartphone|iphone|samsung|teléfono|movil/,'📱'],
+                    [/calzado|zapato|tenis|zapatilla|sneaker|shoe/,'👟'],
+                    [/consola|playstation|xbox|nintendo|gaming|videojuego/,'🎮'],
+                    [/cafetera|café|espresso/,'☕'],
+                    [/electrodomés|lavadora|nevera|refriger|microond|blender/,'🏠'],
+                    [/hogar|cocina|kitchen|home/,'🏠'],
+                    [/ropa|camiset|pantalon|vestido|camisa|blusa|suéter/,'👕'],
+                    [/reloj|smartwatch|watch|fossil|garmin|apple watch/,'⌚'],
+                    [/suplemento|proteína|creatina|vitamina|whey/,'💊'],
+                    [/cámara|camera|lente|gopro|fotografía/,'📷'],
+                    [/auricular|audífono|headphone|airpod|earphone/,'🎧'],
+                    [/televisor|tv|monitor|pantalla/,'📺'],
+                    [/tablet|ipad/,'📱'],
+                    [/bicicleta|scooter|patineta/,'🚲'],
+                    [/perfume|colonia|fragancia/,'🌸'],
+                    [/mochila|bolso|cartera|maleta|bolsa/,'🎒'],
+                    [/libro|manga|comic/,'📚'],
+                    [/guitarra|piano|instrumento|musica/,'🎸'],
+                    [/herramienta|taladro|llave|martillo/,'🔧'],
+                    [/juguete|muñeca|lego/,'🧸'],
+                ];
+                for (var i = 0; i < map.length; i++) {
+                    if (map[i][0].test(s)) return map[i][1];
+                }
+                return '📦';
+            }
+
             function _showProductCard(name, result) {
                 D.phase = 'awaiting-price';
                 var guidance   = result && result.geminiGuidance ? result.geminiGuidance : null;
@@ -4567,34 +4670,30 @@
                 var catName    = result && result.displayName ? result.displayName : null;
                 var needsTeam  = !!(result && result.needsTeamConfirmation);
 
-                // Gemini natural-language intro
+                // One visual product card — emoji + name + insight + price input
+                var uid     = 'cqdw' + Date.now();
+                var emoji   = _productEmoji(name, catName);
+
+                // First sentence of Gemini guidance (keep it short for the card)
+                var insight = '';
                 if (guidance) {
-                    _say(_esc(guidance));
-                } else if (catName) {
-                    _say('Perfecto, <strong>' + _esc(name) + '</strong> entra como <em>' + _esc(catName) + '</em>. Agregá el precio aproximado para ver el estimado de impuestos.');
-                } else {
-                    _say('Revisaremos <strong>' + _esc(name) + '</strong> con nuestro equipo. Ingresá el precio aproximado y un asesor CRBOX confirma los detalles de importación.');
+                    var firstSentence = guidance.split(/\.\s/)[0].trim();
+                    if (firstSentence.length > 120) firstSentence = firstSentence.substring(0, 117) + '…';
+                    insight = '<div class="cqd-card-insight">' + _esc(firstSentence) + '.</div>';
+                } else if (needsTeam) {
+                    insight = '<div class="cqd-card-insight"><i class="fas fa-user-check" style="color:#FF6B00;margin-right:.3rem;"></i>Un asesor confirmará los costos exactos de importación.</div>';
                 }
 
-                // Inline price input widget
-                var uid = 'cqdw' + Date.now();
-                var badgeHtml = catName
-                    ? '<div class="cqd-gem-badge"><i class="fas fa-tag" style="font-size:.6rem;margin-right:.2rem;"></i>'
-                        + _esc(catName) + '</div>'
-                    : '';
-                var taxHtml = taxRange
-                    ? '<div class="cqd-tax-pill"><span class="cqd-tax-pill-label">Arancel orientativo&nbsp;&nbsp;</span>'
-                        + '<span class="cqd-tax-pill-val">' + _esc(taxRange) + '</span></div>'
-                    : '';
-                var teamHtml = needsTeam
-                    ? '<div style="font-size:.76rem;color:rgba(255,255,255,.45);margin-bottom:.72rem;">'
-                        + '<i class="fas fa-user-check" style="margin-right:.28rem;color:#fb923c;"></i>'
-                        + 'Un asesor CRBOX confirmará el proceso y los costos exactos.</div>'
-                    : '';
+                var chipsHtml = (catName ? '<span class="cqd-gem-badge"><i class="fas fa-tag" style="font-size:.6rem;margin-right:.18rem;"></i>' + _esc(catName) + '</span>' : '')
+                    + (taxRange ? '<span class="cqd-tax-standalone">~' + _esc(taxRange) + ' impuestos</span>' : '');
 
                 _addRow(
-                    badgeHtml + taxHtml + teamHtml
-                    + '<div class="cqd-price-lbl">Precio aproximado en USD:</div>'
+                    '<div class="cqd-card-emoji">' + emoji + '</div>'
+                    + '<div class="cqd-card-title">' + _esc(name) + '</div>'
+                    + (chipsHtml ? '<div class="cqd-card-chips">' + chipsHtml + '</div>' : '')
+                    + insight
+                    + '<div class="cqd-card-divider"></div>'
+                    + '<div class="cqd-price-lbl">Precio en USA</div>'
                     + '<div class="cqd-price-row">'
                     +   '<span class="cqd-price-cur">$</span>'
                     +   '<input type="number" id="' + uid + '" class="cqd-price-inp" placeholder="0.00"'
@@ -4604,11 +4703,11 @@
                     + '<div id="' + uid + 'e" class="cqd-price-err">'
                     +   '<i class="fas fa-exclamation-circle"></i> Ingresá un precio mayor a cero.'
                     + '</div>'
-                    + '<div class="cqd-actions">'
-                    +   '<button class="cqd-btn primary" id="' + uid + 'a">'
+                    + '<div class="cqd-actions" style="margin-top:1rem;">'
+                    +   '<button class="cqd-btn primary cqd-btn-full" id="' + uid + 'a">'
                     +     '<i class="fas fa-plus" style="font-size:.68rem;margin-right:.28rem;"></i>Agregar a solicitud'
                     +   '</button>'
-                    +   '<button class="cqd-btn" id="' + uid + 'c">Cancelar</button>'
+                    +   '<button class="cqd-btn cqd-btn-ghost" id="' + uid + 'c">Cancelar</button>'
                     + '</div>',
                     'wide'
                 );
@@ -4675,37 +4774,44 @@
                 _confirmCurrentProduct();
                 _updateStepIndicator(2);
 
-                // Post-confirm chat messages
+                // Post-confirm: brief success message in chat, actions live in right panel
                 D.lastSender = null;
-                _say('¡Listo! <strong>' + _esc(name) + '</strong> fue agregado a tu solicitud. 🛍️');
+                var nProds = _confirmedProducts.length;
+                _say('¡Listo! <strong>' + _esc(name) + '</strong> agregado — $' + price.toFixed(2) + ' USD. '
+                    + (nProds > 1 ? '📦 Ya tenés <strong>' + nProds + ' productos</strong> en tu solicitud.' : '📦 Tu primer producto está en el panel derecho.'));
+
+                // Inject "Add another" + consolidation UI into the right panel
                 setTimeout(function() {
-                    _addRow(
-                        '<div class="cqd-confirm-badge">'
-                        +   '<i class="fas fa-check-circle"></i>&nbsp;'
-                        +   _esc(name) + ' — $' + price.toFixed(2) + ' USD'
-                        + '</div>'
-                        + '<div style="font-size:.82rem;color:rgba(255,255,255,.6);margin-bottom:.82rem;">'
-                        +   'Completá el tipo de envío y tus datos en el panel derecho, o agregá otro producto.'
-                        + '</div>'
-                        + '<div class="cqd-actions">'
-                        +   '<button class="cqd-btn primary" id="cqda-more-' + _currentEntryId + '">✚ Agregar otro</button>'
-                        +   '<button class="cqd-btn" id="cqda-done-' + _currentEntryId + '">✓ Ir a completar solicitud</button>'
-                        + '</div>',
-                        'wide'
-                    );
-                    var moreBtn = document.getElementById('cqda-more-' + _currentEntryId);
-                    var doneBtn = document.getElementById('cqda-done-' + _currentEntryId);
-                    if (moreBtn) moreBtn.addEventListener('click', function() {
-                        _say('¡Genial! ¿Qué más querés traer de USA?');
-                        D.phase = 'intro';
-                        setTimeout(function() { inputEl.focus({ preventScroll: true }); }, 300);
-                    });
-                    if (doneBtn) doneBtn.addEventListener('click', function() {
-                        _say('Perfecto — completá el tipo de envío y tu correo en el panel de la derecha y enviá tu solicitud. Nuestro equipo te contacta en menos de 24 horas.');
-                        var rightEl = document.querySelector('.cqd-right');
-                        if (rightEl) rightEl.scrollTo({ top: 0, behavior: 'smooth' });
-                    });
-                }, 400);
+                    var productsWrap = document.getElementById('cq-product-summary-cards');
+                    if (productsWrap) {
+                        var existingAct = document.getElementById('cqd-rp-actions-wrap');
+                        if (existingAct) existingAct.remove();
+                        var actEl = document.createElement('div');
+                        actEl.id = 'cqd-rp-actions-wrap';
+                        actEl.className = 'cqd-rp-actions';
+                        actEl.innerHTML =
+                            '<button class="cqd-rp-add-btn" id="cqd-rp-add-' + _currentEntryId + '">'
+                            + '<i class="fas fa-plus" style="font-size:.7rem;margin-right:.35rem;"></i>Agregar otro producto'
+                            + '</button>'
+                            + (nProds >= 2
+                                ? '<div class="cqd-rp-consolidation">'
+                                  + '<i class="fas fa-boxes" style="color:#FF6B00;margin-right:.35rem;"></i>'
+                                  + 'Al consolidar ' + nProds + ' productos, el flete se divide entre todos — ahorrás en envío.'
+                                  + '</div>'
+                                : '<div class="cqd-rp-consolidation">'
+                                  + '<i class="fas fa-lightbulb" style="color:#FF6B00;margin-right:.35rem;"></i>'
+                                  + 'Tip: agregar más productos al mismo envío reduce el costo de flete por ítem.'
+                                  + '</div>');
+                        productsWrap.parentNode.insertBefore(actEl, productsWrap.nextSibling);
+                        var rpAddBtn = document.getElementById('cqd-rp-add-' + _currentEntryId);
+                        if (rpAddBtn) rpAddBtn.addEventListener('click', function() {
+                            _say('¡Dale! ¿Qué otro producto querés agregar?');
+                            D.phase = 'intro';
+                            setTimeout(function() { inputEl.focus({ preventScroll: true }); }, 300);
+                        });
+                    }
+                    setTimeout(function() { inputEl.focus({ preventScroll: true }); }, 300);
+                }, 450);
 
                 D.phase = 'intro';
             }
