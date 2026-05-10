@@ -1,0 +1,404 @@
+Create the client portal version of the conversational quote builder.
+
+Context:
+The public `cotizar.html` experience has now been redesigned into a more conversational, premium, editorial CRBOX quote-builder experience. The next step is to bring that same experience into the logged-in client portal, adapted to the portal/dashboard UI.
+
+This should not be a copy-paste of the public page. It should reuse the same quote-building logic and conversational experience pattern, but feel native inside the client portal.
+
+Main goal:
+Build a “Cotizaciones” page inside the client portal where logged-in users can naturally describe what they want to bring, add one or multiple products to a quote request, see an orientative estimate, and submit the quote using their account information.
+
+The portal version should feel like:
+- an intelligent quote assistant inside the user dashboard
+- a natural extension of the public cotizar experience
+- faster and more account-aware because the user is already logged in
+- premium, clean, trustworthy, and operationally real
+
+It should not feel like:
+- a copied public landing page
+- a generic chatbot
+- a WhatsApp-style chat
+- a disconnected form
+- fake quote history
+- placeholder dashboard data
+
+Core principle:
+The public quote builder is for new/non-logged-in users.
+The portal quote builder is for existing CRBOX clients, so it should use known account data and reduce friction.
+
+What the portal quote builder should do:
+
+1. Use the same conversational product experience
+
+The user should be able to type naturally:
+
+- “quiero traer un café”
+- “zapatos Nike”
+- “ropa”
+- “iPhone 16 Pro”
+- “un perfume”
+- “suplementos”
+- “un peluche”
+
+The system should treat every input as a natural import request.
+
+For example:
+“café” should be understood as “quiero traer café a Costa Rica.”
+“ropa” should be understood as “quiero traer ropa a Costa Rica.”
+“zapatos” should be understood as “quiero traer zapatos a Costa Rica.”
+
+Do not show cold Product Brain responses like:
+“zapatos entra en categoría Calzado.”
+
+The user-facing response should feel warm, contextual, and Gemini-led, while Product Brain remains the numerical source of truth.
+
+Product Brain owns:
+- category
+- tariff/rate
+- factual restrictions
+- numerical estimate basis
+
+Gemini owns:
+- interpretation
+- explanation
+- tone
+- uncertainty handling
+- helpful guidance
+
+Gemini must not invent tax rates, final prices, shipping prices, guaranteed savings, or customs certainty.
+
+2. Reuse the same quote-builder pattern
+
+The portal page should support:
+
+- product input
+- warm assistant response
+- category explanation
+- orientative tax estimate
+- approximate price input
+- product URL
+- clarification/note field
+- category correction if available
+- add product to request
+- persistent product cart/list
+- continue to submit quote request
+
+The user should be able to add multiple products to one quote request.
+
+After adding a product, it should appear in a visible cart-like section:
+
+“Productos en tu solicitud”
+
+Each product row/card should show:
+- product name
+- category
+- approximate declared value if provided
+- estimated taxes if available
+- status such as “Listo para cotizar” or “Falta precio aprox.”
+- remove action
+- edit action only if safe and simple
+
+The user should never lose sight of what they have added.
+
+3. Adapt the experience to the logged-in portal
+
+Because the user is logged in, do not ask again for information that already exists in the user profile.
+
+Use available portal/session data where possible:
+- customer email
+- customer name
+- casillero ID
+- account type
+- default branch / delivery preference if available
+- phone/address only if already available and relevant
+
+The quote request should still allow the user to confirm or adjust missing details, but it should not feel like they are starting from zero.
+
+Suggested portal copy:
+“Cotizá una nueva solicitud”
+“Contanos qué querés traer y armamos la solicitud con los datos de tu cuenta.”
+“Usaremos tu información de CRBOX para agilizar el proceso.”
+
+If data is missing:
+“Completá este dato para que el equipo CRBOX pueda responderte correctamente.”
+
+4. Portal layout direction
+
+The page should feel like part of the dashboard/client portal, not like the public landing page.
+
+Use the portal visual system:
+- dashboard-style header
+- clean internal layout
+- cards/panels consistent with portal UI
+- less marketing copy
+- more operational clarity
+- efficient spacing
+- professional but still warm
+
+Suggested structure:
+
+Top section:
+- Page title: “Cotizaciones”
+- Subtitle: “Solicitá una cotización para uno o varios productos.”
+- Optional status/summary cards:
+  - “Nueva solicitud”
+  - “Historial de cotizaciones”
+  - “En revisión” if real data exists
+
+Main workspace:
+Left / main area:
+- conversational quote assistant
+- active product analysis
+- product details
+
+Right / side area:
+- “Tu solicitud”
+- products added
+- account info used
+- next action
+
+Below or separate section:
+- real quote history if backend support exists
+- empty state if no quote history exists
+
+Important:
+Do not fake quote history.
+Do not create placeholder quote requests.
+Do not show fake statuses.
+
+5. Use real existing backend support
+
+The audit confirmed that:
+
+- `POST /api/solicitudes` already stores quote requests
+- authenticated requests can include the user/casillero context
+- `GET /api/solicitudes` supports authenticated quote listing filtered by `casillero_id`
+- quote history can be real if the portal has auth/token access
+
+Use this real backend support if available in the portal.
+
+For the portal submission:
+- include Authorization Bearer token if the portal session has it
+- include the logged-in user/casillero email headers if required by the existing system
+- send the same products array structure as public cotizar
+- preserve customer_clarification per product
+- preserve product URLs
+- preserve approximate prices
+- preserve category/brain classification where available
+- preserve service type and destination zone
+- avoid asking for email/name if already known
+
+Do not change backend behavior unless absolutely required.
+Do not change API contracts.
+Do not create a new endpoint if the existing one works.
+
+6. Quote history inside the portal
+
+If the authenticated `GET /api/solicitudes` works, show a real quote history section.
+
+Suggested heading:
+“Mis cotizaciones”
+
+Each quote item should show:
+- request ID
+- date
+- products summary
+- status
+- destination/service if available
+- estimated/declared value if available
+- action to view details if supported
+
+If there are no quote requests:
+Show a truthful empty state:
+“Aún no tenés cotizaciones.”
+“Cuando enviés una solicitud, aparecerá aquí.”
+
+Do not show fake examples.
+
+Do not fake status progression.
+
+Only show statuses that actually exist in the backend.
+
+7. Submission flow inside portal
+
+Because the user is logged in, the submission flow should be shorter.
+
+Suggested flow:
+
+Step 1 — Products
+User describes product, gets analysis, adds one or more products.
+
+Step 2 — Details
+User confirms:
+- destination province
+- service preference: aéreo / marítimo if applicable
+- any general notes
+- contact preference if needed
+
+Step 3 — Submit
+User submits request.
+
+Confirmation:
+“Recibimos tu solicitud.”
+“Referencia: SCB-XXXXX”
+“El equipo CRBOX revisará los detalles y te contactará con la cotización.”
+
+If the backend returns email warnings, preserve the existing warning behavior:
+- show the request ID
+- explain that the request was saved
+- recommend contacting CRBOX by WhatsApp if needed
+
+8. Preserve operational flow
+
+The portal version must preserve the confirmed operational submission behavior:
+
+- customer confirmation email
+- sales notification email
+- SQLite/admin quote request record
+- products JSON
+- customer_clarification
+- multi-product compatibility
+- service_type
+- destination_zone
+- customer_notes
+- account/casillero information if authenticated
+
+Do not break:
+- `getProducts()`-style product collection
+- `submitQuote()`-style payload assembly
+- existing backend payload fields
+- SMTP warning fallback
+- quote ID confirmation
+
+9. Gemini/product response requirements
+
+The portal version must pass the same product response QA:
+
+Test:
+- “café”
+- “un café”
+- “ropa”
+- “zapatos”
+- “Nike Air Force 1”
+- quick chip “Ropa”
+- popular pill “iPhone 16 Pro”
+
+Expected:
+- warm, contextual, intelligent responses
+- no cold category database output
+- estimates clearly labeled as approximate/orientative
+- Product Brain truth preserved
+- Gemini does not invent numbers
+- uncertain products show friendly “requiere revisión” state
+
+10. Visual direction for portal chat
+
+The portal chat should not feel like WhatsApp.
+
+It should feel like a premium CRBOX quote assistant embedded in the dashboard.
+
+Use:
+- structured assistant modules instead of only bubbles
+- polished product analysis cards
+- clean input/command bar
+- persistent request cart
+- subtle CRBOX orange accents
+- portal-compatible cards
+- refined spacing
+- clear status badges
+- soft shadows/dividers
+- strong typography hierarchy
+
+Avoid:
+- generic chat bubbles
+- excessive orange
+- heavy marketing layout
+- fake AI visuals
+- admin-table feeling
+- dense forms
+
+11. Mobile portal experience
+
+On mobile:
+- the assistant should remain easy to use
+- product cards should stack cleanly
+- cart should remain visible after adding products
+- quote history should not overwhelm the page
+- tap targets should be at least 48px
+- no horizontal overflow
+- final CTA should be clear
+
+12. Suggested page name and navigation
+
+Create or update the portal page as:
+
+“Cotizaciones”
+
+Suggested routes/files depending on existing structure:
+- `cotizar.html` inside portal if already exists
+- `mis-cotizaciones.html`
+- `solicitudes.html`
+- or whichever naming matches the current portal structure
+
+The nav item should be clear:
+“Cotizaciones” or “Solicitar cotización”
+
+If quote history exists, the page can combine:
+- “Nueva cotización”
+- “Mis cotizaciones”
+
+Do not create duplicate confusing nav items.
+
+13. Acceptance criteria
+
+The task is complete when:
+
+- Logged-in users can create a quote request from the portal.
+- The experience uses the same conversational quote-builder logic as public cotizar.
+- The UI feels adapted to the portal/dashboard, not copied from the landing page.
+- Known user information is reused instead of asking again.
+- Multiple products can be added to one request.
+- Product clarifications are preserved.
+- Product URLs and approximate prices are preserved.
+- Destination/service/notes are included.
+- Quote submission reaches the same backend flow.
+- Sales email and customer confirmation still work.
+- Quote appears in the internal admin system.
+- Real quote history is shown if supported.
+- Empty state is truthful if no quotes exist.
+- No fake quote statuses, prices, tracking, or history are shown.
+- Gemini responses are warm and intelligent across all entry points.
+- Product Brain remains the source of numerical truth.
+- Mobile works cleanly.
+
+14. Out of scope
+
+Do not:
+- redesign the entire portal
+- change backend contracts
+- create fake quote history
+- fake quote status progression
+- fake confirmed prices
+- fake package tracking
+- change admin panel behavior
+- change SMTP/email behavior
+- create a new backend system if existing endpoints work
+- remove existing submission fields
+
+15. Recommended implementation order
+
+1. Inspect the existing portal structure and identify where the Cotizaciones page should live.
+2. Identify current portal auth/session user data available in JS.
+3. Reuse/adapt the public quote-builder logic.
+4. Build the portal-native UI for a new quote request.
+5. Submit quote requests using the existing `/api/solicitudes` endpoint with auth context.
+6. Verify customer_clarification, products array, destination, service, and account data are preserved.
+7. Add real quote history using authenticated `GET /api/solicitudes` if available.
+8. Add truthful empty state if no history exists.
+9. QA single-product and multi-product submissions.
+10. QA logged-in user data prefill.
+11. QA mobile.
+12. Confirm no fake data and no backend contract changes.
+
+Final target:
+The portal Cotizaciones page should feel like a faster, account-aware version of the public CRBOX quote concierge: the same intelligent conversational product request experience, but integrated naturally into the client dashboard.

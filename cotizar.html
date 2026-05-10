@@ -2950,13 +2950,13 @@
 
             <!-- Quick chips -->
             <div class="cq-chips" role="group" aria-label="Categorías populares">
-                <button class="cq-chip" data-query="laptop" data-display="Laptop">💻 Laptop</button>
-                <button class="cq-chip" data-query="celular" data-display="Celular">📱 Celular</button>
-                <button class="cq-chip" data-query="zapatos" data-display="Calzado">👟 Calzado</button>
-                <button class="cq-chip" data-query="ropa" data-display="Ropa">👗 Ropa</button>
-                <button class="cq-chip" data-query="consola de videojuegos" data-display="Consola">🎮 Juegos</button>
-                <button class="cq-chip" data-query="electrodoméstico para el hogar" data-display="Hogar">🏠 Hogar</button>
-                <button class="cq-chip" data-query="smartwatch reloj inteligente" data-display="Reloj">⌚ Reloj</button>
+                <button class="cq-chip" data-display="Laptop" data-query="laptop" data-intent="laptop">💻 Laptop</button>
+                <button class="cq-chip" data-display="Celular" data-query="celular" data-intent="celular">📱 Celular</button>
+                <button class="cq-chip" data-display="Calzado" data-query="zapatos" data-intent="zapatos">👟 Calzado</button>
+                <button class="cq-chip" data-display="Ropa" data-query="ropa" data-intent="ropa">👗 Ropa</button>
+                <button class="cq-chip" data-display="Consola" data-query="consola de videojuegos" data-intent="consola de videojuegos">🎮 Juegos</button>
+                <button class="cq-chip" data-display="Hogar" data-query="electrodoméstico para el hogar" data-intent="electrodoméstico para el hogar">🏠 Hogar</button>
+                <button class="cq-chip" data-display="Reloj" data-query="smartwatch reloj inteligente" data-intent="smartwatch reloj inteligente">⌚ Reloj</button>
             </div>
 
             <!-- Inspirations -->
@@ -3701,9 +3701,10 @@
             chip.addEventListener('click', function() {
                 document.querySelectorAll('#cq-hero .cq-chip').forEach(function(c) { c.classList.remove('cq-chip-active'); });
                 chip.classList.add('cq-chip-active');
-                // data-display = clean user-facing name; data-query = enriched classify intent
+                // data-display = clean user-facing name
+                // data-intent (preferred) / data-query = enriched classify intent for normalization
                 var displayName = chip.dataset.display || chip.textContent.replace(/[^\w\sáéíóúñü]/gi,'').trim();
-                var classifyQ   = chip.dataset.query || displayName;
+                var classifyQ   = chip.dataset.intent || chip.dataset.query || displayName;
                 if (heroInput) heroInput.value = displayName;
                 _startProductEntry(displayName, classifyQ);
             });
@@ -5087,14 +5088,14 @@
             var cat  = result && result.displayName ? result.displayName : '';
             var rate = result && result.estimatedRange ? result.estimatedRange : '';
             var INTROS = [
-                'Excelente elección.' + (cat ? ' Lo clasificamos como <strong>' + cat + '</strong>.' : '') + ' Ingresá el precio aproximado para calcular impuestos y flete a Costa Rica.',
-                '¡' + name + ' es muy popular en CRBOX!' + (rate ? ' El arancel estimado para esta categoría es del <strong>' + rate + '</strong>.' : '') + ' Completá el precio para ver el estimado completo.',
-                'Lo tenemos muy bien catalogado.' + (cat ? ' Categoría: <strong>' + cat + '</strong>.' : '') + ' Ingresá el precio y te mostramos el estimado de impuestos al instante.',
-                'Llevamos más de 10 años importando este tipo de productos. Completá el precio aproximado y el equipo CRBOX se encarga del resto.',
-                '¡Buena elección!' + (cat ? ' En la categoría <strong>' + cat + '</strong>' : '') + (rate ? ' el arancel típico es del <strong>' + rate + '</strong>.' : '.') + ' Ingresá el precio para calcular el estimado.',
-                'Podemos importar ' + name + ' para vos directamente desde USA.' + (cat ? ' Categoría detectada: <strong>' + cat + '</strong>.' : '') + ' ¿Cuánto cuesta aproximadamente?',
-                'Este producto entra sin problema a Costa Rica.' + (rate ? ' Arancel orientativo: <strong>' + rate + '</strong>.' : '') + ' Completá el precio y calculamos impuestos en segundos.',
-                (cat ? 'Categoría identificada: <strong>' + cat + '</strong>. ' : '') + 'El equipo CRBOX revisa cada detalle — tamaño, peso, arancel — para darte un estimado real. Ingresá el precio.'
+                (cat ? 'Lo identificamos como ' + cat + '.' : 'Producto identificado.') + (rate ? ' El arancel orientativo en aduana costarricense para esta categoría es del ' + rate + '.' : '') + ' Ingresá el precio para calcular el estimado completo de impuestos y flete.',
+                'Llevamos más de 10 años importando este tipo de productos desde Miami.' + (cat ? ' Categoría: ' + cat + '.' : '') + ' Completá el precio aproximado y el equipo CRBOX lo revisa con todos los detalles.',
+                (cat ? 'Categoría detectada: ' + cat + '.' : '') + (rate ? ' Arancel típico del ' + rate + ' en aduana de Costa Rica.' : '') + ' Ingresá el valor del producto para ver el desglose de impuestos y flete desde Miami.',
+                'Lo podemos traer directo desde Miami para vos.' + (cat ? ' Entra en la categoría ' + cat + '.' : '') + (rate ? ' Arancel de referencia: ' + rate + '.' : '') + ' Ingresá cuánto cuesta el ' + name + ' para calcular el total.',
+                (rate ? 'Para esta categoría el arancel orientativo es del ' + rate + '.' : 'Este producto se puede importar a Costa Rica sin problema.') + ' Completá el precio y te mostramos un estimado detallado de impuestos y flete.',
+                'Podemos traer ' + name + ' para vos por medio de tu casillero CRBOX en Miami.' + (cat ? ' Lo clasificamos como ' + cat + '.' : '') + ' Ingresá el precio para calcular cuánto costaría en total.',
+                (cat ? 'Categoría identificada: ' + cat + '. ' : '') + 'Nuestro equipo revisa peso, arancel y requisitos antes de cada envío — no tenés que preocuparte por los trámites. Ingresá el precio aproximado para comenzar.',
+                'Sin problema, lo traemos desde Miami.' + (rate ? ' Arancel de referencia del ' + rate + '.' : '') + ' Completá el precio y calculamos los impuestos de aduana en segundos.'
             ];
             return INTROS[Math.floor(Math.random() * INTROS.length)];
         }
@@ -5102,10 +5103,11 @@
         function _ambiguousIntro(productName) {
             var name = (productName || 'este producto').trim();
             var INTROS = [
-                'Para darte un estimado preciso de ' + name + ', un asesor CRBOX lo revisará personalmente. Completá el formulario y te contactamos en menos de 24 horas.',
-                'Este producto requiere una revisión por parte de nuestro equipo — distintos modelos pueden tener aranceles muy distintos. Agrega el precio y nos comunicamos pronto.',
-                'Buena elección. Por las características de ' + name + ', nuestro equipo lo revisará individualmente. Completá el precio y te llegará un estimado preciso pronto.',
-                'No te preocupés — aunque necesita revisión especial, lo importamos. Dejá el precio estimado y un asesor CRBOX te escribe con todos los detalles.'
+                'Para darte un estimado preciso de ' + name + ', un asesor CRBOX lo revisará personalmente. Completá el precio aproximado y te contactamos en menos de 24 horas.',
+                'Este producto requiere revisión por parte de nuestro equipo — los aranceles pueden variar según modelo y especificaciones. Agregá el precio estimado y nos comunicamos pronto.',
+                'Lo podemos importar para vos. Por las características de ' + name + ', nuestro equipo lo revisará individualmente y te enviará un estimado preciso. Completá el precio para comenzar.',
+                'No te preocupés — aunque necesita revisión especial, lo importamos. Dejá el precio estimado y un asesor CRBOX te escribe con todos los detalles del proceso.',
+                'Este tipo de producto lo manejamos con revisión personalizada para asegurar que todo entre correctamente. Ingresá el precio aproximado y te contactamos rápido.'
             ];
             return INTROS[Math.floor(Math.random() * INTROS.length)];
         }
