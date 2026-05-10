@@ -2079,6 +2079,7 @@
                 pill.querySelector('.cq-conf-pill-del').addEventListener('click', function() {
                     var i = parseInt(this.dataset.idx);
                     _confirmedProducts.splice(i, 1);
+                    _updateBuilderCount(_confirmedProducts.length);
                     _renderConfirmedList();
                     _renderSummaryCards();
                     _updateQuoteSummary();
@@ -2137,6 +2138,7 @@
                 card.querySelector('.cq-remove-btn').addEventListener('click', function() {
                     var i = parseInt(this.dataset.idx);
                     _confirmedProducts.splice(i, 1);
+                    _updateBuilderCount(_confirmedProducts.length);
                     _renderConfirmedList();
                     _renderSummaryCards();
                     _updateQuoteSummary();
@@ -2148,6 +2150,7 @@
                     if (!prod) return;
                     // Remove from confirmed, re-open product card for editing
                     _confirmedProducts.splice(i, 1);
+                    _updateBuilderCount(_confirmedProducts.length);
                     _renderConfirmedList();
                     _renderSummaryCards();
                     _updateQuoteSummary();
@@ -2209,6 +2212,7 @@
             var btnContinue = document.getElementById('cq-btn-continue-shipping');
             if (!btnContinue) return;
             btnContinue.addEventListener('click', function() {
+                _updateStepIndicator(2);
                 var shipping = document.getElementById('cq-step-shipping');
                 if (shipping) {
                     if (shipping.style.display === 'none') _showEl('cq-step-shipping');
