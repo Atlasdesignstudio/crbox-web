@@ -667,9 +667,85 @@
         .form-card { background:#fff; border-radius:1.25rem; border:1.5px solid #e5e7eb; padding:1.5rem; margin-bottom:1rem; }
         @media (max-width:640px) { .form-card { padding:1.1rem 1rem; } }
 
+        /* ── Two-column product workspace ── */
+        .cq-pcard-body { display:flex; flex-direction:row; align-items:stretch; }
+        .cq-pcard-left { flex:1; min-width:0; padding:0 0 1.1rem; }
+        .cq-pcard-right { flex:0 0 320px; min-width:0; border-left:1px solid #f0ebe3; }
+        /* Follow-up section inside left column — align horizontally with gem-wrap padding */
+        .cq-pcard-left .cq-followup-wrap { margin-left:1.15rem; margin-right:1.15rem; margin-top:.35rem; }
+        @media (max-width:720px) {
+            .cq-pcard-body { flex-direction:column; }
+            .cq-pcard-left { padding:0 0 .5rem; }
+            .cq-pcard-right { flex:none; width:100%; border-left:none; border-top:1px solid #f0ebe3; }
+            .cq-pcard-left .cq-followup-wrap { margin-left:.9rem; margin-right:.9rem; }
+        }
+        .cq-pcard-fields-right { padding:1.1rem 1.2rem 1.3rem; }
+
+        /* ── Tax dollar estimate module (prominent) ── */
+        #cq-tax-dollar-module {
+            background:linear-gradient(158deg,#fff7ed 0%,#fffbf5 100%);
+            border:2px solid #fed7aa; border-radius:1rem;
+            padding:1rem 1.1rem; margin-bottom:.8rem;
+            animation:cqFadeUp .3s ease both;
+        }
+        .cq-tdm-label {
+            font-size:.66rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+            color:#92400e; margin-bottom:.3rem; display:flex; align-items:center; gap:.3rem;
+        }
+        .cq-tdm-label i { font-size:.62rem; color:#f59e0b; }
+        .cq-tdm-amount {
+            font-size:1.7rem; font-weight:900; color:#c2410c;
+            line-height:1.1; margin-bottom:.15rem; letter-spacing:-.025em;
+        }
+        .cq-tdm-rate { font-size:.75rem; font-weight:600; color:#b45309; margin-bottom:.3rem; }
+        .cq-tdm-note { font-size:.68rem; color:#b45309; line-height:1.5; font-style:italic; }
+
+        /* ── Cost breakdown preview ── */
+        .cq-breakdown-preview {
+            background:#f9fafb; border:1px solid #e5e7eb; border-radius:.875rem;
+            padding:.8rem 1rem; margin-bottom:.8rem;
+        }
+        .cq-bdp-title {
+            font-size:.73rem; font-weight:700; color:#374151; margin-bottom:.45rem;
+            display:flex; align-items:center; gap:.3rem;
+        }
+        .cq-bdp-title i { color:#FF6B00; font-size:.62rem; }
+        .cq-bdp-list { list-style:none; padding:0; margin:0 0 .5rem; display:flex; flex-direction:column; gap:.2rem; }
+        .cq-bdp-list li { font-size:.77rem; color:#4b5563; display:flex; align-items:center; gap:.38rem; }
+        .cq-bdp-list i { color:#10b981; font-size:.6rem; flex-shrink:0; }
+        .cq-bdp-note {
+            font-size:.69rem; color:#9ca3af; line-height:1.55; font-style:italic;
+            border-top:1px solid #e5e7eb; padding-top:.42rem;
+        }
+
+        /* ── Dual CTAs ── */
+        .cq-dual-cta { display:flex; flex-direction:column; gap:.45rem; margin-top:.85rem; }
+        .cq-btn-confirm { margin-top:0; }
+        .cq-btn-go-shipping {
+            width:100%; padding:.78rem 1rem; background:#fff;
+            color:#374151; border:1.5px solid #e5e7eb; border-radius:.875rem;
+            font-size:.875rem; font-weight:600; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; gap:.45rem;
+            transition:border-color .17s, background .17s, color .17s;
+        }
+        .cq-btn-go-shipping:hover { border-color:#FF6B00; background:#fff7ed; color:#c2410c; }
+        .cq-btn-go-shipping i { font-size:.7rem; }
+
+        /* ── Summary card status badge ── */
+        .cq-summary-status {
+            display:inline-flex; align-items:center; gap:.22rem;
+            background:#f0fdf4; border:1px solid #86efac; border-radius:99px;
+            padding:.12rem .5rem; font-size:.64rem; font-weight:700; color:#15803d; margin-top:.2rem;
+        }
+        .cq-summary-status i { font-size:.54rem; }
+        .cq-summary-status.cq-status-missing { background:#fef2f2; border-color:#fca5a5; color:#b91c1c; }
+
         /* ── Mobile overrides ── */
         @media (max-width:640px) {
             .cq-flow-inner { padding:1.25rem 1rem 3rem; }
+            .cq-pcard-body { flex-direction:column; }
+            .cq-pcard-right { border-left:none; border-top:1px solid #f0ebe3; }
+            .cq-tdm-amount { font-size:1.35rem; }
             .cq-summary-card { flex-direction:column; gap:.55rem; }
             .cq-summary-card-actions { flex-direction:row; align-self:flex-end; }
             #cq-quote-summary { padding:.9rem 1rem; }
@@ -680,7 +756,8 @@
             .cq-gem-ship-block { flex-direction:column; align-items:flex-start; gap:.3rem; padding:.55rem .75rem; }
             .cq-cat-trigger { font-size:.76rem; }
             .cq-btn-forward { font-size:.92rem; padding:.8rem 1.2rem; }
-            .cq-followup-wrap { padding:.65rem .85rem; }
+            .cq-followup-wrap { padding:.65rem .85rem; margin:.35rem 0 .55rem; }
+            .cq-dual-cta { gap:.4rem; }
         }
 
         /* Nav */
@@ -858,7 +935,7 @@
                 <!-- Unified product card: bubble + AI analysis + detail fields -->
                 <div id="cq-step-product" class="cq-pcard">
 
-                    <!-- Orange chat bubble with product name -->
+                    <!-- Orange bubble — product name strip, full width -->
                     <div id="cq-product-bubble" class="cq-bubble" style="display:none;">
                         <span id="cq-bubble-text" class="cq-bubble-text"></span>
                         <button type="button" id="cq-bubble-edit" class="cq-bubble-edit" title="Editar nombre">
@@ -866,125 +943,157 @@
                         </button>
                     </div>
 
-                    <!-- AI analysis: loading skeleton → Gemini result card -->
-                    <div id="cq-intel-area" style="display:none;"></div>
+                    <!-- Two-column workspace: LEFT = analysis context · RIGHT = price / tax / CTAs -->
+                    <div class="cq-pcard-body">
 
-                    <!-- Follow-up clarification (shown after AI result) -->
-                    <div id="cq-followup-section" class="cq-followup-wrap" style="display:none;">
-                        <div class="cq-followup-label">
-                            <i class="fas fa-comment-dots"></i>
-                            ¿Quieres aclarar algo sobre este producto?
-                        </div>
-                        <textarea id="cq-followup-input" class="cq-field-input" placeholder="Ej: es de segunda mano, son 2 unidades, no incluye cargador…" rows="2" maxlength="300" style="width:100%;box-sizing:border-box;margin-top:.35rem;resize:none;font-size:.82rem;border:1.5px solid #e5e7eb;border-radius:.65rem;padding:.5rem .75rem;font-family:inherit;color:#374151;"></textarea>
-                        <button type="button" id="cq-followup-btn" class="cq-followup-btn">
-                            <i class="fas fa-sync-alt" style="font-size:.7rem;"></i> Actualizar análisis
-                        </button>
-                        <div id="cq-followup-note" class="cq-followup-note" style="display:none;">
-                            <i class="fas fa-sticky-note"></i>
-                            <span id="cq-followup-note-text"></span>
-                        </div>
-                    </div>
-
-                    <!-- Product detail fields — revealed after AI card -->
-                    <div id="cq-product-fields" class="cq-pcard-fields" style="display:none;">
-                        <div id="cq-ai-banner" style="margin-bottom:.5rem;"></div>
-                        <div id="cq-ai-compliance"></div>
-
-                        <div class="cq-fields-divider"><span>Cuéntanos más del producto</span></div>
-
-                        <!-- URL -->
-                        <div class="cq-field-block">
-                            <div class="cq-field-label">
-                                <i class="fas fa-link"></i> Enlace del producto <span class="cq-opt-tag">— opcional</span>
+                        <!-- LEFT: AI analysis + follow-up clarification -->
+                        <div class="cq-pcard-left">
+                            <div id="cq-intel-area" style="display:none;"></div>
+                            <div id="cq-followup-section" class="cq-followup-wrap" style="display:none;">
+                                <div class="cq-followup-label">
+                                    <i class="fas fa-comment-dots"></i>
+                                    ¿Quieres aclarar algo sobre este producto?
+                                </div>
+                                <textarea id="cq-followup-input" class="cq-field-input" placeholder="Ej: es de segunda mano, son 2 unidades, no incluye cargador…" rows="2" maxlength="300" style="width:100%;box-sizing:border-box;margin-top:.35rem;resize:none;font-size:.82rem;border:1.5px solid #e5e7eb;border-radius:.65rem;padding:.5rem .75rem;font-family:inherit;color:#374151;"></textarea>
+                                <button type="button" id="cq-followup-btn" class="cq-followup-btn">
+                                    <i class="fas fa-sync-alt" style="font-size:.7rem;"></i> Actualizar análisis
+                                </button>
+                                <div id="cq-followup-note" class="cq-followup-note" style="display:none;">
+                                    <i class="fas fa-sticky-note"></i>
+                                    <span id="cq-followup-note-text"></span>
+                                </div>
                             </div>
-                            <div class="cq-url-wrap">
-                                <input type="url" id="cq-f-url" class="cq-field-input" placeholder="https://amazon.com/dp/…" autocomplete="off">
-                                <span class="cq-url-spinner" id="cq-url-spinner"><i class="fas fa-circle-notch fa-spin"></i></span>
-                            </div>
-                            <div class="cq-field-hint">Pega el enlace para que el equipo CRBOX pueda revisar el producto con más precisión.</div>
                         </div>
 
-                        <!-- Price -->
-                        <div class="cq-field-block">
-                            <div class="cq-field-label">
-                                <i class="fas fa-dollar-sign"></i> Precio aproximado <span class="cq-req-tag">*</span>
-                            </div>
-                            <div class="cq-price-wrap" id="cq-price-wrap">
-                                <span class="cq-price-fix left">$</span>
-                                <input type="number" id="cq-f-price" class="cq-price-input" placeholder="0.00" min="0.01" step="0.01">
-                                <span class="cq-price-fix right">USD</span>
-                            </div>
-                            <div class="cq-err" id="cq-err-price" style="display:none;">
-                                <i class="fas fa-exclamation-circle"></i><span>Indica el precio para continuar.</span>
-                            </div>
-                            <div id="cq-live-est" class="cq-live-est" style="display:none;"></div>
-                        </div>
+                        <!-- RIGHT: price input, tax estimate, breakdown preview, CTAs -->
+                        <div class="cq-pcard-right">
+                            <div id="cq-product-fields" class="cq-pcard-fields-right" style="display:none;">
+                                <div id="cq-ai-banner" style="margin-bottom:.5rem;"></div>
+                                <div id="cq-ai-compliance"></div>
 
-                        <!-- Searchable category widget -->
-                        <div class="cq-cat-widget" id="cq-cat-widget-wrap">
-                            <button type="button" class="cq-cat-trigger" id="cq-cat-trigger" aria-expanded="false">
-                                <i class="fas fa-sliders-h"></i>
-                                <span>¿La categoría no parece correcta?</span>
-                                <span id="cq-cat-detected-badge" class="cq-cat-detected" style="display:none;"></span>
-                                <i class="fas fa-chevron-right cq-cat-trigger-chevron"></i>
-                            </button>
-                            <div id="cq-cat-search-panel" class="cq-cat-search-panel" style="display:none;">
-                                <input type="text" id="cq-cat-search-input" class="cq-field-input"
-                                       placeholder="Buscar: celular, zapatos, laptop…" autocomplete="off"
-                                       style="width:100%;box-sizing:border-box;font-size:.82rem;border:1.5px solid #e5e7eb;border-radius:.65rem;padding:.5rem .75rem;font-family:inherit;">
-                                <div id="cq-cat-results" class="cq-cat-results"></div>
+                                <!-- URL -->
+                                <div class="cq-field-block">
+                                    <div class="cq-field-label">
+                                        <i class="fas fa-link"></i> Enlace del producto <span class="cq-opt-tag">— opcional</span>
+                                    </div>
+                                    <div class="cq-url-wrap">
+                                        <input type="url" id="cq-f-url" class="cq-field-input" placeholder="https://amazon.com/dp/…" autocomplete="off">
+                                        <span class="cq-url-spinner" id="cq-url-spinner"><i class="fas fa-circle-notch fa-spin"></i></span>
+                                    </div>
+                                    <div class="cq-field-hint">Pega el enlace para que el equipo CRBOX pueda revisar el producto con más precisión.</div>
+                                </div>
+
+                                <!-- Price -->
+                                <div class="cq-field-block">
+                                    <div class="cq-field-label">
+                                        <i class="fas fa-dollar-sign"></i> Precio aproximado <span class="cq-req-tag">*</span>
+                                    </div>
+                                    <div class="cq-price-wrap" id="cq-price-wrap">
+                                        <span class="cq-price-fix left">$</span>
+                                        <input type="number" id="cq-f-price" class="cq-price-input" placeholder="0.00" min="0.01" step="0.01">
+                                        <span class="cq-price-fix right">USD</span>
+                                    </div>
+                                    <div class="cq-err" id="cq-err-price" style="display:none;">
+                                        <i class="fas fa-exclamation-circle"></i><span>Indica el precio para continuar.</span>
+                                    </div>
+                                    <div id="cq-live-est" class="cq-live-est" style="display:none;"></div>
+                                </div>
+
+                                <!-- Tax dollar module — prominent, shown when price > 0 -->
+                                <div id="cq-tax-dollar-module" style="display:none;">
+                                    <div class="cq-tdm-label">
+                                        <i class="fas fa-coins"></i> Impuestos estimados sobre este producto
+                                    </div>
+                                    <div class="cq-tdm-amount" id="cq-tdm-amount">aprox. $—</div>
+                                    <div class="cq-tdm-rate" id="cq-tdm-rate"></div>
+                                    <div class="cq-tdm-note">Estimado orientativo sobre el precio que ingresaste. El monto exacto lo determina la DGA al despacho.</div>
+                                </div>
+
+                                <!-- Cost breakdown preview -->
+                                <div class="cq-breakdown-preview">
+                                    <div class="cq-bdp-title"><i class="fas fa-list-ul"></i> ¿Qué se tomará en cuenta para la cotización final?</div>
+                                    <ul class="cq-bdp-list">
+                                        <li><i class="fas fa-check-circle"></i> Precio declarado del producto</li>
+                                        <li><i class="fas fa-check-circle"></i> Impuestos estimados (arancel + IVA)</li>
+                                        <li><i class="fas fa-check-circle"></i> Peso y dimensiones del paquete</li>
+                                        <li><i class="fas fa-check-circle"></i> Tipo de envío (aéreo o marítimo)</li>
+                                        <li><i class="fas fa-check-circle"></i> Revisión final del equipo CRBOX</li>
+                                    </ul>
+                                    <div class="cq-bdp-note">Por ahora te mostramos una guía inicial. El equipo CRBOX revisará la información y te enviará el precio final.</div>
+                                </div>
+
+                                <!-- Searchable category widget -->
+                                <div class="cq-cat-widget" id="cq-cat-widget-wrap">
+                                    <button type="button" class="cq-cat-trigger" id="cq-cat-trigger" aria-expanded="false">
+                                        <i class="fas fa-sliders-h"></i>
+                                        <span>¿La categoría no parece correcta?</span>
+                                        <span id="cq-cat-detected-badge" class="cq-cat-detected" style="display:none;"></span>
+                                        <i class="fas fa-chevron-right cq-cat-trigger-chevron"></i>
+                                    </button>
+                                    <div id="cq-cat-search-panel" class="cq-cat-search-panel" style="display:none;">
+                                        <input type="text" id="cq-cat-search-input" class="cq-field-input"
+                                               placeholder="Buscar: celular, zapatos, laptop…" autocomplete="off"
+                                               style="width:100%;box-sizing:border-box;font-size:.82rem;border:1.5px solid #e5e7eb;border-radius:.65rem;padding:.5rem .75rem;font-family:inherit;">
+                                        <div id="cq-cat-results" class="cq-cat-results"></div>
+                                    </div>
+                                    <select id="cq-f-category" style="display:none;" aria-hidden="true">
+                                        <option value="" disabled selected>Selecciona una categoría</option>
+                                        <option value="celulares">Celulares y Smartphones</option>
+                                        <option value="computadora">Computadoras y Laptops</option>
+                                        <option value="tableta_electronica">Tabletas y iPads</option>
+                                        <option value="consola_videojuegos">Consolas de Videojuegos</option>
+                                        <option value="camara">Cámaras y Video</option>
+                                        <option value="auricular_telefono">Audífonos y Accesorios Audio</option>
+                                        <option value="bocina">Bocinas y Equipos de Sonido</option>
+                                        <option value="televisor">Televisores</option>
+                                        <option value="electr_otro">Otro — Electrónica</option>
+                                        <option value="ropa">Ropa y Calzado</option>
+                                        <option value="anteojos">Anteojos y Gafas</option>
+                                        <option value="cinturon">Cinturones y Bolsos</option>
+                                        <option value="ropa_otro">Otro — Ropa y Accesorios</option>
+                                        <option value="electrodomesticos">Electrodomésticos</option>
+                                        <option value="aspiradora">Aspiradora y Limpieza</option>
+                                        <option value="colchon">Colchones y Muebles</option>
+                                        <option value="herramientas">Herramientas</option>
+                                        <option value="hogar_otro">Otro — Hogar</option>
+                                        <option value="bicicleta_economica">Bicicleta estándar</option>
+                                        <option value="bicicleta_cara">Bicicleta premium</option>
+                                        <option value="bola">Artículos Deportivos</option>
+                                        <option value="deporte_otro">Otro — Deportes</option>
+                                        <option value="coche_bebe">Coches de Bebé y Accesorios</option>
+                                        <option value="juguetes">Juguetes</option>
+                                        <option value="bebe_otro">Otro — Bebé y Niños</option>
+                                        <option value="amortiguadores">Amortiguadores</option>
+                                        <option value="aros_carro_moto">Aros de Carro/Moto</option>
+                                        <option value="vehiculos">Repuestos en General</option>
+                                        <option value="vehic_otro">Otro — Vehículos</option>
+                                        <option value="salud_belleza">Salud y Belleza</option>
+                                        <option value="suplementos">Suplementos</option>
+                                        <option value="cds">Libros, CDs y Medios</option>
+                                        <option value="otros">Otro (no está en la lista)</option>
+                                    </select>
+                                    <div id="cq-cat-suggest"></div>
+                                </div>
+
+                                <!-- AI confirm checkbox -->
+                                <label id="cq-ai-confirm-wrap" class="cq-ai-confirm" style="display:none;">
+                                    <input type="checkbox" id="cq-ai-confirm-chk">
+                                    <span>Confirmo que los datos extraídos son correctos antes de continuar.</span>
+                                </label>
+
+                                <!-- Dual CTAs -->
+                                <div class="cq-dual-cta">
+                                    <button type="button" id="cq-btn-confirm-product" class="cq-btn-confirm">
+                                        <i class="fas fa-plus"></i> Agregar producto
+                                    </button>
+                                    <button type="button" id="cq-btn-go-shipping" class="cq-btn-go-shipping">
+                                        Continuar con la solicitud <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <!-- Hidden native select keeps existing form/JS wiring intact -->
-                            <select id="cq-f-category" style="display:none;" aria-hidden="true">
-                                <option value="" disabled selected>Selecciona una categoría</option>
-                                <option value="celulares">Celulares y Smartphones</option>
-                                <option value="computadora">Computadoras y Laptops</option>
-                                <option value="tableta_electronica">Tabletas y iPads</option>
-                                <option value="consola_videojuegos">Consolas de Videojuegos</option>
-                                <option value="camara">Cámaras y Video</option>
-                                <option value="auricular_telefono">Audífonos y Accesorios Audio</option>
-                                <option value="bocina">Bocinas y Equipos de Sonido</option>
-                                <option value="televisor">Televisores</option>
-                                <option value="electr_otro">Otro — Electrónica</option>
-                                <option value="ropa">Ropa y Calzado</option>
-                                <option value="anteojos">Anteojos y Gafas</option>
-                                <option value="cinturon">Cinturones y Bolsos</option>
-                                <option value="ropa_otro">Otro — Ropa y Accesorios</option>
-                                <option value="electrodomesticos">Electrodomésticos</option>
-                                <option value="aspiradora">Aspiradora y Limpieza</option>
-                                <option value="colchon">Colchones y Muebles</option>
-                                <option value="herramientas">Herramientas</option>
-                                <option value="hogar_otro">Otro — Hogar</option>
-                                <option value="bicicleta_economica">Bicicleta estándar</option>
-                                <option value="bicicleta_cara">Bicicleta premium</option>
-                                <option value="bola">Artículos Deportivos</option>
-                                <option value="deporte_otro">Otro — Deportes</option>
-                                <option value="coche_bebe">Coches de Bebé y Accesorios</option>
-                                <option value="juguetes">Juguetes</option>
-                                <option value="bebe_otro">Otro — Bebé y Niños</option>
-                                <option value="amortiguadores">Amortiguadores</option>
-                                <option value="aros_carro_moto">Aros de Carro/Moto</option>
-                                <option value="vehiculos">Repuestos en General</option>
-                                <option value="vehic_otro">Otro — Vehículos</option>
-                                <option value="salud_belleza">Salud y Belleza</option>
-                                <option value="suplementos">Suplementos</option>
-                                <option value="cds">Libros, CDs y Medios</option>
-                                <option value="otros">Otro (no está en la lista)</option>
-                            </select>
-                            <div id="cq-cat-suggest"></div>
-                        </div>
+                        </div><!-- /.cq-pcard-right -->
 
-                        <!-- AI confirm checkbox -->
-                        <label id="cq-ai-confirm-wrap" class="cq-ai-confirm" style="display:none;">
-                            <input type="checkbox" id="cq-ai-confirm-chk">
-                            <span>Confirmo que los datos extraídos son correctos antes de continuar.</span>
-                        </label>
-
-                        <!-- Confirm button -->
-                        <button type="button" id="cq-btn-confirm-product" class="cq-btn-confirm">
-                            <i class="fas fa-check"></i> Agregar producto a la cotización
-                        </button>
-                    </div>
+                    </div><!-- /.cq-pcard-body -->
                 </div><!-- /#cq-step-product -->
 
                 <!-- Add another product mini area -->
@@ -1479,8 +1588,14 @@
             _clearLoadingInterval();
             if (heroBtn) { heroBtn.classList.remove('loading'); heroBtn.innerHTML = '<i class="fas fa-arrow-right"></i>'; }
             if (productFields) { productFields.style.display = ''; productFields.classList.add('cq-fade-in'); }
-            var price = document.getElementById('cq-f-price');
-            if (price) setTimeout(function() { price.focus(); }, 200);
+            // Scroll to TOP of product card — not to the price field — so analysis is visible first
+            setTimeout(function() {
+                var pcard = document.getElementById('cq-step-product');
+                if (pcard) pcard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 80);
+            // Focus price field without triggering page scroll
+            var priceEl = document.getElementById('cq-f-price');
+            if (priceEl) setTimeout(function() { priceEl.focus({ preventScroll: true }); }, 320);
             // Show follow-up clarification field
             var followupSec = document.getElementById('cq-followup-section');
             if (followupSec) { followupSec.style.display = ''; }
@@ -1502,6 +1617,8 @@
             if (pwEl) pwEl.classList.remove('cq-error-state');
             if (fCategory) fCategory.value = '';
             if (liveEstEl) liveEstEl.style.display = 'none';
+            var tdmReset = document.getElementById('cq-tax-dollar-module');
+            if (tdmReset) tdmReset.style.display = 'none';
             if (aiConfirmWrap) aiConfirmWrap.style.display = 'none';
             if (aiConfirmChk) aiConfirmChk.checked = false;
             var errPrice = document.getElementById('cq-err-price');
@@ -1628,23 +1745,42 @@
             _currentAiState.active = false;
         }
 
-        // ── Price → live estimate ─────────────────────────────
+        // ── Price → live estimate (tax dollar module in right column) ─
         if (fPrice) {
             fPrice.addEventListener('input', function() {
                 var price = parseFloat(this.value) || 0;
-                if (_currentBrainResult) _renderIntelCard(_currentBrainResult, bubbleText ? bubbleText.textContent : '', price);
+                // Dollar estimate now lives in #cq-tax-dollar-module (right column).
+                // Do NOT re-render the entire intel card on every keystroke — too expensive and causes flicker.
                 _updateLiveEst(price);
             });
         }
 
         function _updateLiveEst(price) {
-            if (!liveEstEl) return;
-            var cat = fCategory ? fCategory.value : '';
-            if (!cat || !(price > 0) || typeof TARIFF_ADAPTER === 'undefined') { liveEstEl.style.display = 'none'; return; }
-            var t = TARIFF_ADAPTER.getTariffRate(cat);
-            var est = price * t.rate;
-            liveEstEl.style.display = '';
-            liveEstEl.innerHTML = '<span style="font-size:.78rem;color:#6b7280;">Arancel aprox./orientativo: <strong style="color:#374151;">~$' + est.toFixed(2) + ' USD</strong> <span style="color:#9ca3af;font-size:.73rem;">(' + (t.rate * 100).toFixed(1) + '% estimado del valor declarado — sujeto a revisión DGA)</span></span>';
+            // Populate the prominent tax dollar module in the right column
+            var tdModule = document.getElementById('cq-tax-dollar-module');
+            var tdAmount = document.getElementById('cq-tdm-amount');
+            var tdRate   = document.getElementById('cq-tdm-rate');
+            if (liveEstEl) liveEstEl.style.display = 'none'; // legacy element — hidden in favour of module
+
+            // Need a brain result with an estimated range AND a positive price to show the module
+            var rate = _currentBrainResult && !_currentBrainResult.needsTeamConfirmation
+                ? (_currentBrainResult.estimatedRange || '') : '';
+
+            if (!rate || !(price > 0)) {
+                if (tdModule) tdModule.style.display = 'none';
+                return;
+            }
+
+            var td = _taxRange(rate, price);
+            if (!td) { if (tdModule) tdModule.style.display = 'none'; return; }
+
+            var amtTxt = td.low === td.high
+                ? 'aprox. $' + td.low.toFixed(0) + ' USD'
+                : 'aprox. $' + td.low.toFixed(0) + ' – $' + td.high.toFixed(0) + ' USD';
+
+            if (tdModule) tdModule.style.display = '';
+            if (tdAmount) tdAmount.textContent = amtTxt;
+            if (tdRate)   tdRate.textContent   = 'Basado en arancel orientativo: ' + rate + ' sobre $' + price.toFixed(0) + ' declarados';
         }
 
         if (fCategory) fCategory.addEventListener('change', function() {
@@ -1653,6 +1789,29 @@
 
         // ── Confirm product ───────────────────────────────────
         if (btnConfirmProd) btnConfirmProd.addEventListener('click', _confirmCurrentProduct);
+
+        // ── "Continuar con la solicitud" — confirm + jump to shipping ──
+        var btnGoShipping = document.getElementById('cq-btn-go-shipping');
+        if (btnGoShipping) {
+            btnGoShipping.addEventListener('click', function() {
+                // Validate price first (same as confirm flow)
+                var price = parseFloat(fPrice ? fPrice.value : '') || 0;
+                var priceWrapEl = document.getElementById('cq-price-wrap');
+                var errPrice    = document.getElementById('cq-err-price');
+                if (!price || price <= 0) {
+                    if (priceWrapEl) priceWrapEl.classList.add('cq-error-state');
+                    if (errPrice) errPrice.style.display = 'flex';
+                    if (fPrice) fPrice.focus({ preventScroll: true });
+                    return;
+                }
+                // Confirm the current product, then scroll to the shipping step
+                _confirmCurrentProduct();
+                setTimeout(function() {
+                    var shipping = document.getElementById('cq-step-shipping');
+                    if (shipping) shipping.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 280); // after _confirmCurrentProduct's own 200ms scroll timeout
+            });
+        }
 
         function _confirmCurrentProduct() {
             var name  = bubbleText ? bubbleText.textContent.trim() : '';
@@ -1665,7 +1824,7 @@
             if (!price || price <= 0) {
                 if (priceWrapEl) priceWrapEl.classList.add('cq-error-state');
                 if (errPrice) errPrice.style.display = 'flex';
-                if (fPrice) fPrice.focus();
+                if (fPrice) fPrice.focus({ preventScroll: true });
                 return;
             }
             if (priceWrapEl) priceWrapEl.classList.remove('cq-error-state');
@@ -1750,6 +1909,8 @@
                 var priceStr = p.declared_value_usd > 0 ? '~$' + parseFloat(p.declared_value_usd).toFixed(2) + ' USD (valor declarado aprox.)' : '';
                 var clarification = p.clarification ? p.clarification : '';
 
+                var statusBadge = '<span class="cq-summary-status"><i class="fas fa-check-circle"></i>Listo para cotizar</span>';
+
                 var card = document.createElement('div');
                 card.className = 'cq-summary-card';
                 card.innerHTML = '<div class="cq-summary-card-left">'
@@ -1761,6 +1922,7 @@
                     + (priceStr ? '<br>' + _escHtml(priceStr) : '')
                     + (clarification ? '<br><span style="font-size:.7rem;color:#6b7280;font-style:italic;">Nota: ' + _escHtml(clarification) + '</span>' : '')
                     + '</div>'
+                    + statusBadge
                     + '</div>'
                     + '<div class="cq-summary-card-actions">'
                     + '<button type="button" class="cq-summary-card-btn cq-edit-btn" data-idx="' + idx + '" title="Editar" aria-label="Editar producto"><i class="fas fa-pen"></i></button>'
@@ -2456,27 +2618,14 @@
             if (gemLead) html += '<p class="cq-gem-lead">' + _escHtml(gemLead) + '</p>';
             if (gemBody) html += '<p class="cq-gem-body">' + _escHtml(gemBody) + '</p>';
 
-            // ── Tax estimate block — most prominent section ──
+            // ── Tax rate block (% only) — dollar amount now lives in right-column #cq-tax-dollar-module ──
             if (rate) {
-                var taxSubText = 'Estimado orientativo sobre el valor declarado en aduana.';
-                if (price > 0) {
-                    var td = _taxRange(rate, price);
-                    if (td) {
-                        var dtxt = td.low === td.high
-                            ? 'aprox. $' + td.low + ' USD'
-                            : 'aprox. $' + td.low + '–$' + td.high + ' USD';
-                        taxSubText = 'Para $' + price.toFixed(0) + ' declarados: ' + dtxt + ' en impuestos. Valor orientativo — el monto exacto lo determina la DGA al despacho.';
-                    }
-                } else {
-                    taxSubText = 'Ingresa el precio del producto para ver el estimado en dólares.';
-                }
                 html += '<div class="cq-gem-tax-block">'
                     + '<div class="cq-gem-tax-label"><i class="fas fa-percent" style="margin-right:.28rem;font-size:.6rem;"></i>Arancel orientativo</div>'
                     + '<div class="cq-gem-tax-rate">' + _escHtml(rate) + '</div>'
-                    + '<div class="cq-gem-tax-sub">' + _escHtml(taxSubText) + '</div>'
+                    + '<div class="cq-gem-tax-sub">Tasa referencial para esta categoría al importar a Costa Rica. Agrega el precio del producto para ver el estimado en dólares.</div>'
                     + '</div>';
-            } else if (!rate && price > 0 && !needsConfirm) {
-                // No rate known but price entered
+            } else if (!needsConfirm) {
                 html += '<div style="font-size:.73rem;color:#9ca3af;margin:.1rem 0 .55rem;font-style:italic;">El arancel exacto lo confirma un asesor CRBOX.</div>';
             }
 
@@ -2534,12 +2683,19 @@
 
         function _warmIntro(productName, result) {
             var name = (productName || 'Este producto').trim();
-            var cat  = result.displayName || '';
-            var rate = result.estimatedRange || '';
-            var intros = [name + ' entra en la categoría ' + cat + '.', '¡Buena elección! ' + name + ' se importa como ' + cat + '.', name + ' normalmente se clasifica como ' + cat + '.'];
-            var intro = intros[(name.charCodeAt(0) || 0) % intros.length];
-            if (rate) intro += ' El arancel orientativo para esta categoría es de aprox. ' + rate + ' (valor referencial — el monto exacto lo determina la DGA).';
-            return intro;
+            var cap  = name.charAt(0).toUpperCase() + name.slice(1);
+            var cat  = result.displayName || 'esta categoría';
+            var templates = [
+                'Perfecto. ' + name + ' entra dentro de la categoría ' + cat + ' — uno de los productos que más importamos a Costa Rica. CRBOX te guía en todo el proceso, desde la compra hasta la entrega en tu puerta.',
+                '¡Buena elección! ' + name + ' se importa como ' + cat + '. Podemos darte una estimación inicial de impuestos y confirmar el precio final con el valor del producto, el peso y la revisión del equipo.',
+                'Claro, ' + name + ' cae en la categoría ' + cat + '. Con CRBOX, gestionamos todo — desde la compra en Estados Unidos hasta la entrega en Costa Rica. Agrega el precio para ver una guía de impuestos.',
+                cap + ' se clasifica como ' + cat + ' al ingresar a Costa Rica. Te damos una estimación orientativa de impuestos y el equipo CRBOX confirma los montos exactos antes de proceder.',
+                'Perfecto. Para un producto como ' + name + ' — categoría ' + cat + ' — CRBOX gestiona la compra, el envío y la documentación aduanera. Agrega el precio para ver el estimado de impuestos.',
+                '¡Con gusto! ' + name + ' entra como ' + cat + ' en Costa Rica. Calculamos una estimación orientativa de impuestos y luego el equipo te confirma el costo total con todos los detalles.',
+                'Entendido. ' + name + ' se importa bajo la categoría ' + cat + '. Agrega el precio aproximado para que te mostremos una guía inicial de lo que podrías pagar en impuestos al ingresar.',
+                'Excelente. ' + name + ' pertenece a la categoría ' + cat + '. Desde nuestro casillero en Miami, CRBOX gestiona la compra y el envío — ingresa el precio para calcular los impuestos estimados.',
+            ];
+            return templates[(name.charCodeAt(0) + (cat.charCodeAt(0) || 0)) % templates.length];
         }
 
         var _CAT_LABEL_MAP = {

@@ -1,0 +1,286 @@
+The current implementation is moving in the right direction visually, but the UX flow still does not make sense as a guided quote builder. Please refine the `cotizar` experience with the following changes.
+
+1. Gemini/custom analysis must be used consistently first
+
+Right now, when the user enters a broad/simple product like “ropa” or “zapatos”, the response feels like it is coming directly from the product/category brain and not from a tailored Gemini-style analysis. It becomes too generic, transactional, and flat.
+
+This must change.
+
+Expected behavior:
+- Whether the user types “zapatos”, “ropa”, “iPhone 16”, clicks a quick chip, or clicks “Populares hoy”, the experience should always produce a warm, tailored, helpful analysis.
+- The product/category brain can still be used for classification, tax/category lookup, and structure, but the user-facing response should feel personalized and thoughtful.
+- Do not let broad product categories produce cold responses like “zapatos normally se clasifica como Calzado.”
+- Even simple inputs should receive a more human explanation.
+
+Example direction:
+Instead of:
+“zapatos normalmente se clasifica como Calzado.”
+
+Use something more like:
+“Perfecto, unos zapatos Nike suelen entrar dentro de la categoría Calzado. Para este tipo de producto, CRBOX puede darte una estimación inicial de impuestos y luego confirmar el precio final con el valor, peso y revisión del equipo.”
+
+The response should feel helpful, not like a database lookup.
+
+2. Fix inconsistent behavior across entry points
+
+Quick chips and “Populares hoy” still feel different from typing a product manually. They should not bypass the same experience.
+
+Expected behavior:
+- Manual search, Enter key, arrow button, category chips, and “Populares hoy” all run through the same tailored analysis experience.
+- No entry point should produce a direct/default robotic response.
+- No entry point should feel like “instant category output” without the warmer analysis layer.
+
+3. Fix the scroll and visual storytelling after product submission
+
+Currently, after entering a product and clicking the arrow, the page scrolls down in a way that often leaves the user looking at the footer or the lower price field, instead of the actual analysis/story.
+
+This breaks the visual storytelling.
+
+Expected behavior:
+- After product submission, scroll the user to the beginning of the product analysis card, not to the bottom fields or footer.
+- The first thing the user should see is the analysis context and quote builder, not the price input or page footer.
+- The scroll should feel intentional and smooth.
+- Keep the user oriented inside the same quote-building flow.
+
+4. Rework the visual hierarchy of the analysis and price estimate
+
+Right now, the arancel percentage is large, but the most important thing for the user — the estimated dollar amount they may pay in taxes after entering the product price — appears too small or too low in the hierarchy.
+
+This is backwards.
+
+Expected hierarchy:
+- Category/classification is useful, but secondary.
+- The arancel percentage is useful, but still contextual.
+- The estimated dollar tax amount after entering price is extremely important and should become visually prominent.
+- The user should immediately understand:
+  1. What category the product likely belongs to.
+  2. What the approximate arancel/tax rate is.
+  3. What that means in dollars once they enter the product price.
+  4. That this is only part of the final CRBOX quote breakdown.
+
+Important:
+The estimated dollar tax amount should not be hidden in small text. Once the user enters a price, it should be shown in a clear, beautiful, prominent module.
+
+Suggested copy:
+“Impuestos estimados sobre este producto”
+“aprox. $XX.XX”
+“Calculado de forma orientativa sobre el precio que ingresaste.”
+
+5. Move tax estimate storytelling closer to the price field
+
+The arancel/tax module and the price input currently feel visually disconnected.
+
+The user needs to understand that:
+- They enter an approximate product price.
+- That price is used to estimate taxes.
+- Taxes are only one part of the full quote.
+- The final quote also depends on shipping, weight, dimensions, handling, and CRBOX review.
+
+Expected behavior:
+- Place the price input and the tax estimate module closer together visually.
+- The relationship between “precio aproximado” and “impuestos estimados” should be obvious.
+- The analysis card can explain the category and context, but the cost/tax calculation should feel paired with the price input.
+
+6. Split the product card into a clearer two-area layout on desktop
+
+The current layout is still mostly one stacked card, which feels form-like.
+
+On desktop, create a more intentional layout inside the active product section:
+
+Left side:
+- Friendly product analysis.
+- Category explanation.
+- Helpful context.
+- Shipping recommendation.
+- Complement/consolidation suggestion.
+- Orientative disclaimer.
+
+Right side:
+- Price input.
+- Tax estimate / dollar estimate.
+- Breakdown preview.
+- “What else CRBOX will calculate later” explanation.
+- CTAs.
+
+This should feel like a guided quote workspace, not a long form.
+
+Mobile:
+- Stack everything cleanly.
+- Analysis first.
+- Price/tax estimate second.
+- Actions third.
+- No horizontal overflow.
+
+7. Add a beautiful “cost breakdown preview” concept
+
+The user should understand that taxes are only one part of the final quote.
+
+Add a clear, friendly module near the price/tax area explaining the eventual breakdown.
+
+Suggested title:
+“¿Qué se tomará en cuenta para la cotización final?”
+
+Suggested items:
+- Precio declarado del producto.
+- Impuestos estimados.
+- Peso y dimensiones del paquete.
+- Tipo de envío.
+- Revisión final del equipo CRBOX.
+
+Suggested note:
+“Por ahora te mostramos una guía inicial. El equipo CRBOX revisará la información y te enviará el precio final.”
+
+This should be visual, simple, and reassuring — not technical or legal-heavy.
+
+8. Improve the follow-up clarification pairing
+
+The “¿Quieres aclarar algo sobre este producto?” field is useful, but visually it currently feels disconnected and not aligned with the rest of the card.
+
+Expected behavior:
+- It should respect the same padding, alignment, and visual rhythm as the rest of the product card.
+- It should feel like part of the analysis flow, not an attached block.
+- It should be secondary but clearly available.
+- The update button should not dominate the page.
+
+9. The product builder should behave like a cart, not like a page reload
+
+When the user clicks “Agregar producto a la cotización,” the experience should not feel like it changes page, reloads, or loses the product.
+
+Expected behavior:
+- The confirmed product should collapse into a visible cart-like product summary.
+- The user should stay in the same quote builder context.
+- There should be a smooth animation/state transition:
+  1. Current product is added.
+  2. It collapses into the product list/cart.
+  3. The add-another-product area opens below or beside it.
+  4. The user can continue adding products without losing sight of what was added.
+
+The confirmed product list should feel like a cart of products to quote.
+
+10. Add clear dual actions after product analysis
+
+The last action should not only be “Agregar producto a la cotización.”
+
+Once the product analysis is ready and the user has entered enough detail, show two clear actions:
+
+Primary or secondary depending on stage:
+- “Agregar otro producto” / “Agregar producto”
+- “Continuar con la solicitud” or “Finalizar solicitud”
+
+The user should understand:
+- They can add this product and keep building.
+- Or they can move forward to send/complete the quote request.
+
+Do not show “Enviar solicitud de cotización” too early if shipping/contact details are still required. Use “Continuar con la solicitud” until the actual final step.
+
+11. Improve the cart/product summary area
+
+After one or more products are added, show a clear cart-like section.
+
+Suggested structure:
+“Productos en tu solicitud”
+“1 producto agregado” / “2 productos agregados”
+
+Each product card should show:
+- Product name.
+- Category.
+- Approx. price if entered.
+- Estimated tax range or tax amount if available.
+- Small status like “Listo para cotizar” or “Falta precio aprox.”
+- Remove action.
+- Optional edit action if safe.
+
+This should stay visible and should not disappear when adding another product.
+
+12. Make the storytelling follow the user’s priorities
+
+The order of information should match what the user actually cares about:
+
+First:
+- “Can CRBOX help me bring this?”
+- “What category does it fall into?”
+- “Is there anything special I should know?”
+
+Second:
+- “What taxes might apply?”
+- “What does that mean in dollars if I enter the price?”
+
+Third:
+- “What else affects the final quote?”
+- “Can I add more products to make better use of the shipment?”
+
+Fourth:
+- “What do I do next?”
+
+The current layout does not follow this value order clearly enough. Reorganize the card and modules around this storytelling.
+
+13. Keep all estimate language clear
+
+Continue to label everything as:
+- “aprox.”
+- “estimado”
+- “orientativo”
+
+Especially:
+- arancel percentage
+- tax dollar amount
+- declared value
+- quote summary values
+- any cost preview
+
+No final price should be implied.
+
+14. Do not overbuild, but make the flow coherent
+
+This should still be implemented safely inside `cotizar.html`, but the experience must stop feeling like isolated form blocks.
+
+The final result should feel like:
+- A product analysis workspace.
+- A quote cart.
+- A clear path to continue/finalize.
+- A warm CRBOX assistant experience.
+
+It should not feel like:
+- A database category lookup.
+- A static form.
+- A page that jumps to the footer.
+- A disconnected set of cards.
+- A cold transactional calculator.
+
+15. QA this specific scenario
+
+Test the following scenario carefully:
+
+A. From the hero, type “ropa” and click the arrow.
+Expected:
+- Warm tailored response, not cold category output.
+- Smooth loading.
+- Scroll lands at the top of the analysis.
+- The analysis feels helpful and human.
+
+B. From the hero, type “zapatos” and click the arrow.
+Expected:
+- Tailored response explaining Calzado in a warm way.
+- Price/tax estimate area is clearly paired.
+- Dollar tax amount becomes prominent after entering price.
+
+C. Click the “Ropa” quick chip.
+Expected:
+- Same warm analysis flow as manual entry.
+
+D. Click a “Populares hoy” pill.
+Expected:
+- Same warm analysis flow as manual entry.
+
+E. Add product to quote.
+Expected:
+- Product collapses into a visible cart-like summary.
+- The page does not feel like it reloads or loses context.
+- User can clearly add another product or continue with the request.
+
+F. Add multiple products quickly.
+Expected:
+- No stale loading.
+- No duplicated cards.
+- No old analysis flashing.
+- Product cart remains visible and understandable.
