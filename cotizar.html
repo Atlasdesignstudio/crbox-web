@@ -168,7 +168,7 @@
         /* ── FLOW ── */
         #cq-flow { background:#f4f3ee; display:none; border-top:1px solid #ede9e3; }
         #cq-flow.cq-flow-visible { display:block; }
-        .cq-flow-inner { max-width:820px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+        .cq-flow-inner { max-width:1100px; margin:0 auto; padding:2rem 1.5rem 4rem; }
 
         /* ── Confirmed pills row ── */
         #cq-confirmed-pills { display:none; margin-bottom:1.1rem; }
@@ -670,7 +670,7 @@
         /* ── Two-column product workspace ── */
         .cq-pcard-body { display:flex; flex-direction:row; align-items:stretch; }
         .cq-pcard-left { flex:1; min-width:0; padding:0 0 1.1rem; }
-        .cq-pcard-right { flex:0 0 320px; min-width:0; border-left:1px solid #f0ebe3; }
+        .cq-pcard-right { flex:0 0 360px; min-width:0; border-left:1px solid #f0ebe3; }
         /* Follow-up section inside left column — align horizontally with gem-wrap padding */
         .cq-pcard-left .cq-followup-wrap { margin-left:1.15rem; margin-right:1.15rem; margin-top:.35rem; }
         @media (max-width:720px) {
@@ -770,6 +770,88 @@
         .anim-fadeslide { animation:cqFadeUp .4s ease both; }
         @keyframes cqScalePop2 { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
         .anim-scalepop { animation:cqScalePop2 .5s cubic-bezier(.34,1.56,.64,1) both; }
+
+        /* ── Builder context bar ── */
+        .cq-builder-bar {
+            background:#fff; border:1px solid #ede9e3; border-radius:1rem;
+            padding:.6rem 1.1rem; margin-bottom:1.5rem;
+            display:flex; align-items:center; justify-content:space-between; gap:1rem;
+            box-shadow:0 1px 8px rgba(0,0,0,.04); animation:cqFadeUp .3s ease both;
+        }
+        .cq-builder-info { display:flex; align-items:center; gap:.55rem; flex:1; }
+        .cq-builder-label { font-size:.7rem; font-weight:700; color:#b0a89a; letter-spacing:.07em; text-transform:uppercase; }
+        .cq-builder-count {
+            display:inline-flex; align-items:center; justify-content:center;
+            min-width:19px; height:19px; border-radius:99px;
+            background:#FF6B00; color:#fff; font-size:.62rem; font-weight:800; padding:0 .38rem;
+            animation:cqScalePop2 .28s cubic-bezier(.34,1.56,.64,1) both;
+        }
+
+        /* ── Step indicator ── */
+        .cq-step-ind { display:flex; align-items:center; gap:.3rem; flex-shrink:0; }
+        .cq-si-step { display:flex; align-items:center; gap:.28rem; cursor:default; }
+        .cq-si-num {
+            width:20px; height:20px; border-radius:50%; border:2px solid #e5e7eb;
+            background:#fff; display:flex; align-items:center; justify-content:center;
+            font-size:.58rem; font-weight:800; color:#d1d5db;
+            transition:background .3s, border-color .3s, color .3s, transform .25s;
+        }
+        .cq-si-step.cq-si-active .cq-si-num { background:#FF6B00; border-color:#FF6B00; color:#fff; transform:scale(1.15); }
+        .cq-si-step.cq-si-done .cq-si-num { background:#10b981; border-color:#10b981; color:#fff; transform:scale(1); }
+        .cq-si-label { font-size:.69rem; font-weight:600; color:#d1d5db; transition:color .3s; white-space:nowrap; }
+        .cq-si-step.cq-si-active .cq-si-label { color:#FF6B00; }
+        .cq-si-step.cq-si-done .cq-si-label { color:#10b981; }
+        .cq-si-line { width:22px; height:2px; background:#e5e7eb; border-radius:1px; flex-shrink:0; transition:background .3s; }
+        .cq-si-line.cq-si-line-done { background:#10b981; }
+        .cq-mobile-step-label {
+            display:none; font-size:.71rem; font-weight:600; color:#9ca3af;
+            background:#f9fafb; border:1px solid #e5e7eb; border-radius:.5rem;
+            padding:.3rem .65rem; white-space:nowrap;
+        }
+
+        /* ── Cart section header ── */
+        #cq-cart-section-header { display:none; margin-bottom:.42rem; animation:cqFadeUp .28s ease both; }
+        .cq-cart-header {
+            display:flex; align-items:center; gap:.55rem; padding:.35rem 0;
+        }
+        .cq-cart-title { font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#374151; }
+        .cq-cart-badge {
+            display:inline-flex; align-items:center; justify-content:center;
+            min-width:19px; height:19px; border-radius:99px;
+            background:#FF6B00; color:#fff; font-size:.62rem; font-weight:800; padding:0 .38rem;
+        }
+        .cq-cart-divider { flex:1; height:1px; background:#ede9e3; margin-left:.3rem; }
+
+        /* ── URL toggle progressive disclosure ── */
+        .cq-url-toggle-link {
+            display:inline-flex; align-items:center; gap:.3rem;
+            font-size:.77rem; color:#9ca3af; text-decoration:none; cursor:pointer;
+            transition:color .15s; padding:.15rem 0;
+            border:none; background:none; font-family:inherit;
+        }
+        .cq-url-toggle-link:hover { color:#FF6B00; }
+        .cq-url-toggle-link i { font-size:.65rem; }
+        .cq-url-field-reveal { animation:cqFadeUp .22s ease both; margin-top:.5rem; }
+
+        /* ── Continuar button — hidden until first product added ── */
+        #cq-btn-go-shipping { display:none; }
+
+        /* ── Mobile responsive overrides for wider layout ── */
+        @media (max-width:880px) {
+            .cq-pcard-right { flex:0 0 300px; }
+        }
+        @media (max-width:760px) {
+            .cq-si-label { display:none; }
+            .cq-mobile-step-label { display:block; }
+            .cq-builder-label { display:none; }
+        }
+        @media (max-width:640px) {
+            .cq-builder-bar { padding:.5rem .85rem; border-radius:.75rem; }
+            .cq-pcard-right { flex:none; width:100%; }
+        }
+        @media (max-width:480px) {
+            .cq-flow-inner { padding:1rem .875rem 3rem; }
+        }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
 </head>
@@ -862,13 +944,13 @@
 
             <!-- Quick chips -->
             <div class="cq-chips" role="group" aria-label="Categorías populares">
-                <button class="cq-chip" data-query="laptop computadora">💻 Laptop</button>
-                <button class="cq-chip" data-query="celular smartphone">📱 Celular</button>
-                <button class="cq-chip" data-query="tenis zapatos Nike">👟 Calzado</button>
-                <button class="cq-chip" data-query="ropa">👗 Ropa</button>
-                <button class="cq-chip" data-query="consola videojuegos">🎮 Juegos</button>
-                <button class="cq-chip" data-query="aspiradora electrodoméstico">🏠 Hogar</button>
-                <button class="cq-chip" data-query="smartwatch reloj">⌚ Reloj</button>
+                <button class="cq-chip" data-query="laptop" data-display="Laptop">💻 Laptop</button>
+                <button class="cq-chip" data-query="celular" data-display="Celular">📱 Celular</button>
+                <button class="cq-chip" data-query="zapatos" data-display="Calzado">👟 Calzado</button>
+                <button class="cq-chip" data-query="ropa" data-display="Ropa">👗 Ropa</button>
+                <button class="cq-chip" data-query="consola de videojuegos" data-display="Consola">🎮 Juegos</button>
+                <button class="cq-chip" data-query="electrodoméstico para el hogar" data-display="Hogar">🏠 Hogar</button>
+                <button class="cq-chip" data-query="smartwatch reloj inteligente" data-display="Reloj">⌚ Reloj</button>
             </div>
 
             <!-- Inspirations -->
@@ -894,6 +976,31 @@
     <div id="cq-flow" aria-live="polite">
         <div class="cq-flow-inner">
 
+            <!-- Builder context bar + step indicator -->
+            <div class="cq-builder-bar" id="cq-builder-bar" aria-label="Progreso de la solicitud">
+                <div class="cq-builder-info">
+                    <span class="cq-builder-label">Tu solicitud</span>
+                    <span id="cq-builder-count" class="cq-builder-count" style="display:none;" aria-label="productos agregados"></span>
+                </div>
+                <div class="cq-step-ind" role="list" aria-label="Pasos">
+                    <div class="cq-si-step cq-si-active" id="cq-si-1" role="listitem" aria-current="step">
+                        <div class="cq-si-num">1</div>
+                        <span class="cq-si-label">Producto</span>
+                    </div>
+                    <div class="cq-si-line" id="cq-si-line-1"></div>
+                    <div class="cq-si-step" id="cq-si-2" role="listitem">
+                        <div class="cq-si-num">2</div>
+                        <span class="cq-si-label">Solicitud</span>
+                    </div>
+                    <div class="cq-si-line" id="cq-si-line-2"></div>
+                    <div class="cq-si-step" id="cq-si-3" role="listitem">
+                        <div class="cq-si-num">3</div>
+                        <span class="cq-si-label">Datos</span>
+                    </div>
+                </div>
+                <div class="cq-mobile-step-label" id="cq-mobile-step-label">Paso 1 de 3: Producto</div>
+            </div>
+
             <!-- Draft restore bar — visible when a saved quote draft is detected -->
             <div id="cq-draft-bar" style="display:none;margin-bottom:.6rem;padding:.52rem 1rem;background:#fef3c7;border:1px solid #fde68a;border-radius:.75rem;font-size:.83rem;color:#92400e;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;">
                 <span><i class="fas fa-clock-rotate-left" style="margin-right:.35rem;"></i>Tienes una cotización guardada sin enviar.</span>
@@ -908,6 +1015,15 @@
                 <button type="button" id="cq-btn-add-another" class="cq-pill-add" style="display:none;">
                     <i class="fas fa-plus"></i> Agregar otro
                 </button>
+            </div>
+
+            <!-- Cart section header — shown once first product is confirmed -->
+            <div id="cq-cart-section-header">
+                <div class="cq-cart-header">
+                    <span class="cq-cart-title">Productos en tu solicitud</span>
+                    <span id="cq-cart-badge" class="cq-cart-badge">0</span>
+                    <div class="cq-cart-divider"></div>
+                </div>
             </div>
 
             <!-- Confirmed product summary cards (one per confirmed product) -->
@@ -952,9 +1068,9 @@
                             <div id="cq-followup-section" class="cq-followup-wrap" style="display:none;">
                                 <div class="cq-followup-label">
                                     <i class="fas fa-comment-dots"></i>
-                                    ¿Quieres aclarar algo sobre este producto?
+                                    ¿Algo importante sobre este producto?
                                 </div>
-                                <textarea id="cq-followup-input" class="cq-field-input" placeholder="Ej: es de segunda mano, son 2 unidades, no incluye cargador…" rows="2" maxlength="300" style="width:100%;box-sizing:border-box;margin-top:.35rem;resize:none;font-size:.82rem;border:1.5px solid #e5e7eb;border-radius:.65rem;padding:.5rem .75rem;font-family:inherit;color:#374151;"></textarea>
+                                <textarea id="cq-followup-input" class="cq-field-input" placeholder="Ej: es usado, son 2 unidades, viene con cargador, modelo específico…" rows="2" maxlength="300" style="width:100%;box-sizing:border-box;margin-top:.35rem;resize:none;font-size:.82rem;border:1.5px solid #e5e7eb;border-radius:.65rem;padding:.5rem .75rem;font-family:inherit;color:#374151;"></textarea>
                                 <button type="button" id="cq-followup-btn" class="cq-followup-btn">
                                     <i class="fas fa-sync-alt" style="font-size:.7rem;"></i> Actualizar análisis
                                 </button>
@@ -971,16 +1087,18 @@
                                 <div id="cq-ai-banner" style="margin-bottom:.5rem;"></div>
                                 <div id="cq-ai-compliance"></div>
 
-                                <!-- URL -->
+                                <!-- URL — hidden by default, revealed via toggle link -->
                                 <div class="cq-field-block">
-                                    <div class="cq-field-label">
-                                        <i class="fas fa-link"></i> Enlace del producto <span class="cq-opt-tag">— opcional</span>
+                                    <button type="button" id="cq-url-toggle-link" class="cq-url-toggle-link" aria-expanded="false" aria-controls="cq-url-field-wrap">
+                                        <i class="fas fa-link"></i> Tengo el enlace del producto
+                                    </button>
+                                    <div id="cq-url-field-wrap" class="cq-url-field-reveal" style="display:none;">
+                                        <div class="cq-url-wrap">
+                                            <input type="url" id="cq-f-url" class="cq-field-input" placeholder="https://amazon.com/dp/…" autocomplete="off">
+                                            <span class="cq-url-spinner" id="cq-url-spinner"><i class="fas fa-circle-notch fa-spin"></i></span>
+                                        </div>
+                                        <div class="cq-field-hint">El equipo CRBOX usará el enlace para revisar el producto con más precisión.</div>
                                     </div>
-                                    <div class="cq-url-wrap">
-                                        <input type="url" id="cq-f-url" class="cq-field-input" placeholder="https://amazon.com/dp/…" autocomplete="off">
-                                        <span class="cq-url-spinner" id="cq-url-spinner"><i class="fas fa-circle-notch fa-spin"></i></span>
-                                    </div>
-                                    <div class="cq-field-hint">Pega el enlace para que el equipo CRBOX pueda revisar el producto con más precisión.</div>
                                 </div>
 
                                 <!-- Price -->
@@ -1463,9 +1581,11 @@
             chip.addEventListener('click', function() {
                 document.querySelectorAll('#cq-hero .cq-chip').forEach(function(c) { c.classList.remove('cq-chip-active'); });
                 chip.classList.add('cq-chip-active');
-                var q = chip.dataset.query || chip.textContent.replace(/[^\w\sáéíóúñü]/gi,'').trim();
-                if (heroInput) heroInput.value = q;
-                _startProductEntry(q);
+                // data-display = clean user-facing name; data-query = enriched classify intent
+                var displayName = chip.dataset.display || chip.textContent.replace(/[^\w\sáéíóúñü]/gi,'').trim();
+                var classifyQ   = chip.dataset.query || displayName;
+                if (heroInput) heroInput.value = displayName;
+                _startProductEntry(displayName, classifyQ);
             });
         });
 
@@ -1526,8 +1646,51 @@
             if (heroSection) heroSection.classList.remove('cq-hero-compact');
         }
 
+        // ── Intent normaliser — enriches bare nouns for Gemini ──
+        function _normalizeForClassify(name) {
+            var n = (name || '').trim();
+            if (!n || n.length < 2) return n;
+            var hasVerb = /\b(quiero|traer|comprar|necesito|importar|busco)\b/i.test(n);
+            return hasVerb ? n : 'quiero traer ' + n;
+        }
+
+        // ── Step indicator ────────────────────────────────────
+        function _updateStepIndicator(activeStep) {
+            [1,2,3].forEach(function(n) {
+                var el = document.getElementById('cq-si-' + n);
+                var line = document.getElementById('cq-si-line-' + n);
+                if (!el) return;
+                el.classList.remove('cq-si-active', 'cq-si-done');
+                if (line) line.classList.remove('cq-si-line-done');
+                if (n < activeStep) {
+                    el.classList.add('cq-si-done');
+                    el.removeAttribute('aria-current');
+                    if (line) line.classList.add('cq-si-line-done');
+                } else if (n === activeStep) {
+                    el.classList.add('cq-si-active');
+                    el.setAttribute('aria-current', 'step');
+                }
+            });
+            var mobileLabel = document.getElementById('cq-mobile-step-label');
+            var stepNames = ['Producto','Solicitud','Datos'];
+            if (mobileLabel) mobileLabel.textContent = 'Paso ' + activeStep + ' de 3: ' + (stepNames[activeStep-1] || '');
+        }
+
+        // ── Builder count badge ───────────────────────────────
+        function _updateBuilderCount(count) {
+            var bc = document.getElementById('cq-builder-count');
+            if (!bc) return;
+            if (count > 0) {
+                bc.textContent = count;
+                bc.style.display = '';
+            } else {
+                bc.style.display = 'none';
+            }
+        }
+
         // ── Start product entry ───────────────────────────────
-        function _startProductEntry(productName) {
+        // classifyQuery (optional) — separate intent string for classify(); falls back to productName
+        function _startProductEntry(productName, classifyQuery) {
             if (!productName || productName.length < 2) return;
             _currentEntryId     = _nextProductId++;
             _currentBrainResult = null;
@@ -1570,7 +1733,8 @@
             // Classify
             if (heroBtn) { heroBtn.classList.add('loading'); heroBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; }
             if (typeof CRBOXProductClassifier !== 'undefined') {
-                CRBOXProductClassifier.classify(productName).then(function(result) {
+                var _cqIntent = _normalizeForClassify(classifyQuery || productName);
+                CRBOXProductClassifier.classify(_cqIntent).then(function(result) {
                     _currentBrainResult = result;
                     _renderIntelCard(result, productName, 0);
                     if (intelArea) intelArea.style.display = '';
@@ -1612,6 +1776,11 @@
 
         function _resetEntryFields() {
             if (fUrl) fUrl.value = '';
+            // Reset URL toggle back to hidden state
+            var urlFieldWrap = document.getElementById('cq-url-field-wrap');
+            var urlToggleBtn = document.getElementById('cq-url-toggle-link');
+            if (urlFieldWrap) urlFieldWrap.style.display = 'none';
+            if (urlToggleBtn) { urlToggleBtn.setAttribute('aria-expanded','false'); urlToggleBtn.innerHTML = '<i class="fas fa-link"></i> Tengo el enlace del producto'; }
             if (fPrice) fPrice.value = '';
             var pwEl = document.getElementById('cq-price-wrap');
             if (pwEl) pwEl.classList.remove('cq-error-state');
@@ -1662,6 +1831,27 @@
             if (heroSection) heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             setTimeout(function() { if (heroInput) { heroInput.focus(); heroInput.select(); } }, 350);
         });
+
+        // ── URL toggle — progressive disclosure ──────────────
+        (function() {
+            var toggleBtn = document.getElementById('cq-url-toggle-link');
+            var fieldWrap = document.getElementById('cq-url-field-wrap');
+            if (!toggleBtn || !fieldWrap) return;
+            toggleBtn.addEventListener('click', function() {
+                var open = fieldWrap.style.display !== 'none';
+                if (open) {
+                    fieldWrap.style.display = 'none';
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                    toggleBtn.innerHTML = '<i class="fas fa-link"></i> Tengo el enlace del producto';
+                } else {
+                    fieldWrap.style.display = '';
+                    fieldWrap.classList.add('cq-url-field-reveal');
+                    toggleBtn.setAttribute('aria-expanded', 'true');
+                    toggleBtn.innerHTML = '<i class="fas fa-times" style="font-size:.6rem;opacity:.6;"></i> Ocultar enlace';
+                    setTimeout(function() { if (fUrl) fUrl.focus({ preventScroll: true }); }, 80);
+                }
+            });
+        })();
 
         // ── URL auto-extract on paste ─────────────────────────
         if (fUrl) {
@@ -1804,12 +1994,16 @@
                     if (fPrice) fPrice.focus({ preventScroll: true });
                     return;
                 }
-                // Confirm the current product, then scroll to the shipping step
+                // Confirm the current product, advance step indicator to 2, show + scroll to shipping
                 _confirmCurrentProduct();
                 setTimeout(function() {
+                    _updateStepIndicator(2);
                     var shipping = document.getElementById('cq-step-shipping');
-                    if (shipping) shipping.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 280); // after _confirmCurrentProduct's own 200ms scroll timeout
+                    if (shipping) {
+                        if (shipping.style.display === 'none') _showEl('cq-step-shipping');
+                        shipping.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 290);
             });
         }
 
@@ -1848,16 +2042,24 @@
             _renderSummaryCards();
             _updateQuoteSummary();
 
-            // Collapse the product card — show add-another, quote summary, and shipping
+            // Show cart section header and update builder count
+            var cartHeader = document.getElementById('cq-cart-section-header');
+            if (cartHeader) cartHeader.style.display = '';
+            _updateBuilderCount(_confirmedProducts.length);
+
+            // Reveal "Continuar" button now that cart has items
+            var goShipBtn = document.getElementById('cq-btn-go-shipping');
+            if (goShipBtn) goShipBtn.style.display = '';
+
+            // Collapse the product card — show add-another area
             var stepProdEl = document.getElementById('cq-step-product');
             if (stepProdEl) stepProdEl.style.display = 'none';
             _showEl('cq-add-product-area');
             if (_ciAddInst) _ciAddInst.reset();
-            _showEl('cq-step-shipping');
-            // Scroll to quote summary, not add-another
+            // Scroll to cart section (top of cart header), not quote summary
             setTimeout(function() {
-                var qs = document.getElementById('cq-quote-summary');
-                if (qs) qs.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                var cartH = document.getElementById('cq-cart-section-header');
+                if (cartH) cartH.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 200);
         }
 
@@ -1895,6 +2097,9 @@
             container.innerHTML = '';
             if (!_confirmedProducts.length) { container.style.display = 'none'; return; }
             container.style.display = '';
+            // Update cart badge count
+            var cartBadge = document.getElementById('cq-cart-badge');
+            if (cartBadge) cartBadge.textContent = _confirmedProducts.length;
             _confirmedProducts.forEach(function(p, idx) {
                 var catLabel = getCategoryLabel(p.category || 'otros');
                 var taxHint  = '';
@@ -2242,7 +2447,8 @@
             _hideEl('cq-step-shipping'); _hideEl('cq-step-contact');
             if (stepProd) setTimeout(function() { stepProd.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
             if (typeof CRBOXProductClassifier !== 'undefined') {
-                CRBOXProductClassifier.classify(productName).then(function(result) {
+                var _addIntent = _normalizeForClassify(productName);
+                CRBOXProductClassifier.classify(_addIntent).then(function(result) {
                     _currentBrainResult = result;
                     _renderIntelCard(result, productName, 0);
                     if (intelArea) intelArea.style.display = '';
@@ -2276,6 +2482,7 @@
             }
             if (fDestination) fDestination.classList.remove('cq-error-state');
             if (errDest) errDest.style.display = 'none';
+            _updateStepIndicator(3);
             _showEl('cq-step-contact');
             setTimeout(function() {
                 var sc = document.getElementById('cq-step-contact');
@@ -2529,11 +2736,18 @@
             if (pillsRow) pillsRow.innerHTML = '';
             if (pillsCont) pillsCont.style.display = 'none';
             if (btnAddAnother) btnAddAnother.style.display = 'none';
-            // Clear summary cards and quote summary
+            // Clear summary cards, quote summary, and cart header
             var summaryCards = document.getElementById('cq-product-summary-cards');
             if (summaryCards) { summaryCards.innerHTML = ''; summaryCards.style.display = 'none'; }
             var quoteSummary = document.getElementById('cq-quote-summary');
             if (quoteSummary) quoteSummary.style.display = 'none';
+            var cartHeader = document.getElementById('cq-cart-section-header');
+            if (cartHeader) cartHeader.style.display = 'none';
+            _updateBuilderCount(0);
+            // Reset step indicator and hide Continuar
+            _updateStepIndicator(1);
+            var goShipBtn = document.getElementById('cq-btn-go-shipping');
+            if (goShipBtn) goShipBtn.style.display = 'none';
             // Restore product card visibility for next entry
             var stepProdReset = document.getElementById('cq-step-product');
             if (stepProdReset) stepProdReset.style.display = '';
@@ -2589,8 +2803,8 @@
 
             // ── Primary AI message ──
             var primaryText = guidance || (!hasKnownCat
-                ? (result.customerMessage || 'Un asesor CRBOX revisará este producto y te confirmará si puede importarse.')
-                : (hasRisk ? (result.customerMessage || '') : _warmIntro(productName, result)));
+                ? _ambiguousIntro(productName)
+                : (hasRisk ? (result.customerMessage || _warmIntro(productName, result)) : _warmIntro(productName, result)));
 
             // ── Split message: first sentence → lead, rest → body ──
             var gemLead = '', gemBody = '';
@@ -2682,20 +2896,31 @@
         }
 
         function _warmIntro(productName, result) {
-            var name = (productName || 'Este producto').trim();
+            var name = (productName || 'este producto').trim();
             var cap  = name.charAt(0).toUpperCase() + name.slice(1);
             var cat  = result.displayName || 'esta categoría';
             var templates = [
-                'Perfecto. ' + name + ' entra dentro de la categoría ' + cat + ' — uno de los productos que más importamos a Costa Rica. CRBOX te guía en todo el proceso, desde la compra hasta la entrega en tu puerta.',
-                '¡Buena elección! ' + name + ' se importa como ' + cat + '. Podemos darte una estimación inicial de impuestos y confirmar el precio final con el valor del producto, el peso y la revisión del equipo.',
-                'Claro, ' + name + ' cae en la categoría ' + cat + '. Con CRBOX, gestionamos todo — desde la compra en Estados Unidos hasta la entrega en Costa Rica. Agrega el precio para ver una guía de impuestos.',
-                cap + ' se clasifica como ' + cat + ' al ingresar a Costa Rica. Te damos una estimación orientativa de impuestos y el equipo CRBOX confirma los montos exactos antes de proceder.',
-                'Perfecto. Para un producto como ' + name + ' — categoría ' + cat + ' — CRBOX gestiona la compra, el envío y la documentación aduanera. Agrega el precio para ver el estimado de impuestos.',
-                '¡Con gusto! ' + name + ' entra como ' + cat + ' en Costa Rica. Calculamos una estimación orientativa de impuestos y luego el equipo te confirma el costo total con todos los detalles.',
-                'Entendido. ' + name + ' se importa bajo la categoría ' + cat + '. Agrega el precio aproximado para que te mostremos una guía inicial de lo que podrías pagar en impuestos al ingresar.',
-                'Excelente. ' + name + ' pertenece a la categoría ' + cat + '. Desde nuestro casillero en Miami, CRBOX gestiona la compra y el envío — ingresa el precio para calcular los impuestos estimados.',
+                'Con gusto te ayudamos a traer ' + name + ' a Costa Rica. Este tipo de producto normalmente se importa como ' + cat + ' — agrega el precio aproximado y te mostramos una guía inicial de impuestos antes de que el equipo CRBOX confirme la cotización final.',
+                'Perfecto, podemos importar ' + name + ' para ti. Suele clasificarse como ' + cat + ' al ingresar a Costa Rica — con el precio aproximado calculamos una estimación orientativa de impuestos; luego el equipo confirma los detalles.',
+                'Buenísimo. ' + name + ' generalmente entra como ' + cat + ' al importarse a Costa Rica. Agréganos el precio aproximado y te mostramos una guía inicial de impuestos; el equipo CRBOX revisará peso, dimensiones y confirmará la cotización final.',
+                cap + ' pertenece a la categoría ' + cat + '. Con CRBOX, gestionamos la compra en Miami, el envío y la documentación aduanera — agrega el precio para ver una estimación orientativa de lo que podrías pagar de impuestos.',
+                'Con gusto revisamos ' + name + '. Como ' + cat + ', podemos darte una guía de impuestos orientativa una vez que ingreses el precio aproximado — el equipo CRBOX confirma los montos exactos antes de proceder.',
+                '¡Excelente elección! Para ' + name + ' — categoría ' + cat + ' — calculamos una estimación orientativa de impuestos con el precio que nos des; luego el equipo CRBOX te confirma el costo total con todos los detalles del envío.',
+                cap + ' se clasifica como ' + cat + ' para importarse a Costa Rica. Agrega el precio aproximado para que te mostremos cuánto podrías pagar de impuestos — el equipo CRBOX confirmará los montos exactos antes de proceder.',
+                'Todo listo para cotizar ' + name + '. Bajo la categoría ' + cat + ', te damos una estimación orientativa de impuestos con el precio que ingreses — luego el equipo CRBOX revisa los detalles y te envía la cotización final.',
             ];
             return templates[(name.charCodeAt(0) + (cat.charCodeAt(0) || 0)) % templates.length];
+        }
+
+        function _ambiguousIntro(productName) {
+            var name = (productName || 'este producto').trim();
+            var templates = [
+                'Podemos ayudarte a traer ' + name + ' a Costa Rica. Con la descripción actual no tenemos suficiente contexto para determinar la categoría exacta — si agregas el enlace del producto o una breve aclaración abajo, el equipo CRBOX podrá confirmarlo con más precisión.',
+                'Con gusto revisamos ' + name + '. Para darte una guía de impuestos más precisa necesitamos un poco más de contexto — agrega el enlace o acláranos el tipo exacto de producto y el equipo CRBOX lo confirma en menos de 24 horas.',
+                'Puedo ayudarte con ' + name + ', aunque con esta descripción no es del todo claro cuál es la categoría exacta de importación. Si agregas el enlace o describes el producto con más detalle, te damos una estimación más precisa.',
+                'Revisaremos ' + name + ' para ti. Este tipo de producto podría requerir clasificación especial — agrega el enlace o una aclaración y el equipo CRBOX te confirmará si puede importarse y cuál sería el costo estimado.',
+            ];
+            return templates[name.charCodeAt(0) % templates.length];
         }
 
         var _CAT_LABEL_MAP = {
