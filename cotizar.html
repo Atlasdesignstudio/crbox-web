@@ -2868,6 +2868,11 @@
                         <div class="cqw-empty-title">Aún sin productos</div>
                         <div class="cqw-empty-sub">Cuéntame qué querés traer de USA y lo agrego aquí.</div>
                     </div>
+                    <div id="cq-cart-section-header" class="cq-cart-header">
+                        <span class="cq-cart-title">Productos</span>
+                        <span id="cq-cart-count-label" class="cq-cart-badge"></span>
+                        <span class="cq-cart-divider"></span>
+                    </div>
                     <div id="cq-product-summary-cards" style="display:none;"></div>
                 </div>
 
@@ -3952,15 +3957,20 @@
             // Toggle empty state + badge based on product count
             var emptyState = document.getElementById('cqw-empty-state');
             var cartBadge  = document.getElementById('cq-cart-badge');
+            var cartSectionHdr  = document.getElementById('cq-cart-section-header');
+            var cartCountLbl    = document.getElementById('cq-cart-count-label');
             if (!_confirmedProducts.length) {
                 container.style.display = 'none';
                 if (emptyState) emptyState.style.display = '';
                 if (cartBadge) cartBadge.style.display = 'none';
+                if (cartSectionHdr) cartSectionHdr.style.display = 'none';
                 return;
             }
             container.style.display = 'block';
             if (emptyState) emptyState.style.display = 'none';
             if (cartBadge) { cartBadge.textContent = _confirmedProducts.length; cartBadge.style.display = ''; }
+            if (cartSectionHdr) { cartSectionHdr.style.display = ''; }
+            if (cartCountLbl)  { cartCountLbl.textContent = _confirmedProducts.length; }
             _confirmedProducts.forEach(function(p, idx) {
                 var catLabel = getCategoryLabel(p.category || 'otros');
                 var taxHint  = '';
@@ -4641,6 +4651,8 @@
             if (emptyState) emptyState.style.display = '';
             var cartBadge = document.getElementById('cq-cart-badge');
             if (cartBadge) cartBadge.style.display = 'none';
+            var cartSectionHdrReset = document.getElementById('cq-cart-section-header');
+            if (cartSectionHdrReset) cartSectionHdrReset.style.display = 'none';
             // Restore product card visibility for next entry
             var stepProdReset = document.getElementById('cq-step-product');
             if (stepProdReset) stepProdReset.style.display = '';
