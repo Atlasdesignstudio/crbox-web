@@ -852,6 +852,155 @@
         @media (max-width:480px) {
             .cq-flow-inner { padding:1rem .875rem 3rem; }
         }
+
+        /* ══ SPLIT WORKSPACE LAYOUT ══ */
+        .cqw-split {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 360px;
+            gap: 1.75rem;
+            align-items: start;
+        }
+        .cqw-left { min-width: 0; }
+        /* Right panel — sticky quote builder */
+        .cqw-right {
+            position: sticky;
+            top: 5.25rem;
+            min-width: 0;
+            max-height: calc(100vh - 6rem);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #e5e7eb transparent;
+        }
+        .cqw-right::-webkit-scrollbar { width: 4px; }
+        .cqw-right::-webkit-scrollbar-thumb { background: #ede9e3; border-radius: 2px; }
+        .cqw-right-inner {
+            background: #fff;
+            border: 1.5px solid #ede9e3;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 28px rgba(0,0,0,.07);
+        }
+        /* Panel sticky header */
+        .cqw-panel-header {
+            padding: .875rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+            border-bottom: 1.5px solid #f0ece6;
+            background: linear-gradient(180deg, #faf8f5 0%, #fff 100%);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .cqw-panel-title {
+            font-size: .7rem;
+            font-weight: 800;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: #374151;
+            flex: 1;
+        }
+        .cqw-panel-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 99px;
+            background: #FF6B00;
+            color: #fff;
+            font-size: .65rem;
+            font-weight: 800;
+            padding: 0 .4rem;
+            animation: cqScalePop2 .28s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        /* Products wrap */
+        .cqw-products-wrap { padding: .75rem .9rem; min-height: 88px; }
+        /* Empty state */
+        .cqw-empty {
+            padding: 1.75rem 1.25rem 1.5rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .cqw-empty-icon { font-size: 1.9rem; margin-bottom: .6rem; opacity: .4; }
+        .cqw-empty-title { font-size: .88rem; font-weight: 700; color: #374151; margin-bottom: .3rem; }
+        .cqw-empty-sub { font-size: .77rem; color: #9ca3af; line-height: 1.55; max-width: 195px; }
+        /* Section dividers */
+        .cqw-section {
+            border-top: 1.5px solid #f0ece6;
+            padding: .95rem 1.1rem 1rem;
+            transition: opacity .3s;
+        }
+        .cqw-section-label {
+            font-size: .67rem;
+            font-weight: 800;
+            letter-spacing: .09em;
+            text-transform: uppercase;
+            color: #b0a89a;
+            margin-bottom: .7rem;
+            display: flex;
+            align-items: center;
+            gap: .38rem;
+        }
+        .cqw-section-label i { font-size: .62rem; }
+        /* Locked state — greyed out until first product added */
+        .cqw-section.cqw-locked {
+            opacity: .35;
+            pointer-events: none;
+            user-select: none;
+        }
+        /* Compact service toggle for sidebar */
+        .cqw-svc-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .5rem;
+            margin-bottom: .7rem;
+        }
+        .cqw-svc-btn {
+            border: 1.5px solid #e5e7eb;
+            border-radius: .75rem;
+            padding: .6rem .5rem;
+            cursor: pointer;
+            background: #fff;
+            text-align: center;
+            transition: border-color .2s, background .2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .18rem;
+            font-family: inherit;
+        }
+        .cqw-svc-btn:hover { border-color: #fdba74; background: #fff7ed; }
+        .cqw-svc-btn.cq-svc-active { border-color: #FF6B00; background: #fff7ed; box-shadow: 0 0 0 2px rgba(255,107,0,.12); }
+        .cqw-svc-icon { font-size: 1.1rem; color: #9ca3af; }
+        .cqw-svc-btn.cq-svc-active .cqw-svc-icon { color: #FF6B00; }
+        .cqw-svc-name { font-size: .78rem; font-weight: 700; color: #374151; }
+        /* Submit section */
+        .cqw-submit-wrap { padding: .1rem 1.1rem 1.1rem; }
+        /* Tighter product summary cards inside sidebar */
+        .cqw-products-wrap .cq-summary-card {
+            border-radius: .875rem;
+            padding: .75rem .9rem;
+            margin-bottom: .45rem;
+        }
+        .cqw-products-wrap .cq-summary-card-name { font-size: .875rem; }
+        .cqw-products-wrap .cq-summary-card-meta { font-size: .72rem; }
+        /* Left panel: product card right column — narrower since sidebar handles cart */
+        .cqw-left .cq-pcard-right { flex: 0 0 290px; }
+        /* Responsive stacking */
+        @media (max-width: 940px) {
+            .cqw-split { grid-template-columns: 1fr; gap: 1.25rem; }
+            .cqw-right { position: static; max-height: none; overflow-y: visible; order: -1; }
+            .cqw-left .cq-pcard-right { flex: 0 0 320px; }
+        }
+        @media (max-width: 640px) {
+            .cqw-split { gap: .875rem; }
+            .cqw-section { padding: .8rem .9rem .9rem; }
+            .cqw-products-wrap { padding: .6rem .75rem; }
+            .cqw-left .cq-pcard-right { flex: none; width: 100%; }
+        }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
 </head>
@@ -976,80 +1125,34 @@
     <div id="cq-flow" aria-live="polite">
         <div class="cq-flow-inner">
 
-            <!-- Builder context bar + step indicator -->
-            <div class="cq-builder-bar" id="cq-builder-bar" aria-label="Progreso de la solicitud">
-                <div class="cq-builder-info">
-                    <span class="cq-builder-label">Tu solicitud</span>
-                    <span id="cq-builder-count" class="cq-builder-count" style="display:none;" aria-label="productos agregados"></span>
-                </div>
-                <div class="cq-step-ind" role="list" aria-label="Pasos">
-                    <div class="cq-si-step cq-si-active" id="cq-si-1" role="listitem" aria-current="step">
-                        <div class="cq-si-num">1</div>
-                        <span class="cq-si-label">Producto</span>
-                    </div>
-                    <div class="cq-si-line" id="cq-si-line-1"></div>
-                    <div class="cq-si-step" id="cq-si-2" role="listitem">
-                        <div class="cq-si-num">2</div>
-                        <span class="cq-si-label">Solicitud</span>
-                    </div>
-                    <div class="cq-si-line" id="cq-si-line-2"></div>
-                    <div class="cq-si-step" id="cq-si-3" role="listitem">
-                        <div class="cq-si-num">3</div>
-                        <span class="cq-si-label">Datos</span>
-                    </div>
-                </div>
-                <div class="cq-mobile-step-label" id="cq-mobile-step-label">Paso 1 de 3: Producto</div>
-            </div>
-
             <!-- Draft restore bar — visible when a saved quote draft is detected -->
-            <div id="cq-draft-bar" style="display:none;margin-bottom:.6rem;padding:.52rem 1rem;background:#fef3c7;border:1px solid #fde68a;border-radius:.75rem;font-size:.83rem;color:#92400e;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;">
+            <div id="cq-draft-bar" style="display:none;margin-bottom:.875rem;padding:.52rem 1rem;background:#fef3c7;border:1px solid #fde68a;border-radius:.75rem;font-size:.83rem;color:#92400e;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;">
                 <span><i class="fas fa-clock-rotate-left" style="margin-right:.35rem;"></i>Tienes una cotización guardada sin enviar.</span>
                 <div style="display:flex;gap:.36rem;">
                     <button type="button" id="cq-draft-discard-btn" style="padding:.24rem .62rem;background:transparent;border:1px solid #d97706;color:#92400e;border-radius:.42rem;font-size:.76rem;cursor:pointer;">Descartar</button>
                 </div>
             </div>
 
-            <!-- Confirmed products pill row -->
-            <div id="cq-confirmed-pills">
-                <div class="cq-pills-row" id="cq-pills-row"></div>
-                <button type="button" id="cq-btn-add-another" class="cq-pill-add" style="display:none;">
-                    <i class="fas fa-plus"></i> Agregar otro
-                </button>
-            </div>
+            <!-- ── Split workspace: LEFT = product entry · RIGHT = persistent quote panel ── -->
+            <div class="cqw-split">
 
-            <!-- Cart section header — shown once first product is confirmed -->
-            <div id="cq-cart-section-header">
-                <div class="cq-cart-header">
-                    <span class="cq-cart-title">Productos en tu solicitud</span>
-                    <span id="cq-cart-badge" class="cq-cart-badge">0</span>
-                    <div class="cq-cart-divider"></div>
-                </div>
-            </div>
+                <!-- LEFT: Product entry workspace -->
+                <div class="cqw-left">
 
-            <!-- Confirmed product summary cards (one per confirmed product) -->
-            <div id="cq-product-summary-cards"></div>
+                    <!-- Hidden pill row kept for JS compatibility -->
+                    <div id="cq-confirmed-pills" style="display:none;">
+                        <div class="cq-pills-row" id="cq-pills-row"></div>
+                        <button type="button" id="cq-btn-add-another" class="cq-pill-add" style="display:none;">
+                            <i class="fas fa-plus"></i> Agregar otro
+                        </button>
+                    </div>
+                    <!-- Compatibility stubs (no longer rendered but JS still references them) -->
+                    <div id="cq-cart-section-header" style="display:none;"></div>
+                    <div id="cq-quote-summary" style="display:none;"></div>
+                    <div id="cq-builder-bar" style="display:none;"></div>
 
-            <!-- Quote summary guidance block (shown after ≥1 product confirmed) -->
-            <div id="cq-quote-summary">
-                <div class="cq-qs-header">
-                    <div class="cq-qs-icon"><i class="fas fa-clipboard-list"></i></div>
-                    <div class="cq-qs-title">Resumen de tu cotización</div>
-                </div>
-                <div class="cq-qs-rows" id="cq-qs-rows"></div>
-                <div class="cq-qs-tip">
-                    <i class="fas fa-lightbulb"></i>
-                    <span id="cq-qs-tip-text">Traer varios productos juntos puede ayudarte a aprovechar mejor el envío, sujeto a peso, dimensiones y revisión final.</span>
-                </div>
-                <button type="button" id="cq-btn-continue-shipping" class="cq-btn-forward">
-                    Continuar con la solicitud <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
-
-            <!-- Steps area -->
-            <div id="cq-steps-area">
-
-                <!-- Unified product card: bubble + AI analysis + detail fields -->
-                <div id="cq-step-product" class="cq-pcard">
+                    <!-- Unified product card: bubble + AI analysis + detail fields -->
+                    <div id="cq-step-product" class="cq-pcard">
 
                     <!-- Orange bubble — product name strip, full width -->
                     <div id="cq-product-bubble" class="cq-bubble" style="display:none;">
@@ -1199,14 +1302,13 @@
                                     <span>Confirmo que los datos extraídos son correctos antes de continuar.</span>
                                 </label>
 
-                                <!-- Dual CTAs -->
+                                <!-- Single CTA — add product to sidebar -->
                                 <div class="cq-dual-cta">
                                     <button type="button" id="cq-btn-confirm-product" class="cq-btn-confirm">
-                                        <i class="fas fa-plus"></i> Agregar producto
+                                        <i class="fas fa-plus"></i> Agregar a la solicitud
                                     </button>
-                                    <button type="button" id="cq-btn-go-shipping" class="cq-btn-go-shipping">
-                                        Continuar con la solicitud <i class="fas fa-arrow-right"></i>
-                                    </button>
+                                    <!-- Stub kept for JS compat — never shown -->
+                                    <button type="button" id="cq-btn-go-shipping" class="cq-btn-go-shipping" style="display:none;" aria-hidden="true"></button>
                                 </div>
                             </div>
                         </div><!-- /.cq-pcard-right -->
@@ -1226,115 +1328,117 @@
                     <div id="cq-add-concierge-mount" style="margin-top:.15rem;"></div>
                 </div>
 
-                <!-- Step: Shipping preferences -->
-                <div id="cq-step-shipping" class="cq-card" style="display:none;">
-                    <div class="cq-step-header">
-                        <div class="cq-step-num">2</div>
-                        <div>
-                            <div class="cq-step-title">Preferencias de envío</div>
-                            <div class="cq-step-sub">Tipo de servicio y zona de entrega</div>
-                        </div>
-                    </div>
+                </div><!-- /.cqw-left -->
 
-                    <!-- Service cards -->
-                    <div class="cq-svc-grid">
-                        <button type="button" class="cq-svc-card cq-svc-active" data-service="aereo" id="cq-svc-aereo">
-                            <div class="cq-svc-icon"><i class="fas fa-plane"></i></div>
-                            <div class="cq-svc-name">Aéreo</div>
-                            <div class="cq-svc-desc">Rápido · ideal para paquetes estándar</div>
-                        </button>
-                        <button type="button" class="cq-svc-card" data-service="maritimo" id="cq-svc-maritimo">
-                            <div class="cq-svc-icon"><i class="fas fa-ship"></i></div>
-                            <div class="cq-svc-name">Marítimo</div>
-                            <div class="cq-svc-desc">Ideal para muebles y cargas grandes</div>
-                        </button>
-                    </div>
-                    <div id="cq-service-hint" class="cq-hint" style="margin-bottom:.875rem;">Más rápido, ideal para electrónica, ropa y artículos menores a 50 kg.</div>
-                    <input type="hidden" id="f-service-type" value="aereo">
+                <!-- RIGHT: Persistent quote builder — always visible, unlocks after first product -->
+                <div class="cqw-right">
+                    <div class="cqw-right-inner">
 
-                    <!-- Province -->
-                    <div class="cq-field-row">
-                        <label class="cq-label" for="f-destination-zone">Zona de destino <span class="cq-required">*</span></label>
-                        <select id="f-destination-zone" class="cq-input cq-select">
-                            <option value="" disabled selected>Selecciona tu provincia</option>
-                            <option value="sanjose">San José</option>
-                            <option value="heredia">Heredia</option>
-                            <option value="alajuela">Alajuela</option>
-                            <option value="cartago">Cartago</option>
-                            <option value="guanacaste">Guanacaste</option>
-                            <option value="puntarenas">Puntarenas</option>
-                            <option value="limon">Limón</option>
-                        </select>
-                        <div class="cq-err" id="err-destination" style="display:none;">
-                            <i class="fas fa-exclamation-circle"></i><span>Selecciona tu zona de entrega.</span>
+                        <!-- Panel header -->
+                        <div class="cqw-panel-header">
+                            <span class="cqw-panel-title">Tu solicitud</span>
+                            <span id="cq-cart-badge" class="cqw-panel-badge" style="display:none;"></span>
                         </div>
-                        <div id="zone-remote-hint" class="cq-hint-warn" style="display:none;">
-                            <i class="fas fa-info-circle"></i> Las zonas alejadas (Guanacaste, Puntarenas, Limón) pueden tener un cargo adicional de entrega local.
-                        </div>
-                    </div>
 
-                    <button type="button" id="cq-btn-shipping-done" class="cq-btn-continue">
-                        Continuar <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div><!-- /#cq-step-shipping -->
-
-                <!-- Step: Contact -->
-                <div id="cq-step-contact" class="cq-card" style="display:none;">
-                    <div class="cq-step-header">
-                        <div class="cq-step-num">3</div>
-                        <div>
-                            <div class="cq-step-title">Tus datos de contacto</div>
-                            <div class="cq-step-sub">Solo necesitamos tu correo para enviarte la cotización</div>
-                        </div>
-                    </div>
-
-                    <div class="cq-contact-grid">
-                        <div>
-                            <label class="cq-label" for="f-customer-name">Tu nombre <span class="cq-optional">(opcional)</span></label>
-                            <input type="text" id="f-customer-name" class="cq-input" placeholder="¿Cómo te llamamos?" autocomplete="name" maxlength="120">
-                        </div>
-                        <div>
-                            <label class="cq-label" for="f-customer-email">Correo electrónico <span class="cq-required">*</span></label>
-                            <input type="email" id="f-customer-email" class="cq-input" placeholder="tucorreo@ejemplo.com" autocomplete="email" inputmode="email">
-                            <div class="cq-err" id="err-email" style="display:none;">
-                                <i class="fas fa-exclamation-circle"></i><span id="err-email-text">Ingresa un correo válido.</span>
+                        <!-- Products list -->
+                        <div class="cqw-products-wrap">
+                            <!-- Empty state — shown until first product confirmed -->
+                            <div id="cqw-empty-state" class="cqw-empty">
+                                <div class="cqw-empty-icon">📦</div>
+                                <div class="cqw-empty-title">Aún sin productos</div>
+                                <div class="cqw-empty-sub">Describe lo que quieres traer y agrégalo aquí.</div>
                             </div>
+                            <!-- Product summary cards (one per confirmed product) -->
+                            <div id="cq-product-summary-cards" style="display:none;"></div>
                         </div>
-                    </div>
 
-                    <div class="cq-field-row">
-                        <label class="cq-label" for="f-notes">Notas adicionales <span class="cq-optional">(opcional)</span></label>
-                        <textarea id="f-notes" class="cq-input" placeholder="Color, talla, modelo específico, o cualquier detalle relevante…" rows="3" maxlength="500" style="resize:vertical;min-height:80px;"></textarea>
-                        <div class="cq-hint"><span id="notes-char-count">0</span>/500 caracteres</div>
-                    </div>
-
-                    <!-- Duplicate warning -->
-                    <div id="dup-warning-cotizar" class="cq-dup-warning hidden">
-                        <div style="display:flex;align-items:flex-start;gap:.75rem;flex-wrap:wrap;">
-                            <i class="fas fa-copy" style="color:#d97706;margin-top:.1rem;flex-shrink:0;"></i>
-                            <div style="flex:1;min-width:160px;">
-                                <p style="font-size:.84rem;font-weight:700;color:#78350f;margin-bottom:.2rem;">Solicitud similar encontrada</p>
-                                <p style="font-size:.82rem;color:#92400e;">
-                                    Ya enviaste una solicitud (<span id="dup-id-cotizar" style="font-weight:700;"></span>) hace <span id="dup-hours-cotizar"></span> hora(s).
-                                    <a id="dup-link-cotizar" href="#" style="font-weight:700;color:#92400e;" target="_blank" rel="noopener">Ver solicitud →</a>
-                                </p>
+                        <!-- Shipping section — locked until first product confirmed -->
+                        <div id="cq-step-shipping" class="cqw-section cqw-locked">
+                            <div class="cqw-section-label"><i class="fas fa-shipping-fast"></i> Tipo de envío</div>
+                            <div class="cqw-svc-row">
+                                <button type="button" class="cqw-svc-btn cq-svc-active" data-service="aereo" id="cq-svc-aereo">
+                                    <div class="cqw-svc-icon"><i class="fas fa-plane"></i></div>
+                                    <div class="cqw-svc-name">Aéreo</div>
+                                </button>
+                                <button type="button" class="cqw-svc-btn" data-service="maritimo" id="cq-svc-maritimo">
+                                    <div class="cqw-svc-icon"><i class="fas fa-ship"></i></div>
+                                    <div class="cqw-svc-name">Marítimo</div>
+                                </button>
                             </div>
-                            <button id="btn-dup-dismiss-cotizar" type="button"
-                                    style="padding:.45rem .9rem;background:#f59e0b;color:#fff;border:none;border-radius:.5rem;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;">
-                                Enviar de todas formas
+                            <div id="cq-service-hint" class="cq-hint" style="margin-bottom:.75rem;font-size:.73rem;">Más rápido, ideal para electrónica, ropa y artículos menores a 50 kg.</div>
+                            <input type="hidden" id="f-service-type" value="aereo">
+                            <label class="cq-label" for="f-destination-zone" style="font-size:.77rem;">Provincia de entrega <span class="cq-required">*</span></label>
+                            <select id="f-destination-zone" class="cq-input cq-select" style="font-size:.84rem;padding:.65rem .9rem;margin-top:.3rem;">
+                                <option value="" disabled selected>Selecciona tu provincia</option>
+                                <option value="sanjose">San José</option>
+                                <option value="heredia">Heredia</option>
+                                <option value="alajuela">Alajuela</option>
+                                <option value="cartago">Cartago</option>
+                                <option value="guanacaste">Guanacaste</option>
+                                <option value="puntarenas">Puntarenas</option>
+                                <option value="limon">Limón</option>
+                            </select>
+                            <div class="cq-err" id="err-destination" style="display:none;">
+                                <i class="fas fa-exclamation-circle"></i><span>Selecciona tu zona de entrega.</span>
+                            </div>
+                            <div id="zone-remote-hint" class="cq-hint-warn" style="display:none;margin-top:.4rem;">
+                                <i class="fas fa-info-circle"></i> Las zonas alejadas (Guanacaste, Puntarenas, Limón) pueden tener un cargo adicional.
+                            </div>
+                            <!-- Hidden Continuar stub for JS compat -->
+                            <button type="button" id="cq-btn-shipping-done" style="display:none;" aria-hidden="true"></button>
+                        </div><!-- /#cq-step-shipping -->
+
+                        <!-- Contact section — locked until first product confirmed -->
+                        <div id="cq-step-contact" class="cqw-section cqw-locked">
+                            <div class="cqw-section-label"><i class="fas fa-user"></i> Tus datos</div>
+                            <div style="margin-bottom:.6rem;">
+                                <label class="cq-label" for="f-customer-name" style="font-size:.77rem;">Nombre <span class="cq-optional">(opcional)</span></label>
+                                <input type="text" id="f-customer-name" class="cq-input" placeholder="¿Cómo te llamamos?" autocomplete="name" maxlength="120" style="font-size:.84rem;padding:.65rem .9rem;">
+                            </div>
+                            <div style="margin-bottom:.6rem;">
+                                <label class="cq-label" for="f-customer-email" style="font-size:.77rem;">Correo electrónico <span class="cq-required">*</span></label>
+                                <input type="email" id="f-customer-email" class="cq-input" placeholder="tucorreo@ejemplo.com" autocomplete="email" inputmode="email" style="font-size:.84rem;padding:.65rem .9rem;">
+                                <div class="cq-err" id="err-email" style="display:none;">
+                                    <i class="fas fa-exclamation-circle"></i><span id="err-email-text">Ingresa un correo válido.</span>
+                                </div>
+                            </div>
+                            <div style="margin-bottom:.65rem;">
+                                <label class="cq-label" for="f-notes" style="font-size:.77rem;">Notas <span class="cq-optional">(opcional)</span></label>
+                                <textarea id="f-notes" class="cq-input" placeholder="Color, talla, modelo específico, u otros detalles…" rows="2" maxlength="500" style="resize:vertical;min-height:56px;font-size:.84rem;padding:.65rem .9rem;"></textarea>
+                                <div class="cq-hint"><span id="notes-char-count">0</span>/500 caracteres</div>
+                            </div>
+                            <!-- Duplicate warning -->
+                            <div id="dup-warning-cotizar" class="cq-dup-warning hidden" style="margin-bottom:.6rem;">
+                                <div style="display:flex;align-items:flex-start;gap:.75rem;flex-wrap:wrap;">
+                                    <i class="fas fa-copy" style="color:#d97706;margin-top:.1rem;flex-shrink:0;"></i>
+                                    <div style="flex:1;min-width:160px;">
+                                        <p style="font-size:.84rem;font-weight:700;color:#78350f;margin-bottom:.2rem;">Solicitud similar encontrada</p>
+                                        <p style="font-size:.82rem;color:#92400e;">
+                                            Ya enviaste una solicitud (<span id="dup-id-cotizar" style="font-weight:700;"></span>) hace <span id="dup-hours-cotizar"></span> hora(s).
+                                            <a id="dup-link-cotizar" href="#" style="font-weight:700;color:#92400e;" target="_blank" rel="noopener">Ver solicitud →</a>
+                                        </p>
+                                    </div>
+                                    <button id="btn-dup-dismiss-cotizar" type="button"
+                                            style="padding:.45rem .9rem;background:#f59e0b;color:#fff;border:none;border-radius:.5rem;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+                                        Enviar de todas formas
+                                    </button>
+                                </div>
+                            </div>
+                        </div><!-- /#cq-step-contact -->
+
+                        <!-- Submit CTA -->
+                        <div class="cqw-submit-wrap">
+                            <button type="button" id="btn-submit-quote" class="cq-btn-submit" style="margin-top:0;">
+                                <i class="fas fa-paper-plane"></i> Enviar solicitud
                             </button>
+                            <p class="cq-privacy" style="margin-top:.5rem;font-size:.74rem;"><i class="fas fa-lock" style="margin-right:.25rem;"></i>Tus datos están protegidos. <a href="#" onclick="if(window.ChatPanel)ChatPanel.open();return false;" style="color:#FF6B00;font-weight:600;text-decoration:none;">¿Dudas? Chatea con nosotros.</a></p>
                         </div>
-                    </div>
 
-                    <!-- Submit -->
-                    <button type="button" id="btn-submit-quote" class="cq-btn-submit">
-                        <i class="fas fa-paper-plane"></i> Enviar solicitud
-                    </button>
-                    <p class="cq-privacy"><i class="fas fa-lock" style="margin-right:.25rem;"></i>Tus datos están protegidos. No los compartimos con terceros. ¿Dudas? <a href="#" onclick="if(window.ChatPanel)ChatPanel.open();return false;" style="color:#FF6B00;font-weight:600;text-decoration:none;">Chatea con nosotros.</a></p>
-                </div><!-- /#cq-step-contact -->
+                    </div><!-- /.cqw-right-inner -->
+                </div><!-- /.cqw-right -->
 
-            </div><!-- /#cq-steps-area -->
-        </div><!-- /.cq-flow-layout -->
+            </div><!-- /.cqw-split -->
+        </div><!-- /.cq-flow-inner -->
     </div><!-- /#cq-flow -->
 
     <!-- ══ CONFIRMATION ══ -->
@@ -1728,8 +1832,8 @@
             if (followupSec) followupSec.style.display = 'none';
             // Reveal flow below hero (no page jump — hero stays, compresses)
             _revealFlow();
-            // Hide later steps until confirmed
-            _hideEl('cq-step-shipping'); _hideEl('cq-step-contact'); _hideEl('cq-add-product-area');
+            // Hide add-another area (shipping/contact live in right panel — always visible)
+            _hideEl('cq-add-product-area');
             // Classify
             if (heroBtn) { heroBtn.classList.add('loading'); heroBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; }
             if (typeof CRBOXProductClassifier !== 'undefined') {
@@ -2042,25 +2146,25 @@
             _renderSummaryCards();
             _updateQuoteSummary();
 
-            // Show cart section header and update builder count
-            var cartHeader = document.getElementById('cq-cart-section-header');
-            if (cartHeader) cartHeader.style.display = '';
             _updateBuilderCount(_confirmedProducts.length);
 
-            // Reveal "Continuar" button now that cart has items
-            var goShipBtn = document.getElementById('cq-btn-go-shipping');
-            if (goShipBtn) goShipBtn.style.display = '';
+            // Unlock shipping and contact sections in the right panel
+            var shippingSection = document.getElementById('cq-step-shipping');
+            var contactSection  = document.getElementById('cq-step-contact');
+            if (shippingSection) shippingSection.classList.remove('cqw-locked');
+            if (contactSection)  contactSection.classList.remove('cqw-locked');
+
+            // Hide empty state, show badge + summary cards
+            var emptyState = document.getElementById('cqw-empty-state');
+            if (emptyState) emptyState.style.display = 'none';
+            var cartBadge = document.getElementById('cq-cart-badge');
+            if (cartBadge) { cartBadge.textContent = _confirmedProducts.length; cartBadge.style.display = ''; }
 
             // Collapse the product card — show add-another area
             var stepProdEl = document.getElementById('cq-step-product');
             if (stepProdEl) stepProdEl.style.display = 'none';
             _showEl('cq-add-product-area');
             if (_ciAddInst) _ciAddInst.reset();
-            // Scroll to cart section (top of cart header), not quote summary
-            setTimeout(function() {
-                var cartH = document.getElementById('cq-cart-section-header');
-                if (cartH) cartH.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 200);
         }
 
         // ── Confirmed products pill row ───────────────────────
@@ -2096,11 +2200,18 @@
             var container = document.getElementById('cq-product-summary-cards');
             if (!container) return;
             container.innerHTML = '';
-            if (!_confirmedProducts.length) { container.style.display = 'none'; return; }
+            // Toggle empty state + badge based on product count
+            var emptyState = document.getElementById('cqw-empty-state');
+            var cartBadge  = document.getElementById('cq-cart-badge');
+            if (!_confirmedProducts.length) {
+                container.style.display = 'none';
+                if (emptyState) emptyState.style.display = '';
+                if (cartBadge) cartBadge.style.display = 'none';
+                return;
+            }
             container.style.display = '';
-            // Update cart badge count
-            var cartBadge = document.getElementById('cq-cart-badge');
-            if (cartBadge) cartBadge.textContent = _confirmedProducts.length;
+            if (emptyState) emptyState.style.display = 'none';
+            if (cartBadge) { cartBadge.textContent = _confirmedProducts.length; cartBadge.style.display = ''; }
             _confirmedProducts.forEach(function(p, idx) {
                 var catLabel = getCategoryLabel(p.category || 'otros');
                 var taxHint  = '';
@@ -2445,10 +2556,9 @@
             }
             var _followupSec = document.getElementById('cq-followup-section');
             if (_followupSec) _followupSec.style.display = 'none';
-            // Re-show product card and hide steps that await completion
+            // Re-show product card (shipping/contact live in right panel — always visible)
             var stepProd = document.getElementById('cq-step-product');
             if (stepProd) stepProd.style.display = '';
-            _hideEl('cq-step-shipping'); _hideEl('cq-step-contact');
             if (stepProd) setTimeout(function() { stepProd.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
             if (typeof CRBOXProductClassifier !== 'undefined') {
                 var _addIntent = _normalizeForClassify(productName);
@@ -2460,12 +2570,12 @@
             } else { _finishClassify(); }
         }
 
-        // ── Service toggle ────────────────────────────────────
-        document.querySelectorAll('.cq-svc-card').forEach(function(card) {
+        // ── Service toggle (covers both old .cq-svc-card and new .cqw-svc-btn) ─
+        document.querySelectorAll('.cq-svc-card, .cqw-svc-btn').forEach(function(card) {
             card.addEventListener('click', function() {
                 var svc = this.dataset.service;
                 if (fServiceType) fServiceType.value = svc;
-                document.querySelectorAll('.cq-svc-card').forEach(function(c) { c.classList.remove('cq-svc-active'); });
+                document.querySelectorAll('.cq-svc-card, .cqw-svc-btn').forEach(function(c) { c.classList.remove('cq-svc-active'); });
                 this.classList.add('cq-svc-active');
                 var hint = document.getElementById('cq-service-hint');
                 if (hint) hint.textContent = svc === 'aereo'
@@ -2740,23 +2850,25 @@
             if (pillsRow) pillsRow.innerHTML = '';
             if (pillsCont) pillsCont.style.display = 'none';
             if (btnAddAnother) btnAddAnother.style.display = 'none';
-            // Clear summary cards, quote summary, and cart header
+            // Clear summary cards
             var summaryCards = document.getElementById('cq-product-summary-cards');
             if (summaryCards) { summaryCards.innerHTML = ''; summaryCards.style.display = 'none'; }
-            var quoteSummary = document.getElementById('cq-quote-summary');
-            if (quoteSummary) quoteSummary.style.display = 'none';
-            var cartHeader = document.getElementById('cq-cart-section-header');
-            if (cartHeader) cartHeader.style.display = 'none';
             _updateBuilderCount(0);
-            // Reset step indicator and hide Continuar
             _updateStepIndicator(1);
-            var goShipBtn = document.getElementById('cq-btn-go-shipping');
-            if (goShipBtn) goShipBtn.style.display = 'none';
+            // Re-lock shipping and contact sections, restore empty state
+            var shippingSection = document.getElementById('cq-step-shipping');
+            var contactSection  = document.getElementById('cq-step-contact');
+            if (shippingSection) shippingSection.classList.add('cqw-locked');
+            if (contactSection)  contactSection.classList.add('cqw-locked');
+            var emptyState = document.getElementById('cqw-empty-state');
+            if (emptyState) emptyState.style.display = '';
+            var cartBadge = document.getElementById('cq-cart-badge');
+            if (cartBadge) cartBadge.style.display = 'none';
             // Restore product card visibility for next entry
             var stepProdReset = document.getElementById('cq-step-product');
             if (stepProdReset) stepProdReset.style.display = '';
             if (fServiceType) fServiceType.value = 'aereo';
-            document.querySelectorAll('.cq-svc-card').forEach(function(c) { c.classList.remove('cq-svc-active'); });
+            document.querySelectorAll('.cq-svc-card, .cqw-svc-btn').forEach(function(c) { c.classList.remove('cq-svc-active'); });
             var aereoCard = document.querySelector('[data-service="aereo"]');
             if (aereoCard) aereoCard.classList.add('cq-svc-active');
             if (fDestination) { fDestination.value = ''; fDestination.classList.remove('cq-error-state'); }

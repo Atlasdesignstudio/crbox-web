@@ -1391,12 +1391,12 @@ STEP 3 — GUIDE: Write 2-3 sentences in Spanish (customer_guidance) with warm, 
   • Close with the practical info: whether CRBOX handles it normally, approximate tax range, or any special process needed.
 
   Tone examples:
-  • Coffee maker → "Una cafetera como esta hace la diferencia en el primer café del día. La podemos importar sin problema — los impuestos rondan el 13–20% del valor. Si ya tienes en mente un café de especialidad para estrenarla, ¡mejor aún."
+  • Coffee maker → "Una cafetera como esta hace la diferencia en el primer café del día. La podemos importar sin problema — en electrodomésticos de cocina los impuestos rondan el 29% del valor. Si ya tienes en mente un café de especialidad para estrenarla, mejor aún."
   • Sneakers Nike → "Buen gusto en calzado. Las podemos traer directamente a Costa Rica — en calzado los impuestos están alrededor del 29%. Si quieres traer también unas medias o un segundo par, podemos consolidarlos en el mismo pedido."
   • Car → "Importar un vehículo es un proceso diferente al de un paquete, pero totalmente manejable con el acompañamiento correcto. Se realiza por vía marítima y requiere registro ante COSEVI, inspección RITEVE y marchamo. Un asesor CRBOX te guía paso a paso."
   • Unknown product → "Con gusto revisamos si este producto puede ingresar a Costa Rica y qué impuestos aplicarían — CRBOX se encarga de los trámites."
 
-Product: {product_name}{url_context}{price_context}
+Product: {product_name}{url_context}{price_context}{estimated_range_context}
 
 Return ONLY valid JSON — no markdown, no code fences, no extra text:
 {{
@@ -1551,11 +1551,23 @@ def _gemini_classify(product_name, product_url=None, price_usd=None):
         )
         url_ctx   = f'\nProduct URL: {product_url}' if product_url else ''
         price_ctx = f'\nApprox. price (USD): ${price_usd:.2f}' if price_usd else ''
+        # Try local brain match first to anchor the estimated tariff range.
+        # This prevents Gemini from hallucinating wrong percentages in customer_guidance.
+        _brain_match, _ = _brain_local_match(product_name)
+        _est_range = (_brain_match or {}).get('estimatedRange', '') if _brain_match else ''
+        if _est_range:
+            range_ctx = (f'\nTariff database reference: Our tariff database shows this product'
+                         f' category has an estimated import tariff of {_est_range}.'
+                         f' You MUST use this exact figure in customer_guidance — do NOT'
+                         f' invent or substitute a different percentage.')
+        else:
+            range_ctx = ''
         prompt = _CLASSIFY_PROMPT.format(
             category_list=cat_lines,
             product_name=product_name,
             url_context=url_ctx,
             price_context=price_ctx,
+            estimated_range_context=range_ctx,
         )
         response = client.models.generate_content(
             model=_GEMINI_MODEL,
