@@ -1351,6 +1351,329 @@
             .cq-hero-title { font-size: 2.1rem; }
             .cq-flow-inner { padding: .75rem .75rem 4rem; }
         }
+
+        /* ═══════════════════════════════════════════════════════════
+           MOBILE CHAT INTERFACE  (≤ 640px)
+           Replaces form-based flow with a Gemini-style concierge UI
+           Desktop (> 640px) is completely unchanged.
+        ═══════════════════════════════════════════════════════════ */
+        #cq-chat { display: none; }
+
+        @media (max-width: 640px) {
+            /* Hide form UI; surface chat instead */
+            #cq-hero  { display: none !important; }
+            #cq-flow  { display: none !important; }
+            #cq-chat  {
+                display: flex !important;
+                flex-direction: column;
+                min-height: calc(100svh - 64px);
+                background: #f2f2f7;
+                overflow: hidden;
+            }
+
+            /* ── Chat header ── */
+            .cqc-header {
+                background: #fff;
+                padding: .72rem 1rem;
+                display: flex; align-items: center; justify-content: space-between;
+                border-bottom: 1px solid #f0f0f5;
+                flex-shrink: 0;
+                box-shadow: 0 1px 6px rgba(0,0,0,.05);
+            }
+            .cqc-header-left { display: flex; align-items: center; gap: .6rem; }
+            .cqc-av-wrap { position: relative; flex-shrink: 0; }
+            .cqc-avatar {
+                width: 38px; height: 38px; border-radius: 50%;
+                background: linear-gradient(135deg, #FF6B00 0%, #f59e0b 100%);
+                display: flex; align-items: center; justify-content: center;
+                font-weight: 800; font-size: .75rem; color: #fff; letter-spacing: -.5px;
+            }
+            .cqc-online-dot {
+                position: absolute; bottom: 1px; right: 0px;
+                width: 10px; height: 10px; border-radius: 50%;
+                background: #22c55e; border: 2px solid #fff;
+            }
+            .cqc-agent-name { font-size: .88rem; font-weight: 700; color: #1a1a2e; line-height: 1.15; }
+            .cqc-agent-sub  { font-size: .7rem; color: #9ca3af; }
+            .cqc-cart-btn {
+                position: relative;
+                width: 38px; height: 38px; border-radius: 50%;
+                background: #fff7ed; border: 1.5px solid #fed7aa;
+                display: flex; align-items: center; justify-content: center;
+                color: #FF6B00; font-size: .88rem; cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+            }
+            #cqc-cart-badge {
+                position: absolute; top: -3px; right: -3px;
+                background: #FF6B00; color: #fff; border-radius: 50%;
+                width: 17px; height: 17px; font-size: .56rem; font-weight: 800;
+                display: flex; align-items: center; justify-content: center;
+                border: 1.5px solid #fff;
+            }
+
+            /* ── Messages scrollable area ── */
+            .cqc-messages {
+                flex: 1;
+                overflow-y: auto;
+                padding: .875rem .875rem 1rem;
+                display: flex; flex-direction: column; gap: .5rem;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* ── Message rows ── */
+            .cqc-row { display: flex; align-items: flex-end; gap: .42rem; }
+            .cqc-row.bot  { align-self: flex-start; max-width: 92%; }
+            .cqc-row.user { align-self: flex-end; flex-direction: row-reverse; max-width: 82%; }
+            .cqc-row.wide { align-self: stretch; max-width: 100%; flex-direction: column; gap: 0; }
+            .cqc-mini-av {
+                width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+                background: linear-gradient(135deg, #FF6B00, #f59e0b);
+                display: flex; align-items: center; justify-content: center;
+                font-size: .52rem; font-weight: 800; color: #fff; letter-spacing: -.5px;
+                align-self: flex-end;
+            }
+            .cqc-row.wide .cqc-mini-av { display: none; }
+            .cqc-bubble {
+                padding: .62rem .88rem;
+                border-radius: 1.1rem;
+                font-size: .87rem; line-height: 1.48;
+                word-break: break-word;
+            }
+            .cqc-row.bot .cqc-bubble {
+                background: #fff; color: #1a1a2e;
+                border-radius: .35rem 1.1rem 1.1rem 1.1rem;
+                box-shadow: 0 1px 3px rgba(0,0,0,.07);
+            }
+            .cqc-row.user .cqc-bubble {
+                background: #FF6B00; color: #fff;
+                border-radius: 1.1rem 1.1rem .35rem 1.1rem;
+            }
+            .cqc-widget {
+                background: #fff;
+                border-radius: 1rem;
+                padding: .9rem .95rem 1rem;
+                box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 4px 14px rgba(0,0,0,.05);
+            }
+
+            /* ── Typing dots ── */
+            .cqc-typing {
+                display: flex; align-items: center; gap: .3rem;
+                padding: .62rem .88rem;
+                background: #fff; border-radius: .35rem 1.1rem 1.1rem 1.1rem;
+                box-shadow: 0 1px 3px rgba(0,0,0,.07);
+            }
+            .cqc-typing span {
+                width: 7px; height: 7px; border-radius: 50%; background: #d1d5db;
+                animation: cqcPulse 1.1s infinite ease-in-out;
+            }
+            .cqc-typing span:nth-child(2) { animation-delay: .18s; }
+            .cqc-typing span:nth-child(3) { animation-delay: .36s; }
+            @keyframes cqcPulse {
+                0%,80%,100% { transform: scale(1); opacity: .4; }
+                40% { transform: scale(1.3); opacity: 1; }
+            }
+
+            /* ── Action buttons ── */
+            .cqc-actions {
+                display: flex; flex-wrap: wrap; gap: .38rem;
+                padding: .2rem 0 .15rem;
+                margin-left: 32px;
+            }
+            .cqc-btn {
+                padding: .48rem .88rem; border-radius: 2rem;
+                font-size: .81rem; font-weight: 600;
+                border: 1.5px solid #FF6B00; color: #FF6B00;
+                background: #fff; cursor: pointer; font-family: inherit;
+                transition: all .15s; white-space: nowrap;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .cqc-btn.primary  { background: #FF6B00; color: #fff; }
+            .cqc-btn.secondary { border-color: #e5e7eb; color: #6b7280; }
+            .cqc-btn:disabled { opacity: .45; cursor: not-allowed; }
+            .cqc-btn:active   { transform: scale(.95); }
+
+            /* ── Quick-start chips ── */
+            .cqc-chip-row {
+                display: flex; flex-wrap: wrap; gap: .38rem;
+                margin-top: .38rem;
+            }
+            .cqc-chip-pill {
+                padding: .4rem .78rem; border-radius: 2rem;
+                font-size: .79rem; font-weight: 600;
+                background: #fff7ed; border: 1.5px solid #fed7aa;
+                color: #c2410c; cursor: pointer; font-family: inherit;
+                -webkit-tap-highlight-color: transparent; transition: all .14s;
+            }
+            .cqc-chip-pill:active { background: #FF6B00; color: #fff; border-color: #FF6B00; }
+
+            /* ── Product card ── */
+            .cqc-prod-head {
+                display: flex; align-items: center; gap: .55rem; margin-bottom: .65rem;
+            }
+            .cqc-prod-icon {
+                width: 40px; height: 40px; border-radius: .65rem; flex-shrink: 0;
+                background: #fff7ed; display: flex; align-items: center; justify-content: center;
+                font-size: 1.2rem;
+            }
+            .cqc-prod-name { font-size: .92rem; font-weight: 700; color: #1a1a2e; }
+            .cqc-prod-cat  { font-size: .71rem; color: #9ca3af; margin-top: .08rem; }
+            .cqc-tags { display: flex; flex-wrap: wrap; gap: .32rem; margin-bottom: .7rem; }
+            .cqc-tag {
+                display: inline-flex; align-items: center; gap: .22rem;
+                padding: .26rem .58rem; border-radius: .45rem;
+                font-size: .71rem; font-weight: 600;
+            }
+            .cqc-tag.tax    { background: #fef3c7; color: #92400e; }
+            .cqc-tag.docs   { background: #e0f2fe; color: #075985; }
+            .cqc-tag.ok     { background: #dcfce7; color: #166534; }
+            .cqc-tag.warn   { background: #fce7f3; color: #9d174d; }
+            .cqc-price-row  { display: flex; align-items: center; gap: .4rem; margin-top: .3rem; }
+            .cqc-price-cur  { font-size: .78rem; color: #6b7280; font-weight: 600; white-space: nowrap; }
+            .cqc-price-inp  {
+                flex: 1; padding: .55rem .72rem; min-width: 0;
+                border: 1.5px solid #e5e7eb; border-radius: .6rem;
+                font-size: .95rem; font-family: inherit; color: #1a1a2e; outline: none;
+            }
+            .cqc-price-inp:focus { border-color: #FF6B00; }
+            .cqc-inp-err { font-size: .71rem; color: #ef4444; margin-top: .28rem; display: none; }
+
+            /* ── Province + service grid ── */
+            .cqc-prov-grid {
+                display: grid; grid-template-columns: repeat(2,1fr); gap: .4rem;
+                margin-top: .5rem;
+            }
+            .cqc-prov-btn {
+                padding: .58rem .4rem; border-radius: .6rem; text-align: center;
+                font-size: .81rem; font-weight: 600;
+                border: 1.5px solid #e5e7eb; color: #374151;
+                background: #fff; cursor: pointer; font-family: inherit;
+                transition: all .14s; -webkit-tap-highlight-color: transparent;
+            }
+            .cqc-prov-btn.sel { background: #FF6B00; color: #fff; border-color: #FF6B00; }
+            .cqc-svc-row { display: flex; gap: .4rem; margin: .6rem 0 .25rem; }
+            .cqc-svc-opt {
+                flex: 1; padding: .58rem .4rem; border-radius: .6rem; text-align: center;
+                font-size: .81rem; font-weight: 600; line-height: 1.35;
+                border: 1.5px solid #e5e7eb; color: #374151;
+                background: #fff; cursor: pointer; font-family: inherit;
+                transition: all .14s; -webkit-tap-highlight-color: transparent;
+            }
+            .cqc-svc-opt.sel { background: #fff7ed; color: #c2410c; border-color: #fb923c; }
+
+            /* ── Contact form in chat ── */
+            .cqc-form-field { margin-bottom: .6rem; }
+            .cqc-lbl { font-size: .77rem; font-weight: 600; color: #374151; margin-bottom: .28rem; display: block; }
+            .cqc-finp {
+                width: 100%; padding: .6rem .82rem;
+                border: 1.5px solid #e5e7eb; border-radius: .7rem;
+                font-size: .88rem; font-family: inherit; color: #1a1a2e;
+                outline: none; box-sizing: border-box; background: #fff;
+            }
+            .cqc-finp:focus { border-color: #FF6B00; }
+            .cqc-finp.err { border-color: #ef4444; }
+            .cqc-finp-err { font-size: .71rem; color: #ef4444; margin-top: .2rem; display: none; }
+            .cqc-submit-cta {
+                width: 100%; padding: .875rem;
+                background: #FF6B00; color: #fff; border: none; border-radius: 1rem;
+                font-size: .97rem; font-weight: 700; cursor: pointer; font-family: inherit;
+                margin-top: .2rem;
+                display: flex; align-items: center; justify-content: center; gap: .45rem;
+                box-shadow: 0 4px 16px rgba(255,107,0,.28);
+            }
+            .cqc-submit-cta:disabled { background: #e5e7eb; color: #9ca3af; box-shadow: none; cursor: not-allowed; }
+
+            /* ── Input bar ── */
+            .cqc-input-bar {
+                background: #fff;
+                border-top: 1px solid #f0f0f5;
+                padding: .6rem .875rem max(.6rem, env(safe-area-inset-bottom, .6rem));
+                flex-shrink: 0;
+            }
+            .cqc-input-bar.cqc-hidden { display: none; }
+            .cqc-input-wrap {
+                display: flex; align-items: center; gap: .42rem;
+                background: #f4f5f7; border-radius: 1.5rem;
+                padding: .28rem .28rem .28rem .88rem;
+                border: 1.5px solid #e9eaed;
+            }
+            .cqc-input-wrap:focus-within { border-color: #FF6B00; background: #fff; }
+            .cqc-input-field {
+                flex: 1; background: transparent; border: none; outline: none;
+                font-size: .91rem; font-family: inherit; color: #1a1a2e;
+                padding: .3rem 0;
+            }
+            .cqc-input-field::placeholder { color: #9ca3af; }
+            .cqc-send-btn {
+                width: 35px; height: 35px; border-radius: 50%; flex-shrink: 0;
+                background: #FF6B00; color: #fff; border: none;
+                display: flex; align-items: center; justify-content: center;
+                cursor: pointer; font-size: .82rem; transition: background .14s;
+            }
+            .cqc-send-btn:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
+
+            /* ── Fade-in for new messages ── */
+            .cqc-in { animation: cqcIn .28s cubic-bezier(.22,1,.36,1) both; }
+            @keyframes cqcIn {
+                from { opacity: 0; transform: translateY(8px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+        }
+
+        /* ── Cart bottom sheet — global (position:fixed, outside media query) ── */
+        .cqc-sheet-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.48); z-index: 9998;
+            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+        }
+        .cqc-cart-sheet {
+            position: fixed; left: 0; right: 0; bottom: 0;
+            background: #fff; border-radius: 1.5rem 1.5rem 0 0;
+            z-index: 9999;
+            transform: translateY(105%);
+            transition: transform .36s cubic-bezier(.22,1,.36,1);
+            max-height: 80svh;
+            display: flex; flex-direction: column;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        .cqc-cart-sheet.cqc-open { transform: translateY(0); }
+        .cqc-drag-row { padding: .72rem 0 .35rem; display: flex; justify-content: center; cursor: pointer; }
+        .cqc-sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: #e5e7eb; }
+        .cqc-sheet-hdr {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 1.25rem .8rem;
+            border-bottom: 1px solid #f3f4f6; flex-shrink: 0;
+        }
+        .cqc-sheet-title { font-size: .97rem; font-weight: 700; color: #1a1a2e; }
+        .cqc-sheet-close-btn {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: #f3f4f6; border: none;
+            display: flex; align-items: center; justify-content: center;
+            color: #6b7280; font-size: .8rem; cursor: pointer;
+        }
+        .cqc-sheet-items-wrap { overflow-y: auto; padding: .65rem 1.25rem; flex: 1; }
+        .cqc-sheet-item {
+            display: flex; align-items: center; gap: .7rem;
+            padding: .6rem 0; border-bottom: 1px solid #f9fafb;
+        }
+        .cqc-sheet-item:last-child { border-bottom: none; }
+        .cqc-si-icon {
+            width: 36px; height: 36px; border-radius: .55rem; flex-shrink: 0;
+            background: #fff7ed; display: flex; align-items: center; justify-content: center;
+            font-size: .88rem;
+        }
+        .cqc-si-body { flex: 1; min-width: 0; }
+        .cqc-si-name {
+            font-size: .86rem; font-weight: 600; color: #1a1a2e;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .cqc-si-price { font-size: .76rem; color: #9ca3af; margin-top: .08rem; }
+        .cqc-sheet-footer {
+            padding: .8rem 1.25rem;
+            border-top: 1px solid #f3f4f6; flex-shrink: 0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .cqc-footer-lbl  { font-size: .8rem; color: #6b7280; }
+        .cqc-footer-total { font-size: .97rem; font-weight: 700; color: #1a1a2e; }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
 </head>
@@ -1470,6 +1793,44 @@
             </div>
         </div>
     </section>
+
+    <!-- ══ MOBILE CHAT INTERFACE — Gemini-style concierge on ≤640px ══ -->
+    <div id="cq-chat" aria-label="Cotizador CRBOX" role="main">
+
+        <!-- Chat header -->
+        <div class="cqc-header">
+            <div class="cqc-header-left">
+                <div class="cqc-av-wrap">
+                    <div class="cqc-avatar">CR</div>
+                    <span class="cqc-online-dot"></span>
+                </div>
+                <div>
+                    <div class="cqc-agent-name">CRBOX Cotizador</div>
+                    <div class="cqc-agent-sub">En línea · responde en &lt; 24 h</div>
+                </div>
+            </div>
+            <button id="cqc-cart-btn" class="cqc-cart-btn" aria-label="Ver carrito" style="display:none;">
+                <i class="fas fa-shopping-bag"></i>
+                <span id="cqc-cart-badge">0</span>
+            </button>
+        </div>
+
+        <!-- Scrollable messages -->
+        <div id="cqc-messages" class="cqc-messages" role="log" aria-live="polite" aria-label="Conversación"></div>
+
+        <!-- Input bar -->
+        <div class="cqc-input-bar" id="cqc-input-bar">
+            <div class="cqc-input-wrap">
+                <input type="text" id="cqc-input" class="cqc-input-field"
+                       placeholder="Ej: iPhone 16, tenis Nike Air Force…"
+                       autocomplete="off" maxlength="200" inputmode="search"
+                       aria-label="¿Qué querés traer?">
+                <button type="button" id="cqc-send" class="cqc-send-btn" aria-label="Enviar">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+            </div>
+        </div>
+    </div><!-- /#cq-chat -->
 
     <!-- ══ FLOW ══ -->
     <div id="cq-flow" aria-live="polite">
@@ -3534,6 +3895,486 @@
     })();
     </script>
 
+    <!-- ══ MOBILE CHAT MODULE — CQChat ══ -->
+    <script>
+    (function() {
+        'use strict';
+        if (window.innerWidth > 640) return;
+
+        /* ── State ── */
+        var S = {
+            phase: 'intro',
+            products: [],
+            current: null,
+            serviceType: 'aereo',
+            destination: '',
+            customerName: '', email: '', notes: '',
+        };
+
+        /* ── DOM ── */
+        var chatEl    = document.getElementById('cq-chat');
+        var msgsEl    = document.getElementById('cqc-messages');
+        var inputEl   = document.getElementById('cqc-input');
+        var sendBtn   = document.getElementById('cqc-send');
+        var inputBar  = document.getElementById('cqc-input-bar');
+        var cartBtn   = document.getElementById('cqc-cart-btn');
+        var cartBadge = document.getElementById('cqc-cart-badge');
+        var overlay   = document.getElementById('cqc-sheet-overlay');
+        var sheet     = document.getElementById('cqc-cart-sheet');
+        var sheetWrap = document.getElementById('cqc-sheet-items-wrap');
+        var footerTot = document.getElementById('cqc-footer-total');
+        if (!chatEl || !msgsEl) return;
+
+        /* ── Helpers ── */
+        function esc(s) {
+            return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+        function isEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+        function scrollBot() { setTimeout(function(){ msgsEl.scrollTop = msgsEl.scrollHeight; }, 60); }
+        function ucFirst(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+        function catEmoji(c) {
+            return { celulares:'📱', computadora:'💻', tableta_electronica:'📟',
+                consola_videojuegos:'🎮', camara:'📷', auricular_telefono:'🎧',
+                bocina:'🔊', televisor:'📺', ropa:'👗', calzado:'👟',
+                anteojos:'🕶️', electrodomesticos:'🏠', herramientas:'🔧',
+                bicicleta_economica:'🚲', bicicleta_cara:'🚲', bola:'⚽',
+                juguetes:'🧸', salud_belleza:'💊', suplementos:'💪',
+                colchon:'🛏️', vehiculos:'🚗' }[c] || '📦';
+        }
+        function catLabel(c) {
+            return { celulares:'Celulares',computadora:'Laptops & PCs',
+                tableta_electronica:'Tabletas',consola_videojuegos:'Consolas',
+                camara:'Cámaras',auricular_telefono:'Audífonos',bocina:'Bocinas',
+                televisor:'Televisores',ropa:'Ropa & Moda',calzado:'Calzado',
+                anteojos:'Óptica',electrodomesticos:'Electrodomésticos',
+                herramientas:'Herramientas',bola:'Deportes',juguetes:'Juguetes',
+                salud_belleza:'Salud & Belleza',suplementos:'Suplementos',
+                colchon:'Muebles',vehiculos:'Vehículos' }[c] || 'Producto general';
+        }
+
+        function normalizeQ(q) {
+            q = q.trim();
+            if (!/^(quiero|deseo|necesito|busco|quisiera|traer|comprar)/i.test(q) && q.length < 60)
+                q = 'quiero traer ' + q;
+            return q;
+        }
+
+        /* ── Render helpers ── */
+        var _typingRow = null;
+
+        function addRow(html, type, noAnim) {
+            var row = document.createElement('div');
+            row.className = 'cqc-row ' + type + (noAnim ? '' : ' cqc-in');
+            if (type === 'bot') {
+                row.innerHTML = '<div class="cqc-mini-av">CR</div>'
+                    + '<div class="cqc-bubble">' + html + '</div>';
+            } else if (type === 'user') {
+                row.innerHTML = '<div class="cqc-bubble">' + esc(html) + '</div>';
+            } else {
+                row.innerHTML = '<div class="cqc-widget">' + html + '</div>';
+            }
+            msgsEl.appendChild(row);
+            scrollBot();
+            return row;
+        }
+
+        function addActions(btns) {
+            var row = document.createElement('div');
+            row.className = 'cqc-actions cqc-in';
+            btns.forEach(function(b) {
+                var el = document.createElement('button');
+                el.type = 'button';
+                el.className = 'cqc-btn ' + (b.cls || '');
+                el.textContent = b.label;
+                el.addEventListener('click', function() {
+                    row.querySelectorAll('.cqc-btn').forEach(function(x){ x.disabled=true; x.style.opacity='.45'; });
+                    b.fn();
+                });
+                row.appendChild(el);
+            });
+            msgsEl.appendChild(row);
+            scrollBot();
+            return row;
+        }
+
+        function showTyping() {
+            var row = document.createElement('div');
+            row.className = 'cqc-row bot cqc-in';
+            row.innerHTML = '<div class="cqc-mini-av">CR</div>'
+                + '<div class="cqc-typing"><span></span><span></span><span></span></div>';
+            msgsEl.appendChild(row);
+            _typingRow = row;
+            scrollBot();
+        }
+
+        function hideTyping() { if (_typingRow) { _typingRow.remove(); _typingRow = null; } }
+        function say(html)    { return addRow(html, 'bot'); }
+        function inputVisible(v) { if (inputBar) inputBar.classList.toggle('cqc-hidden', !v); }
+
+        /* ── Cart sheet ── */
+        function updateCart() {
+            var n = S.products.length;
+            if (cartBtn)   cartBtn.style.display = n ? 'flex' : 'none';
+            if (cartBadge) cartBadge.textContent = n;
+        }
+
+        function renderSheet() {
+            if (!sheetWrap) return;
+            sheetWrap.innerHTML = '';
+            S.products.forEach(function(p) {
+                var d = document.createElement('div');
+                d.className = 'cqc-sheet-item';
+                d.innerHTML = '<div class="cqc-si-icon">'+catEmoji(p.category)+'</div>'
+                    + '<div class="cqc-si-body">'
+                    + '<div class="cqc-si-name">'+esc(p.name)+'</div>'
+                    + '<div class="cqc-si-price">$'+p.declared_value_usd.toFixed(2)+' USD</div>'
+                    + '</div>';
+                sheetWrap.appendChild(d);
+            });
+            var total = S.products.reduce(function(s,p){ return s+(p.declared_value_usd||0); }, 0);
+            if (footerTot) footerTot.textContent = '~$'+total.toFixed(2)+' USD';
+        }
+
+        function openSheet()  { renderSheet(); if(overlay) overlay.style.display=''; if(sheet) sheet.classList.add('cqc-open'); }
+        function closeSheet() { if(overlay) overlay.style.display='none'; if(sheet) sheet.classList.remove('cqc-open'); }
+
+        if (cartBtn) cartBtn.addEventListener('click', openSheet);
+        var sheetClose = document.getElementById('cqc-sheet-close');
+        var dragRow    = document.getElementById('cqc-drag-row');
+        if (sheetClose) sheetClose.addEventListener('click', closeSheet);
+        if (dragRow)    dragRow.addEventListener('click', closeSheet);
+        if (overlay)    overlay.addEventListener('click', closeSheet);
+
+        /* ── Phase: greeting ── */
+        function phaseGreeting() {
+            var h = new Date().getHours();
+            var g = h<12 ? '¡Buenos días!' : h<18 ? '¡Buenas tardes!' : '¡Buenas noches!';
+            say(g+' 👋 Soy el asistente de <strong>CRBOX</strong>. Cuéntame, ¿qué te gustaría traer a Costa Rica?');
+            setTimeout(function() {
+                var chips = [
+                    {l:'💻 Laptop',q:'laptop'},{l:'📱 Celular',q:'celular'},
+                    {l:'👟 Calzado',q:'zapatos'},{l:'🎮 Consola',q:'consola videojuegos'},
+                    {l:'💪 Suplementos',q:'suplementos'},{l:'⌚ Reloj',q:'reloj smartwatch'},
+                ];
+                var r = addRow(
+                    '<div style="font-size:.76rem;color:#9ca3af;margin-bottom:.35rem;">Populares hoy:</div>'
+                    + '<div class="cqc-chip-row">'
+                    + chips.map(function(c){ return '<button type="button" class="cqc-chip-pill" data-q="'+esc(c.q)+'">'+c.l+'</button>'; }).join('')
+                    + '</div>',
+                    'bot'
+                );
+                r.querySelectorAll('.cqc-chip-pill').forEach(function(b){
+                    b.addEventListener('click', function(){ startClassify(this.getAttribute('data-q')); });
+                });
+                S.phase = 'intro';
+                inputVisible(true);
+                if (inputEl) setTimeout(function(){ inputEl.focus(); }, 300);
+            }, 520);
+        }
+
+        /* ── Phase: classify ── */
+        function startClassify(query) {
+            if (S.phase === 'classifying') return;
+            S.phase = 'classifying';
+            inputVisible(false);
+            addRow(query, 'user');
+            setTimeout(function() {
+                showTyping();
+                var doRender = function(result) {
+                    hideTyping();
+                    S.current = { name: query, category: (result&&result.category)||'otros', brainResult: result||null };
+                    showProductCard(S.current, result);
+                };
+                if (typeof CRBOXProductClassifier !== 'undefined') {
+                    CRBOXProductClassifier.classify(normalizeQ(query)).then(doRender).catch(function(){ doRender(null); });
+                } else {
+                    setTimeout(function(){ doRender(null); }, 700);
+                }
+            }, 360);
+        }
+
+        /* ── Product card widget ── */
+        function showProductCard(prod, result) {
+            S.phase = 'awaiting-price';
+            var cat      = (result&&result.category)||prod.category||'otros';
+            var label    = (result&&result.label) ? result.label : ucFirst(prod.name);
+            var taxRange = result&&result.estimatedRange ? result.estimatedRange : null;
+            var docsReq  = result&&result.documentsRequired&&result.documentsRequired.length;
+            var unknown  = !result||result.status==='unknown';
+
+            var tags = '';
+            if (taxRange) tags += '<span class="cqc-tag tax"><i class="fas fa-percentage" style="font-size:.57rem"></i> ~'+esc(taxRange)+'</span>';
+            if (docsReq)  tags += '<span class="cqc-tag docs"><i class="fas fa-file-alt" style="font-size:.57rem"></i> Requiere docs</span>';
+            if (!taxRange&&!docsReq&&!unknown) tags += '<span class="cqc-tag ok"><i class="fas fa-check" style="font-size:.57rem"></i> Sin restricciones</span>';
+            if (unknown)  tags += '<span class="cqc-tag warn"><i class="fas fa-search" style="font-size:.57rem"></i> Revisión manual</span>';
+
+            say(result
+                ? 'Encontré información sobre <strong>'+esc(label)+'</strong>. ¿Cuánto cuesta en USD?'
+                : '¿Cuánto cuesta aproximadamente <strong>'+esc(prod.name)+'</strong> (precio en USD)?');
+
+            var cid = 'cqpi' + Date.now();
+            var eid = 'cqpe' + Date.now();
+            addRow(
+                '<div class="cqc-prod-head">'
+                + '<div class="cqc-prod-icon">'+catEmoji(cat)+'</div>'
+                + '<div><div class="cqc-prod-name">'+esc(label)+'</div>'
+                + '<div class="cqc-prod-cat">'+esc(catLabel(cat))+'</div></div></div>'
+                + (tags ? '<div class="cqc-tags">'+tags+'</div>' : '')
+                + '<div class="cqc-price-row">'
+                + '<span class="cqc-price-cur">USD $</span>'
+                + '<input type="number" id="'+cid+'" class="cqc-price-inp" placeholder="0.00" min="0" step="0.01" inputmode="decimal">'
+                + '</div>'
+                + '<div id="'+eid+'" class="cqc-inp-err"><i class="fas fa-exclamation-circle"></i> Ingresá un precio mayor a 0.</div>',
+                'wide'
+            );
+
+            var priceInp = document.getElementById(cid);
+            if (priceInp) {
+                setTimeout(function(){ priceInp.focus(); }, 200);
+                priceInp.addEventListener('keydown', function(e){
+                    if (e.key==='Enter') { e.preventDefault(); confirmPrice(prod,result,label,cat,cid,eid); }
+                });
+            }
+            addActions([
+                { label:'✓ Agregar a solicitud', cls:'primary',
+                  fn: function(){ confirmPrice(prod,result,label,cat,cid,eid); } },
+                { label:'✕ Buscar otra cosa', cls:'secondary',
+                  fn: function(){ say('Claro, ¿qué otro producto querés cotizar?'); phaseIntro(); } },
+            ]);
+        }
+
+        function confirmPrice(prod, result, label, cat, cid, eid) {
+            var inp   = document.getElementById(cid);
+            var err   = document.getElementById(eid);
+            var price = inp ? parseFloat(inp.value) : 0;
+            if (!price||price<=0) { if(err) err.style.display=''; if(inp) inp.focus(); return; }
+            if (err) err.style.display = 'none';
+
+            S.products.push({
+                id: Date.now(), name: label||prod.name, category: cat||'otros',
+                declared_value_usd: price, url: '',
+                aiDataSource: result?'ai':'manual',
+                brainClassification: result||null, clarification: '',
+            });
+            updateCart();
+            addRow(prod.name+' — $'+price.toFixed(2)+' USD', 'user');
+
+            setTimeout(function() {
+                var n = S.products.length;
+                say('¡Perfecto! <strong>'+esc(label||prod.name)+'</strong> agregado'
+                    +(n>1 ? ' (ya tenés <strong>'+n+' productos</strong>)' : '')+'. ¿Querés agregar otro?');
+                addActions([
+                    { label:'➕ Agregar otro', cls:'', fn: function(){ say('Dale, ¿qué más querés traer?'); phaseIntro(); } },
+                    { label:'✓ Ya terminé',   cls:'primary', fn: function(){ phaseShipping(); } },
+                ]);
+                S.phase = 'more';
+            }, 300);
+        }
+
+        function phaseIntro() {
+            S.phase = 'intro';
+            inputVisible(true);
+            if (inputEl) { inputEl.value=''; setTimeout(function(){ inputEl.focus(); },150); }
+        }
+
+        /* ── Phase: shipping ── */
+        function phaseShipping() {
+            S.phase = 'shipping';
+            inputVisible(false);
+            showTyping();
+            setTimeout(function() {
+                hideTyping();
+                say('Genial 🎉 Tenés <strong>'+S.products.length
+                    +(S.products.length===1?' producto':' productos')+'</strong>. ¿A qué provincia de Costa Rica enviamos?');
+
+                var provs = [
+                    {v:'sanjose',l:'San José'},{v:'heredia',l:'Heredia'},
+                    {v:'alajuela',l:'Alajuela'},{v:'cartago',l:'Cartago'},
+                    {v:'guanacaste',l:'Guanacaste'},{v:'puntarenas',l:'Puntarenas'},
+                    {v:'limon',l:'Limón'},
+                ];
+                var gid = 'cqpg'+Date.now(), eid='cqpe2'+Date.now();
+
+                var wRow = addRow(
+                    '<div style="font-size:.79rem;font-weight:700;color:#374151;margin-bottom:.45rem;">Provincia de entrega</div>'
+                    + '<div class="cqc-prov-grid" id="'+gid+'">'
+                    + provs.map(function(p){ return '<button type="button" class="cqc-prov-btn" data-val="'+p.v+'">'+p.l+'</button>'; }).join('')
+                    + '</div>'
+                    + '<div style="font-size:.79rem;font-weight:700;color:#374151;margin:.75rem 0 .4rem;">Tipo de envío</div>'
+                    + '<div class="cqc-svc-row">'
+                    + '<button type="button" class="cqc-svc-opt sel" data-svc="aereo">✈️ Aéreo<span style="font-size:.65rem;font-weight:400;display:block;opacity:.72;">~7–14 días</span></button>'
+                    + '<button type="button" class="cqc-svc-opt" data-svc="maritimo">🚢 Marítimo<span style="font-size:.65rem;font-weight:400;display:block;opacity:.72;">~4–8 sem.</span></button>'
+                    + '</div>'
+                    + '<div id="'+eid+'" class="cqc-inp-err" style="margin-top:.28rem;"><i class="fas fa-exclamation-circle"></i> Seleccioná una provincia.</div>',
+                    'wide'
+                );
+
+                var grid = document.getElementById(gid);
+                if (grid) grid.querySelectorAll('.cqc-prov-btn').forEach(function(b){
+                    b.addEventListener('click', function(){
+                        grid.querySelectorAll('.cqc-prov-btn').forEach(function(x){ x.classList.remove('sel'); });
+                        this.classList.add('sel');
+                        S.destination = this.getAttribute('data-val');
+                    });
+                });
+                wRow.querySelectorAll('.cqc-svc-opt').forEach(function(b){
+                    b.addEventListener('click', function(){
+                        wRow.querySelectorAll('.cqc-svc-opt').forEach(function(x){ x.classList.remove('sel'); });
+                        this.classList.add('sel');
+                        S.serviceType = this.getAttribute('data-svc');
+                    });
+                });
+
+                addActions([{ label:'Continuar →', cls:'primary', fn: function(){
+                    var errEl = document.getElementById(eid);
+                    if (!S.destination) { if(errEl) errEl.style.display=''; return; }
+                    if (errEl) errEl.style.display='none';
+                    var pl = provs.find(function(p){ return p.v===S.destination; });
+                    addRow((pl?pl.l:S.destination)+' · '+(S.serviceType==='aereo'?'Aéreo':'Marítimo'), 'user');
+                    phaseContact();
+                }}]);
+            }, 560);
+        }
+
+        /* ── Phase: contact ── */
+        function phaseContact() {
+            S.phase = 'contact';
+            showTyping();
+            setTimeout(function() {
+                hideTyping();
+                say('Casi listos 📦 Solo necesito tus datos para enviarte la cotización.');
+
+                var nid='cqfn'+Date.now(), mid='cqfm'+Date.now(),
+                    oid='cqfo'+Date.now(), eid='cqfe'+Date.now(), sid='cqfs'+Date.now();
+
+                addRow(
+                    '<div class="cqc-form-field">'
+                    + '<label class="cqc-lbl" for="'+nid+'">Nombre <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>'
+                    + '<input type="text" id="'+nid+'" class="cqc-finp" placeholder="¿Cómo te llamamos?" autocomplete="name" maxlength="120">'
+                    + '</div>'
+                    + '<div class="cqc-form-field">'
+                    + '<label class="cqc-lbl" for="'+mid+'">Correo electrónico <span style="color:#ef4444;">*</span></label>'
+                    + '<input type="email" id="'+mid+'" class="cqc-finp" placeholder="tucorreo@ejemplo.com" autocomplete="email" inputmode="email">'
+                    + '<div id="'+eid+'" class="cqc-finp-err"><i class="fas fa-exclamation-circle"></i> Ingresá un correo válido.</div>'
+                    + '</div>'
+                    + '<div class="cqc-form-field">'
+                    + '<label class="cqc-lbl" for="'+oid+'">Notas <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>'
+                    + '<input type="text" id="'+oid+'" class="cqc-finp" placeholder="Color, talla, modelo…" maxlength="300">'
+                    + '</div>'
+                    + '<button type="button" id="'+sid+'" class="cqc-submit-cta">'
+                    + '<i class="fas fa-paper-plane"></i> Enviar solicitud</button>'
+                    + '<p style="font-size:.7rem;color:#9ca3af;text-align:center;margin-top:.42rem;">'
+                    + '<i class="fas fa-lock" style="margin-right:.18rem;"></i>Tus datos están protegidos.</p>',
+                    'wide'
+                );
+
+                var submitBtn = document.getElementById(sid);
+                var emailInp  = document.getElementById(mid);
+                if (submitBtn) submitBtn.addEventListener('click', function(){ submitQuote(nid,mid,oid,eid,sid); });
+                if (emailInp) {
+                    setTimeout(function(){ emailInp.focus(); }, 200);
+                    emailInp.addEventListener('keydown', function(e){
+                        if (e.key==='Enter') { e.preventDefault(); submitQuote(nid,mid,oid,eid,sid); }
+                    });
+                }
+            }, 540);
+        }
+
+        /* ── Submit ── */
+        async function submitQuote(nid, mid, oid, eid, sid) {
+            var emailInp  = document.getElementById(mid);
+            var nameInp   = document.getElementById(nid);
+            var notesInp  = document.getElementById(oid);
+            var emailErr  = document.getElementById(eid);
+            var submitBtn = document.getElementById(sid);
+
+            var email = (emailInp ? emailInp.value : '').trim();
+            if (!email||!isEmail(email)) {
+                if (emailInp) { emailInp.classList.add('err'); emailInp.focus(); }
+                if (emailErr) emailErr.style.display = '';
+                return;
+            }
+            if (emailInp) emailInp.classList.remove('err');
+            if (emailErr) emailErr.style.display = 'none';
+
+            S.customerName = nameInp  ? nameInp.value.trim()  : '';
+            S.email        = email;
+            S.notes        = notesInp ? notesInp.value.trim() : '';
+
+            if (submitBtn) { submitBtn.disabled=true; submitBtn.innerHTML='<i class="fas fa-circle-notch fa-spin"></i> Enviando…'; }
+            S.phase = 'submitting';
+
+            var products = S.products.map(function(p) {
+                return { name:p.name, category:p.category||'otros',
+                    declared_value_usd:p.declared_value_usd||0,
+                    url:p.url||'', data_source:p.aiDataSource||'manual',
+                    brain_classification:p.brainClassification||null,
+                    customer_clarification:p.clarification||'' };
+            });
+            var p0 = products[0]||{};
+            var payload = {
+                products:products, product_name:p0.name||'',
+                declared_value_usd:p0.declared_value_usd||0,
+                category:p0.category||'otros', product_url:p0.url||'',
+                service_type:S.serviceType, destination_zone:S.destination,
+                customer_email:S.email, account_type:'anonymous',
+                data_source:(S.products[0]&&S.products[0].aiDataSource)||'manual',
+            };
+            if (S.customerName) payload.customer_name = S.customerName;
+            if (S.notes)        payload.customer_notes = S.notes;
+
+            try {
+                var res  = await fetch('/api/solicitudes', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify(payload),
+                });
+                var data = await res.json();
+                if (res.ok&&data.ok&&data.id) {
+                    S.phase = 'done';
+                    var cs   = document.getElementById('confirm-screen');
+                    var csId = document.getElementById('sc-scb-id');
+                    if (cs) {
+                        if (csId) csId.textContent = data.id;
+                        chatEl.style.display = 'none';
+                        cs.classList.add('visible');
+                        window.scrollTo(0,0);
+                    } else {
+                        say('¡Solicitud enviada! 🎉 Tu ID es <strong>'+esc(data.id)+'</strong>. El equipo CRBOX te contactará en menos de 24 horas.');
+                        if (submitBtn) { submitBtn.style.background='#22c55e'; submitBtn.innerHTML='<i class="fas fa-check"></i> ¡Enviado!'; }
+                    }
+                } else {
+                    if (submitBtn) { submitBtn.disabled=false; submitBtn.innerHTML='<i class="fas fa-paper-plane"></i> Enviar solicitud'; }
+                    say('Hubo un problema al enviar. Por favor intentá de nuevo.');
+                    S.phase = 'contact';
+                }
+            } catch(e) {
+                if (submitBtn) { submitBtn.disabled=false; submitBtn.innerHTML='<i class="fas fa-paper-plane"></i> Enviar solicitud'; }
+                say('Error de conexión. Revisá tu internet e intentá de nuevo.');
+                S.phase = 'contact';
+            }
+        }
+
+        /* ── Input handling ── */
+        function handleSend() {
+            var val = (inputEl?inputEl.value:'').trim();
+            if (!val||S.phase!=='intro') return;
+            if (inputEl) inputEl.value = '';
+            startClassify(val);
+        }
+
+        if (sendBtn) sendBtn.addEventListener('click', handleSend);
+        if (inputEl) inputEl.addEventListener('keydown', function(e){
+            if (e.key==='Enter') { e.preventDefault(); handleSend(); }
+        });
+
+        /* ── Boot ── */
+        window.scrollTo(0,0);
+        setTimeout(function(){ phaseGreeting(); }, 80);
+
+    })();
+    </script>
+
     <script src="js/product-categories.js?v=1"></script>
     <script src="js/tariff-adapter.js?v=3"></script>
     <script src="js/calculator-engine.js"></script>
@@ -3541,6 +4382,23 @@
     <script src="js/chat-calculator.js"></script>
     <script src="js/chat-quote.js"></script>
     <script src="js/chat-panel.js"></script>
+    <!-- ══ CART BOTTOM SHEET ══ -->
+    <div id="cqc-sheet-overlay" class="cqc-sheet-overlay" style="display:none;" aria-hidden="true"></div>
+    <div id="cqc-cart-sheet" class="cqc-cart-sheet" role="dialog" aria-modal="true" aria-label="Resumen de tu solicitud">
+        <div class="cqc-drag-row" id="cqc-drag-row"><div class="cqc-sheet-handle"></div></div>
+        <div class="cqc-sheet-hdr">
+            <span class="cqc-sheet-title">Tu solicitud</span>
+            <button type="button" id="cqc-sheet-close" class="cqc-sheet-close-btn" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="cqc-sheet-items-wrap" class="cqc-sheet-items-wrap"></div>
+        <div class="cqc-sheet-footer" id="cqc-sheet-footer">
+            <span class="cqc-footer-lbl">Total declarado</span>
+            <span class="cqc-footer-total" id="cqc-footer-total">$0.00 USD</span>
+        </div>
+    </div>
+
     <div id="toast-container" class="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 items-end pointer-events-none" aria-live="polite"></div>
 </body>
 </html>
