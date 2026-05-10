@@ -1617,6 +1617,118 @@
                 from { opacity: 0; transform: translateY(8px); }
                 to   { opacity: 1; transform: translateY(0); }
             }
+
+            /* ── Hide page footer on mobile ── */
+            #site-footer { display: none !important; }
+
+            /* ── Wide widgets: edge-to-edge (coast to coast) ── */
+            .cqc-row.wide .cqc-widget {
+                margin: 0 -.875rem;
+                border-radius: 0;
+                padding: .9rem .875rem 1rem;
+            }
+
+            /* ── Province: Limón spans both columns ── */
+            .cqc-prov-btn.prov-wide { grid-column: 1 / -1; }
+
+            /* ── Consolidation tip bubble ── */
+            .cqc-tip {
+                background: #fffbeb;
+                border: 1px solid #fde68a;
+                border-left: 3px solid #f59e0b;
+                border-radius: .7rem;
+                padding: .64rem .88rem;
+                font-size: .82rem;
+                color: #78350f;
+                line-height: 1.5;
+                margin-top: .35rem;
+            }
+
+            /* ── Quote summary card ── */
+            .cqc-summary-item {
+                display: flex;
+                align-items: center;
+                gap: .65rem;
+                padding: .58rem 0;
+                border-bottom: 1px solid #f3f4f6;
+            }
+            .cqc-summary-item:last-child { border-bottom: none; }
+            .cqc-summary-icon {
+                width: 34px; height: 34px;
+                border-radius: .55rem;
+                flex-shrink: 0;
+                background: #fff7ed;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: .88rem;
+            }
+            .cqc-summary-body { flex: 1; min-width: 0; }
+            .cqc-summary-name {
+                font-size: .87rem;
+                font-weight: 600;
+                color: #1a1a2e;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .cqc-summary-price { font-size: .76rem; color: #9ca3af; margin-top: .06rem; }
+            .cqc-summary-total {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: .68rem 0 0;
+                margin-top: .45rem;
+                border-top: 2px solid #f3f4f6;
+            }
+            .cqc-summary-total-lbl { font-size: .78rem; color: #6b7280; }
+            .cqc-summary-total-val { font-size: .97rem; font-weight: 800; color: #1a1a2e; }
+
+            /* ── Post-submit casillero CTA card ── */
+            .cqc-casillero-card {
+                background: linear-gradient(140deg, #1a1a2e 0%, #1e2a4a 100%);
+                border-radius: 1rem;
+                padding: 1.05rem 1rem 1.15rem;
+            }
+            .cqc-cas-label {
+                font-size: .66rem;
+                font-weight: 700;
+                letter-spacing: .08em;
+                color: #f59e0b;
+                text-transform: uppercase;
+                margin-bottom: .3rem;
+            }
+            .cqc-cas-title {
+                font-size: .95rem;
+                font-weight: 800;
+                color: #f1f5f9;
+                margin-bottom: .3rem;
+            }
+            .cqc-cas-desc {
+                font-size: .8rem;
+                color: #94a3b8;
+                line-height: 1.48;
+                margin-bottom: .8rem;
+            }
+            .cqc-cas-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: .42rem;
+                padding: .8rem;
+                background: #FF6B00;
+                color: #fff;
+                border-radius: .75rem;
+                border: none;
+                cursor: pointer;
+                font-size: .9rem;
+                font-weight: 700;
+                font-family: inherit;
+                width: 100%;
+                text-decoration: none;
+                box-sizing: border-box;
+            }
+            .cqc-cas-btn:active { background: #e55f00; }
         }
 
         /* ── Cart bottom sheet — global (position:fixed, outside media query) ── */
@@ -3895,485 +4007,6 @@
     })();
     </script>
 
-    <!-- ══ MOBILE CHAT MODULE — CQChat ══ -->
-    <script>
-    (function() {
-        'use strict';
-        if (window.innerWidth > 640) return;
-
-        /* ── State ── */
-        var S = {
-            phase: 'intro',
-            products: [],
-            current: null,
-            serviceType: 'aereo',
-            destination: '',
-            customerName: '', email: '', notes: '',
-        };
-
-        /* ── DOM ── */
-        var chatEl    = document.getElementById('cq-chat');
-        var msgsEl    = document.getElementById('cqc-messages');
-        var inputEl   = document.getElementById('cqc-input');
-        var sendBtn   = document.getElementById('cqc-send');
-        var inputBar  = document.getElementById('cqc-input-bar');
-        var cartBtn   = document.getElementById('cqc-cart-btn');
-        var cartBadge = document.getElementById('cqc-cart-badge');
-        var overlay   = document.getElementById('cqc-sheet-overlay');
-        var sheet     = document.getElementById('cqc-cart-sheet');
-        var sheetWrap = document.getElementById('cqc-sheet-items-wrap');
-        var footerTot = document.getElementById('cqc-footer-total');
-        if (!chatEl || !msgsEl) return;
-
-        /* ── Helpers ── */
-        function esc(s) {
-            return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-        }
-        function isEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
-        function scrollBot() { setTimeout(function(){ msgsEl.scrollTop = msgsEl.scrollHeight; }, 60); }
-        function ucFirst(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
-
-        function catEmoji(c) {
-            return { celulares:'📱', computadora:'💻', tableta_electronica:'📟',
-                consola_videojuegos:'🎮', camara:'📷', auricular_telefono:'🎧',
-                bocina:'🔊', televisor:'📺', ropa:'👗', calzado:'👟',
-                anteojos:'🕶️', electrodomesticos:'🏠', herramientas:'🔧',
-                bicicleta_economica:'🚲', bicicleta_cara:'🚲', bola:'⚽',
-                juguetes:'🧸', salud_belleza:'💊', suplementos:'💪',
-                colchon:'🛏️', vehiculos:'🚗' }[c] || '📦';
-        }
-        function catLabel(c) {
-            return { celulares:'Celulares',computadora:'Laptops & PCs',
-                tableta_electronica:'Tabletas',consola_videojuegos:'Consolas',
-                camara:'Cámaras',auricular_telefono:'Audífonos',bocina:'Bocinas',
-                televisor:'Televisores',ropa:'Ropa & Moda',calzado:'Calzado',
-                anteojos:'Óptica',electrodomesticos:'Electrodomésticos',
-                herramientas:'Herramientas',bola:'Deportes',juguetes:'Juguetes',
-                salud_belleza:'Salud & Belleza',suplementos:'Suplementos',
-                colchon:'Muebles',vehiculos:'Vehículos' }[c] || 'Producto general';
-        }
-
-        function normalizeQ(q) {
-            q = q.trim();
-            if (!/^(quiero|deseo|necesito|busco|quisiera|traer|comprar)/i.test(q) && q.length < 60)
-                q = 'quiero traer ' + q;
-            return q;
-        }
-
-        /* ── Render helpers ── */
-        var _typingRow = null;
-
-        function addRow(html, type, noAnim) {
-            var row = document.createElement('div');
-            row.className = 'cqc-row ' + type + (noAnim ? '' : ' cqc-in');
-            if (type === 'bot') {
-                row.innerHTML = '<div class="cqc-mini-av">CR</div>'
-                    + '<div class="cqc-bubble">' + html + '</div>';
-            } else if (type === 'user') {
-                row.innerHTML = '<div class="cqc-bubble">' + esc(html) + '</div>';
-            } else {
-                row.innerHTML = '<div class="cqc-widget">' + html + '</div>';
-            }
-            msgsEl.appendChild(row);
-            scrollBot();
-            return row;
-        }
-
-        function addActions(btns) {
-            var row = document.createElement('div');
-            row.className = 'cqc-actions cqc-in';
-            btns.forEach(function(b) {
-                var el = document.createElement('button');
-                el.type = 'button';
-                el.className = 'cqc-btn ' + (b.cls || '');
-                el.textContent = b.label;
-                el.addEventListener('click', function() {
-                    row.querySelectorAll('.cqc-btn').forEach(function(x){ x.disabled=true; x.style.opacity='.45'; });
-                    b.fn();
-                });
-                row.appendChild(el);
-            });
-            msgsEl.appendChild(row);
-            scrollBot();
-            return row;
-        }
-
-        function showTyping() {
-            var row = document.createElement('div');
-            row.className = 'cqc-row bot cqc-in';
-            row.innerHTML = '<div class="cqc-mini-av">CR</div>'
-                + '<div class="cqc-typing"><span></span><span></span><span></span></div>';
-            msgsEl.appendChild(row);
-            _typingRow = row;
-            scrollBot();
-        }
-
-        function hideTyping() { if (_typingRow) { _typingRow.remove(); _typingRow = null; } }
-        function say(html)    { return addRow(html, 'bot'); }
-        function inputVisible(v) { if (inputBar) inputBar.classList.toggle('cqc-hidden', !v); }
-
-        /* ── Cart sheet ── */
-        function updateCart() {
-            var n = S.products.length;
-            if (cartBtn)   cartBtn.style.display = n ? 'flex' : 'none';
-            if (cartBadge) cartBadge.textContent = n;
-        }
-
-        function renderSheet() {
-            if (!sheetWrap) return;
-            sheetWrap.innerHTML = '';
-            S.products.forEach(function(p) {
-                var d = document.createElement('div');
-                d.className = 'cqc-sheet-item';
-                d.innerHTML = '<div class="cqc-si-icon">'+catEmoji(p.category)+'</div>'
-                    + '<div class="cqc-si-body">'
-                    + '<div class="cqc-si-name">'+esc(p.name)+'</div>'
-                    + '<div class="cqc-si-price">$'+p.declared_value_usd.toFixed(2)+' USD</div>'
-                    + '</div>';
-                sheetWrap.appendChild(d);
-            });
-            var total = S.products.reduce(function(s,p){ return s+(p.declared_value_usd||0); }, 0);
-            if (footerTot) footerTot.textContent = '~$'+total.toFixed(2)+' USD';
-        }
-
-        function openSheet()  { renderSheet(); if(overlay) overlay.style.display=''; if(sheet) sheet.classList.add('cqc-open'); }
-        function closeSheet() { if(overlay) overlay.style.display='none'; if(sheet) sheet.classList.remove('cqc-open'); }
-
-        if (cartBtn) cartBtn.addEventListener('click', openSheet);
-        var sheetClose = document.getElementById('cqc-sheet-close');
-        var dragRow    = document.getElementById('cqc-drag-row');
-        if (sheetClose) sheetClose.addEventListener('click', closeSheet);
-        if (dragRow)    dragRow.addEventListener('click', closeSheet);
-        if (overlay)    overlay.addEventListener('click', closeSheet);
-
-        /* ── Phase: greeting ── */
-        function phaseGreeting() {
-            var h = new Date().getHours();
-            var g = h<12 ? '¡Buenos días!' : h<18 ? '¡Buenas tardes!' : '¡Buenas noches!';
-            say(g+' 👋 Soy el asistente de <strong>CRBOX</strong>. Cuéntame, ¿qué te gustaría traer a Costa Rica?');
-            setTimeout(function() {
-                var chips = [
-                    {l:'💻 Laptop',q:'laptop'},{l:'📱 Celular',q:'celular'},
-                    {l:'👟 Calzado',q:'zapatos'},{l:'🎮 Consola',q:'consola videojuegos'},
-                    {l:'💪 Suplementos',q:'suplementos'},{l:'⌚ Reloj',q:'reloj smartwatch'},
-                ];
-                var r = addRow(
-                    '<div style="font-size:.76rem;color:#9ca3af;margin-bottom:.35rem;">Populares hoy:</div>'
-                    + '<div class="cqc-chip-row">'
-                    + chips.map(function(c){ return '<button type="button" class="cqc-chip-pill" data-q="'+esc(c.q)+'">'+c.l+'</button>'; }).join('')
-                    + '</div>',
-                    'bot'
-                );
-                r.querySelectorAll('.cqc-chip-pill').forEach(function(b){
-                    b.addEventListener('click', function(){ startClassify(this.getAttribute('data-q')); });
-                });
-                S.phase = 'intro';
-                inputVisible(true);
-                if (inputEl) setTimeout(function(){ inputEl.focus(); }, 300);
-            }, 520);
-        }
-
-        /* ── Phase: classify ── */
-        function startClassify(query) {
-            if (S.phase === 'classifying') return;
-            S.phase = 'classifying';
-            inputVisible(false);
-            addRow(query, 'user');
-            setTimeout(function() {
-                showTyping();
-                var doRender = function(result) {
-                    hideTyping();
-                    S.current = { name: query, category: (result&&result.category)||'otros', brainResult: result||null };
-                    showProductCard(S.current, result);
-                };
-                if (typeof CRBOXProductClassifier !== 'undefined') {
-                    CRBOXProductClassifier.classify(normalizeQ(query)).then(doRender).catch(function(){ doRender(null); });
-                } else {
-                    setTimeout(function(){ doRender(null); }, 700);
-                }
-            }, 360);
-        }
-
-        /* ── Product card widget ── */
-        function showProductCard(prod, result) {
-            S.phase = 'awaiting-price';
-            var cat      = (result&&result.category)||prod.category||'otros';
-            var label    = (result&&result.label) ? result.label : ucFirst(prod.name);
-            var taxRange = result&&result.estimatedRange ? result.estimatedRange : null;
-            var docsReq  = result&&result.documentsRequired&&result.documentsRequired.length;
-            var unknown  = !result||result.status==='unknown';
-
-            var tags = '';
-            if (taxRange) tags += '<span class="cqc-tag tax"><i class="fas fa-percentage" style="font-size:.57rem"></i> ~'+esc(taxRange)+'</span>';
-            if (docsReq)  tags += '<span class="cqc-tag docs"><i class="fas fa-file-alt" style="font-size:.57rem"></i> Requiere docs</span>';
-            if (!taxRange&&!docsReq&&!unknown) tags += '<span class="cqc-tag ok"><i class="fas fa-check" style="font-size:.57rem"></i> Sin restricciones</span>';
-            if (unknown)  tags += '<span class="cqc-tag warn"><i class="fas fa-search" style="font-size:.57rem"></i> Revisión manual</span>';
-
-            say(result
-                ? 'Encontré información sobre <strong>'+esc(label)+'</strong>. ¿Cuánto cuesta en USD?'
-                : '¿Cuánto cuesta aproximadamente <strong>'+esc(prod.name)+'</strong> (precio en USD)?');
-
-            var cid = 'cqpi' + Date.now();
-            var eid = 'cqpe' + Date.now();
-            addRow(
-                '<div class="cqc-prod-head">'
-                + '<div class="cqc-prod-icon">'+catEmoji(cat)+'</div>'
-                + '<div><div class="cqc-prod-name">'+esc(label)+'</div>'
-                + '<div class="cqc-prod-cat">'+esc(catLabel(cat))+'</div></div></div>'
-                + (tags ? '<div class="cqc-tags">'+tags+'</div>' : '')
-                + '<div class="cqc-price-row">'
-                + '<span class="cqc-price-cur">USD $</span>'
-                + '<input type="number" id="'+cid+'" class="cqc-price-inp" placeholder="0.00" min="0" step="0.01" inputmode="decimal">'
-                + '</div>'
-                + '<div id="'+eid+'" class="cqc-inp-err"><i class="fas fa-exclamation-circle"></i> Ingresá un precio mayor a 0.</div>',
-                'wide'
-            );
-
-            var priceInp = document.getElementById(cid);
-            if (priceInp) {
-                setTimeout(function(){ priceInp.focus(); }, 200);
-                priceInp.addEventListener('keydown', function(e){
-                    if (e.key==='Enter') { e.preventDefault(); confirmPrice(prod,result,label,cat,cid,eid); }
-                });
-            }
-            addActions([
-                { label:'✓ Agregar a solicitud', cls:'primary',
-                  fn: function(){ confirmPrice(prod,result,label,cat,cid,eid); } },
-                { label:'✕ Buscar otra cosa', cls:'secondary',
-                  fn: function(){ say('Claro, ¿qué otro producto querés cotizar?'); phaseIntro(); } },
-            ]);
-        }
-
-        function confirmPrice(prod, result, label, cat, cid, eid) {
-            var inp   = document.getElementById(cid);
-            var err   = document.getElementById(eid);
-            var price = inp ? parseFloat(inp.value) : 0;
-            if (!price||price<=0) { if(err) err.style.display=''; if(inp) inp.focus(); return; }
-            if (err) err.style.display = 'none';
-
-            S.products.push({
-                id: Date.now(), name: label||prod.name, category: cat||'otros',
-                declared_value_usd: price, url: '',
-                aiDataSource: result?'ai':'manual',
-                brainClassification: result||null, clarification: '',
-            });
-            updateCart();
-            addRow(prod.name+' — $'+price.toFixed(2)+' USD', 'user');
-
-            setTimeout(function() {
-                var n = S.products.length;
-                say('¡Perfecto! <strong>'+esc(label||prod.name)+'</strong> agregado'
-                    +(n>1 ? ' (ya tenés <strong>'+n+' productos</strong>)' : '')+'. ¿Querés agregar otro?');
-                addActions([
-                    { label:'➕ Agregar otro', cls:'', fn: function(){ say('Dale, ¿qué más querés traer?'); phaseIntro(); } },
-                    { label:'✓ Ya terminé',   cls:'primary', fn: function(){ phaseShipping(); } },
-                ]);
-                S.phase = 'more';
-            }, 300);
-        }
-
-        function phaseIntro() {
-            S.phase = 'intro';
-            inputVisible(true);
-            if (inputEl) { inputEl.value=''; setTimeout(function(){ inputEl.focus(); },150); }
-        }
-
-        /* ── Phase: shipping ── */
-        function phaseShipping() {
-            S.phase = 'shipping';
-            inputVisible(false);
-            showTyping();
-            setTimeout(function() {
-                hideTyping();
-                say('Genial 🎉 Tenés <strong>'+S.products.length
-                    +(S.products.length===1?' producto':' productos')+'</strong>. ¿A qué provincia de Costa Rica enviamos?');
-
-                var provs = [
-                    {v:'sanjose',l:'San José'},{v:'heredia',l:'Heredia'},
-                    {v:'alajuela',l:'Alajuela'},{v:'cartago',l:'Cartago'},
-                    {v:'guanacaste',l:'Guanacaste'},{v:'puntarenas',l:'Puntarenas'},
-                    {v:'limon',l:'Limón'},
-                ];
-                var gid = 'cqpg'+Date.now(), eid='cqpe2'+Date.now();
-
-                var wRow = addRow(
-                    '<div style="font-size:.79rem;font-weight:700;color:#374151;margin-bottom:.45rem;">Provincia de entrega</div>'
-                    + '<div class="cqc-prov-grid" id="'+gid+'">'
-                    + provs.map(function(p){ return '<button type="button" class="cqc-prov-btn" data-val="'+p.v+'">'+p.l+'</button>'; }).join('')
-                    + '</div>'
-                    + '<div style="font-size:.79rem;font-weight:700;color:#374151;margin:.75rem 0 .4rem;">Tipo de envío</div>'
-                    + '<div class="cqc-svc-row">'
-                    + '<button type="button" class="cqc-svc-opt sel" data-svc="aereo">✈️ Aéreo<span style="font-size:.65rem;font-weight:400;display:block;opacity:.72;">~7–14 días</span></button>'
-                    + '<button type="button" class="cqc-svc-opt" data-svc="maritimo">🚢 Marítimo<span style="font-size:.65rem;font-weight:400;display:block;opacity:.72;">~4–8 sem.</span></button>'
-                    + '</div>'
-                    + '<div id="'+eid+'" class="cqc-inp-err" style="margin-top:.28rem;"><i class="fas fa-exclamation-circle"></i> Seleccioná una provincia.</div>',
-                    'wide'
-                );
-
-                var grid = document.getElementById(gid);
-                if (grid) grid.querySelectorAll('.cqc-prov-btn').forEach(function(b){
-                    b.addEventListener('click', function(){
-                        grid.querySelectorAll('.cqc-prov-btn').forEach(function(x){ x.classList.remove('sel'); });
-                        this.classList.add('sel');
-                        S.destination = this.getAttribute('data-val');
-                    });
-                });
-                wRow.querySelectorAll('.cqc-svc-opt').forEach(function(b){
-                    b.addEventListener('click', function(){
-                        wRow.querySelectorAll('.cqc-svc-opt').forEach(function(x){ x.classList.remove('sel'); });
-                        this.classList.add('sel');
-                        S.serviceType = this.getAttribute('data-svc');
-                    });
-                });
-
-                addActions([{ label:'Continuar →', cls:'primary', fn: function(){
-                    var errEl = document.getElementById(eid);
-                    if (!S.destination) { if(errEl) errEl.style.display=''; return; }
-                    if (errEl) errEl.style.display='none';
-                    var pl = provs.find(function(p){ return p.v===S.destination; });
-                    addRow((pl?pl.l:S.destination)+' · '+(S.serviceType==='aereo'?'Aéreo':'Marítimo'), 'user');
-                    phaseContact();
-                }}]);
-            }, 560);
-        }
-
-        /* ── Phase: contact ── */
-        function phaseContact() {
-            S.phase = 'contact';
-            showTyping();
-            setTimeout(function() {
-                hideTyping();
-                say('Casi listos 📦 Solo necesito tus datos para enviarte la cotización.');
-
-                var nid='cqfn'+Date.now(), mid='cqfm'+Date.now(),
-                    oid='cqfo'+Date.now(), eid='cqfe'+Date.now(), sid='cqfs'+Date.now();
-
-                addRow(
-                    '<div class="cqc-form-field">'
-                    + '<label class="cqc-lbl" for="'+nid+'">Nombre <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>'
-                    + '<input type="text" id="'+nid+'" class="cqc-finp" placeholder="¿Cómo te llamamos?" autocomplete="name" maxlength="120">'
-                    + '</div>'
-                    + '<div class="cqc-form-field">'
-                    + '<label class="cqc-lbl" for="'+mid+'">Correo electrónico <span style="color:#ef4444;">*</span></label>'
-                    + '<input type="email" id="'+mid+'" class="cqc-finp" placeholder="tucorreo@ejemplo.com" autocomplete="email" inputmode="email">'
-                    + '<div id="'+eid+'" class="cqc-finp-err"><i class="fas fa-exclamation-circle"></i> Ingresá un correo válido.</div>'
-                    + '</div>'
-                    + '<div class="cqc-form-field">'
-                    + '<label class="cqc-lbl" for="'+oid+'">Notas <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>'
-                    + '<input type="text" id="'+oid+'" class="cqc-finp" placeholder="Color, talla, modelo…" maxlength="300">'
-                    + '</div>'
-                    + '<button type="button" id="'+sid+'" class="cqc-submit-cta">'
-                    + '<i class="fas fa-paper-plane"></i> Enviar solicitud</button>'
-                    + '<p style="font-size:.7rem;color:#9ca3af;text-align:center;margin-top:.42rem;">'
-                    + '<i class="fas fa-lock" style="margin-right:.18rem;"></i>Tus datos están protegidos.</p>',
-                    'wide'
-                );
-
-                var submitBtn = document.getElementById(sid);
-                var emailInp  = document.getElementById(mid);
-                if (submitBtn) submitBtn.addEventListener('click', function(){ submitQuote(nid,mid,oid,eid,sid); });
-                if (emailInp) {
-                    setTimeout(function(){ emailInp.focus(); }, 200);
-                    emailInp.addEventListener('keydown', function(e){
-                        if (e.key==='Enter') { e.preventDefault(); submitQuote(nid,mid,oid,eid,sid); }
-                    });
-                }
-            }, 540);
-        }
-
-        /* ── Submit ── */
-        async function submitQuote(nid, mid, oid, eid, sid) {
-            var emailInp  = document.getElementById(mid);
-            var nameInp   = document.getElementById(nid);
-            var notesInp  = document.getElementById(oid);
-            var emailErr  = document.getElementById(eid);
-            var submitBtn = document.getElementById(sid);
-
-            var email = (emailInp ? emailInp.value : '').trim();
-            if (!email||!isEmail(email)) {
-                if (emailInp) { emailInp.classList.add('err'); emailInp.focus(); }
-                if (emailErr) emailErr.style.display = '';
-                return;
-            }
-            if (emailInp) emailInp.classList.remove('err');
-            if (emailErr) emailErr.style.display = 'none';
-
-            S.customerName = nameInp  ? nameInp.value.trim()  : '';
-            S.email        = email;
-            S.notes        = notesInp ? notesInp.value.trim() : '';
-
-            if (submitBtn) { submitBtn.disabled=true; submitBtn.innerHTML='<i class="fas fa-circle-notch fa-spin"></i> Enviando…'; }
-            S.phase = 'submitting';
-
-            var products = S.products.map(function(p) {
-                return { name:p.name, category:p.category||'otros',
-                    declared_value_usd:p.declared_value_usd||0,
-                    url:p.url||'', data_source:p.aiDataSource||'manual',
-                    brain_classification:p.brainClassification||null,
-                    customer_clarification:p.clarification||'' };
-            });
-            var p0 = products[0]||{};
-            var payload = {
-                products:products, product_name:p0.name||'',
-                declared_value_usd:p0.declared_value_usd||0,
-                category:p0.category||'otros', product_url:p0.url||'',
-                service_type:S.serviceType, destination_zone:S.destination,
-                customer_email:S.email, account_type:'anonymous',
-                data_source:(S.products[0]&&S.products[0].aiDataSource)||'manual',
-            };
-            if (S.customerName) payload.customer_name = S.customerName;
-            if (S.notes)        payload.customer_notes = S.notes;
-
-            try {
-                var res  = await fetch('/api/solicitudes', {
-                    method:'POST', headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify(payload),
-                });
-                var data = await res.json();
-                if (res.ok&&data.ok&&data.id) {
-                    S.phase = 'done';
-                    var cs   = document.getElementById('confirm-screen');
-                    var csId = document.getElementById('sc-scb-id');
-                    if (cs) {
-                        if (csId) csId.textContent = data.id;
-                        chatEl.style.display = 'none';
-                        cs.classList.add('visible');
-                        window.scrollTo(0,0);
-                    } else {
-                        say('¡Solicitud enviada! 🎉 Tu ID es <strong>'+esc(data.id)+'</strong>. El equipo CRBOX te contactará en menos de 24 horas.');
-                        if (submitBtn) { submitBtn.style.background='#22c55e'; submitBtn.innerHTML='<i class="fas fa-check"></i> ¡Enviado!'; }
-                    }
-                } else {
-                    if (submitBtn) { submitBtn.disabled=false; submitBtn.innerHTML='<i class="fas fa-paper-plane"></i> Enviar solicitud'; }
-                    say('Hubo un problema al enviar. Por favor intentá de nuevo.');
-                    S.phase = 'contact';
-                }
-            } catch(e) {
-                if (submitBtn) { submitBtn.disabled=false; submitBtn.innerHTML='<i class="fas fa-paper-plane"></i> Enviar solicitud'; }
-                say('Error de conexión. Revisá tu internet e intentá de nuevo.');
-                S.phase = 'contact';
-            }
-        }
-
-        /* ── Input handling ── */
-        function handleSend() {
-            var val = (inputEl?inputEl.value:'').trim();
-            if (!val||S.phase!=='intro') return;
-            if (inputEl) inputEl.value = '';
-            startClassify(val);
-        }
-
-        if (sendBtn) sendBtn.addEventListener('click', handleSend);
-        if (inputEl) inputEl.addEventListener('keydown', function(e){
-            if (e.key==='Enter') { e.preventDefault(); handleSend(); }
-        });
-
-        /* ── Boot ── */
-        window.scrollTo(0,0);
-        setTimeout(function(){ phaseGreeting(); }, 80);
-
-    })();
-    </script>
 
     <script src="js/product-categories.js?v=1"></script>
     <script src="js/tariff-adapter.js?v=3"></script>
@@ -4382,6 +4015,8 @@
     <script src="js/chat-calculator.js"></script>
     <script src="js/chat-quote.js"></script>
     <script src="js/chat-panel.js"></script>
+    <!-- ══ MOBILE CHAT ══ -->
+    <script src="js/cqchat.js"></script>
     <!-- ══ CART BOTTOM SHEET ══ -->
     <div id="cqc-sheet-overlay" class="cqc-sheet-overlay" style="display:none;" aria-hidden="true"></div>
     <div id="cqc-cart-sheet" class="cqc-cart-sheet" role="dialog" aria-modal="true" aria-label="Resumen de tu solicitud">
