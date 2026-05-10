@@ -1263,10 +1263,10 @@
 
         // Loading message rotation
         var _LOAD_MSGS = [
-            'Identificando categoría…',
-            'Consultando aranceles locales…',
+            'Analizando el producto…',
+            'Consultando aranceles de Costa Rica…',
             'Revisando requisitos de importación…',
-            'Preparando el análisis…',
+            'Preparando estimado orientativo…',
         ];
 
         // All searchable categories for the lightweight widget
@@ -1747,7 +1747,7 @@
                         if (t && t.rate) taxHint = (t.rate * 100).toFixed(0) + '% aprox.';
                     } catch(e) {}
                 }
-                var priceStr = p.declared_value_usd > 0 ? '$' + parseFloat(p.declared_value_usd).toFixed(2) + ' USD (declarado)' : '';
+                var priceStr = p.declared_value_usd > 0 ? '~$' + parseFloat(p.declared_value_usd).toFixed(2) + ' USD (valor declarado aprox.)' : '';
                 var clarification = p.clarification ? p.clarification : '';
 
                 var card = document.createElement('div');
@@ -1833,11 +1833,7 @@
             }
 
             if (qsTip) {
-                if (_confirmedProducts.length >= 2) {
-                    qsTip.textContent = 'Traer varios productos juntos puede ayudarte a aprovechar mejor el envío, sujeto a peso, dimensiones y revisión final.';
-                } else {
-                    qsTip.textContent = '¿Quieres agregar otro producto? Puedes añadir varios en una sola solicitud para optimizar tu envío.';
-                }
+                qsTip.textContent = 'Traer varios productos juntos puede ayudarte a aprovechar mejor el envío — sujeto a peso, dimensiones y revisión final del equipo CRBOX.';
             }
         }
 
