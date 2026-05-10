@@ -168,7 +168,7 @@
         /* ── FLOW ── */
         #cq-flow { background:#f4f3ee; display:none; border-top:1px solid #ede9e3; }
         #cq-flow.cq-flow-visible { display:block; }
-        .cq-flow-inner { max-width:700px; margin:0 auto; padding:2rem 1.25rem 4rem; }
+        .cq-flow-inner { max-width:820px; margin:0 auto; padding:2rem 1.5rem 4rem; }
 
         /* ── Confirmed pills row ── */
         #cq-confirmed-pills { display:none; margin-bottom:1.1rem; }
@@ -199,14 +199,15 @@
         /* ── Unified product card ── */
         .cq-pcard {
             background:#fff; border-radius:1.5rem; border:1.5px solid #e5e7eb;
-            margin-bottom:1rem; overflow:hidden;
+            margin-bottom:1rem;
             box-shadow:0 2px 16px rgba(0,0,0,.05),0 1px 3px rgba(0,0,0,.03);
             animation:cqFadeUp .35s ease both;
         }
-        /* Bubble strip at top of pcard */
+        /* Bubble strip at top of pcard — clips itself to top corners */
         .cq-bubble {
             display:flex; align-items:center; justify-content:space-between; gap:.75rem;
             background:linear-gradient(135deg,#FF6B00,#f97316); padding:1rem 1.25rem;
+            border-radius:1.4rem 1.4rem 0 0;
         }
         .cq-bubble-text { font-size:.97rem; font-weight:700; color:#fff; line-height:1.4; flex:1; min-width:0; }
         .cq-bubble-edit {
@@ -257,6 +258,179 @@
         /* Skeleton loader */
         .cq-skel-row { border-radius:.42rem; background:linear-gradient(90deg,#f0ebe3 25%,#fde8cc 50%,#f0ebe3 75%); background-size:200% 100%; animation:cqSkel 1.4s ease infinite; }
         @keyframes cqSkel { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+        /* ── Warm loading state ── */
+        .cq-intel-loading { min-height:150px; }
+        .cq-loading-card { position:relative; }
+        .cq-loading-avatar {
+            width:28px; height:28px; border-radius:.5rem;
+            background:linear-gradient(135deg,#FF6B00,#f97316);
+            display:flex; align-items:center; justify-content:center;
+            font-size:.85rem; flex-shrink:0;
+            animation:cqLoadPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes cqLoadPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.72;transform:scale(.94)} }
+        .cq-loading-msg { font-size:.84rem; font-weight:700; color:#ea580c; letter-spacing:.02em; }
+        .cq-loading-sub { font-size:.73rem; color:#9ca3af; margin-top:.45rem; line-height:1.5; }
+        .cq-loading-dots { display:flex; gap:.3rem; margin-top:.75rem; }
+        .cq-loading-dots span {
+            width:6px; height:6px; border-radius:50%; background:#f97316;
+            animation:cqDot 1.2s ease-in-out infinite;
+        }
+        .cq-loading-dots span:nth-child(2) { animation-delay:.18s; background:#fb923c; }
+        .cq-loading-dots span:nth-child(3) { animation-delay:.36s; background:#fde8cc; }
+        @keyframes cqDot { 0%,80%,100%{transform:scale(.55);opacity:.4} 40%{transform:scale(1);opacity:1} }
+
+        /* ── Tax estimate block inside gem card ── */
+        .cq-gem-tax-block {
+            display:flex; flex-direction:column; align-items:flex-start; gap:.18rem;
+            background:#fff7ed; border:1px solid #fed7aa; border-radius:.75rem;
+            padding:.7rem 1rem; margin-bottom:.55rem;
+        }
+        .cq-gem-tax-label { font-size:.67rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#92400e; }
+        .cq-gem-tax-rate { font-size:1.35rem; font-weight:900; color:#c2410c; line-height:1.1; }
+        .cq-gem-tax-sub { font-size:.72rem; color:#b45309; line-height:1.4; }
+
+        /* ── Shipping block inside gem card ── */
+        .cq-gem-ship-block {
+            display:flex; align-items:center; gap:.55rem;
+            background:#eff6ff; border:1px solid #bfdbfe; border-radius:.75rem;
+            padding:.6rem .9rem; margin-bottom:.55rem;
+        }
+        .cq-gem-ship-icon { color:#1d4ed8; font-size:.85rem; flex-shrink:0; }
+        .cq-gem-ship-text { font-size:.8rem; font-weight:700; color:#1e3a8a; }
+        .cq-gem-ship-sub { font-size:.72rem; color:#3b82f6; font-weight:400; }
+
+        /* ── Disclaimer footnote ── */
+        .cq-gem-disclaimer {
+            display:flex; align-items:flex-start; gap:.35rem;
+            font-size:.71rem; color:#9ca3af; margin-top:.65rem;
+            padding-top:.55rem; border-top:1px solid #f3ebe1; line-height:1.55;
+        }
+        .cq-gem-disclaimer i { flex-shrink:0; margin-top:.1rem; font-size:.65rem; color:#d1d5db; }
+
+        /* ── Follow-up clarification ── */
+        .cq-followup-wrap {
+            margin:.45rem 0 .75rem; padding:.75rem 1rem;
+            background:#f9fafb; border:1px solid #e5e7eb; border-radius:.875rem;
+        }
+        .cq-followup-label {
+            font-size:.79rem; font-weight:700; color:#374151; margin-bottom:.38rem;
+            display:flex; align-items:center; gap:.35rem;
+        }
+        .cq-followup-label i { color:#FF6B00; font-size:.7rem; }
+        .cq-followup-note {
+            display:flex; align-items:flex-start; gap:.35rem;
+            background:#fff7ed; border:1px solid #fed7aa; border-radius:.5rem;
+            padding:.45rem .65rem; font-size:.72rem; color:#92400e; margin-top:.42rem; line-height:1.5;
+        }
+        .cq-followup-note i { flex-shrink:0; margin-top:.1rem; font-size:.65rem; }
+        .cq-followup-btn {
+            margin-top:.45rem; padding:.45rem 1rem; background:#FF6B00; color:#fff; border:none;
+            border-radius:.5rem; font-size:.79rem; font-weight:700; cursor:pointer; transition:background .2s;
+        }
+        .cq-followup-btn:hover { background:#e85e00; }
+        .cq-followup-btn:disabled { background:#9ca3af; cursor:not-allowed; }
+
+        /* ── Confirmed product summary cards ── */
+        #cq-product-summary-cards { display:none; margin-bottom:1rem; }
+        .cq-summary-card {
+            background:#fff; border:1.5px solid #d1fae5; border-radius:1.1rem;
+            padding:.85rem 1.1rem; margin-bottom:.55rem;
+            display:flex; align-items:flex-start; justify-content:space-between; gap:.75rem;
+            animation:cqFadeUp .28s ease both;
+        }
+        .cq-summary-card-left { flex:1; min-width:0; }
+        .cq-summary-card-num {
+            font-size:.66rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+            color:#10b981; margin-bottom:.2rem;
+        }
+        .cq-summary-card-name { font-size:.95rem; font-weight:700; color:#111827; line-height:1.3; margin-bottom:.28rem; word-break:break-word; }
+        .cq-summary-card-meta { font-size:.76rem; color:#6b7280; line-height:1.5; }
+        .cq-summary-card-meta strong { color:#374151; }
+        .cq-summary-card-actions { display:flex; gap:.35rem; flex-shrink:0; }
+        .cq-summary-card-btn {
+            width:30px; height:30px; border-radius:.5rem; border:1.5px solid #e5e7eb;
+            background:#fff; cursor:pointer; display:flex; align-items:center;
+            justify-content:center; font-size:.72rem; color:#6b7280;
+            transition:border-color .15s,color .15s,background .15s;
+        }
+        .cq-summary-card-btn:hover { border-color:#FF6B00; color:#FF6B00; background:#fff7ed; }
+        .cq-summary-card-btn.cq-remove-btn:hover { border-color:#ef4444; color:#ef4444; background:#fef2f2; }
+
+        /* ── Quote summary guidance block ── */
+        #cq-quote-summary {
+            display:none; background:#fff; border:1.5px solid #e5e7eb; border-radius:1.25rem;
+            padding:1.1rem 1.3rem; margin-bottom:1rem; animation:cqFadeUp .35s ease both;
+        }
+        .cq-qs-header { display:flex; align-items:center; gap:.55rem; margin-bottom:.75rem; }
+        .cq-qs-icon {
+            width:28px; height:28px; border-radius:.5rem;
+            background:linear-gradient(135deg,#FF6B00,#f97316);
+            display:flex; align-items:center; justify-content:center;
+            color:#fff; font-size:.72rem; flex-shrink:0;
+        }
+        .cq-qs-title { font-size:.92rem; font-weight:700; color:#111827; }
+        .cq-qs-rows { display:flex; flex-direction:column; gap:.32rem; margin-bottom:.85rem; }
+        .cq-qs-row { display:flex; align-items:baseline; justify-content:space-between; gap:.5rem; font-size:.8rem; }
+        .cq-qs-row-label { color:#9ca3af; white-space:nowrap; }
+        .cq-qs-row-val { font-weight:600; color:#374151; text-align:right; }
+        .cq-qs-tip {
+            font-size:.74rem; color:#6b7280; background:#f9fafb; border-radius:.6rem;
+            padding:.5rem .75rem; line-height:1.55; margin-bottom:.85rem; display:flex; gap:.4rem; align-items:flex-start;
+        }
+        .cq-qs-tip i { color:#FF6B00; flex-shrink:0; margin-top:.15rem; font-size:.7rem; }
+        .cq-btn-forward {
+            width:100%; padding:.92rem 1.5rem;
+            background:linear-gradient(135deg,#FF6B00,#f97316); color:#fff; border:none;
+            border-radius:.875rem; font-size:1rem; font-weight:700; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; gap:.5rem;
+            box-shadow:0 4px 18px rgba(255,107,0,.32); transition:transform .17s,box-shadow .17s;
+        }
+        .cq-btn-forward:hover { transform:translateY(-2px); box-shadow:0 8px 26px rgba(255,107,0,.42); }
+
+        /* ── Searchable category widget ── */
+        .cq-cat-widget { margin-top:.9rem; border-top:1px solid #f3f4f6; padding-top:.65rem; }
+        .cq-cat-trigger {
+            display:flex; align-items:center; gap:.4rem;
+            background:none; border:none; cursor:pointer; padding:.3rem 0;
+            font-size:.79rem; color:#6b7280; font-family:inherit; text-align:left;
+        }
+        .cq-cat-trigger i { color:#9ca3af; font-size:.65rem; }
+        .cq-cat-trigger-chevron { color:#9ca3af; font-size:.6rem; margin-left:.15rem; transition:transform .2s; }
+        .cq-cat-trigger.open .cq-cat-trigger-chevron { transform:rotate(90deg); }
+        .cq-cat-detected {
+            display:inline-flex; align-items:center; gap:.28rem;
+            background:#f0fdf4; border:1px solid #86efac; border-radius:99px;
+            padding:.18rem .6rem; font-size:.73rem; font-weight:700; color:#15803d; margin-left:.2rem;
+        }
+        .cq-cat-search-panel { margin-top:.5rem; }
+        .cq-cat-results {
+            margin-top:.35rem; border:1.5px solid #e5e7eb; border-radius:.75rem;
+            background:#fff; max-height:180px; overflow-y:auto; display:none;
+        }
+        .cq-cat-result-item {
+            padding:.55rem .875rem; font-size:.81rem; cursor:pointer;
+            border-bottom:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between;
+            transition:background .12s;
+        }
+        .cq-cat-result-item:last-child { border-bottom:none; }
+        .cq-cat-result-item:hover { background:#fff7ed; }
+        .cq-cat-result-name { color:#111827; font-weight:600; }
+        .cq-cat-result-tax { font-size:.72rem; color:#b45309; font-weight:500; }
+
+        /* ── Secondary add-another card ── */
+        #cq-add-product-area {
+            margin-bottom:1rem;
+            border-style:dashed !important;
+            border-color:#d1d5db !important;
+            background:#fafafa !important;
+        }
+        #cq-add-product-area .cq-step-title { font-size:.92rem !important; color:#6b7280 !important; }
+        #cq-add-product-area .cq-step-num {
+            background:none !important; border:2px solid #d1d5db !important;
+            color:#9ca3af !important; font-size:.75rem !important;
+        }
         /* Fields section inside pcard */
         .cq-pcard-fields { padding:1.15rem 1.3rem 1.3rem; border-top:1px solid #f3f4f6; }
         .cq-fields-divider {
@@ -493,6 +667,22 @@
         .form-card { background:#fff; border-radius:1.25rem; border:1.5px solid #e5e7eb; padding:1.5rem; margin-bottom:1rem; }
         @media (max-width:640px) { .form-card { padding:1.1rem 1rem; } }
 
+        /* ── Mobile overrides ── */
+        @media (max-width:640px) {
+            .cq-flow-inner { padding:1.25rem 1rem 3rem; }
+            .cq-summary-card { flex-direction:column; gap:.55rem; }
+            .cq-summary-card-actions { flex-direction:row; align-self:flex-end; }
+            #cq-quote-summary { padding:.9rem 1rem; }
+            .cq-qs-row { flex-direction:column; gap:.1rem; }
+            .cq-qs-row-val { text-align:left; }
+            .cq-gem-tax-block { padding:.6rem .85rem; }
+            .cq-gem-tax-rate { font-size:1.15rem; }
+            .cq-gem-ship-block { flex-direction:column; align-items:flex-start; gap:.3rem; padding:.55rem .75rem; }
+            .cq-cat-trigger { font-size:.76rem; }
+            .cq-btn-forward { font-size:.92rem; padding:.8rem 1.2rem; }
+            .cq-followup-wrap { padding:.65rem .85rem; }
+        }
+
         /* Nav */
         .nav-active { color:#FF6B00 !important; font-weight:700; }
 
@@ -643,6 +833,25 @@
                 </button>
             </div>
 
+            <!-- Confirmed product summary cards (one per confirmed product) -->
+            <div id="cq-product-summary-cards"></div>
+
+            <!-- Quote summary guidance block (shown after ≥1 product confirmed) -->
+            <div id="cq-quote-summary">
+                <div class="cq-qs-header">
+                    <div class="cq-qs-icon"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="cq-qs-title">Resumen de tu cotización</div>
+                </div>
+                <div class="cq-qs-rows" id="cq-qs-rows"></div>
+                <div class="cq-qs-tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <span id="cq-qs-tip-text">Traer varios productos juntos puede ayudarte a aprovechar mejor el envío, sujeto a peso, dimensiones y revisión final.</span>
+                </div>
+                <button type="button" id="cq-btn-continue-shipping" class="cq-btn-forward">
+                    Continuar con la solicitud <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
             <!-- Steps area -->
             <div id="cq-steps-area">
 
@@ -660,6 +869,22 @@
                     <!-- AI analysis: loading skeleton → Gemini result card -->
                     <div id="cq-intel-area" style="display:none;"></div>
 
+                    <!-- Follow-up clarification (shown after AI result) -->
+                    <div id="cq-followup-section" class="cq-followup-wrap" style="display:none;">
+                        <div class="cq-followup-label">
+                            <i class="fas fa-comment-dots"></i>
+                            ¿Quieres aclarar algo sobre este producto?
+                        </div>
+                        <textarea id="cq-followup-input" class="cq-field-input" placeholder="Ej: es de segunda mano, son 2 unidades, no incluye cargador…" rows="2" maxlength="300" style="width:100%;box-sizing:border-box;margin-top:.35rem;resize:none;font-size:.82rem;border:1.5px solid #e5e7eb;border-radius:.65rem;padding:.5rem .75rem;font-family:inherit;color:#374151;"></textarea>
+                        <button type="button" id="cq-followup-btn" class="cq-followup-btn">
+                            <i class="fas fa-sync-alt" style="font-size:.7rem;"></i> Actualizar análisis
+                        </button>
+                        <div id="cq-followup-note" class="cq-followup-note" style="display:none;">
+                            <i class="fas fa-sticky-note"></i>
+                            <span id="cq-followup-note-text"></span>
+                        </div>
+                    </div>
+
                     <!-- Product detail fields — revealed after AI card -->
                     <div id="cq-product-fields" class="cq-pcard-fields" style="display:none;">
                         <div id="cq-ai-banner" style="margin-bottom:.5rem;"></div>
@@ -676,7 +901,7 @@
                                 <input type="url" id="cq-f-url" class="cq-field-input" placeholder="https://amazon.com/dp/…" autocomplete="off">
                                 <span class="cq-url-spinner" id="cq-url-spinner"><i class="fas fa-circle-notch fa-spin"></i></span>
                             </div>
-                            <div class="cq-field-hint">Pégalo y lo analizamos — Amazon, Walmart, eBay y más.</div>
+                            <div class="cq-field-hint">Pega el enlace para que el equipo CRBOX pueda revisar el producto con más precisión.</div>
                         </div>
 
                         <!-- Price -->
@@ -695,69 +920,59 @@
                             <div id="cq-live-est" class="cq-live-est" style="display:none;"></div>
                         </div>
 
-                        <!-- Category collapsible -->
-                        <details class="cq-cat-details" id="cq-cat-details">
-                            <summary>
-                                <i class="fas fa-sliders-h" style="font-size:.65rem;color:#9ca3af;"></i>
-                                Ajustar categoría
-                                <span class="cq-cat-hint">— se completa automáticamente</span>
-                            </summary>
-                            <div style="margin-top:.5rem;">
-                                <select id="cq-f-category" class="cq-input cq-cat-select">
-                                    <option value="" disabled selected>Selecciona una categoría</option>
-                                    <optgroup label="Electrónica">
-                                        <option value="celulares">Celulares y Smartphones</option>
-                                        <option value="computadora">Computadoras y Laptops</option>
-                                        <option value="tableta_electronica">Tabletas y iPads</option>
-                                        <option value="consola_videojuegos">Consolas de Videojuegos</option>
-                                        <option value="camara">Cámaras y Video</option>
-                                        <option value="auricular_telefono">Audífonos y Accesorios Audio</option>
-                                        <option value="bocina">Bocinas y Equipos de Sonido</option>
-                                        <option value="televisor">Televisores</option>
-                                        <option value="electr_otro">Otro — Electrónica</option>
-                                    </optgroup>
-                                    <optgroup label="Ropa y Accesorios">
-                                        <option value="ropa">Ropa y Calzado</option>
-                                        <option value="anteojos">Anteojos y Gafas</option>
-                                        <option value="cinturon">Cinturones y Bolsos</option>
-                                        <option value="ropa_otro">Otro — Ropa y Accesorios</option>
-                                    </optgroup>
-                                    <optgroup label="Hogar y Jardín">
-                                        <option value="electrodomesticos">Electrodomésticos</option>
-                                        <option value="aspiradora">Aspiradora y Limpieza</option>
-                                        <option value="colchon">Colchones y Muebles</option>
-                                        <option value="herramientas">Herramientas</option>
-                                        <option value="hogar_otro">Otro — Hogar</option>
-                                    </optgroup>
-                                    <optgroup label="Deportes y Recreación">
-                                        <option value="bicicleta_economica">Bicicleta estándar</option>
-                                        <option value="bicicleta_cara">Bicicleta premium</option>
-                                        <option value="bola">Artículos Deportivos</option>
-                                        <option value="deporte_otro">Otro — Deportes</option>
-                                    </optgroup>
-                                    <optgroup label="Bebé y Niños">
-                                        <option value="coche_bebe">Coches de Bebé y Accesorios</option>
-                                        <option value="juguetes">Juguetes</option>
-                                        <option value="bebe_otro">Otro — Bebé y Niños</option>
-                                    </optgroup>
-                                    <optgroup label="Repuestos de Vehículos">
-                                        <option value="amortiguadores">Amortiguadores</option>
-                                        <option value="aros_carro_moto">Aros de Carro/Moto</option>
-                                        <option value="vehiculos">Repuestos en General</option>
-                                        <option value="vehic_otro">Otro — Vehículos</option>
-                                    </optgroup>
-                                    <optgroup label="Salud y Belleza">
-                                        <option value="salud_belleza">Salud y Belleza</option>
-                                        <option value="suplementos">Suplementos</option>
-                                    </optgroup>
-                                    <optgroup label="Libros y Medios">
-                                        <option value="cds">Libros, CDs y Medios</option>
-                                    </optgroup>
-                                    <option value="otros">Otro (no está en la lista)</option>
-                                </select>
-                                <div id="cq-cat-suggest"></div>
+                        <!-- Searchable category widget -->
+                        <div class="cq-cat-widget" id="cq-cat-widget-wrap">
+                            <button type="button" class="cq-cat-trigger" id="cq-cat-trigger" aria-expanded="false">
+                                <i class="fas fa-sliders-h"></i>
+                                <span>¿La categoría no parece correcta?</span>
+                                <span id="cq-cat-detected-badge" class="cq-cat-detected" style="display:none;"></span>
+                                <i class="fas fa-chevron-right cq-cat-trigger-chevron"></i>
+                            </button>
+                            <div id="cq-cat-search-panel" class="cq-cat-search-panel" style="display:none;">
+                                <input type="text" id="cq-cat-search-input" class="cq-field-input"
+                                       placeholder="Buscar: celular, zapatos, laptop…" autocomplete="off"
+                                       style="width:100%;box-sizing:border-box;font-size:.82rem;border:1.5px solid #e5e7eb;border-radius:.65rem;padding:.5rem .75rem;font-family:inherit;">
+                                <div id="cq-cat-results" class="cq-cat-results"></div>
                             </div>
-                        </details>
+                            <!-- Hidden native select keeps existing form/JS wiring intact -->
+                            <select id="cq-f-category" style="display:none;" aria-hidden="true">
+                                <option value="" disabled selected>Selecciona una categoría</option>
+                                <option value="celulares">Celulares y Smartphones</option>
+                                <option value="computadora">Computadoras y Laptops</option>
+                                <option value="tableta_electronica">Tabletas y iPads</option>
+                                <option value="consola_videojuegos">Consolas de Videojuegos</option>
+                                <option value="camara">Cámaras y Video</option>
+                                <option value="auricular_telefono">Audífonos y Accesorios Audio</option>
+                                <option value="bocina">Bocinas y Equipos de Sonido</option>
+                                <option value="televisor">Televisores</option>
+                                <option value="electr_otro">Otro — Electrónica</option>
+                                <option value="ropa">Ropa y Calzado</option>
+                                <option value="anteojos">Anteojos y Gafas</option>
+                                <option value="cinturon">Cinturones y Bolsos</option>
+                                <option value="ropa_otro">Otro — Ropa y Accesorios</option>
+                                <option value="electrodomesticos">Electrodomésticos</option>
+                                <option value="aspiradora">Aspiradora y Limpieza</option>
+                                <option value="colchon">Colchones y Muebles</option>
+                                <option value="herramientas">Herramientas</option>
+                                <option value="hogar_otro">Otro — Hogar</option>
+                                <option value="bicicleta_economica">Bicicleta estándar</option>
+                                <option value="bicicleta_cara">Bicicleta premium</option>
+                                <option value="bola">Artículos Deportivos</option>
+                                <option value="deporte_otro">Otro — Deportes</option>
+                                <option value="coche_bebe">Coches de Bebé y Accesorios</option>
+                                <option value="juguetes">Juguetes</option>
+                                <option value="bebe_otro">Otro — Bebé y Niños</option>
+                                <option value="amortiguadores">Amortiguadores</option>
+                                <option value="aros_carro_moto">Aros de Carro/Moto</option>
+                                <option value="vehiculos">Repuestos en General</option>
+                                <option value="vehic_otro">Otro — Vehículos</option>
+                                <option value="salud_belleza">Salud y Belleza</option>
+                                <option value="suplementos">Suplementos</option>
+                                <option value="cds">Libros, CDs y Medios</option>
+                                <option value="otros">Otro (no está en la lista)</option>
+                            </select>
+                            <div id="cq-cat-suggest"></div>
+                        </div>
 
                         <!-- AI confirm checkbox -->
                         <label id="cq-ai-confirm-wrap" class="cq-ai-confirm" style="display:none;">
@@ -767,7 +982,7 @@
 
                         <!-- Confirm button -->
                         <button type="button" id="cq-btn-confirm-product" class="cq-btn-confirm">
-                            <i class="fas fa-check"></i> Confirmar producto
+                            <i class="fas fa-check"></i> Agregar producto a la cotización
                         </button>
                     </div>
                 </div><!-- /#cq-step-product -->
@@ -1043,6 +1258,53 @@
         var _dupWarningDismissed = false;
         var _formSubmitted = false;
         var lastSubmitPayload = null;
+        var _loadingInterval   = null;
+        var _currentClarification = '';
+
+        // Loading message rotation
+        var _LOAD_MSGS = [
+            'Identificando categoría…',
+            'Consultando aranceles locales…',
+            'Revisando requisitos de importación…',
+            'Preparando el análisis…',
+        ];
+
+        // All searchable categories for the lightweight widget
+        var _CAT_SEARCH_DATA = [
+            { v:'celulares', l:'Celulares y Smartphones', tax:'~20–30%' },
+            { v:'computadora', l:'Computadoras y Laptops', tax:'~13–15%' },
+            { v:'tableta_electronica', l:'Tabletas y iPads', tax:'~13–20%' },
+            { v:'consola_videojuegos', l:'Consolas de Videojuegos', tax:'~13–20%' },
+            { v:'camara', l:'Cámaras y Video', tax:'~13–15%' },
+            { v:'auricular_telefono', l:'Audífonos y Accesorios Audio', tax:'~13%' },
+            { v:'bocina', l:'Bocinas y Equipos de Sonido', tax:'~13–20%' },
+            { v:'televisor', l:'Televisores', tax:'~13%' },
+            { v:'electr_otro', l:'Otro — Electrónica', tax:'~13–25%' },
+            { v:'ropa', l:'Ropa y Calzado', tax:'~20–52%' },
+            { v:'anteojos', l:'Anteojos y Gafas', tax:'~13–20%' },
+            { v:'cinturon', l:'Cinturones y Bolsos', tax:'~13–20%' },
+            { v:'ropa_otro', l:'Otro — Ropa y Accesorios', tax:'~13–30%' },
+            { v:'electrodomesticos', l:'Electrodomésticos', tax:'~13–20%' },
+            { v:'aspiradora', l:'Aspiradora y Limpieza', tax:'~13%' },
+            { v:'colchon', l:'Colchones y Muebles', tax:'~13–20%' },
+            { v:'herramientas', l:'Herramientas', tax:'~13%' },
+            { v:'hogar_otro', l:'Otro — Hogar', tax:'~13–20%' },
+            { v:'bicicleta_economica', l:'Bicicleta estándar', tax:'~13%' },
+            { v:'bicicleta_cara', l:'Bicicleta premium', tax:'~13–20%' },
+            { v:'bola', l:'Artículos Deportivos', tax:'~13–20%' },
+            { v:'deporte_otro', l:'Otro — Deportes', tax:'~13–20%' },
+            { v:'coche_bebe', l:'Coches de Bebé y Accesorios', tax:'~13%' },
+            { v:'juguetes', l:'Juguetes', tax:'~13–20%' },
+            { v:'bebe_otro', l:'Otro — Bebé y Niños', tax:'~13%' },
+            { v:'amortiguadores', l:'Amortiguadores', tax:'~13–20%' },
+            { v:'aros_carro_moto', l:'Aros de Carro/Moto', tax:'~13–30%' },
+            { v:'vehiculos', l:'Repuestos en General', tax:'~13–20%' },
+            { v:'vehic_otro', l:'Otro — Vehículos', tax:'~13–20%' },
+            { v:'salud_belleza', l:'Salud y Belleza', tax:'~13%' },
+            { v:'suplementos', l:'Suplementos', tax:'~13–20%' },
+            { v:'cds', l:'Libros, CDs y Medios', tax:'~0–13%' },
+            { v:'otros', l:'Otro (no está en la lista)', tax:'' },
+        ];
 
         // ── DOM refs ───────────────────────────────────────────
         var heroSection    = document.getElementById('cq-hero');
@@ -1168,24 +1430,30 @@
             // Ensure product card is visible (may have been hidden after previous confirm)
             var stepProdFirst = document.getElementById('cq-step-product');
             if (stepProdFirst) stepProdFirst.style.display = '';
-            // Show loading skeleton in AI card while Gemini processes
+            // Warm loading state — cycling messages while Gemini processes
+            _clearLoadingInterval();
+            _currentClarification = '';
             if (intelArea) {
-                intelArea.innerHTML = '<div class="cq-gem-wrap"><div class="cq-gem-card">'
+                var _loadIdx0 = 0;
+                intelArea.className = 'cq-intel-loading';
+                intelArea.innerHTML = '<div class="cq-gem-wrap"><div class="cq-gem-card cq-loading-card">'
                     + '<div class="cq-gem-header">'
-                    + '<div class="cq-gem-avatar">✨</div>'
-                    + '<span class="cq-gem-label">Analizando producto…</span>'
+                    + '<div class="cq-loading-avatar">✨</div>'
+                    + '<span class="cq-loading-msg" id="cq-loading-msg">' + _LOAD_MSGS[0] + '</span>'
                     + '</div>'
-                    + '<div class="cq-skel-row" style="height:14px;width:52%;margin-bottom:.65rem;"></div>'
-                    + '<div class="cq-skel-row" style="height:13px;width:100%;margin-bottom:.38rem;"></div>'
-                    + '<div class="cq-skel-row" style="height:13px;width:88%;margin-bottom:.38rem;"></div>'
-                    + '<div class="cq-skel-row" style="height:13px;width:72%;margin-bottom:.75rem;"></div>'
-                    + '<div style="display:flex;gap:.32rem;">'
-                    + '<div class="cq-skel-row" style="height:26px;width:90px;border-radius:.52rem;"></div>'
-                    + '<div class="cq-skel-row" style="height:26px;width:110px;border-radius:.52rem;"></div>'
-                    + '</div>'
+                    + '<div class="cq-loading-sub">Esto nos ayuda a darte una guía inicial de impuestos y requisitos.</div>'
+                    + '<div class="cq-loading-dots"><span></span><span></span><span></span></div>'
                     + '</div></div>';
                 intelArea.style.display = '';
+                _loadingInterval = setInterval(function() {
+                    _loadIdx0++;
+                    var el = document.getElementById('cq-loading-msg');
+                    if (el) el.textContent = _LOAD_MSGS[_loadIdx0 % _LOAD_MSGS.length];
+                }, 1600);
             }
+            // Hide follow-up while loading
+            var followupSec = document.getElementById('cq-followup-section');
+            if (followupSec) followupSec.style.display = 'none';
             // Reveal flow below hero (no page jump — hero stays, compresses)
             _revealFlow();
             // Hide later steps until confirmed
@@ -1203,12 +1471,29 @@
             } else { _finishClassify(); }
         }
 
+        function _clearLoadingInterval() {
+            if (_loadingInterval) { clearInterval(_loadingInterval); _loadingInterval = null; }
+        }
+
         function _finishClassify() {
+            _clearLoadingInterval();
             if (heroBtn) { heroBtn.classList.remove('loading'); heroBtn.innerHTML = '<i class="fas fa-arrow-right"></i>'; }
             if (productFields) { productFields.style.display = ''; productFields.classList.add('cq-fade-in'); }
             var price = document.getElementById('cq-f-price');
             if (price) setTimeout(function() { price.focus(); }, 200);
+            // Show follow-up clarification field
+            var followupSec = document.getElementById('cq-followup-section');
+            if (followupSec) { followupSec.style.display = ''; }
         }
+
+        // ── Prevent mouse-wheel from changing number inputs ────
+        (function() {
+            function _noScroll(e) { e.preventDefault(); }
+            document.querySelectorAll('#cq-f-price').forEach(function(inp) {
+                inp.addEventListener('focus', function() { this.addEventListener('wheel', _noScroll, { passive: false }); });
+                inp.addEventListener('blur',  function() { this.removeEventListener('wheel', _noScroll); });
+            });
+        })();
 
         function _resetEntryFields() {
             if (fUrl) fUrl.value = '';
@@ -1229,8 +1514,25 @@
             if (compl) compl.innerHTML = '';
             var catSug = document.getElementById('cq-cat-suggest');
             if (catSug) catSug.innerHTML = '';
-            var catDet = document.getElementById('cq-cat-details');
-            if (catDet) catDet.removeAttribute('open');
+            // Reset category widget
+            var catBadge = document.getElementById('cq-cat-detected-badge');
+            if (catBadge) { catBadge.textContent = ''; catBadge.style.display = 'none'; }
+            var catTrigger = document.getElementById('cq-cat-trigger');
+            if (catTrigger) { catTrigger.classList.remove('open'); catTrigger.setAttribute('aria-expanded','false'); }
+            var catPanel = document.getElementById('cq-cat-search-panel');
+            if (catPanel) catPanel.style.display = 'none';
+            var catSearch = document.getElementById('cq-cat-search-input');
+            if (catSearch) catSearch.value = '';
+            var catResults = document.getElementById('cq-cat-results');
+            if (catResults) { catResults.innerHTML = ''; catResults.style.display = 'none'; }
+            // Reset follow-up
+            var followupSec = document.getElementById('cq-followup-section');
+            if (followupSec) followupSec.style.display = 'none';
+            var followupInp = document.getElementById('cq-followup-input');
+            if (followupInp) followupInp.value = '';
+            var followupNote = document.getElementById('cq-followup-note');
+            if (followupNote) followupNote.style.display = 'none';
+            _currentClarification = '';
         }
 
         function _hideEl(id) { var el = document.getElementById(id); if (el) el.style.display = 'none'; }
@@ -1342,7 +1644,7 @@
             var t = TARIFF_ADAPTER.getTariffRate(cat);
             var est = price * t.rate;
             liveEstEl.style.display = '';
-            liveEstEl.innerHTML = '<span style="font-size:.78rem;color:#6b7280;">Arancel est.: <strong style="color:#374151;">~$' + est.toFixed(2) + ' USD</strong> <span style="color:#9ca3af;font-size:.73rem;">(' + (t.rate * 100).toFixed(1) + '% del valor declarado)</span></span>';
+            liveEstEl.innerHTML = '<span style="font-size:.78rem;color:#6b7280;">Arancel aprox./orientativo: <strong style="color:#374151;">~$' + est.toFixed(2) + ' USD</strong> <span style="color:#9ca3af;font-size:.73rem;">(' + (t.rate * 100).toFixed(1) + '% estimado del valor declarado — sujeto a revisión DGA)</span></span>';
         }
 
         if (fCategory) fCategory.addEventListener('change', function() {
@@ -1378,22 +1680,25 @@
                 brainClassification: _currentBrainResult || null,
                 aiDataSource: _currentAiState.dataSource,
                 aiActive: _currentAiState.active,
+                clarification: _currentClarification || '',
             };
             var idx = _confirmedProducts.findIndex(function(p) { return p.id === _currentEntryId; });
             if (idx !== -1) _confirmedProducts[idx] = product; else _confirmedProducts.push(product);
 
             _renderConfirmedList();
+            _renderSummaryCards();
+            _updateQuoteSummary();
 
-            // Collapse the product card — show add-another and shipping below
+            // Collapse the product card — show add-another, quote summary, and shipping
             var stepProdEl = document.getElementById('cq-step-product');
             if (stepProdEl) stepProdEl.style.display = 'none';
             _showEl('cq-add-product-area');
             if (_ciAddInst) _ciAddInst.reset();
             _showEl('cq-step-shipping');
+            // Scroll to quote summary, not add-another
             setTimeout(function() {
-                var aa = document.getElementById('cq-add-product-area');
-                if (aa) aa.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                if (_ciAddInst) setTimeout(function() { _ciAddInst.focus(); }, 80);
+                var qs = document.getElementById('cq-quote-summary');
+                if (qs) qs.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 200);
         }
 
@@ -1411,8 +1716,11 @@
                     + '<button type="button" class="cq-conf-pill-del" data-idx="' + idx + '" aria-label="Eliminar">'
                     + '<i class="fas fa-times"></i></button>';
                 pill.querySelector('.cq-conf-pill-del').addEventListener('click', function() {
-                    _confirmedProducts.splice(parseInt(this.dataset.idx), 1);
+                    var i = parseInt(this.dataset.idx);
+                    _confirmedProducts.splice(i, 1);
                     _renderConfirmedList();
+                    _renderSummaryCards();
+                    _updateQuoteSummary();
                     if (_confirmedProducts.length === 0) resetFlow();
                 });
                 pillsRow.appendChild(pill);
@@ -1420,6 +1728,259 @@
             if (pillsContainer) pillsContainer.style.display = _confirmedProducts.length ? '' : 'none';
             if (btnAddAnother) btnAddAnother.style.display = _confirmedProducts.length ? '' : 'none';
         }
+
+        // ── Summary cards (one per confirmed product) ─────────
+        function _renderSummaryCards() {
+            var container = document.getElementById('cq-product-summary-cards');
+            if (!container) return;
+            container.innerHTML = '';
+            if (!_confirmedProducts.length) { container.style.display = 'none'; return; }
+            container.style.display = '';
+            _confirmedProducts.forEach(function(p, idx) {
+                var catLabel = getCategoryLabel(p.category || 'otros');
+                var taxHint  = '';
+                if (p.brainClassification && p.brainClassification.estimatedRange) {
+                    taxHint = p.brainClassification.estimatedRange + ' aprox.';
+                } else if (typeof TARIFF_ADAPTER !== 'undefined' && p.category) {
+                    try {
+                        var t = TARIFF_ADAPTER.getTariffRate(p.category);
+                        if (t && t.rate) taxHint = (t.rate * 100).toFixed(0) + '% aprox.';
+                    } catch(e) {}
+                }
+                var priceStr = p.declared_value_usd > 0 ? '$' + parseFloat(p.declared_value_usd).toFixed(2) + ' USD (declarado)' : '';
+                var clarification = p.clarification ? p.clarification : '';
+
+                var card = document.createElement('div');
+                card.className = 'cq-summary-card';
+                card.innerHTML = '<div class="cq-summary-card-left">'
+                    + '<div class="cq-summary-card-num"><i class="fas fa-check-circle" style="margin-right:.25rem;font-size:.62rem;"></i>Producto ' + (idx + 1) + '</div>'
+                    + '<div class="cq-summary-card-name">' + _escHtml(p.name) + '</div>'
+                    + '<div class="cq-summary-card-meta">'
+                    + '<strong>' + _escHtml(catLabel) + '</strong>'
+                    + (taxHint ? ' &nbsp;·&nbsp; Arancel orientativo: <strong>' + _escHtml(taxHint) + '</strong>' : '')
+                    + (priceStr ? '<br>' + _escHtml(priceStr) : '')
+                    + (clarification ? '<br><span style="font-size:.7rem;color:#6b7280;font-style:italic;">Nota: ' + _escHtml(clarification) + '</span>' : '')
+                    + '</div>'
+                    + '</div>'
+                    + '<div class="cq-summary-card-actions">'
+                    + '<button type="button" class="cq-summary-card-btn cq-edit-btn" data-idx="' + idx + '" title="Editar" aria-label="Editar producto"><i class="fas fa-pen"></i></button>'
+                    + '<button type="button" class="cq-summary-card-btn cq-remove-btn" data-idx="' + idx + '" title="Eliminar" aria-label="Eliminar producto"><i class="fas fa-times"></i></button>'
+                    + '</div>';
+
+                card.querySelector('.cq-remove-btn').addEventListener('click', function() {
+                    var i = parseInt(this.dataset.idx);
+                    _confirmedProducts.splice(i, 1);
+                    _renderConfirmedList();
+                    _renderSummaryCards();
+                    _updateQuoteSummary();
+                    if (_confirmedProducts.length === 0) resetFlow();
+                });
+                card.querySelector('.cq-edit-btn').addEventListener('click', function() {
+                    var i = parseInt(this.dataset.idx);
+                    var prod = _confirmedProducts[i];
+                    if (!prod) return;
+                    // Remove from confirmed, re-open product card for editing
+                    _confirmedProducts.splice(i, 1);
+                    _renderConfirmedList();
+                    _renderSummaryCards();
+                    _updateQuoteSummary();
+                    // Re-start product entry with this product's name
+                    _startProductEntry(prod.name);
+                    // Pre-fill saved fields after classify starts
+                    setTimeout(function() {
+                        if (fPrice && prod.declared_value_usd > 0) {
+                            fPrice.value = prod.declared_value_usd;
+                            fPrice.dispatchEvent(new Event('input'));
+                        }
+                        if (fUrl && prod.url) {
+                            fUrl.value = prod.url;
+                        }
+                    }, 100);
+                });
+
+                container.appendChild(card);
+            });
+        }
+
+        // ── Quote summary guidance block ──────────────────────
+        function _updateQuoteSummary() {
+            var qsEl = document.getElementById('cq-quote-summary');
+            var qsRows = document.getElementById('cq-qs-rows');
+            var qsTip  = document.getElementById('cq-qs-tip-text');
+            if (!qsEl) return;
+            if (!_confirmedProducts.length) { qsEl.style.display = 'none'; return; }
+            qsEl.style.display = '';
+
+            var totalDeclared = _confirmedProducts.reduce(function(acc, p) { return acc + (parseFloat(p.declared_value_usd) || 0); }, 0);
+            var rows = [];
+            rows.push({ label: 'Productos en la solicitud', val: _confirmedProducts.length + ' producto(s)' });
+            if (totalDeclared > 0) {
+                rows.push({ label: 'Valor total declarado (aprox.)', val: '~$' + totalDeclared.toFixed(2) + ' USD' });
+            }
+            // Aggregate tax hint if all products have a rate
+            var taxHints = _confirmedProducts.map(function(p) {
+                if (p.brainClassification && p.brainClassification.estimatedRange) return p.brainClassification.estimatedRange;
+                return '';
+            }).filter(Boolean);
+            if (taxHints.length === _confirmedProducts.length && taxHints.length > 0) {
+                rows.push({ label: 'Arancel orientativo', val: taxHints.join(', ') + ' (estimado — sujeto a revisión)' });
+            }
+
+            if (qsRows) {
+                qsRows.innerHTML = rows.map(function(r) {
+                    return '<div class="cq-qs-row"><span class="cq-qs-row-label">' + _escHtml(r.label) + '</span><span class="cq-qs-row-val">' + _escHtml(r.val) + '</span></div>';
+                }).join('');
+            }
+
+            if (qsTip) {
+                if (_confirmedProducts.length >= 2) {
+                    qsTip.textContent = 'Traer varios productos juntos puede ayudarte a aprovechar mejor el envío, sujeto a peso, dimensiones y revisión final.';
+                } else {
+                    qsTip.textContent = '¿Quieres agregar otro producto? Puedes añadir varios en una sola solicitud para optimizar tu envío.';
+                }
+            }
+        }
+
+        // ── Continue-to-shipping forward button in quote summary ──
+        (function() {
+            var btnContinue = document.getElementById('cq-btn-continue-shipping');
+            if (!btnContinue) return;
+            btnContinue.addEventListener('click', function() {
+                var shipping = document.getElementById('cq-step-shipping');
+                if (shipping) {
+                    if (shipping.style.display === 'none') _showEl('cq-step-shipping');
+                    setTimeout(function() { shipping.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 80);
+                }
+            });
+        })();
+
+        // ── Category search widget ─────────────────────────────
+        (function() {
+            var trigger  = document.getElementById('cq-cat-trigger');
+            var panel    = document.getElementById('cq-cat-search-panel');
+            var search   = document.getElementById('cq-cat-search-input');
+            var results  = document.getElementById('cq-cat-results');
+            var badge    = document.getElementById('cq-cat-detected-badge');
+            if (!trigger || !panel || !search || !results) return;
+
+            trigger.addEventListener('click', function() {
+                var open = panel.style.display !== 'none';
+                panel.style.display = open ? 'none' : '';
+                trigger.classList.toggle('open', !open);
+                trigger.setAttribute('aria-expanded', (!open).toString());
+                if (!open) {
+                    search.value = '';
+                    results.innerHTML = '';
+                    results.style.display = 'none';
+                    setTimeout(function() { search.focus(); }, 60);
+                }
+            });
+
+            function _renderCatResults(query) {
+                var q = (query || '').toLowerCase().trim();
+                var filtered = !q ? _CAT_SEARCH_DATA : _CAT_SEARCH_DATA.filter(function(c) {
+                    return c.l.toLowerCase().indexOf(q) !== -1 || c.v.indexOf(q) !== -1;
+                });
+                if (!filtered.length) { results.innerHTML = '<div class="cq-cat-result-item" style="color:#9ca3af;font-style:italic;cursor:default;">Sin resultados</div>'; results.style.display = ''; return; }
+                results.innerHTML = filtered.slice(0, 12).map(function(c, i) {
+                    return '<div class="cq-cat-result-item" data-val="' + c.v + '" data-idx="' + i + '">'
+                        + '<span class="cq-cat-result-name">' + c.l + '</span>'
+                        + (c.tax ? '<span class="cq-cat-result-tax">' + c.tax + '</span>' : '')
+                        + '</div>';
+                }).join('');
+                results.style.display = '';
+                results.querySelectorAll('.cq-cat-result-item[data-val]').forEach(function(item) {
+                    item.addEventListener('click', function() {
+                        var val = this.dataset.val;
+                        var label = this.querySelector('.cq-cat-result-name').textContent;
+                        // Update hidden select and dispatch change
+                        if (fCategory) { fCategory.value = val; fCategory.dispatchEvent(new Event('change')); }
+                        // Update badge
+                        if (badge) { badge.textContent = label; badge.style.display = ''; }
+                        // Close panel
+                        panel.style.display = 'none';
+                        trigger.classList.remove('open');
+                        trigger.setAttribute('aria-expanded', 'false');
+                        results.style.display = 'none';
+                        search.value = '';
+                    });
+                });
+            }
+
+            search.addEventListener('input', function() { _renderCatResults(this.value); });
+            search.addEventListener('focus', function() { _renderCatResults(this.value); });
+
+            // When category is changed externally (by AI), update the badge
+            if (fCategory) {
+                var _origCatChange = null;
+                fCategory.addEventListener('change', function() {
+                    var val = this.value;
+                    var entry = _CAT_SEARCH_DATA.find(function(c) { return c.v === val; });
+                    if (badge) {
+                        if (entry) { badge.textContent = entry.l; badge.style.display = ''; }
+                        else { badge.style.display = 'none'; }
+                    }
+                });
+            }
+        })();
+
+        // ── Follow-up clarification handler ────────────────────
+        (function() {
+            var followupBtn  = document.getElementById('cq-followup-btn');
+            var followupInp  = document.getElementById('cq-followup-input');
+            var followupNote = document.getElementById('cq-followup-note');
+            var followupNoteText = document.getElementById('cq-followup-note-text');
+            if (!followupBtn || !followupInp) return;
+
+            followupBtn.addEventListener('click', function() {
+                var text = (followupInp.value || '').trim();
+                if (!text) return;
+                _currentClarification = text;
+
+                // Try to re-classify with clarification context
+                var productName = bubbleText ? bubbleText.textContent.trim() : '';
+                var clarifiedQuery = productName + ' — ' + text;
+
+                followupBtn.disabled = true;
+                followupBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size:.7rem;"></i> Actualizando…';
+
+                if (typeof CRBOXProductClassifier !== 'undefined' && _currentBrainResult) {
+                    // Try re-classify with enriched query
+                    CRBOXProductClassifier.classify(clarifiedQuery).then(function(result) {
+                        if (result && result.brainCategoryId !== 'unknown_manual_review') {
+                            _currentBrainResult = result;
+                            _renderIntelCard(result, productName, parseFloat(fPrice ? fPrice.value : '') || 0);
+                            CRBOXProductClassifier.applyToProductCard({
+                                categoryEl:   fCategory,
+                                barContainer: document.getElementById('cq-cat-suggest'),
+                                noticeContainer: document.getElementById('cq-ai-compliance'),
+                            }, result);
+                        }
+                        // Always show clarification as a note for the CRBOX team
+                        if (followupNote && followupNoteText) {
+                            followupNoteText.textContent = 'Nota para CRBOX: ' + text;
+                            followupNote.style.display = 'flex';
+                        }
+                    }).catch(function() {
+                        if (followupNote && followupNoteText) {
+                            followupNoteText.textContent = 'Nota para CRBOX: ' + text;
+                            followupNote.style.display = 'flex';
+                        }
+                    }).finally(function() {
+                        followupBtn.disabled = false;
+                        followupBtn.innerHTML = '<i class="fas fa-sync-alt" style="font-size:.7rem;"></i> Actualizar análisis';
+                    });
+                } else {
+                    // No classifier available — just store as note
+                    if (followupNote && followupNoteText) {
+                        followupNoteText.textContent = 'Nota para CRBOX: ' + text;
+                        followupNote.style.display = 'flex';
+                    }
+                    followupBtn.disabled = false;
+                    followupBtn.innerHTML = '<i class="fas fa-sync-alt" style="font-size:.7rem;"></i> Actualizar análisis';
+                }
+            });
+        })();
 
         // ── Add another pill button → scroll to / reveal add-another card ──
         if (btnAddAnother) btnAddAnother.addEventListener('click', function() {
@@ -1494,20 +2055,29 @@
             if (bubbleText) bubbleText.textContent = productName;
             if (productBubble) productBubble.style.display = 'flex';
             if (productFields) productFields.style.display = 'none';
-            // Show loading skeleton while Gemini processes
+            // Warm loading state for add-another
+            _clearLoadingInterval();
+            _currentClarification = '';
             if (intelArea) {
-                intelArea.innerHTML = '<div class="cq-gem-wrap"><div class="cq-gem-card">'
-                    + '<div class="cq-gem-header"><div class="cq-gem-avatar">✨</div>'
-                    + '<span class="cq-gem-label">Analizando producto…</span></div>'
-                    + '<div class="cq-skel-row" style="height:14px;width:52%;margin-bottom:.65rem;"></div>'
-                    + '<div class="cq-skel-row" style="height:13px;width:100%;margin-bottom:.38rem;"></div>'
-                    + '<div class="cq-skel-row" style="height:13px;width:82%;margin-bottom:.75rem;"></div>'
-                    + '<div style="display:flex;gap:.32rem;">'
-                    + '<div class="cq-skel-row" style="height:26px;width:90px;border-radius:.52rem;"></div>'
-                    + '<div class="cq-skel-row" style="height:26px;width:110px;border-radius:.52rem;"></div>'
-                    + '</div></div></div>';
+                var _loadIdx1 = 0;
+                intelArea.className = 'cq-intel-loading';
+                intelArea.innerHTML = '<div class="cq-gem-wrap"><div class="cq-gem-card cq-loading-card">'
+                    + '<div class="cq-gem-header">'
+                    + '<div class="cq-loading-avatar">✨</div>'
+                    + '<span class="cq-loading-msg" id="cq-loading-msg">' + _LOAD_MSGS[0] + '</span>'
+                    + '</div>'
+                    + '<div class="cq-loading-sub">Esto nos ayuda a darte una guía inicial de impuestos y requisitos.</div>'
+                    + '<div class="cq-loading-dots"><span></span><span></span><span></span></div>'
+                    + '</div></div>';
                 intelArea.style.display = '';
+                _loadingInterval = setInterval(function() {
+                    _loadIdx1++;
+                    var el = document.getElementById('cq-loading-msg');
+                    if (el) el.textContent = _LOAD_MSGS[_loadIdx1 % _LOAD_MSGS.length];
+                }, 1600);
             }
+            var _followupSec = document.getElementById('cq-followup-section');
+            if (_followupSec) _followupSec.style.display = 'none';
             // Re-show product card and hide steps that await completion
             var stepProd = document.getElementById('cq-step-product');
             if (stepProd) stepProd.style.display = '';
@@ -1600,6 +2170,7 @@
                     declared_value_usd: p.declared_value_usd || 0,
                     url: p.url || '', data_source: p.aiDataSource || 'manual',
                     brain_classification: p.brainClassification || null,
+                    customer_clarification: p.clarification || '',
                 };
             });
         }
@@ -1790,14 +2361,21 @@
         // ── Reset ──────────────────────────────────────────────
         function resetFlow() {
             _clearDraft();
+            _clearLoadingInterval();
             _confirmedProducts = []; _currentBrainResult = null;
             _currentAiState = { active: false, dataSource: 'manual', inFlight: false };
+            _currentClarification = '';
             _dupWarningDismissed = false; _formSubmitted = false; lastSubmitPayload = null;
             var pillsRow = document.getElementById('cq-pills-row');
             var pillsCont = document.getElementById('cq-confirmed-pills');
             if (pillsRow) pillsRow.innerHTML = '';
             if (pillsCont) pillsCont.style.display = 'none';
             if (btnAddAnother) btnAddAnother.style.display = 'none';
+            // Clear summary cards and quote summary
+            var summaryCards = document.getElementById('cq-product-summary-cards');
+            if (summaryCards) { summaryCards.innerHTML = ''; summaryCards.style.display = 'none'; }
+            var quoteSummary = document.getElementById('cq-quote-summary');
+            if (quoteSummary) quoteSummary.style.display = 'none';
             // Restore product card visibility for next entry
             var stepProdReset = document.getElementById('cq-step-product');
             if (stepProdReset) stepProdReset.style.display = '';
@@ -1837,8 +2415,10 @@
 
         // ── Intelligence card renderer ─────────────────────────
         function _renderIntelCard(result, productName, price) {
+            _clearLoadingInterval();
             if (!intelArea) return;
             if (!result) { intelArea.innerHTML = ''; intelArea.style.display = 'none'; return; }
+            intelArea.className = ''; // remove cq-intel-loading
             intelArea.style.display = '';
 
             var hasKnownCat  = result.displayName && result.brainCategoryId !== 'unknown_manual_review';
@@ -1849,72 +2429,96 @@
             var needsConfirm = !!result.needsTeamConfirmation;
             var rate         = (!needsConfirm && result.estimatedRange) ? result.estimatedRange : '';
 
-            // ── Primary AI message (Gemini guidance takes top priority) ──
+            // ── Primary AI message ──
             var primaryText = guidance || (!hasKnownCat
                 ? (result.customerMessage || 'Un asesor CRBOX revisará este producto y te confirmará si puede importarse.')
                 : (hasRisk ? (result.customerMessage || '') : _warmIntro(productName, result)));
 
-            // ── Build badge HTML ──
-            var badgeHtml = '';
-            if (hasKnownCat) {
-                badgeHtml += '<span class="cq-gem-badge cq-gem-badge-cat"><i class="fas fa-tag"></i>' + _escHtml(result.displayName) + '</span>';
-            }
-            if (rate) {
-                badgeHtml += '<span class="cq-gem-badge cq-gem-badge-tax"><i class="fas fa-percent"></i>' + _escHtml(rate) + ' en impuestos</span>';
-            }
-            if (ship === 'maritimo') {
-                badgeHtml += '<span class="cq-gem-badge cq-gem-badge-sea"><i class="fas fa-ship"></i>Envío marítimo</span>';
-            } else if (ship === 'aereo') {
-                badgeHtml += '<span class="cq-gem-badge cq-gem-badge-air"><i class="fas fa-plane"></i>Envío aéreo</span>';
-            }
-            reqs.forEach(function(r) {
-                badgeHtml += '<span class="cq-gem-badge cq-gem-badge-req"><i class="fas fa-clipboard-check"></i>' + _escHtml(r) + '</span>';
-            });
-            // Tax dollar estimate badge (when price is known)
-            var taxEstBadge = '';
-            if (rate && price > 0) {
-                var td = _taxRange(rate, price);
-                if (td) {
-                    var dtxt = td.low === td.high ? '~$' + td.low : '~$' + td.low + '\u2013$' + td.high;
-                    taxEstBadge = '<span class="cq-gem-badge cq-gem-badge-tax" style="font-weight:800;"><i class="fas fa-coins"></i>' + dtxt + ' USD aprox.</span>';
-                }
-            } else if (rate && !price) {
-                taxEstBadge = '<span class="cq-gem-badge" style="background:#f9fafb;border-color:#e5e7eb;color:#9ca3af;font-style:italic;"><i class="fas fa-lightbulb"></i>Agrega el precio para ver el estimado</span>';
-            }
-
-            var hasBadges = badgeHtml || taxEstBadge;
-
-            // ── Split message: first sentence → lead hook, rest → body ──
+            // ── Split message: first sentence → lead, rest → body ──
             var gemLead = '', gemBody = '';
             if (primaryText) {
                 var sentMatch = primaryText.match(/^([^.!?]+[.!?]+)\s*([\s\S]*)$/);
                 if (sentMatch && sentMatch[2].trim().length > 0) {
                     gemLead = sentMatch[1].trim();
                     gemBody = sentMatch[2].trim();
-                } else {
-                    gemLead = primaryText.trim();
-                }
+                } else { gemLead = primaryText.trim(); }
             }
 
             // ── Compose card ──
             var html = '<div class="cq-gem-wrap"><div class="cq-gem-card">'
                 + '<div class="cq-gem-header">'
                 + '<div class="cq-gem-avatar">✨</div>'
-                + '<span class="cq-gem-label">Análisis CRBOX</span>'
-                + '</div>';
+                + '<span class="cq-gem-label">Análisis CRBOX</span>';
 
+            // Category badge in header row
+            if (hasKnownCat) {
+                html += '<span class="cq-gem-badge cq-gem-badge-cat" style="margin-left:auto;font-size:.7rem;"><i class="fas fa-tag"></i>' + _escHtml(result.displayName) + '</span>';
+            }
+            html += '</div>';
+
+            // Lead + body
             if (gemLead) html += '<p class="cq-gem-lead">' + _escHtml(gemLead) + '</p>';
             if (gemBody) html += '<p class="cq-gem-body">' + _escHtml(gemBody) + '</p>';
 
-            if (hasBadges) {
-                if (primaryText) html += '<div class="cq-gem-separator"></div>';
-                html += '<div class="cq-gem-badges">' + badgeHtml + taxEstBadge + '</div>';
+            // ── Tax estimate block — most prominent section ──
+            if (rate) {
+                var taxSubText = 'Estimado orientativo sobre el valor declarado en aduana.';
+                if (price > 0) {
+                    var td = _taxRange(rate, price);
+                    if (td) {
+                        var dtxt = td.low === td.high
+                            ? 'aprox. $' + td.low + ' USD'
+                            : 'aprox. $' + td.low + '–$' + td.high + ' USD';
+                        taxSubText = 'Para $' + price.toFixed(0) + ' declarados: ' + dtxt + ' en impuestos. Valor orientativo — el monto exacto lo determina la DGA al despacho.';
+                    }
+                } else {
+                    taxSubText = 'Ingresa el precio del producto para ver el estimado en dólares.';
+                }
+                html += '<div class="cq-gem-tax-block">'
+                    + '<div class="cq-gem-tax-label"><i class="fas fa-percent" style="margin-right:.28rem;font-size:.6rem;"></i>Arancel orientativo</div>'
+                    + '<div class="cq-gem-tax-rate">' + _escHtml(rate) + '</div>'
+                    + '<div class="cq-gem-tax-sub">' + _escHtml(taxSubText) + '</div>'
+                    + '</div>';
+            } else if (!rate && price > 0 && !needsConfirm) {
+                // No rate known but price entered
+                html += '<div style="font-size:.73rem;color:#9ca3af;margin:.1rem 0 .55rem;font-style:italic;">El arancel exacto lo confirma un asesor CRBOX.</div>';
             }
 
+            // ── Shipping recommendation block ──
+            if (ship === 'maritimo') {
+                html += '<div class="cq-gem-ship-block">'
+                    + '<i class="fas fa-ship cq-gem-ship-icon"></i>'
+                    + '<div><div class="cq-gem-ship-text">Recomendado: Envío marítimo</div>'
+                    + '<div class="cq-gem-ship-sub">Ideal por tamaño o peso de este tipo de producto.</div></div>'
+                    + '</div>';
+            } else if (ship === 'aereo') {
+                html += '<div class="cq-gem-ship-block">'
+                    + '<i class="fas fa-plane cq-gem-ship-icon"></i>'
+                    + '<div><div class="cq-gem-ship-text">Recomendado: Envío aéreo</div>'
+                    + '<div class="cq-gem-ship-sub">Rápido — ideal para este tipo de artículo.</div></div>'
+                    + '</div>';
+            }
+
+            // ── Requirements / compliance badges ──
+            if (reqs.length) {
+                html += '<div class="cq-gem-badges" style="margin-top:.1rem;">';
+                reqs.forEach(function(r) {
+                    html += '<span class="cq-gem-badge cq-gem-badge-req"><i class="fas fa-clipboard-check"></i>' + _escHtml(r) + '</span>';
+                });
+                html += '</div>';
+            }
+
+            // ── Team-review notice ──
             if (needsConfirm) {
                 html += '<div class="cq-gem-notice"><i class="fas fa-user-check"></i>'
                     + '<span>Un asesor CRBOX revisará este producto y te confirmará el proceso y los costos exactos.</span></div>';
             }
+
+            // ── Disclaimer footnote ──
+            html += '<div class="cq-gem-disclaimer">'
+                + '<i class="fas fa-info-circle"></i>'
+                + '<span>Los porcentajes mostrados son orientativos — el arancel exacto lo calcula la Dirección General de Aduanas de Costa Rica al momento del despacho y puede variar según modelo, origen y normativa vigente.</span>'
+                + '</div>';
 
             html += '</div></div>'; // .cq-gem-card / .cq-gem-wrap
             intelArea.innerHTML = html;
@@ -1936,9 +2540,9 @@
             var name = (productName || 'Este producto').trim();
             var cat  = result.displayName || '';
             var rate = result.estimatedRange || '';
-            var intros = [name + ' se clasifica en la categoría ' + cat + '.', '¡Buena elección! ' + name + ' entra en ' + cat + '.', name + ' normalmente se importa como ' + cat + '.'];
+            var intros = [name + ' entra en la categoría ' + cat + '.', '¡Buena elección! ' + name + ' se importa como ' + cat + '.', name + ' normalmente se clasifica como ' + cat + '.'];
             var intro = intros[(name.charCodeAt(0) || 0) % intros.length];
-            if (rate) intro += ' Esta categoría suele pagar aprox. ' + rate + ' en impuestos.';
+            if (rate) intro += ' El arancel orientativo para esta categoría es de aprox. ' + rate + ' (valor referencial — el monto exacto lo determina la DGA).';
             return intro;
         }
 
