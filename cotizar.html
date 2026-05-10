@@ -4770,18 +4770,34 @@
             return null;
         }
 
-        // _warmIntro / _ambiguousIntro are emergency fallbacks only — shown when Gemini
-        // is unavailable or the server call fails. Under normal conditions geminiGuidance
-        // from the classify API is used instead (see _renderIntelCard primaryText logic).
+        // _warmIntro / _ambiguousIntro — shown when Gemini guidance is unavailable.
+        // Under normal conditions geminiGuidance from classify API takes priority.
         function _warmIntro(productName, result) {
             var name = (productName || 'este producto').trim();
-            var cat  = result.displayName || 'esta categoría';
-            return 'Podemos importar ' + name + ' como ' + cat + '. Ingresá el precio aproximado y el equipo CRBOX confirma impuestos y cotización final.';
+            var cat  = result && result.displayName ? result.displayName : '';
+            var rate = result && result.estimatedRange ? result.estimatedRange : '';
+            var INTROS = [
+                'Excelente elección.' + (cat ? ' Lo clasificamos como <strong>' + cat + '</strong>.' : '') + ' Ingresá el precio aproximado para calcular impuestos y flete a Costa Rica.',
+                '¡' + name + ' es muy popular en CRBOX!' + (rate ? ' El arancel estimado para esta categoría es del <strong>' + rate + '</strong>.' : '') + ' Completá el precio para ver el estimado completo.',
+                'Lo tenemos muy bien catalogado.' + (cat ? ' Categoría: <strong>' + cat + '</strong>.' : '') + ' Ingresá el precio y te mostramos el estimado de impuestos al instante.',
+                'Llevamos más de 10 años importando este tipo de productos. Completá el precio aproximado y el equipo CRBOX se encarga del resto.',
+                '¡Buena elección!' + (cat ? ' En la categoría <strong>' + cat + '</strong>' : '') + (rate ? ' el arancel típico es del <strong>' + rate + '</strong>.' : '.') + ' Ingresá el precio para calcular el estimado.',
+                'Podemos importar ' + name + ' para vos directamente desde USA.' + (cat ? ' Categoría detectada: <strong>' + cat + '</strong>.' : '') + ' ¿Cuánto cuesta aproximadamente?',
+                'Este producto entra sin problema a Costa Rica.' + (rate ? ' Arancel orientativo: <strong>' + rate + '</strong>.' : '') + ' Completá el precio y calculamos impuestos en segundos.',
+                (cat ? 'Categoría identificada: <strong>' + cat + '</strong>. ' : '') + 'El equipo CRBOX revisa cada detalle — tamaño, peso, arancel — para darte un estimado real. Ingresá el precio.'
+            ];
+            return INTROS[Math.floor(Math.random() * INTROS.length)];
         }
 
         function _ambiguousIntro(productName) {
             var name = (productName || 'este producto').trim();
-            return 'Podemos revisar ' + name + ' para vos. Agregá el enlace del producto o describí el tipo exacto y el equipo CRBOX confirma clasificación y costos en menos de 24 horas.';
+            var INTROS = [
+                'Para darte un estimado preciso de ' + name + ', un asesor CRBOX lo revisará personalmente. Completá el formulario y te contactamos en menos de 24 horas.',
+                'Este producto requiere una revisión por parte de nuestro equipo — distintos modelos pueden tener aranceles muy distintos. Agrega el precio y nos comunicamos pronto.',
+                'Buena elección. Por las características de ' + name + ', nuestro equipo lo revisará individualmente. Completá el precio y te llegará un estimado preciso pronto.',
+                'No te preocupés — aunque necesita revisión especial, lo importamos. Dejá el precio estimado y un asesor CRBOX te escribe con todos los detalles.'
+            ];
+            return INTROS[Math.floor(Math.random() * INTROS.length)];
         }
 
         var _CAT_LABEL_MAP = {
@@ -4864,8 +4880,6 @@
         })();
 
         // ── Desktop chat module (≥641px) ────────────────────────────────────
-        // Deferred via double-rAF so window.innerWidth is reliable in iframes.
-        requestAnimationFrame(function() { requestAnimationFrame(function() {
         (function _deskChat() {
             // Defer init until after iframe sizing; treat width==0 as desktop
             var _iw = window.innerWidth || document.documentElement.clientWidth || 9999;
@@ -5136,11 +5150,11 @@
                         +       '</select>'
                         +     '</div>'
                         +     (needEmail
-                        +         ? '<div>'
-                        +           '<label class="cqd-ship-field-label" for="' + swId + '-email">Tu correo electrónico <span style="color:#ef4444">*</span></label>'
-                        +           '<input type="email" class="cqd-ship-email-inp" id="' + swId + '-email" placeholder="tucorreo@ejemplo.com" autocomplete="email">'
-                        +           '</div>'
-                        +         : '<div style="font-size:.78rem;color:#6b7280;padding:.3rem 0;">📧 Enviamos el estimado a <strong>' + _esc(_userEmail) + '</strong></div>')
+                              ? ('<div>'
+                                + '<label class="cqd-ship-field-label" for="' + swId + '-email">Tu correo electrónico <span style="color:#ef4444">*</span></label>'
+                                + '<input type="email" class="cqd-ship-email-inp" id="' + swId + '-email" placeholder="tucorreo@ejemplo.com" autocomplete="email">'
+                                + '</div>')
+                              : '<div style="font-size:.78rem;color:#6b7280;padding:.3rem 0;">📧 Enviamos el estimado a <strong>' + _esc(_userEmail) + '</strong></div>')
                         +   '</div>'
                         +   '<div class="cqd-ship-confirm-wrap">'
                         +     '<button class="cqd-ship-submit-btn" id="' + swId + '-submit" type="button">'
@@ -5415,7 +5429,6 @@
             // ── Boot ─────────────────────────────────────────────────────────
             requestAnimationFrame(function() { requestAnimationFrame(function() { _boot(); }); });
         })(); // end _deskChat
-        }); }); // end double-rAF deferral
 
     })();
     </script>
@@ -5448,5 +5461,6 @@
     </div>
 
     <div id="toast-container" class="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 items-end pointer-events-none" aria-live="polite"></div>
+
 </body>
 </html>

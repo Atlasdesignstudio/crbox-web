@@ -1,0 +1,116 @@
+Please revise the informational benefit cards shown in the `cotizar` experience. The current content is not acceptable because some claims feel unsupported or misleading.
+
+Specific changes:
+
+1. Remove the “Ahorrás hasta un 60%” claim
+
+Current card:
+“Consolidá tu envío”
+“Traé varios productos en un solo paquete y dividí el flete. Ahorrás hasta un 60% en comparación a envíos separados.”
+
+Issue:
+The “up to 60%” claim sounds unsupported and should not be used unless there is a real, verified calculation behind it.
+
+Replace with a more truthful consolidation message.
+
+Suggested direction:
+Title:
+“Consolidá tus productos”
+
+Copy:
+“Agregá varios productos a una misma solicitud para que el equipo CRBOX pueda revisar cómo aprovechar mejor tu envío.”
+
+Alternative:
+“Podés cotizar varios productos juntos y nuestro equipo revisará la mejor forma de organizarlos según peso, dimensiones y tipo de envío.”
+
+Important:
+Do not promise exact savings.
+Do not claim a percentage.
+Do not say the user will definitely save money.
+
+2. Rewrite “Estimado en minutos”
+
+Current card:
+“Estimado en minutos”
+“Describís el producto y nuestro sistema calcula impuestos, flete y costos al instante — sin formularios largos.”
+
+Issue:
+This overpromises instant calculation of all costs. The current flow is more about helping the user send a quote request in a few steps and then CRBOX responds as soon as possible.
+
+Replace with language that explains the real value: a shorter, guided request process.
+
+Suggested title:
+“Solicitud en pocos pasos”
+
+Suggested copy:
+“Describís lo que querés traer, agregás algunos detalles y enviás tu solicitud. El equipo CRBOX te responderá con la cotización lo antes posible.”
+
+Alternative:
+“En pocos pasos podés contarnos qué querés traer y enviar tu solicitud para que CRBOX revise los detalles y te contacte con el estimado.”
+
+Important:
+Do not say all taxes, shipping, and costs are calculated instantly if that is not fully true.
+Do not overpromise immediacy.
+Keep the tone clear and friendly.
+
+3. Change the “Sin cuenta requerida” message
+
+Current card:
+“Sin cuenta requerida”
+“No necesitás crear cuenta para cotizar. Solo tu nombre y correo — nuestro equipo te escribe con el estimado.”
+
+Issue:
+The idea is not bad, but we should not discourage account creation. The product should allow a quote request without making the user feel blocked, while still encouraging account creation as a positive next step.
+
+Replace with a more balanced message.
+
+Suggested title:
+“Cotizá fácil”
+
+Suggested copy:
+“Podés iniciar tu solicitud con datos básicos. Y si creás tu cuenta CRBOX, vas a poder dar seguimiento a tus paquetes y gestionar tus envíos más fácilmente.”
+
+Alternative:
+“Empezá con tus datos básicos y, cuando estés listo, creá tu cuenta CRBOX para dar seguimiento y gestionar tus envíos.”
+
+Important:
+Do not frame “no account required” as the main benefit.
+Encourage account creation as useful and valuable, without making it feel mandatory.
+
+4. Update the experience claim from 10+ years to 20+ years
+
+Current card:
+“10+ años importando”
+“Más de una década trayendo productos de USA a Costa Rica. Conocemos cada trámite, arancel y ruta.”
+
+Change to:
+“20+ años importando”
+
+Suggested copy:
+“Más de dos décadas trayendo productos de USA a Costa Rica. Conocemos el proceso, las rutas y los detalles que hacen que tu envío llegue bien.”
+
+Alternative:
+“Más de 20 años ayudando a traer productos de USA a Costa Rica, con experiencia en rutas, procesos y revisión de envíos.”
+
+Tone:
+Confident but not exaggerated.
+Avoid saying “conocemos cada trámite, arancel y ruta” if it sounds too absolute.
+
+5. Overall copy principles for these cards
+
+The cards should feel:
+- truthful
+- warm
+- helpful
+- conversion-oriented
+- clear
+- trustworthy
+
+Avoid:
+- unsupported numbers
+- fake savings claims
+- instant-cost promises
+- anything that sounds like marketing exaggeration
+- discouraging account creation
+
+The purpose of these cards is to build trust and reduce friction, not to overpromise.
