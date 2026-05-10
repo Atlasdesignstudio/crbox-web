@@ -2577,6 +2577,78 @@
                 display: flex; gap: .4rem; align-items: flex-start;
             }
             .cqd-addmore-consolidation i { color: #FF6B00; flex-shrink: 0; margin-top: .1rem; }
+
+            /* ══════════════════════════════════════════════════════════
+               EDITORIAL DESIGN — applied from Editorial mockup variant
+               Dot-grid background · left-border bot messages · charcoal
+               user bubbles · structured command bar · insight aside block
+            ══════════════════════════════════════════════════════════ */
+
+            /* 1 · Background — warm linen with subtle dot-grid */
+            .cqd-left {
+                background: #F5F3EF;
+                background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,.055) 1px, transparent 0);
+                background-size: 24px 24px;
+            }
+            .cqd-left::before { display: none; }
+
+            /* 2 · User bubble — dark charcoal instead of orange-tinted */
+            .cqd-row.user .cqd-bubble {
+                background: #1F2937;
+                border-color: #1F2937;
+                color: #fff;
+                border-radius: .85rem .1rem .85rem .85rem;
+            }
+
+            /* 3 · Bot bubble — left orange border accent, warm bg */
+            .cqd-row.bot .cqd-bubble {
+                background: #FAF9F7;
+                border: none;
+                border-left: 2px solid rgba(255,107,0,.38);
+                padding: .68rem 1rem .68rem .9rem;
+                border-radius: 0 .85rem .85rem 0;
+            }
+
+            /* 4 · Gemini insight text — warm aside block with left orange rule */
+            .cqd-gem-text {
+                background: #FAF7F2;
+                border-left: 2px solid #FF6B00;
+                padding: .62rem .85rem;
+                border-radius: 0 .5rem .5rem 0;
+                font-style: italic;
+                color: #374151;
+                margin-bottom: .9rem;
+            }
+
+            /* 5 · Widget action strip — gray footer to separate from card body */
+            .cqd-widget .cqd-actions {
+                margin: 1rem -1.25rem -1.2rem;
+                padding: .85rem 1.25rem .95rem;
+                background: #f9fafb;
+                border-top: 1px solid #eee;
+                border-radius: 0 0 .6rem .6rem;
+            }
+            .cqd-btn { border-radius: .45rem; }
+
+            /* 6 · Command bar — rectangular, structured (not pill) */
+            .cqd-input-wrap::before { display: none; }
+            .cqd-input-inner {
+                border-radius: .65rem;
+                border: 1.5px solid #d1d5db;
+                box-shadow: 0 2px 10px rgba(0,0,0,.04);
+            }
+            .cqd-input-inner:focus-within {
+                border-color: rgba(255,107,0,.65);
+                box-shadow: 0 2px 14px rgba(0,0,0,.06);
+            }
+            .cqd-input-bar {
+                background: #fff;
+                border-top: 1px solid #e5e7eb;
+                padding: .875rem 2rem 1.1rem;
+            }
+
+            /* 7 · Send button — slightly square to match editorial grid */
+            .cqd-send-btn { border-radius: .5rem; width: 36px; height: 36px; }
         }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
