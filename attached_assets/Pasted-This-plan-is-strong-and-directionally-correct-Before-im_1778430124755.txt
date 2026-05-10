@@ -1,0 +1,280 @@
+This plan is strong and directionally correct. Before implementation, please apply the following final refinements to make the scope clearer, strengthen the Gemini behavior, and allow the visual design to reach a much higher level.
+
+1. Clarify the Gemini scope
+
+The most important issue is the quality and consistency of the user-facing Gemini experience.
+
+The plan currently says AI classification logic / Gemini system prompt is out of scope, but also lists `js/product-classifier.js` as relevant. Please resolve this contradiction.
+
+Preferred approach:
+- First, improve how `cotizar.html` normalizes inputs, interprets Product Brain output, and renders the user-facing response.
+- If that is not enough to guarantee warm, intelligent responses for inputs like “café”, “ropa”, “zapatos”, chips, and popular pills, allow minimal changes to the classifier/prompt layer only for response quality and consistency.
+- Do not change backend behavior, data contracts, or numerical calculation logic.
+
+The priority is that the user-facing response always feels Gemini-led and intelligent, not like raw Product Brain text.
+
+2. Product Brain must remain the numerical source of truth
+
+Keep this principle explicit throughout the implementation:
+
+Product Brain owns:
+- category
+- known tariff/rate
+- factual restrictions
+- calculation basis
+- numerical estimates
+
+Gemini owns:
+- interpretation
+- explanation
+- tone
+- uncertainty handling
+- user guidance
+- helpful product-specific context
+
+Gemini must never invent or modify rates, tax amounts, totals, shipping prices, or guaranteed savings.
+
+3. Do not over-template Gemini into a rigid response
+
+The A–E structure is useful as a response standard, but Gemini should not sound formulaic.
+
+The response should include those ideas, but not necessarily as the same exact pattern every time.
+
+Avoid making every product response feel like:
+“Perfecto… Esto suele… Con el precio… Agrega… El equipo…”
+
+The response should feel tailored to the product:
+- coffee should mention food/import review carefully
+- shoes should mention footwear/category
+- perfume should mention possible special handling/review
+- electronics should mention value and category clarity
+- toys should mention likely simpler category
+
+Keep it concise, but genuinely contextual.
+
+4. Strengthen unknown-product handling
+
+If Product Brain confidence is low or the product is ambiguous, do not force a precise category.
+
+Use a friendly “requiere revisión” state.
+
+Expected experience:
+- Gemini interprets what the product might be.
+- It explains uncertainty clearly.
+- It asks for one useful detail only if needed.
+- It invites the user to add a product link or clarification.
+- It does not show fake precision.
+
+Example:
+“Puedo ayudarte a revisarlo, pero no estoy 100% seguro de la categoría exacta con esta descripción. Si agregas el enlace o una breve aclaración, el equipo CRBOX podrá confirmarlo con más precisión.”
+
+5. Do not make the UI overly wide just because the max-width is 1100px
+
+The goal is not simply to expand the card.
+
+The goal is a composed editorial workspace.
+
+When widening:
+- avoid stretched content
+- avoid huge empty gaps
+- avoid dashboard feeling
+- use generous spacing intentionally
+- create clear zones with purpose
+- keep reading lines comfortable
+- keep the main analysis easy to scan
+
+If 1100px feels too wide in practice, adjust to the best width for readability and composition. The visual outcome matters more than the exact number.
+
+6. Make the right-side panel more action-oriented
+
+The right side should not feel like another dense form column.
+
+It should clearly answer:
+- What do I need to add?
+- What does the price mean?
+- What is the estimated tax amount?
+- What will CRBOX calculate later?
+- What can I do next?
+
+The price/tax estimate should be the hero of the right side once price is entered.
+
+7. Make the left-side panel more editorial and less paragraph-heavy
+
+The left side should not become a long Gemini paragraph.
+
+Use:
+- strong headline
+- short helpful explanation
+- category badge
+- compact import context
+- optional clarification field as secondary
+
+Avoid dense text blocks.
+
+8. CTA behavior is more important than CTA styling
+
+Make sure the buttons actually represent different actions.
+
+“Agregar producto”:
+- adds the current product to the cart/request
+- keeps the user in product-building mode
+- shows the product in “Productos en tu solicitud”
+- prepares the interface to add another product
+
+“Continuar con la solicitud”:
+- moves the user to the existing contact/shipping/details flow
+- does not add a duplicate product
+- does not go to the add-another-product state
+- does not skip required fields
+
+Do not mark this task complete if both actions still feel or behave the same.
+
+9. Cart persistence is mandatory
+
+After adding a product, the user must always see it in a persistent cart-like section.
+
+The cart should not disappear.
+The product should not be lost.
+The user should not be sent to a disconnected add-product panel.
+
+The cart should make the user feel:
+“My request now contains this product.”
+
+10. Keep progressive disclosure strict
+
+Optional elements should stay visually quiet:
+- product URL
+- clarification
+- category correction
+- disclaimers
+
+Do not show all optional fields open by default.
+Do not give optional fields the same visual weight as price, estimate, product understanding, and actions.
+
+11. Reconsider the step labels if needed
+
+The stepper should be useful, not decorative.
+
+If “Producto → Solicitud → Datos” feels abstract, refine it to match the actual journey more clearly.
+
+Possible direction:
+- Producto
+- Productos
+- Datos
+
+Or:
+- Producto
+- Solicitud
+- Datos
+
+Choose the version that best matches what the user is doing.
+
+The user should always understand:
+- I am analyzing/adding a product.
+- I am reviewing products in my request.
+- I am completing the final details.
+
+12. Keep the hero transition elegant but not distracting
+
+The hero should not awkwardly shrink or feel like it breaks.
+
+When entering builder mode:
+- the transition should feel intentional
+- the builder should become the focus
+- the user should land at the top of the builder workspace
+- the footer should never become the main visible area
+- the user should not feel the page jumped randomly
+
+13. Tighten language around estimates
+
+Every estimate must remain clearly orientative.
+
+Use:
+- “aprox.”
+- “estimado”
+- “orientativo”
+- “guía inicial”
+
+Avoid:
+- “precio final”
+- “vas a pagar”
+- “calculado exacto”
+- “garantizado”
+- “ahorro asegurado”
+
+Especially check:
+- tax amount
+- arancel percentage
+- declared value
+- cart totals
+- summary labels
+- breakdown preview
+
+14. Make the design quality checklist part of acceptance, not just review
+
+Do not treat the checklist as optional.
+
+The implementation should only be considered done if:
+- the first glance is clear
+- the product response feels intelligent
+- the main estimate is visually dominant
+- optional fields are quiet
+- the layout breathes
+- the cart feels persistent
+- CTAs are distinct
+- mobile is clean
+- it still feels like CRBOX
+
+15. Add creative freedom for the visual design
+
+Please treat the visual design recommendations as guidance, not as rigid constraints.
+
+You have creative freedom to elevate the UI as much as possible, as long as the experience remains clearly CRBOX, usable, trustworthy, and aligned with the quote-builder journey.
+
+Keep the CRBOX orange as an important brand anchor, but do not feel limited to using only the current orange-heavy treatment everywhere.
+
+You may explore a more modern and premium visual system using:
+- softer neutrals
+- warmer off-white / cream backgrounds
+- subtle orange accents
+- refined typography hierarchy
+- lighter cards
+- editorial spacing
+- soft dividers instead of heavy borders
+- elegant shadows
+- more polished microinteractions
+- better visual balance between white space and content
+- a calmer, more premium surface system
+
+The goal is not to preserve every existing visual treatment. The goal is to make the experience feel significantly more modern, editorial, premium, and easy to use while still feeling like CRBOX.
+
+Do not make it look like an admin dashboard.
+Do not make it overly orange or visually noisy.
+Do not make every card compete for attention.
+
+Use orange intentionally:
+- for primary actions
+- active states
+- key highlights
+- important estimate accents
+- CRBOX brand moments
+
+But allow the rest of the interface to breathe with neutral, elegant, modern UI choices.
+
+The suggestions in the plan are not strict layout requirements. If there is a better visual solution that achieves the same UX goals, use it.
+
+The final design should feel like a best-in-class modern quote builder, not just a prettier version of the existing form.
+
+16. Final acceptance priority
+
+If time or complexity becomes an issue, prioritize in this order:
+
+1. Gemini-led intelligent responses across all entry points.
+2. Correct CTA behavior: add product vs continue.
+3. Persistent cart-like “Productos en tu solicitud.”
+4. Price-to-tax estimate clarity and live update.
+5. Editorial workspace layout.
+6. Progressive disclosure of optional fields.
+7. Stepper and transition polish.
+
+The final result should not merely be a wider two-column card. It should feel like a coherent guided quote builder with a smart CRBOX assistant and a persistent product request cart.

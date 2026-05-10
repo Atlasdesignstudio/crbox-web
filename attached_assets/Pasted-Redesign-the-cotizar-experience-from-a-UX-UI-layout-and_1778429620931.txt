@@ -1,0 +1,492 @@
+Redesign the `cotizar` experience from a UX/UI, layout, and navigation perspective only.
+
+Do not think of this as a form polish task. Think of it as redesigning the quote journey into a premium, editorial, guided quote builder for CRBOX.
+
+The goal is to make the experience feel clear, beautiful, spacious, warm, and highly usable — closer to the clarity of Shopify/Airbnb-style purchase flows or a refined cart-building experience — while still feeling like CRBOX.
+
+Do not focus on technical implementation in the plan. Focus on the desired user experience, visual hierarchy, layout logic, interaction flow, and navigation behavior.
+
+Core principle:
+The user is not “filling out a form.”
+The user is building a shipment quote request with CRBOX’s help.
+
+The experience should guide the user step by step without overwhelming them.
+
+UX vision:
+The page should move through a clear journey:
+
+1. User intent:
+“What do you want to bring to Costa Rica?”
+
+2. Product understanding:
+“CRBOX understands what you want to bring and explains it clearly.”
+
+3. Useful estimate:
+“With an approximate price, CRBOX gives an orientative tax estimate.”
+
+4. Final quote context:
+“CRBOX explains what else will be considered in the final quote.”
+
+5. Product cart:
+“The product is added to the user’s quote request.”
+
+6. Next decision:
+“The user can add another product or continue with the quote request.”
+
+7. Contact/shipping details:
+“The user provides the information needed for CRBOX to complete the quote.”
+
+This chronology must be visually obvious.
+
+Important UX problem to solve:
+The current experience still feels like a dense form inside a centered card. It does not use the viewport well, it jumps between states, and the user loses the sense of where they are in the quote journey.
+
+The new experience should feel more editorial and spacious. Avoid trapping everything inside one narrow centered container. Use the viewport intelligently. Let the layout breathe. Create a clear quote-builder workspace.
+
+Desired layout direction:
+
+Initial hero:
+- Keep the hero simple and emotional.
+- The main question should remain prominent:
+  “¿Qué te gustaría traer a Costa Rica?”
+- The input should feel like the start of a conversation.
+- Chips and popular products should feel like shortcuts into the same experience, not separate flows.
+
+After the user submits a product:
+The page should transition into a quote-builder workspace.
+
+This workspace should feel like a new focused mode, not like the page randomly jumped downward.
+
+The user should immediately understand:
+“I am now building my quote request.”
+
+Suggested builder layout on desktop:
+Use a spacious, editorial workspace that takes advantage of the viewport.
+
+Do not keep everything locked in a small central card.
+
+A strong direction would be:
+
+Left / main storytelling area:
+- Product understanding.
+- Friendly CRBOX analysis.
+- Category explanation.
+- Helpful import/tax context.
+- Clarification field if needed.
+
+Right / action and estimate area:
+- Product link.
+- Approximate price.
+- Estimated tax amount.
+- What CRBOX will calculate later.
+- Product action buttons.
+
+Below or nearby:
+- Products in the quote request, shown like a cart/list.
+- Add another product.
+- Continue with the request.
+
+The layout should feel intentional:
+- Left side = “what CRBOX understands.”
+- Right side = “what the user needs to complete and what the estimate means.”
+- Bottom/cart area = “what has been added to the quote request.”
+
+Mobile:
+- Stack everything naturally.
+- Product understanding first.
+- Price and estimate second.
+- Actions third.
+- Products in request after adding.
+- Contact/shipping flow after continuing.
+- No horizontal overflow.
+- Buttons should be easy to tap.
+
+Do not create a heavy dashboard. This should feel editorial, premium, and guided — not like an admin panel.
+
+Conversational interpretation:
+Every product input must be treated as a natural product request.
+
+Examples:
+- “café” means “quiero traer café.”
+- “ropa” means “quiero traer ropa.”
+- “zapatos” means “quiero traer zapatos.”
+- “un peluche” means “quiero traer un peluche.”
+
+The user-facing response should always feel warm, tailored, and helpful.
+
+Avoid cold database-style responses like:
+“zapatos normalmente se clasifica como Calzado.”
+“ropa entra en la categoría Ropa.”
+
+Better direction:
+“Buenísimo, los zapatos suelen entrar dentro de la categoría Calzado. Con el precio aproximado podemos darte una guía inicial de impuestos, y luego el equipo CRBOX revisará peso, dimensiones y detalles finales para confirmar la cotización.”
+
+Or:
+“Perfecto, podemos ayudarte a revisar café para traerlo a Costa Rica. Este tipo de producto puede requerir una revisión más cuidadosa según presentación y categoría, así que te mostraremos una guía inicial y el equipo CRBOX confirmará el precio final.”
+
+Every entry point must feel the same:
+- Manual typing.
+- Pressing Enter.
+- Clicking the arrow.
+- Clicking a quick chip.
+- Clicking “Populares hoy.”
+
+No entry point should produce a colder, shorter, or more robotic experience.
+
+Information hierarchy:
+The user should not be overwhelmed with all information at once.
+
+Use progressive disclosure:
+- Show what matters at the moment.
+- Keep secondary details available but visually quieter.
+- Do not place every field, note, and explanation at the same level.
+
+The visual priority should be:
+
+First:
+- What product was understood.
+- Whether CRBOX can help bring it.
+- Likely category or important note.
+
+Second:
+- Approximate price input.
+- Estimated tax amount.
+- Clear explanation that this is orientative.
+
+Third:
+- What else CRBOX will calculate later.
+- Product link and clarification fields.
+- Category correction if needed.
+
+Fourth:
+- Add product / continue.
+- Products already added.
+
+Cost hierarchy:
+Do not make the arancel percentage the main hero number after the user enters a price.
+
+Before price:
+The arancel/rate can be shown as context.
+
+After price:
+The estimated dollar amount should become the main cost insight.
+
+Example:
+“Impuestos estimados sobre este producto”
+“aprox. $24 USD”
+“Basado en un arancel orientativo de aprox. 29% sobre $84 declarados.”
+
+This amount should be visually prominent, beautiful, and easy to understand.
+
+The percentage should remain visible but secondary.
+
+The user should clearly understand:
+- The price they entered is used as a reference.
+- The estimated taxes are only orientative.
+- The final quote depends on more factors.
+
+Final quote breakdown:
+Add a clear and beautiful explanation of what CRBOX will consider in the final quote.
+
+Suggested title:
+“¿Qué se tomará en cuenta para la cotización final?”
+
+Suggested items:
+- Precio declarado del producto.
+- Impuestos estimados.
+- Peso y dimensiones del paquete.
+- Tipo de envío.
+- Revisión final del equipo CRBOX.
+
+Suggested note:
+“Por ahora te mostramos una guía inicial. El equipo CRBOX revisará la información y te enviará el precio final.”
+
+This should be visual and reassuring, not technical or legal-heavy.
+
+Product link:
+The product link should be optional and secondary.
+
+Use friendly helper copy:
+“Pega el enlace para que el equipo CRBOX pueda revisar el producto con más precisión.”
+
+Do not imply that the link is instantly analyzed if it is not.
+
+Clarification field:
+The clarification field should feel like part of the product understanding flow, not a detached block.
+
+Suggested label:
+“¿Algo importante sobre este producto?”
+
+Suggested placeholder:
+“Ej: es usado, son 2 unidades, viene con cargador…”
+
+This field should be secondary. It should not dominate the page.
+
+Its purpose:
+- Let the user add useful context.
+- Help CRBOX review the quote.
+- Improve the analysis when possible.
+
+It should not make the product name messy or confusing.
+
+Category correction:
+The category correction should be available but visually quiet.
+
+Suggested wording:
+“¿La categoría no parece correcta?”
+
+It should not feel like an admin tool.
+
+Keep the detected category visible.
+Allow correction only if needed.
+Do not make category correction the main task.
+
+CTA hierarchy:
+The actions must represent different decisions.
+
+“Agregar producto” means:
+- Add this product to the quote request/cart.
+- Keep the user in the quote builder.
+- Show the product in a visible list.
+- Prepare the interface to add another product.
+
+“Continuar con la solicitud” means:
+- Move forward to the existing contact/shipping/details step.
+- Ask for the information needed to complete the quote request.
+- It must not behave the same as “Agregar producto.”
+
+The two buttons must not lead to the same state.
+
+The hierarchy should be clear:
+- “Agregar producto” can be primary while building the cart.
+- “Continuar con la solicitud” should become the main next step once at least one product is added.
+- Do not show “Enviar solicitud de cotización” too early if contact/shipping details are still required.
+- Use “Continuar con la solicitud” until the actual final request submission step.
+
+Product cart behavior:
+After the user adds a product, it must remain visible.
+
+Create a cart-like section:
+“Productos en tu solicitud”
+
+Each product summary should show:
+- Product name.
+- Category.
+- Approximate declared value, if provided.
+- Estimated tax amount or range, clearly labelled as estimated.
+- Status, such as:
+  “Listo para cotizar”
+  or
+  “Falta precio aprox.”
+- Remove action.
+- Edit action only if it can be done cleanly.
+
+The user should never lose sight of what they already added.
+
+Adding a product should feel like:
+- The product smoothly collapses into the quote request list.
+- The list remains visible.
+- A new product input becomes available.
+- The user can add another product or continue.
+
+It should not feel like:
+- The page reloads.
+- The user is sent to an unrelated “add another product” state.
+- The footer becomes the main visible thing.
+- The previous product disappears.
+
+Navigation behavior:
+Scroll and state transitions are critical.
+
+After submitting a product:
+- Scroll to the beginning of the quote-builder workspace.
+- Do not scroll to the price field.
+- Do not scroll to the footer.
+- Do not leave the user disoriented.
+
+After adding a product:
+- Keep the user near the products-in-request/cart area.
+- Show confirmation visually.
+- Make the next action obvious:
+  “Agregar otro producto” or “Continuar con la solicitud.”
+
+After continuing:
+- Move to the existing contact/shipping/details form.
+- The user should understand they are now completing the quote request.
+
+Suggested step logic:
+1. Producto
+2. Solicitud
+3. Datos
+4. Confirmación
+
+This does not need to be a heavy stepper, but the user should always know where they are.
+
+Visual style:
+Make the experience:
+- Spacious.
+- Editorial.
+- Premium.
+- Warm.
+- Clear.
+- Human.
+- Calm.
+- Easy to scan.
+
+Avoid:
+- Dense text blocks.
+- Tiny important numbers.
+- Too many cards with equal weight.
+- Heavy dashboard aesthetics.
+- Admin-tool feeling.
+- Robotic copy.
+- Form overload.
+- Random scroll jumps.
+- Hidden confirmed products.
+
+Use:
+- Strong headings.
+- Clear modules.
+- Softer supporting text.
+- Prominent estimate numbers.
+- Purposeful spacing.
+- Smooth transitions.
+- Cart-like product summaries.
+- Visually distinct primary and secondary actions.
+
+Language:
+Use Spanish that feels:
+- Friendly.
+- Practical.
+- Reassuring.
+- Clear.
+- Costa Rica-friendly.
+- Non-technical.
+
+Avoid:
+- Robotic language.
+- Legal-heavy language.
+- Overly technical customs language.
+- Claims of final exact price.
+- Guaranteed savings.
+
+Always communicate estimates as:
+- “aprox.”
+- “estimado”
+- “orientativo”
+
+Examples:
+“Esta es una guía inicial.”
+“El equipo CRBOX revisará la información antes de confirmar el precio final.”
+“Traer varios productos juntos puede ayudarte a aprovechar mejor el envío, sujeto a peso, dimensiones y revisión final.”
+“Con el precio aproximado podemos estimar mejor los impuestos.”
+
+Do not promise:
+- exact final price
+- guaranteed savings
+- automatic approval
+- final tax certainty
+
+Important experience principle:
+Show value before asking for effort.
+
+Before asking the user to fill many fields, first show:
+- What product was understood.
+- What category it likely belongs to.
+- What estimate can be provided.
+- What CRBOX will review later.
+
+Then ask for more details.
+
+This keeps the experience helpful instead of demanding.
+
+Desired final flow:
+
+1. User writes or selects a product.
+2. Warm loading appears.
+3. Quote-builder workspace opens.
+4. Product is explained in a friendly way.
+5. User sees likely category and orientative context.
+6. User enters approximate price.
+7. Estimated dollar taxes update and become prominent.
+8. User sees what CRBOX will calculate later.
+9. User adds product to request.
+10. Product appears in “Productos en tu solicitud.”
+11. User can add another product or continue.
+12. Continue opens the existing contact/shipping/details form.
+13. User submits final request.
+14. Confirmation explains that CRBOX will review and contact them with the final quote.
+
+QA scenarios:
+
+A. Type “café”
+Expected:
+- Treated as a conversational request.
+- Warm tailored response.
+- No cold category-only output.
+
+B. Type “un café”
+Expected:
+- Same quality as “café.”
+- No difference caused by grammar/article.
+
+C. Type “ropa”
+Expected:
+- Warm tailored response.
+- No robotic database response.
+
+D. Type “zapatos”
+Expected:
+- Warm tailored response.
+- Approximate price updates estimated dollar tax live.
+
+E. Type “un peluche”
+Expected:
+- Product analysis is clean and friendly.
+- Price input is visually paired with tax estimate.
+- Estimated dollar tax becomes prominent after entering price.
+
+F. Click quick chip “Ropa”
+Expected:
+- Same warm flow as manual typing.
+
+G. Click “Populares hoy”
+Expected:
+- Same warm flow as manual typing.
+
+H. Click “Agregar producto”
+Expected:
+- Product appears in a visible cart-like summary.
+- User remains in the same quote-builder context.
+- A fresh add-product flow is available.
+- The previous product does not disappear.
+
+I. Click “Continuar con la solicitud”
+Expected:
+- User moves to the existing contact/shipping/details form.
+- It does not behave the same as adding another product.
+- Required fields are preserved.
+
+J. Add multiple products
+Expected:
+- Product cart remains visible.
+- No duplicated cards.
+- No stale old analysis.
+- No weird scroll jumps.
+- No footer-focused transition.
+
+Final direction:
+Please improve this as a UX/UI product experience, not just as a set of isolated components.
+
+The final result should feel like:
+- A guided quote builder.
+- An editorial CRBOX assistant experience.
+- A cart-like product request flow.
+- A clear path from product intent to final quote request.
+
+It should not feel like:
+- A static form.
+- A robotic category lookup.
+- A dense calculator.
+- A disconnected set of cards.
+- A page that jumps around.

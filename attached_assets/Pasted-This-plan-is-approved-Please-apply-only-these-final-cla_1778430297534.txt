@@ -1,0 +1,98 @@
+This plan is approved. Please apply only these final clarifications before implementation:
+
+1. Do not fake Gemini intelligence with only hardcoded product-specific copy
+
+It is okay to improve rendering and add better fallback language, but the final experience should not become a static list of hardcoded responses for “café,” “ropa,” “zapatos,” etc.
+
+Those examples are QA cases and tone references, not the entire solution.
+
+The system should generalize:
+- simple nouns
+- broad categories
+- specific products
+- products not directly found in Product Brain
+- chips and popular pills
+
+The goal is a consistently intelligent Gemini-led experience, not a larger set of templates.
+
+2. Keep Product Brain and Gemini responsibilities clean
+
+If minimal `js/product-classifier.js` changes are needed, keep them strictly limited to response quality, input normalization, confidence/uncertainty handling, or prompt/interpretation consistency.
+
+Do not change:
+- category/rate source of truth
+- calculation formulas
+- API shape
+- submission data contracts
+- backend behavior
+
+3. Clarify shipping/contact step scope
+
+The task should not redesign the shipping/contact/confirmation steps.
+
+However, the product-selection/cart phase must correctly lead into the existing shipping/contact/details flow when the user clicks “Continuar con la solicitud.”
+
+So:
+- navigation to the existing next step is in scope
+- preserving product/cart context while continuing is in scope
+- changing the content/logic/design of the shipping/contact step is out of scope, except for minimal step context/orientation if needed
+
+4. Preserve existing submitted data
+
+Any new cart, summary, Gemini note, clarification, selected category, URL, or estimated value must not break or remove existing submitted fields.
+
+If a visual element is added, make sure the existing quote submission still receives the data it needs.
+
+5. Avoid over-designing the stepper
+
+The stepper is only there to orient the user. It should be subtle.
+
+Do not spend too much effort building a complex wizard system. If complexity rises, prioritize:
+- correct CTA behavior
+- persistent cart
+- scroll/navigation clarity
+- Gemini response quality
+
+6. Do not overcomplicate editing
+
+If Edit creates risk, keep it minimal or defer complex edit behavior.
+
+Mandatory:
+- product remains visible in cart
+- Remove works
+- Add another works
+- Continue works
+
+Optional:
+- full edit flow, only if safe
+
+7. Make the cart the anchor of continuity
+
+After a product is added, the cart should become the user’s stable point of reference.
+
+The user should always understand:
+- what product was added
+- what is still being built
+- whether they can add another product
+- how to continue
+
+If any transition hides the cart, jumps away from it, or makes the user lose context, it needs to be adjusted.
+
+8. Use creative freedom, but protect clarity
+
+The design can be much more modern and editorial, but never at the expense of comprehension.
+
+Prioritize:
+- clarity over decoration
+- hierarchy over visual effects
+- confidence over complexity
+- speed over animation
+- trust over cleverness
+
+9. Final “done” test
+
+Before marking complete, test the flow as a first-time CRBOX customer:
+
+“I want to bring coffee to Costa Rica. I do not know customs, taxes, or shipping rules. I just want to understand if CRBOX can help, get an approximate idea, add it to my request, and continue.”
+
+If that user would still feel confused, overwhelmed, or unsure what happened after adding a product, the task is not done.

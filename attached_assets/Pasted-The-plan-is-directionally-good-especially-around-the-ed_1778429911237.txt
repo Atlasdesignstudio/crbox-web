@@ -1,0 +1,383 @@
+The plan is directionally good, especially around the editorial quote-builder layout, but it needs two important refinements before implementation: stronger Gemini behavior and more precise UX/UI art direction.
+
+Please refine #420 with the following adjustments.
+
+1. Gemini should behave like a real intelligent product assistant, not just a copy layer
+
+The user-facing response must always feel like Gemini is interpreting the user’s intent intelligently.
+
+This is especially important for simple nouns or broad categories such as:
+- “café”
+- “ropa”
+- “zapatos”
+- “peluche”
+- “reloj”
+- “tenis”
+- “suplementos”
+- “perfume”
+
+These should never produce cold category-database responses.
+
+Gemini should understand the implied intent:
+“quiero traer café a Costa Rica”
+“quiero traer ropa a Costa Rica”
+“quiero traer zapatos a Costa Rica”
+
+Expected behavior:
+- Gemini should always respond in a tailored, human, helpful way.
+- The Product Brain provides the factual category/rate structure.
+- Gemini explains that information beautifully and contextually.
+- Gemini must not invent numerical values, tax rates, duties, or final prices.
+- Gemini can interpret, explain, warn, suggest, and guide.
+- Gemini must stay anchored to Product Brain data for category, tariff, and numerical estimate truth.
+
+The correct relationship is:
+
+Product Brain = factual classification, rate, category truth, known restrictions, estimate basis.
+Gemini = interpretation, product understanding, explanation, human tone, edge-case reasoning, helpful guidance.
+
+Do not let Product Brain text appear directly as the user-facing response if it sounds robotic.
+
+Bad:
+“ropa entra en la categoría Ropa.”
+“zapatos normalmente se clasifica como Calzado.”
+“café entra en la categoría Alimentos.”
+
+Good:
+“Perfecto, podemos ayudarte a revisar ropa para traerla a Costa Rica. Este tipo de producto suele entrar dentro de la categoría Ropa, y con el precio aproximado podemos darte una guía inicial de impuestos antes de que el equipo CRBOX confirme la cotización final.”
+
+Good:
+“Buenísimo, los zapatos suelen clasificarse como Calzado. Si nos das el precio aproximado, podemos mostrarte una estimación inicial de impuestos; luego CRBOX revisará peso, dimensiones y detalles finales para confirmar el precio.”
+
+Good:
+“Perfecto, podemos ayudarte a revisar café. Al ser un producto alimenticio, puede requerir una revisión más cuidadosa según presentación, cantidad y condiciones de importación. Te mostraremos una guía inicial, y el equipo CRBOX confirmará el detalle final.”
+
+2. Gemini should handle unknown or imperfect Product Brain matches intelligently
+
+If a product is not clearly found in the Product Brain, Gemini should not fail or default to a cold generic response.
+
+Expected behavior:
+- Interpret the product as best as possible.
+- Suggest the closest likely category if appropriate.
+- Make uncertainty explicit in friendly language.
+- Ask for a useful detail only when needed.
+- Never invent precise tariff numbers.
+- If no reliable category exists, show a “requiere revisión” style state instead of pretending certainty.
+
+Example:
+“No estoy 100% seguro de la categoría exacta para este producto, pero parece cercano a accesorios electrónicos. Puedes agregar el enlace o una breve aclaración para que el equipo CRBOX lo revise con más precisión.”
+
+The experience should feel intelligent even when the category is uncertain.
+
+3. Gemini should be consistent across all entry points
+
+Manual typing, Enter key, arrow button, quick chips, and “Populares hoy” must all produce the same intelligent Gemini-led user-facing experience.
+
+Quick chips should not behave like raw category buttons.
+Popular products should not behave like hardcoded shortcuts.
+Everything should enter the same conversational quote-builder flow.
+
+If the user clicks “Ropa,” the system should behave as if the user said:
+“Quiero traer ropa.”
+
+If the user clicks “iPhone 16 Pro,” the system should behave as if the user said:
+“Quiero traer un iPhone 16 Pro.”
+
+4. Add a clear Gemini response standard
+
+Every product analysis response should ideally include:
+
+A. Warm acknowledgement
+Example:
+“Perfecto, podemos ayudarte con este producto.”
+
+B. Interpreted product understanding
+Example:
+“Esto suele entrar dentro de la categoría Calzado.”
+
+C. Practical import context
+Example:
+“Con el precio aproximado podemos darte una guía inicial de impuestos.”
+
+D. Next useful action
+Example:
+“Agrega el precio para ver una estimación en dólares.”
+
+E. Truthful limitation
+Example:
+“El equipo CRBOX revisará peso, dimensiones y detalles finales antes de confirmar el precio.”
+
+The response should be concise, not long. Intelligent does not mean verbose.
+
+5. Keep numerical truth separate from Gemini creativity
+
+Gemini may phrase the explanation, but it must not create or alter:
+- arancel percentages
+- tax amounts
+- declared value calculations
+- final totals
+- shipping prices
+- guaranteed savings
+- customs certainty
+
+All numeric truth must come from the existing Product Brain/calculation logic.
+
+Gemini can say:
+“según la categoría detectada”
+“con base en el precio aproximado”
+“como guía inicial”
+“sujeto a revisión final”
+
+Gemini must not say:
+“vas a pagar exactamente”
+“el precio final será”
+“garantizado”
+“te ahorrarás”
+
+6. Strengthen the editorial layout direction
+
+The current plan says “spacious” and “editorial,” but please make the layout more intentionally designed.
+
+The builder should feel like a premium editorial workspace, not simply a wider card.
+
+Desktop visual direction:
+- Use the viewport generously.
+- Avoid one large dense box.
+- Use a composed workspace with clear zones.
+- Let the background breathe.
+- Create a clear hierarchy between product understanding, estimate, and cart.
+- Avoid heavy borders everywhere.
+- Use soft surfaces, subtle dividers, and generous spacing.
+- Make the right side feel like an action/estimate panel, not another form column.
+
+The composition should feel like:
+
+Top:
+Builder context / step / product being quoted.
+
+Main left:
+Product understanding and Gemini explanation.
+
+Main right:
+Price, tax estimate, quote breakdown, actions.
+
+Below:
+Products in request / cart.
+
+This should feel calm and intentional.
+
+7. Improve the visual hierarchy of the active product workspace
+
+The user should instantly understand what matters.
+
+Visual priority should be:
+
+1. Product name / current product context.
+2. Gemini’s warm product understanding.
+3. Estimated tax amount in dollars after price is entered.
+4. Price input.
+5. What CRBOX will calculate later.
+6. Clarification/link/category correction as secondary details.
+7. Add/continue actions.
+8. Cart of added products.
+
+Do not give the same visual weight to every field.
+
+The dollar tax estimate should become the dominant number once a price exists.
+The arancel percentage should become supporting context.
+The disclaimer should be visible but quiet.
+
+8. Make the price/tax relationship unmistakable
+
+The right-side estimate area should clearly communicate:
+
+User enters approximate product price → CRBOX calculates orientative tax estimate.
+
+The price field and tax estimate should be visually paired.
+
+Before price:
+“Agrega el precio aproximado para estimar impuestos.”
+
+After price:
+“Impuestos estimados sobre este producto”
+“aprox. $XX USD”
+“Basado en un arancel orientativo de aprox. X% sobre $XX declarados.”
+
+This should update live and feel immediate.
+
+9. Make optional fields quieter
+
+To reduce overwhelm:
+- Product URL should be hidden or quiet by default.
+- Clarification should feel secondary.
+- Category correction should be a subtle correction affordance.
+- Disclaimers should be quiet.
+- Breakdown preview should be clear but not oversized.
+
+Do not show optional fields with the same prominence as required decision-making content.
+
+10. Make the quote cart feel like part of the journey, not an afterthought
+
+After the user clicks “Agregar producto,” the product should visually move into a quote request list.
+
+The cart should feel permanent and reassuring.
+
+Suggested heading:
+“Productos en tu solicitud”
+
+The cart should show:
+- Product name.
+- Category.
+- Approx. declared value if available.
+- Estimated taxes if available.
+- Status.
+- Remove.
+- Edit only if safe.
+
+The user should always be able to see what has already been added.
+
+11. Clarify CTA behavior visually and logically
+
+“Agregar producto” and “Continuar con la solicitud” must feel like two different decisions.
+
+Agregar producto:
+Adds the current product to the quote cart and keeps the user in product-building mode.
+
+Continuar con la solicitud:
+Moves the user into the existing data/contact/shipping flow.
+
+Do not let both actions lead to the same add-another-product state.
+
+Before at least one product is added:
+- “Agregar producto” can be visually primary.
+- “Continuar con la solicitud” should be hidden, disabled, or visually secondary depending on the flow.
+
+After at least one product is added:
+- “Continuar con la solicitud” should become more prominent.
+- “Agregar otro producto” should remain available but secondary.
+
+12. Improve navigation and scroll behavior
+
+After product submission:
+- Scroll to the top of the builder workspace.
+- Do not scroll to price input.
+- Do not scroll to footer.
+- Do not leave the user in the middle of a card.
+
+After adding a product:
+- Keep the cart and next action visible.
+- Do not jump to a disconnected panel.
+- Do not make the user lose sight of the product they just added.
+
+After continuing:
+- Move to the existing contact/shipping/details section with clear step context.
+
+13. Make the stepper useful but light
+
+The stepper should orient the user, not create a heavy wizard.
+
+Suggested structure:
+Producto → Solicitud → Datos
+
+But make sure the labels match the real journey.
+
+Possible refined labels:
+1. Producto
+2. Solicitud
+3. Datos
+
+Or:
+1. Producto
+2. Productos
+3. Datos
+
+The stepper should help the user know:
+- I am analyzing a product.
+- I am building my request.
+- I am completing details.
+
+14. Avoid an overly dashboard-like result
+
+Even with wider layout and cart behavior, this should not look like admin software.
+
+Avoid:
+- dense panels
+- excessive borders
+- too many equal cards
+- data-table feeling
+- compact dashboard metrics
+
+Prefer:
+- editorial spacing
+- large clear headings
+- soft backgrounds
+- clear CTAs
+- beautiful estimate modules
+- minimal visual noise
+
+15. Add a design-quality expectation
+
+Before marking done, review the UI like a product designer:
+
+Ask:
+- Is the first glance clear?
+- Does the user know what happened after entering a product?
+- Is the most important information visually dominant?
+- Are secondary fields visually quiet?
+- Does the layout breathe?
+- Does the cart feel persistent?
+- Are the CTAs clearly different?
+- Does it feel warm and premium?
+- Does it still feel like CRBOX?
+- Is the experience less overwhelming than before?
+
+16. QA Gemini-specific scenarios
+
+Please test these specifically:
+
+A. “café”
+Expected:
+Conversational response, not cold category output. If category is uncertain, say so helpfully.
+
+B. “un café”
+Expected:
+Same behavior quality as “café.”
+
+C. “ropa”
+Expected:
+Warm, contextual response. Product Brain category can inform it, but not dominate the language.
+
+D. “zapatos”
+Expected:
+Warm response + category explanation + price-driven tax estimate.
+
+E. “Nike Air Force 1”
+Expected:
+Specific response, likely Calzado, tailored to product specificity.
+
+F. Quick chip “Ropa”
+Expected:
+Same Gemini-style flow as manual input.
+
+G. Popular pill “iPhone 16 Pro”
+Expected:
+Same Gemini-style flow, tailored and helpful.
+
+17. Final experience target
+
+The final result should feel like:
+
+A smart CRBOX assistant helps me understand my product.
+The page gives me a clear orientative estimate.
+I can add the product to my request like a cart.
+I can add more products without losing context.
+Then I continue to complete my details and submit.
+
+It should not feel like:
+
+A category database responded.
+A form appeared.
+A card got wider.
+The page jumped.
+I lost the product I added.
+I do not know what to do next.
