@@ -2082,6 +2082,67 @@
             }
             .cqd-right .cqw-right-inner { padding: 1.4rem 1.2rem 2rem; }
             .cqd-right .cqw-locked { opacity: 1; pointer-events: auto; filter: none; }
+
+            /* ── LANDING / CHATTING state transitions ── */
+
+            /* Header — hidden in landing, fades in when chatting */
+            .cqd-header { transition: opacity .35s ease; }
+            #cqd:not(.cqd-chatting) .cqd-header {
+                opacity: 0; pointer-events: none;
+                position: absolute; width: 0; height: 0; overflow: hidden; padding: 0;
+            }
+            #cqd.cqd-chatting .cqd-header { animation: cqdIn .35s ease-out both; }
+
+            /* Messages — invisible in landing (overlay covers them) */
+            .cqd-messages { transition: opacity .3s ease .15s; }
+            #cqd:not(.cqd-chatting) .cqd-messages { opacity: 0; pointer-events: none; }
+            #cqd.cqd-chatting .cqd-messages { opacity: 1; }
+
+            /* Landing overlay */
+            .cqd-landing {
+                position: absolute; top: 0; left: 0; right: 0; bottom: 84px;
+                display: flex; align-items: center; justify-content: center;
+                z-index: 5; background: #fafaf8;
+                transition: opacity .3s ease, transform .3s ease;
+            }
+            #cqd.cqd-chatting .cqd-landing {
+                opacity: 0; pointer-events: none; transform: translateY(-12px);
+            }
+            .cqd-lo-inner {
+                max-width: 680px; width: 100%;
+                padding: 0 2rem 2rem;
+                text-align: center;
+                animation: cqdIn .45s ease-out both;
+            }
+            .cqd-lo-eyebrow {
+                display: inline-flex; align-items: center; gap: .55rem;
+                font-size: .75rem; font-weight: 600; letter-spacing: .1em;
+                text-transform: uppercase; color: #9ca3af;
+                margin-bottom: 1.5rem;
+            }
+            .cqd-lo-av {
+                width: 22px; height: 22px; border-radius: .3rem;
+                background: linear-gradient(135deg, #FF6B00, #f97316);
+                display: inline-flex; align-items: center; justify-content: center;
+                font-size: .6rem; font-weight: 800; color: #fff; flex-shrink: 0;
+            }
+            .cqd-lo-title {
+                font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 800;
+                color: #111827; line-height: 1.18;
+                margin: 0 0 1rem; letter-spacing: -.02em;
+            }
+            .cqd-lo-title em { font-style: normal; color: #FF6B00; }
+            .cqd-lo-sub {
+                font-size: .98rem; color: #6b7280; line-height: 1.65;
+                margin: 0 0 2rem;
+            }
+            /* Chips in landing — larger, more editorial */
+            .cqd-lo-chips {
+                display: flex; flex-wrap: wrap; gap: .45rem; justify-content: center;
+            }
+            .cqd-lo-chips .cqd-chip {
+                padding: .48rem 1.05rem; font-size: .84rem;
+            }
         }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
@@ -2250,8 +2311,23 @@
     <!-- ══ DESKTOP CHAT — full-viewport natural-language UI at ≥641px ══ -->
     <div id="cqd" aria-label="Cotizador CRBOX" role="main">
 
-        <!-- LEFT: dark conversation pane -->
+        <!-- LEFT: conversation pane -->
         <div class="cqd-left">
+
+            <!-- EDITORIAL LANDING — shown on load, fades out on first interaction -->
+            <div id="cqd-landing" class="cqd-landing" aria-hidden="false">
+                <div class="cqd-lo-inner">
+                    <div class="cqd-lo-eyebrow">
+                        <span class="cqd-lo-av">CR</span>
+                        Cotizador CRBOX
+                    </div>
+                    <h1 class="cqd-lo-title">¿Qué querés importar<br>desde USA?</h1>
+                    <p class="cqd-lo-sub">Describí el producto y te damos un estimado al instante.<br>Sin cuenta, sin compromiso.</p>
+                    <div class="cqd-lo-chips" id="cqd-lo-chips"></div>
+                </div>
+            </div>
+
+            <!-- CHAT HEADER — hidden on load, appears after first interaction -->
             <div class="cqd-header">
                 <div class="cqd-av">CR</div>
                 <div class="cqd-name-wrap">
@@ -4396,35 +4472,62 @@
             }
 
             // ── Greeting ─────────────────────────────────────────────────────
-            function _boot() {
+            // ── Chat-mode state ──────────────────────────────────────────────
+            var _chatStarted = false;
+
+            function _startChatMode(cb) {
+                if (_chatStarted) { if (cb) cb(); return; }
+                _chatStarted = true;
+                // Transition: landing fades, header + messages appear
+                cqd.classList.add('cqd-chatting');
                 D.phase = 'intro'; D.lastSender = null;
-                var h  = new Date().getHours();
+                // Render greeting as first chat message after transition
+                var h   = new Date().getHours();
                 var sal = h < 12 ? '¡Buenos días! ☀️' : h < 19 ? '¡Buenas tardes! 👋' : '¡Buenas noches! 🌙';
-                _say(sal + ' Soy el asistente de <strong>CRBOX</strong> — más de 10 años ayudando a costarricenses a importar desde USA sin complicaciones. ¿Qué querés traer hoy?');
                 setTimeout(function() {
-                    _addRow(
-                        '<div class="cqd-chips-tray">'
-                        + '<button class="cqd-chip" data-q="laptop">💻 Laptop</button>'
-                        + '<button class="cqd-chip" data-q="celular">📱 Celular</button>'
-                        + '<button class="cqd-chip" data-q="zapatos">👟 Calzado</button>'
-                        + '<button class="cqd-chip" data-q="consola de videojuegos">🎮 Consola</button>'
-                        + '<button class="cqd-chip" data-q="electrodoméstico">🏠 Hogar</button>'
-                        + '<button class="cqd-chip" data-q="ropa">👗 Ropa</button>'
-                        + '<button class="cqd-chip" data-q="smartwatch reloj inteligente">⌚ Reloj</button>'
-                        + '<button class="cqd-chip" data-q="suplemento deportivo">💊 Suplementos</button>'
-                        + '</div>',
-                        'wide'
-                    );
-                    msgsEl.querySelectorAll('.cqd-chip').forEach(function(ch) {
-                        ch.addEventListener('click', function() { _handleInput(this.dataset.q); });
+                    _say(sal + ' Soy el asistente de <strong>CRBOX</strong> — más de 10 años ayudando a costarricenses a importar desde USA sin complicaciones. ¿Qué querés traer hoy?');
+                    if (cb) setTimeout(cb, 350);
+                }, 280);
+            }
+
+            function _boot() {
+                // Populate landing overlay chips (no messages rendered yet)
+                var loChips = document.getElementById('cqd-lo-chips');
+                if (!loChips) return;
+                var CHIPS = [
+                    { q: 'laptop',                     label: '💻 Laptop' },
+                    { q: 'celular',                    label: '📱 Celular' },
+                    { q: 'zapatos',                    label: '👟 Calzado' },
+                    { q: 'consola de videojuegos',     label: '🎮 Consola' },
+                    { q: 'electrodoméstico',           label: '🏠 Hogar' },
+                    { q: 'ropa',                       label: '👗 Ropa' },
+                    { q: 'smartwatch reloj inteligente', label: '⌚ Reloj' },
+                    { q: 'suplemento deportivo',       label: '💊 Suplementos' }
+                ];
+                CHIPS.forEach(function(c, i) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'cqd-chip';
+                    btn.textContent = c.label;
+                    btn.style.animationDelay = (i * 40) + 'ms';
+                    btn.addEventListener('click', function() {
+                        _startChatMode(function() { _handleInput(c.q); });
                     });
-                }, 540);
+                    loChips.appendChild(btn);
+                });
+                // Focus input after a short moment
+                setTimeout(function() { inputEl.focus({ preventScroll: true }); }, 600);
             }
 
             // ── Handle user input ─────────────────────────────────────────────
             function _handleInput(raw) {
                 var txt = (raw || '').trim();
                 if (!txt || txt.length < 2 || D.classifying) return;
+                // Transition from editorial landing to chat if first message
+                if (!_chatStarted) {
+                    _startChatMode(function() { _handleInput(raw); });
+                    return;
+                }
                 D.classifying = true;
                 inputEl.value = '';
                 sendBtn.disabled = true;
