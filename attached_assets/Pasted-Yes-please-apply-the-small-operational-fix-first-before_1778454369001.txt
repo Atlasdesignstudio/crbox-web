@@ -1,0 +1,69 @@
+Yes, please apply the small operational fix first before continuing the redesign.
+
+Priority 1 — Fix customer clarification data loss
+
+Apply the safe targeted fix so `customer_clarification` is preserved end-to-end.
+
+Current issue:
+The frontend already sends `customer_clarification` per product, but the backend normalizer drops it. That means any user clarification such as “es usado”, “son 2 unidades”, “no incluye cargador”, or “es modelo gaming” disappears before reaching the sales team.
+
+Required fix:
+- Preserve `customer_clarification` in the backend product normalizer.
+- Store it inside the products JSON.
+- Include it in the CRBOX sales email so the sales team can see the clarification per product.
+- Do not change the API shape beyond preserving the field that is already being sent.
+- Do not change the frontend UI for this fix.
+- Do not change submission behavior, SMTP behavior, admin behavior, or any unrelated logic.
+
+This should be treated as a data-preservation bug fix, not a redesign task.
+
+Priority 2 — After that, continue with the public `cotizar.html` redesign
+
+Once the clarification field is safely preserved, continue with the editorial conversational quote builder redesign.
+
+During the redesign, protect the operational flow confirmed in the audit:
+
+Do not break or rename:
+- `getProducts()`
+- `submitQuote()`
+- `payload.products`
+- `payload.service_type`
+- `payload.destination_zone`
+- `payload.customer_email`
+- `payload.customer_name`
+- `payload.customer_notes`
+- `fEmail`
+- `fDestination`
+- `fCustomerName`
+- `fNotes`
+- `fServiceType`
+- final submit button → `submitQuote()` wiring
+- hidden form stubs required by the current submission flow
+- SMTP warning fallback / `showSmtpFailure()`
+
+The visual redesign can improve the conversational UI, cart, Gemini experience, and quote-builder layout, but it must preserve the exact operational submission path.
+
+Priority 3 — Do not build the portal version yet
+
+Do not implement the client portal adaptation in this same pass.
+
+For now, only document the portal adaptation plan and preserve reusable logic where reasonable.
+
+The portal version should be a later task after the public `cotizar` experience is stable.
+
+Future portal direction:
+- Reuse the same conversational quote-builder pattern.
+- Adapt it visually to the logged-in dashboard UI.
+- Use authenticated user data to avoid asking for name/email again.
+- Use the existing authenticated `/api/solicitudes` GET endpoint to show real quote history.
+- Do not fake quote history, statuses, confirmed prices, or tracking.
+- Do not mock data if backend support already exists.
+
+Priority order now:
+1. Apply `customer_clarification` preservation fix.
+2. Verify one test quote with clarification reaches the backend products JSON and sales email.
+3. Continue the public `cotizar.html` redesign.
+4. Preserve all confirmed submission destinations.
+5. Leave portal implementation for a separate task.
+
+Please apply the clarification fix first, then proceed with the redesign only after confirming it works.

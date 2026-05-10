@@ -2621,6 +2621,13 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
 
     customs_val = customs_description.strip() if customs_description else None
 
+    # Single-product clarification note (shown in flat section when only one product sent)
+    _single_clarification = ''
+    if products and isinstance(products, list) and len(products) == 1:
+        _cl = (products[0].get('customer_clarification') or '').strip()
+        if _cl:
+            _single_clarification = f'Aclaración del cliente: {_cl}\n'
+
     # Multi-product section (when client submitted 2+ products via new form)
     multi_prod_section = ''
     if products and isinstance(products, list) and len(products) > 1:
@@ -2630,12 +2637,14 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
             _pv = _pp.get('declared_value_usd')
             _pc = _pp.get('category') or ''
             _pu = _pp.get('url') or ''
+            _pcl = (_pp.get('customer_clarification') or '').strip()
             _pline = f'  {_pi}. {_pn}'
             if _pc: _pline += f' [{_pc}]'
             if _pv is not None:
                 try: _pline += f' — ${float(_pv):,.2f} USD'
                 except Exception: pass
             if _pu: _pline += f'\n     URL: {_pu}'
+            if _pcl: _pline += f'\n     Aclaración del cliente: {_pcl}'
             prod_lines.append(_pline)
         total_val = sum(float(_pp.get('declared_value_usd') or 0) for _pp in products)
         multi_prod_section = (
@@ -2665,6 +2674,7 @@ def _build_sales_email_body(scb_id, submitted_display, customer_name, customer_e
         f'Categoría: {category}\n'
         f'Datos físicos: {_phys_line}\n'
         f'Origen del datos: {ds_label}\n'
+        + _single_clarification
         + multi_prod_section
         + f'─────────────────────────\n'
         f'ENVÍO\n'
@@ -9240,13 +9250,15 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 except (TypeError, ValueError):
                     _pv = 0.0
                 _bc = _pp.get('brain_classification')
+                _clarification = str(_pp.get('customer_clarification') or '').strip() or None
                 _norm_prods.append({
-                    'name':               str(_pp.get('name') or '').strip(),
-                    'declared_value_usd': _pv,
-                    'category':           str(_pp.get('category') or 'otros').strip(),
-                    'url':                str(_pp.get('url') or '').strip() or None,
-                    'customs_description': str(_pp.get('customs_description') or '').strip() or None,
-                    'brain_classification': _bc if isinstance(_bc, dict) else None,
+                    'name':                  str(_pp.get('name') or '').strip(),
+                    'declared_value_usd':    _pv,
+                    'category':              str(_pp.get('category') or 'otros').strip(),
+                    'url':                   str(_pp.get('url') or '').strip() or None,
+                    'customs_description':   str(_pp.get('customs_description') or '').strip() or None,
+                    'brain_classification':  _bc if isinstance(_bc, dict) else None,
+                    'customer_clarification': _clarification,
                 })
             products_raw = _norm_prods if _norm_prods else None
 
