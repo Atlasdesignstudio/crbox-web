@@ -104,8 +104,8 @@
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous"/>
-        <link rel="stylesheet" href="css/styles.css?v=4" />
-        <link rel="stylesheet" href="css/responsive.css?v=18" />
+        <link rel="stylesheet" href="css/styles.css?v=5" />
+        <link rel="stylesheet" href="css/responsive.css?v=19" />
 
         <!-- Structured Data: FAQPage -->
         <script type="application/ld+json">
@@ -539,6 +539,139 @@
             }
             .testimonial-card {
                 height: 100%;
+            }
+
+            /* ── Steps carousel ──────────────────────────────────── */
+            #proceso {
+                position: relative;
+                background: linear-gradient(to bottom, transparent 55%, rgba(255, 107, 0, 0.08) 100%), #f9fafb;
+            }
+            .steps-carousel-outer {
+                position: relative;
+                max-width: 700px;
+                margin: 0 auto;
+                padding: 0 60px;
+                outline: none;
+            }
+            .steps-carousel-wrap {
+                overflow: hidden;
+                border-radius: 16px;
+            }
+            .steps-carousel-track {
+                display: flex;
+                transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                will-change: transform;
+            }
+            .steps-carousel-track .step-editorial-card {
+                flex: 0 0 100%;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .sc-arrow {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 10;
+                width: 44px;
+                height: 44px;
+                min-width: 44px;
+                min-height: 44px;
+                border-radius: 50%;
+                background: #ff6b00;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.9rem;
+                box-shadow: 0 2px 8px rgba(255, 107, 0, 0.35);
+                transition:
+                    background 0.2s,
+                    box-shadow 0.2s;
+                outline: none;
+            }
+            .sc-arrow:hover {
+                background: #e05a00;
+                box-shadow: 0 4px 14px rgba(255, 107, 0, 0.45);
+            }
+            .sc-arrow:focus-visible {
+                outline: 3px solid #ff6b00;
+                outline-offset: 3px;
+            }
+            .sc-arrow-prev {
+                left: 0;
+            }
+            .sc-arrow-next {
+                right: 0;
+            }
+            .sc-dots-row {
+                display: flex;
+                justify-content: center;
+                gap: 8px;
+                margin-top: 1.25rem;
+            }
+            .sc-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #d1d5db;
+                cursor: pointer;
+                transition:
+                    background 0.25s,
+                    transform 0.25s;
+                border: none;
+                padding: 0;
+            }
+            .sc-dot.active {
+                background: #ff6b00;
+                transform: scale(1.35);
+            }
+            @media (max-width: 479px) {
+                .steps-carousel-outer {
+                    padding: 0 48px;
+                }
+            }
+
+            /* ── Features banner mobile carousel ─────────────────── */
+            .fb-carousel-outer {
+                position: relative;
+                outline: none;
+            }
+            @media (max-width: 767px) {
+                .fb-carousel-outer {
+                    padding: 0 52px;
+                }
+                .fb-carousel-wrap {
+                    overflow: hidden;
+                    border-radius: 14px;
+                }
+                #features-banner-grid {
+                    display: flex !important;
+                    flex-wrap: nowrap !important;
+                    gap: 0 !important;
+                    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                    will-change: transform;
+                }
+                #features-banner-grid .feature-banner-item {
+                    flex: 0 0 100%;
+                    width: 100%;
+                    border-radius: 14px;
+                }
+                .fb-sc-arrow {
+                    display: flex;
+                }
+                .fb-dots-row {
+                    display: flex;
+                }
+            }
+            @media (min-width: 768px) {
+                .fb-sc-arrow {
+                    display: none !important;
+                }
+                .fb-dots-row {
+                    display: none !important;
+                }
             }
 
             /* Corregir colores de botones */
@@ -1038,111 +1171,127 @@
                     </div>
                 </div>
 
-                <div class="steps-grid">
-                    <!-- Step 1 -->
-                    <div class="step-editorial-card">
-                        <span class="step-num-bg" aria-hidden="true">01</span>
-                        <div class="step-icon-wrap">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <p class="step-label">Paso 1 — Registro</p>
-                        <h3 class="step-headline">
-                            Afíliate y obtén tu dirección en Miami
-                        </h3>
-                        <p class="step-desc">
-                            Completa nuestro formulario digital en minutos y
-                            obtén al instante una dirección personal en Miami.
-                            Usa esa dirección como destino en cualquier tienda
-                            de Estados Unidos — sin costo de afiliación.
-                        </p>
-                        <div class="step-tip step-tip-orange">
-                            <strong>Ventaja CRBOX:</strong> Salidas desde Miami
-                            dos veces por semana. Entrega promedio en Costa
-                            Rica: 2–4 días hábiles.
-                        </div>
-                        <a href="afiliate.html" class="step-cta-link">
-                            Comenzar Ahora
-                            <i class="fas fa-arrow-right text-xs"></i>
-                        </a>
-                    </div>
+                <div class="steps-carousel-outer" id="steps-carousel-outer" data-carousel="steps" tabindex="0" aria-label="Pasos del proceso">
+                    <button class="sc-arrow sc-arrow-prev" id="steps-prev" aria-label="Paso anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="steps-carousel-wrap">
+                        <div class="steps-carousel-track" id="steps-carousel-track" data-carousel-track="steps">
+                            <!-- Step 1 -->
+                            <div class="step-editorial-card">
+                                <span class="step-num-bg" aria-hidden="true">01</span>
+                                <div class="step-icon-wrap">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <p class="step-label">Paso 1 — Registro</p>
+                                <h3 class="step-headline">
+                                    Afíliate y obtén tu dirección en Miami
+                                </h3>
+                                <p class="step-desc">
+                                    Completa nuestro formulario digital en minutos y
+                                    obtén al instante una dirección personal en Miami.
+                                    Usa esa dirección como destino en cualquier tienda
+                                    de Estados Unidos — sin costo de afiliación.
+                                </p>
+                                <div class="step-tip step-tip-orange">
+                                    <strong>Ventaja CRBOX:</strong> Salidas desde Miami
+                                    dos veces por semana. Entrega promedio en Costa
+                                    Rica: 2–4 días hábiles.
+                                </div>
+                                <a href="afiliate.html" class="step-cta-link">
+                                    Comenzar Ahora
+                                    <i class="fas fa-arrow-right text-xs"></i>
+                                </a>
+                            </div>
 
-                    <!-- Step 2 -->
-                    <div class="step-editorial-card step-stagger">
-                        <span class="step-num-bg" aria-hidden="true">02</span>
-                        <div class="step-icon-wrap">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <p class="step-label">Paso 2 — Compra</p>
-                        <h3 class="step-headline">
-                            Compra en miles de tiendas de USA
-                        </h3>
-                        <p class="step-desc">
-                            Usa tu dirección CRBOX en Amazon, Walmart, Best Buy,
-                            Target, Apple o cualquier tienda que despache a
-                            Miami. También puedes pedirnos que hagamos la compra
-                            por ti.
-                        </p>
-                        <div class="step-tip step-tip-blue">
-                            <strong>Consejo clave:</strong> Incluye siempre tu
-                            número de casillero en la dirección de envío para
-                            que identifiquemos tu paquete de inmediato.
-                        </div>
-                        <a href="servicios.html#compras" class="step-cta-link">
-                            Ver Servicio de Compras
-                            <i class="fas fa-arrow-right text-xs"></i>
-                        </a>
-                    </div>
+                            <!-- Step 2 -->
+                            <div class="step-editorial-card">
+                                <span class="step-num-bg" aria-hidden="true">02</span>
+                                <div class="step-icon-wrap">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <p class="step-label">Paso 2 — Compra</p>
+                                <h3 class="step-headline">
+                                    Compra en miles de tiendas de USA
+                                </h3>
+                                <p class="step-desc">
+                                    Usa tu dirección CRBOX en Amazon, Walmart, Best Buy,
+                                    Target, Apple o cualquier tienda que despache a
+                                    Miami. También puedes pedirnos que hagamos la compra
+                                    por ti.
+                                </p>
+                                <div class="step-tip step-tip-blue">
+                                    <strong>Consejo clave:</strong> Incluye siempre tu
+                                    número de casillero en la dirección de envío para
+                                    que identifiquemos tu paquete de inmediato.
+                                </div>
+                                <a href="servicios.html#compras" class="step-cta-link">
+                                    Ver Servicio de Compras
+                                    <i class="fas fa-arrow-right text-xs"></i>
+                                </a>
+                            </div>
 
-                    <!-- Step 3 -->
-                    <div class="step-editorial-card">
-                        <span class="step-num-bg" aria-hidden="true">03</span>
-                        <div class="step-icon-wrap">
-                            <i class="fas fa-bell"></i>
-                        </div>
-                        <p class="step-label">Paso 3 — Notificación</p>
-                        <h3 class="step-headline">
-                            Te avisamos cuando llega a Miami
-                        </h3>
-                        <p class="step-desc">
-                            En cuanto tu paquete llega a nuestra bodega en Miami
-                            recibirás una notificación por correo. Sube la
-                            factura de compra y autoriza el envío desde tu panel
-                            — todo en pocos clics.
-                        </p>
-                        <div class="step-tip step-tip-orange">
-                            <strong>Importante:</strong> La factura es requisito
-                            para los trámites aduanales. Si no tienes la
-                            original, un comprobante de pago con el valor
-                            declarado es suficiente.
-                        </div>
-                    </div>
+                            <!-- Step 3 -->
+                            <div class="step-editorial-card">
+                                <span class="step-num-bg" aria-hidden="true">03</span>
+                                <div class="step-icon-wrap">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <p class="step-label">Paso 3 — Notificación</p>
+                                <h3 class="step-headline">
+                                    Te avisamos cuando llega a Miami
+                                </h3>
+                                <p class="step-desc">
+                                    En cuanto tu paquete llega a nuestra bodega en Miami
+                                    recibirás una notificación por correo. Sube la
+                                    factura de compra y autoriza el envío desde tu panel
+                                    — todo en pocos clics.
+                                </p>
+                                <div class="step-tip step-tip-orange">
+                                    <strong>Importante:</strong> La factura es requisito
+                                    para los trámites aduanales. Si no tienes la
+                                    original, un comprobante de pago con el valor
+                                    declarado es suficiente.
+                                </div>
+                            </div>
 
-                    <!-- Step 4 -->
-                    <div class="step-editorial-card step-stagger">
-                        <span class="step-num-bg" aria-hidden="true">04</span>
-                        <div class="step-icon-wrap">
-                            <i class="fas fa-box"></i>
+                            <!-- Step 4 -->
+                            <div class="step-editorial-card">
+                                <span class="step-num-bg" aria-hidden="true">04</span>
+                                <div class="step-icon-wrap">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                                <p class="step-label">Paso 4 — Entrega</p>
+                                <h3 class="step-headline">
+                                    Recibe en tu puerta en Costa Rica
+                                </h3>
+                                <p class="step-desc">
+                                    Entregamos a domicilio en cualquier punto del país o
+                                    puedes recoger sin costo en nuestras sucursales en
+                                    San José. Seguimiento en tiempo real en cada etapa
+                                    del trayecto.
+                                </p>
+                                <div class="step-tip step-tip-green">
+                                    <strong>Beneficio exclusivo:</strong> Seguimiento
+                                    24/7 de tu paquete. Recibirás actualizaciones
+                                    automáticas en cada cambio de estado.
+                                </div>
+                                <a href="tarifas.html" class="step-cta-link">
+                                    Ver Tarifas de Entrega
+                                    <i class="fas fa-arrow-right text-xs"></i>
+                                </a>
+                            </div>
                         </div>
-                        <p class="step-label">Paso 4 — Entrega</p>
-                        <h3 class="step-headline">
-                            Recibe en tu puerta en Costa Rica
-                        </h3>
-                        <p class="step-desc">
-                            Entregamos a domicilio en cualquier punto del país o
-                            puedes recoger sin costo en nuestras sucursales en
-                            San José. Seguimiento en tiempo real en cada etapa
-                            del trayecto.
-                        </p>
-                        <div class="step-tip step-tip-green">
-                            <strong>Beneficio exclusivo:</strong> Seguimiento
-                            24/7 de tu paquete. Recibirás actualizaciones
-                            automáticas en cada cambio de estado.
-                        </div>
-                        <a href="tarifas.html" class="step-cta-link">
-                            Ver Tarifas de Entrega
-                            <i class="fas fa-arrow-right text-xs"></i>
-                        </a>
                     </div>
+                    <button class="sc-arrow sc-arrow-next" id="steps-next" aria-label="Paso siguiente">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="sc-dots-row" id="steps-dots" role="tablist" aria-label="Seleccionar paso">
+                    <button class="sc-dot active" data-dot="0" aria-label="Paso 1" aria-selected="true" role="tab"></button>
+                    <button class="sc-dot" data-dot="1" aria-label="Paso 2" aria-selected="false" role="tab"></button>
+                    <button class="sc-dot" data-dot="2" aria-label="Paso 3" aria-selected="false" role="tab"></button>
+                    <button class="sc-dot" data-dot="3" aria-label="Paso 4" aria-selected="false" role="tab"></button>
                 </div>
             </div>
         </section>
@@ -1150,58 +1299,75 @@
         <!-- Features Banner -->
         <section class="py-12 bg-white border-t border-b border-gray-200">
             <div class="container mx-auto px-4">
-                <div
-                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
-                >
-                    <div class="feature-banner-item">
-                        <div class="feat-icon-ring">
-                            <i class="fas fa-shipping-fast"></i>
-                        </div>
-                        <h3 class="text-base font-bold mb-1">
-                            Entregas Rápidas
-                        </h3>
-                        <p class="text-gray-500 text-sm leading-snug">
-                            Recibe tus compras en un tiempo promedio de 2-4 días
-                            hábiles.
-                        </p>
-                    </div>
+                <div class="fb-carousel-outer" id="fb-carousel-outer" tabindex="0" aria-label="Características CRBOX">
+                    <button class="sc-arrow sc-arrow-prev fb-sc-arrow" id="fb-prev" aria-label="Característica anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="fb-carousel-wrap">
+                        <div
+                            id="features-banner-grid"
+                            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
+                        >
+                            <div class="feature-banner-item">
+                                <div class="feat-icon-ring">
+                                    <i class="fas fa-shipping-fast"></i>
+                                </div>
+                                <h3 class="text-base font-bold mb-1">
+                                    Entregas Rápidas
+                                </h3>
+                                <p class="text-gray-500 text-sm leading-snug">
+                                    Recibe tus compras en un tiempo promedio de 2-4 días
+                                    hábiles.
+                                </p>
+                            </div>
 
-                    <div class="feature-banner-item">
-                        <div class="feat-icon-ring">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <h3 class="text-base font-bold mb-1">
-                            Cobertura Nacional
-                        </h3>
-                        <p class="text-gray-500 text-sm leading-snug">
-                            Entregamos en todas las provincias de Costa Rica.
-                        </p>
-                    </div>
+                            <div class="feature-banner-item">
+                                <div class="feat-icon-ring">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <h3 class="text-base font-bold mb-1">
+                                    Cobertura Nacional
+                                </h3>
+                                <p class="text-gray-500 text-sm leading-snug">
+                                    Entregamos en todas las provincias de Costa Rica.
+                                </p>
+                            </div>
 
-                    <div class="feature-banner-item">
-                        <div class="feat-icon-ring">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <h3 class="text-base font-bold mb-1">
-                            Garantía de Seguridad
-                        </h3>
-                        <p class="text-gray-500 text-sm leading-snug">
-                            Tus paquetes protegidos en cada etapa del envío.
-                        </p>
-                    </div>
+                            <div class="feature-banner-item">
+                                <div class="feat-icon-ring">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <h3 class="text-base font-bold mb-1">
+                                    Garantía de Seguridad
+                                </h3>
+                                <p class="text-gray-500 text-sm leading-snug">
+                                    Tus paquetes protegidos en cada etapa del envío.
+                                </p>
+                            </div>
 
-                    <div class="feature-banner-item">
-                        <div class="feat-icon-ring">
-                            <i class="fas fa-headset"></i>
+                            <div class="feature-banner-item">
+                                <div class="feat-icon-ring">
+                                    <i class="fas fa-headset"></i>
+                                </div>
+                                <h3 class="text-base font-bold mb-1">
+                                    Soporte Personalizado
+                                </h3>
+                                <p class="text-gray-500 text-sm leading-snug">
+                                    Equipo de atención al cliente disponible para
+                                    ayudarte.
+                                </p>
+                            </div>
                         </div>
-                        <h3 class="text-base font-bold mb-1">
-                            Soporte Personalizado
-                        </h3>
-                        <p class="text-gray-500 text-sm leading-snug">
-                            Equipo de atención al cliente disponible para
-                            ayudarte.
-                        </p>
                     </div>
+                    <button class="sc-arrow sc-arrow-next fb-sc-arrow" id="fb-next" aria-label="Siguiente característica">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="sc-dots-row fb-dots-row" id="fb-dots" role="tablist" aria-label="Seleccionar característica">
+                    <button class="sc-dot active" data-dot="0" aria-label="Entregas Rápidas" aria-selected="true" role="tab"></button>
+                    <button class="sc-dot" data-dot="1" aria-label="Cobertura Nacional" aria-selected="false" role="tab"></button>
+                    <button class="sc-dot" data-dot="2" aria-label="Garantía de Seguridad" aria-selected="false" role="tab"></button>
+                    <button class="sc-dot" data-dot="3" aria-label="Soporte Personalizado" aria-selected="false" role="tab"></button>
                 </div>
             </div>
         </section>
@@ -2223,5 +2389,78 @@
     <script src="js/chat-calculator.js"></script>
     <script src="js/chat-quote.js"></script>
     <script src="js/chat-panel.js"></script>
+
+    <script>
+        (function () {
+            function makeCarousel(opts) {
+                var track = opts.track;
+                var prevBtn = opts.prevBtn;
+                var nextBtn = opts.nextBtn;
+                var dots = opts.dots;
+                var outer = opts.outer || null;
+                var count = dots.length;
+                var cur = 0;
+
+                function goTo(n) {
+                    n = Math.max(0, Math.min(count - 1, n));
+                    cur = n;
+                    track.style.transform = 'translateX(' + (-100 * cur) + '%)';
+                    dots.forEach(function (dot, i) {
+                        var active = i === cur;
+                        dot.classList.toggle('active', active);
+                        dot.setAttribute('aria-selected', active ? 'true' : 'false');
+                    });
+                }
+
+                prevBtn.addEventListener('click', function () { goTo(cur - 1); });
+                nextBtn.addEventListener('click', function () { goTo(cur + 1); });
+
+                dots.forEach(function (dot, i) {
+                    dot.addEventListener('click', function () { goTo(i); });
+                });
+
+                var touchStartX = 0;
+                track.addEventListener('touchstart', function (e) {
+                    touchStartX = e.changedTouches[0].screenX;
+                }, { passive: true });
+                track.addEventListener('touchend', function (e) {
+                    var dx = e.changedTouches[0].screenX - touchStartX;
+                    if (Math.abs(dx) >= 40) {
+                        goTo(dx < 0 ? cur + 1 : cur - 1);
+                    }
+                }, { passive: true });
+
+                if (outer) {
+                    outer.addEventListener('keydown', function (e) {
+                        if (e.key === 'ArrowLeft') { goTo(cur - 1); e.preventDefault(); }
+                        if (e.key === 'ArrowRight') { goTo(cur + 1); e.preventDefault(); }
+                    });
+                }
+
+                goTo(0);
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                makeCarousel({
+                    outer: document.getElementById('steps-carousel-outer'),
+                    track: document.getElementById('steps-carousel-track'),
+                    prevBtn: document.getElementById('steps-prev'),
+                    nextBtn: document.getElementById('steps-next'),
+                    dots: Array.from(document.querySelectorAll('#steps-dots .sc-dot'))
+                });
+
+                var mqlMobile = window.matchMedia('(max-width: 767px)');
+                if (mqlMobile.matches) {
+                    makeCarousel({
+                        outer: document.getElementById('fb-carousel-outer'),
+                        track: document.getElementById('features-banner-grid'),
+                        prevBtn: document.getElementById('fb-prev'),
+                        nextBtn: document.getElementById('fb-next'),
+                        dots: Array.from(document.querySelectorAll('#fb-dots .sc-dot'))
+                    });
+                }
+            });
+        }());
+    </script>
 </body>
 </html>
