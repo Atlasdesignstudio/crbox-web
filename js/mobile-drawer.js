@@ -220,6 +220,17 @@
     _wrap.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('crbox-drawer-open');
     if (_prevFocus) { try { _prevFocus.focus({ preventScroll: true }); } catch (e) {} }
+
+    var btn = document.getElementById('mobile-menu-button');
+    if (btn) {
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-label', 'Abrir menú');
+      var icon = btn.querySelector('i');
+      if (icon) {
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-bars');
+      }
+    }
   }
 
   // ── Public API ────────────────────────────────────────────────────────────────

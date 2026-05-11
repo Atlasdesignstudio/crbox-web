@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     <link rel="stylesheet" href="css/styles.css?v=6">
-    <link rel="stylesheet" href="css/responsive.css?v=17">
+    <link rel="stylesheet" href="css/responsive.css?v=18">
 </head>
 <body class="bg-gray-50">
     <!-- Google Tag Manager (noscript) -->
@@ -262,8 +262,8 @@
         const togglePasswordBtn = document.getElementById('toggle-password');
         const passwordField = document.getElementById('password');
         
-        // Toggle del menú móvil
-        if (mobileMenuButton && mobileMenu) {
+        // Toggle del menú móvil (sólo cuando el drawer no está activo)
+        if (mobileMenuButton && mobileMenu && !window.CRBOXDrawer) {
             const stickyHeader = document.querySelector('.sticky-header');
             mobileMenuButton.addEventListener('click', function() {
                 const isOpen = mobileMenu.classList.contains('is-open');

@@ -1416,6 +1416,10 @@ body.crbox-drawer-open {
   top: 14px;
   right: 14px;
   z-index: 9002;
+  box-sizing: border-box;
+  padding: 0;
+  line-height: 1;
+  aspect-ratio: 1;
   width: 40px;
   height: 40px;
   border-radius: 50%;
