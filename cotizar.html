@@ -2912,6 +2912,9 @@
         body.cq-portal-mode #site-footer,
         body.cq-portal-mode .cqc-toggle-btn,
         body.cq-portal-mode #cq-mobile-chat-panel { display: none !important; }
+        /* Portal mode: hide redundant agent info — portal bar already provides context */
+        body.cq-portal-mode .cqc-header-left { display: none !important; }
+        body.cq-portal-mode .cqc-header { justify-content: flex-end; padding: .45rem .75rem; min-height: 44px; }
         body.cq-portal-mode { background: #f9fafb !important; padding-top: 0 !important; }
         body.cq-portal-mode .cq-flow-inner {
             max-width: 100% !important;
