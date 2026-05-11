@@ -8718,8 +8718,8 @@ _CSP_POLICY = (
     "connect-src 'self' https://clients.crbox.cr "
     "https://generativelanguage.googleapis.com "
     "https://www.googletagmanager.com https://www.google-analytics.com; "
-    "frame-src https://www.googletagmanager.com https://maps.google.com https://www.google.com; "
-    "frame-ancestors 'none'; "
+    "frame-src 'self' https://www.googletagmanager.com https://maps.google.com https://www.google.com; "
+    "frame-ancestors 'self'; "
     "object-src 'none'"
 )
 
@@ -8783,7 +8783,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         if add_pragma:
             self.send_header("Pragma", "no-cache")
             self.send_header("Expires", "0")
-        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("X-Frame-Options", "SAMEORIGIN")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
         self.send_header("Permissions-Policy",
