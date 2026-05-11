@@ -288,12 +288,14 @@
       font-size: 1rem !important;
     }
 
-    section.py-10.bg-gray-50 .flex.flex-wrap.justify-center {
-      display: grid !important;
-      grid-template-columns: repeat(3, 1fr) !important;
-      gap: 1.5rem 0.5rem !important;
+    section.py-10.bg-gray-50 .grid {
       justify-items: center;
       align-items: center;
+    }
+
+    section.py-10.bg-gray-50 .grid img {
+      max-width: 80px;
+      width: auto;
     }
 
     /* Calculadora: dimension inputs stack */
