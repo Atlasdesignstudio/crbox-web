@@ -1435,7 +1435,7 @@
             .cqc-row { display: flex; align-items: flex-end; gap: .42rem; }
             .cqc-row.bot  { align-self: flex-start; max-width: 92%; }
             .cqc-row.user { align-self: flex-end; flex-direction: row-reverse; max-width: 82%; }
-            .cqc-row.wide { align-self: stretch; max-width: 100%; flex-direction: column; gap: 0; }
+            .cqc-row.wide { align-self: stretch; max-width: 100%; flex-direction: column; gap: 0; align-items: stretch; }
             .cqc-mini-av {
                 width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
                 background: linear-gradient(135deg, #FF6B00, #f59e0b);
@@ -1641,6 +1641,8 @@
 
             /* ── Wide widgets: edge-to-edge (coast to coast) ── */
             .cqc-row.wide .cqc-widget {
+                width: calc(100% + 1.75rem);
+                box-sizing: border-box;
                 margin: 0 -.875rem;
                 border-radius: 0;
                 padding: .9rem .875rem 1rem;
