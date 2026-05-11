@@ -1360,16 +1360,26 @@
         #cq-chat { display: none; }
 
         @media (max-width: 640px) {
-            /* Hide form UI; surface chat instead */
+            /* Lock viewport — only the message list scrolls, not the page */
+            html, body { overflow: hidden; height: 100%; }
+
+            /* Hide form UI, site nav, and footer (chat has its own header row) */
             #cq-hero  { display: none !important; }
             #cq-flow  { display: none !important; }
+            .sticky-header { display: none !important; }
+            #site-footer, footer { display: none !important; }
+
+            /* Chat fills the entire screen as a fixed layer */
             #cq-chat  {
                 display: flex !important;
                 flex-direction: column;
-                height: calc(100svh - 64px);
-                min-height: calc(100svh - 64px);
+                position: fixed;
+                inset: 0;
+                height: 100svh;
+                min-height: 100svh;
                 background: #f0efe9;
                 overflow: hidden;
+                z-index: 50;
             }
 
             /* ── Chat header ── */
@@ -2903,8 +2913,11 @@
 
         /* ── Portal mode — mobile overrides ── */
         @media (max-width: 640px) {
-            /* Portal bar: 48 px tall, full-bleed, generous tap target */
+            /* Portal bar: fixed to top so it never scrolls away */
             body.cq-portal-mode #cq-portal-bar {
+                position: fixed !important;
+                top: 0; left: 0; right: 0;
+                z-index: 200;
                 padding: 0 .75rem;
                 min-height: 48px;
                 gap: 0;
@@ -2920,8 +2933,12 @@
                 font-size: .85rem;
                 padding-right: .875rem;
             }
-            /* Chat height: subtract portal bar (48px) instead of sticky header (64px) */
+            /* Chat sits directly below the fixed portal bar, fills the rest */
             body.cq-portal-mode #cq-chat {
+                top: 48px !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
                 height: calc(100svh - 48px) !important;
                 min-height: calc(100svh - 48px) !important;
             }
