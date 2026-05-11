@@ -250,14 +250,17 @@
     if (!btn.getAttribute('aria-label')) btn.setAttribute('aria-label', 'Abrir menú');
 
     btn.addEventListener('click', function () {
+      var icon = btn.querySelector('i');
       if (window.CRBOXDrawer.isOpen()) {
         _close();
         btn.setAttribute('aria-expanded', 'false');
         btn.setAttribute('aria-label', 'Abrir menú');
+        if (icon) { icon.classList.remove('fa-times'); icon.classList.add('fa-bars'); }
       } else {
         _open();
         btn.setAttribute('aria-expanded', 'true');
         btn.setAttribute('aria-label', 'Cerrar menú');
+        if (icon) { icon.classList.remove('fa-bars'); icon.classList.add('fa-times'); }
       }
     });
 
