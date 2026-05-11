@@ -1363,20 +1363,20 @@
             /* Lock viewport — only the message list scrolls, not the page */
             html, body { overflow: hidden; height: 100%; }
 
-            /* Hide form UI, site nav, and footer (chat has its own header row) */
+            /* Hide form UI and footer only — navbar stays visible */
             #cq-hero  { display: none !important; }
             #cq-flow  { display: none !important; }
-            .sticky-header { display: none !important; }
             #site-footer, footer { display: none !important; }
 
-            /* Chat fills the entire screen as a fixed layer */
+            /* Chat fills viewport below the sticky navbar (64px) */
             #cq-chat  {
                 display: flex !important;
                 flex-direction: column;
                 position: fixed;
-                inset: 0;
-                height: 100svh;
-                min-height: 100svh;
+                top: 64px;
+                left: 0; right: 0; bottom: 0;
+                height: calc(100svh - 64px);
+                min-height: calc(100svh - 64px);
                 background: #f0efe9;
                 overflow: hidden;
                 z-index: 50;
