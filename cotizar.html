@@ -2900,6 +2900,36 @@
             padding-bottom: 0;
             min-height: unset;
         }
+
+        /* ── Portal mode — mobile overrides ── */
+        @media (max-width: 640px) {
+            /* Portal bar: 48 px tall, full-bleed, generous tap target */
+            body.cq-portal-mode #cq-portal-bar {
+                padding: 0 .75rem;
+                min-height: 48px;
+                gap: 0;
+            }
+            #cq-portal-bar-close {
+                min-height: 48px;
+                padding: 0 .875rem;
+                font-size: .9rem;
+                -webkit-tap-highlight-color: transparent;
+                gap: .5rem;
+            }
+            #cq-portal-bar-title {
+                font-size: .85rem;
+                padding-right: .875rem;
+            }
+            /* Chat height: subtract portal bar (48px) instead of sticky header (64px) */
+            body.cq-portal-mode #cq-chat {
+                height: calc(100svh - 48px) !important;
+                min-height: calc(100svh - 48px) !important;
+            }
+            /* Compact flow padding in portal mode on mobile */
+            body.cq-portal-mode .cq-flow-inner {
+                padding: .625rem .75rem 3.5rem !important;
+            }
+        }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
 </head>
