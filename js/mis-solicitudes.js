@@ -384,15 +384,23 @@
     var overlay = document.getElementById('new-request-overlay');
     if (!panel) return;
 
-    // Build iframe URL — pass prefill params for duplicate flow
-    var iframeParams = new URLSearchParams({ portal: '1' });
-    if (_isCompany) iframeParams.set('account_type', 'business');
+    // Build cotizar URL — shared by both iframe and mobile-navigate paths
+    var cqParams = new URLSearchParams({ portal: '1' });
+    if (_isCompany) cqParams.set('account_type', 'business');
     if (prefill) {
-      if (prefill.product_name) iframeParams.set('prefill_name', prefill.product_name);
-      if (prefill.product_url)  iframeParams.set('prefill_url',  prefill.product_url);
+      if (prefill.product_name) cqParams.set('prefill_name', prefill.product_name);
+      if (prefill.product_url)  cqParams.set('prefill_url',  prefill.product_url);
     }
+
+    // On mobile (≤640px) navigate directly — avoids all iframe/CSP complexity
+    if (window.innerWidth <= 640) {
+      window.location.href = '/cotizar.html?' + cqParams.toString();
+      return;
+    }
+
+    // Desktop: load inside the slide-in panel iframe
     var iframe = document.getElementById('quote-builder-iframe');
-    if (iframe) iframe.src = '/cotizar.html?' + iframeParams.toString();
+    if (iframe) iframe.src = '/cotizar.html?' + cqParams.toString();
 
     panel.classList.remove('translate-x-full');
     if (overlay) overlay.classList.remove('hidden');
@@ -730,6 +738,17 @@
         var dupId = params.get('dup');
         var original = _allSolicitudes.filter(function (s) { return s.id === dupId; })[0];
         if (original) showNewRequestPanel(original);
+      } else if (params.get('submitted_id')) {
+        // Mobile-navigate flow: cotizar.html redirected back here after submit
+        var sid = params.get('submitted_id');
+        var hasWarn = params.get('smtp_warning') === '1';
+        var toastMsg = hasWarn
+          ? 'Cotización #' + sid + ' guardada. El correo de confirmación puede tardar unos minutos.'
+          : '¡Cotización enviada! ID: ' + sid;
+        showToast(toastMsg, hasWarn ? 'warning' : 'success');
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
       }
     }).catch(function (err) {
       if (err && err.isAuthError) return;

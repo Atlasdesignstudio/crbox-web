@@ -3696,7 +3696,14 @@
             if (pmBar) pmBar.setAttribute('aria-hidden', 'false');
             var pmClose = document.getElementById('cq-portal-bar-close');
             if (pmClose) pmClose.addEventListener('click', function () {
-                window.parent.postMessage({ type: 'crbox:cancel' }, location.origin);
+                if (window.parent !== window) {
+                    // Iframe mode (desktop): notify parent
+                    window.parent.postMessage({ type: 'crbox:cancel' }, location.origin);
+                } else {
+                    // Mobile-navigate mode: go back (or fall back to mis-solicitudes)
+                    if (history.length > 1) { history.back(); }
+                    else { window.location.href = '/mis-solicitudes.html'; }
+                }
             });
             // Pre-fill email + name from auth token (same-origin localStorage)
             try {
@@ -4912,14 +4919,25 @@
                 if (res.ok && data.ok && data.id) {
                     _formSubmitted = true;
                     if (window.CRBOX && CRBOX.track) { try { CRBOX.track.quote_submit({ service_type: payload.service_type, destination_country: 'CR' }); } catch(_) {} }
-                    // Portal mode: notify parent window instead of showing public confirmation
+                    // Portal mode: notify parent or redirect depending on embed context
                     if (_isPortalMode) {
                         _clearDraft();
-                        window.parent.postMessage({
-                            type: 'crbox:submitted',
-                            id: data.id,
-                            hasSmtpWarning: !!(data.email_warnings && data.email_warnings.length)
-                        }, location.origin);
+                        var _smtpWarn = !!(data.email_warnings && data.email_warnings.length);
+                        if (window.parent !== window) {
+                            // Iframe/desktop: postMessage to parent
+                            window.parent.postMessage({
+                                type: 'crbox:submitted',
+                                id: data.id,
+                                hasSmtpWarning: _smtpWarn
+                            }, location.origin);
+                        } else {
+                            // Mobile-navigate: redirect back with toast params
+                            var _rp = new URLSearchParams({
+                                submitted_id: String(data.id),
+                                smtp_warning: _smtpWarn ? '1' : '0'
+                            });
+                            window.location.href = '/mis-solicitudes.html?' + _rp.toString();
+                        }
                         return;
                     }
                     if (data.email_warnings && data.email_warnings.length) showSmtpFailure(data.id, payload);
