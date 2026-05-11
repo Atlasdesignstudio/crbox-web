@@ -1,40 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu toggle
-    const mobileMenuButton = document.getElementById('mobile-menu-button');
-    const mobileMenu = document.getElementById('mobile-menu');
-
-    if (mobileMenuButton && mobileMenu) {
-        const stickyHeader = document.querySelector('.sticky-header');
-        function _closeMobileMenu() {
-            if (!mobileMenu.classList.contains('is-open')) return;
-            mobileMenu.classList.remove('is-open');
-            mobileMenu.classList.add('hidden');
-            if (stickyHeader) stickyHeader.classList.remove('menu-open');
-            const icon = mobileMenuButton.querySelector('i');
-            if (icon) icon.classList.replace('fa-times', 'fa-bars');
-            mobileMenuButton.setAttribute('aria-expanded', 'false');
-            mobileMenuButton.setAttribute('aria-label', 'Abrir menú');
-        }
-        mobileMenuButton.addEventListener('click', function() {
-            const isOpen = mobileMenu.classList.contains('is-open');
-            const icon = mobileMenuButton.querySelector('i');
-            if (isOpen) {
-                _closeMobileMenu();
-            } else {
-                mobileMenu.classList.remove('hidden');
-                mobileMenu.classList.add('is-open');
-                if (stickyHeader) stickyHeader.classList.add('menu-open');
-                if (icon) { icon.classList.replace('fa-bars', 'fa-times'); }
-                mobileMenuButton.setAttribute('aria-expanded', 'true');
-                mobileMenuButton.setAttribute('aria-label', 'Cerrar menú');
-            }
-            mobileMenuButton.blur();
-        });
-        // Close menu when any link inside it is clicked
-        mobileMenu.querySelectorAll('a').forEach(function (link) {
-            link.addEventListener('click', _closeMobileMenu);
-        });
-    }
+    // Mobile menu — handled by js/mobile-drawer.js
 
     // Simple tracking form
     const trackingForm = document.querySelector('.tracking-form');
@@ -61,20 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         behavior: 'smooth'
                     });
                     
-                    // Close mobile menu if open
-                    if (mobileMenu && mobileMenu.classList.contains('is-open')) {
-                        mobileMenu.classList.remove('is-open');
-                        mobileMenu.classList.add('hidden');
-                        const _sh = document.querySelector('.sticky-header');
-                        if (_sh) _sh.classList.remove('menu-open');
-                        const _btn = document.getElementById('mobile-menu-button');
-                        if (_btn) {
-                            const _icon = _btn.querySelector('i');
-                            if (_icon) _icon.classList.replace('fa-times', 'fa-bars');
-                            _btn.setAttribute('aria-expanded', 'false');
-                            _btn.setAttribute('aria-label', 'Abrir menú');
-                        }
-                    }
+                    // Close drawer if open
+                    if (window.CRBOXDrawer && window.CRBOXDrawer.isOpen()) window.CRBOXDrawer.close();
                 }
             }
         });

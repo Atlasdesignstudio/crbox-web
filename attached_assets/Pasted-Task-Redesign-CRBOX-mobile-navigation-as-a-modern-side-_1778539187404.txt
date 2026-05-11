@@ -1,0 +1,129 @@
+Task: Redesign CRBOX mobile navigation as a modern side drawer menu
+
+Use the attached reference image as visual inspiration for the mobile hamburger menu behavior and aesthetic. Do not copy the restaurant app content, branding, icons, or exact menu labels. The reference is only for interaction, layout, spacing, hierarchy, and modern mobile drawer feel. Reference image:  [oai_citation:0‡login.html](sediment://file_0000000012c071fda2963ece0716034f)
+
+Context:
+CRBOX currently has a basic mobile dropdown menu across public pages and client portal pages. I want this upgraded into a polished mobile side navigation drawer that feels modern, app-like, and premium, using CRBOX branding.
+
+Scope:
+Apply this mobile navigation redesign across all current CRBOX pages, including:
+
+Public pages:
+- index.html
+- servicios.html
+- como-funciona.html
+- tarifas.html
+- calculadora.html
+- contacto.html
+- afiliate.html
+- login.html
+
+Client portal pages:
+- dashboard.html
+- mis-paquetes.html
+- mis-facturas.html
+- mi-cuenta.html
+- Any other portal/private page currently using the same mobile header/menu pattern
+
+Important:
+This is an aesthetic and UX revamp only. Do not remove, rename, or break any existing navigation tabs, links, login states, dashboard tabs, portal actions, logout behavior, or backend-related logic. Every tab/link currently visible in each page’s mobile menu must still exist after the redesign.
+
+Desired behavior:
+- On mobile, tapping the hamburger button opens a side drawer.
+- The drawer should slide in from the left.
+- The drawer should cover around 80% of the screen width, similar to the reference.
+- The remaining 20% of the screen should show the current page behind a dark blurred overlay.
+- The background/page behind the drawer should be dimmed and blurred.
+- A large “X” close button should appear at the top right area of the overlay/drawer experience, similar to the reference.
+- Tapping the X closes the drawer.
+- Tapping outside the drawer closes the drawer.
+- Pressing Escape closes the drawer.
+- When the drawer is open, body scrolling should be locked.
+- When the drawer closes, scroll should be restored.
+- The hamburger icon should not simply expand a block below the header anymore.
+
+Visual direction:
+- Use CRBOX orange as the main brand accent.
+- The drawer should feel clean, modern, and app-like.
+- Use a strong top profile/header area inspired by the reference, but adapted to CRBOX:
+  - Public/logged-out state: CRBOX logo, short line such as “Compra en USA y recibe en Costa Rica”, and account actions.
+  - Logged-in portal state: user name if available, casillero number if available, and a small avatar/icon treatment.
+- Drawer background can be white or very subtle warm off-white.
+- Add CRBOX orange highlights for active states, icons, CTA pills, and hover/focus states.
+- Menu rows should be tall, touch-friendly, and visually separated with subtle dividers.
+- Icons should remain consistent with the current Font Awesome setup.
+- Active/current page should be clearly highlighted.
+- Keep the UI professional and trustworthy, not childish.
+
+Public menu content:
+Keep all current public navigation options:
+- Servicios
+- Cómo Funciona
+- Tarifas
+- Calculadora
+- Contacto
+- Calcular Envío
+- Afíliate Gratis
+- Iniciar Sesión / Crear Cuenta where currently applicable
+
+Portal menu content:
+Keep all current portal/user options:
+- Dashboard
+- Mis Paquetes
+- Mis Facturas
+- Mi Cuenta
+- Calcular Envío
+- Cerrar Sesión
+- Any existing public links currently included in the portal mobile menu
+
+Implementation requirements:
+- Prefer a reusable/shared pattern instead of manually creating inconsistent drawers per page.
+- Update the existing mobile menu HTML/CSS/JS in a way that works across all static HTML pages.
+- Use existing files where appropriate:
+  - css/styles.css
+  - css/responsive.css
+  - css/dashboard.css if portal-specific styling is needed
+  - js/main.js
+  - js/dashboard.js if portal-specific behavior is needed
+- Avoid duplicating large blocks of JS unnecessarily.
+- Preserve all existing desktop navigation exactly as it is.
+- Only affect mobile behavior under the existing mobile breakpoint, ideally below 768px.
+- Ensure no regressions on desktop.
+
+Accessibility requirements:
+- Hamburger button must have aria-expanded, aria-controls, and aria-label.
+- Drawer should use appropriate dialog/navigation semantics.
+- Close button must have a clear aria-label.
+- Focus should move into the drawer when opened.
+- Focus should not get lost behind the overlay.
+- Keyboard users should be able to close it with Escape.
+- Links must remain readable and tappable.
+- Touch targets should be at least 44px high.
+
+Animation requirements:
+- Smooth slide-in animation from the left.
+- Overlay fade/blur animation.
+- Drawer should close smoothly.
+- Use CSS transitions, not heavy JS animation libraries.
+- Respect reduced motion with `prefers-reduced-motion`.
+
+Quality checks:
+After implementation, test mobile behavior on:
+- Public logged-out pages
+- Login page
+- Afiliate page
+- Dashboard
+- Mis Paquetes
+- Mis Facturas
+- Mi Cuenta
+
+Done looks like:
+- Mobile hamburger opens a modern left side drawer covering approximately 80% of the viewport.
+- Page background is dimmed and blurred.
+- X close button is visible and easy to tap.
+- All existing mobile links/tabs/actions are preserved.
+- Public and portal states both work correctly.
+- Desktop navigation is unchanged.
+- No backend/auth/logout behavior is broken.
+- No fake content is added.
+- The result feels like a polished mobile app navigation experience adapted to CRBOX orange branding.

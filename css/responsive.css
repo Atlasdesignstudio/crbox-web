@@ -58,52 +58,8 @@
       backdrop-filter: none !important;
     }
 
-    /* ===== Mobile menu smooth slide-down animation =====
-       Default: collapsed (max-height:0). Opens via .is-open class.
-       Negative margins break out of the container's px-4 so the panel
-       is truly edge-to-edge; internal padding compensates for readability. */
-    #mobile-menu {
-      display: block !important;
-      overflow: hidden;
-      max-height: 0;
-      opacity: 0;
-      pointer-events: none;
-      margin-top: 0 !important;
-      /* Break out of container horizontal padding */
-      margin-left: -1rem !important;
-      margin-right: -1rem !important;
-      padding-left: 1.25rem !important;
-      padding-right: 1.25rem !important;
-      transition: max-height 0.35s ease-in-out, opacity 0.25s ease;
-    }
-
-    /* Open state: cap to viewport so the drawer always fits, and let it scroll
-       internally when content (Cerrar Sesión, etc.) exceeds the visible space.
-       100dvh tracks the dynamic viewport (mobile browser chrome / on-screen
-       keyboard); 100vh fallback handles older mobile Safari/Chrome. */
-    #mobile-menu.is-open {
-      max-height: calc(100vh - 5rem) !important;
-      max-height: calc(100dvh - 5rem) !important;
-      opacity: 1 !important;
-      pointer-events: auto;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
-      border-top: 1px solid rgba(0, 0, 0, 0.07) !important;
-      border-bottom-left-radius: 1.25rem !important;
-      border-bottom-right-radius: 1.25rem !important;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.07) !important;
-    }
-
-    /* Remove the container's bottom padding gap that makes the menu look detached */
-    .sticky-header.menu-open .container {
-      padding-bottom: 0 !important;
-    }
-
-    /* Tighten the top gap inside the menu so it hugs the header row */
-    #mobile-menu > div.py-3 {
-      padding-top: 0.25rem !important;
-    }
+    /* Side drawer replaces the old dropdown — keep source element hidden */
+    #mobile-menu { display: none !important; }
 
     /* Afiliate hero section (py-20 md:py-28 gradient-bg) */
     section.py-20.gradient-bg {
@@ -1415,3 +1371,243 @@
     width: 100%;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   CRBOX Mobile Side Drawer — companion to js/mobile-drawer.js
+   The old #mobile-menu dropdown is fully replaced by this fixed left-slide panel.
+══════════════════════════════════════════════════════════════════════════════ */
+
+/* Lock body scroll while drawer is open */
+body.crbox-drawer-open {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
+/* Full-screen wrap: invisible + inert until opened */
+.crbox-drawer-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  visibility: hidden;
+  pointer-events: none;
+}
+.crbox-drawer-wrap.is-open {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Dim + blur backdrop */
+.crbox-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+.crbox-drawer-wrap.is-open .crbox-drawer-backdrop { opacity: 1; }
+
+/* X close button — top-right of screen, in backdrop area */
+.crbox-drawer-x {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 9002;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.05rem;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.75);
+  transition: opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s, background 0.15s;
+  pointer-events: none;
+}
+.crbox-drawer-wrap.is-open .crbox-drawer-x {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+.crbox-drawer-x:hover { background: rgba(255, 255, 255, 0.32); }
+
+/* Sliding panel — 82vw, slides in from left */
+.crbox-drawer-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 82vw;
+  max-width: 360px;
+  background: #fff;
+  z-index: 9001;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 6px 0 40px rgba(0, 0, 0, 0.2);
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  outline: none;
+}
+.crbox-drawer-wrap.is-open .crbox-drawer-panel { transform: translateX(0); }
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .crbox-drawer-panel,
+  .crbox-drawer-backdrop,
+  .crbox-drawer-x { transition: none !important; }
+}
+
+/* Orange brand header */
+.crbox-dh {
+  flex-shrink: 0;
+  background: #FF6B00;
+  padding: 1.375rem 1.25rem 1.25rem;
+}
+.crbox-dh-logo-wrap { display: inline-block; margin-bottom: 0.625rem; }
+.crbox-dh-logo {
+  height: 24px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  display: block;
+}
+
+/* Logged-out tagline + CTAs */
+.crbox-dh-tagline {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.88);
+  margin-bottom: 0.875rem;
+}
+.crbox-dh-btns { display: flex; gap: 0.5rem; }
+.crbox-dh-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.48rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  min-height: 38px;
+}
+.crbox-dh-btn--solid  { background: #fff; color: #FF6B00; border: none; }
+.crbox-dh-btn--solid:hover  { background: #fff7ed; color: #c2410c; }
+.crbox-dh-btn--outline { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.6); }
+.crbox-dh-btn--outline:hover { background: rgba(255,255,255,0.18); }
+
+/* Logged-in user row */
+.crbox-dh-user  { display: flex; align-items: center; gap: 0.875rem; margin-top: 0.25rem; }
+.crbox-dh-avatar {
+  flex-shrink: 0;
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.22);
+  border: 2px solid rgba(255,255,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.15rem;
+}
+.crbox-dh-info  { min-width: 0; }
+.crbox-dh-name  { font-size: 1rem; font-weight: 700; color: #fff; line-height: 1.25; }
+.crbox-dh-sub   { font-size: 0.73rem; color: rgba(255,255,255,0.78); margin-top: 0.1rem; }
+
+/* Scrollable nav body */
+.crbox-db {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0.5rem 0;
+}
+.crbox-db-label {
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  padding: 0.7rem 1.25rem 0.2rem;
+}
+.crbox-db-sep { height: 1px; background: #f3f4f6; margin: 0.4rem 0; }
+
+/* Nav link rows */
+.crbox-drawer-link {
+  display: flex !important;
+  align-items: center !important;
+  width: 100%;
+  padding: 0 1.25rem !important;
+  min-height: 52px;
+  gap: 0.875rem;
+  font-size: 0.9375rem !important;
+  font-weight: 500;
+  color: #374151;
+  text-decoration: none !important;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  font-family: inherit;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+.crbox-drawer-link i {
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+  color: #FF6B00;
+  font-size: 0.875rem;
+}
+.crbox-drawer-link:hover,
+.crbox-drawer-link:focus-visible {
+  background: #fff7ed;
+  color: #c2410c;
+  outline: none;
+}
+.crbox-drawer-link:hover i,
+.crbox-drawer-link:focus-visible i { color: #c2410c; }
+
+.crbox-drawer-link--active {
+  color: #FF6B00 !important;
+  font-weight: 700;
+  background: #fff7ed;
+  border-left-color: #FF6B00;
+}
+.crbox-drawer-link--active i { color: #FF6B00 !important; }
+
+.crbox-drawer-link--danger       { color: #ef4444 !important; }
+.crbox-drawer-link--danger i     { color: #ef4444 !important; }
+.crbox-drawer-link--danger:hover { background: #fef2f2; color: #b91c1c !important; }
+.crbox-drawer-link--danger:hover i { color: #b91c1c !important; }
+
+/* CTA footer strip */
+.crbox-df {
+  flex-shrink: 0;
+  padding: 0.75rem 1.25rem 1.375rem;
+  border-top: 1px solid #f3f4f6;
+}
+.crbox-df-cta {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #FF6B00 !important;
+  color: #fff !important;
+  border-radius: 0.625rem;
+  padding: 0.75rem 1.25rem !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  text-decoration: none !important;
+  min-height: 48px;
+  transition: background 0.15s !important;
+}
+.crbox-df-cta:hover { background: #e05c00 !important; }

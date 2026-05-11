@@ -35,7 +35,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
     <link rel="stylesheet" href="css/styles.css?v=7">
-    <link rel="stylesheet" href="css/responsive.css?v=16">
+    <link rel="stylesheet" href="css/responsive.css?v=17">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -3671,6 +3671,7 @@
     <script src="/js/footer.js?v=1"></script>
 
     <script src="js/auth.js"></script>
+    <script src="js/mobile-drawer.js?v=1" defer></script>
     <script src="js/nav-auth.js?v=2" defer></script>
     <script src="js/analytics.js" defer></script>
     <script src="js/product-categories.js?v=1"></script>
@@ -5289,38 +5290,7 @@
         var _DRAFT_KEY = 'crbox-draft-cq-v1';
         function _clearDraft() { try { localStorage.removeItem(_DRAFT_KEY); } catch(e) {} }
 
-        // ── Mobile menu ────────────────────────────────────────
-        var mobileMenuBtn = document.getElementById('mobile-menu-button');
-        var mobileMenu    = document.getElementById('mobile-menu');
-        if (mobileMenuBtn && mobileMenu) {
-            var stickyHeader = document.querySelector('.sticky-header');
-            mobileMenuBtn.addEventListener('click', function() {
-                var isOpen = mobileMenu.classList.contains('is-open');
-                var icon = mobileMenuBtn.querySelector('i');
-                if (isOpen) {
-                    mobileMenu.classList.remove('is-open'); mobileMenu.classList.add('hidden');
-                    if (stickyHeader) stickyHeader.classList.remove('menu-open');
-                    if (icon) icon.classList.replace('fa-times','fa-bars');
-                    mobileMenuBtn.setAttribute('aria-expanded','false'); mobileMenuBtn.setAttribute('aria-label','Abrir menú');
-                } else {
-                    mobileMenu.classList.remove('hidden'); mobileMenu.classList.add('is-open');
-                    if (stickyHeader) stickyHeader.classList.add('menu-open');
-                    if (icon) icon.classList.replace('fa-bars','fa-times');
-                    mobileMenuBtn.setAttribute('aria-expanded','true'); mobileMenuBtn.setAttribute('aria-label','Cerrar menú');
-                }
-                mobileMenuBtn.blur();
-            });
-            mobileMenu.querySelectorAll('a').forEach(function(link) {
-                link.addEventListener('click', function() {
-                    if (!mobileMenu.classList.contains('is-open')) return;
-                    mobileMenu.classList.remove('is-open'); mobileMenu.classList.add('hidden');
-                    if (stickyHeader) stickyHeader.classList.remove('menu-open');
-                    var icon = mobileMenuBtn.querySelector('i');
-                    if (icon) icon.classList.replace('fa-times','fa-bars');
-                    mobileMenuBtn.setAttribute('aria-expanded','false'); mobileMenuBtn.setAttribute('aria-label','Abrir menú');
-                });
-            });
-        }
+        // Mobile menu — handled by js/mobile-drawer.js
 
         // ── User dropdown ──────────────────────────────────────
         var userMenuBtn  = document.getElementById('user-menu-button');
