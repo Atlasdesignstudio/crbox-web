@@ -246,19 +246,10 @@
        PHASE: GREETING
     ═══════════════════════════════════════════ */
     function phaseGreeting() {
-        var h = new Date().getHours();
-        var greet = h < 12 ? '¡Buenos días! ☀️' : h < 18 ? '¡Buenas tardes! 👋' : '¡Buenas noches! 🌙';
-
-        /* Update the static message pre-rendered in HTML (always visible on load) */
-        var staticTxt = document.getElementById('cqcg-hello-txt');
-        if (staticTxt) {
-            staticTxt.innerHTML = greet + ' Soy el asistente de <strong>CRBOX</strong> — llevamos más de '
-                + '<strong>' + esc(CRBOX.years) + ' años</strong> ayudando a costarricenses a '
-                + 'traer sus compras de USA. 🇨🇷 ¿Qué querés cotizar hoy?';
-            _lastSender = 'bot';
-        } else {
-            say(greet + ' Soy el asistente de <strong>CRBOX</strong>. ¿Qué querés traer de USA?');
-        }
+        /* The static greeting bubble is pre-rendered in HTML (#cqcg-hello-txt).
+           We intentionally leave its text unchanged — no replacement, no second bubble.
+           Just mark the sender state so follow-up rows group correctly. */
+        _lastSender = 'bot';
 
         setTimeout(function() {
             var chips = [
