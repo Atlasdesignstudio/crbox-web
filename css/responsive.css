@@ -185,11 +185,6 @@
       padding: 1.5rem !important;
     }
 
-    /* Hero body paragraphs: left-align on mobile (not headings or buttons) */
-    #main-content .mobile-center > p {
-      text-align: left !important;
-    }
-
     /* Promo pill: always left-align on mobile */
     #main-content .inline-flex.items-center.gap-3 {
       text-align: left !important;
