@@ -246,10 +246,8 @@
        PHASE: GREETING
     ═══════════════════════════════════════════ */
     function phaseGreeting() {
-        /* The static greeting bubble is pre-rendered in HTML (#cqcg-hello-txt).
-           We intentionally leave its text unchanged — no replacement, no second bubble.
-           Just mark the sender state so follow-up rows group correctly. */
-        _lastSender = 'bot';
+        /* Single source of truth — JS renders the one and only greeting bubble. */
+        say('¡Hola! 👋 Soy el asistente de <strong>CRBOX</strong> — 20+ años de experiencia sirviendo a los ticos. ¿Qué querés traer de USA hoy?');
 
         setTimeout(function() {
             var chips = [
