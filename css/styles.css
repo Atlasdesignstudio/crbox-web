@@ -96,6 +96,29 @@ select:focus-visible {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
+.card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+    padding: 0.4rem 1.25rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 4px rgba(255, 107, 0, 0.10);
+    transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.feature-card:hover .card-cta,
+.service-card:hover .card-cta {
+    background: rgba(255, 107, 0, 0.08);
+    color: var(--primary-dark);
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.18);
+    transform: translateY(-1px);
+}
+
 .icon-circle {
     width: 64px;
     height: 64px;
