@@ -33,11 +33,11 @@
             position: fixed;
             top: 0; right: 0;
             width: 100%;
-            max-width: 840px;
+            max-width: 100%;
             height: 100%;
             z-index: 60;
-            background: #fff;
-            box-shadow: -4px 0 40px rgba(0,0,0,.18);
+            background: #f9fafb;
+            box-shadow: none;
             transform: translateX(100%);
             transition: transform .3s cubic-bezier(.4,0,.2,1);
             display: flex;
@@ -771,7 +771,7 @@
                             </div>
                             <div>
                                 <p class="text-sm font-semibold text-gray-900 leading-snug">¿Más de un artículo?</p>
-                                <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">Cada solicitud cubre un producto. Si necesitas cotizar más, crea una solicitud por artículo.</p>
+                                <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">Podés agregar varios productos en una misma cotización y CRBOX los consolida para optimizar el envío.</p>
                             </div>
                         </div>
 
@@ -794,8 +794,14 @@
             </button>
         </div>
 
-        <!-- Scrollable form body -->
-        <div class="flex-1 overflow-y-auto">
+        <!-- Builder iframe — fills remaining panel space -->
+        <iframe id="quote-builder-iframe" src=""
+                title="Cotizador CRBOX"
+                style="width:100%;flex:1;border:none;min-height:0;display:block;background:#f9fafb;"
+                loading="lazy"></iframe>
+        <!-- Legacy form body — kept as hidden fallback placeholder -->
+        <div class="flex-1 overflow-y-auto" style="display:none;"
+             aria-hidden="true" tabindex="-1">
 
             <!-- Success screen -->
             <div id="form-success" class="hidden flex flex-col items-center text-center px-8 py-16 gap-5">
@@ -1216,7 +1222,7 @@
     <script src="js/tariff-adapter.js?v=3"></script>
     <script src="js/calculator-engine.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js" integrity="sha384-cnROoUgVILyibe3J0zhzWoJ9p2WmdnK7j/BOTSWqVDbC1pVw2d+i6Q/1ESKJKCYf" crossorigin="anonymous"></script>
-    <script src="js/mis-solicitudes.js?v=6"></script>
+    <script src="js/mis-solicitudes.js?v=7"></script>
     <script src="js/portal-nav-offset.js" defer></script>
 </body>
 </html>

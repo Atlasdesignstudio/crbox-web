@@ -384,73 +384,15 @@
     var overlay = document.getElementById('new-request-overlay');
     if (!panel) return;
 
-    // Apply business account copy variants
-    var heading = document.getElementById('form-heading');
-    var valueLabel = document.getElementById('form-value-label');
-    var notesPlaceholder = document.getElementById('form-notes');
-    var invoiceNotice = document.getElementById('form-invoice-notice');
-
-    if (heading) {
-      heading.textContent = _isCompany
-        ? 'Nueva cotización — Cuenta empresarial'
-        : 'Nueva cotización';
-    }
-    if (valueLabel) {
-      valueLabel.textContent = _isCompany
-        ? 'Valor del producto (USD) — para efectos aduaneros'
-        : 'Valor del producto (USD)';
-    }
-    if (notesPlaceholder) {
-      notesPlaceholder.placeholder = _isCompany
-        ? 'Número de orden, referencia interna, o notas para facturación'
-        : '¿Algo que CRBOX deba saber sobre este pedido?';
-    }
-    if (invoiceNotice) {
-      if (_isCompany) {
-        invoiceNotice.classList.remove('hidden');
-      } else {
-        invoiceNotice.classList.add('hidden');
-      }
-    }
-
-    // Pre-fill email (read-only)
-    var emailEl = document.getElementById('form-email-display');
-    if (emailEl) emailEl.textContent = _userEmail;
-
-    // Pre-fill from duplicate if provided
+    // Build iframe URL — pass prefill params for duplicate flow
+    var iframeParams = new URLSearchParams({ portal: '1' });
+    if (_isCompany) iframeParams.set('account_type', 'business');
     if (prefill) {
-      var dupBanner = document.getElementById('form-dup-banner');
-      if (dupBanner) {
-        dupBanner.classList.remove('hidden');
-        var dupId = document.getElementById('form-dup-id');
-        if (dupId) dupId.textContent = prefill.id;
-      }
-      _setFormField('form-product-name', prefill.product_name);
-      _setFormField('form-product-url', prefill.product_url);
-      _setFormField('form-declared-value', prefill.declared_value_usd);
-      _setSelectField('form-category', prefill.category);
-      // Ensure toggles are in canonical state when pre-filling from a duplicate
-      if (_portalWeightToggle) _portalWeightToggle.setUnit('kg');
-      if (_portalDimToggle)    _portalDimToggle.setUnit('cm');
-      _setFormField('form-weight', prefill.weight_kg);
-      _setFormField('form-length', prefill.length_cm);
-      _setFormField('form-width',  prefill.width_cm);
-      _setFormField('form-height', prefill.height_cm);
-      _setFormField('form-notes', prefill.customer_notes);
-      _setSelectField('form-service-type', prefill.service_type);
-    } else {
-      var dupBanner = document.getElementById('form-dup-banner');
-      if (dupBanner) dupBanner.classList.add('hidden');
-      var form = document.getElementById('new-request-form');
-      if (form) form.reset();
+      if (prefill.product_name) iframeParams.set('prefill_name', prefill.product_name);
+      if (prefill.product_url)  iframeParams.set('prefill_url',  prefill.product_url);
     }
-
-    // Reset dup + data state when opening fresh panel
-    _panelSubmitted = false;
-    _dupWarningDismissedPortal = false;
-    _panelHasData = !!prefill;
-    var portalDupWarn = document.getElementById('portal-dup-warning');
-    if (portalDupWarn) portalDupWarn.classList.add('hidden');
+    var iframe = document.getElementById('quote-builder-iframe');
+    if (iframe) iframe.src = '/cotizar.html?' + iframeParams.toString();
 
     panel.classList.remove('translate-x-full');
     if (overlay) overlay.classList.remove('hidden');
@@ -467,86 +409,9 @@
       } catch (_e) {}
     }
 
-    // Draft: check for saved draft and offer restore (skip when duplicating)
-    _checkPortalDraftOnOpen(prefill || null);
-
-    // Show the portal form directly — no concierge pre-step
-    _portalBrainClassification = null;
-
-    // Mount (or reset) ConciergeIntake above the product section so users can do
-    // an AI product lookup before filling in the form fields manually.
-    if (typeof ConciergeIntake !== 'undefined') {
-      if (_portalCiInst) {
-        _portalCiInst.reset();
-      } else {
-        _portalCiInst = ConciergeIntake.mount('portal-concierge-mount', {
-          compact:      true,
-          showUrl:      false,
-          showPrice:    true,
-          calcRedirect: true,
-          placeholder:  'Ej: Sony WH-1000XM5, iPad Pro, tenis Nike…',
-          onRequestQuote: function (name, approxPrice, result) {
-            // Fill product name
-            var nameEl = document.getElementById('form-product-name');
-            if (nameEl) { nameEl.value = name; nameEl.dispatchEvent(new Event('input')); }
-            // Fill declared value
-            var valEl = document.getElementById('form-declared-value');
-            if (valEl && approxPrice > 0) { valEl.value = approxPrice; valEl.dispatchEvent(new Event('input')); }
-            // Store brain result + set TomSelect category + render intel card
-            if (result) {
-              _portalBrainClassification = result;
-              if (result.legacyCode && _portalTomSelect) {
-                try { _portalTomSelect.setValue(result.legacyCode, false); } catch (e) {}
-              }
-              _renderPortalIntelCard(result, name, approxPrice || 0);
-            }
-            // Scroll to and focus the name field so user can review/complete
-            var fEl = document.getElementById('form-product-name');
-            if (fEl) setTimeout(function () { fEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); fEl.focus(); }, 120);
-          },
-        });
-      }
-    }
-
-    function _showPortalForm() {
-      var nameEl = document.getElementById('form-product-name');
-      if (nameEl) setTimeout(function () { nameEl.focus(); }, 80);
-    }
-
-    _showPortalForm();
-
-    // Auto-classify on portal name blur — sets category + renders intel card
-    var _pNameEl = document.getElementById('form-product-name');
-    if (_pNameEl && typeof CRBOXProductClassifier !== 'undefined') {
-      _pNameEl.removeEventListener('blur', _pNameEl._portalClassifyFn); // clear stale listener
-      _pNameEl._portalClassifyFn = function() {
-        var val = (this.value||'').trim();
-        if (val.length < 3) return;
-        var valEl = document.getElementById('form-declared-value');
-        var price = parseFloat(valEl ? valEl.value : '') || 0;
-        CRBOXProductClassifier.classify(val, price > 0 ? { priceUsd: price } : undefined).then(function(result) {
-          if (!result) return;
-          _portalBrainClassification = result;
-          // Auto-set TomSelect category
-          if (result.legacyCode && _portalTomSelect) {
-            try { _portalTomSelect.setValue(result.legacyCode, false); } catch(e) {}
-          }
-          // Render portal intel card
-          _renderPortalIntelCard(result, val, price);
-        });
-      };
-      _pNameEl.addEventListener('blur', _pNameEl._portalClassifyFn);
-
-      // Re-render intel card when price changes (update dollar estimate)
-      var _pValEl = document.getElementById('form-declared-value');
-      if (_pValEl) {
-        _pValEl.addEventListener('input', function() {
-          if (_portalBrainClassification) {
-            _renderPortalIntelCard(_portalBrainClassification, (_pNameEl ? _pNameEl.value : ''), parseFloat(this.value) || 0);
-          }
-        });
-      }
-    }
+    // Update panel heading for business accounts (visible briefly before iframe loads)
+    var heading = document.getElementById('form-heading');
+    if (heading) heading.textContent = _isCompany ? 'Nueva cotización — Empresarial' : 'Nueva cotización';
   }
 
   function _escPortalHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -611,60 +476,9 @@
     if (window.history && window.history.replaceState) {
       window.history.replaceState(null, '', cleanUrl);
     }
-    // Always reset to empty form state so the panel is fresh on next open,
-    // regardless of whether the user closed from the success screen or mid-form.
-    var formEl = document.getElementById('new-request-form');
-    var successEl = document.getElementById('form-success');
-    var submitBtn = document.getElementById('form-submit-btn');
-    var dupBanner = document.getElementById('form-dup-banner');
-    var errorMsg  = document.getElementById('form-error');
-    var portalDupWarn = document.getElementById('portal-dup-warning');
-    if (formEl)    { formEl.reset(); formEl.classList.remove('hidden'); }
-    if (_portalTomSelect) { _portalTomSelect.clear(true); }
-    var estimatePanelReset = document.getElementById('portal-estimate-panel');
-    if (estimatePanelReset) estimatePanelReset.classList.add('hidden');
-    _portalAutoEstimate = null;
-    if (successEl) successEl.classList.add('hidden');
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar cotización';
-    }
-    if (dupBanner) dupBanner.classList.add('hidden');
-    if (errorMsg)  errorMsg.classList.add('hidden');
-    if (portalDupWarn) portalDupWarn.classList.add('hidden');
-    var draftBar = document.getElementById('portal-draft-bar');
-    if (draftBar) draftBar.classList.add('hidden');
-    _panelHasData = false;
-    _panelSubmitted = false;
-    _dupWarningDismissedPortal = false;
-    // Reset AI state
-    _portalAiActive          = false;
-    _portalAiDataSource      = 'manual';
-    _portalBrainClassification = null;
-    // Clear intel card so stale content never shows on next open
-    var intelCard = document.getElementById('portal-intel-card');
-    if (intelCard) { intelCard.innerHTML = ''; intelCard.style.display = 'none'; }
-    // Close category disclosure so it returns to collapsed state
-    var catDetails = document.getElementById('portal-cat-details');
-    if (catDetails) catDetails.open = false;
-    if (typeof CRBOXAIExtractor !== 'undefined') {
-      CRBOXAIExtractor.resetExtraction({
-        bannerTarget:     document.getElementById('ai-extract-banner-portal'),
-        complianceTarget: document.getElementById('ai-compliance-card-portal'),
-        fName:            document.getElementById('form-product-name'),
-        fValue:           document.getElementById('form-declared-value'),
-        fCategory:        document.getElementById('form-category'),
-        confirmWrapper:   document.getElementById('ai-confirm-portal'),
-      });
-    } else {
-      var aiBannerEl  = document.getElementById('ai-extract-banner-portal');
-      var aiConfirmEl = document.getElementById('ai-confirm-portal');
-      if (aiBannerEl)  aiBannerEl.innerHTML = '';
-      if (aiConfirmEl) { aiConfirmEl.style.display = 'none'; aiConfirmEl.style.outline = ''; }
-    }
-    // Reset unit toggles to canonical defaults (kg, cm)
-    if (_portalWeightToggle) _portalWeightToggle.setUnit('kg');
-    if (_portalDimToggle)    _portalDimToggle.setUnit('cm');
+    // Clear iframe to stop any in-flight requests inside the builder
+    var iframe = document.getElementById('quote-builder-iframe');
+    if (iframe) iframe.src = '';
   }
 
   function _setFormField(id, value) {
@@ -951,6 +765,22 @@
     // Escape key
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') hideNewRequestPanel();
+    });
+
+    // postMessage from cotizar.html running in portal-mode iframe
+    window.addEventListener('message', function (e) {
+      if (e.origin !== location.origin) return;
+      if (!e.data || typeof e.data !== 'object') return;
+      if (e.data.type === 'crbox:submitted') {
+        hideNewRequestPanel();
+        var msg = e.data.hasSmtpWarning
+          ? 'Cotización #' + e.data.id + ' guardada. El correo de confirmación puede tardar unos minutos.'
+          : '¡Cotización enviada! ID: ' + e.data.id;
+        showToast(msg, e.data.hasSmtpWarning ? 'warning' : 'success');
+        fetchSolicitudes().then(function (list) { renderList(list); }).catch(function () {});
+      } else if (e.data.type === 'crbox:cancel') {
+        hideNewRequestPanel();
+      }
     });
 
     // Archive toggle

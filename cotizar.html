@@ -2858,11 +2858,60 @@
             /* Tip bubble — linen instead of yellow-warm */
             .cqc-tip { background: #FDFCFA; border-color: #ede9e3; border-left-color: #FF6B00; color: #374151; }
         }
+
+        /* ═══════════════════════════════════════════════════════════
+           Portal mode — cotizar.html iframe inside mis-solicitudes
+           ═══════════════════════════════════════════════════════════ */
+        #cq-portal-bar {
+            display: none;
+            align-items: center;
+            gap: .75rem;
+            padding: .6rem 1rem;
+            background: #fff;
+            border-bottom: 1px solid #f0f0f0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        body.cq-portal-mode #cq-portal-bar { display: flex; }
+        #cq-portal-bar-close {
+            display: inline-flex; align-items: center; gap: .45rem;
+            font-size: .82rem; font-weight: 600; color: #6b7280;
+            background: none; border: none; cursor: pointer;
+            padding: .3rem .6rem; border-radius: .4rem;
+            transition: background .15s, color .15s;
+        }
+        #cq-portal-bar-close:hover { background: #f3f4f6; color: #374151; }
+        #cq-portal-bar-title {
+            font-size: .82rem; font-weight: 700; color: #374151;
+            margin-left: auto; padding-right: .5rem;
+        }
+        body.cq-portal-mode .sticky-header,
+        body.cq-portal-mode #site-footer,
+        body.cq-portal-mode .cqc-toggle-btn,
+        body.cq-portal-mode #cq-mobile-chat-panel { display: none !important; }
+        body.cq-portal-mode { background: #f9fafb !important; padding-top: 0 !important; }
+        body.cq-portal-mode .cq-flow-inner {
+            max-width: 100% !important;
+            padding: .75rem 1.25rem 3rem !important;
+        }
+        body.cq-portal-mode #cq-hero {
+            padding-top: 1rem;
+            padding-bottom: 0;
+            min-height: unset;
+        }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
 </head>
 
 <body class="bg-gray-50">
+    <!-- Portal mode: sticky back-bar — only shown when ?portal=1 -->
+    <div id="cq-portal-bar" aria-hidden="true" role="navigation">
+        <button id="cq-portal-bar-close" type="button" aria-label="Volver a Mis Cotizaciones">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i> Mis Cotizaciones
+        </button>
+        <span id="cq-portal-bar-title" aria-hidden="true">Nueva cotización</span>
+    </div>
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5WD8N53F" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
@@ -3607,6 +3656,43 @@
         var lastSubmitPayload = null;
         var _loadingInterval   = null;
         var _currentClarification = '';
+
+        // ── Portal mode — iframe embedded in mis-solicitudes.html ──────────
+        var _isPortalMode = new URLSearchParams(location.search).get('portal') === '1';
+        (function _initPortalMode() {
+            if (!_isPortalMode) return;
+            document.body.classList.add('cq-portal-mode');
+            var pmBar = document.getElementById('cq-portal-bar');
+            if (pmBar) pmBar.setAttribute('aria-hidden', 'false');
+            var pmClose = document.getElementById('cq-portal-bar-close');
+            if (pmClose) pmClose.addEventListener('click', function () {
+                window.parent.postMessage({ type: 'crbox:cancel' }, location.origin);
+            });
+            // Pre-fill email + name from auth token (same-origin localStorage)
+            try {
+                var tok = localStorage.getItem('crbox_token');
+                if (tok) {
+                    var parts = tok.split('.');
+                    if (parts.length === 3) {
+                        var pl = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+                        setTimeout(function () {
+                            if (fEmail && !fEmail.value)       fEmail.value       = pl.sub || pl.email || '';
+                            if (fCustomerName && !fCustomerName.value) fCustomerName.value = pl.name || '';
+                        }, 350);
+                    }
+                }
+            } catch (_e) {}
+            // Pre-fill product name / URL from URL params (duplicate flow)
+            var pp = new URLSearchParams(location.search);
+            var ppName = pp.get('prefill_name'), ppUrl = pp.get('prefill_url');
+            if (ppName) {
+                setTimeout(function () {
+                    var inp = document.getElementById('cq-main-input');
+                    if (inp && !inp.value) { inp.value = decodeURIComponent(ppName); }
+                    if (ppUrl && fUrl && !fUrl.value) fUrl.value = decodeURIComponent(ppUrl);
+                }, 400);
+            }
+        })();
 
         // Loading message rotation
         var _LOAD_MSGS = [
@@ -4796,6 +4882,16 @@
                 if (res.ok && data.ok && data.id) {
                     _formSubmitted = true;
                     if (window.CRBOX && CRBOX.track) { try { CRBOX.track.quote_submit({ service_type: payload.service_type, destination_country: 'CR' }); } catch(_) {} }
+                    // Portal mode: notify parent window instead of showing public confirmation
+                    if (_isPortalMode) {
+                        _clearDraft();
+                        window.parent.postMessage({
+                            type: 'crbox:submitted',
+                            id: data.id,
+                            hasSmtpWarning: !!(data.email_warnings && data.email_warnings.length)
+                        }, location.origin);
+                        return;
+                    }
                     if (data.email_warnings && data.email_warnings.length) showSmtpFailure(data.id, payload);
                     else showConfirmation(data.id, payload, products);
                 } else {
