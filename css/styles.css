@@ -83,6 +83,13 @@ select:focus-visible {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* ── Service/feature cards: flex-column so all CTAs align at the same level ── */
+.feature-card,
+a.service-card {
+    display: flex !important;
+    flex-direction: column;
+}
+
 .feature-card {
     border-radius: 1rem;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -96,27 +103,41 @@ select:focus-visible {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
+/* Make the text+CTA area fill remaining card height */
+.feature-card > div:last-child,
+a.service-card > div:last-child {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Push CTA to bottom by letting the description paragraph grow */
+.feature-card > div:last-child > p,
+a.service-card > div:last-child > p {
+    flex: 1;
+}
+
+/* ── "Ver Más" CTA pill — soft gray default, solid orange on card hover ── */
 .card-cta {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     border-radius: 9999px;
-    border: 2px solid var(--primary);
-    color: var(--primary);
-    background: transparent;
-    padding: 0.4rem 1.25rem;
+    background: #f1f3f5;
+    color: #4b5563;
+    border: none;
+    padding: 0.45rem 1.25rem;
     font-weight: 500;
-    font-size: 0.9rem;
-    box-shadow: 0 1px 4px rgba(255, 107, 0, 0.10);
-    transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    font-size: 0.875rem;
+    align-self: center;
+    transition: background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
 }
 
 .feature-card:hover .card-cta,
 .service-card:hover .card-cta {
-    background: rgba(255, 107, 0, 0.08);
-    color: var(--primary-dark);
-    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.18);
-    transform: translateY(-1px);
+    background: #FF6B00;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(255, 107, 0, 0.30);
 }
 
 .icon-circle {
