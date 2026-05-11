@@ -22,6 +22,7 @@
         phase: 'intro', products: [],
         serviceType: 'aereo', destination: '',
         customerName: '', email: '', notes: '',
+        _returnToShipping: false,
     };
     var _lastSender = null;
 
@@ -235,10 +236,12 @@
 
     if (cartBtn) cartBtn.addEventListener('click', openSheet);
     (function(){
-        var sc = document.getElementById('cqc-sheet-close');
-        var dr = document.getElementById('cqc-drag-row');
-        if (sc) sc.addEventListener('click', closeSheet);
-        if (dr) dr.addEventListener('click', closeSheet);
+        var sc  = document.getElementById('cqc-sheet-close');
+        var dr  = document.getElementById('cqc-drag-row');
+        var bk  = document.getElementById('cqc-back-to-chat');
+        if (sc)      sc.addEventListener('click', closeSheet);
+        if (dr)      dr.addEventListener('click', closeSheet);
+        if (bk)      bk.addEventListener('click', closeSheet);
         if (overlay) overlay.addEventListener('click', closeSheet);
     })();
 
@@ -403,6 +406,14 @@
 
         setTimeout(function() {
             say('¡Listo! <strong>' + esc(label||prod.name) + '</strong> quedó en tu solicitud 🛍️');
+
+            /* If user was editing mid-flow, go back to review+shipping */
+            if (S._returnToShipping) {
+                S._returnToShipping = false;
+                setTimeout(phaseReview, 400);
+                return;
+            }
+
             if (isFirst) {
                 var rel = getRelated(cat);
                 setTimeout(function() {
@@ -513,13 +524,107 @@
                 this.classList.add('sel'); S.serviceType = this.getAttribute('data-svc');
             });
         });
-        addActions([{ label:'Confirmar y continuar →', cls:'primary', fn:function(){
-            var errEl = document.getElementById(eid);
-            if (!S.destination) { if(errEl) errEl.style.display=''; return; }
-            if (errEl) errEl.style.display='none';
-            addRow(provLabel(S.destination)+' · '+(S.serviceType==='aereo'?'Aéreo ✈️':'Marítimo 🚢'), 'user');
-            phaseContact();
-        }}]);
+        addActions([
+            { label:'Confirmar y continuar →', cls:'primary', fn:function(){
+                var errEl = document.getElementById(eid);
+                if (!S.destination) { if(errEl) errEl.style.display=''; return; }
+                if (errEl) errEl.style.display='none';
+                addRow(provLabel(S.destination)+' · '+(S.serviceType==='aereo'?'Aéreo ✈️':'Marítimo 🚢'), 'user');
+                phaseContact();
+            }},
+            { label:'✏️ Cambiar algo', cls:'secondary', fn: phaseEdit },
+        ]);
+    }
+
+    /* ═══════════════════════════════════════════
+       PHASE: EDIT — natural-language correction
+    ═══════════════════════════════════════════ */
+    function phaseEdit() {
+        S.phase = 'editing';
+        inputVisible(true);
+        if (inputEl) { inputEl.value = ''; setTimeout(function(){ inputEl.focus(); }, 120); }
+        _lastSender = null;
+        say('Claro 👍 Escribí qué querés cambiar, agregar o preguntar:');
+        scrollBot();
+    }
+
+    function reofferConfirm() {
+        addActions([
+            { label:'Confirmar y continuar →', cls:'primary', fn: function(){
+                if (!S.destination) {
+                    say('Aún necesito la <strong>provincia de entrega</strong>. 📍');
+                    setTimeout(phaseShipping, 400);
+                    return;
+                }
+                addRow(provLabel(S.destination)+' · '+(S.serviceType==='aereo'?'Aéreo ✈️':'Marítimo 🚢'), 'user');
+                phaseContact();
+            }},
+            { label:'✏️ Cambiar algo', cls:'secondary', fn: phaseEdit },
+        ]);
+    }
+
+    function handleEdit(text) {
+        addRow(text, 'user');
+        _lastSender = null;
+        inputVisible(false);
+
+        /* Province detection */
+        var foundProv = PROVS.find(function(p){
+            var lower = text.toLowerCase();
+            return lower.indexOf(p.l.toLowerCase()) >= 0 || lower.indexOf(p.v.toLowerCase()) >= 0;
+        });
+        if (foundProv) {
+            S.destination = foundProv.v;
+            showTyping();
+            setTimeout(function(){
+                hideTyping();
+                say('¡Listo! Provincia actualizada a <strong>' + esc(foundProv.l) + '</strong>. ¿Todo bien para continuar?');
+                setTimeout(reofferConfirm, 350);
+            }, 700);
+            return;
+        }
+
+        /* Shipping type detection */
+        if (/mar[ií]timo|barco|bote/i.test(text)) {
+            S.serviceType = 'maritimo';
+            showTyping();
+            setTimeout(function(){
+                hideTyping();
+                say('Cambiado a envío <strong>Marítimo 🚢</strong> (' + esc(CRBOX.transitMaritimo) + '). ¿Continuamos?');
+                setTimeout(reofferConfirm, 350);
+            }, 700);
+            return;
+        }
+        if (/a[eé]reo|avi[oó]n|express|r[aá]pido/i.test(text)) {
+            S.serviceType = 'aereo';
+            showTyping();
+            setTimeout(function(){
+                hideTyping();
+                say('Cambiado a envío <strong>Aéreo ✈️</strong> (' + esc(CRBOX.transitAereo) + '). ¿Todo bien?');
+                setTimeout(reofferConfirm, 350);
+            }, 700);
+            return;
+        }
+
+        /* Add / include product intent */
+        if (/agrega|añade|incluye|tambi[eé]n|otro|más producto|agregar|añadir|incluir|quiero pedir|quiero traer/i.test(text)) {
+            S._returnToShipping = true;
+            showTyping();
+            setTimeout(function(){
+                hideTyping();
+                say('Perfecto, ¿qué producto querés agregar?');
+                setTimeout(phaseIntro, 200);
+            }, 600);
+            return;
+        }
+
+        /* Generic fallback — acknowledge and re-offer confirm */
+        showTyping();
+        setTimeout(function(){
+            hideTyping();
+            say('Entendido. Si hay algo más que ajustar avisame. ¿Seguimos con la solicitud?');
+            setTimeout(reofferConfirm, 350);
+        }, 900);
     }
 
     /* ═══════════════════════════════════════════
@@ -645,7 +750,9 @@
     /* ── Input ── */
     function handleSend() {
         var val = (inputEl ? inputEl.value : '').trim();
-        if (!val || S.phase !== 'intro') return;
+        if (!val) return;
+        if (S.phase === 'editing') { inputEl.value = ''; handleEdit(val); return; }
+        if (S.phase !== 'intro') return;
         inputEl.value = ''; startClassify(val);
     }
     if (sendBtn) sendBtn.addEventListener('click', handleSend);

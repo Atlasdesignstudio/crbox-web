@@ -1800,12 +1800,22 @@
         }
         .cqc-si-price { font-size: .76rem; color: #9ca3af; margin-top: .08rem; }
         .cqc-sheet-footer {
-            padding: .8rem 1.25rem;
+            padding: .75rem 1.25rem;
             border-top: 1px solid #f3f4f6; flex-shrink: 0;
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; flex-direction: column; gap: .6rem;
         }
+        .cqc-footer-total-row { display: flex; justify-content: space-between; align-items: center; }
         .cqc-footer-lbl  { font-size: .8rem; color: #6b7280; }
         .cqc-footer-total { font-size: .97rem; font-weight: 700; color: #1a1a2e; }
+        .cqc-back-btn {
+            width: 100%; padding: .62rem 1rem;
+            background: #FF6B00; color: #fff;
+            border: none; border-radius: .7rem;
+            font-size: .88rem; font-weight: 700; font-family: inherit;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .4rem;
+            -webkit-tap-highlight-color: transparent; transition: background .15s;
+        }
+        .cqc-back-btn:active { background: #d45c00; }
 
         /* ═══════════════════════════════════════════════════════════════════
            DESKTOP CHAT — white + CRBOX orange theme, Claude-style layout ≥641px
@@ -5892,7 +5902,7 @@
     <script src="js/chat-quote.js"></script>
     <script src="js/chat-panel.js"></script>
     <!-- ══ MOBILE CHAT ══ -->
-    <script src="js/cqchat.js?v=2"></script>
+    <script src="js/cqchat.js?v=3"></script>
     <!-- ══ CART BOTTOM SHEET ══ -->
     <div id="cqc-sheet-overlay" class="cqc-sheet-overlay" style="display:none;" aria-hidden="true"></div>
     <div id="cqc-cart-sheet" class="cqc-cart-sheet" role="dialog" aria-modal="true" aria-label="Resumen de tu solicitud">
@@ -5905,8 +5915,13 @@
         </div>
         <div id="cqc-sheet-items-wrap" class="cqc-sheet-items-wrap"></div>
         <div class="cqc-sheet-footer" id="cqc-sheet-footer">
-            <span class="cqc-footer-lbl">Total declarado</span>
-            <span class="cqc-footer-total" id="cqc-footer-total">$0.00 USD</span>
+            <div class="cqc-footer-total-row">
+                <span class="cqc-footer-lbl">Total declarado</span>
+                <span class="cqc-footer-total" id="cqc-footer-total">$0.00 USD</span>
+            </div>
+            <button type="button" id="cqc-back-to-chat" class="cqc-back-btn">
+                <i class="fas fa-arrow-left"></i> Volver al chat
+            </button>
         </div>
     </div>
 
