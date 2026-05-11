@@ -341,7 +341,7 @@
     ]
   },
   "international_logistics": {
-    "description": "CRBOX ofrece servicio integral de logística internacional: exportación e importación aérea, marítima y terrestre.",
+    "description": "CRBOX puede traer prácticamente cualquier artículo legal desde cualquier parte del mundo. Si el vendedor envía a Miami, usás el casillero. Si no, CRBOX coordina la logística directamente desde el origen (China, Europa, LatAm, etc.) por aire, mar o tierra. La respuesta siempre es '¿cómo te ayudamos?' — nunca un no.",
     "contact": "ventas@crbox.cr o WhatsApp",
     "services": [
       {
@@ -357,8 +357,8 @@
         "detail": "Aérea y marítima desde Miami (consolidado y contenedor completo) y desde el resto de EE.UU."
       },
       {
-        "name": "Lejano Oriente",
-        "detail": "Carga aérea y marítima FCL y LCL. China, Indonesia, Taiwán, Japón, Korea, Vietnam, entre otros"
+        "name": "Lejano Oriente (China, Asia)",
+        "detail": "Carga aérea y marítima FCL y LCL. China, Indonesia, Taiwán, Japón, Korea, Vietnam, entre otros. Si el vendedor chino no envía a Miami, CRBOX coordina el embarque directo desde China."
       },
       {
         "name": "México",
@@ -381,6 +381,32 @@
         "detail": "España, Inglaterra, Italia, Francia, Alemania, Bélgica, Suiza, Hungría, Dinamarca, Finlandia, República Checa, Portugal, Egipto, Turquía, Israel, entre otros"
       }
     ]
+  },
+  "maritime_cargo": {
+    "description": "La carga marítima es la opción ideal para artículos grandes, pesados, voluminosos o especiales — incluyendo vehículos, muebles grandes, maquinaria, electrodomésticos de gran tamaño y cualquier carga que no sea práctica por vía aérea.",
+    "rate_unit": "por pie cúbico (cubic foot)",
+    "transit_days": "6–7 días hábiles desde Miami",
+    "options": [
+      {
+        "name": "Consolidado (LCL)",
+        "detail": "Ideal para cargas medianas a grandes. Se comparte espacio en contenedor con otros envíos, reduciendo el costo."
+      },
+      {
+        "name": "Contenedor Completo (FCL)",
+        "detail": "Para cargas muy grandes o múltiples artículos. Contenedor exclusivo. Cotización personalizada."
+      }
+    ],
+    "special_cargo": [
+      "Vehículos (carros, motos, cuadriciclos)",
+      "Muebles grandes (sofás, camas, escritorios)",
+      "Maquinaria industrial y agrícola",
+      "Electrodomésticos de gran tamaño (refrigeradores, lavadoras)",
+      "Equipos de construcción",
+      "Artículos de alto volumen comprados en ferias o liquidaciones"
+    ],
+    "quote_contact": "ventas@crbox.cr",
+    "note": "Para vehículos y carga especial, CRBOX coordina el proceso completo: recolección, documentación, despacho aduanal y entrega en Costa Rica. Contactar a ventas@crbox.cr para cotización personalizada.",
+    "url": "servicios.html#carga-maritima"
   },
   "how_it_works": [
     "Regístrate gratis en crbox.cr y obtén tu dirección en Miami al instante",
@@ -421,6 +447,18 @@
     {
       "q": "¿CRBOX hace logística internacional / exportaciones / importaciones?",
       "a": "Sí. Logística internacional: importación/exportación aérea, marítima (LCL/FCL) y terrestre. Destinos: EE.UU., Centroamérica, Suramérica, Asia y Europa. Escríbenos a ventas@crbox.cr."
+    },
+    {
+      "q": "¿Puedo usar mi casillero para compras desde China / AliExpress / Alibaba / Temu?",
+      "a": "Sí, si el vendedor envía a la dirección de Miami. Muchos vendedores en Amazon, Temu y otras plataformas envían a EE.UU. — simplemente usas tu dirección CRBOX como destino. Si el vendedor solo envía dentro de China o localmente, CRBOX puede coordinar la logística directa desde China (aéreo o marítimo). Escríbenos a ventas@crbox.cr para ese caso."
+    },
+    {
+      "q": "¿Puedo traer un carro / vehículo desde USA u otro país?",
+      "a": "Sí. CRBOX coordina el envío de vehículos por vía marítima (LCL o FCL). Es el método ideal: económico y seguro. El proceso incluye recolección, documentación y despacho aduanal. Para una cotización personalizada escríbenos a ventas@crbox.cr o por WhatsApp."
+    },
+    {
+      "q": "¿Cómo envío artículos grandes, pesados o voluminosos (muebles, maquinaria, electrodomésticos)?",
+      "a": "Para artículos grandes o pesados la opción recomendada es la carga marítima: más económica, cobra por pie cúbico y tiene un tiempo de tránsito de 6–7 días hábiles. Disponible como consolidado (LCL) o contenedor completo (FCL). Solicita tu cotización en ventas@crbox.cr."
     },
     {
       "q": "Mi paquete ya está en Miami / ya llegó a la bodega, ¿qué tengo que hacer?",
