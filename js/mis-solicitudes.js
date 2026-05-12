@@ -392,20 +392,10 @@
       if (prefill.product_url)  cqParams.set('prefill_url',  prefill.product_url);
     }
 
-    // On mobile (≤640px) navigate directly — avoids all iframe/CSP complexity
-    if (window.innerWidth <= 640) {
-      window.location.href = '/cotizar.html?' + cqParams.toString();
-      return;
-    }
-
-    // Desktop: load inside the slide-in panel iframe
-    var iframe = document.getElementById('quote-builder-iframe');
-    if (iframe) iframe.src = '/cotizar.html?' + cqParams.toString();
-
-    panel.classList.remove('translate-x-full');
-    if (overlay) overlay.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-
+    // Navigate directly — full-page cotizar experience with portal bar
+    // (iframe embedding is blocked by Replit's dev proxy and some other security
+    // layers; direct navigation works in all environments and cotizar.html's
+    // portal bar already handles back-navigation and post-submit redirects)
     if (window.CRBOX && CRBOX.track) {
       try {
         CRBOX.track.portal_section_view({
@@ -416,10 +406,7 @@
         });
       } catch (_e) {}
     }
-
-    // Update panel heading for business accounts (visible briefly before iframe loads)
-    var heading = document.getElementById('form-heading');
-    if (heading) heading.textContent = _isCompany ? 'Nueva cotización — Empresarial' : 'Nueva cotización';
+    window.location.href = '/cotizar.html?' + cqParams.toString();
   }
 
   function _escPortalHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
