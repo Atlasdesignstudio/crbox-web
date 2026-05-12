@@ -9094,6 +9094,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_packages_proxy()
         elif self.path.startswith('/api/userinfo-proxy'):
             self._handle_userinfo_proxy()
+        elif self.path.startswith('/api/admin/rds-health'):
+            self._handle_admin_rds_health()
+        elif self.path.startswith('/api/admin/rds-tables'):
+            self._handle_admin_rds_tables()
+        elif self.path.startswith('/api/admin/rds-columns/'):
+            _rds_tbl = urllib.parse.unquote(self.path.split('/api/admin/rds-columns/')[1].split('?')[0])
+            self._handle_admin_rds_columns(_rds_tbl)
+        elif self.path.startswith('/api/admin/rds-count/'):
+            _rds_tbl = urllib.parse.unquote(self.path.split('/api/admin/rds-count/')[1].split('?')[0])
+            self._handle_admin_rds_count(_rds_tbl)
         elif self.path.startswith('/api/solicitudes'):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/api/solicitudes':
@@ -12495,6 +12505,109 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             print(f'[ADMIN] link-package error: {exc}')
             self._admin_redirect(redirect_url)
+
+    # ── Admin-only RDS diagnostic endpoints ───────────────────────────────────
+    #
+    # All four endpoints share the same gate:
+    #   1. Valid admin session cookie (cookie-based auth via ADMIN_PASSWORD).
+    #   2. USE_RDS_PORTAL_API env var must equal "true" (case-insensitive).
+    #
+    # They are strictly read-only (SELECT / SHOW). No customer data is returned.
+    # Credentials are never included in responses or log output.
+    #
+    # GET /api/admin/rds-health         — ping + MySQL version
+    # GET /api/admin/rds-tables         — list all tables in MYSQL_DATABASE
+    # GET /api/admin/rds-columns/<tbl>  — SHOW COLUMNS for a given table
+    # GET /api/admin/rds-count/<tbl>    — SELECT COUNT(*) for a given table
+
+    def _rds_admin_gate(self):
+        """Enforce admin session auth and USE_RDS_PORTAL_API flag.
+        Returns True if the request may proceed; otherwise writes the error
+        response itself and returns False.
+        """
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._json_error(401, 'Admin authentication required.', code='admin_auth_required')
+            return False
+        if os.environ.get('USE_RDS_PORTAL_API', '').strip().lower() != 'true':
+            self._json_response(200, {
+                'enabled': False,
+                'message': (
+                    'RDS portal API is disabled. '
+                    'Set USE_RDS_PORTAL_API=true in Replit secrets to enable.'
+                ),
+            })
+            return False
+        return True
+
+    def _handle_admin_rds_health(self):
+        """GET /api/admin/rds-health — test connectivity and return MySQL version."""
+        if not self._rds_admin_gate():
+            return
+        try:
+            import rds_client as _rds
+            row = _rds.fetch_one('SELECT 1 AS ping, VERSION() AS version')
+            self._json_response(200, {
+                'status': 'ok',
+                'ping': row.get('ping') if row else None,
+                'mysql_version': row.get('version') if row else None,
+                'host': os.environ.get('MYSQL_HOST', '(not configured)'),
+                'database': os.environ.get('MYSQL_DATABASE', '(not configured)'),
+                'port': os.environ.get('MYSQL_PORT', '3306'),
+            })
+        except Exception as exc:
+            print(f'[RDS-HEALTH] connection failed: {exc}')
+            self._json_error(502, f'RDS connection failed: {exc}', code='rds_error')
+
+    def _handle_admin_rds_tables(self):
+        """GET /api/admin/rds-tables — list all tables in MYSQL_DATABASE."""
+        if not self._rds_admin_gate():
+            return
+        try:
+            import rds_client as _rds
+            rows = _rds.fetch_all('SHOW TABLES')
+            tables = [list(r.values())[0] for r in (rows or [])]
+            self._json_response(200, {'tables': tables, 'count': len(tables)})
+        except Exception as exc:
+            print(f'[RDS-TABLES] query failed: {exc}')
+            self._json_error(502, f'RDS query failed: {exc}', code='rds_error')
+
+    def _handle_admin_rds_columns(self, table_name):
+        """GET /api/admin/rds-columns/<table> — SHOW COLUMNS for a table."""
+        if not self._rds_admin_gate():
+            return
+        if not re.match(r'^[A-Za-z0-9_]{1,64}$', table_name):
+            self._json_error(400, 'Invalid table name.', code='bad_request')
+            return
+        try:
+            import rds_client as _rds
+            rows = _rds.fetch_all('SHOW COLUMNS FROM `%s`' % table_name)
+            self._json_response(200, {
+                'table': table_name,
+                'columns': rows or [],
+                'count': len(rows or []),
+            })
+        except Exception as exc:
+            print(f'[RDS-COLUMNS] query failed for table {table_name!r}: {exc}')
+            self._json_error(502, f'RDS query failed: {exc}', code='rds_error')
+
+    def _handle_admin_rds_count(self, table_name):
+        """GET /api/admin/rds-count/<table> — SELECT COUNT(*) for a table."""
+        if not self._rds_admin_gate():
+            return
+        if not re.match(r'^[A-Za-z0-9_]{1,64}$', table_name):
+            self._json_error(400, 'Invalid table name.', code='bad_request')
+            return
+        try:
+            import rds_client as _rds
+            row = _rds.fetch_one('SELECT COUNT(*) AS total FROM `%s`' % table_name)
+            self._json_response(200, {
+                'table': table_name,
+                'total': row.get('total') if row else None,
+            })
+        except Exception as exc:
+            print(f'[RDS-COUNT] query failed for table {table_name!r}: {exc}')
+            self._json_error(502, f'RDS query failed: {exc}', code='rds_error')
 
 
 # ── Invoice upload orphan cleanup ─────────────────────────────────────────────

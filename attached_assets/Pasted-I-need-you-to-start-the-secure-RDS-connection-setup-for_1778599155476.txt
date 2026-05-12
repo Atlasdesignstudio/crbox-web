@@ -1,0 +1,137 @@
+I need you to start the secure RDS connection setup for the CRBOX client portal.
+
+You are the technical agent responsible for the code and implementation. I want you to handle as much as possible from the Replit side, but do it safely and tell me exactly if anything requires AWS/MySQL admin credentials that are not currently available.
+
+Context:
+The forensic audit confirmed that the current portal does not connect directly to AWS RDS. It uses the legacy CRBOX API for login, dashboard, packages, invoices, profile, password recovery, and registration.
+
+The real database found in AWS is:
+- RDS instance: crboxdbserver
+- Database: crboxfabric
+- Engine: MySQL Community 5.7
+- Port: 3306
+
+Goal:
+Start building the secure backend-only RDS connection layer in Replit so the new portal can eventually read real portal data directly from RDS, without using direct browser-to-database access.
+
+Important:
+Do not change the live frontend behavior yet.
+Do not replace the legacy API yet.
+Do not use fake data.
+Do not expose credentials.
+Do not connect the browser directly to RDS.
+Do not run any write/destructive SQL against production data.
+
+Your first task:
+Determine whether Replit currently has enough credentials/secrets/access to connect to AWS RDS or create/use a read-only MySQL user.
+
+Please check:
+1. Existing Replit Secrets / environment variables related to MySQL/RDS:
+   - MYSQL_HOST
+   - MYSQL_PORT
+   - MYSQL_DATABASE
+   - MYSQL_USER
+   - MYSQL_PASSWORD
+   - DATABASE_URL
+   - DB_HOST
+   - DB_USER
+   - DB_PASSWORD
+   - RDS_HOST
+2. Existing code references to MySQL/RDS.
+3. Whether a read-only user already exists or is configured.
+4. Whether the project has any admin DB credentials that could create a read-only user.
+5. Whether the current Replit environment can reach the RDS host/port.
+
+If credentials are missing:
+Stop and tell me exactly what is missing, using this format:
+- Missing MYSQL_HOST
+- Missing MYSQL_USER
+- Missing MYSQL_PASSWORD
+- Need MySQL admin/master credentials to create a read-only user, OR need someone to create the user manually in RDS/MySQL
+- Need security group/IP access if Replit cannot reach port 3306
+
+If credentials exist:
+Do not use the master user for the portal.
+If you find master/admin DB credentials, use them only to create a safer read-only user if explicitly possible and safe.
+
+The desired read-only user is:
+crbox_portal_readonly
+
+It should have:
+- SELECT only on crboxfabric.*
+- No INSERT
+- No UPDATE
+- No DELETE
+- No DROP
+- No ALTER
+- No CREATE
+- No TRUNCATE
+- No GRANT
+- No REVOKE
+
+SQL for creating it, only if you have proper admin credentials and it is safe:
+CREATE USER 'crbox_portal_readonly'@'%' IDENTIFIED BY 'GENERATE_A_LONG_SECURE_PASSWORD';
+GRANT SELECT ON crboxfabric.* TO 'crbox_portal_readonly'@'%';
+FLUSH PRIVILEGES;
+
+If you cannot create the user yourself, tell me that clearly and give me the exact SQL and exact values I need to create or request.
+
+After the read-only user exists, prepare the Replit backend foundation:
+
+1. Add PyMySQL dependency if missing:
+pymysql>=1.1.0
+
+2. Create rds_client.py:
+- Reads credentials only from environment variables.
+- Uses MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD.
+- Uses pymysql.
+- Uses DictCursor.
+- Uses utf8mb4.
+- Uses autocommit=True.
+- Has connect/read/write timeouts.
+- Provides:
+  - fetch_one(query, params=None)
+  - fetch_all(query, params=None)
+- Never logs credentials.
+
+3. Add protected admin test endpoints in server.py:
+- GET /api/admin/rds-health
+- GET /api/admin/rds-tables
+- GET /api/admin/rds-columns/<table_name>
+- Optional: GET /api/admin/rds-count/<table_name>
+
+All endpoints must:
+- Be backend-only.
+- Be protected by the existing admin/auth mechanism if available.
+- Be feature-flagged with USE_RDS_PORTAL_API.
+- If USE_RDS_PORTAL_API is not "true", return disabled.
+- Only run read-only queries.
+- Never expose credentials.
+- Never return full customer data yet.
+
+4. Do not modify:
+- login
+- dashboard
+- mis-paquetes
+- mis-facturas
+- mi-cuenta
+- portal-api.js frontend behavior
+- existing legacy API calls
+
+Expected result of this first task:
+I want to know one of these two things:
+
+A) “We have enough credentials/access. I created or used a read-only RDS connection and the health/schema endpoints work.”
+
+or
+
+B) “We do not have enough credentials/access. Here is exactly what is missing and what you need to provide/create before I can continue.”
+
+Please report:
+- Files changed.
+- Secrets required.
+- Whether RDS connection works.
+- Whether tables can be listed.
+- Whether any blocker exists.
+- Confirmation that no frontend behavior changed.
+- Confirmation that no write/destructive SQL was run.
