@@ -24,14 +24,13 @@
             content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com; frame-src https://www.googletagmanager.com;"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>
-            CRBOX | Casillero Virtual y Courier en Costa Rica | Compras en USA
-        </title>
+        <title>CRBOX | Casillero Virtual y Courier en Costa Rica | Compras en USA</title>
         <meta
             name="description"
             content="CRBOX, tu casillero virtual en Miami para compras en USA. Servicio de courier confiable con entrega rápida en Costa Rica. ¡Afíliate gratis!"
         />
         <link rel="canonical" href="https://crbox.cr/" />
+        <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#FF6B00" />
 
         <!-- Favicons -->
@@ -95,7 +94,8 @@
         <meta name="ICBM" content="9.9281, -84.0907" />
 
         <!-- Preconnect -->
-        <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
 
         <link
             rel="stylesheet"
@@ -193,6 +193,15 @@
                         "name": "CRBOX",
                         "description": "Casillero virtual en Miami y courier para compras en USA con entrega en Costa Rica.",
                         "publisher": { "@id": "https://crbox.cr/#organization" }
+                    },
+                    {
+                        "@type": "WebPage",
+                        "@id": "https://crbox.cr/#webpage",
+                        "url": "https://crbox.cr/",
+                        "name": "CRBOX | Casillero Virtual y Courier en Costa Rica | Compras en USA",
+                        "description": "CRBOX, tu casillero virtual en Miami para compras en USA. Servicio de courier confiable con entrega rápida en Costa Rica. ¡Afíliate gratis!",
+                        "inLanguage": "es",
+                        "isPartOf": { "@id": "https://crbox.cr/#website" }
                     }
                 ]
             }
@@ -227,8 +236,7 @@
                                 alt="CRBOX Logo"
                                 class="h-7 w-auto"
                                 width="1204"
-                                height="350"
-                            />
+                                height="350" decoding="async"/>
                         </a>
                     </div>
 
@@ -397,6 +405,7 @@
             </div>
         </header>
 
+        <main>
         <!-- Hero Section -->
         <section id="main-content" class="py-16 md:py-24 bg-white">
             <div class="container mx-auto px-4 flex flex-wrap items-center">
@@ -471,6 +480,8 @@
                                 class="h-full w-auto object-contain"
                                 width="1024"
                                 height="1536"
+                                fetchpriority="high"
+                                decoding="async"
                             />
                         </div>
 
@@ -656,7 +667,7 @@
                             src="img/amazon.png"
                             alt="Amazon logo"
                             class="h-6 md:h-8 w-auto mx-auto grayscale hover:grayscale-0 transition"
-                            loading="lazy"
+                            loading="lazy" decoding="async"
                             width="2560"
                             height="773"
                         />
@@ -666,7 +677,7 @@
                             src="img/Temu-Logo.png"
                             alt="Temu logo"
                             class="h-6 md:h-8 w-auto mx-auto grayscale hover:grayscale-0 transition"
-                            loading="lazy"
+                            loading="lazy" decoding="async"
                             width="3840"
                             height="2160"
                         />
@@ -676,7 +687,7 @@
                             src="img/Walmart_logo.png"
                             alt="Walmart logo"
                             class="h-6 md:h-8 w-auto mx-auto grayscale hover:grayscale-0 transition"
-                            loading="lazy"
+                            loading="lazy" decoding="async"
                             width="1280"
                             height="307"
                         />
@@ -686,7 +697,7 @@
                             src="img/bestbuy.png"
                             alt="BestBuy logo"
                             class="h-6 md:h-8 w-auto mx-auto grayscale hover:grayscale-0 transition"
-                            loading="lazy"
+                            loading="lazy" decoding="async"
                             width="300"
                             height="175"
                         />
@@ -696,7 +707,7 @@
                             src="img/target.svg"
                             alt="Target logo"
                             class="h-6 md:h-8 w-auto mx-auto grayscale hover:grayscale-0 transition"
-                            loading="lazy"
+                            loading="lazy" decoding="async"
                             width="390"
                             height="497"
                         />
@@ -706,7 +717,7 @@
                             src="img/apple.png"
                             alt="Apple logo"
                             class="h-6 md:h-8 w-auto mx-auto grayscale hover:grayscale-0 transition"
-                            loading="lazy"
+                            loading="lazy" decoding="async"
                             width="3840"
                             height="2160"
                         />
@@ -748,7 +759,7 @@
                                 src="img/servicio1.webp"
                                 alt="Casillero Virtual"
                                 class="w-full h-full object-cover"
-                                loading="lazy"
+                                loading="lazy" decoding="async"
                                 width="900"
                                 height="600"
                             />
@@ -778,7 +789,7 @@
                                 src="img/servicio2.webp"
                                 alt="Compras por Encargo"
                                 class="w-full h-full object-cover"
-                                loading="lazy"
+                                loading="lazy" decoding="async"
                                 width="900"
                                 height="600"
                             />
@@ -808,7 +819,7 @@
                                 src="img/servicio3.webp"
                                 alt="Carga Aérea"
                                 class="w-full h-full object-cover"
-                                loading="lazy"
+                                loading="lazy" decoding="async"
                                 width="900"
                                 height="600"
                             />
@@ -835,7 +846,7 @@
                                 src="img/servicio4.webp"
                                 alt="Carga Marítima"
                                 class="w-full h-full object-cover"
-                                loading="lazy"
+                                loading="lazy" decoding="async"
                                 width="900"
                                 height="600"
                             />
@@ -873,7 +884,7 @@
                             src="img/fotoindex.webp"
                             alt="Centro logístico CRBOX"
                             class="rounded-lg shadow-lg w-full"
-                            loading="lazy"
+                            loading="lazy" decoding="async"
                             width="1400"
                             height="933"
                         />
@@ -1057,8 +1068,10 @@
             </div>
         </section>
 
+        </main>
+
         <!-- Footer -->
-        <div id="site-footer"></div>
+        <footer id="site-footer"></footer>
         <script src="/js/footer.js?v=1" defer></script>
 
         <script src="js/cr-locations.js"></script>

@@ -8,7 +8,6 @@ Disallow: /mis-facturas.html
 Disallow: /mi-cuenta.html
 Disallow: /mis-solicitudes.html
 Disallow: /solicitud.html
-Disallow: /afiliate.html
 Disallow: /cotizar.html
 Disallow: /admin/
 Disallow: /admin.html

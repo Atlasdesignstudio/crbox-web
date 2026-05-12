@@ -10,6 +10,7 @@
     <title>Servicios de Courier y Casillero Virtual | CRBOX Costa Rica</title>
     <meta name="description" content="Descubre los servicios de CRBOX: casillero virtual gratuito en Miami, compras por encargo, carga aérea (3-5 días) y carga marítima desde USA a Costa Rica.">
     <link rel="canonical" href="https://crbox.cr/servicios.html">
+    <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#FF6B00">
 
     <!-- Favicons -->
@@ -41,6 +42,8 @@
     <meta name="ICBM" content="9.9281, -84.0907">
 
     <!-- Preconnect -->
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
 
@@ -119,6 +122,20 @@
         { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://crbox.cr/" },
         { "@type": "ListItem", "position": 2, "name": "Servicios de Courier y Casillero Virtual", "item": "https://crbox.cr/servicios.html" }
       ]
+    }
+    </script>
+
+    <!-- Structured Data: WebPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": "https://crbox.cr/servicios.html#webpage",
+      "url": "https://crbox.cr/servicios.html",
+      "name": "Servicios de Courier y Casillero Virtual | CRBOX Costa Rica",
+      "description": "Descubre los servicios de CRBOX: casillero virtual gratuito en Miami, compras por encargo, carga aérea (3-5 días) y carga marítima desde USA a Costa Rica.",
+      "inLanguage": "es",
+      "isPartOf": { "@id": "https://crbox.cr/#website" }
     }
     </script>
 
@@ -453,7 +470,7 @@
                 <!-- Logo -->
                 <div class="flex items-center">
                     <a href="index.html">
-                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-7 w-auto" width="1204" height="350">
+                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-7 w-auto" width="1204" height="350" decoding="async">
                     </a>
                 </div>
     
@@ -518,6 +535,7 @@
         </div>
     </header>
 
+    <main>
     <!-- Breadcrumbs Navigation -->
     <div class="bg-gray-100 py-2 border-b border-gray-200 crbox-breadcrumb">
         <div class="container mx-auto px-4">
@@ -572,7 +590,7 @@
                 <!-- Servicio 1 -->
                 <a href="#casillero" class="bg-white shadow-md rounded-xl overflow-hidden service-card">
                     <div class="h-48">
-                        <img src="img/servicio1.webp" alt="Casillero Virtual" class="w-full h-full object-cover" loading="lazy" width="900" height="600">
+                        <img src="img/servicio1.webp" alt="Casillero Virtual" class="w-full h-full object-cover" loading="lazy" decoding="async" width="900" height="600">
                     </div>
                     <div class="p-6 text-center">
                         <h3 class="text-xl font-bold mb-2">Casillero Virtual</h3>
@@ -587,7 +605,7 @@
                 <!-- Servicio 2 -->
                 <a href="#compras" class="bg-white shadow-md rounded-xl overflow-hidden service-card">
                     <div class="h-48">
-                        <img src="img/servicio2.webp" alt="Compras por Encargo" class="w-full h-full object-cover" loading="lazy" width="900" height="600">
+                        <img src="img/servicio2.webp" alt="Compras por Encargo" class="w-full h-full object-cover" loading="lazy" decoding="async" width="900" height="600">
                     </div>
                     <div class="p-6 text-center">
                         <h3 class="text-xl font-bold mb-2">Compras por Encargo</h3>
@@ -602,7 +620,7 @@
                 <!-- Servicio 3 -->
                 <a href="#carga-aerea" class="bg-white shadow-md rounded-xl overflow-hidden service-card">
                     <div class="h-48">
-                        <img src="img/servicio3.webp" alt="Carga Aérea" class="w-full h-full object-cover" loading="lazy" width="900" height="600">
+                        <img src="img/servicio3.webp" alt="Carga Aérea" class="w-full h-full object-cover" loading="lazy" decoding="async" width="900" height="600">
                     </div>
                     <div class="p-6 text-center">
                         <h3 class="text-xl font-bold mb-2">Carga Aérea</h3>
@@ -617,7 +635,7 @@
                 <!-- Servicio 4 -->
                 <a href="#carga-maritima" class="bg-white shadow-md rounded-xl overflow-hidden service-card">
                     <div class="h-48">
-                        <img src="img/servicio4.webp" alt="Carga Marítima" class="w-full h-full object-cover" loading="lazy" width="900" height="600">
+                        <img src="img/servicio4.webp" alt="Carga Marítima" class="w-full h-full object-cover" loading="lazy" decoding="async" width="900" height="600">
                     </div>
                     <div class="p-6 text-center">
                         <h3 class="text-xl font-bold mb-2">Carga Marítima</h3>
@@ -979,7 +997,7 @@
                         </a>
                     </div>
                     <div class="w-full md:w-1/2 bg-cover bg-center service-img-block" style="background-image: url('img/servicio1.webp');">
-                        <img src="img/servicio1.webp" alt="Casillero Virtual" class="w-full h-full object-cover md:hidden" loading="lazy" width="900" height="600">
+                        <img src="img/servicio1.webp" alt="Casillero Virtual" class="w-full h-full object-cover md:hidden" loading="lazy" decoding="async" width="900" height="600">
                     </div>
                 </div>
             </div>
@@ -994,7 +1012,7 @@
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                 <div class="flex flex-col md:flex-row">
                     <div class="w-full md:w-1/2 bg-cover bg-center order-1 md:order-2 service-img-block" style="background-image: url('img/servicio2.webp');">
-                        <img src="img/servicio2.webp" alt="Compras por Encargo" class="w-full h-full object-cover md:hidden" loading="lazy" width="900" height="600">
+                        <img src="img/servicio2.webp" alt="Compras por Encargo" class="w-full h-full object-cover md:hidden" loading="lazy" decoding="async" width="900" height="600">
                     </div>
                     <div class="w-full md:w-1/2 p-8 md:p-12 order-2 md:order-1">
                         <span class="feature-badge">COMPRAS POR ENCARGO</span>
@@ -1089,7 +1107,7 @@
                         </a>
                     </div>
                     <div class="w-full md:w-1/2 bg-cover bg-center service-img-block" style="background-image: url('img/servicio3.webp');">
-                        <img src="img/servicio3.webp" alt="Carga Aérea" class="w-full h-full object-cover md:hidden" loading="lazy" width="900" height="600">
+                        <img src="img/servicio3.webp" alt="Carga Aérea" class="w-full h-full object-cover md:hidden" loading="lazy" decoding="async" width="900" height="600">
                     </div>
                 </div>
             </div>
@@ -1104,7 +1122,7 @@
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                 <div class="flex flex-col md:flex-row">
                     <div class="w-full md:w-1/2 bg-cover bg-center order-1 md:order-2 service-img-block" style="background-image: url('img/servicio4.webp');">
-                        <img src="img/servicio4.webp" alt="Carga Marítima" class="w-full h-full object-cover md:hidden" loading="lazy" width="900" height="600">
+                        <img src="img/servicio4.webp" alt="Carga Marítima" class="w-full h-full object-cover md:hidden" loading="lazy" decoding="async" width="900" height="600">
                     </div>
                     <div class="w-full md:w-1/2 p-8 md:p-12 order-2 md:order-1">
                         <span class="feature-badge">CARGA MARÍTIMA</span>
@@ -1294,8 +1312,10 @@
     </div>
 </section>
 
- <!-- Footer -->
-<div id="site-footer"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer id="site-footer"></footer>
     <script src="/js/footer.js?v=1" defer></script>
 
 

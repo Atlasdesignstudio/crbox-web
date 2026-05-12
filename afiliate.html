@@ -12,7 +12,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
     <link rel="manifest" href="img/favicon/site.webmanifest">
-    <meta name="robots" content="noindex, nofollow">
+    <meta name="robots" content="index, follow">
     <meta name="description" content="Crea tu casillero virtual gratuito en Miami con CRBOX. Afíliate en minutos y comienza a comprar en tiendas de USA con entrega rápida en Costa Rica. Sin cuota mensual.">
     <link rel="canonical" href="https://crbox.cr/afiliate.html">
     <meta name="theme-color" content="#FF6B00">
@@ -38,6 +38,10 @@
     <meta name="geo.placename" content="San José, Costa Rica">
     <meta name="geo.position" content="9.9281;-84.0907">
     <meta name="ICBM" content="9.9281, -84.0907">
+
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" integrity="sha384-HtMZLkYo+pR5/u7zCzXxMJP6QoNnQJt1qkHM0EaOPvGDIzaVZbmYr/TlvUZ/sKAg" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-5e2ESR8Ycmos6g3gAKr1Jvwye8sW4U1u/cAKulfVJnkakCcMqhOudbtPnvJ+nbv7" crossorigin="anonymous">
@@ -615,7 +619,7 @@
                 <!-- Logo -->
                 <div class="flex items-center">
                     <a href="index.html">
-                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-7 w-auto" width="1204" height="350">
+                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-7 w-auto" width="1204" height="350" decoding="async">
                     </a>
                 </div>
     
@@ -678,6 +682,7 @@
         </div>
     </header>
 
+    <main>
     <!-- Breadcrumbs Navigation -->
     <div class="bg-gray-100 py-2 border-b border-gray-200 crbox-breadcrumb">
         <div class="container mx-auto px-4">
@@ -1575,8 +1580,10 @@
         </div>
     </section>
 
+    </main>
+
     <!-- Footer -->
-    <div id="site-footer"></div>
+    <footer id="site-footer"></footer>
     <script src="/js/footer.js?v=1"></script>
 
     <!-- WhatsApp Button -->

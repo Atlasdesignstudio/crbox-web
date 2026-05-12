@@ -10,6 +10,7 @@
     <title>Tarifas de Envío desde USA a Costa Rica | CRBOX</title>
     <meta name="description" content="Consulta las tarifas de CRBOX para envíos desde USA a Costa Rica. Precios por peso en carga aérea, costo de manejo y entrega a domicilio. Sin costos ocultos.">
     <link rel="canonical" href="https://crbox.cr/tarifas.html">
+    <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#FF6B00">
 
     <!-- Favicons -->
@@ -41,6 +42,7 @@
     <meta name="ICBM" content="9.9281, -84.0907">
 
     <!-- Preconnect -->
+    <link rel="preconnect" href="https://www.googletagmanager.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
 
@@ -119,6 +121,20 @@
     }
     </script>
 
+    <!-- Structured Data: WebPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": "https://crbox.cr/tarifas.html#webpage",
+      "url": "https://crbox.cr/tarifas.html",
+      "name": "Tarifas de Envío desde USA a Costa Rica | CRBOX",
+      "description": "Consulta las tarifas de CRBOX para envíos desde USA a Costa Rica. Precios por peso en carga aérea, costo de manejo y entrega a domicilio. Sin costos ocultos.",
+      "inLanguage": "es",
+      "isPartOf": { "@id": "https://crbox.cr/#website" }
+    }
+    </script>
+
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #FF6B00 0%, #FF9A00 100%);
@@ -190,7 +206,7 @@
                 <!-- Logo -->
                 <div class="flex items-center">
                     <a href="index.html">
-                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-7 w-auto" width="1204" height="350">
+                        <img src="img/crbox-logo.png" alt="CRBOX Logo" class="h-7 w-auto" width="1204" height="350" decoding="async">
                     </a>
                 </div>
     
@@ -254,7 +270,8 @@
             </div>
         </div>
     </header>
-    
+
+    <main>
     <!-- Breadcrumbs Navigation -->
     <div class="bg-gray-100 py-2 border-b border-gray-200 crbox-breadcrumb">
         <div class="container mx-auto px-4">
@@ -304,7 +321,7 @@
                 <div class="flex-shrink-0 w-full md:w-44 lg:w-52 relative order-1 md:order-2 h-44 md:h-auto md:self-stretch">
                     <img src="img/mascot-pointing.webp" alt="CRBOX mascot"
                          class="absolute bottom-0 left-0 w-full h-full object-contain object-bottom select-none pointer-events-none"
-                         loading="lazy" width="520" height="1025">
+                         loading="lazy" decoding="async" width="520" height="1025">
                 </div>
                 <!-- Text content -->
                 <div class="flex-1 text-center flex flex-col items-center justify-center py-4 min-w-0 order-2 md:order-1">
@@ -1107,8 +1124,10 @@
     </div>
 </section>
 
-<!-- Footer -->
-<div id="site-footer"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer id="site-footer"></footer>
     <script src="/js/footer.js?v=1" defer></script>
 
 

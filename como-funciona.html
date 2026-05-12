@@ -21,14 +21,13 @@
         <meta charset="UTF-8" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://clients.crbox.cr https://www.google-analytics.com; frame-src https://www.googletagmanager.com;">
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>
-            Cómo Funciona el Casillero Virtual y Courier | CRBOX Costa Rica
-        </title>
+        <title>Cómo Funciona el Casillero Virtual y Courier | CRBOX Costa Rica</title>
         <meta
             name="description"
             content="Aprende cómo funciona CRBOX: obtén tu dirección en Miami, compra en cualquier tienda de USA y recibe tu paquete en 3-5 días hábiles en Costa Rica."
         />
         <link rel="canonical" href="https://crbox.cr/como-funciona.html" />
+        <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#FF6B00" />
 
         <!-- Favicons -->
@@ -95,7 +94,8 @@
         <meta name="ICBM" content="9.9281, -84.0907" />
 
         <!-- Preconnect -->
-        <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
 
 
         <link
@@ -235,6 +235,20 @@
                     { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://crbox.cr/" },
                     { "@type": "ListItem", "position": 2, "name": "Cómo Funciona el Casillero Virtual", "item": "https://crbox.cr/como-funciona.html" }
                 ]
+            }
+        </script>
+
+        <!-- Structured Data: WebPage -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "WebPage",
+                "@id": "https://crbox.cr/como-funciona.html#webpage",
+                "url": "https://crbox.cr/como-funciona.html",
+                "name": "Cómo Funciona el Casillero Virtual y Courier | CRBOX Costa Rica",
+                "description": "Aprende cómo funciona CRBOX: obtén tu dirección en Miami, compra en cualquier tienda de USA y recibe tu paquete en 3-5 días hábiles en Costa Rica.",
+                "inLanguage": "es",
+                "isPartOf": { "@id": "https://crbox.cr/#website" }
             }
         </script>
 
@@ -962,8 +976,7 @@
                                 alt="CRBOX Logo"
                                 class="h-7 w-auto"
                                 width="1204"
-                                height="350"
-                            />
+                                height="350" decoding="async"/>
                         </a>
                     </div>
 
@@ -1110,6 +1123,7 @@
             </div>
         </header>
 
+        <main>
         <!-- Breadcrumbs Navigation -->
         <div class="bg-gray-100 py-2 border-b border-gray-200 crbox-breadcrumb">
             <div class="container mx-auto px-4">
@@ -1208,7 +1222,7 @@
                         <div class="flex-shrink-0 w-full md:w-44 lg:w-52 relative order-1 md:order-2 h-36 md:h-auto md:self-stretch">
                             <img src="img/mascot-4.webp" alt="CRBOX mascot"
                                  class="absolute bottom-0 left-0 w-full h-full object-contain object-bottom select-none pointer-events-none"
-                                 loading="lazy" width="800" height="1257">
+                                 loading="lazy" decoding="async" width="800" height="1257">
                         </div>
                     </div>
                 </div>
@@ -2172,9 +2186,11 @@
             </div>
         </section>
 
+        </main>
+
         <!-- Footer -->
-        <div id="site-footer"></div>
-    <script src="/js/footer.js?v=1" defer></script>
+        <footer id="site-footer"></footer>
+        <script src="/js/footer.js?v=1" defer></script>
 
 
         <!-- Back to Top Button -->
