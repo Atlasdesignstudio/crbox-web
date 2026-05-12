@@ -5134,12 +5134,8 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
             f' style="font-size:.73rem;color:#6366f1;word-break:break-all;">'
             f'{esc(_purl[:70])}{"&hellip;" if len(_purl)>70 else ""}</a></div>'
         ) if _purl else ''
-        # Build category select with current value pre-selected (same keys as tariff-adapter)
-        _pcat_known = _pcat_val if any(_ck == _pcat_val for _ck, _ in _ADM_CATEGORIES) else 'otros'
-        _cat_opts_cur = ''.join(
-            f'<option value="{_ck}"{" selected" if _ck==_pcat_known else ""}>{_cv}</option>'
-            for _ck, _cv in _ADM_CATEGORIES
-        )
+        # Combobox: use brain category if known, else 'otros'
+        _pcat_known = _pcat_val if _pcat_val in _BRAIN_IDX else 'otros'
         _calc_rows_html += f'''<details class="adm-calc-product" data-prod-idx="{_ci}" open style="border:1px solid #e5e7eb;border-radius:.55rem;margin-bottom:.65rem;overflow:hidden;">
   <summary style="font-weight:700;font-size:.88rem;color:#1f2937;padding:.7rem .9rem;cursor:pointer;user-select:none;background:#f9fafb;display:flex;justify-content:space-between;align-items:center;">
     <span style="min-width:0;overflow-wrap:anywhere;word-break:break-all;">{_ci+1}. {_pname}</span>
@@ -5154,7 +5150,13 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       </div>
       <div>
         <label style="font-size:.7rem;color:#6b7280;display:block;margin-bottom:.15rem;">Categoría</label>
-        <select class="adm-calc-inp adm-calc-category" style="width:100%;padding:.35rem .45rem;border:1px solid #d1d5db;border-radius:.35rem;font-size:.83rem;background:#fff;">{_cat_opts_cur}</select>
+        <div class="adm-cat-combo">
+          <input type="hidden" class="adm-calc-inp adm-calc-category" value="{_pcat_known}">
+          <input type="text" class="adm-cat-search" autocomplete="off" spellcheck="false"
+            placeholder="Buscar categoría…"
+            style="width:100%;padding:.35rem .45rem;border:1px solid #d1d5db;border-radius:.35rem;font-size:.83rem;box-sizing:border-box;background:#fff;cursor:pointer;">
+          <div class="adm-cat-dropdown"></div>
+        </div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.4rem;margin-bottom:.45rem;">
@@ -5171,6 +5173,12 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     _dest_calc = row.get('destination_zone') or 'sanjose'
     # Safe JSON for inline <script type="application/json"> — prevent </script> breakout
     _calc_products_js_safe = json.dumps(_calc_products, ensure_ascii=False).replace('</', '<\\/')
+    # Brain categories for the searchable combobox
+    _brain_cats_js_safe = json.dumps(
+        [{'code': c.get('code', ''), 'displayName': c.get('displayName', ''), 'estimatedRange': c.get('estimatedRange', '')}
+         for c in _BRAIN_CATS if c.get('code')],
+        ensure_ascii=False
+    ).replace('</', '\\/')
 
     if status in ('enviada', 'en_revision'):
         _calc_hidden_target = 'resp-quote-breakdown'
@@ -5358,12 +5366,39 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     .admc-drow.total .rv {{ color:#FF6B00 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
     /* Tab pills hidden, both panels visible */
     .admc-tab-pills {{ display:none !important; }}
+    /* Category combobox hidden in print */
+    .adm-cat-dropdown {{ display:none !important; }}
+    .adm-cat-search {{ border:none !important; background:transparent !important; padding:0 !important; font-size:8.5pt; font-weight:600; -webkit-appearance:none; appearance:none; width:auto !important; }}
   }}
+  /* ── Category combobox ── */
+  .adm-cat-combo {{ position:relative; }}
+  .adm-cat-search {{ width:100%; box-sizing:border-box; }}
+  .adm-cat-search:focus {{ outline:none; border-color:#FF6B00 !important; box-shadow:0 0 0 2px rgba(255,107,0,.15); }}
+  .adm-cat-dropdown {{
+    display:none; position:absolute; left:0; right:0; top:100%; z-index:999;
+    background:#fff; border:1px solid #d1d5db; border-radius:.45rem; margin-top:2px;
+    max-height:220px; overflow-y:auto; box-shadow:0 6px 20px rgba(0,0,0,.13);
+  }}
+  .adm-cat-opt {{
+    padding:.4rem .7rem; cursor:pointer; font-size:.81rem;
+    display:flex; justify-content:space-between; align-items:center; gap:.5rem;
+    border-bottom:1px solid #f3f4f6;
+  }}
+  .adm-cat-opt:last-child {{ border-bottom:none; }}
+  .adm-cat-opt:hover, .adm-cat-opt.adm-cat-sel {{ background:#fff7ed; }}
+  .adm-cat-opt-name {{ color:#111827; flex:1; min-width:0; line-height:1.3; }}
+  .adm-cat-opt-rate {{
+    color:#FF6B00; font-weight:700; font-size:.73rem; white-space:nowrap;
+    flex-shrink:0; background:#fff7ed; padding:.08rem .38rem; border-radius:99px;
+    border:1px solid #fed7aa;
+  }}
+  .adm-cat-opt-rate.var {{ color:#6b7280; background:#f3f4f6; border-color:#e5e7eb; }}
   </style>
   <script src="/js/product-categories.js?v=1"></script>
   <script src="/js/tariff-adapter.js?v=3"></script>
   <script src="/js/calculator-engine.js?v=2"></script>
   <script type="application/json" id="adm-calc-products-json">{_calc_products_js_safe}</script>
+  <script>window._BRAIN_CATS_ADM={_brain_cats_js_safe};</script>
   {_calc_rows_html}
   <div id="admc-action-row" style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin:.65rem 0 .9rem;">
     <button type="button" id="adm-calc-btn"
@@ -5664,6 +5699,12 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
           var sv=function(cls,val){{ var inp=el.querySelector(cls); if(inp&&val) inp.value=val; }};
           sv('.adm-calc-weight',s.w); sv('.adm-calc-length',s.l); sv('.adm-calc-width',s.wi);
           sv('.adm-calc-height',s.h); sv('.adm-calc-value',s.v); sv('.adm-calc-category',s.c);
+          // sync combobox display text after restoring hidden input
+          var _rhi=el.querySelector('.adm-calc-category'), _rsi=el.querySelector('.adm-cat-search');
+          if (_rhi&&_rsi&&window._BRAIN_CATS_ADM) {{
+            var _rc=window._BRAIN_CATS_ADM.find(function(x){{return x.code===_rhi.value;}});
+            if (_rc) _rsi.value=_rc.displayName+' \u2014 '+_rc.estimatedRange;
+          }}
         }});
         calcAll();
         if (lastBreakdown) {{
@@ -5681,6 +5722,60 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     document.querySelectorAll('#adm-calc-section .adm-calc-inp').forEach(function(inp) {{
       inp.addEventListener('input',_saveCalcState);
     }});
+
+    // ── Category combobox init ──────────────────────────────────────────────
+    (function() {{
+      function _catLabel(cat) {{
+        return cat ? cat.displayName + ' \u2014 ' + cat.estimatedRange : '';
+      }}
+      function _initCombo(prodEl) {{
+        var hidden   = prodEl.querySelector('.adm-calc-category');
+        var search   = prodEl.querySelector('.adm-cat-search');
+        var dropdown = prodEl.querySelector('.adm-cat-dropdown');
+        if (!hidden||!search||!dropdown||!window._BRAIN_CATS_ADM) return;
+        var cats = window._BRAIN_CATS_ADM;
+        // Set initial display text
+        var initCat = cats.find(function(c){{return c.code===hidden.value;}});
+        search.value = initCat ? _catLabel(initCat) : hidden.value;
+        function _render(q) {{
+          var lq=(q||'').toLowerCase().trim();
+          var filtered=lq ? cats.filter(function(c){{
+            return c.displayName.toLowerCase().indexOf(lq)>=0||c.code.toLowerCase().indexOf(lq)>=0;
+          }}) : cats;
+          dropdown.innerHTML='';
+          var cur=hidden.value;
+          filtered.forEach(function(cat) {{
+            var d=document.createElement('div');
+            var isVar=!cat.estimatedRange||cat.estimatedRange==='Variable'||cat.estimatedRange.indexOf('Var')>=0||cat.estimatedRange.indexOf('Restricted')>=0||cat.estimatedRange.indexOf('Prohibited')>=0;
+            d.className='adm-cat-opt'+(cat.code===cur?' adm-cat-sel':'');
+            d.innerHTML='<span class="adm-cat-opt-name">'+cat.displayName+'</span>'
+              +(cat.estimatedRange?'<span class="adm-cat-opt-rate'+(isVar?' var':'')+'">'+cat.estimatedRange+'</span>':'');
+            d.addEventListener('mousedown',function(e){{
+              e.preventDefault();
+              hidden.value=cat.code; search.value=_catLabel(cat);
+              dropdown.style.display='none';
+              _saveCalcState();
+            }});
+            dropdown.appendChild(d);
+          }});
+          dropdown.style.display=filtered.length?'block':'none';
+        }}
+        search.addEventListener('focus',function(){{ _render(''); }});
+        search.addEventListener('input',function(){{ _render(search.value); }});
+        search.addEventListener('blur',function(){{
+          setTimeout(function(){{
+            dropdown.style.display='none';
+            var cat=cats.find(function(c){{return c.code===hidden.value;}});
+            search.value=cat?_catLabel(cat):hidden.value;
+          }},160);
+        }});
+        // Click outside closes
+        document.addEventListener('click',function(e){{
+          if (!prodEl.contains(e.target)) dropdown.style.display='none';
+        }},true);
+      }}
+      document.querySelectorAll('#adm-calc-section .adm-calc-product').forEach(_initCombo);
+    }})();
 
     // ── Apply button ────────────────────────────────────────────────────────
     var applyBtn=document.getElementById('adm-calc-apply-btn');
