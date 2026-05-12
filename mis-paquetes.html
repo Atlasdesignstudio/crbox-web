@@ -2719,37 +2719,24 @@
           tracking    : _trackArg,
           status      : _statArg
         });
-        (function () {
-          var _token = CRBOXAuth.getToken();
-          var _email = (CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '') || '';
-          if (!_token) {
-            var _noTokErr = new Error('Sesión no iniciada. Por favor inicia sesión.');
-            return Promise.reject(_noTokErr);
+        // ── Instant render from sessionStorage cache (set by dashboard) ─────
+        // If the user navigated here from the dashboard the packages are already
+        // available in sessionStorage (max 5 min old). Render them immediately so
+        // the table is never blank, then let the real API call below refresh.
+        try {
+          var _pkgCache = JSON.parse(sessionStorage.getItem('crbox_pkg_cache') || 'null');
+          if (_pkgCache && (Date.now() - _pkgCache.ts) < 300000 &&
+              Array.isArray(_pkgCache.raw) && _pkgCache.raw.length > 0) {
+            var _cachedMapped = _pkgCache.raw.map(function (r) { return CRBOXPortalAPI.mapPackage(r); });
+            _cachedPackages = _cachedMapped;
+            _renderStats(_cachedMapped);
+            _renderAll(_cachedMapped, true);
+            clearTimeout(_slowTimer);
           }
-          var _qs = '?id='       + encodeURIComponent(idConsignee) +
-                    '&start='    + encodeURIComponent(CRBOXPortalAPI.formatDate(_startArg)) +
-                    '&end='      + encodeURIComponent(CRBOXPortalAPI.formatDate(_endArg))   +
-                    '&tracking=' + encodeURIComponent(_trackArg || 'null') +
-                    '&status='   + encodeURIComponent(_statArg  || '1000');
-          return fetch('/api/packages-proxy' + _qs, {
-            headers: {
-              'Authorization':     'Bearer ' + _token,
-              'X-Casillero-Email': _email
-            }
-          }).then(function (res) {
-            if (res.status === 401) {
-              CRBOXAuth.clearToken();
-              window.location.replace('login.html?msg=session-expired');
-              var _ae = new Error('Sesión expirada');
-              _ae.isAuthError = true;
-              throw _ae;
-            }
-            if (!res.ok) {
-              throw new Error('No se pudieron cargar los paquetes (' + res.status + '). Intenta de nuevo.');
-            }
-            return res.json();
-          });
-        }())
+        } catch (_cacheErr) {}
+
+        CRBOXPortalAPI.getPackages(idConsignee,
+          _startArg, _endArg, _trackArg, _statArg)
         .then(function (data) {
           clearTimeout(_slowTimer);
           console.log('[CRBOX mis-paquetes] getPackages raw response →',

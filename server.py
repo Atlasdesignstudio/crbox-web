@@ -21,7 +21,7 @@ import http.cookiejar
 import urllib.request
 import urllib.parse
 import urllib.error
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import HTTPServer, ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 CRBOX_AUTH_URL = 'https://clients.crbox.cr/authtoken'
 QUOTE_RECIPIENT = 'ventas@crbox.cr'
@@ -12967,6 +12967,6 @@ if __name__ == "__main__":
     _start_invoice_cleanup()
     _start_group_cleanup()
     port = int(os.environ.get("PORT", "5000"))
-    server = HTTPServer(("0.0.0.0", port), NoCacheHandler)
+    server = ThreadingHTTPServer(("0.0.0.0", port), NoCacheHandler)
     print(f"Serving HTTP on 0.0.0.0 port {port} (http://0.0.0.0:{port}/) ...")
     server.serve_forever()
