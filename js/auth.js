@@ -98,6 +98,9 @@
       s.removeItem(KEY_EMAIL);
     });
     localStorage.removeItem(KEY_REMEMBER);
+    // Wipe onboarding flags so a new login session always starts fresh
+    localStorage.removeItem('crbox_onboarding');
+    localStorage.removeItem('crbox_activation_toast_shown');
     // Wipe cached profile data so stale info cannot survive a session reset
     if (typeof CRBOXPortalAPI !== 'undefined' &&
         typeof CRBOXPortalAPI.clearUserInfoCache === 'function') {

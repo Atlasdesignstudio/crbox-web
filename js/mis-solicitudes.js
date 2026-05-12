@@ -38,17 +38,24 @@
       reqHeaders['Authorization'] = 'Bearer ' + token;
       if (_userEmail) reqHeaders['X-Casillero-Email'] = _userEmail;
     }
+    var _ctrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var _timer = _ctrl ? setTimeout(function () { _ctrl.abort(); }, 10000) : null;
     return fetch('/api/solicitudes/check-duplicate', {
       method: 'POST',
       headers: reqHeaders,
       body: JSON.stringify({
         product_name: productName,
         product_url: productUrl || ''
-      })
+      }),
+      signal: _ctrl ? _ctrl.signal : undefined,
     }).then(function (res) {
+      if (_timer) clearTimeout(_timer);
       if (!res.ok) return null;
       return res.json();
-    }).catch(function () { return null; });
+    }).catch(function () {
+      if (_timer) clearTimeout(_timer);
+      return null;
+    });
   }
 
   // ─── Status label maps ─────────────────────────────────────────────────────
@@ -276,12 +283,16 @@
   function fetchSolicitudes() {
     if (!_casilleroId) return Promise.resolve([]);
     var token = CRBOXAuth.getToken();
+    var _ctrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var _timer = _ctrl ? setTimeout(function () { _ctrl.abort(); }, 15000) : null;
     return fetch('/api/solicitudes', {
       headers: {
         'Authorization': 'Bearer ' + token,
         'X-Casillero-Email': _userEmail
-      }
+      },
+      signal: _ctrl ? _ctrl.signal : undefined,
     }).then(function (res) {
+      if (_timer) clearTimeout(_timer);
       if (res.status === 401) {
         CRBOXAuth.clearToken();
         window.location.replace('login.html?msg=session-expired');
@@ -291,6 +302,9 @@
       return res.json();
     }).then(function (data) {
       return (data && data.solicitudes) ? data.solicitudes : [];
+    }).catch(function (err) {
+      if (_timer) clearTimeout(_timer);
+      throw err;
     });
   }
 
@@ -525,6 +539,8 @@
       payload.estimate_breakdown = _portalAutoEstimate.estimate_breakdown;
     }
 
+    var _sCtrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var _sTimer = _sCtrl ? setTimeout(function () { _sCtrl.abort(); }, 15000) : null;
     return fetch('/api/solicitudes', {
       method: 'POST',
       headers: {
@@ -532,9 +548,14 @@
         'Authorization': 'Bearer ' + token,
         'X-Casillero-Email': _userEmail
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: _sCtrl ? _sCtrl.signal : undefined,
     }).then(function (res) {
+      if (_sTimer) clearTimeout(_sTimer);
       return res.json().then(function (data) { return { status: res.status, data: data }; });
+    }).catch(function (err) {
+      if (_sTimer) clearTimeout(_sTimer);
+      throw err;
     });
   }
 
@@ -774,7 +795,7 @@
       if (err && err.isAuthError) return;
       if (loadingEl) loadingEl.classList.add('hidden');
       if (errorEl) errorEl.classList.remove('hidden');
-      console.warn('[Mis Solicitudes] init error:', err);
+      console.warn('[Mis Solicitudes] init error:', err && err.message);
     });
 
     // Duplicate buttons (delegated)
@@ -1343,7 +1364,7 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar cotización';
           }
-          console.warn('[Mis Solicitudes] submit error:', err);
+          console.warn('[Mis Solicitudes] submit error:', err && err.message);
         });
     }
 

@@ -449,7 +449,7 @@ function copyToClipboard(text, button, originalHTML, successHTML) {
             }, 2000);
         })
         .catch(err => {
-            console.error('Error al copiar al portapapeles:', err);
+            console.error('Error al copiar al portapapeles:', err && err.message);
             
             // Fallback for older browsers
             const textarea = document.createElement('textarea');
@@ -469,7 +469,7 @@ function copyToClipboard(text, button, originalHTML, successHTML) {
                     button.innerHTML = originalHTML;
                 }, 2000);
             } catch (err) {
-                console.error('Fallback: Error al copiar al portapapeles:', err);
+                console.error('Fallback: Error al copiar al portapapeles:', err && err.message);
                 showToast('Error al copiar el texto', 'error');
             }
             
@@ -1111,6 +1111,6 @@ function initSolicitudesBadge() {
         }
     }).catch(function (err) {
         // Non-critical — badge simply stays hidden on error
-        console.warn('[Dashboard] solicitudes badge fetch error:', err);
+        console.warn('[Dashboard] solicitudes badge fetch error:', err && err.message);
     });
 }

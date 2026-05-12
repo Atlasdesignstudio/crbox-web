@@ -1794,6 +1794,32 @@ def _handle_ai_classify(handler):
 
 def _handle_ai_extract(handler):
     try:
+        _do_handle_ai_extract(handler)
+    except Exception as _exc:
+        import traceback, socket
+        # Return 504 for any timeout-class error so the client can distinguish
+        # a hung upstream (Gemini / page fetch) from a true server fault (500).
+        _is_timeout = isinstance(_exc, (
+            socket.timeout, TimeoutError, ConnectionResetError,
+        )) or 'timeout' in str(type(_exc).__name__).lower()
+        if _is_timeout:
+            print(f'[AI] extract timed out: {_exc}')
+            try:
+                handler._json_response(504, {'error': 'upstream_timeout',
+                                             'message': 'La extracción tardó demasiado. Intenta de nuevo.'})
+            except Exception:
+                pass
+        else:
+            traceback.print_exc()
+            try:
+                handler._json_response(500, {'error': 'server_error',
+                                             'message': 'Error interno al procesar la extracción.'})
+            except Exception:
+                pass
+
+
+def _do_handle_ai_extract(handler):
+    try:
         length = int(handler.headers.get('Content-Length', 0))
         body   = json.loads(handler.rfile.read(length)) if length else {}
     except Exception:

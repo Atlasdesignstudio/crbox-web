@@ -918,7 +918,7 @@
           _renderQuoteResponse(sol, _qr);
           _show('qr-section');
         } catch(e) {
-          console.warn('[Solicitud] _renderQuoteResponse error:', e);
+          console.warn('[Solicitud] _renderQuoteResponse error:', e && e.message);
           var qrEl = document.getElementById('qr-section');
           if (qrEl) {
             qrEl.innerHTML = '<div class="flex items-start gap-3 bg-green-50 border border-green-200 '
@@ -1162,10 +1162,14 @@
       cancelConfirmYes.addEventListener('click', function () {
         cancelConfirmYes.disabled = true;
         cancelConfirmYes.textContent = 'Cancelando...';
+        var _cCtrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        var _cTimer = _cCtrl ? setTimeout(function () { _cCtrl.abort(); }, 15000) : null;
         fetch('/api/solicitudes/' + encodeURIComponent(_scbId) + '/cancel', {
           method: 'POST',
-          headers: _authHeaders()
+          headers: _authHeaders(),
+          signal: _cCtrl ? _cCtrl.signal : undefined,
         }).then(function (res) {
+          if (_cTimer) clearTimeout(_cTimer);
           return res.json().then(function (d) { return { status: res.status, data: d }; });
         }).then(function (result) {
           if (result.data && result.data.ok) {
@@ -1185,6 +1189,7 @@
             setTimeout(function () { if (errEl.parentNode) errEl.parentNode.removeChild(errEl); }, 5000);
           }
         }).catch(function () {
+          if (_cTimer) clearTimeout(_cTimer);
           cancelConfirmYes.disabled = false;
           cancelConfirmYes.textContent = 'Sí, cancelar';
         });
@@ -1238,7 +1243,7 @@
       if (err && err.isAuthError) return;
       if (loadingEl) loadingEl.classList.add('hidden');
       if (errorEl)   errorEl.classList.remove('hidden');
-      console.warn('[Solicitud] init error:', err);
+      console.warn('[Solicitud] init error:', err && err.message);
     });
 
     // Wire all interactive flows

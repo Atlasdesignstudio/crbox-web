@@ -44,6 +44,66 @@
     return status === 401 || status === 403;
   }
 
+  // ─── Centralized fetch wrapper ─────────────────────────────────────────────
+  // Single internal entry point for all portal API calls.
+  //   url      — the endpoint URL
+  //   opts     — standard fetch options (method, headers, body, signal, …)
+  //   config   — {
+  //                timeout?  : ms before abort (default 15 000)
+  //                skipAuth? : true = do not add Authorization header
+  //              }
+  //
+  // What this wrapper does:
+  //   • Attaches 'Authorization: Bearer <token>' unless skipAuth=true
+  //   • Enforces a configurable timeout via AbortController
+  //   • Calls _handleAuthFailure on 401/403 and rethrows with isAuthError=true
+  //   • Classifies abort as err.isTimeout=true with a user-friendly message
+  //   • Marks all other failures with isAuthError=false so callers know
+  //     not to log the user out on transient / network errors
+  //   • NEVER logs token values
+  //
+  // Returns the raw Response so each caller can parse the body as needed.
+  function _request(url, opts, config) {
+    config = config || {};
+    var ms       = (config.timeout != null) ? config.timeout : 15000;
+    var skipAuth = config.skipAuth || false;
+
+    var ctrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = (ctrl && ms > 0) ? setTimeout(function () { ctrl.abort(); }, ms) : null;
+
+    var fetchOpts = Object.assign({}, opts || {});
+    if (ctrl) fetchOpts.signal = ctrl.signal;
+
+    if (!skipAuth) {
+      var tok = CRBOXAuth.getToken();
+      if (tok) {
+        fetchOpts.headers = Object.assign(
+          { 'Authorization': 'Bearer ' + tok },
+          fetchOpts.headers || {}
+        );
+      }
+    }
+
+    return fetch(url, fetchOpts).then(function (res) {
+      if (timer) clearTimeout(timer);
+      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
+      return res;
+    }).catch(function (err) {
+      if (timer) clearTimeout(timer);
+      if (err && err.isAuthError) throw err;
+      var isAbort = err && (err.name === 'AbortError' || err.name === 'TimeoutError');
+      if (isAbort) {
+        var te = new Error('La solicitud tardó demasiado. Verifica tu conexión e intenta de nuevo.');
+        te.isTimeout   = true;
+        te.isAuthError = false;
+        throw te;
+      }
+      var ne = err || new Error('Error de red. Verifica tu conexión e intenta de nuevo.');
+      ne.isAuthError = false;
+      throw ne;
+    });
+  }
+
   // ─── Date helper → DD-MM-YYYY ─────────────────────────────────────────────
   function formatDate(date) {
     var d = (date instanceof Date) ? date : new Date(date);
@@ -126,12 +186,9 @@
       return Promise.reject(new Error('No se encontró el correo de sesión. Por favor inicia sesión de nuevo.'));
     }
 
-    return fetch(BASE + '/getuserinfo/' + encodeURIComponent(email), {
-      headers: { 'Authorization': 'Bearer ' + token }
-    }).then(function (res) {
-      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
+    return _request(BASE + '/getuserinfo/' + encodeURIComponent(email), {}, {})
+    .then(function (res) {
       if (!res.ok) {
-        // Transient failure (5xx, network, etc.) — do NOT redirect
         throw new Error('No se pudo obtener la información de tu cuenta (' + res.status + '). Intenta de nuevo.');
       }
       return res.json();
@@ -150,15 +207,11 @@
     var token = CRBOXAuth.getToken();
     if (!token) return Promise.reject(new Error('Sesión no iniciada. Por favor inicia sesión.'));
 
-    return fetch(BASE + '/postedituser', {
+    return _request(BASE + '/postedituser', {
       method:  'POST',
-      headers: {
-        'Content-Type':  'application/x-www-form-urlencoded',
-        'Authorization': 'Bearer ' + token
-      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: payload
-    }).then(function (res) {
-      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
+    }, {}).then(function (res) {
       if (!res.ok) throw new Error('Error al guardar el perfil (' + res.status + ').');
       return res.json();
     }).then(function (data) {
@@ -195,10 +248,7 @@
       encodeURIComponent(track) + '/' +
       encodeURIComponent(stat);
 
-    return fetch(url, {
-      headers: { 'Authorization': 'Bearer ' + token }
-    }).then(function (res) {
-      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
+    return _request(url, {}, {}).then(function (res) {
       if (!res.ok) throw new Error('No se pudieron cargar los paquetes (' + res.status + '). Intenta de nuevo.');
       return res.json();
     });
@@ -230,10 +280,7 @@
     var url = BASE + '/getfacturas/' +
       encodeURIComponent(email) + '/' + start + '/' + end;
 
-    return fetch(url, {
-      headers: { 'Authorization': 'Bearer ' + token }
-    }).then(function (res) {
-      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
+    return _request(url, {}, {}).then(function (res) {
       if (!res.ok) throw new Error('No se pudieron cargar las facturas (' + res.status + '). Intenta de nuevo.');
       return res.json();
     }).then(function (data) {
@@ -263,14 +310,13 @@
     fd.append('invoice', file);
     fd.append('wr_id',   String(wrId  || ''));
 
-    return fetch('/api/invoice-upload', {
+    return _request('/api/invoice-upload', {
       method: 'POST',
       headers: {
-        'Authorization':    'Bearer ' + token,
         'X-Casillero-Email': String(email || ''),
       },
       body: fd,
-    }).catch(function (netErr) {
+    }, { timeout: 30000 }).catch(function (netErr) {
       netErr.step = 'saveBill';
       throw netErr;
     }).then(function (res) {
@@ -317,13 +363,10 @@
     var token = CRBOXAuth.getToken();
     var email = CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '';
     if (!token || !email) return;
-    fetch('/api/invoice-upload/' + encodeURIComponent(filename), {
+    _request('/api/invoice-upload/' + encodeURIComponent(filename), {
       method: 'DELETE',
-      headers: {
-        'Authorization':     'Bearer ' + token,
-        'X-Casillero-Email': email,
-      },
-    }).catch(function () { /* best-effort */ });
+      headers: { 'X-Casillero-Email': email },
+    }, { timeout: 10000 }).catch(function () { /* best-effort cleanup */ });
   }
 
   // ─── createPurchaseBill ───────────────────────────────────────────────────
@@ -348,15 +391,11 @@
       body.append(k, (v !== null && v !== undefined) ? String(v) : '');
     });
 
-    return fetch(BASE + '/postcreatepurchasebill', {
+    return _request(BASE + '/postcreatepurchasebill', {
       method:  'POST',
-      headers: {
-        'Content-Type':  'application/x-www-form-urlencoded',
-        'Authorization': 'Bearer ' + token
-      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString()
-    }).then(function (res) {
-      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
+    }, {}).then(function (res) {
       if (!res.ok) {
         var err = new Error('No se pudo registrar la factura en el sistema (' + res.status + '). El archivo ya fue subido pero el registro falló.');
         err.step = 'createPurchaseBill';
@@ -380,7 +419,7 @@
   // GET endpoint — no auth required.
   // Resolves {ok: true|false, message: string}; only rejects on network errors.
   function recoverPassword(email) {
-    return fetch(BASE + '/getuserpasswordrecovery/' + encodeURIComponent(email))
+    return _request(BASE + '/getuserpasswordrecovery/' + encodeURIComponent(email), {}, { skipAuth: true })
       .then(function (res) {
         if (!res.ok) throw new Error('Error de red al recuperar contraseña (' + res.status + ').');
         return res.json();

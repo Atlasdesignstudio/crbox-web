@@ -139,18 +139,22 @@ const CALCULATOR_ENGINE = (function () {
     const total      = freight + fuel + handling + taxes + insurance + delivery;
     const weightMode = billableKg === volKg ? 'volumetrico' : 'real';
 
+    // Guard: replace any NaN or Infinity that slipped through with 0 so the
+    // UI never renders "NaN" or "Infinity" as a price to the user.
+    function _safe(n) { return (typeof n === 'number' && isFinite(n)) ? n : 0; }
+
     return {
-      freight,
-      fuel,
-      handling,
-      cif,
-      taxes,
-      insurance,
-      delivery,
-      total,
-      billableKg,
-      realKg,
-      volKg,
+      freight:    _safe(freight),
+      fuel:       _safe(fuel),
+      handling:   _safe(handling),
+      cif:        _safe(cif),
+      taxes:      _safe(taxes),
+      insurance:  _safe(insurance),
+      delivery:   _safe(delivery),
+      total:      _safe(total),
+      billableKg: _safe(billableKg),
+      realKg:     _safe(realKg),
+      volKg:      _safe(volKg),
       weightMode,
       taxRate,
       tariffSource
@@ -211,10 +215,13 @@ const CALCULATOR_ENGINE = (function () {
   }
 
   function calcSinglePackage(item) {
-    const realKg = parseFloat(item.weight) || 0;
-    const l = parseFloat(item.length) || 0;
-    const w = parseFloat(item.width)  || 0;
-    const h = parseFloat(item.height) || 0;
+    // Clamp all physical inputs to >= 0 so negative values entered by the
+    // user (e.g. "-5") cannot produce negative volumetric weight or negative
+    // freight, which would corrupt every downstream cost component.
+    const realKg = Math.max(0, parseFloat(item.weight) || 0);
+    const l = Math.max(0, parseFloat(item.length) || 0);
+    const w = Math.max(0, parseFloat(item.width)  || 0);
+    const h = Math.max(0, parseFloat(item.height) || 0);
     const volKg = volumetricWeight(l, w, h);
     const billableKg = Math.max(realKg, volKg);
     const totalValue = parseFloat(item.value) || 0;
@@ -264,7 +271,8 @@ const CALCULATOR_ENGINE = (function () {
       ...calcSinglePackage({ ...item, destination })
     }));
     _suppressNextAnalytics = false;
-    const grandTotal = results.reduce((s, r) => s + r.total, 0);
+    // Use (r.total || 0) so manual-review items with total:null don't produce NaN
+    const grandTotal = results.reduce((s, r) => s + (r.total || 0), 0);
     return { results, grandTotal };
   }
 
@@ -285,10 +293,11 @@ const CALCULATOR_ENGINE = (function () {
     const itemBillables = [];
 
     items.forEach(item => {
-      const realKg = parseFloat(item.weight) || 0;
-      const l = parseFloat(item.length) || 0;
-      const w = parseFloat(item.width)  || 0;
-      const h = parseFloat(item.height) || 0;
+      // Clamp to >= 0 — same guard as in calcSinglePackage
+      const realKg = Math.max(0, parseFloat(item.weight) || 0);
+      const l = Math.max(0, parseFloat(item.length) || 0);
+      const w = Math.max(0, parseFloat(item.width)  || 0);
+      const h = Math.max(0, parseFloat(item.height) || 0);
       const volKg = volumetricWeight(l, w, h);
       const billable = Math.max(realKg, volKg);
       sumReal  += realKg;
