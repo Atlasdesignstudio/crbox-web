@@ -183,7 +183,7 @@ Compliance rules (fill the "compliance" block):
    - "PROHIBITED": firearms, weapons, ammunition, explosives, fireworks, illegal drugs, counterfeit goods, protected wildlife products (ivory, CITES items), toxic/hazardous materials
    - "RESTRICTED": supplements/protein powders, medicines, food/beverages/seeds, cosmetics/perfumes/skincare, drones/radio-controlled aircraft, telecom/radio devices, loose lithium batteries (not inside a device), power banks, chemicals/paints, automotive parts, plants/soil/organic materials — these require permits or sanitary registration
    - "COURIER_RESTRICTED": perfume/cologne (liquid), very heavy/oversized items (>150 lb or >120 inches), extremely fragile items — legal but couriers may reject or charge extra
-   - "ALLOWED": clothing, shoes, standard electronics (laptop, phone, tablet, headphones, keyboard, mouse, TV, camera), books, accessories, toys, sporting goods, home goods
+   - "ALLOWED": clothing, shoes, standard electronics (laptop, phone, tablet, headphones, keyboard, mouse, TV, standard photo/video camera without RF transmitter), books, accessories, toys, sporting goods, home goods. NOTE: FPV cameras, action cameras with wireless transmitters, drone cameras, and any camera that includes a radio frequency transmitter must be RESTRICTED, not ALLOWED.
 9. risk_level: "LOW" for ALLOWED, "MEDIUM" for COURIER_RESTRICTED/borderline RESTRICTED, "HIGH" for RESTRICTED/PROHIBITED
 10. reason: write a plain-language explanation IN SPANISH (1 short sentence) of why it falls in that category. Null if ALLOWED.
 11. authority: which Costa Rican authority is involved — "Ministerio de Salud", "SFE", "SUTEL", "Aduana", or null for ALLOWED
@@ -898,8 +898,10 @@ _VALID_RISK_LEVELS     = ('LOW', 'MEDIUM', 'HIGH')
 def _normalize_compliance(raw_compliance):
     """Validate and normalise the compliance block returned by Gemini."""
     if not isinstance(raw_compliance, dict):
-        return {'classification': 'ALLOWED', 'risk_level': 'LOW',
-                'reason': None, 'authority': None, 'verdict': 'safe'}
+        # Absent or malformed block → treat as unverified, not ALLOWED
+        return {'classification': 'RESTRICTED', 'risk_level': 'MEDIUM',
+                'reason': 'No se pudo verificar el cumplimiento de este producto. Requiere revisión del equipo CRBOX.',
+                'authority': None, 'verdict': 'ship_with_permits'}
     cls     = str(raw_compliance.get('classification') or 'ALLOWED').upper().strip()
     risk    = str(raw_compliance.get('risk_level') or 'LOW').upper().strip()
     verdict = str(raw_compliance.get('verdict') or 'safe').lower().strip()
@@ -1091,7 +1093,7 @@ Rules:
 - weight: item/product weight as a string with unit (lbs, oz, kg, g); null if not listed in specs
 - dimensions: product dimensions L x W x H with unit (inches or cm); null if not in specs
 - customs_description: ONE concise plain-language English sentence for customs/commercial invoice. Include what it is, primary function, and key regulatory detail (battery, supplement, RF device, etc.). E.g. "Wireless in-ear Bluetooth earbuds with active noise cancellation, containing lithium batteries built into equipment." Max 25 words; null if product unknown.
-- compliance.classification: "PROHIBITED" (weapons/drugs/fireworks/counterfeit), "RESTRICTED" (supplements/medicines/food/drones/perfume/power banks/chemicals/automotive parts), "COURIER_RESTRICTED" (liquids, oversized), or "ALLOWED" (clothing/electronics/books/accessories/toys)
+- compliance.classification: "PROHIBITED" (weapons/drugs/fireworks/counterfeit), "RESTRICTED" (supplements/medicines/food/drones/perfume/power banks/chemicals/automotive parts/radio-frequency devices/FPV or drone cameras), "COURIER_RESTRICTED" (liquids, oversized), or "ALLOWED" (clothing/standard electronics/books/accessories/toys — NOT cameras with RF transmitters or drones)
 - compliance.risk_level: "LOW" for ALLOWED, "MEDIUM" for COURIER_RESTRICTED, "HIGH" for RESTRICTED or PROHIBITED
 - compliance.reason: one short sentence IN SPANISH explaining restriction; null if ALLOWED
 - compliance.authority: "Ministerio de Salud", "SFE", "SUTEL", "Aduana", or null
@@ -1110,7 +1112,7 @@ _SEARCH_CAT_MAP = {
     'headphone': 'auricular_telefono', 'earphone': 'auricular_telefono',
     'earbuds': 'auricular_telefono', 'airpods': 'auricular_telefono',
     'speaker': 'bocina', 'bluetooth speaker': 'bocina',
-    'tv ': 'televisor', 'television': 'televisor', 'monitor': 'televisor',
+    'tv ': 'televisor', 'television': 'televisor', 'monitor': 'monitor',
     'clothing': 'ropa', 'shirt': 'ropa', 'pants': 'ropa', 'dress': 'ropa',
     'jacket': 'ropa', 'sweater': 'ropa', 'jeans': 'ropa',
     'shoes': 'ropa', 'sneakers': 'ropa', 'boots': 'ropa',

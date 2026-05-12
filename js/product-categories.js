@@ -60,7 +60,7 @@
       name: 'Celulares y Smartphones',
       group: 'Electrónica',
       aliases: ['celular', 'smartphone', 'teléfono', 'iphone', 'samsung', 'android', 'móvil', 'phone'],
-      dutyRate: null, totalEstimatedRate: 0.13, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: 0.14, source: 'local_estimated', requiresPermit: false, needsReview: false,
     },
     {
       id: 'telefonos', code: 'telefonos',
@@ -74,14 +74,14 @@
       name: 'Computadoras y Laptops',
       group: 'Electrónica',
       aliases: ['laptop', 'notebook', 'computadora', 'pc', 'macbook', 'computador', 'computadora portátil', 'computer'],
-      dutyRate: null, totalEstimatedRate: 0.13, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: 0.14, source: 'local_estimated', requiresPermit: false, needsReview: false,
     },
     {
       id: 'tableta_electronica', code: 'tableta_electronica',
       name: 'Tabletas y iPads',
       group: 'Electrónica',
       aliases: ['tablet', 'tableta', 'ipad', 'kindle', 'surface'],
-      dutyRate: null, totalEstimatedRate: 0.13, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: 0.14, source: 'local_estimated', requiresPermit: false, needsReview: false,
     },
     {
       id: 'consola_videojuegos', code: 'consola_videojuegos',
@@ -247,9 +247,9 @@
     {
       id: 'radio_comunicacion', code: 'radio_comunicacion',
       name: 'Radio de Comunicación',
-      group: 'Electrónica',
+      group: 'Regulado',
       aliases: ['radio', 'walkie talkie', 'radio comunicación', 'intercomunicador', 'handy'],
-      dutyRate: null, totalEstimatedRate: 0.13, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: 0.13, source: 'local_estimated', requiresPermit: true, needsReview: true,
     },
     {
       id: 'llave_maya', code: 'llave_maya',
@@ -1036,16 +1036,16 @@
     {
       id: 'salud_belleza', code: 'salud_belleza',
       name: 'Salud y Belleza',
-      group: 'Salud y Belleza',
+      group: 'Salud / Regulado',
       aliases: ['salud', 'belleza', 'cosméticos', 'maquillaje', 'perfume', 'crema', 'skincare', 'beauty', 'makeup'],
-      dutyRate: null, totalEstimatedRate: 0.2995, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: 0.2995, source: 'local_estimated', requiresPermit: true, needsReview: true,
     },
     {
       id: 'suplementos', code: 'suplementos',
       name: 'Suplementos Alimenticios',
-      group: 'Salud y Belleza',
+      group: 'Salud / Regulado',
       aliases: ['suplemento', 'proteína', 'vitamina', 'supplement', 'protein powder', 'whey', 'creatina', 'omega 3'],
-      dutyRate: null, totalEstimatedRate: 0.13, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: 0.13, source: 'local_estimated', requiresPermit: true, needsReview: true,
     },
     {
       id: 'lente_contacto', code: 'lente_contacto',
@@ -1165,16 +1165,16 @@
     {
       id: 'beauty_fragrance', code: 'beauty_fragrance',
       name: 'Perfumes y Fragancias',
-      group: 'Belleza',
+      group: 'Belleza / Regulado',
       aliases: ['perfume', 'fragancia', 'colonia', 'eau de toilette', 'body mist'],
-      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: true, needsReview: true,
     },
     {
       id: 'beauty_makeup', code: 'beauty_makeup',
       name: 'Maquillaje y Cosméticos',
-      group: 'Belleza',
+      group: 'Belleza / Regulado',
       aliases: ['maquillaje', 'labial', 'mascara', 'esmalte', 'base'],
-      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: 0.29, source: 'local_estimated', requiresPermit: true, needsReview: true,
     },
     {
       id: 'beauty_devices', code: 'beauty_devices',

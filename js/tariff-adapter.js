@@ -5,11 +5,13 @@
  * Reads category/rate data from PRODUCT_CATEGORIES (product-categories.js).
  * product-categories.js MUST be loaded before this file on every page.
  *
- * Each lookup returns { rate: Number, source: String, pct: String }
+ * Each lookup returns { rate: Number|null, source: String, pct: String|null, message?: String }
  * where source is one of:
- *   "local_estimated"  — rates derived from local reference data (default)
- *   "official_tica"    — rate obtained from the Costa Rica DGA/TICA system
- *   "user_override"    — rate manually entered or overridden by the user
+ *   "local_estimated"       — rates derived from local reference data (default)
+ *   "official_tica"         — rate obtained from the Costa Rica DGA/TICA system
+ *   "user_override"         — rate manually entered or overridden by the user
+ *   "manual_review_required"— category has no numeric rate; requires manual CRBOX quote
+ *                             (rate and pct are null; message contains the customer-facing text)
  *
  * To swap in official TICA data later, populate the OFFICIAL_RATES map and
  * set source to "official_tica". No UI changes are required.
@@ -21,11 +23,19 @@ const TARIFF_ADAPTER = (function () {
   // product-categories.js must be loaded first. The guard below is a
   // safety net only — the normal path always loads the module in order.
   var _rateMap = {};
+  // Set of category codes that have no numeric rate and require manual quoting.
+  // When a lookup hits one of these, we return a signal instead of silently
+  // applying the 29.95% "otros" fallback, which would mislead the user.
+  var _manualReviewCodes = {};
 
   if (typeof PRODUCT_CATEGORIES !== 'undefined' && Array.isArray(PRODUCT_CATEGORIES)) {
     PRODUCT_CATEGORIES.forEach(function (cat) {
-      if (cat.code && typeof cat.totalEstimatedRate === 'number') {
+      if (!cat.code) return;
+      if (typeof cat.totalEstimatedRate === 'number') {
         _rateMap[cat.code] = cat.totalEstimatedRate;
+      } else if (cat.requiresPermit || cat.needsReview) {
+        // null rate + regulated flag → needs manual review
+        _manualReviewCodes[cat.code] = true;
       }
     });
   } else {
@@ -36,7 +46,7 @@ const TARIFF_ADAPTER = (function () {
     );
     // Minimal fallback so the page does not crash entirely.
     _rateMap = {
-      celulares: 0.13, computadora: 0.13, tableta_electronica: 0.13,
+      celulares: 0.14, computadora: 0.14, tableta_electronica: 0.14,
       ropa: 0.2995, zapatos: 0.2995, electrodomesticos: 0.4927,
       televisor: 0.4927, vehiculos: 0.43, salud_belleza: 0.2995,
       suplementos: 0.13, libros: 0.01, otros: 0.2995,
@@ -70,6 +80,12 @@ const TARIFF_ADAPTER = (function () {
       return { rate: r, source: 'official_tica', pct: (r * 100).toFixed(2) + '%' };
     }
 
+    // If this code is flagged as requiring manual review and has no rate,
+    // return a special signal instead of silently applying the otros fallback.
+    if (_rateMap[categoryCode] === undefined && _manualReviewCodes[categoryCode]) {
+      return { rate: null, source: 'manual_review_required', pct: null,
+               message: 'Este producto requiere cotización manual. Contáctenos para un estimado.' };
+    }
     const fallback = _rateMap['otros'] !== undefined ? _rateMap['otros'] : 0.2995;
     const r = _rateMap[categoryCode] !== undefined ? _rateMap[categoryCode] : fallback;
     return { rate: r, source: 'local_estimated', pct: (r * 100).toFixed(2) + '%' };
@@ -83,5 +99,14 @@ const TARIFF_ADAPTER = (function () {
     return Object.keys(_rateMap);
   }
 
-  return { getTariffRate, getCategoryCodes };
+  /**
+   * Returns true if the category requires manual quoting (no numeric rate).
+   * @param {string} categoryCode
+   * @returns {boolean}
+   */
+  function requiresManualReview(categoryCode) {
+    return !!_manualReviewCodes[categoryCode];
+  }
+
+  return { getTariffRate, getCategoryCodes, requiresManualReview };
 })();
