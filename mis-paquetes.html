@@ -3485,47 +3485,46 @@
           return;
         }
 
-        // ── EARLY RENDER: show packages immediately from cache ─────────────────
-        // Do NOT wait for getUserInfo. Read the localStorage package cache and
-        // cached idConsignee right now. If both are fresh (<10 min), call
-        // _loadPackages immediately so packages appear before getUserInfo resolves.
-        // This means mis-paquetes NEVER shows a blank spinner to a returning user.
+        // ── EARLY START: begin loading packages immediately if we know the user ───
+        // crbox_cached_id_consignee is written by dashboard.html and by this page
+        // whenever getUserInfo succeeds. It identifies the user's casillero without
+        // requiring a fresh getUserInfo round-trip. If it exists we call _loadPackages
+        // RIGHT NOW — _loadPackages will render any fresh crbox_pkg_cache instantly
+        // and then make its own live getPackages API call in the background.
+        // getUserInfo still runs in parallel to update the navbar name.
         var _earlyLoaded = false;
         var _earlyCachedIdStr = '';
-        try {
-          _earlyCachedIdStr = localStorage.getItem('crbox_cached_id_consignee') || '';
-          if (_earlyCachedIdStr) {
-            var _earlyCache = JSON.parse(localStorage.getItem('crbox_pkg_cache') || 'null');
-            if (_earlyCache && (Date.now() - _earlyCache.ts) < 600000 &&
-                Array.isArray(_earlyCache.raw) && _earlyCache.raw.length > 0) {
-              _cachedConsigneeId = _earlyCachedIdStr;
-              _earlyLoaded = true;
-              _diag('cargando desde caché (' + _earlyCache.raw.length + ' pkgs)...');
-              // _loadPackages renders the cache instantly AND fires a live refresh call
-              _loadPackages(_earlyCachedIdStr);
+        try { _earlyCachedIdStr = localStorage.getItem('crbox_cached_id_consignee') || ''; } catch (_e) {}
+
+        if (_earlyCachedIdStr) {
+          _earlyLoaded = true;
+          _cachedConsigneeId = _earlyCachedIdStr;
+          _diag('inicio rápido — id=' + _earlyCachedIdStr + '...');
+          _loadPackages(_earlyCachedIdStr);
+        }
+
+        // 5-second safety-timer: ONLY when no cached id is available (first-ever visit
+        // or after logout). When _earlyLoaded=true, _loadPackages manages its own
+        // slow-timer — we must NOT start a second one that would overwrite the tbody.
+        var _guiTimer = null;
+        if (!_earlyLoaded) {
+          _guiTimer = setTimeout(function () {
+            var _tb3 = document.getElementById('packages-tbody');
+            if (_tb3 && _tb3.querySelector('.fa-spinner')) {
+              _diag('conexión lenta — mostrando opción de reintento');
+              _tb3.innerHTML =
+                '<tr><td colspan="15" class="text-center py-8 text-gray-400">' +
+                  '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando&hellip; ' +
+                  '<span class="block mt-2 text-xs text-gray-400">Esto está tardando más de lo normal. ' +
+                    '<button onclick="location.reload();" ' +
+                      'class="underline text-orange-500 font-medium">Reintentar</button>' +
+                  '</span>' +
+                '</td></tr>';
             }
-          }
-        } catch (_earlyErr) {}
+          }, 5000);
+        }
 
-        // 5-second slow-timer for getUserInfo — only matters if early cache was NOT
-        // available (i.e. first visit, cache expired, or different user). Prevents
-        // the static HTML spinner from hanging indefinitely.
-        var _guiTimer = setTimeout(function () {
-          var _tb3 = document.getElementById('packages-tbody');
-          if (_tb3 && _tb3.querySelector('.fa-spinner')) {
-            _diag('conexión lenta — mostrando opción de reintento');
-            _tb3.innerHTML =
-              '<tr><td colspan="15" class="text-center py-8 text-gray-400">' +
-                '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando&hellip; ' +
-                '<span class="block mt-2 text-xs text-gray-400">Esto está tardando más de lo normal. ' +
-                  '<button onclick="location.reload();" ' +
-                    'class="underline text-orange-500 font-medium">Reintentar</button>' +
-                '</span>' +
-              '</td></tr>';
-          }
-        }, 5000);
-
-        _diag(_earlyLoaded ? 'actualizando datos en segundo plano...' : 'getUserInfo iniciado...');
+        _diag(_earlyLoaded ? 'paquetes iniciados — getUserInfo en paralelo...' : 'getUserInfo iniciado...');
 
         // ?receipt=<num> — navigated here from a Mis Facturas recibo row.
         // Pre-fill the search input as a visual cue; then load all packages and
@@ -3542,90 +3541,111 @@
 
         CRBOXPortalAPI.getUserInfo()
           .then(function (info) {
-            clearTimeout(_guiTimer);
+            if (_guiTimer) clearTimeout(_guiTimer);
             var idConsignee = _applyHeader(info);
-            _cachedConsigneeId = idConsignee;
-            // Persist idConsignee so next page load can render from cache immediately
-            // without waiting for this getUserInfo round-trip.
-            try { localStorage.setItem('crbox_cached_id_consignee', String(idConsignee)); } catch (_e) {}
             if (idConsignee) {
+              _cachedConsigneeId = idConsignee;
+              try { localStorage.setItem('crbox_cached_id_consignee', String(idConsignee)); } catch (_e) {}
               if (_earlyLoaded && String(idConsignee) === _earlyCachedIdStr) {
-                // Early render already called _loadPackages with the same idConsignee.
-                // A live refresh is already in-flight — no need to call again.
-                _diag('getUserInfo OK — idCons=' + idConsignee + ' (actualización en curso)');
+                // Packages already loading with correct id — nothing to do.
+                _diag('getUserInfo OK — nombre actualizado, paquetes en curso');
               } else {
-                // Either no early render, or idConsignee changed — start fresh.
+                // Different id than cached, or no early load — restart package fetch.
                 _diag('getUserInfo OK — idCons=' + idConsignee + '. Cargando paquetes...');
                 _loadPackages(idConsignee);
               }
             } else {
-              // getUserInfo resolved but returned no idConsignee — CRBOX likely returned
-              // a non-JSON response (HTML login redirect) for this browser request.
-              // Show an immediate "retrying" message, then retry once via our server-side
-              // proxy which makes the call Python→CRBOX, bypassing any browser-level issue.
-              _diag('idConsignee vacío — reintentando vía proxy...');
-              var _tbNull = document.getElementById('packages-tbody');
-              if (_tbNull) {
-                _tbNull.innerHTML =
-                  '<tr><td colspan="15" class="text-center py-8 text-gray-400">' +
-                    '<i class="fas fa-spinner fa-spin mr-2"></i>' +
-                    'Obteniendo datos de tu cuenta&hellip;' +
-                  '</td></tr>';
-              }
-              var _pxyEmail = (window.CRBOXAuth && CRBOXAuth.getEmail) ? CRBOXAuth.getEmail() : '';
-              var _pxyToken = (window.CRBOXAuth && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
-              if (_pxyEmail && _pxyToken) {
-                fetch('/api/userinfo-proxy?email=' + encodeURIComponent(_pxyEmail), {
-                  headers: { 'Authorization': 'Bearer ' + _pxyToken }
-                })
-                .then(function (r) { return r.ok ? r.json().catch(function () { return null; }) : null; })
-                .then(function (proxyInfo) {
-                  var _tbP = document.getElementById('packages-tbody');
-                  if (!proxyInfo) {
-                    _diag('ERROR: proxy userinfo no devolvió datos.');
-                    if (_tbP) _tbP.innerHTML =
+              // getUserInfo resolved with null (CRBOX returned non-JSON for browser request).
+              _diag('getUserInfo null' + (_earlyLoaded ? ' — paquetes ya en curso' : ' — proxy...'));
+
+              if (_earlyLoaded) {
+                // _loadPackages is already running with the cached id.
+                // Packages WILL appear — just try the proxy silently to get the navbar name.
+                var _pxE = (window.CRBOXAuth && CRBOXAuth.getEmail) ? CRBOXAuth.getEmail() : '';
+                var _pxT = (window.CRBOXAuth && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
+                if (_pxE && _pxT) {
+                  fetch('/api/userinfo-proxy?email=' + encodeURIComponent(_pxE), {
+                    headers: { 'Authorization': 'Bearer ' + _pxT }
+                  })
+                  .then(function (r) { return r.ok ? r.json().catch(function () { return null; }) : null; })
+                  .then(function (pi) {
+                    if (pi) {
+                      var pid = _applyHeader(pi);
+                      if (pid) {
+                        _cachedConsigneeId = pid;
+                        try { localStorage.setItem('crbox_cached_id_consignee', String(pid)); } catch (_e) {}
+                        // If proxy gave a different id than what we used for early load, refresh.
+                        if (String(pid) !== _earlyCachedIdStr) {
+                          _diag('proxy id difiere — recargando paquetes con id=' + pid);
+                          _loadPackages(pid);
+                        }
+                      }
+                    }
+                  })
+                  .catch(function () { /* navbar name stays "..." — packages still visible */ });
+                }
+              } else {
+                // No cached id and getUserInfo returned null — need the proxy for everything.
+                var _tbNull = document.getElementById('packages-tbody');
+                if (_tbNull) {
+                  _tbNull.innerHTML =
+                    '<tr><td colspan="15" class="text-center py-8 text-gray-400">' +
+                      '<i class="fas fa-spinner fa-spin mr-2"></i>' +
+                      'Obteniendo datos de tu cuenta&hellip;' +
+                    '</td></tr>';
+                }
+                var _pxyEmail = (window.CRBOXAuth && CRBOXAuth.getEmail) ? CRBOXAuth.getEmail() : '';
+                var _pxyToken = (window.CRBOXAuth && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
+                if (_pxyEmail && _pxyToken) {
+                  fetch('/api/userinfo-proxy?email=' + encodeURIComponent(_pxyEmail), {
+                    headers: { 'Authorization': 'Bearer ' + _pxyToken }
+                  })
+                  .then(function (r) { return r.ok ? r.json().catch(function () { return null; }) : null; })
+                  .then(function (proxyInfo) {
+                    var _tbP = document.getElementById('packages-tbody');
+                    if (!proxyInfo) {
+                      _diag('ERROR: proxy userinfo sin datos.');
+                      if (_tbP) _tbP.innerHTML =
+                        '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
+                          '<i class="fas fa-exclamation-triangle mr-2"></i>' +
+                          'No se pudo cargar tu cuenta. ' +
+                          '<button onclick="location.reload();" ' +
+                            'class="underline font-medium text-orange-500">Reintentar</button>' +
+                        '</td></tr>';
+                      return;
+                    }
+                    var proxyId = _applyHeader(proxyInfo);
+                    _cachedConsigneeId = proxyId;
+                    try { localStorage.setItem('crbox_cached_id_consignee', String(proxyId)); } catch (_e) {}
+                    if (proxyId) {
+                      _diag('proxy OK — id=' + proxyId + '. Cargando paquetes...');
+                      _loadPackages(proxyId);
+                    } else {
+                      if (_tbP) _tbP.innerHTML =
+                        '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
+                          '<i class="fas fa-user-slash mr-2"></i>' +
+                          'Tu perfil no tiene casillero asignado. Contacta a soporte.' +
+                          '<br><button onclick="location.reload();" ' +
+                            'class="underline font-medium text-orange-500 mt-2 inline-block">Reintentar</button>' +
+                        '</td></tr>';
+                    }
+                  })
+                  .catch(function () {
+                    var _tbC = document.getElementById('packages-tbody');
+                    if (_tbC) _tbC.innerHTML =
                       '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
-                        '<i class="fas fa-exclamation-triangle mr-2"></i>' +
-                        'No se pudo cargar tu cuenta. ' +
+                        '<i class="fas fa-wifi mr-2"></i>Error de red al cargar tu cuenta. ' +
                         '<button onclick="location.reload();" ' +
                           'class="underline font-medium text-orange-500">Reintentar</button>' +
                       '</td></tr>';
-                    return;
-                  }
-                  var proxyId = _applyHeader(proxyInfo);
-                  _cachedConsigneeId = proxyId;
-                  try { localStorage.setItem('crbox_cached_id_consignee', String(proxyId)); } catch (_e) {}
-                  if (proxyId) {
-                    _diag('proxy OK — idCons=' + proxyId + '. Cargando paquetes...');
-                    _loadPackages(proxyId);
-                  } else {
-                    _diag('ERROR: proxy devolvió idConsignee vacío.');
-                    if (_tbP) _tbP.innerHTML =
-                      '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
-                        '<i class="fas fa-user-slash mr-2"></i>' +
-                        'Tu perfil no tiene casillero asignado. Contacta a soporte.' +
-                        '<br><button onclick="location.reload();" ' +
-                          'class="underline font-medium text-orange-500 mt-2 inline-block">Reintentar</button>' +
-                      '</td></tr>';
-                  }
-                })
-                .catch(function () {
-                  _diag('ERROR: proxy userinfo — fallo de red.');
-                  var _tbC = document.getElementById('packages-tbody');
-                  if (_tbC) _tbC.innerHTML =
+                  });
+                } else {
+                  if (_tbNull) _tbNull.innerHTML =
                     '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
-                      '<i class="fas fa-wifi mr-2"></i>Error de red al cargar tu cuenta. ' +
-                      '<button onclick="location.reload();" ' +
-                        'class="underline font-medium text-orange-500">Reintentar</button>' +
+                      '<i class="fas fa-lock mr-2"></i>Sesión inválida. ' +
+                      '<a href="login.html" class="underline font-medium">Iniciar sesión</a>' +
                     '</td></tr>';
-                });
-              } else {
-                _diag('ERROR: sin credenciales para proxy.');
-                if (_tbNull) _tbNull.innerHTML =
-                  '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
-                    '<i class="fas fa-lock mr-2"></i>Sesión inválida. ' +
-                    '<a href="login.html" class="underline font-medium">Iniciar sesión</a>' +
-                  '</td></tr>';
+                }
               }
             }
 
@@ -3760,20 +3780,26 @@
             }
           })
           .catch(function (err) {
-            clearTimeout(_guiTimer);
+            if (_guiTimer) clearTimeout(_guiTimer);
             if (err && err.isAuthError) return; // redirect already in flight from portal-api.js
             _diag('ERROR getUserInfo: ' + (err && err.message || 'desconocido'));
             console.warn('[CRBOX] getUserInfo error (transient):', err);
-            var tbody = document.getElementById('packages-tbody');
-            if (tbody) {
-              tbody.innerHTML = '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
-                '<i class="fas fa-exclamation-triangle mr-2"></i>' +
-                'No se pudo cargar la información de tu cuenta. ' +
-                '<button onclick="CRBOXPortalAPI.clearUserInfoCache();location.reload();" ' +
-                'class="underline font-medium">Reintentar</button></td></tr>';
+            if (_earlyLoaded) {
+              // _loadPackages already running — getUserInfo failure only affects navbar name.
+              var headerEl = document.getElementById('header-user-name');
+              if (headerEl) headerEl.textContent = '—';
+            } else {
+              var tbody = document.getElementById('packages-tbody');
+              if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
+                  '<i class="fas fa-exclamation-triangle mr-2"></i>' +
+                  'No se pudo cargar la información de tu cuenta. ' +
+                  '<button onclick="CRBOXPortalAPI.clearUserInfoCache();location.reload();" ' +
+                  'class="underline font-medium">Reintentar</button></td></tr>';
+              }
+              var headerEl2 = document.getElementById('header-user-name');
+              if (headerEl2) headerEl2.textContent = '—';
             }
-            var headerEl = document.getElementById('header-user-name');
-            if (headerEl) headerEl.textContent = '—';
           });
       }
 
