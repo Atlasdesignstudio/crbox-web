@@ -425,32 +425,38 @@
                                 </tbody>
                             </table>
                         </div>
-                        <!-- Mobile card grid (2 columns: Kg | Precio) -->
-                        <div class="sm:hidden grid grid-cols-2 gap-2">
-                            <div class="bg-gray-100 px-3 py-2 font-semibold text-gray-700 text-sm">Peso (kg)</div>
-                            <div class="bg-gray-100 px-3 py-2 font-semibold text-gray-700 text-sm">Precio</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">½</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$5</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">1</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$7</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">2</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$11</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">3</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$15</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">4</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$19</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">5</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$23</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">6</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$27</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">7</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$32</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">8</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$36</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">9</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$40</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">10</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$44</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">11</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$48</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">12</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$52</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">13</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$56</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">14</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$60</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">15</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$64</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">16</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$68</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">17</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$72</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">18</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$76</div>
-                            <div class="px-3 py-2 border-b text-sm text-gray-700">19</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$80</div>
-                            <div class="px-3 py-2 text-sm text-gray-700">20</div><div class="px-3 py-2 text-sm font-semibold text-green-700">$84</div>
+                        <!-- Mobile card grid (2 columns: Kg | Precio) — scrollable container -->
+                        <div class="sm:hidden" style="position:relative;">
+                            <div class="grid grid-cols-2 gap-2" id="peso-scroll-container" style="max-height:280px;overflow-y:auto;">
+                                <div class="bg-gray-100 px-3 py-2 font-semibold text-gray-700 text-sm">Peso (kg)</div>
+                                <div class="bg-gray-100 px-3 py-2 font-semibold text-gray-700 text-sm">Precio</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">½</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$5</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">1</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$7</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">2</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$11</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">3</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$15</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">4</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$19</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">5</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$23</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">6</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$27</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">7</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$32</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">8</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$36</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">9</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$40</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">10</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$44</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">11</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$48</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">12</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$52</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">13</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$56</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">14</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$60</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">15</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$64</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">16</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$68</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">17</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$72</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">18</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$76</div>
+                                <div class="px-3 py-2 border-b text-sm text-gray-700">19</div><div class="px-3 py-2 border-b text-sm font-semibold text-green-700">$80</div>
+                                <div class="px-3 py-2 text-sm text-gray-700">20</div><div class="px-3 py-2 text-sm font-semibold text-green-700">$84</div>
+                            </div>
+                            <!-- Bottom fade gradient to signal more content below -->
+                            <div id="peso-fade-overlay" style="position:absolute;bottom:0;left:0;right:0;height:48px;background:linear-gradient(to bottom,transparent,rgba(255,255,255,0.97));pointer-events:none;transition:opacity 0.2s;"></div>
                         </div>
+                        <!-- Scroll hint — mobile only, hidden once the user reaches the bottom -->
+                        <p class="sm:hidden text-center text-gray-400 text-xs mt-1" id="peso-scroll-hint" style="letter-spacing:0.02em;">↕ Deslizá para ver más pesos</p>
                         
                         <div class="bg-blue-50 p-4 border-l-4 border-blue-500 m-6">
                             <h4 class="font-semibold text-blue-800 mb-3">Observaciones importantes:</h4>
@@ -1276,5 +1282,20 @@ showTab('tab-peso');
     <script src="js/chat-calculator.js"></script>
     <script src="js/chat-quote.js"></script>
     <script src="js/chat-panel.js"></script>
+    <script>
+        (function () {
+            var container = document.getElementById('peso-scroll-container');
+            var overlay   = document.getElementById('peso-fade-overlay');
+            var hint      = document.getElementById('peso-scroll-hint');
+            if (!container || !overlay || !hint) return;
+            function updateScrollAffordance() {
+                var atBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 4;
+                overlay.style.opacity = atBottom ? '0' : '1';
+                hint.style.opacity    = atBottom ? '0' : '1';
+            }
+            container.addEventListener('scroll', updateScrollAffordance, { passive: true });
+            updateScrollAffordance();
+        })();
+    </script>
 </body>
 </html>
