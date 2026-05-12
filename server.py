@@ -10840,11 +10840,17 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         if _admin_password() is None:
             self.send_response(404); self.end_headers(); return
 
-        _PORTAL_ADMIN_EMAIL = 'prueba@crbox.cr'
+        _PORTAL_ADMIN_EMAILS = {
+            'prueba@crbox.cr',
+            'ventas@crbox.cr',
+            'compras@crbox.cr',
+            'servicioalcliente@crbox.cr',
+            'esteban@crbox.cr',
+        }
 
         # Strict CRBOX validation — email from API response only, no fallback.
         verified_email = self._portal_auth_email_only()
-        if verified_email and verified_email.strip().lower() == _PORTAL_ADMIN_EMAIL:
+        if verified_email and verified_email.strip().lower() in _PORTAL_ADMIN_EMAILS:
             token = _admin_create_session()
             is_https = (self.headers.get('X-Forwarded-Proto', '') == 'https'
                         or self.headers.get('X-Forwarded-Ssl', '') == 'on')

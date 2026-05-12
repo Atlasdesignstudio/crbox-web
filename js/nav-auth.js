@@ -1,7 +1,13 @@
 (function () {
     'use strict';
 
-    var ADMIN_EMAIL = 'prueba@crbox.cr';
+    var ADMIN_EMAILS = [
+        'prueba@crbox.cr',
+        'ventas@crbox.cr',
+        'compras@crbox.cr',
+        'servicioalcliente@crbox.cr',
+        'esteban@crbox.cr'
+    ];
 
     // Pages that are inside the authenticated client portal.
     // On these pages a logged-in non-admin user is already in their account
@@ -47,7 +53,7 @@
         var auth = window.CRBOXAuth;
         if (!auth || !auth.isLoggedIn()) return;
 
-        var isAdmin  = (auth.getEmail() === ADMIN_EMAIL);
+        var isAdmin  = (ADMIN_EMAILS.indexOf((auth.getEmail() || '').toLowerCase()) !== -1);
         var inPortal = _isPortalPage();
 
         // ── Desktop ───────────────────────────────────────────────────────────
@@ -60,13 +66,29 @@
             }
 
             if (isAdmin) {
-                // prueba@crbox.cr — keep user dropdown intact AND inject Panel Admin
-                // beside it, on every page (public and portal).
+                // Admin accounts — inject a minimal circle icon button beside the user dropdown.
                 var adminBtn = document.createElement('a');
                 adminBtn.href = '#';
-                adminBtn.className = 'secondary-btn flex items-center gap-2';
-                adminBtn.style.cssText = 'text-decoration:none;margin-left:8px;cursor:pointer;';
-                adminBtn.innerHTML = '<i class="fas fa-shield-alt"></i><span>Panel Admin</span>';
+                adminBtn.title = 'Panel Admin';
+                adminBtn.setAttribute('aria-label', 'Panel Admin');
+                adminBtn.style.cssText = [
+                    'display:inline-flex;align-items:center;justify-content:center;',
+                    'width:36px;height:36px;border-radius:50%;',
+                    'background:#FF6B00;color:#fff;',
+                    'border:none;text-decoration:none;cursor:pointer;',
+                    'margin-left:8px;flex-shrink:0;',
+                    'box-shadow:0 2px 8px rgba(255,107,0,0.35);',
+                    'transition:background 0.18s,box-shadow 0.18s;'
+                ].join('');
+                adminBtn.innerHTML = '<i class="fas fa-shield-alt" style="font-size:14px;pointer-events:none;"></i>';
+                adminBtn.addEventListener('mouseenter', function () {
+                    this.style.background = '#E85500';
+                    this.style.boxShadow = '0 4px 14px rgba(255,107,0,0.45)';
+                });
+                adminBtn.addEventListener('mouseleave', function () {
+                    this.style.background = '#FF6B00';
+                    this.style.boxShadow = '0 2px 8px rgba(255,107,0,0.35)';
+                });
                 adminBtn.addEventListener('click', function (e) {
                     e.preventDefault();
                     _goAdminPortal();
