@@ -90,6 +90,12 @@
     bar.appendChild($send);
     $panel.appendChild(bar);
 
+    // Hide the floating bubble on the cotizar page (public or portal mode) —
+    // the user is already inside the quotation chat and the bubble distracts.
+    if (_pageSlug() === 'cotizar') {
+      return;
+    }
+
     document.body.appendChild($bubble);
     document.body.appendChild($backdrop);
     document.body.appendChild($panel);
