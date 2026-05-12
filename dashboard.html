@@ -281,20 +281,23 @@
 
         <!-- Welcome Banner -->
 <style>
-  /* ── Welcome banner — futuristic orange gradient ── */
+  /* ── Welcome banner — vibrant amber-to-red-orange futuristic gradient ── */
   #wb-card {
-    background: linear-gradient(135deg, #ff8c00 0%, #ff4d00 45%, #c81a00 100%);
+    background: linear-gradient(90deg, #ffb347 0%, #ff6a00 55%, #c0392b 100%);
     border: none;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.12), 0 20px 60px -12px rgba(255,107,0,0.5), 0 12px 40px -8px rgba(180,40,0,0.3);
+    box-shadow:
+      0 4px 6px -1px rgba(0,0,0,0.14),
+      0 22px 64px -10px rgba(255,130,0,0.55),
+      0 10px 36px -8px rgba(192,57,43,0.35);
   }
-  /* Subtle glowing inner-border */
+  /* Vivid orange gradient stroke border */
   #wb-card::before {
     content: '';
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    padding: 1.5px;
-    background: linear-gradient(135deg, rgba(255,220,120,0.7), rgba(255,140,0,0.4), rgba(200,30,0,0.5));
+    padding: 2px;
+    background: linear-gradient(90deg, rgba(255,220,90,0.9) 0%, rgba(255,120,0,0.85) 50%, rgba(180,30,0,0.8) 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
@@ -306,18 +309,18 @@
     background-image: radial-gradient(circle, rgba(255,255,255,0.22) 1px, transparent 1px);
     background-size: 22px 22px;
   }
-  /* Glow orbs — warm light highlights */
+  /* Glow orbs — warm amber left, deep red right */
   #wb-orb-1 {
-    background: radial-gradient(circle at 15% 25%, rgba(255,220,100,0.3) 0%, transparent 55%);
+    background: radial-gradient(circle at 10% 30%, rgba(255,230,80,0.38) 0%, transparent 50%);
   }
   #wb-orb-2 {
-    background: radial-gradient(circle at 85% 75%, rgba(180,20,0,0.35) 0%, transparent 55%);
+    background: radial-gradient(circle at 90% 70%, rgba(160,20,0,0.38) 0%, transparent 50%);
   }
-  /* Casillero sub-card — dark glass on orange */
+  /* Casillero sub-card — dark brownish-burgundy glass on orange */
   #wb-casillero {
-    background: linear-gradient(135deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.42) 100%);
+    background: linear-gradient(135deg, rgba(60,10,0,0.38) 0%, rgba(30,5,0,0.52) 100%);
     border: 1px solid rgba(255,255,255,0.2);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.12);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     position: relative;
@@ -340,22 +343,22 @@
   /* Rastrear button on orange bg */
   #wb-rastrear {
     color: #fff;
-    border: 1.5px solid rgba(255,255,255,0.35);
+    border: 1.5px solid rgba(255,255,255,0.38);
     background: rgba(255,255,255,0.15);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     transition: all 0.2s ease;
   }
   #wb-rastrear:hover {
-    background: rgba(255,255,255,0.25);
-    border-color: rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.26);
+    border-color: rgba(255,255,255,0.58);
     color: #fff;
   }
   /* "Cuenta Activa" on orange */
   #wb-status-badge {
     background: rgba(255,255,255,0.18);
     color: #fff;
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid rgba(255,255,255,0.32);
   }
   #wb-discount-badge {
     background: rgba(0,0,0,0.2);
