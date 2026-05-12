@@ -4858,8 +4858,8 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
                 f'padding:.5rem .75rem;background:#f9fafb;cursor:pointer;'
                 f'display:flex;justify-content:space-between;align-items:center;'
                 f'list-style:none;user-select:none;">'
-                f'<span>{_pi+1}. {_pn}</span>'
-                f'<span style="font-size:.72rem;font-weight:400;color:#6b7280;">'
+                f'<span style="min-width:0;overflow-wrap:anywhere;word-break:break-all;">{_pi+1}. {_pn}</span>'
+                f'<span style="font-size:.72rem;font-weight:400;color:#6b7280;flex-shrink:0;margin-left:.5rem;">'
                 f'{esc(_pvstr)}</span></summary>'
                 f'<div style="padding:.5rem .75rem;font-size:.8rem;">'
                 f'<div class="adm-detail-row">'
@@ -5124,8 +5124,8 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         )
         _calc_rows_html += f'''<details class="adm-calc-product" data-prod-idx="{_ci}" open style="border:1px solid #e5e7eb;border-radius:.55rem;margin-bottom:.65rem;overflow:hidden;">
   <summary style="font-weight:700;font-size:.88rem;color:#1f2937;padding:.7rem .9rem;cursor:pointer;user-select:none;background:#f9fafb;display:flex;justify-content:space-between;align-items:center;">
-    <span>{_ci+1}. {_pname}</span>
-    <span style="font-size:.72rem;font-weight:400;color:#6b7280;margin-left:.5rem;" class="adm-calc-summary-total"></span>
+    <span style="min-width:0;overflow-wrap:anywhere;word-break:break-all;">{_ci+1}. {_pname}</span>
+    <span style="font-size:.72rem;font-weight:400;color:#6b7280;margin-left:.5rem;flex-shrink:0;" class="adm-calc-summary-total"></span>
   </summary>
   <div style="padding:.8rem .9rem;">
     {_url_link}
@@ -6515,7 +6515,7 @@ a{{color:inherit;text-decoration:none}}
 .adm-detail-label{{color:var(--clr-slate400);font-size:11px;font-weight:600;
   min-width:110px;flex-shrink:0;padding-top:1px;text-transform:uppercase;letter-spacing:.03em}}
 .adm-detail-val{{color:var(--clr-slate900);font-weight:500;text-align:right;
-  word-break:break-word;max-width:calc(100% - 130px)}}
+  word-break:break-word;overflow-wrap:anywhere;max-width:calc(100% - 130px);min-width:0}}
 /* ── Badges ──────────────────────────────────────────────────────── */
 .adm-badge{{display:inline-block;padding:3px 10px;border-radius:999px;
   font-size:11px;font-weight:700;letter-spacing:.03em;border:1px solid}}
@@ -6567,7 +6567,7 @@ a{{color:inherit;text-decoration:none}}
 .adm-acct-business{{background:#fff7ed;color:#c2410c;border-color:#fdba74}}
 .adm-acct-anon{{background:var(--clr-slate50);color:var(--clr-slate500);border-color:var(--clr-slate200)}}
 /* ── Product pills ───────────────────────────────────────────────── */
-.adm-prod-name{{font-size:15px;font-weight:800;color:var(--clr-slate900);margin-bottom:var(--sp-2)}}
+.adm-prod-name{{font-size:15px;font-weight:800;color:var(--clr-slate900);margin-bottom:var(--sp-2);word-break:break-all;overflow-wrap:anywhere}}
 .adm-prod-pills{{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-bottom:var(--sp-3)}}
 .adm-pill{{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid}}
 .adm-pill-neutral{{background:var(--clr-slate50);color:var(--clr-slate500);border-color:var(--clr-slate200)}}
@@ -6576,7 +6576,7 @@ a{{color:inherit;text-decoration:none}}
 /* ── Link & URL ──────────────────────────────────────────────────── */
 .adm-link{{color:var(--clr-orange);text-decoration:underline;text-underline-offset:2px}}
 .adm-link:hover{{color:var(--clr-orange-dk)}}
-.adm-url-val{{word-break:break-all;font-size:12px}}
+.adm-url-val{{word-break:break-all;overflow-wrap:anywhere;font-size:12px;min-width:0}}
 .adm-val-prominent{{font-size:15px;font-weight:800;color:var(--clr-orange)}}
 /* ── Timeline ────────────────────────────────────────────────────── */
 .tl-wrap{{padding:4px 0}}
