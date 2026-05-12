@@ -5251,13 +5251,103 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     border:1px solid #bbf7d0;border-radius:999px;font-size:.67rem;font-weight:700;padding:.14rem .5rem;
   }}
   #adm-calc-section .admc-wt.vol {{background:#fff7ed;color:#c2410c;border-color:#fed7aa;}}
+  /* ── Print styles ──────────────────────────────────────────────────── */
+  @media print {{
+    /* Hide everything except the calculator results */
+    .adm-header, .adm-page-header, .adm-col-side,
+    .adm-detail-section:not(#adm-calc-section),
+    #adm-toast-stack, #adm-calc-section > p,
+    #adm-calc-section .adm-detail-section-title,
+    #admc-action-row, #admc-apply-wrap, #admc-err,
+    .admc-tab-pills, #adm-calc-btn, #admc-print-btn {{
+      display:none !important;
+    }}
+    /* Reset page chrome */
+    body {{ background:#fff !important; color:#111 !important; font-size:11pt; }}
+    .adm-outer {{ max-width:100%; padding:0; margin:0; }}
+    .adm-layout-2col {{ display:block; }}
+    .adm-col-main {{ display:block; width:100%; }}
+    /* Show print-only blocks */
+    #admc-print-header {{ display:block !important; }}
+    #admc-print-footer {{ display:flex !important; justify-content:space-between; align-items:center; }}
+    /* Calculator section resets */
+    #adm-calc-section {{
+      border:none !important; box-shadow:none !important;
+      padding:0 !important; margin:0 !important; background:#fff !important;
+    }}
+    /* ── Per-product cards in print ─────────────────────────────────── */
+    #adm-calc-section .adm-calc-product {{
+      display:block !important; break-inside:avoid; page-break-inside:avoid;
+      border:1px solid #d1d5db !important; border-radius:.4rem;
+      margin-bottom:.7rem; overflow:visible !important;
+    }}
+    /* Force <details> content visible even if not open */
+    #adm-calc-section details.adm-calc-product > div {{ display:block !important; }}
+    /* Summary row: show as plain header */
+    #adm-calc-section details.adm-calc-product > summary {{
+      background:#f9fafb !important; padding:.5rem .7rem !important;
+      display:flex !important; justify-content:space-between;
+      font-size:9pt; font-weight:700; color:#1f2937;
+      border-bottom:1px solid #e5e7eb; list-style:none;
+    }}
+    #adm-calc-section details.adm-calc-product > summary::-webkit-details-marker {{ display:none; }}
+    /* URL link */
+    #adm-calc-section .adm-calc-product a {{
+      font-size:7.5pt; color:#4f46e5; word-break:break-all;
+    }}
+    /* Hide the input grids — show them as readable text instead */
+    #adm-calc-section .adm-calc-product input,
+    #adm-calc-section .adm-calc-product select,
+    #adm-calc-section .adm-calc-product label {{
+      border:none !important; background:transparent !important;
+      padding:0 !important; font-size:8.5pt; font-weight:600;
+      -webkit-appearance:none; appearance:none;
+      width:auto !important;
+    }}
+    #adm-calc-section .adm-calc-product input::placeholder {{ color:transparent; }}
+    /* Keep the input grid readable */
+    #adm-calc-section .adm-calc-product > div > div[style*="grid"] {{
+      gap:.3rem !important; margin-bottom:.35rem !important;
+    }}
+    /* Per-item cost breakdown result */
+    #adm-calc-section .adm-calc-result {{
+      display:block !important; background:#f9fafb !important;
+      border-radius:.3rem; font-size:8pt;
+    }}
+    /* Hero comparison block */
+    #admc-hero {{ display:block !important; margin-bottom:1.2rem !important; }}
+    .admc-hero-wrap {{
+      background:#fff !important; border:2px solid #1e293b !important;
+      border-radius:.5rem; box-shadow:none !important;
+    }}
+    .admc-cost-lbl {{ color:#64748b !important; }}
+    .admc-cost-val {{ color:#111 !important; font-size:14pt !important; }}
+    .admc-cost-val.green {{ color:#15803d !important; }}
+    .admc-cost-sub {{ color:#6b7280 !important; }}
+    .admc-savings {{
+      background:#FF6B00 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }}
+    /* Dossier panels */
+    #admc-dossier {{ display:block !important; }}
+    #admc-panel-con {{ display:block !important; }}
+    #admc-panel-sep {{ display:block !important; }}
+    .admc-dcard {{ break-inside:avoid; page-break-inside:avoid; border:1px solid #e5e7eb !important; }}
+    .admc-dhdr {{
+      background:#1e293b !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }}
+    .admc-drow {{ border-bottom:1px solid #f3f4f6 !important; }}
+    .admc-drow.total {{ background:#fff7ed !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
+    .admc-drow.total .rv {{ color:#FF6B00 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
+    /* Tab pills hidden, both panels visible */
+    .admc-tab-pills {{ display:none !important; }}
+  }}
   </style>
   <script src="/js/product-categories.js?v=1"></script>
   <script src="/js/tariff-adapter.js?v=3"></script>
   <script src="/js/calculator-engine.js?v=2"></script>
   <script type="application/json" id="adm-calc-products-json">{_calc_products_js_safe}</script>
   {_calc_rows_html}
-  <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin:.65rem 0 .9rem;">
+  <div id="admc-action-row" style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin:.65rem 0 .9rem;">
     <button type="button" id="adm-calc-btn"
       style="padding:.52rem 1.3rem;background:#FF6B00;color:#fff;border:none;border-radius:.5rem;
              font-size:.87rem;font-weight:700;cursor:pointer;transition:background .2s;
@@ -5266,6 +5356,28 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       &#128178; Calcular env&iacute;o
     </button>
     <span id="admc-err" style="font-size:.77rem;color:#dc2626;display:none;"></span>
+    <button type="button" id="admc-print-btn"
+      style="display:none;padding:.52rem 1.1rem;background:#1e293b;color:#fff;border:none;border-radius:.5rem;
+             font-size:.87rem;font-weight:700;cursor:pointer;transition:background .2s;align-items:center;gap:.4rem;"
+      onmouseover="this.style.background='#334155'" onmouseout="this.style.background='#1e293b'"
+      onclick="window.print()">
+      &#128424; Imprimir / Guardar PDF
+    </button>
+  </div>
+
+  <div id="admc-print-header" style="display:none;margin-bottom:1.2rem;border-bottom:2px solid #FF6B00;padding-bottom:1rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;">
+      <div style="font-size:1.4rem;font-weight:900;color:#FF6B00;letter-spacing:-.03em;">CRBOX</div>
+      <div style="font-size:.8rem;color:#6b7280;">Calculadora de env&iacute;o a&eacute;reo</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .8rem;font-size:.8rem;">
+      <div><span style="color:#9ca3af;font-weight:600;text-transform:uppercase;font-size:.67rem;letter-spacing:.06em;">Solicitud</span><br><strong style="color:#111;">{rid}</strong></div>
+      <div><span style="color:#9ca3af;font-weight:600;text-transform:uppercase;font-size:.67rem;letter-spacing:.06em;">Fecha</span><br><span style="color:#374151;">{date_str}</span></div>
+      <div><span style="color:#9ca3af;font-weight:600;text-transform:uppercase;font-size:.67rem;letter-spacing:.06em;">Cliente</span><br><strong style="color:#111;">{esc(cust_name_val) or '—'}</strong></div>
+      <div><span style="color:#9ca3af;font-weight:600;text-transform:uppercase;font-size:.67rem;letter-spacing:.06em;">Correo</span><br><span style="color:#374151;">{esc(cust_email_val) or '—'}</span></div>
+      <div><span style="color:#9ca3af;font-weight:600;text-transform:uppercase;font-size:.67rem;letter-spacing:.06em;">Casillero</span><br><span style="color:#374151;font-family:ui-monospace,monospace;">{casillero_str}</span></div>
+      <div><span style="color:#9ca3af;font-weight:600;text-transform:uppercase;font-size:.67rem;letter-spacing:.06em;">Tipo de cuenta</span><br><span style="color:#374151;">{esc(acct_label)}</span></div>
+    </div>
   </div>
 
   <div id="admc-hero" style="display:none;margin-bottom:.85rem;">
@@ -5484,6 +5596,8 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
 
       document.getElementById('admc-dossier').style.display='block';
       document.getElementById('admc-apply-wrap').style.display='block';
+      var pb=document.getElementById('admc-print-btn');
+      if (pb) {{ pb.style.display='inline-flex'; }}
     }}
 
     // ── Tab switching ──────────────────────────────────────────────────────
@@ -5565,6 +5679,23 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       }});
     }}
     _restoreCalcState();
+  }})();
+  </script>
+  <div id="admc-print-footer" style="display:none;margin-top:1.5rem;padding-top:.8rem;border-top:1px solid #e5e7eb;font-size:.72rem;color:#9ca3af;">
+    <span>CRBOX &mdash; crbox.cr &mdash; ventas@crbox.cr</span>
+    <span id="admc-print-generated"></span>
+  </div>
+  <script>
+  (function(){{
+    function _setGenTs(){{
+      var el=document.getElementById('admc-print-generated');
+      if(!el) return;
+      var d=new Date();
+      el.textContent='Generado: '+d.toLocaleDateString('es-CR',{{day:'2-digit',month:'2-digit',year:'numeric'}})+' '+d.toLocaleTimeString('es-CR',{{hour:'2-digit',minute:'2-digit'}});
+    }}
+    _setGenTs();
+    if(window.matchMedia) {{ try {{ window.matchMedia('print').addEventListener('change',function(e){{ if(e.matches) _setGenTs(); }}); }} catch(e){{}} }}
+    if(window.onbeforeprint!==undefined) {{ window.addEventListener('beforeprint',_setGenTs); }}
   }})();
   </script>
 </div>'''
