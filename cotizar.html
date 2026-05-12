@@ -2996,6 +2996,321 @@
                 padding: .625rem .75rem 3.5rem !important;
             }
         }
+
+        /* ═══════════════════════════════════════════════════════════════
+           FROSTED GLASS REVAMP — Orange gradient + frosted bubble treatment
+           Applies to: #cq-chat (mobile) and #cqd (desktop ≥641px)
+           Pure CSS override — no JS or HTML changes.
+        ═══════════════════════════════════════════════════════════════ */
+
+        /* ── Mobile concierge chat (≤640px) ───────────────────────────── */
+        @media (max-width: 640px) {
+            #cq-chat {
+                background: linear-gradient(180deg, #E8641A 0%, #C9490C 100%) !important;
+            }
+
+            /* Header — frosted glass strip */
+            .cqc-header {
+                background: rgba(255,255,255,0.72) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+                backdrop-filter: blur(20px) !important;
+                border-bottom: 1px solid rgba(255,255,255,0.4) !important;
+                box-shadow: 0 1px 0 rgba(255,255,255,0.3) !important;
+            }
+
+            /* Bot bubble — frosted white */
+            .cqc-row.bot .cqc-bubble {
+                background: rgba(255,255,255,0.82) !important;
+                -webkit-backdrop-filter: blur(18px) !important;
+                backdrop-filter: blur(18px) !important;
+                color: #1a1a2e !important;
+                border-left: none !important;
+                box-shadow: 0 1px 8px rgba(0,0,0,0.1) !important;
+            }
+
+            /* User bubble — slightly deeper translucent (warm tinted, distinct from bot) */
+            .cqc-row.user .cqc-bubble {
+                background: rgba(255,255,255,0.45) !important;
+                background-image: none !important;
+                -webkit-backdrop-filter: blur(18px) !important;
+                backdrop-filter: blur(18px) !important;
+                color: #1a1a2e !important;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.08) !important;
+            }
+
+            /* Widget cards — frosted glass */
+            .cqc-widget {
+                background: rgba(255,255,255,0.82) !important;
+                -webkit-backdrop-filter: blur(18px) !important;
+                backdrop-filter: blur(18px) !important;
+                box-shadow: 0 2px 12px rgba(0,0,0,0.1) !important;
+            }
+
+            /* Typing indicator — frosted */
+            .cqc-typing {
+                background: rgba(255,255,255,0.72) !important;
+                -webkit-backdrop-filter: blur(18px) !important;
+                backdrop-filter: blur(18px) !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            .cqc-typing span { background: rgba(255,255,255,0.9) !important; }
+
+            /* Tip/consolidation bubble — frosted */
+            .cqc-tip {
+                background: rgba(255,255,255,0.72) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                backdrop-filter: blur(12px) !important;
+                border: 1px solid rgba(255,255,255,0.4) !important;
+                border-left: 3px solid rgba(255,255,255,0.85) !important;
+                color: #1a1a2e !important;
+            }
+
+            /* Action buttons — frosted white with orange text */
+            .cqc-btn:not(.primary) {
+                background: rgba(255,255,255,0.82) !important;
+                border-color: rgba(255,255,255,0.5) !important;
+                color: #c2410c !important;
+            }
+            .cqc-btn.secondary {
+                background: rgba(255,255,255,0.72) !important;
+                border-color: rgba(255,255,255,0.4) !important;
+                color: #6b7280 !important;
+            }
+
+            /* Quick-start chips — frosted white */
+            .cqc-chip-pill {
+                background: rgba(255,255,255,0.82) !important;
+                border-color: rgba(255,255,255,0.5) !important;
+                color: #c2410c !important;
+            }
+
+            /* Province and service buttons — frosted glass idle, orange-fill selected */
+            .cqc-prov-btn {
+                background: rgba(255,255,255,0.72) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                backdrop-filter: blur(12px) !important;
+                border-color: rgba(255,255,255,0.45) !important;
+                color: #1a1a2e !important;
+            }
+            .cqc-prov-btn.sel {
+                background: rgba(255,107,0,0.85) !important;
+                color: #fff !important;
+                border-color: transparent !important;
+            }
+            .cqc-svc-opt {
+                background: rgba(255,255,255,0.72) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                backdrop-filter: blur(12px) !important;
+                border-color: rgba(255,255,255,0.45) !important;
+                color: #1a1a2e !important;
+            }
+            .cqc-svc-opt.sel {
+                background: #FF6B00 !important;
+                color: #fff !important;
+                border-color: #FF6B00 !important;
+            }
+
+            /* Input bar — frosted glass with orange-tinted border */
+            .cqc-input-bar {
+                background: rgba(255,255,255,0.15) !important;
+                -webkit-backdrop-filter: blur(22px) !important;
+                backdrop-filter: blur(22px) !important;
+                border-top: 1px solid rgba(255,255,255,0.25) !important;
+            }
+            .cqc-input-wrap {
+                background: rgba(255,255,255,0.2) !important;
+                border-color: rgba(255,255,255,0.4) !important;
+            }
+            .cqc-input-wrap:focus-within {
+                background: rgba(255,255,255,0.88) !important;
+                border-color: rgba(255,255,255,0.9) !important;
+            }
+
+            /* Quote summary dividers and icons on orange bg */
+            .cqc-summary-item { border-bottom-color: rgba(255,255,255,0.25) !important; }
+            .cqc-summary-icon  { background: rgba(255,255,255,0.35) !important; }
+            .cqc-summary-total { border-top-color: rgba(255,255,255,0.3) !important; }
+            .cqc-summary-name,
+            .cqc-summary-total-val { color: #1a1a2e !important; }
+            /* Secondary label text on frosted white cards — dark for contrast */
+            .cqc-summary-price,
+            .cqc-summary-total-lbl { color: #6b7280 !important; }
+
+            /* Product card header icon */
+            .cqc-prod-icon { background: rgba(255,255,255,0.35) !important; }
+            .cqc-prod-name { color: #1a1a2e !important; }
+            /* prod-cat is inside frosted widget — use readable gray, not translucent white */
+            .cqc-prod-cat  { color: #9ca3af !important; }
+
+            /* Casillero CTA card — frosted glass (replaces dark navy gradient) */
+            .cqc-casillero-card {
+                background: rgba(255,255,255,0.82) !important;
+                -webkit-backdrop-filter: blur(18px) !important;
+                backdrop-filter: blur(18px) !important;
+                box-shadow: 0 2px 16px rgba(0,0,0,0.12) !important;
+            }
+            .cqc-cas-label { color: #c2410c !important; }
+            .cqc-cas-title { color: #1a1a2e !important; }
+            .cqc-cas-desc  { color: #374151 !important; }
+        }
+
+        /* ── Desktop concierge chat (≥641px) ──────────────────────────── */
+        @media (min-width: 641px) {
+            /* Orange gradient fills the full desktop chat container */
+            #cqd {
+                background: linear-gradient(180deg, #E8641A 0%, #C9490C 100%) !important;
+            }
+            /* Left conversation pane is transparent — inherits orange from #cqd */
+            .cqd-left {
+                background: transparent !important;
+                background-image: none !important;
+            }
+            .cqd-left::before { display: none !important; }
+
+            /* Header — frosted glass strip */
+            .cqd-header {
+                background: rgba(255,255,255,0.72) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+                backdrop-filter: blur(20px) !important;
+                border-bottom: 1px solid rgba(255,255,255,0.35) !important;
+                box-shadow: none !important;
+            }
+
+            /* Scrollbar thumb — visible on orange */
+            .cqd-messages::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.3) !important;
+            }
+
+            /* Bot message — frosted glass bubble */
+            .cqd-row.bot .cqd-bubble {
+                background: rgba(255,255,255,0.82) !important;
+                -webkit-backdrop-filter: blur(18px) !important;
+                backdrop-filter: blur(18px) !important;
+                color: #1a1a2e !important;
+                border-left: none !important;
+                padding: .62rem .88rem !important;
+                border-radius: .35rem 1.1rem 1.1rem 1.1rem !important;
+                box-shadow: 0 1px 8px rgba(0,0,0,0.1) !important;
+                font-size: .93rem !important;
+                line-height: 1.72 !important;
+                flex: 1 !important;
+                min-width: 0 !important;
+            }
+            /* Follow-up bot bubbles keep same treatment */
+            .cqd-row.bot.no-av .cqd-bubble {
+                background: rgba(255,255,255,0.82) !important;
+                border-left: none !important;
+            }
+
+            /* User message — slightly deeper translucent, visually distinct */
+            .cqd-row.user .cqd-bubble {
+                background: rgba(255,255,255,0.45) !important;
+                -webkit-backdrop-filter: blur(18px) !important;
+                backdrop-filter: blur(18px) !important;
+                color: #1a1a2e !important;
+                border-color: rgba(255,255,255,0.4) !important;
+            }
+
+            /* Typing indicator — frosted */
+            .cqd-typing {
+                background: rgba(255,255,255,0.72) !important;
+                -webkit-backdrop-filter: blur(18px) !important;
+                backdrop-filter: blur(18px) !important;
+                border-color: rgba(255,255,255,0.4) !important;
+                box-shadow: none !important;
+            }
+            .cqd-typing span { background: rgba(255,255,255,0.9) !important; }
+
+            /* Interactive widget cards — frosted glass */
+            .cqd-widget {
+                background: rgba(255,255,255,0.82) !important;
+                -webkit-backdrop-filter: blur(18px) !important;
+                backdrop-filter: blur(18px) !important;
+                border-color: rgba(255,255,255,0.4) !important;
+                border-top-color: rgba(255,255,255,0.9) !important;
+                border-radius: .85rem !important;
+                box-shadow: 0 2px 16px rgba(0,0,0,0.1) !important;
+            }
+            .cqd-widget .cqd-actions {
+                background: rgba(255,255,255,0.6) !important;
+                border-top-color: rgba(255,255,255,0.4) !important;
+            }
+
+            /* Gemini insight text block — frosted */
+            .cqd-gem-text {
+                background: rgba(255,255,255,0.6) !important;
+                border-left-color: rgba(255,255,255,0.85) !important;
+                color: #1a1a2e !important;
+            }
+
+            /* Shipping option card — frosted */
+            .cqd-ship-card {
+                background: rgba(255,255,255,0.82) !important;
+                -webkit-backdrop-filter: blur(18px) !important;
+                backdrop-filter: blur(18px) !important;
+                border-color: rgba(255,255,255,0.4) !important;
+            }
+            .cqd-ship-header { border-bottom-color: rgba(255,255,255,0.3) !important; }
+            .cqd-ship-opt {
+                background: rgba(255,255,255,0.72) !important;
+                border-color: rgba(255,255,255,0.5) !important;
+            }
+
+            /* Action buttons — frosted white with orange text */
+            .cqd-btn:not(.primary) {
+                background: rgba(255,255,255,0.82) !important;
+                border-color: rgba(255,255,255,0.5) !important;
+                color: #c2410c !important;
+            }
+            .cqd-btn:not(.primary):hover:not(:disabled) {
+                background: rgba(255,255,255,0.95) !important;
+                border-color: rgba(255,255,255,0.9) !important;
+                color: #ea580c !important;
+                transform: translateY(-1px) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+            }
+
+            /* Quick-start chips — frosted white */
+            .cqd-chip {
+                background: rgba(255,255,255,0.82) !important;
+                border-color: rgba(255,255,255,0.5) !important;
+                color: #c2410c !important;
+            }
+            .cqd-chip:hover {
+                background: rgba(255,255,255,0.95) !important;
+                border-color: rgba(255,255,255,0.9) !important;
+                color: #ea580c !important;
+            }
+
+            /* Input bar — transparent floor, frosted glass inner card */
+            .cqd-input-bar {
+                background: transparent !important;
+                border-top: none !important;
+            }
+            .cqd-input-wrap::before {
+                background:
+                    radial-gradient(ellipse at 10% 50%, rgba(255,255,255,0.2) 0%, transparent 48%),
+                    radial-gradient(ellipse at 90% 50%, rgba(255,255,255,0.13) 0%, transparent 48%) !important;
+            }
+            .cqd-input-wrap:focus-within::before {
+                background:
+                    radial-gradient(ellipse at 10% 50%, rgba(255,255,255,0.32) 0%, transparent 48%),
+                    radial-gradient(ellipse at 90% 50%, rgba(255,255,255,0.22) 0%, transparent 48%) !important;
+            }
+            .cqd-input-inner {
+                background: rgba(255,255,255,0.82) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+                backdrop-filter: blur(20px) !important;
+                border-color: rgba(255,255,255,0.5) !important;
+                border-radius: 1.25rem !important;
+                box-shadow: 0 0 0 4px rgba(255,255,255,0.12), 0 2px 12px rgba(0,0,0,0.1) !important;
+            }
+            .cqd-input-inner:focus-within {
+                border-color: rgba(255,255,255,0.9) !important;
+                box-shadow: 0 0 0 5px rgba(255,255,255,0.2), 0 2px 18px rgba(0,0,0,0.12) !important;
+            }
+        }
     </style>
     <link rel="stylesheet" href="css/chat-panel.css">
 </head>
