@@ -8915,17 +8915,29 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
     # ── smart Cache-Control per content type ──────────────────────────────────
     def _cache_control_header(self):
-        p = self.path.split('?')[0]
+        full_path = self.path          # e.g. /js/portal-api.js?v=1
+        p = full_path.split('?')[0]   # bare path without query string
+        qs = full_path[len(p):]        # e.g. ?v=1  (empty string if none)
         # API, auth, admin, health: never cache
         if (p.startswith('/api/') or p.startswith('/admin') or
                 p.startswith('/authtoken') or p in ('/health',)):
             return 'no-store, no-cache, must-revalidate, max-age=0', True
         ext = os.path.splitext(p)[1].lower()
-        # Static assets that carry a ?v= version query — long cache
-        if ext in ('.css', '.js', '.webp', '.png', '.jpg', '.jpeg',
-                   '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf',
-                   '.avif', '.mp4', '.webm'):
+        # Long-lived immutable cache ONLY for assets with an explicit ?v= version
+        # token in the URL.  Unversioned JS/CSS falls through to no-cache so that
+        # updates are picked up without requiring a hard browser refresh.
+        has_version = ('v=' in qs)
+        if has_version and ext in ('.css', '.js', '.webp', '.png', '.jpg', '.jpeg',
+                                   '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf',
+                                   '.avif', '.mp4', '.webm'):
             return 'public, max-age=31536000, immutable', False
+        # Unversioned JS/CSS: revalidate on every request
+        if ext in ('.js', '.css'):
+            return 'no-cache', False
+        # Images / fonts without a version token: moderate cache (1 day)
+        if ext in ('.webp', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico',
+                   '.woff', '.woff2', '.ttf', '.avif', '.mp4', '.webm'):
+            return 'public, max-age=86400', False
         # HTML: allow conditional revalidation but not stale serving
         if ext == '.html' or not ext:
             return 'no-cache', False
