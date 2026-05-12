@@ -4082,18 +4082,39 @@
                 }
             });
             // Pre-fill email + name from auth token (same-origin localStorage)
+            // In portal mode we also pre-fill the desktop chat landing form and
+            // auto-advance past it — the user is already authenticated in the portal.
             try {
                 var tok = localStorage.getItem('crbox_token');
+                var _portalEmail = localStorage.getItem('crbox_email') || '';
+                var _portalName  = '';
                 if (tok) {
                     var parts = tok.split('.');
                     if (parts.length === 3) {
                         var pl = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-                        setTimeout(function () {
-                            if (fEmail && !fEmail.value)       fEmail.value       = pl.sub || pl.email || '';
-                            if (fCustomerName && !fCustomerName.value) fCustomerName.value = pl.name || '';
-                        }, 350);
+                        _portalEmail = pl.sub || pl.email || _portalEmail;
+                        _portalName  = pl.name || '';
                     }
                 }
+                // Derive a display name from email when JWT has no name field
+                if (!_portalName && _portalEmail) {
+                    _portalName = _portalEmail.split('@')[0].replace(/[._-]+/g, ' ');
+                }
+                var _pEmail = _portalEmail, _pName = _portalName;
+                setTimeout(function () {
+                    // Right-panel contact fields (used at form submission time)
+                    if (fEmail && !fEmail.value)               fEmail.value           = _pEmail;
+                    if (fCustomerName && !fCustomerName.value) fCustomerName.value    = _pName;
+                    // Desktop chat landing form — pre-fill so validation passes
+                    var loNameEl  = document.getElementById('cqd-lo-name');
+                    var loEmailEl = document.getElementById('cqd-lo-email');
+                    if (loNameEl  && !loNameEl.value)  loNameEl.value  = _pName;
+                    if (loEmailEl && !loEmailEl.value) loEmailEl.value = _pEmail;
+                    // Auto-advance past the landing screen — user is already logged in
+                    if (_pEmail && typeof window._cqdStart === 'function') {
+                        window._cqdStart();
+                    }
+                }, 350);
             } catch (_e) {}
             // Pre-fill product name / URL from URL params (duplicate flow)
             var pp = new URLSearchParams(location.search);
