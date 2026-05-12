@@ -91,6 +91,19 @@
     return token;
   }
 
+  // ─── User-specific data keys wiped on logout ─────────────────────────────
+  // These keys hold shipment/package data that belongs to the logged-in user.
+  // Clearing them prevents a subsequent user on the same device from seeing
+  // stale data from the previous session.
+  var USER_DATA_KEYS = [
+    'crbox_calc_prefill',
+    'crbox_seen_miami_ids',
+    'crbox_auto_added_groups',
+    'crbox_ambiguous_miami_pkgs',
+    'crbox_activation_toast_shown',
+    'crbox_onboarding'
+  ];
+
   function clearToken() {
     [localStorage, sessionStorage].forEach(function (s) {
       s.removeItem(KEY_TOKEN);
@@ -98,9 +111,8 @@
       s.removeItem(KEY_EMAIL);
     });
     localStorage.removeItem(KEY_REMEMBER);
-    // Wipe onboarding flags so a new login session always starts fresh
-    localStorage.removeItem('crbox_onboarding');
-    localStorage.removeItem('crbox_activation_toast_shown');
+    // Wipe user-specific shipment/package data and onboarding flags
+    USER_DATA_KEYS.forEach(function (k) { localStorage.removeItem(k); });
     // Wipe cached profile data so stale info cannot survive a session reset
     if (typeof CRBOXPortalAPI !== 'undefined' &&
         typeof CRBOXPortalAPI.clearUserInfoCache === 'function') {

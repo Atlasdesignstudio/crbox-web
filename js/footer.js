@@ -142,7 +142,7 @@
   <hr class="crb-ft-divider">\
 \
   <div class="crb-ft-bottom">\
-    <p class="crb-ft-copy">\u00a9 2025 CRBOX. Todos los derechos reservados.</p>\
+    <p class="crb-ft-copy">\u00a9 2026 CRBOX. Todos los derechos reservados.</p>\
     <div class="crb-ft-legal">\
       <a href="/terminos.html">T\u00e9rminos y Condiciones</a>\
       <a href="/privacidad.html">Pol\u00edtica de Privacidad</a>\
