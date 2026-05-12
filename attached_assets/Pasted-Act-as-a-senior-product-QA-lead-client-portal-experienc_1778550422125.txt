@@ -1,0 +1,382 @@
+Act as a senior product QA lead, client-portal experience auditor, and implementation agent for CRBOX.
+
+Your job is to scan the entire CRBOX website and client portal experience end-to-end, detect every gap, fake element, fake action, disconnected flow, broken expectation, missing state, incomplete loop, or misleading behavior, and then fix what can be fixed directly.
+
+This is not a passive audit. Treat this as an actionable completion sprint. The goal is to leave the full customer experience coherent, truthful, connected, and production-ready.
+
+Core objective:
+Make sure the entire CRBOX customer journey works as a complete, honest and logical cycle, from the public website into account creation, login, client portal, account management, package visibility, invoice/factura flows, quote/cotización flows, calculator, logout, and return states.
+
+Important:
+Do not fake functionality.
+Do not invent data.
+Do not leave buttons that pretend to work.
+Do not show fake package counts, fake invoices, fake user names, fake tracking activity, fake dashboard metrics, fake notifications, fake quote statuses, fake account data, fake success states, or fake backend responses.
+Everything visible must be one of these:
+1. Real data from the actual connected system.
+2. Truthfully derived from real data.
+3. A clear empty/loading/error/unavailable state.
+4. A clearly labeled “coming soon” or “not available yet” state when the backend does not support it.
+
+If something cannot be completed because the backend, access, endpoint, or business rule is missing, do not simulate it. Instead, create an honest state and document exactly what is missing.
+
+Scope:
+Scan and validate the complete experience across:
+- Public homepage
+- Services page
+- How it works page
+- Rates page
+- Calculator page
+- Contact page
+- Login page
+- Password recovery
+- Personal account sign-up
+- Business account sign-up
+- Client dashboard
+- My account / profile
+- My packages
+- My invoices
+- Quote / cotización flow
+- Any quote request, quote status, quote response or quote history experience
+- Any upload factura or invoice-related action
+- Any tracking/search behavior
+- Navigation between public website and portal
+- Header and account states
+- Mobile and desktop behavior
+- Logged-out, loading, logged-in and expired-session states
+
+Main audit question:
+Does the CRBOX customer experience behave like a complete, truthful and connected product?
+
+Evaluate the product as a real customer would:
+- Can a new user understand what CRBOX does?
+- Can they sign up correctly?
+- Can they choose personal or business account correctly?
+- Can they log in correctly?
+- Does the portal know who they are?
+- Does the header reflect the correct state?
+- Can they see their real account information?
+- Can they update their account only when it is actually supported?
+- Can they see their real packages?
+- Can they see their real invoices?
+- Can they request or manage quotes in a complete and logical way?
+- Can they recover from errors?
+- Can they log out cleanly?
+- Are there any buttons or UI elements that promise something that does not actually happen?
+- Are there any flows that start but do not finish?
+- Are there any success messages that appear without real confirmation?
+- Are there any sections that look real but are only placeholders?
+- Are there any fake demos still visible?
+- Are there any dead ends?
+- Are there any confusing states?
+- Are there any actions that should be disabled until real data is available?
+- Are there any private pages showing static customer information before authentication?
+- Are there any differences between desktop and mobile that break the experience?
+
+Audit principles:
+1. Truthfulness above polish.
+The interface must never pretend that something happened if it did not actually happen.
+
+2. Complete loops over isolated screens.
+Every flow must have a clear beginning, middle, end, confirmation, error handling and return path.
+
+3. Real state over static mockup.
+Private portal screens must be driven by real account/session data or honest empty states.
+
+4. No orphan actions.
+Every button, link, form, tab, filter, upload, search, edit or CTA must either work, be disabled with an explanation, or be removed/converted into an honest unavailable state.
+
+5. No fake customer experience.
+Remove or replace static demo names, package counts, locker numbers, invoice records, activity logs, quote records, notifications, profile information and progress indicators unless they are connected to real data.
+
+6. Preserve the visual design.
+Do not redesign the website. Keep the current look and feel. Only change what is needed to make the experience truthful, connected and functional.
+
+7. Preserve business logic.
+Do not change the real CRBOX business rules unless a clear inconsistency is found. If something is unclear, document the assumption and make the safest customer-friendly choice.
+
+End-to-end flows to validate and complete:
+
+FLOW 1 — Public website to registration
+Check that:
+- Public CTAs point to the correct destination.
+- “Afíliate Gratis” leads to the correct registration experience.
+- Personal account and business account selection behaves correctly.
+- Required fields are clear.
+- Form validation is complete and user-friendly.
+- The user cannot submit incomplete or invalid information.
+- Success and error states are honest.
+- Duplicate email, duplicate ID or rejected registration states are handled clearly.
+- Business account flow does not pretend to create a business account if only personal registration is currently supported.
+- If business registration is not fully supported, the UI must clearly explain the next step without faking submission.
+- The registration flow ends in a logical next step: confirmation, login, or contact from CRBOX.
+
+FLOW 2 — Login and session
+Check that:
+- Login accepts valid credentials and rejects invalid credentials clearly.
+- Login errors are user-friendly.
+- No raw backend messages are shown if they are confusing.
+- Loading state is clear.
+- The user cannot double-submit accidentally.
+- After login, the user reaches the correct portal page.
+- The session is remembered only as intended.
+- Expired or invalid sessions are handled clearly.
+- Logged-out users cannot meaningfully use private portal pages.
+- If a user opens a private page directly, the experience routes them correctly.
+- Logout clears the session and returns the user to the appropriate logged-out state.
+
+FLOW 3 — Password recovery
+Check that:
+- “Forgot password” is visible and works.
+- The user can enter an email.
+- Empty or invalid email states are handled.
+- Success state is honest.
+- Unknown email or backend error states are handled clearly.
+- The flow does not expose unnecessary account existence details if avoidable.
+- The user can return to login.
+
+FLOW 4 — Portal bootstrap
+Check that after login:
+- The system loads the user profile before showing private data.
+- Header/account menu shows the real user state.
+- User name, locker/casillero number, branch, email and account information are only shown if real.
+- If data is loading, show loading skeleton/state.
+- If data is unavailable, show a clear error or empty state.
+- No hardcoded user data remains.
+- No fake “Mathias”, fake locker number, fake account info, fake package count or fake invoice count remains unless it is real data for the authenticated user.
+
+FLOW 5 — Dashboard
+Check that:
+- Dashboard cards use real data or honest empty states.
+- No fake statistics remain.
+- No fake recent activity remains.
+- No fake notifications remain.
+- Any quick action leads somewhere real.
+- Any unavailable feature is clearly labeled.
+- The dashboard helps the user know what they can do next.
+- Dashboard state is consistent with packages, invoices, profile and quotes.
+
+FLOW 6 — My Account / Profile
+Check that:
+- Profile fields load from the real account.
+- Editable fields are clearly editable.
+- Non-editable fields are clearly locked or read-only.
+- Saving changes only shows success after real confirmation.
+- Failed updates show clear errors.
+- Existing IDs or required hidden fields are preserved if needed.
+- The user cannot accidentally erase required account information.
+- Phone and address behavior is coherent.
+- Branch/sucursal or delivery preference is coherent.
+- There is no fake profile data.
+- The page remains usable on mobile.
+
+FLOW 7 — My Packages
+Check that:
+- Package list uses real package data.
+- Date filters work correctly.
+- Status filters work correctly.
+- Tracking search works correctly.
+- Empty package states are clear and helpful.
+- Loading states are clear.
+- Errors are clear.
+- Counts match the actual package list.
+- Status labels are consistent.
+- Package actions only appear if supported.
+- Unsupported actions are not shown as working.
+- “Refresh” actually refreshes or is labeled honestly.
+- No fake package rows, fake statuses, fake tracking numbers or fake progress timelines remain.
+
+FLOW 8 — My Invoices / Facturas
+Check that:
+- Invoice list uses real invoice data.
+- Date filters work correctly.
+- Empty states are clear.
+- Invoice totals and counts are not faked.
+- Download/view/pay/upload actions only appear if actually supported.
+- Upload factura actions are either functional or clearly unavailable.
+- Success states only appear after real confirmation.
+- No fake invoice rows remain.
+- Error handling is clear.
+
+FLOW 9 — Quote / Cotización cycle
+Validate the quote experience as a full loop.
+
+Check that:
+- A user can start a quote request from the correct places.
+- The quote form has clear required fields.
+- Product/item fields are coherent.
+- Multiple product logic, if present, behaves correctly.
+- Calculator/estimate logic is not presented as final price unless confirmed by CRBOX.
+- User profile data is prefilled only when real.
+- Delivery preference is coherent.
+- Submission creates or sends a real quote request only if supported.
+- The user receives a clear confirmation only after real submission.
+- The quote has a clear status lifecycle if statuses exist.
+- The portal clearly explains what happens next.
+- Admin/team response assumptions are not faked.
+- If quote history/status is not supported, do not fake it.
+- If quote response is available, show it clearly and truthfully.
+- If no quote backend exists, convert the experience into an honest request/contact flow rather than pretending a full quote system exists.
+- The quote cycle must not end in a dead state.
+- User should always understand:
+  - what they submitted
+  - what CRBOX received
+  - whether it is only an estimate or an official quote
+  - what happens next
+  - how to follow up
+
+FLOW 10 — Calculator
+Check that:
+- Calculator inputs validate correctly.
+- Results are clearly labeled as estimates if they are estimates.
+- No result is presented as final invoice unless it is official.
+- Numeric fields handle invalid, empty, negative or extreme values.
+- Category selection is coherent.
+- Air/maritime behavior is coherent.
+- CTA after calculation leads to a real next step.
+- No broken calculations or misleading totals are shown.
+- The calculator connects logically into registration, quote or contact flows.
+
+FLOW 11 — Contact and support
+Check that:
+- Contact form works or is honestly labeled.
+- WhatsApp, phone and email links work.
+- Branch/contact information is consistent.
+- Form errors are clear.
+- Submission success only appears after real confirmation.
+- If contact form backend is missing, provide a clear alternative action.
+
+FLOW 12 — Navigation and state consistency
+Check that:
+- Header navigation works on all pages.
+- Mobile navigation works on all pages.
+- Account dropdown reflects logged-in/logged-out state.
+- Private navigation tabs are consistent.
+- Public pages do not show logged-in-only options incorrectly.
+- Private pages do not show logged-out CTAs incorrectly.
+- User can always return to dashboard/home/login as appropriate.
+- No broken links or dead CTAs remain.
+- All pages have coherent empty/error/loading states.
+
+FLOW 13 — Mobile experience
+Check:
+- Login on mobile.
+- Registration on mobile.
+- Portal dashboard on mobile.
+- Packages on mobile.
+- Invoices on mobile.
+- Profile editing on mobile.
+- Quote request on mobile.
+- Calculator on mobile.
+- Menus, dropdowns, buttons, filters and forms.
+- No mobile-only fake or broken behavior.
+
+What to fix directly:
+- Remove fake static private data.
+- Replace fake metrics with real derived values or honest empty states.
+- Replace fake recent activity with real activity or honest unavailable state.
+- Disable unsupported actions with clear explanations.
+- Fix broken CTAs and links.
+- Fix form validation gaps.
+- Fix loading, empty and error states.
+- Fix inconsistent logged-in/logged-out headers.
+- Fix private page guards.
+- Fix duplicated/confusing states.
+- Fix quote flow dead ends.
+- Fix calculator-to-next-step logic.
+- Fix mobile interaction issues.
+- Fix misleading labels like “sent”, “uploaded”, “saved”, “quoted”, “paid”, “processed” unless real confirmation exists.
+
+What not to do:
+- Do not create fake data.
+- Do not fake backend success.
+- Do not hardcode a user to make the UI look complete.
+- Do not remove important functionality just because it is incomplete; instead make the state honest.
+- Do not redesign the UI.
+- Do not rewrite brand copy unless needed for clarity in an empty/error/unavailable state.
+- Do not invent business processes.
+- Do not invent quote statuses.
+- Do not invent invoice/payment behavior.
+- Do not invent package tracking behavior.
+
+Expected final state:
+The experience should feel like a real product, not a prototype. Every screen should either work with real data or clearly explain what is unavailable. Every user action should have a truthful result. Every flow should have a logical next step.
+
+Deliverables:
+1. Executive summary:
+   - Overall experience readiness.
+   - Biggest gaps found.
+   - What was fixed.
+   - What still needs external/backend/business confirmation.
+
+2. Full journey map:
+   - Public visitor
+   - New personal account user
+   - New business account user
+   - Returning logged-in client
+   - Client checking packages
+   - Client checking invoices
+   - Client requesting a quote
+   - Client updating profile
+   - Client logging out
+
+3. Gap and fix table:
+   Columns:
+   - Area
+   - Page/flow
+   - Issue found
+   - Why it breaks trust or completion
+   - Fix applied
+   - Remaining dependency
+   - Test status
+
+4. Fake data / fake action removal table:
+   Columns:
+   - Page
+   - Fake or misleading element
+   - Replacement used
+   - Real data source or state
+   - Status
+
+5. Flow completion checklist:
+   For each flow:
+   - Starts correctly
+   - Validates correctly
+   - Submits or handles unavailable state correctly
+   - Shows loading
+   - Shows success only when real
+   - Shows errors clearly
+   - Has a next step
+   - Works on mobile
+   - Works on desktop
+
+6. List of files changed.
+
+7. Manual QA script:
+   Include step-by-step testing instructions for:
+   - New visitor
+   - Personal registration
+   - Business registration
+   - Login
+   - Expired session
+   - Dashboard
+   - Profile update
+   - Packages
+   - Invoices
+   - Quote request
+   - Calculator
+   - Contact
+   - Logout
+   - Mobile navigation
+
+Implementation priority:
+1. Remove or neutralize fake private data.
+2. Fix authentication/session consistency.
+3. Fix portal data truthfulness.
+4. Fix form and action completion.
+5. Fix quote cycle.
+6. Fix empty/loading/error states.
+7. Fix mobile and navigation consistency.
+8. Produce final report.
+
+Start by scanning the entire project and mapping every customer-facing flow. Then fix the highest-trust-breaking issues first. End with a complete report and QA checklist.

@@ -93,6 +93,7 @@
     link.href = 'calculadora.html';
     link.className = 'crbox-calc-link';
     link.target = '_blank';
+    link.rel = 'noopener noreferrer';
     link.textContent = 'Calculadora completa →';
     container.appendChild(link);
 

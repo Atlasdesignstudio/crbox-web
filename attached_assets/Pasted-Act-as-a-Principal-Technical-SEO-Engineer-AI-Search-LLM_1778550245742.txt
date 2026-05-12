@@ -1,0 +1,415 @@
+Act as a Principal Technical SEO Engineer + AI Search / LLM Crawlability Architect specializing in modern search engines, Googlebot, Bingbot, AI Overviews, ChatGPT/SearchGPT-style retrieval, Perplexity-style answer engines, schema.org, structured data, crawl rendering, indexing, semantic HTML, robots directives, sitemap architecture, Core Web Vitals, accessibility-driven crawlability, and production web architecture.
+
+Context:
+We are working on the CRBOX / Cerebox website. The public website includes pages such as:
+- index.html
+- servicios.html
+- como-funciona.html
+- tarifas.html
+- calculadora.html
+- contacto.html
+- afiliate.html, if currently public-facing
+- Any other public static or dynamic page found in the repo
+
+The project may also include private/client portal pages such as:
+- login.html
+- dashboard.html
+- mi-cuenta.html
+- mis-paquetes.html
+- mis-facturas.html
+- cotizar.html
+- solicitud.html
+- any portal/admin/private page
+
+The goal is to perform a complete technical SEO + AI/LLM crawlability hardening pass on the public website, making it as crawlable, indexable, machine-readable, and answer-engine-friendly as possible, without changing visible copy, visual design, layout, frontend UI, brand messaging, or user-facing content.
+
+IMPORTANT:
+This is not a generic SEO audit. This is an actionable implementation task. First scan 100% of the available project, identify all crawlability, indexing, metadata, semantic HTML, structured data, sitemap, robots, performance, canonicalization, internal linking, AI-discoverability, and rendering issues, then apply safe fixes directly in the codebase.
+
+Primary objective:
+Make the public CRBOX website technically excellent for:
+- Google Search
+- Bing
+- AI Overviews
+- ChatGPT-style web retrieval
+- Perplexity-style answer engines
+- LLM crawlers and AI search agents
+- Traditional crawlers
+- Local/business discovery
+- Rich results eligibility
+- Clean indexing
+- Fast rendering
+- Clear page purpose understanding
+- Reliable snippet extraction
+- Structured entity understanding
+
+Hard constraint:
+Do NOT change user-facing copy, content strategy, visible sections, layout, styling, frontend visuals, CTAs, page hierarchy, or brand voice unless the change is purely technical and invisible to users.
+
+Allowed changes:
+- Metadata improvements
+- Canonical tags
+- Robots meta tags
+- Open Graph/Twitter metadata
+- JSON-LD structured data
+- Semantic HTML attributes when visually neutral
+- ARIA/accessibility attributes that do not alter design
+- Alt text only when missing or technically broken, without changing visual content
+- Sitemap.xml
+- Robots.txt
+- llms.txt
+- humans.txt if useful
+- Security/performance/crawl headers if supported
+- Preconnect/preload/prefetch adjustments
+- Image dimension/lazy loading/fetchpriority/decoding attributes
+- Link rel improvements
+- Internal crawl hints
+- Breadcrumb structured data
+- Organization/WebSite/WebPage/Service/FAQ/LocalBusiness structured data
+- Noindex handling for private pages
+- Cache/header configuration files if supported by hosting
+- Build/deployment configuration needed for crawlability
+
+Not allowed:
+- Do not rewrite marketing copy.
+- Do not redesign sections.
+- Do not change visible UI.
+- Do not invent claims.
+- Do not add fake reviews, fake ratings, fake locations, fake business details, fake prices, fake FAQs, fake service areas or fake schema data.
+- Do not add structured data that is not supported by visible or truthful page content.
+- Do not index private portal pages.
+- Do not expose customer data, portal data, endpoints, tokens, or private URLs in public crawl files.
+- Do not add AI-readable files that leak internal implementation details.
+
+Work in phases:
+
+PHASE 1 — Full crawlability map
+Scan the entire repo and create a page inventory.
+
+For each HTML/public route identify:
+- File path
+- Public/private classification
+- Page title
+- Meta description
+- H1
+- Canonical URL
+- Robots meta
+- Open Graph metadata
+- Twitter metadata
+- Structured data present/missing
+- Main semantic sections
+- Internal links
+- Images and alt attributes
+- Forms
+- Scripts and rendering dependencies
+- Any hidden or dynamically injected content
+- Any crawl blockers
+- Any duplicate metadata
+- Any broken internal links or asset references
+- Any route that should be noindex
+- Any route that should be included in sitemap.xml
+
+For private/client portal pages:
+- Confirm they are noindex,nofollow where appropriate.
+- Confirm they are excluded from sitemap.xml.
+- Confirm robots.txt does not expose sensitive route patterns unnecessarily.
+- Confirm they do not contain static customer data that could be crawled.
+- Confirm they are not positioned as public SEO pages.
+
+PHASE 2 — Technical SEO audit
+Check and fix:
+- Unique title tags for every public page.
+- Unique meta descriptions for every public page.
+- Correct canonical tags.
+- Correct language attribute: html lang="es" or relevant language.
+- Correct viewport.
+- Correct charset.
+- Correct heading hierarchy, without changing visual design.
+- Exactly one meaningful H1 per public page unless there is a strong semantic reason otherwise.
+- Descriptive link attributes where needed.
+- Clean internal linking between public pages.
+- Broken links.
+- Broken image paths.
+- Missing image dimensions.
+- Lazy loading for below-the-fold images.
+- fetchpriority="high" for primary hero image only where appropriate.
+- decoding="async" where useful.
+- Duplicate IDs.
+- Invalid HTML.
+- Excessive inline styles that affect crawl rendering, only if safe to improve.
+- Render-blocking issues that can be improved without changing visuals.
+- Public pages not accidentally marked noindex.
+- Private pages not accidentally indexable.
+- Correct 404 behavior if applicable.
+- Trailing slash/canonical consistency.
+- HTTP/HTTPS canonical consistency.
+- www/non-www canonical consistency.
+- Public URL consistency using the final domain https://crbox.cr unless project config says otherwise.
+
+PHASE 3 — AI Search / LLM crawlability audit
+Optimize the public site for answer engines and LLM retrieval without changing visible copy.
+
+Check and implement:
+- llms.txt at root with a concise, truthful map of public pages and what each page contains.
+- Do not include private portal pages, API endpoints, admin pages, secrets, customer data, or internal notes in llms.txt.
+- Ensure robots.txt does not accidentally block useful AI/search crawlers from public content.
+- Ensure private pages remain protected/noindexed.
+- Ensure page metadata and structured data clearly describe page purpose.
+- Ensure public pages have crawlable HTML content, not content hidden only behind JavaScript.
+- Ensure key information is present in static HTML when possible.
+- Ensure navigation links are real anchor links, not JS-only.
+- Ensure important CTAs use crawlable hrefs.
+- Ensure service pages are semantically clear to machines.
+- Ensure calculator and tariffs pages communicate their purpose via metadata/schema without inventing content.
+- Ensure contact page includes truthful Organization/LocalBusiness/ContactPoint schema only if the visible or repo-available data supports it.
+- Ensure AI agents can understand the difference between:
+  - public informational pages
+  - calculator/tool pages
+  - registration/login/portal pages
+  - client account pages that should not be indexed
+
+PHASE 4 — Structured data implementation
+Add JSON-LD schema.org markup where valid and truthful.
+
+Use only data that exists in the repo or is visible on the page. Do not invent.
+
+Recommended schemas:
+1. Organization schema
+   - Name: CRBOX
+   - URL: https://crbox.cr
+   - Logo if available
+   - SameAs only if real social links are present
+   - ContactPoint only if real contact information is present
+
+2. WebSite schema
+   - Site name
+   - URL
+   - PotentialAction SearchAction only if the site has a real search function. Do not fake it.
+
+3. WebPage schema
+   - For every main public page
+   - Include name, description, url, inLanguage, isPartOf
+
+4. BreadcrumbList schema
+   - Where breadcrumbs exist or can be inferred safely from visible navigation
+   - Must match visible hierarchy
+
+5. Service schema
+   - For servicios.html and service-specific sections only when content supports it
+   - Use conservative, truthful descriptions
+   - Do not invent price ranges or ratings
+
+6. FAQPage schema
+   - Only if visible FAQ content exists on the page
+   - The JSON-LD questions/answers must exactly correspond to visible FAQ content
+   - Do not create invisible FAQ content
+
+7. LocalBusiness or PostalService / ShippingService-related schema
+   - Only if business address/contact data is present and truthful
+   - Do not invent opening hours, geo coordinates, ratings, branches or service areas
+
+8. SoftwareApplication or WebApplication schema
+   - Only if the calculator is clearly a web tool and schema is appropriate
+   - Keep it conservative
+
+Implementation rules:
+- Prefer one clean JSON-LD block per page or a small number of organized blocks.
+- Avoid duplicate conflicting schema.
+- Ensure schema validates with Google Rich Results Test and Schema.org validator.
+- Ensure canonical URLs in schema match canonical tags.
+- Ensure image URLs are absolute when required.
+- Ensure all structured data is truthful and supported by page content.
+
+PHASE 5 — robots.txt, sitemap.xml and crawl files
+Create or update:
+
+1. robots.txt
+- Allow crawling of public pages and assets needed for rendering.
+- Do not block CSS, JS, images required for rendering public pages.
+- Disallow private/admin/client portal routes where appropriate.
+- Include sitemap reference.
+- Do not expose sensitive internal paths unnecessarily.
+- Be careful: robots.txt is public, so do not list secret endpoints or sensitive admin paths in a way that reveals them unnecessarily.
+
+2. sitemap.xml
+- Include only canonical public URLs.
+- Exclude private pages, login if it should not be indexed, dashboard, account pages, packages, invoices, admin, API routes.
+- Include lastmod only if reliable.
+- Use correct absolute URLs.
+- Use consistent priority/changefreq only if helpful; avoid fake precision.
+
+3. llms.txt
+- Add a concise public map for AI systems.
+- Include:
+  - Site name
+  - Public purpose
+  - Important public pages
+  - What each page is for
+  - Public contact/support page
+  - Explicit note that private client portal/account data is not public and should not be indexed or used for answers
+- Do not include private implementation details.
+- Do not include API endpoints.
+- Do not include customer data.
+- Do not include secrets.
+
+4. Optional: sitemap-index.xml
+- Only if site scale requires it.
+
+PHASE 6 — Metadata and social preview hardening
+For every public page:
+- Ensure title tag is unique, concise and descriptive.
+- Ensure meta description is unique and aligned to page purpose.
+- Ensure canonical URL is present.
+- Ensure OG title, description, type, url, image are present and correct where appropriate.
+- Ensure Twitter card metadata is present and correct.
+- Ensure OG images exist or flag missing assets.
+- Use absolute URLs for OG/Twitter images.
+- Avoid duplicate or mismatched metadata.
+- Avoid keyword stuffing.
+- Do not change visible content.
+
+PHASE 7 — Accessibility as crawlability
+Make non-visual semantic improvements that help both users and machines:
+- Ensure images have meaningful alt text or empty alt="" if decorative.
+- Ensure logo alt is correct.
+- Ensure nav landmarks are clear.
+- Ensure main content has <main>.
+- Ensure footer exists semantically if present.
+- Ensure forms have labels.
+- Ensure buttons and links are semantically correct.
+- Ensure icon-only buttons have aria-label.
+- Ensure repeated navigation does not confuse screen readers.
+- Do not change visual design.
+
+PHASE 8 — Performance and rendering for crawlers
+Without changing design:
+- Add width/height to images if missing.
+- Add loading="lazy" for below-the-fold images.
+- Avoid lazy-loading above-the-fold hero images.
+- Add fetchpriority="high" to the most important hero image only if appropriate.
+- Add decoding="async" where useful.
+- Add preconnect for required third-party origins.
+- Remove duplicate preconnects.
+- Avoid unnecessary prefetching of private pages from public pages.
+- Ensure CSS/JS required for rendering is not blocked.
+- Check large assets and flag optimization opportunities.
+- Do not visually alter layout.
+
+PHASE 9 — Analytics and SEO safety
+Check analytics/tag scripts:
+- Ensure analytics scripts do not block crawl rendering.
+- Ensure no PII is sent in SEO metadata, URLs, events or structured data.
+- Ensure no private user data appears in public source.
+- Ensure tracking parameters do not create duplicate canonical issues.
+- Ensure canonical tags remove query duplication concerns.
+
+PHASE 10 — Backend / hosting / deployment SEO configuration
+If the repo includes hosting config, server config, Vercel, Netlify, Replit, Express, Nginx, Apache or similar:
+- Add/verify headers for:
+  - text/html
+  - sitemap.xml
+  - robots.txt
+  - llms.txt
+  - assets
+- Add Cache-Control:
+  - Public assets: long cache with immutable where fingerprinted
+  - HTML: appropriate short cache/revalidation
+  - Private pages: no-store if served
+- Ensure redirects are canonical:
+  - HTTP → HTTPS
+  - non-canonical host → canonical host
+  - duplicate routes → canonical route
+- Ensure 404 returns proper status if backend exists.
+- Ensure sitemap and robots are served with correct content types.
+- If hosting configuration cannot be changed in repo, document exact required external settings.
+
+PHASE 11 — Validation
+After implementation, validate:
+- No HTML syntax errors introduced.
+- No broken visual UI.
+- No broken internal navigation.
+- Public pages are indexable.
+- Private pages are noindex/excluded.
+- sitemap.xml is valid XML.
+- robots.txt is valid and references sitemap.
+- llms.txt is accessible and safe.
+- JSON-LD parses as valid JSON.
+- Schema is truthful and non-duplicative.
+- Canonicals match URLs.
+- OG/Twitter images exist or are flagged.
+- No customer data exposed.
+- No private portal pages in sitemap.
+- No API endpoints exposed in llms.txt.
+- No fake schema claims.
+
+Deliverables:
+1. Executive summary:
+   - What was optimized.
+   - Public crawlability status.
+   - AI/LLM readiness status.
+   - Remaining external actions.
+
+2. Full page inventory table:
+   Columns:
+   - File/path
+   - Public/private
+   - Indexing status
+   - Title
+   - Meta description
+   - Canonical
+   - H1
+   - Schema added
+   - Sitemap inclusion
+   - Notes
+
+3. Findings and fixes table:
+   Columns:
+   - Severity
+   - Area
+   - File/path
+   - Issue
+   - Fix applied
+   - Validation status
+   - Remaining action
+
+4. Structured data inventory:
+   - Page
+   - Schema types
+   - Data source
+   - Validation status
+
+5. Crawl files created/updated:
+   - robots.txt
+   - sitemap.xml
+   - llms.txt
+   - any hosting/header config
+
+6. List of all files changed.
+
+7. Manual QA checklist:
+   - Open every public page.
+   - Confirm visuals unchanged.
+   - Confirm page source contains metadata/schema.
+   - Validate sitemap.
+   - Validate robots.
+   - Validate llms.txt.
+   - Run Rich Results Test.
+   - Run Schema.org validator.
+   - Run Lighthouse SEO.
+   - Check Google Search Console after deployment.
+   - Inspect URL in Search Console after deployment.
+   - Submit sitemap after deployment.
+
+Important implementation rules:
+- Do not change visible copy.
+- Do not change page design.
+- Do not add fake content.
+- Do not expose private routes or customer data.
+- Do not include private portal URLs in sitemap or llms.txt.
+- Do not rely only on JavaScript for critical public content.
+- Do not block public CSS/JS/assets in robots.txt.
+- Do not over-optimize or keyword stuff.
+- Keep changes minimal, technical, reversible and production-safe.
+- If unsure whether something is public or private, classify conservatively and document the assumption.
+
+Start by scanning the repo. Then build the public/private page inventory. Then apply safe technical SEO and AI crawlability fixes. Then produce the final report with changed files and validation steps.

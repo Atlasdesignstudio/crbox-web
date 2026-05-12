@@ -514,6 +514,21 @@
         var confirmWrapper    = formFields.confirmWrapper;
         var categoryMap       = formFields.categoryMap || null;
 
+        // Client-side URL guard: only http/https allowed, max 2000 chars.
+        // The server also validates, but this catches obvious bad input early
+        // and prevents javascript:, data:, file:// etc. from being sent at all.
+        var _urlTrimmed = String(url || '').trim();
+        if (!_urlTrimmed ||
+            _urlTrimmed.length > 2000 ||
+            !/^https?:\/\//i.test(_urlTrimmed)) {
+            _showBanner(bannerTarget, 'neutral',
+                'URL no válida. Asegúrate de que comience con https://');
+            document.dispatchEvent(new CustomEvent('ai:extraction-complete', {
+                detail: { url: url, result: null, filledCount: 0, dataSource: null }
+            }));
+            return Promise.resolve();
+        }
+
         _showStepLoader(bannerTarget);
         if (complianceTarget) _removeComplianceCard(complianceTarget);
         _clearAiFilledValues(formFields);   // wipe stale AI values before the new request lands

@@ -336,6 +336,12 @@
                 }, { once: false });
             });
 
+            // Client-side login throttle — exponential backoff after repeated failures.
+            // Real rate-limiting must be enforced server-side / WAF; this is a UX layer only.
+            var _loginFailCount  = 0;
+            var _loginUnlockTime = 0;
+            var _LOGIN_COOLDOWNS = [0, 0, 5, 15, 30, 60]; // seconds after each failure
+
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
 
@@ -344,6 +350,17 @@
                 const rememberVal = (document.getElementById('remember-me') || {}).checked || false;
                 const submitBtn   = document.getElementById('login-submit-btn');
                 const errorBox    = document.getElementById('error-container');
+
+                // Throttle check
+                var _now = Date.now();
+                if (_loginUnlockTime > _now) {
+                    var _secs = Math.ceil((_loginUnlockTime - _now) / 1000);
+                    if (errorBox) {
+                        errorBox.textContent = 'Demasiados intentos. Espere ' + _secs + ' segundo' + (_secs === 1 ? '' : 's') + ' antes de intentar de nuevo.';
+                        errorBox.classList.remove('hidden');
+                    }
+                    return;
+                }
 
                 if (!emailVal || !passwordVal) {
                     if (errorBox) {
@@ -395,7 +412,13 @@
                         });
                     })
                     .catch(function (err) {
-                        console.error('[CRBOX] Login error:', err);
+                        // Increment failure counter and apply cooldown
+                        _loginFailCount++;
+                        var _cooldownSecs = _LOGIN_COOLDOWNS[Math.min(_loginFailCount, _LOGIN_COOLDOWNS.length - 1)];
+                        if (_cooldownSecs > 0) {
+                            _loginUnlockTime = Date.now() + _cooldownSecs * 1000;
+                        }
+
                         var safeMsg = (err && err.message && (
                             err.message.indexOf('Credenciales') !== -1 ||
                             err.message.indexOf('Respuesta inesperada') !== -1

@@ -10013,7 +10013,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         ct     = self.headers.get('Content-Type', '')
         length = int(self.headers.get('Content-Length', 0))
         if length <= 0 or length > self._INVOICE_MAX_BYTES:
-            self._json_response(413, {'error': 'Tamaño de archivo inválido o demasiado grande (máx. 12 MB).'})
+            self._json_response(413, {'error': 'Tamaño de archivo inválido o demasiado grande (máx. 2 MB).'})
             return
 
         # Read the full body into memory before parsing so there are no

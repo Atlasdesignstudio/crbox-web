@@ -12,6 +12,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
     <link rel="manifest" href="img/favicon/site.webmanifest">
+    <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Crea tu casillero virtual gratuito en Miami con CRBOX. Afíliate en minutos y comienza a comprar en tiendas de USA con entrega rápida en Costa Rica. Sin cuota mensual.">
     <link rel="canonical" href="https://crbox.cr/afiliate.html">
     <meta name="theme-color" content="#FF6B00">
@@ -806,15 +807,15 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="form-group">
                                         <label class="block text-gray-700 font-medium mb-1.5">Nombre(s) *</label>
-                                        <input type="text" name="first_name" autocomplete="given-name" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none transition-all" placeholder="Ej: María">
+                                        <input type="text" name="first_name" autocomplete="given-name" required maxlength="100" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none transition-all" placeholder="Ej: María">
                                     </div>
                                     <div class="form-group">
                                         <label class="block text-gray-700 font-medium mb-1.5">Primer apellido *</label>
-                                        <input type="text" name="last_name_1" autocomplete="family-name" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none transition-all" placeholder="Ej: Herrera">
+                                        <input type="text" name="last_name_1" autocomplete="family-name" required maxlength="100" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none transition-all" placeholder="Ej: Herrera">
                                     </div>
                                     <div class="form-group md:col-span-2">
                                         <label class="block text-gray-700 font-medium mb-1.5">Segundo apellido <span class="text-gray-400 font-normal text-xs">(opcional)</span></label>
-                                        <input type="text" name="last_name_2" autocomplete="additional-name" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none transition-all" placeholder="Ej: López">
+                                        <input type="text" name="last_name_2" autocomplete="additional-name" maxlength="100" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none transition-all" placeholder="Ej: López">
                                     </div>
                                     <div class="form-group md:col-span-2">
                                         <label class="block text-gray-700 font-medium mb-1.5">Correo electrónico *</label>
@@ -1068,6 +1069,10 @@
                                         </label>
                                     </div>
 
+                                    <!-- Honeypot: invisible to real users, filled only by bots -->
+                                    <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+                                        <input type="text" name="website" id="personal-hp-website" tabindex="-1" autocomplete="off" value="">
+                                    </div>
                                     <button type="submit" id="signup-submit-btn" disabled class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-3.5 px-6 rounded-xl text-base flex items-center justify-center shadow-md hover:shadow-lg transition-all disabled:cursor-not-allowed">
                                         Crear mi casillero →
                                     </button>
@@ -1216,11 +1221,11 @@
                                     </div>
                                     <div class="form-group md:col-span-2">
                                         <label class="block text-gray-700 font-medium mb-1.5">Nombre del contacto principal *</label>
-                                        <input type="text" name="contact_name_1" required autocomplete="name" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none transition-all" placeholder="Nombre completo del representante">
+                                        <input type="text" name="contact_name_1" required autocomplete="name" maxlength="200" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none transition-all" placeholder="Nombre completo del representante">
                                     </div>
                                     <div class="form-group">
                                         <label class="block text-gray-700 font-medium mb-1.5">Contacto secundario <span class="text-gray-400 font-normal text-xs">(opcional)</span></label>
-                                        <input type="text" name="contact_name_2" autocomplete="off" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none transition-all" placeholder="Segundo contacto">
+                                        <input type="text" name="contact_name_2" autocomplete="off" maxlength="200" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none transition-all" placeholder="Segundo contacto">
                                     </div>
                                     <div class="form-group">
                                         <label class="block text-gray-700 font-medium mb-1.5">Correo alternativo <span class="text-gray-400 font-normal text-xs">(opcional)</span></label>
@@ -1349,7 +1354,7 @@
                                                 </div>
                                                 <div class="form-group md:col-span-2">
                                                     <label class="block text-gray-700 font-medium mb-1.5 text-xs">Dirección detallada *</label>
-                                                    <textarea name="address_details[]" data-domicilio-required rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Calle, avenida, número, señas, etc."></textarea>
+                                                    <textarea name="address_details[]" data-domicilio-required rows="2" maxlength="500" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Calle, avenida, número, señas, etc."></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -1365,6 +1370,10 @@
                                         </span>
                                     </label>
 
+                                    <!-- Honeypot: invisible to real users, filled only by bots -->
+                                    <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+                                        <input type="text" name="website" id="biz-hp-website" tabindex="-1" autocomplete="off" value="">
+                                    </div>
                                     <button type="submit" id="biz-signup-submit-btn" disabled class="w-full bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold py-3.5 px-6 rounded-xl text-base flex items-center justify-center shadow-md hover:shadow-lg transition-all disabled:cursor-not-allowed">
                                         <i class="fas fa-building mr-2"></i> Crear cuenta empresarial
                                     </button>
@@ -3056,6 +3065,10 @@ const locationDatabase = {
 
     // ── Business registration handler ──────────────────────────────────────
     function handleBusinessRegistration(form) {
+        // Honeypot check: bots fill hidden fields, humans don't
+        var _bizHp = (document.getElementById('biz-hp-website') || {}).value || '';
+        if (_bizHp) { return; }
+
         if (typeof CRBOXAuth === 'undefined' || typeof CRLocations === 'undefined') {
             showRegError(form, 'Error interno: módulo de autenticación no cargado. Recargue la página.');
             return;
@@ -3229,6 +3242,10 @@ const locationDatabase = {
     const businessRegistrationForm = document.getElementById('business-registration-form');
     
     function handlePersonalRegistration(form) {
+        // Honeypot check: bots fill hidden fields, humans don't
+        var _perHp = (document.getElementById('personal-hp-website') || {}).value || '';
+        if (_perHp) { return; }
+
         // FUTURE: Google Sign-In hook — verify credentials.googleToken before entering registration flow.
         if (typeof CRBOXAuth === 'undefined' || typeof CRLocations === 'undefined') {
             showRegError(form, 'Error interno: módulo de autenticación no cargado. Recargue la página.');
