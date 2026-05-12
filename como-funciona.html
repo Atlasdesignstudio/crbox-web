@@ -585,9 +585,12 @@
                 .steps-carousel-wrap {
                     overflow: visible;
                 }
+                .steps-carousel-track {
+                    gap: 12px;
+                }
                 .steps-carousel-track .step-editorial-card {
-                    flex: 0 0 82%;
-                    width: 82%;
+                    flex: 0 0 calc(82% - 12px);
+                    width: calc(82% - 12px);
                     box-sizing: border-box;
                 }
                 .steps-carousel-outer .sc-arrow {
@@ -654,11 +657,13 @@
                     transform 0.25s;
                 border: none;
                 padding: 0;
-                box-sizing: content-box;
+                box-sizing: border-box;
                 display: inline-block;
                 flex-shrink: 0;
                 line-height: 1;
                 font-size: 0;
+                appearance: none;
+                -webkit-appearance: none;
             }
             .sc-dot.active {
                 background: #ff6b00;
@@ -681,16 +686,19 @@
                 #features-banner-grid {
                     display: flex !important;
                     flex-wrap: nowrap !important;
-                    gap: 0 !important;
+                    gap: 12px;
                     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                     will-change: transform;
                 }
                 #features-banner-grid .feature-banner-item {
-                    flex: 0 0 82%;
-                    width: 82%;
+                    flex: 0 0 calc(82% - 12px);
+                    width: calc(82% - 12px);
                     box-sizing: border-box;
                     border-radius: 14px;
                     padding: 1.5rem 1.25rem;
+                    overflow: hidden;
+                    word-break: break-word;
+                    max-width: calc(82% - 12px);
                 }
                 .fb-sc-arrow {
                     display: none !important;
