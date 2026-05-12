@@ -6483,6 +6483,12 @@ a{{color:inherit;text-decoration:none}}
 .adm-back:focus-visible{{outline:2px solid var(--clr-orange);outline-offset:2px}}
 .adm-ph-row{{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-3);flex-wrap:wrap}}
 .adm-ph-left{{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-3)}}
+.adm-ph-right{{display:flex;align-items:center;gap:8px;flex-shrink:0}}
+.adm-del-btn{{display:inline-flex;align-items:center;gap:5px;background:#fff;color:#dc2626;
+  border:1.5px solid #fca5a5;border-radius:6px;padding:6px 13px;font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .2s;font-family:var(--font)}}
+.adm-del-btn:hover{{background:#fef2f2;border-color:#f87171;color:#b91c1c}}
+.adm-del-btn:active{{background:#fee2e2}}
 .adm-scb-id{{font-size:20px;font-weight:900;color:var(--clr-orange);letter-spacing:-.02em}}
 .adm-page-meta{{font-size:12px;color:var(--clr-slate400);margin-top:4px}}
 /* ── Resent banner ───────────────────────────────────────────────── */
@@ -6837,6 +6843,16 @@ details.adm-ai-details[open] .adm-ai-chevron{{transform:rotate(180deg)}}
       <span class="adm-scb-id" aria-label="ID de solicitud">{rid}</span>
       {badge_html}
       <span class="adm-src-badge {src_cls}">{src_text}</span>
+    </div>
+    <div class="adm-ph-right">
+      <form method="POST" action="/admin/solicitudes/{rid}/delete"
+            onsubmit="return confirm('¿Eliminar {rid} permanentemente?\\nEsta acción no se puede deshacer.')">
+        <input type="hidden" name="filter" value="{filter_val}">
+        <button type="submit" class="adm-del-btn" title="Eliminar esta solicitud permanentemente">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          Eliminar
+        </button>
+      </form>
     </div>
   </div>
   <div class="adm-page-meta">{esc(date_str)} &middot; {esc(elapsed)}</div>
@@ -7695,6 +7711,13 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
                 f'Cancelar</button>'
                 f'</div>'
                 f'</form>'
+                f'<form method="POST" action="/admin/solicitudes/{rid}/delete" class="adm-del-form-inline" '
+                f'onsubmit="return confirm(\'¿Eliminar {rid} permanentemente?\\nEsta acción no se puede deshacer.\')">'
+                f'<input type="hidden" name="filter" value="{filter_val}">'
+                f'<button type="submit" class="adm-del-inline-btn">'
+                f'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>'
+                f'Eliminar solicitud</button>'
+                f'</form>'
                 f'</div>'
                 f'</td>'
                 f'</tr>'
@@ -8024,6 +8047,11 @@ a{{color:inherit;text-decoration:none}}
   background:#fff;color:var(--clr-slate500);font-size:12px;font-weight:600;cursor:pointer;
   font-family:var(--font);transition:all .2s;min-height:34px}}
 .adm-cancel-btn:hover{{border-color:var(--clr-slate400);color:var(--clr-slate700)}}
+.adm-del-form-inline{{margin-top:10px;padding-top:10px;border-top:1px dashed #fca5a5;width:100%}}
+.adm-del-inline-btn{{display:inline-flex;align-items:center;gap:5px;background:#fff;color:#dc2626;
+  border:1.5px solid #fca5a5;border-radius:6px;padding:5px 11px;font-size:11px;font-weight:600;
+  cursor:pointer;transition:all .2s;font-family:inherit}}
+.adm-del-inline-btn:hover{{background:#fef2f2;border-color:#f87171;color:#b91c1c}}
 /* ── Kanban ─────────────────────────────────────────────────────────── */
 .adm-kanban-wrap{{display:flex;gap:12px;padding:16px;overflow-x:auto;
   align-items:flex-start;min-height:300px;-webkit-overflow-scrolling:touch}}
@@ -8360,6 +8388,10 @@ a{{color:inherit;text-decoration:none}}
   if (params.get('upd_err') === '1') {{
     admToast('Error al actualizar el estado. Intente de nuevo.', 'error');
     history.replaceState(null, '', window.location.pathname + (window.location.search.replace(/[?&]upd_err=1/, '') || ''));
+  }}
+  if (params.get('deleted') === '1') {{
+    admToast('Solicitud eliminada', 'success');
+    history.replaceState(null, '', window.location.pathname + (window.location.search.replace(/[?&]deleted=1/, '') || ''));
   }}
   var initStatus = params.get('_status');
   if (initStatus) {{
@@ -9398,6 +9430,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             m_admin_suggest   = re.match(r'^/admin/solicitudes/(SCB-\d+)/suggest-draft$', self.path)
             m_admin_link_pkg  = re.match(r'^/admin/solicitudes/(SCB-\d+)/link-package$', self.path)
             m_admin_add_note  = re.match(r'^/admin/solicitudes/(SCB-\d+)/add-note$', self.path)
+            m_admin_delete    = re.match(r'^/admin/solicitudes/(SCB-[\w\-]+)/delete$', self.path)
             if m_status:
                 self._handle_solicitudes_status(m_status.group(1))
             elif m_cancel:
@@ -9418,6 +9451,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_admin_solicitudes_link_package(m_admin_link_pkg.group(1))
             elif m_admin_add_note:
                 self._handle_admin_solicitudes_add_note(m_admin_add_note.group(1))
+            elif m_admin_delete:
+                self._handle_admin_solicitudes_delete(m_admin_delete.group(1))
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -12642,6 +12677,55 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             print(f'[ADMIN] link-package error: {exc}')
             self._admin_redirect(redirect_url)
+
+    # ── POST /admin/solicitudes/:id/delete ────────────────────────────────
+    def _handle_admin_solicitudes_delete(self, scb_id):
+        """Permanently delete a solicitud and its status history.
+
+        Security: requires a valid admin session cookie.
+        On success  → 302 /admin/solicitudes?filter=<f>&deleted=1
+        On DB error → 302 /admin/solicitudes?filter=<f>&del_err=1
+        """
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._admin_redirect('/admin/login?msg=expired'); return
+
+        try:
+            length     = int(self.headers.get('Content-Length', 0))
+            raw        = self.rfile.read(length).decode('utf-8', errors='replace')
+            params     = urllib.parse.parse_qs(raw)
+            filter_val = (params.get('filter', ['all'])[0] or 'all').strip()
+            if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
+                filter_val = 'all'
+        except Exception:
+            filter_val = 'all'
+
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                conn.execute(
+                    'DELETE FROM quote_status_history WHERE quote_request_id = ?',
+                    (scb_id,)
+                )
+                conn.execute(
+                    'DELETE FROM quote_requests WHERE id = ?',
+                    (scb_id,)
+                )
+                conn.commit()
+                conn.close()
+            print(f'[ADMIN] delete: {scb_id} removed by admin')
+        except Exception as exc:
+            print(f'[ADMIN] delete error for {scb_id}: {exc}')
+            self._admin_redirect(
+                f'/admin/solicitudes?filter={filter_val}&del_err=1'
+            )
+            return
+
+        self._admin_redirect(
+            f'/admin/solicitudes?filter={filter_val}&deleted=1'
+        )
 
     # ── Admin-only RDS diagnostic endpoints ───────────────────────────────────
     #
