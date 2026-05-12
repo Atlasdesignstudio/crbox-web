@@ -80,7 +80,7 @@
         var tok = CRBOXAuth.getToken();
         if (tok) {
           fetchOpts.headers = Object.assign(
-            { 'Authorization': 'Bearer ' + tok },
+            { 'Authorization': 'Bearer ' + tok, 'Accept': 'application/json' },
             fetchOpts.headers || {}
           );
         }
