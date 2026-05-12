@@ -6063,7 +6063,7 @@
                     var submitBtn = document.getElementById(swId + '-submit');
                     var errEl     = document.getElementById(swId + '-err');
 
-                    if (submitBtn) submitBtn.addEventListener('click', function() {
+                    if (submitBtn) submitBtn.addEventListener('click', async function() {
                         var zoneEl  = document.getElementById(swId + '-zone');
                         var emailEl = document.getElementById(swId + '-email');
                         var zone    = zoneEl  ? zoneEl.value.trim()  : '';
@@ -6076,22 +6076,72 @@
                             return;
                         }
                         if (errEl) errEl.style.display = 'none';
-
-                        // Sync to hidden form fields
-                        var fZone  = document.getElementById('f-destination-zone');
-                        var fEmail = document.getElementById('f-customer-email');
-                        var fName  = document.getElementById('f-customer-name');
-                        if (fZone)  fZone.value  = zone;
-                        if (email && fEmail) fEmail.value = email;
-                        if (_userFirstName && fName) fName.value = _userFirstName;
                         if (email) _userEmail = email;
 
-                        submitBtn.disabled    = true;
-                        submitBtn.innerHTML   = '<i class="fas fa-circle-notch fa-spin"></i> Enviando...';
+                        submitBtn.disabled  = true;
+                        submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Enviando...';
 
-                        // Trigger legacy submit
-                        var legacyBtn = document.getElementById('btn-submit-quote');
-                        if (legacyBtn) legacyBtn.click();
+                        var products = getProducts();
+                        var p0 = products[0] || {};
+                        var payload = {
+                            products: products,
+                            product_name: p0.name || '',
+                            declared_value_usd: p0.declared_value_usd || 0,
+                            category: p0.category || 'otros',
+                            product_url: p0.url || '',
+                            service_type: curSvc,
+                            destination_zone: zone,
+                            customer_email: email,
+                            account_type: _isPortalMode ? 'registered' : 'anonymous',
+                            data_source: p0.data_source || 'manual',
+                        };
+                        if (_userFirstName) payload.customer_name = _userFirstName;
+
+                        try {
+                            var res  = await fetch('/api/solicitudes', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload),
+                            });
+                            var data = await res.json();
+                            if (res.ok && data.ok && data.id) {
+                                _formSubmitted = true;
+                                submitBtn.style.background = '#22c55e';
+                                submitBtn.style.boxShadow  = 'none';
+                                submitBtn.innerHTML = '<i class="fas fa-check"></i> ¡Solicitud enviada!';
+                                setTimeout(function() {
+                                    _addRow(
+                                        '<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:.75rem;padding:.9rem 1rem;font-size:.87rem;color:#166534;line-height:1.5;">'
+                                        + '<div style="font-weight:700;margin-bottom:.3rem;">✅ ¡Solicitud enviada!</div>'
+                                        + '<div>El equipo CRBOX te escribirá a <strong>' + _esc(email) + '</strong> en menos de 24 h. '
+                                        + 'Número de referencia: <strong>#' + _esc(String(data.id)) + '</strong>.</div>'
+                                        + '</div>',
+                                        'wide'
+                                    );
+                                }, 350);
+                                if (_isPortalMode) {
+                                    var _smtpWarn = !!(data.email_warnings && data.email_warnings.length);
+                                    if (window.parent !== window) {
+                                        window.parent.postMessage({ type: 'crbox:submitted', id: data.id, hasSmtpWarning: _smtpWarn }, location.origin);
+                                    } else {
+                                        var _rp = new URLSearchParams({ submitted_id: String(data.id), smtp_warning: _smtpWarn ? '1' : '0' });
+                                        window.location.href = '/mis-solicitudes.html?' + _rp.toString();
+                                    }
+                                }
+                            } else {
+                                var errMsg = (data && data.errors && data.errors[0]) || (data && data.error) || 'Error al enviar. Intentá de nuevo.';
+                                if (res.status === 429 || (data && data.code === 'rate_limit')) {
+                                    errMsg = 'Demasiadas solicitudes. Esperá un momento e intentá de nuevo.';
+                                }
+                                submitBtn.disabled  = false;
+                                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
+                                if (errEl) { errEl.textContent = errMsg; errEl.style.display = 'block'; }
+                            }
+                        } catch (e) {
+                            submitBtn.disabled  = false;
+                            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
+                            if (errEl) { errEl.textContent = 'Error de conexión. Revisá tu internet e intentá de nuevo.'; errEl.style.display = 'block'; }
+                        }
                     });
 
                     setTimeout(function() {
