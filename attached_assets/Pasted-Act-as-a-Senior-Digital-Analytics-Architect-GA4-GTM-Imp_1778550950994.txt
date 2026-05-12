@@ -1,0 +1,674 @@
+Act as a Senior Digital Analytics Architect + GA4/GTM Implementation Lead + CRO Measurement Strategist for CRBOX.
+
+Your job is to audit, validate, complete, and improve the full Google Analytics / Google Tag Manager measurement setup for the CRBOX website and client portal in the most efficient, business-relevant and production-ready way possible.
+
+This is not a passive audit. Treat this as an actionable analytics implementation sprint. Scan the entire project, understand the existing tracking setup, preserve what already works, identify what is missing, and implement the missing measurement layer correctly.
+
+Context:
+CRBOX has a public website and client portal experience, including pages such as:
+- Homepage
+- Servicios
+- Cómo funciona
+- Tarifas
+- Calculadora
+- Contacto
+- Afíliate / registration
+- Login
+- Dashboard
+- Mi cuenta
+- Mis paquetes
+- Mis facturas
+- Cotizaciones / quote flow
+- Any other public, portal or support page found in the project
+
+The goal:
+Make sure GA4 / GTM is set up correctly and tracks the full customer journey in a clean, scalable and business-useful way.
+
+Important:
+Do not track random or meaningless interactions.
+Do not create noisy events just because something is clickable.
+Do not duplicate events.
+Do not break existing tags.
+Do not send personal data to analytics.
+Do not track passwords, IDs, emails, phone numbers, addresses, tracking numbers, invoice numbers, customer names, casillero numbers or any other personal/customer-identifiable information.
+Do not fake analytics.
+Do not invent conversions.
+Do not change visible UI, design, copy or business logic unless absolutely required for analytics instrumentation.
+
+Primary objective:
+Create a measurement setup that helps CRBOX understand:
+- Which pages drive users toward affiliation/registration.
+- Which pages drive users toward the calculator.
+- Which pages drive users toward contact/WhatsApp.
+- Which pages drive users toward quote requests.
+- Where users drop off in registration.
+- Where users drop off in login.
+- Where users drop off in calculator usage.
+- Where users drop off in quote request flow.
+- How client portal users interact with packages, invoices, account and quote actions.
+- Which CTAs and flows are producing meaningful business intent.
+- Which pages are underperforming as entry points into key journeys.
+- Which actions should be treated as conversions or micro-conversions.
+- Which data is needed later for Tableau dashboards.
+
+Core principle:
+Track fewer things, but track the right things extremely well.
+
+The analytics setup should be:
+- Clean
+- Consistent
+- Useful
+- Privacy-safe
+- Funnel-ready
+- Dashboard-ready
+- CRO-ready
+- Scalable
+- Easy to debug
+- Easy to connect to Tableau later
+
+PHASE 1 — Full analytics inventory
+
+Scan the full project and create an analytics map.
+
+Identify:
+- All existing GA4 tags.
+- All existing GTM snippets.
+- All existing dataLayer pushes.
+- All existing custom event code.
+- All existing click handlers used for tracking.
+- All forms.
+- All CTAs.
+- All conversion-intent actions.
+- All page types.
+- All public pages.
+- All portal/private pages.
+- All quote-related pages/actions.
+- All calculator-related pages/actions.
+- All registration/sign-up steps.
+- All contact methods.
+- All WhatsApp links.
+- All phone links.
+- All email links.
+- All login/password recovery actions.
+- All package/invoice/profile actions that represent real user intent.
+- Any duplicate, inconsistent, broken, noisy or unsafe tracking.
+
+For every existing tag/event, document:
+- Event name.
+- Where it fires.
+- Trigger condition.
+- Parameters sent.
+- Whether it is useful.
+- Whether it duplicates another event.
+- Whether it sends PII.
+- Whether it should stay, be renamed, be cleaned, or be removed.
+
+PHASE 2 — Measurement strategy
+
+Create a clean event taxonomy before implementing.
+
+Classify events into:
+
+1. Core conversion events
+These are the most important business outcomes:
+- sign_up_submit_success
+- login_success
+- quote_request_submit_success
+- calculator_result_view
+- contact_form_submit_success
+- whatsapp_click
+- phone_click
+- email_click
+
+Only mark as success if there is real confirmation. Do not fire success events on button click alone.
+
+2. Micro-conversion events
+Important intent signals:
+- calculator_start
+- calculator_input_complete
+- quote_request_start
+- quote_request_step_complete
+- registration_start
+- registration_step_complete
+- contact_form_start
+- package_search
+- invoice_filter_use
+- profile_edit_start
+- profile_update_success
+- password_recovery_submit
+
+3. CTA navigation events
+Track only meaningful CTAs:
+- cta_click
+
+Use parameters to describe:
+- cta_text
+- cta_location
+- cta_destination
+- page_type
+- journey_stage
+- user_state
+
+Do not create separate event names for every CTA unless there is a strong reason.
+
+4. Portal engagement events
+Track only useful portal actions:
+- portal_view
+- package_filter_use
+- package_refresh
+- invoice_filter_use
+- account_section_view
+- quote_status_view
+- logout
+
+Do not track every tab hover, animation, menu open or meaningless UI interaction.
+
+5. Error/friction events
+Track meaningful friction:
+- form_error
+- login_error
+- registration_error
+- quote_request_error
+- calculator_error
+- api_error
+- session_expired
+
+Do not send raw backend error messages if they may contain sensitive information. Use sanitized error categories.
+
+PHASE 3 — Required event naming standards
+
+Use GA4-friendly lowercase snake_case event names.
+
+Rules:
+- Event names must be consistent.
+- Use one reusable event with parameters when possible instead of many one-off events.
+- Do not exceed GA4 limits.
+- Do not send PII.
+- Do not send full URLs containing sensitive query parameters.
+- Do not send free-text user input.
+- Do not send product descriptions typed by users unless explicitly anonymized and safe.
+- Do not send email, phone, ID, address, invoice, package tracking, casillero number or user name.
+- Use stable parameter names.
+
+Recommended global parameters for most events:
+- page_type
+- page_path_clean
+- page_section
+- journey_stage
+- user_state
+- device_context
+- language
+- cta_text
+- cta_location
+- cta_destination
+- form_id
+- form_type
+- flow_name
+- step_name
+- step_number
+- status
+- error_type
+- shipping_mode
+- quote_type
+- account_type
+- result_available
+- portal_area
+
+Important:
+Any parameter that could contain PII must be removed, anonymized or replaced with a safe category.
+
+PHASE 4 — Page-level measurement
+
+For every page, classify page_type:
+
+Public pages:
+- home
+- services
+- how_it_works
+- rates
+- calculator
+- contact
+- affiliation
+- login
+- quote_public if applicable
+
+Portal pages:
+- portal_dashboard
+- portal_account
+- portal_packages
+- portal_invoices
+- portal_quotes
+- portal_login
+- portal_password_recovery
+
+For each page, ensure:
+- GA4 base page_view works correctly.
+- The page does not double-fire page_view.
+- SPA-like navigation or dynamic content is handled correctly if applicable.
+- Private portal pages do not send PII.
+- Page titles and paths are consistent.
+- Query strings are cleaned if they may contain sensitive data.
+- Internal test/demo pages are not polluting production analytics.
+
+PHASE 5 — Public website tracking
+
+Implement or validate tracking for:
+
+Homepage:
+- Main affiliation CTA click.
+- Calculator CTA click.
+- How it works CTA click.
+- Services CTA click if business-relevant.
+- WhatsApp/contact CTA click.
+- Scroll only if already strategically needed; avoid noisy scroll tracking unless used for content engagement analysis.
+
+Servicios:
+- Service CTA clicks.
+- Quote/contact intent clicks.
+- Calculator intent clicks.
+- WhatsApp clicks.
+- Service section engagement only if it informs business decisions.
+
+Cómo funciona:
+- Affiliation CTA click.
+- Calculator CTA click.
+- Contact/WhatsApp CTA click.
+- FAQ engagement if FAQs exist and are important.
+
+Tarifas:
+- Calculator CTA click.
+- Contact/quote CTA click.
+- Air/maritime section interaction if useful.
+- Rate table engagement only if meaningful and implemented cleanly.
+
+Calculadora:
+- calculator_start when user begins interacting.
+- calculator_input_complete when required fields are complete.
+- calculator_result_view only when a result is actually shown.
+- calculator_error for invalid inputs.
+- calculator_cta_click for next action after seeing result.
+- Parameters:
+  - shipping_mode
+  - result_available
+  - destination_type if safe and non-PII
+  - value_range, not exact purchase value
+  - weight_range, not exact if unnecessary
+  - flow_name = calculator
+
+Contacto:
+- contact_form_start
+- contact_form_submit_success only after real success
+- contact_form_error
+- whatsapp_click
+- phone_click
+- email_click
+- contact_method_click
+
+Afíliate / Registration:
+- registration_start
+- account_type_select
+- registration_step_complete
+- registration_submit_attempt
+- registration_submit_success only after real backend success
+- registration_error
+- Parameters:
+  - account_type = personal/business
+  - step_name
+  - step_number
+  - error_type sanitized
+
+Login:
+- login_start
+- login_submit
+- login_success only after real auth success
+- login_error sanitized
+- password_recovery_start
+- password_recovery_submit
+- password_recovery_success if confirmed
+- session_expired if applicable
+
+PHASE 6 — Client portal tracking
+
+Track portal behavior only when it helps understand real client usage.
+
+Dashboard:
+- portal_view with portal_area = dashboard
+- dashboard_quick_action_click
+- notification_click only if notifications are real
+- Do not track fake dashboard cards.
+
+Mi cuenta:
+- portal_view with portal_area = account
+- profile_edit_start
+- profile_update_submit
+- profile_update_success only after real confirmation
+- profile_update_error sanitized
+- Do not send changed field values.
+- If tracking changed sections, use safe categories like section = address / phone / preferences.
+
+Mis paquetes:
+- portal_view with portal_area = packages
+- package_filter_use
+- package_search
+- package_refresh
+- package_detail_view if real detail view exists
+- package_action_click only for real supported actions
+- Parameters:
+  - filter_type
+  - status_filter
+  - date_range_type
+  - result_count_range, not exact if sensitive
+- Do not send tracking numbers, package descriptions, store names or customer identifiers.
+
+Mis facturas:
+- portal_view with portal_area = invoices
+- invoice_filter_use
+- invoice_view if real
+- invoice_download if real
+- invoice_upload_start if real
+- invoice_upload_success only after real confirmation
+- invoice_upload_error sanitized
+- Do not send invoice numbers, amounts or file names unless explicitly safe and anonymized.
+
+Cotizaciones:
+- quote_request_start
+- quote_step_complete
+- quote_submit_attempt
+- quote_request_submit_success only after real confirmation
+- quote_request_error sanitized
+- quote_status_view if real
+- quote_response_view if real
+- quote_cta_click
+- Parameters:
+  - quote_type
+  - product_count_range
+  - shipping_mode
+  - step_name
+  - step_number
+  - result_status
+- Do not send product URLs, product names, free-text notes or user-entered details unless anonymized.
+
+Logout:
+- logout only when logout completes.
+
+PHASE 7 — Existing tags and GTM compatibility
+
+The implementation must respect existing tags.
+
+Do not blindly replace everything.
+
+Steps:
+1. Detect current GTM container snippet.
+2. Confirm it appears once per page.
+3. Confirm it is placed correctly.
+4. Confirm noscript fallback exists where appropriate.
+5. Detect existing dataLayer initialization.
+6. Detect existing event pushes.
+7. Consolidate inconsistent event names.
+8. Prevent duplicate firing.
+9. Preserve existing working events unless they are broken, duplicated, unsafe or useless.
+10. If events need migration, add compatibility notes.
+
+If GTM is the main tracking method:
+- Implement clean dataLayer.push events.
+- Do not hardcode GA measurement IDs in multiple places unless that is the current architecture.
+- Keep the event layer clean so GTM can map events to GA4 tags.
+
+If GA4 gtag is used directly:
+- Avoid duplicate gtag and GTM firing.
+- Prefer one source of truth.
+- Document the current architecture and the recommended future architecture.
+
+PHASE 8 — Tableau readiness
+
+Audit whether the current measurement setup will support useful Tableau dashboards.
+
+Identify what Tableau will likely need:
+- Page performance by page_type.
+- CTA performance by page and section.
+- Calculator funnel:
+  - calculator_start
+  - calculator_input_complete
+  - calculator_result_view
+  - calculator_cta_click
+- Registration funnel:
+  - registration_start
+  - account_type_select
+  - registration_step_complete
+  - registration_submit_success
+- Quote funnel:
+  - quote_request_start
+  - quote_step_complete
+  - quote_request_submit_success
+- Contact funnel:
+  - contact_form_start
+  - contact_form_submit_success
+  - whatsapp_click
+  - phone_click
+  - email_click
+- Login/portal usage:
+  - login_success
+  - portal_view
+  - package_filter_use
+  - invoice_filter_use
+  - profile_update_success
+  - logout
+- Friction:
+  - form_error
+  - login_error
+  - registration_error
+  - quote_request_error
+  - calculator_error
+  - api_error
+  - session_expired
+
+Check whether GA4 event parameters are sufficient for Tableau:
+- page_type
+- page_path_clean
+- journey_stage
+- flow_name
+- step_name
+- step_number
+- cta_location
+- cta_destination
+- form_type
+- account_type
+- shipping_mode
+- portal_area
+- status
+- error_type
+
+If anything is missing for Tableau-ready reporting, implement it now.
+
+Also document:
+- Which GA4 custom dimensions should be registered.
+- Which GA4 custom metrics, if any, should be registered.
+- Which events should be marked as key events/conversions.
+- Which BigQuery export fields would be useful if GA4 → BigQuery → Tableau is used.
+- Which calculated fields Tableau may need.
+- Which dashboards should be possible after this implementation.
+
+PHASE 9 — Recommended GA4 custom dimensions
+
+Prepare a recommended list of event-scoped custom dimensions.
+
+Only include useful dimensions.
+
+Suggested dimensions:
+- page_type
+- page_section
+- journey_stage
+- user_state
+- cta_text
+- cta_location
+- cta_destination
+- form_id
+- form_type
+- flow_name
+- step_name
+- step_number
+- account_type
+- shipping_mode
+- quote_type
+- portal_area
+- status
+- error_type
+- result_available
+- date_range_type
+- filter_type
+
+Do not create unnecessary dimensions.
+Do not create dimensions for PII.
+Do not create dimensions for one-off values that will not be used in dashboards.
+
+PHASE 10 — Recommended key events / conversions
+
+Recommend which events should be marked as GA4 key events.
+
+Suggested key events:
+- registration_submit_success
+- quote_request_submit_success
+- contact_form_submit_success
+- whatsapp_click
+- calculator_result_view
+- login_success, optional depending on whether portal engagement is a business KPI
+
+Micro-conversions:
+- calculator_start
+- quote_request_start
+- registration_start
+- phone_click
+- email_click
+
+Do not mark every click as a conversion.
+
+PHASE 11 — Privacy and compliance
+
+Audit all analytics for privacy safety:
+- No emails.
+- No names.
+- No phone numbers.
+- No ID numbers.
+- No addresses.
+- No casillero numbers.
+- No invoice IDs.
+- No tracking numbers.
+- No package descriptions.
+- No product URLs from quote flows unless sanitized and clearly approved.
+- No raw user text.
+- No password or password recovery data.
+- No tokens.
+- No backend raw error messages.
+
+If any existing tracking sends PII, remove or sanitize it immediately.
+
+PHASE 12 — Debugging and validation
+
+After implementation:
+- Add a debug-safe way to verify events without exposing PII.
+- Use console logs only in development mode if the project has environment detection.
+- Remove production debug logs.
+- Validate event firing manually:
+  - Page views
+  - CTA clicks
+  - Calculator flow
+  - Registration flow
+  - Login flow
+  - Password recovery
+  - Contact form
+  - WhatsApp click
+  - Quote flow
+  - Portal dashboard
+  - Packages
+  - Invoices
+  - Profile update
+  - Logout
+- Ensure events fire once.
+- Ensure failed attempts do not fire success events.
+- Ensure success events require real confirmation.
+- Ensure no PII is sent.
+- Ensure parameters are consistent.
+- Ensure private data is not tracked.
+- Ensure duplicate GTM/GA tags are removed or documented.
+
+PHASE 13 — Final deliverables
+
+At the end, provide:
+
+1. Executive summary:
+   - Current analytics readiness.
+   - What was already working.
+   - What was missing.
+   - What was fixed.
+   - What remains to configure inside GA4/GTM/Tableau manually.
+
+2. Analytics inventory:
+   Columns:
+   - Page/flow
+   - Existing tracking found
+   - Issue
+   - Action taken
+   - Final event(s)
+   - Parameters
+   - Validation status
+
+3. Final event taxonomy:
+   Columns:
+   - Event name
+   - Purpose
+   - Trigger
+   - Parameters
+   - Conversion/key event recommendation
+   - Tableau relevance
+   - PII risk status
+
+4. Funnel mapping:
+   - Calculator funnel
+   - Registration funnel
+   - Quote funnel
+   - Contact funnel
+   - Login/portal funnel
+   - Package/invoice engagement funnel
+
+5. Tableau readiness checklist:
+   - Required events available
+   - Required parameters available
+   - Recommended dimensions
+   - Recommended calculated fields
+   - Recommended dashboards
+   - Missing external setup
+
+6. GA4 configuration checklist:
+   - Custom dimensions to register
+   - Key events to mark
+   - Audiences to create, if useful
+   - Explorations/funnels to build
+   - DebugView validation steps
+
+7. GTM configuration checklist:
+   - Triggers needed
+   - Variables needed
+   - Tags needed
+   - Existing tags to keep/remove
+   - Consent/privacy notes
+
+8. List of files changed.
+
+9. Manual QA script:
+   Step-by-step instructions to test every important analytics event.
+
+Implementation rules:
+- Track meaningful business intent, not noise.
+- Preserve existing valid tags.
+- Remove duplicates.
+- Never send PII.
+- Never fire success without real success.
+- Use consistent event names.
+- Use reusable parameters.
+- Keep the setup Tableau-ready.
+- Keep changes minimal and production-safe.
+- Do not change visual design or copy.
+- Do not fake conversions.
+- Do not overtrack.
+
+Start by scanning the existing analytics setup. Then build the measurement map. Then implement missing or corrected tracking in priority order: conversions first, funnels second, portal engagement third, friction/errors fourth. End with the final event taxonomy, Tableau readiness map and QA checklist.

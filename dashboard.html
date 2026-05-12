@@ -977,6 +977,51 @@
         }
       });
     }
+
+    var copyAddrBtn = document.getElementById('copy-address-btn');
+    if (copyAddrBtn) {
+      copyAddrBtn.addEventListener('click', function () {
+        var nameLine = casillero ? (fullName + ' #' + casillero) : fullName;
+        var addrText = [
+          nameLine,
+          '8155 NW 68TH ST',
+          'Miami, FL 33195',
+          'Tel: 305 882 1718'
+        ].filter(Boolean).join('\n');
+        function _flashAddr(label) {
+          var orig = copyAddrBtn.innerHTML;
+          copyAddrBtn.innerHTML = label;
+          setTimeout(function () { copyAddrBtn.innerHTML = orig; }, 1800);
+        }
+        function _legacyCopyAddr() {
+          try {
+            var ta = document.createElement('textarea');
+            ta.value = addrText;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'absolute';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            var ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            return ok;
+          } catch (e) { return false; }
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(addrText).then(function () {
+            _flashAddr('<i class="far fa-check-circle mr-2"></i>Dirección copiada');
+          }).catch(function () {
+            _flashAddr(_legacyCopyAddr()
+              ? '<i class="far fa-check-circle mr-2"></i>Dirección copiada'
+              : '<i class="fas fa-times mr-2"></i>Copia manual');
+          });
+        } else {
+          _flashAddr(_legacyCopyAddr()
+            ? '<i class="far fa-check-circle mr-2"></i>Dirección copiada'
+            : '<i class="fas fa-times mr-2"></i>Copia manual');
+        }
+      });
+    }
   }
 
   function _esc(str) {
