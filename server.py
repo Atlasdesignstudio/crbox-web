@@ -1393,49 +1393,59 @@ def _build_search_fallback_result(data, url, grounded=True):
 
 
 _CLASSIFY_PROMPT = """\
-You are CRBOX's expert import concierge. CRBOX is a Miami-to-Costa Rica courier with 10+ years helping Costa Ricans import from the USA. You know Costa Rican customs law, import taxes, restricted products, and shipping logistics deeply.
+You are CRBOX's expert import concierge for a Miami-to-Costa Rica courier. You have deep knowledge of Costa Rica's customs system: the Sistema Arancelario Centroamericano (SAC), DGA/TICA tariff schedules, and composite effective rates (DAI + IVA 13% + selective consumption taxes where applicable).
 
-A customer has told you what they want to import. Your job:
+A customer has told you what they want to import. Follow these steps carefully:
 
-STEP 1 - UNDERSTAND: Identify the real product (handle typos, Spanglish, slang, brand names). Write in "reasoning".
+STEP 1 — IDENTIFY THE PRODUCT:
+Use your own knowledge to identify what this product actually is. Consider brand names, model numbers, colloquial names, Spanglish, typos, and partial descriptions. Reason about what the product IS, not just surface keywords. Write your understanding in "reasoning".
 
-STEP 2 - CLASSIFY: Pick the single best category ID from:
+STEP 2 — PICK A CATEGORY:
+Choose the single best category ID from:
 {category_list}
 
-STEP 3 - RESPOND NATURALLY: Write customer_guidance in Spanish as a knowledgeable, warm, direct friend — not a chatbot. Write as many sentences as the situation genuinely needs: 2-3 for simple products, 4-6 for complex ones (vehicles, regulated goods, maritime, permits). Never pad, never cut short. No exclamation overload. Elegant, conversational Spanish.
+STEP 3 — ASSESS RATE CONFIDENCE:
+Based on your knowledge of Costa Rica's composite import rates for this specific product type, set rate_confidence:
+- "high": you are certain about the applicable rate (e.g., smartphones ~14%, clothing ~30%, video game consoles ~49%, supplements ~13%, shoes ~30%)
+- "medium": you know the general category but the exact rate depends on product specifics or sub-classifications
+- "low": the product is ambiguous, unusual, or you genuinely cannot determine the applicable Costa Rica rate
+
+STEP 4 — WRITE customer_guidance IN SPANISH:
+Be a warm, knowledgeable friend — not a chatbot. 2-3 sentences for simple products, 4-6 for complex ones.
+
+CRITICAL RULE — RATE DISPLAY:
+- rate_confidence = "high" → you MAY mention the estimated composite tariff rate (e.g., "los impuestos rondan el 14%"). Use your own knowledge of Costa Rica composite rates for this category.
+- rate_confidence = "medium" or "low" → do NOT show any percentage or guess a number. Instead guide the user warmly toward the next step. Example: "Podemos prepararte un estimado más preciso si nos compartís el link del producto o más detalles — así el equipo CRBOX te confirma el costo exacto de impuestos."
+- Never leave the user at a dead end. Always be action-oriented and positive.
+- Never say "no tengo suficiente información" — always reframe positively.
 
 PRODUCT-SPECIFIC GUIDELINES:
 
 STANDARD GOODS (electronics, clothing, shoes, accessories, books, toys, home goods):
-→ Open with something specific to THIS product. Then taxes, any import note, optional complementary suggestion.
-→ Example: "Una cafetera de esa linea marca la diferencia en el primer cafe del dia. La importamos sin problema — en electrodomesticos de cocina los impuestos rondan el 29% del valor declarado. Si ya tenes en mente el cafe para estrenarla, podemos incluirlo en el mismo envio."
+→ Open with something specific to THIS product. If rate_confidence=high, add the tariff rate. End with an optional tip or next step.
+→ Example (high): "Una cafetera de esa línea marca la diferencia en el primer café del día. En electrodomésticos los impuestos rondan el 29% — la importamos sin problema y te avisamos en cuanto llega a Miami."
+→ Example (medium/low): "Una cafetera como esa la traemos sin ningún problema. Compartinos el link del producto y te preparamos un estimado completo con impuestos y flete incluidos."
 
 SUPPLEMENTS & HEALTH (protein, vitamins, creatine, pre-workout, magnesium, etc.):
-→ Most enter as personal use without issue. Commercial quantities (many units same SKU) may need MINSA registration. Distinguish clearly and helpfully.
+→ Most enter as personal use without issue. Commercial quantities may need MINSA registration. Distinguish clearly.
 
 FOOD PRODUCTS:
-→ Commercially packaged processed food: generally fine. Raw meat, fresh produce, unprocessed food: restricted by SENASA. Be specific.
+→ Commercially packaged processed food: generally fine. Raw meat, fresh produce, unprocessed food: restricted by SENASA.
 
 MEDICATIONS / PRESCRIPTION DRUGS:
-→ Personal use with prescription: generally allowed. Controlled substances: prohibited. Be clear and helpful.
+→ Personal use with prescription: generally allowed. Controlled substances: prohibited.
 
 VEHICLES (cars, motorcycles, trucks, ATVs, golf carts):
-→ This is a completely different process from standard packages. Explain warmly: maritime freight, COSEVI registry, RITEVE inspection, marchamo, and that CRBOX has a dedicated team for this. Typical taxes: 52.29%+ plus specific duties — be upfront.
+→ Maritime freight, COSEVI registry, RITEVE inspection, marchamo. CRBOX has a dedicated team. Typical taxes: 52.29%+.
 
 LARGE ITEMS / FURNITURE (sofas, beds, appliances over 68 kg):
-→ Maritime shipping. Explain sea freight takes 3-6 weeks but is far cheaper per kg for large items.
-
-BOATS / WATERCRAFT:
-→ Maritime. INCOPESCA or MOPT permits depending on type.
+→ Maritime shipping. Sea freight is far cheaper per kg for large items.
 
 FIREARMS / AMMUNITION:
 → Legal to import with DGAM authorization. Be helpful and direct, not alarmist.
 
 CBD / CANNABIS:
-→ CBD oil with <0.3% THC is legal in CR. Actual cannabis: prohibited. Distinguish clearly.
-
-LIVE ANIMALS / PLANTS:
-→ SENASA phytosanitary/zoosanitary permits. CITES for endangered species.
+→ CBD oil with <0.3% THC is legal in CR. Actual cannabis: prohibited.
 
 DRONES / UAVs:
 → Import is fine. DGAC registration required to fly in CR.
@@ -1444,25 +1454,27 @@ ITEMS THAT CANNOT SHIP (explosives, radioactive, stolen goods):
 → Clear and direct. CRBOX does not handle these.
 
 UNKNOWN / UNUSUAL:
-→ Don't invent rules. Say CRBOX will review and confirm. Keep it warm.
+→ Don't invent rules. Stay warm: "Podemos revisar este producto con nuestro equipo y confirmarte si puede importarse y cuál sería el costo — escribinos por WhatsApp o dejá tus datos y te contactamos."
 
-Product: {product_name}{url_context}{price_context}{estimated_range_context}
+Product: {product_name}{url_context}{price_context}
 
 Return ONLY valid JSON — no markdown, no code fences, no extra text:
 {{
   "category_id": "<chosen_id>",
   "confidence": "high" | "medium" | "low",
-  "reasoning": "<one sentence: what you understood the product to be>",
-  "customer_guidance": "<natural Spanish response — as many sentences as the situation needs>",
+  "rate_confidence": "high" | "medium" | "low",
+  "reasoning": "<one sentence: what the product is and which tariff category it falls into based on Costa Rica's SAC>",
+  "customer_guidance": "<natural Spanish — follows rate_confidence rules above>",
   "special_requirements": ["<requirement 1>", "..."],
   "shipping_recommendation": "maritimo" | "aereo" | "estandar" | "",
   "needs_team_confirmation": true | false
 }}
 
-needs_team_confirmation: true for vehicles, boats, firearms, regulated items, live animals, large furniture. false for standard packages.
+confidence: overall product identification confidence ("high"=very clear, "medium"=likely, "low"=best guess).
+rate_confidence: confidence specifically in the applicable Costa Rica composite tax rate (separate from product identification).
+needs_team_confirmation: true for vehicles, boats, firearms, regulated items, live animals, large furniture; false for standard packages.
 shipping_recommendation: "maritimo" for vehicles/boats/furniture >68kg; "aereo" for standard; "" if unclear.
 special_requirements: [] for standard; list specific permits/agencies otherwise.
-confidence: "high"=very clear, "medium"=likely, "low"=best guess.
 """
 
 
@@ -1528,7 +1540,7 @@ def _brain_local_match(product_name):
 def _cat_to_classify_result(cat, confidence, source, gemini_extra=None):
     """Serialize a brain category dict into the API response shape.
     gemini_extra: optional dict with keys customer_guidance, special_requirements,
-                  shipping_recommendation, needs_team_confirmation from Gemini.
+                  shipping_recommendation, needs_team_confirmation, rate_confidence from Gemini.
     """
     result = {
         'brainCategoryId':          cat.get('id', ''),
@@ -1553,6 +1565,10 @@ def _cat_to_classify_result(cat, confidence, source, gemini_extra=None):
         'specialRequirements':      [],
         'shippingRecommendation':   '',
         'needsTeamConfirmation':    bool(cat.get('manualReviewRequired', False)),
+        # Rate confidence: controls whether the UI shows the estimated rate to the user.
+        # "high" = both Gemini and Brain agree on category, or Gemini is very certain.
+        # "medium"/"low" = UI should suppress the rate and show guidance instead.
+        'rateConfidence':           'low',
     }
     if gemini_extra:
         guidance = str(gemini_extra.get('customer_guidance') or '').strip()
@@ -1565,12 +1581,24 @@ def _cat_to_classify_result(cat, confidence, source, gemini_extra=None):
         if ship in ('maritimo', 'aereo', 'estandar'):
             result['shippingRecommendation'] = ship
         result['needsTeamConfirmation'] = bool(gemini_extra.get('needs_team_confirmation', result['needsTeamConfirmation']))
+        rc = str(gemini_extra.get('rate_confidence') or '').strip()
+        if rc in ('high', 'medium', 'low'):
+            result['rateConfidence'] = rc
     return result
 
 
 def _gemini_classify(product_name, product_url=None, price_usd=None):
-    """Ask Gemini to pick a CRBOX brain category for the given product name.
-    Accepts optional product_url and price_usd for richer context.
+    """Ask Gemini to classify a product using its own knowledge first.
+
+    Pipeline:
+      1. Gemini identifies the product and determines its HS/tariff category
+         independently, without being anchored to the Brain's estimated range.
+      2. After Gemini returns, the Brain is consulted as secondary validation:
+         if the Brain independently matches the same category, rate_confidence
+         is elevated (joint agreement increases certainty).
+      3. If Gemini returns an unrecognised category ID, the Brain fallback is
+         still used but rate_confidence is kept low.
+
     Returns (result_dict, error_str).
     """
     if not _GEMINI_API_KEY or not product_name or not _BRAIN_CATS:
@@ -1586,30 +1614,21 @@ def _gemini_classify(product_name, product_url=None, price_usd=None):
         )
         url_ctx   = f'\nProduct URL: {product_url}' if product_url else ''
         price_ctx = f'\nApprox. price (USD): ${price_usd:.2f}' if price_usd else ''
-        # Try local brain match first to anchor the estimated tariff range.
-        # This prevents Gemini from hallucinating wrong percentages in customer_guidance.
-        _brain_match, _ = _brain_local_match(product_name)
-        _est_range = (_brain_match or {}).get('estimatedRange', '') if _brain_match else ''
-        if _est_range:
-            range_ctx = (f'\nTariff database reference: Our tariff database shows this product'
-                         f' category has an estimated import tariff of {_est_range}.'
-                         f' You MUST use this exact figure in customer_guidance — do NOT'
-                         f' invent or substitute a different percentage.')
-        else:
-            range_ctx = ''
+
+        # Gemini reasons from its own knowledge — no brain rate is injected.
+        # The Brain is consulted AFTER the response for cross-validation only.
         prompt = _CLASSIFY_PROMPT.format(
             category_list=cat_lines,
             product_name=product_name,
             url_context=url_ctx,
             price_context=price_ctx,
-            estimated_range_context=range_ctx,
         )
         response = client.models.generate_content(
             model=_GEMINI_MODEL,
             contents=prompt,
             config=_gtypes.GenerateContentConfig(
-                temperature=0.4,
-                max_output_tokens=320,
+                temperature=0.3,
+                max_output_tokens=400,
             ),
         )
         text = (response.text or '').strip()
@@ -1622,20 +1641,52 @@ def _gemini_classify(product_name, product_url=None, price_usd=None):
         confidence = str(raw.get('confidence') or 'medium').strip()
         if confidence not in ('high', 'medium', 'low'):
             confidence = 'medium'
+
+        # rate_confidence is a distinct field: Gemini's certainty about the
+        # applicable Costa Rica composite tax rate (not just product identity).
+        rate_confidence = str(raw.get('rate_confidence') or confidence).strip()
+        if rate_confidence not in ('high', 'medium', 'low'):
+            rate_confidence = confidence
+
         gemini_extra = {
             'customer_guidance':       raw.get('customer_guidance') or '',
             'special_requirements':    raw.get('special_requirements') or [],
             'shipping_recommendation': raw.get('shipping_recommendation') or '',
             'needs_team_confirmation': bool(raw.get('needs_team_confirmation', False)),
+            'rate_confidence':         rate_confidence,
         }
+
         cat = _BRAIN_IDX.get(cat_id)
         if not cat:
-            # Gemini returned an unrecognised id — use unknown_manual_review
-            # but keep Gemini's rich guidance so the customer still gets a helpful answer
+            # Gemini returned an unrecognised ID — fall back to unknown_manual_review
+            # but keep Gemini's rich customer guidance. Rate confidence = low.
             unknown = _BRAIN_IDX.get('unknown_manual_review', {})
             if unknown:
+                gemini_extra['rate_confidence'] = 'low'
                 return _cat_to_classify_result(unknown, confidence, 'ai_gemini', gemini_extra), None
             return None, f'Unknown category_id from Gemini: {cat_id!r}'
+
+        # ── Secondary Brain validation ────────────────────────────────────────
+        # Check if the Brain's keyword match independently lands on the same
+        # category as Gemini's reasoning. Joint agreement elevates rate_confidence;
+        # Gemini-only high confidence (no Brain corroboration) is flagged as medium
+        # per the task spec: "if only Gemini identifies a category (no Brain match),
+        # use Gemini's result but flag rate_confidence accordingly."
+        brain_cat, _ = _brain_local_match(product_name)
+        brain_agrees = brain_cat and brain_cat.get('id') == cat.get('id')
+        if brain_agrees and rate_confidence == 'medium':
+            # Both Gemini's reasoning AND Brain's keyword match agree → elevate to high
+            rate_confidence = 'high'
+            gemini_extra['rate_confidence'] = 'high'
+            print(f'[CLASSIFIER] Brain+Gemini agreement on {cat_id!r} → rate_confidence elevated to high')
+        elif not brain_agrees and rate_confidence == 'high':
+            # Gemini is confident but Brain did not independently corroborate.
+            # Downgrade to medium: only show the rate when both sources agree.
+            # This is the conservative path that prevents overconfident rate display.
+            rate_confidence = 'medium'
+            gemini_extra['rate_confidence'] = 'medium'
+            print(f'[CLASSIFIER] Gemini={cat_id!r} (high, uncorroborated) → rate_confidence downgraded to medium')
+
         return _cat_to_classify_result(cat, confidence, 'ai_gemini', gemini_extra), None
     except json.JSONDecodeError as ex:
         return None, f'JSON parse error: {ex}'
@@ -1699,7 +1750,12 @@ def _handle_ai_classify(handler):
     cat, conf = _brain_local_match(product_name)
     # Keep local match as a fallback only — always try Gemini when available so
     # it can enrich the response with geminiGuidance, specialRequirements, etc.
+    # When brain-only fallback is used (Gemini unavailable), set rateConfidence
+    # from the brain's own keyword-match confidence so the UI can still display
+    # the rate for well-known products even without Gemini.
     local_fallback = _cat_to_classify_result(cat, conf, 'brain_local') if cat else None
+    if local_fallback:
+        local_fallback['rateConfidence'] = conf  # brain's keyword confidence for rate display
 
     if _GEMINI_SDK_OK and _GEMINI_API_KEY:
         ai_result, err = _gemini_classify(product_name, product_url=product_url, price_usd=price_usd)

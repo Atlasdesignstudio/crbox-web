@@ -130,6 +130,9 @@
             actionForCustomer:        cat.actionForCustomer || '',
             actionForAdmin:           cat.actionForAdmin   || '',
             estimatedRange:           cat.estimatedRange   || '',
+            // rateConfidence mirrors the keyword-match confidence for local results.
+            // The server overrides this with Gemini's own rate_confidence when available.
+            rateConfidence:           confidence,
         };
     }
 
@@ -152,6 +155,7 @@
             customerMessage: 'Este producto requiere revisión por parte del equipo de CRBOX. Te contactaremos para confirmar si puede importarse y cuál sería el costo.',
             adminNotes: '', actionForCustomer: '',
             actionForAdmin: '', estimatedRange: '',
+            rateConfidence: 'low',
         };
     }
 
@@ -401,20 +405,24 @@
             badge.style.cssText = 'display:inline-flex;align-items:center;gap:.35rem;font-size:.78rem;color:#6b7280;margin-bottom:.35rem;';
             badge.innerHTML = '<i class="fas fa-tag" style="color:#f97316;font-size:.72rem;"></i>'
                 + '<span>Categoría: <strong style="color:#374151;">' + _escHtml(result.displayName) + '</strong></span>';
-            if (result.estimatedRange) {
+            /* Only show the estimated rate when rateConfidence is "high".
+               For medium/low confidence, Gemini's guidance invites the user to
+               share more details rather than displaying a potentially inaccurate figure. */
+            if (result.estimatedRange && result.rateConfidence === 'high') {
                 badge.innerHTML += ' &nbsp;·&nbsp; <span>Arancel est.: <strong style="color:#374151;">'
                     + _escHtml(result.estimatedRange) + '</strong></span>';
             }
             wrap.appendChild(badge);
         }
 
-        // customerMessage — show the friendly info note for the category.
-        // For non-risk products this is the primary explanatory text
-        // (e.g. "Esta categoría suele pagar 13-20% de impuestos…").
-        // For risky products showComplianceNotice() below also uses customerMessage
-        // as its body text; we show it here only when there is no risk notice to
-        // avoid duplication.
-        if (result.customerMessage && !hasRisk(result)) {
+        // customerMessage — Brain-derived copy that can include tax percentages.
+        // For non-risk products: only show when rateConfidence is "high" so we
+        // never leak a rate figure the system isn't confident about.
+        // For risk products: compliance notice (showComplianceNotice below) already
+        // uses customerMessage for its body text — skip the duplicate here, and
+        // show the notice regardless of rateConfidence since it's about compliance,
+        // not about rate estimates.
+        if (result.customerMessage && !hasRisk(result) && result.rateConfidence === 'high') {
             var msg = document.createElement('p');
             msg.style.cssText = 'font-size:.78rem;color:#6b7280;margin:.3rem 0 .1rem;line-height:1.5;';
             msg.textContent = result.customerMessage;

@@ -298,18 +298,16 @@
             showTyping();
             var render = function(result) {
                 hideTyping();
-                /* Best label: AI label → clean local name */
-                var label = (result && result.label && result.label.length < 80 && !/quiero|traer|deseo|busco/i.test(result.label))
-                    ? result.label
-                    : cleanName;
-                /* Best category: AI category (if not otros) → local → fallback */
-                var cat = (result && result.category && result.category !== 'otros')
-                    ? result.category
+                /* Product label: always the clean name extracted from the user's query.
+                   (result.displayName is the category name, not the specific product name.) */
+                var label = cleanName;
+                /* Category code: prefer Gemini/Brain legacyCode (e.g. "celulares", "ropa")
+                   → local keyword fallback → 'otros'.
+                   The server response uses `legacyCode` for the category code used by
+                   emoji/label lookups; the old `result.category` field is no longer returned. */
+                var cat = (result && result.legacyCode && result.legacyCode !== 'otros')
+                    ? result.legacyCode
                     : (localCat || 'otros');
-                /* Patch unknown AI result with local category */
-                if (result && result.status === 'unknown' && localCat) {
-                    result = Object.assign({}, result, { category: localCat, status: 'local' });
-                }
                 S.current = { name: label, category: cat, brainResult: result || null };
                 showProductCard(S.current, result);
             };
@@ -328,14 +326,20 @@
         S.phase = 'awaiting-price';
         var cat      = prod.category;
         var label    = prod.name;
-        var taxRange = result && result.estimatedRange ? result.estimatedRange : null;
+        /* Only show the tax rate estimate when Gemini is high-confidence about it.
+           For medium/low confidence, the geminiGuidance already invites the user
+           to share more details instead of displaying a potentially wrong number. */
+        var rateIsHigh = result && result.rateConfidence === 'high';
+        var taxRange = rateIsHigh && result.estimatedRange ? result.estimatedRange : null;
         var docsReq  = result && result.documentsRequired && result.documentsRequired.length;
         var hasInfo  = cat && cat !== 'otros';
 
         /* Warm intro: Gemini natural language → category-aware fallback */
         var intro;
         if (result && result.geminiGuidance) {
-            /* Gemini's own words — natural, product-specific, warm */
+            /* Gemini's own words — natural, product-specific, warm.
+               When rate_confidence < high, Gemini's guidance already guides the
+               user toward next steps without exposing a rate. */
             intro = esc(result.geminiGuidance) + ' Ingresá el precio aproximado para ver el estimado de impuestos.';
         } else {
             var open  = hasInfo ? catIntro(cat) : '¡Con gusto lo cotizamos!';
