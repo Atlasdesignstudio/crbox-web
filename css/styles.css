@@ -19,6 +19,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--dark);
     scroll-behavior: smooth;
+    overflow-x: hidden;
 }
 
 /* Remove default browser outline on tap/click but keep it for keyboard nav */

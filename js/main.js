@@ -1,3 +1,12 @@
+// Lightweight RAF-throttle — limits scroll/resize handlers to one call per animation frame.
+function _rafThrottle(fn) {
+    var rafId = null;
+    return function() {
+        if (rafId) return;
+        rafId = requestAnimationFrame(function() { fn(); rafId = null; });
+    };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu — handled by js/mobile-drawer.js
 
@@ -47,14 +56,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    window.addEventListener('scroll', checkInView);
+    window.addEventListener('scroll', _rafThrottle(checkInView));
     checkInView(); // Check on load
     
     // Back to top button
     const backToTopButton = document.getElementById('back-to-top');
     
     if (backToTopButton) {
-        window.addEventListener('scroll', function() {
+        window.addEventListener('scroll', _rafThrottle(function() {
             if (window.pageYOffset > 300) {
                 backToTopButton.classList.remove('opacity-0', 'invisible');
                 backToTopButton.classList.add('opacity-100', 'visible');
@@ -62,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 backToTopButton.classList.add('opacity-0', 'invisible');
                 backToTopButton.classList.remove('opacity-100', 'visible');
             }
-        });
+        }));
         
         backToTopButton.addEventListener('click', function() {
             window.scrollTo({
@@ -115,7 +124,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Mostrar este contenido
                 content.classList.remove('hidden');
                 
-                console.log(`Tab clicked: ${btnId} -> showing ${contentId}`);
             });
         });
     }
@@ -528,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (animateElements.length > 0) {
-        window.addEventListener('scroll', checkAnimateElements);
+        window.addEventListener('scroll', _rafThrottle(checkAnimateElements));
         checkAnimateElements(); // Initial check
     }
     
