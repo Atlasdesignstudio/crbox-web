@@ -5215,6 +5215,24 @@
 
         if (fNotes) fNotes.addEventListener('input', function() { if (notesCharCount) notesCharCount.textContent = this.value.length; });
 
+        // ── quote_request_start: fire once per browser session ────────────────
+        // sessionStorage guards against re-firing on back-navigation (bfcache
+        // restores the JS heap but the once-flag would reset). Attaches in
+        // capture phase so it runs before any child listener can stopPropagation.
+        (function () {
+            var _SK = 'crbox_quote_start_fired';
+            if (sessionStorage.getItem(_SK)) return; // already fired this session
+            var _quoteWidget = document.getElementById('cq-widget') || document.querySelector('.cq-widget') || document.body;
+            function _fireQuoteStart() {
+                if (sessionStorage.getItem(_SK)) return;
+                sessionStorage.setItem(_SK, '1');
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.quote_request_start(); } catch (_e) {} }
+            }
+            ['input', 'change', 'focus'].forEach(function (evType) {
+                _quoteWidget.addEventListener(evType, _fireQuoteStart, { capture: true, once: true });
+            });
+        })();
+
         // ── Submit ──────────────────────────────────────────────
         if (btnSubmit) btnSubmit.addEventListener('click', submitQuote);
         if (btnDupDismiss) btnDupDismiss.addEventListener('click', function() {
@@ -5313,7 +5331,7 @@
                 var data = await res.json();
                 if (res.ok && data.ok && data.id) {
                     _formSubmitted = true;
-                    if (window.CRBOX && CRBOX.track) { try { CRBOX.track.quote_submit({ service_type: payload.service_type, destination_country: 'CR' }); } catch(_) {} }
+                    if (window.CRBOX && CRBOX.track) { try { CRBOX.track.quote_request_submit_success({ service_type: payload.service_type, destination_country: 'CR' }); } catch(_) {} }
                     // Portal mode: notify parent or redirect depending on embed context
                     if (_isPortalMode) {
                         _clearDraft();

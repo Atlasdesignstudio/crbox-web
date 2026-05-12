@@ -124,6 +124,10 @@ CRBOX.track = {
   // ── Form events ──────────────────────────────────────────────────────────────
   // form_name replaces the non-registered form_id parameter.
 
+  contact_form_submit_success: function() {
+    this.push('contact_form_submit_success', { form_name: 'contact' });
+  },
+
   contact_form_submit: function() {
     this.push('contact_form_submit', { form_name: 'contact' });
   },
@@ -282,22 +286,92 @@ CRBOX.track = {
 
   // ── Quote events ─────────────────────────────────────────────────────────────
 
-  quote_start: function(service_type) {
-    this.push('quote_start', {
+  quote_request_start: function(service_type) {
+    this.push('quote_request_start', {
       service_type: service_type || 'aereo'
     });
   },
 
-  // quote_submit: has_dimensions and item_count_bucket are not registered GA4
-  // custom dimensions. Only service_type and destination_country (both registered)
-  // are included. The event name itself signals quote intent.
+  // quote_request_submit_success fires only after a confirmed HTTP 2xx from
+  // /api/solicitudes. Only registered dimensions are sent.
 
-  quote_submit: function(params) {
+  quote_request_submit_success: function(params) {
     params = params || {};
-    this.push('quote_submit', {
+    this.push('quote_request_submit_success', {
       service_type:        params.service_type        || 'aereo',
       destination_country: params.destination_country || 'CR'
     });
+  },
+
+  // ── Auth extra events ─────────────────────────────────────────────────────
+
+  logout: function() {
+    this.push('logout', {});
+  },
+
+  // ── Account type selection ────────────────────────────────────────────────
+  // Fires when user chooses personal vs. business during signup.
+
+  account_type_select: function(account_type) {
+    this.push('account_type_select', {
+      account_type: account_type || 'personal'
+    });
+  },
+
+  // ── Portal profile events ─────────────────────────────────────────────────
+  // profile_edit_start: fires once per section per page load on first input.
+  // profile_update_success / profile_update_error fire on API response.
+  // section_name uses the tab slug; error_category is a safe slug.
+
+  profile_edit_start: function(section_name) {
+    this.push('profile_edit_start', {
+      section_name: section_name || 'unknown',
+      portal_area:  'mi_cuenta'
+    });
+  },
+
+  profile_update_success: function(section_name) {
+    this.push('profile_update_success', {
+      section_name: section_name || 'unknown',
+      portal_area:  'mi_cuenta'
+    });
+  },
+
+  profile_update_error: function(section_name, error_category) {
+    this.push('profile_update_error', {
+      section_name:   section_name   || 'unknown',
+      portal_area:    'mi_cuenta',
+      error_category: error_category || 'unknown'
+    });
+  },
+
+  // ── Portal filter events ──────────────────────────────────────────────────
+  // filter_type uses a safe category slug, never user-supplied free text.
+
+  package_filter_use: function(filter_type) {
+    this.push('package_filter_use', {
+      filter_type: filter_type || 'unknown'
+    });
+  },
+
+  invoice_filter_use: function(filter_type) {
+    this.push('invoice_filter_use', {
+      filter_type: filter_type || 'unknown'
+    });
+  },
+
+  // ── Error / session events ────────────────────────────────────────────────
+  // error_category is always a safe categorized slug — never a raw error
+  // message, response body, URL with tokens, or infrastructure status code.
+
+  api_error: function(error_category) {
+    this.push('api_error', {
+      error_category: error_category || 'unknown'
+    });
+  },
+
+  session_expired: function() {
+    this.push('session_expired', {});
   },
 
   // ── Portal navigation events ──────────────────────────────────────────────────
@@ -378,7 +452,11 @@ CRBOX.track = {
   contactFormSubmit: function()     { this.contact_form_submit(); },
   faqEngage:         function(s)    { this.faq_engage(s); },
   calculatorQuery:   function(p)    { this.calculator_query(p); },
-  calculatorResult:  function(p)    { this.calculator_result(p); }
+  calculatorResult:  function(p)    { this.calculator_result(p); },
+  // quote_start and quote_submit are renamed; keep aliases so any stale call
+  // sites (e.g. cached JS bundles or third-party tag injections) still work.
+  quote_start:  function(st) { this.quote_request_start(st); },
+  quote_submit: function(p)  { this.quote_request_submit_success(p); }
 
 };
 
@@ -500,13 +578,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // ── Contact form submit — form_name only, no subject value ────────────────
+  // ── Contact form: auto-bind is intentionally removed ─────────────────────
+  // contact_form_submit_success is now fired manually from contacto.html
+  // only after a confirmed HTTP 2xx + data.ok from /api/consultas, so the
+  // event accurately measures successful submissions, not form DOM events.
   var contactForm = document.getElementById('contact-form');
-  if (contactForm) {
-    contactForm.addEventListener('submit', function() {
-      CRBOX.track.contact_form_submit();
-    });
-  }
 
   // ── Form start + abandon tracking ─────────────────────────────────────────
   var _formState = {};

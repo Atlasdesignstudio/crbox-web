@@ -116,6 +116,7 @@
 
   // ─── Logout ───────────────────────────────────────────────────────────────
   function logout() {
+    if (window.CRBOX && CRBOX.track) { try { CRBOX.track.logout(); } catch (_e) {} }
     clearToken();
     window.location.href = 'index.html';
   }
@@ -388,6 +389,7 @@
     }
     // Token without email, or email without token → incoherent state; clear + redirect
     if (!token || !email) {
+      if (window.CRBOX && CRBOX.track) { try { CRBOX.track.session_expired(); } catch (_e) {} }
       clearToken();
       window.location.replace('login.html?msg=session-expired');
       return;
@@ -457,6 +459,7 @@
     var token = getToken();
     var email = getEmail();
     if (!token || !email) {
+      if (window.CRBOX && CRBOX.track) { try { CRBOX.track.session_expired(); } catch (_e) {} }
       clearToken();
       window.location.replace('login.html?msg=session-expired');
       return;
@@ -480,6 +483,7 @@
     var token = getToken();
     var email = getEmail();
     if (!token || !email) {
+      if (window.CRBOX && CRBOX.track) { try { CRBOX.track.session_expired(); } catch (_e) {} }
       clearToken();
       window.location.replace('login.html?msg=session-expired');
       return;

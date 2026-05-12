@@ -29,6 +29,7 @@
   // already in flight). All authenticated calls use this helper so the
   // behaviour is consistent regardless of which endpoint rejects the token.
   function _handleAuthFailure(status) {
+    if (window.CRBOX && CRBOX.track) { try { CRBOX.track.session_expired(); } catch (_e) {} }
     CRBOXAuth.clearToken();
     if (window.location.pathname.indexOf('login') === -1) {
       window.location.replace('login.html?msg=session-expired');
@@ -117,6 +118,7 @@
 
     if (!email) {
       // Token present but email missing → incoherent; clear and redirect.
+      if (window.CRBOX && CRBOX.track) { try { CRBOX.track.session_expired(); } catch (_e) {} }
       CRBOXAuth.clearToken();
       if (window.location.pathname.indexOf('login') === -1) {
         window.location.replace('login.html?msg=session-expired');

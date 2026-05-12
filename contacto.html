@@ -1257,6 +1257,7 @@
                             btnLabel.textContent = "Enviar mensaje";
                             if (data && data.ok) {
                                 form.reset();
+                                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.contact_form_submit_success(); } catch (_e) {} }
                                 successEl.classList.remove("hidden");
                                 successEl.scrollIntoView({
                                     behavior: "smooth",

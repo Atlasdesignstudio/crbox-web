@@ -784,6 +784,18 @@
             // Notifications save — persists the newsletter preference via API
             const saveNotificationsBtn = document.getElementById('save-notifications-btn');
             if (saveNotificationsBtn) {
+                // profile_edit_start: fire once on first toggle-switch change in this section
+                var _notifEditStarted = false;
+                var _notifTab = document.getElementById('notifications-tab');
+                if (_notifTab) {
+                    _notifTab.addEventListener('change', function () {
+                        if (!_notifEditStarted) {
+                            _notifEditStarted = true;
+                            if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_edit_start('notifications'); } catch (_e) {} }
+                        }
+                    }, true);
+                }
+
                 saveNotificationsBtn.addEventListener('click', function () {
                     if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) {
                         var notifErrEl = document.getElementById('notifications-save-error');
@@ -807,11 +819,13 @@
                     CRBOXPortalAPI.updateProfile(payload)
                         .then(function (result) {
                             window.__crboxUserInfo = result.userInfo || rawInfo;
+                            if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('notifications'); } catch (_e) {} }
                             btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
                             setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
                         })
                         .catch(function (err) {
                             console.error('[CRBOX] saveNotifications error:', err);
+                            if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_error('notifications', 'api_error'); } catch (_e) {} }
                             var userMsg = (err && err.message) || 'No se pudo guardar la preferencia. Intenta de nuevo.';
                             btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Error al guardar';
                             var errEl = document.getElementById('notifications-save-error');
@@ -828,6 +842,18 @@
             // Password save — standalone, independent of personal info
             const updatePasswordBtn = document.getElementById('update-password-btn');
             if (updatePasswordBtn) {
+                // profile_edit_start: fire once on first input in the security section
+                var _securityEditStarted = false;
+                var _securityTab = document.getElementById('security-tab');
+                if (_securityTab) {
+                    _securityTab.addEventListener('input', function () {
+                        if (!_securityEditStarted) {
+                            _securityEditStarted = true;
+                            if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_edit_start('security'); } catch (_e) {} }
+                        }
+                    }, true);
+                }
+
                 updatePasswordBtn.addEventListener('click', function () {
                     var pwdErrEl = document.getElementById('password-save-error');
                     function _showPwdError(msg) {
@@ -863,6 +889,7 @@
                     CRBOXPortalAPI.updateProfile(payload)
                         .then(function (result) {
                             window.__crboxUserInfo = result.userInfo || rawInfo;
+                            if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('security'); } catch (_e) {} }
                             btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Contraseña actualizada!';
                             document.getElementById('new_password').value = '';
                             document.getElementById('confirm_password').value = '';
@@ -872,6 +899,7 @@
                         })
                         .catch(function (err) {
                             console.error('[CRBOX] updatePassword error:', err);
+                            if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_error('security', 'api_error'); } catch (_e) {} }
                             var userMsg = (err && err.message) || 'No se pudo actualizar la contraseña. Intenta de nuevo.';
                             btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Error al guardar';
                             var errEl = document.getElementById('password-save-error');

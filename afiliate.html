@@ -2470,8 +2470,14 @@ const locationDatabase = {
         }
     }
 
-    if (personalTabBtn) personalTabBtn.addEventListener('click', function () { setAccountType('personal'); });
-    if (businessTabBtn) businessTabBtn.addEventListener('click', function () { setAccountType('business'); });
+    if (personalTabBtn) personalTabBtn.addEventListener('click', function () {
+        setAccountType('personal');
+        if (window.CRBOX && CRBOX.track) { try { CRBOX.track.account_type_select('personal'); } catch (_e) {} }
+    });
+    if (businessTabBtn) businessTabBtn.addEventListener('click', function () {
+        setAccountType('business');
+        if (window.CRBOX && CRBOX.track) { try { CRBOX.track.account_type_select('business'); } catch (_e) {} }
+    });
 
     // ── Signup stepper navigation ────────────────────────────────────────
     (function initSignupStepper() {

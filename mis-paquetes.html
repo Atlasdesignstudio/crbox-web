@@ -2773,6 +2773,7 @@
         .catch(function (err) {
           if (err && err.isAuthError) return; // redirect already in flight
           console.warn('[CRBOX] getPackages error:', err);
+          if (window.CRBOX && CRBOX.track) { try { CRBOX.track.api_error('network'); } catch (_e) {} }
           var errMsg = '<i class="fas fa-exclamation-triangle mr-2"></i>' +
             'No se pudieron cargar los paquetes. ' +
             '<button onclick="location.reload();" class="underline font-medium">Reintentar</button>';
@@ -3409,12 +3410,19 @@
               if (_cachedConsigneeId) _applyFiltersFromUI(_cachedConsigneeId);
             }
 
-            if (statusFilter) statusFilter.addEventListener('change', _onFilterChange);
-            if (dateFilter)   dateFilter.addEventListener('change',   _onFilterChange);
+            if (statusFilter) statusFilter.addEventListener('change', function () {
+              if (window.CRBOX && CRBOX.track) { try { CRBOX.track.package_filter_use('status'); } catch (_e) {} }
+              _onFilterChange();
+            });
+            if (dateFilter)   dateFilter.addEventListener('change', function () {
+              if (window.CRBOX && CRBOX.track) { try { CRBOX.track.package_filter_use('date'); } catch (_e) {} }
+              _onFilterChange();
+            });
 
             var sortBy = document.getElementById('sort-by');
             if (sortBy) {
               sortBy.addEventListener('change', function () {
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.package_filter_use('sort'); } catch (_e) {} }
                 if (_cachedPackages.length > 0) _renderAll(_cachedPackages, true);
               });
             }
