@@ -905,11 +905,16 @@ def _normalize_compliance(raw_compliance):
     cls     = str(raw_compliance.get('classification') or '').upper().strip()
     risk    = str(raw_compliance.get('risk_level') or '').upper().strip()
     verdict = str(raw_compliance.get('verdict') or '').lower().strip()
-    # If Gemini omits or garbles a field, default to RESTRICTED/MEDIUM/ship_with_permits
-    # (needs review) rather than ALLOWED/LOW/safe (implicitly cleared).
-    if cls     not in _VALID_CLASSIFICATIONS: cls     = 'RESTRICTED'
-    if risk    not in _VALID_RISK_LEVELS:     risk    = 'MEDIUM'
-    if verdict not in _VALID_VERDICTS:        verdict = 'ship_with_permits'
+    # Atomic validation: if ANY required field is missing or invalid, the whole
+    # compliance block is treated as unverifiable and escalated to RESTRICTED.
+    # We never allow a partially-valid block to produce an ALLOWED classification
+    # (e.g. cls='ALLOWED' valid but risk/verdict garbled would be inconsistent).
+    if (cls not in _VALID_CLASSIFICATIONS or
+            risk not in _VALID_RISK_LEVELS or
+            verdict not in _VALID_VERDICTS):
+        return {'classification': 'RESTRICTED', 'risk_level': 'MEDIUM',
+                'reason': 'Respuesta de cumplimiento incompleta o inválida. Requiere revisión del equipo CRBOX.',
+                'authority': None, 'verdict': 'ship_with_permits'}
     return {
         'classification': cls,
         'risk_level':     risk,
