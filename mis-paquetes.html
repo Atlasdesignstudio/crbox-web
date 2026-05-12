@@ -2690,12 +2690,28 @@
             '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando paquetes...</div>';
         }
 
+        // Show a "taking longer than expected" nudge after 8 s if the spinner
+        // is still in the tbody (i.e. neither .then nor .catch has fired yet).
+        var _slowTimer = setTimeout(function () {
+          if (tbody.querySelector('.fa-spinner')) {
+            tbody.innerHTML =
+              '<tr><td colspan="15" class="text-center py-8 text-gray-400">' +
+                '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando paquetes&hellip; ' +
+                '<span class="block mt-2 text-xs text-gray-400">Esto está tardando más de lo normal. ' +
+                  '<button onclick="location.reload();" ' +
+                    'class="underline text-orange-500 font-medium">Reintentar</button>' +
+                '</span>' +
+              '</td></tr>';
+          }
+        }, 8000);
+
         CRBOXPortalAPI.getPackages(idConsignee,
           startDate  || CRBOXPortalAPI.last30Days(),
           endDate    || CRBOXPortalAPI.defaultEndDate(),
           tracking   || '',
           status     || '1000')
         .then(function (data) {
+          clearTimeout(_slowTimer);
           // Safely unwrap the API envelope regardless of shape.
           // The CRBOX portal may return: a bare array, a keyed object, an
           // ASP.NET $values wrapper, or null on a malformed body — all handled.
@@ -2798,6 +2814,7 @@
           }
         })
         .catch(function (err) {
+          clearTimeout(_slowTimer);
           if (err && err.isAuthError) return; // redirect already in flight
           console.warn('[CRBOX] getPackages error:', err);
           if (window.CRBOX && CRBOX.track) { try { CRBOX.track.api_error('network'); } catch (_e) {} }
@@ -3457,6 +3474,17 @@
               if (window.CRBOX && CRBOX.track) { try { CRBOX.track.package_filter_use('date'); } catch (_e) {} }
               _onFilterChange();
             });
+
+            // "Actualizar" button — re-fetch packages with current UI filter state
+            var refreshBtn = document.getElementById('refresh-btn');
+            if (refreshBtn) {
+              refreshBtn.addEventListener('click', function () {
+                if (!_cachedConsigneeId) return;
+                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.package_filter_use('refresh'); } catch (_e) {} }
+                CRBOXPortalAPI.clearUserInfoCache();
+                _applyFiltersFromUI(_cachedConsigneeId);
+              });
+            }
 
             var sortBy = document.getElementById('sort-by');
             if (sortBy) {
