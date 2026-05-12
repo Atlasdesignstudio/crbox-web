@@ -292,6 +292,9 @@
                 </div>
             </div>
 
+            <!-- Diagnostic line: only visible when API returns 0 packages -->
+            <p id="pkg-debug-line" class="hidden text-xs text-gray-400 font-mono text-center mb-2 px-4"></p>
+
             <!-- Barra de búsqueda y filtros mejorada -->
             <div class="bg-white rounded-xl shadow-md border border-gray-100 mb-8 overflow-hidden">
                 <div class="p-6 border-b border-gray-100">
@@ -2705,13 +2708,25 @@
           }
         }, 8000);
 
+        var _startArg = startDate  || CRBOXPortalAPI.last30Days();
+        var _endArg   = endDate    || CRBOXPortalAPI.defaultEndDate();
+        var _trackArg = tracking   || '';
+        var _statArg  = status     || '1000';
+        console.log('[CRBOX mis-paquetes] getPackages call →', {
+          idConsignee : idConsignee,
+          start       : _startArg,
+          end         : _endArg,
+          tracking    : _trackArg,
+          status      : _statArg
+        });
         CRBOXPortalAPI.getPackages(idConsignee,
-          startDate  || CRBOXPortalAPI.last30Days(),
-          endDate    || CRBOXPortalAPI.defaultEndDate(),
-          tracking   || '',
-          status     || '1000')
+          _startArg, _endArg, _trackArg, _statArg)
         .then(function (data) {
           clearTimeout(_slowTimer);
+          console.log('[CRBOX mis-paquetes] getPackages raw response →',
+            'type=' + (data === null ? 'null' : Array.isArray(data) ? 'array[' + data.length + ']' : typeof data),
+            'keys=' + (data && typeof data === 'object' && !Array.isArray(data) ? Object.keys(data).join(',') : 'n/a'),
+            data);
           // Safely unwrap the API envelope regardless of shape.
           // The CRBOX portal may return: a bare array, a keyed object, an
           // ASP.NET $values wrapper, or null on a malformed body — all handled.
@@ -2732,6 +2747,7 @@
             if (!raw && Array.isArray(data.$values)) raw = data.$values;
             if (!raw) raw = [];
           }
+          console.log('[CRBOX mis-paquetes] unwrapped raw.length =', raw.length);
           var packages = raw.map(function (r) { return CRBOXPortalAPI.mapPackage(r); });
           _cachedPackages = packages;
           // Pass package pool to the grouping flow so selector can show MIAMI packages.
@@ -2784,6 +2800,22 @@
 
           _renderStats(_displayPackages);
           _renderAll(_displayPackages, true);
+          // Visible diagnostic — only shown to admins when 0 packages are returned.
+          // Helps pinpoint the root cause without needing DevTools.
+          (function () {
+            var _dbgEl = document.getElementById('pkg-debug-line');
+            if (!_dbgEl) return;
+            if (packages.length === 0) {
+              var _dataType = data === null ? 'null'
+                : Array.isArray(data) ? 'array[' + data.length + ']'
+                : (typeof data + '{keys:' + (data ? Object.keys(data).join(',') : '') + '}');
+              _dbgEl.textContent = '[debug] API returned 0 pkgs | idCons=' + idConsignee +
+                ' | dataType=' + _dataType + ' | rawLen=' + raw.length;
+              _dbgEl.classList.remove('hidden');
+            } else {
+              _dbgEl.classList.add('hidden');
+            }
+          }());
           if (tracking && window.CRBOX && CRBOX.track) {
             try {
               var _statusCatMap = {
