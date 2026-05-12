@@ -2693,7 +2693,7 @@
             '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando paquetes...</div>';
         }
 
-        // Show a "taking longer than expected" nudge after 8 s if the spinner
+        // Show a "taking longer than expected" nudge after 5 s if the spinner
         // is still in the tbody (i.e. neither .then nor .catch has fired yet).
         var _slowTimer = setTimeout(function () {
           if (tbody.querySelector('.fa-spinner')) {
@@ -2706,7 +2706,7 @@
                 '</span>' +
               '</td></tr>';
           }
-        }, 8000);
+        }, 5000);
 
         var _startArg = startDate  || CRBOXPortalAPI.last30Days();
         var _endArg   = endDate    || CRBOXPortalAPI.defaultEndDate();
@@ -2847,12 +2847,20 @@
         })
         .catch(function (err) {
           clearTimeout(_slowTimer);
-          if (err && err.isAuthError) return; // redirect already in flight
-          console.warn('[CRBOX] getPackages error:', err);
-          if (window.CRBOX && CRBOX.track) { try { CRBOX.track.api_error('network'); } catch (_e) {} }
-          var errMsg = '<i class="fas fa-exclamation-triangle mr-2"></i>' +
-            'No se pudieron cargar los paquetes. ' +
-            '<button onclick="location.reload();" class="underline font-medium">Reintentar</button>';
+          console.error('[CRBOX] getPackages error (isAuthError=' + (err && err.isAuthError) + '):', err);
+          if (window.CRBOX && CRBOX.track) { try { CRBOX.track.api_error(err && err.isAuthError ? 'auth' : 'network'); } catch (_e) {} }
+          var errMsg;
+          if (err && err.isAuthError) {
+            // Token was rejected by the server — redirect is in flight, but show
+            // a message in case the navigation is delayed or blocked.
+            errMsg = '<i class="fas fa-lock mr-2"></i>' +
+              'Tu sesión ha expirado. ' +
+              '<button onclick="location.href=\'login.html\';" class="underline font-medium">Iniciar sesión</button>';
+          } else {
+            errMsg = '<i class="fas fa-exclamation-triangle mr-2"></i>' +
+              'No se pudieron cargar los paquetes. ' +
+              '<button onclick="location.reload();" class="underline font-medium">Reintentar</button>';
+          }
           tbody.innerHTML = '<tr><td colspan="15" class="text-center py-8 text-orange-500">' + errMsg + '</td></tr>';
           if (gridView) {
             gridView.innerHTML = '<div class="col-span-3 text-center py-8 text-orange-500">' + errMsg + '</div>';
