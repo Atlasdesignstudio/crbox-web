@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu — handled by js/mobile-drawer.js
 
-    // Simple tracking form — no .tracking-form exists in current pages;
-    // package tracking is handled in mis-paquetes.html.
+    // Simple tracking form — .tracking-form does not exist in any current page;
+    // package tracking is handled in mis-paquetes.html via its own portal IIFE.
+    // This handler is kept as a safe fallback only: prevent default and do nothing.
     const trackingForm = document.querySelector('.tracking-form');
     if (trackingForm) {
         trackingForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            window.location.href = 'mis-paquetes.html';
         });
     }
 
