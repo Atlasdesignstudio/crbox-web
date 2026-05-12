@@ -19,6 +19,15 @@
     title.innerHTML = '<i class="fas fa-shopping-bag"></i> Solicitar Compra por Encargo';
     container.appendChild(title);
 
+    // Show identified product name when Gemini recognized the product from a URL
+    if (prefillData.productName && prefillData.productName.length > 2) {
+      var productRow = document.createElement('div');
+      productRow.className = 'crbox-widget-product-name';
+      productRow.innerHTML = '<i class="fas fa-tag" style="margin-right:.35rem;color:#FF6B00;"></i>' +
+        '<span>' + prefillData.productName.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
+      container.appendChild(productRow);
+    }
+
     function mkField(labelText, inputType, placeholder, value) {
       var row = document.createElement('div');
       row.className = 'crbox-widget-row';
@@ -78,7 +87,9 @@
       btn.textContent = 'Enviando…';
 
       var payload = {
-        product_name:       'Solicitud vía asistente CRBox',
+        product_name:       (prefillData.productName && prefillData.productName.length > 2)
+                              ? prefillData.productName
+                              : 'Solicitud vía asistente CRBox',
         customer_email:     email,
         declared_value_usd: 1,
         customer_name:      name || null,

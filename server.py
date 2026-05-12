@@ -13076,6 +13076,7 @@ Provincias remotas: {deliv_remote_text}
 2. Be warm and conversational, not formal or robotic.
 3. When the user asks about shipping cost / weight / price → respond with a helpful estimate AND include a JSON signal to show the calculator widget.
 4. When the user mentions a product they want to bring/buy for the first time → respond conversationally: acknowledge the product, mention the tariff category and range if available, and warmly invite them to confirm. Do NOT emit a quote-form widget on a first mention. Only emit the quote-form widget when the user explicitly signals they are ready to proceed (e.g. "sí", "dale", "cotiza", "hazme la cotización", "quiero cotizar", "listo"). Example first-mention reply: "¡Qué buena idea! Las flores artificiales de LEGO entran como juguetes y típicamente pagan entre 13–20% de arancel. Las traemos desde Miami en 2–4 días hábiles. ¿Te preparo una cotización formal?"
+20. PRODUCT URL RULE: When you see an [ENLACE DE PRODUCTO DETECTADO] context tag, the user has pasted a product link. Use your training knowledge to identify the real product name and model (do not just repeat the URL slug). Respond by: (a) naming the product naturally (e.g. "El DEWALT DCK240C2 es un combo de taladro e impacto"), (b) mentioning its tariff category and estimated rate for Costa Rica, (c) noting the typical price range if you know it, (d) warmly inviting the user to confirm. When the user confirms, emit the quote-form widget with the identified product_name included in the data. NEVER show just "Producto por revisar" in your reply — always try to identify the product from the URL slug using your knowledge.
 5. When the user asks if an item is legal/allowed/restricted → give a clear answer AND include a JSON signal for the compliance widget.
 6. When relevant, add a "deeplink" (relative path only) to guide the user to the right page.
 7. NEVER make up facts not in this knowledge base. If unsure, say "Te recomiendo contactarnos directamente" and give the phone/email.
@@ -13102,7 +13103,7 @@ Your response MUST be a JSON object (no markdown, no code fences) with this exac
 
 Widget data shapes:
 - calculator: {{ "weight": 1.5, "category": "celulares" }}  (weight and category are optional hints)
-- quote-form: {{ "url": "" }}
+- quote-form: {{ "url": "", "product_name": "" }}  (product_name is optional but strongly preferred — fill it when you identified the product from a URL or context)
 - compliance: {{ "item": "Suplementos", "classification": "restricted"|"allowed"|"prohibited", "reason": "...", "note": "..." }}
 """
 
@@ -13277,6 +13278,61 @@ def _handle_ai_chat(handler):
     # Calculator and compliance widgets are still allowed on the first turn when directly relevant.
     if body.get('first_mention') is True:
         page_context += '[PRIMERA MENCIÓN: Este es el primer mensaje del usuario. Responde de forma conversacional y cálida. NO emitas el widget quote-form en este turno — solo responde con texto y termina con una pregunta amigable para invitar al usuario a confirmar. Los widgets calculator y compliance sí se pueden usar si el usuario pregunta directamente sobre costos o legalidad.] '
+
+    # Auto-detect product URL in the user message and inject a product hint so
+    # Gemini can use its own training knowledge to identify the product precisely —
+    # no extra network call needed for common retailers (Amazon, Walmart, etc.).
+    _url_hint_injected = False
+    try:
+        import re as _re2
+        _url_match = _re2.search(r'https?://[^\s<>"{}|\\^`\[\]]+', user_text)
+        if _url_match:
+            _det_url = _url_match.group(0).rstrip('.,;)>')
+            from urllib.parse import urlparse as _urlparse, unquote as _unquote, parse_qs as _parse_qs
+            _pu = _urlparse(_det_url)
+            _det_host = _pu.netloc.replace('www.', '').lower()
+            _path_parts = [p for p in _pu.path.split('/') if p and len(p) > 1]
+            _slug = ''
+            _qs = _parse_qs(_pu.query)
+            if 'amazon.' in _det_host:
+                # Search query param takes priority
+                _k = (_qs.get('k') or _qs.get('s') or [''])[0]
+                if len(_k) > 3:
+                    _slug = _k.replace('+', ' ')
+                else:
+                    # Product title slug sits BEFORE /dp/ in Amazon URLs
+                    _dp_idx = next((i for i, p in enumerate(_path_parts) if p == 'dp'), -1)
+                    if _dp_idx > 0:
+                        _slug = _path_parts[_dp_idx - 1].replace('-', ' ')
+                    elif _path_parts:
+                        _slug = max(_path_parts, key=len).replace('-', ' ')
+            elif 'ebay.' in _det_host:
+                import re as _re3
+                _itm = _re3.search(r'/itm/([^/]+)', _pu.path)
+                if _itm:
+                    _slug = _unquote(_itm.group(1)).replace('-', ' ')
+            else:
+                # Generic: pick the longest meaningful path segment
+                _segs = [p for p in _path_parts
+                         if len(p) > 5 and not p.isdigit()
+                         and _re2.search(r'[a-zA-Z]', p)
+                         and '=' not in p]
+                if _segs:
+                    _segs.sort(key=len, reverse=True)
+                    _slug = _unquote(_segs[0]).replace('-', ' ').replace('_', ' ')
+            _slug = _slug.strip()[:80]
+            if len(_slug) > 4:
+                page_context += (
+                    f'[ENLACE DE PRODUCTO DETECTADO — tienda: {_det_host}; '
+                    f'producto según URL: "{_slug}" — '
+                    f'Usa tu conocimiento para identificar el nombre exacto del producto, '
+                    f'su categoría de importación y arancel estimado para Costa Rica. '
+                    f'Responde mencionando el nombre real del producto (no solo el slug de la URL). '
+                    f'Cuando el usuario confirme, emite el widget quote-form con el product_name identificado.] '
+                )
+                _url_hint_injected = True
+    except Exception:
+        pass  # Never block chat for URL-parsing errors
 
     # ── 4. Build Gemini contents from sanitised history ───────────────────────
     contents = []

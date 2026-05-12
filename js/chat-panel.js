@@ -309,7 +309,7 @@
     }
     if (type === 'quote-form' && global.CHAT_QUOTE) {
       _lastWidgetType = 'quote';
-      return CHAT_QUOTE.createQuoteWidget({ url: data.url });
+      return CHAT_QUOTE.createQuoteWidget({ url: data.url, productName: data.product_name || '' });
     }
     if (type === 'compliance') {
       return _buildComplianceWidget(data);
@@ -473,9 +473,18 @@
           var pq = u.searchParams.get('k') || u.searchParams.get('s') || '';
           if (pq.length > 3) return pq.replace(/\+/g, ' ').trim().substring(0, 80);
           var parts = path.split('/').filter(Boolean);
-          for (var i = 0; i < parts.length; i++) {
-            if (/^[A-Z0-9]{10}$/.test(parts[i]) && parts[i + 1])
-              return parts[i + 1].replace(/-/g, ' ').substring(0, 80);
+          // Amazon URL structure: /product-title-slug/dp/ASIN[/ref=...]
+          // The product title slug sits BEFORE "dp", not after the ASIN.
+          var dpIdx = parts.indexOf('dp');
+          if (dpIdx > 0) {
+            return parts[dpIdx - 1].replace(/-/g, ' ').substring(0, 80);
+          }
+          // Fallback: if no "dp" segment, look for the 10-char ASIN and use
+          // the segment two positions before it (slug → dp → ASIN).
+          for (var i = 2; i < parts.length; i++) {
+            if (/^[A-Z0-9]{10}$/.test(parts[i])) {
+              return parts[i - 2].replace(/-/g, ' ').substring(0, 80);
+            }
           }
         }
         // eBay: /itm/product-title/...

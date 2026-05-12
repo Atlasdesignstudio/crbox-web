@@ -400,6 +400,20 @@
 }
 
 /* ── Inline quote widget ──────────────────────────────────────────────────── */
+.crbox-widget-product-name {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: .35rem .6rem;
+  font-size: .78rem;
+  font-weight: 600;
+  color: #9a3412;
+  margin-bottom: .6rem;
+  word-break: break-word;
+}
 .crbox-widget-quote {
   background: #fff;
   border: 1.5px solid #e5e7eb;
