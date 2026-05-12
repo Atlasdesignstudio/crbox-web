@@ -3260,6 +3260,20 @@
                 background: rgba(255,255,255,0.72) !important;
                 border-color: rgba(255,255,255,0.5) !important;
             }
+            .cqd-ship-opt.cqd-ship-active {
+                background: #fff7ed !important;
+                border-color: #FF6B00 !important;
+            }
+            .cqd-ship-opt.cqd-ship-active::after {
+                content: '' !important;
+                position: absolute !important; top: .45rem !important; right: .45rem !important;
+                width: 7px !important; height: 7px !important;
+                border-radius: 50% !important; background: #FF6B00 !important;
+            }
+            .cqd-ship-opt:hover:not(.cqd-ship-active) {
+                border-color: rgba(255,107,0,.45) !important;
+                background: rgba(255,255,255,0.88) !important;
+            }
 
             /* Action buttons — frosted white with orange text */
             .cqd-btn:not(.primary) {
