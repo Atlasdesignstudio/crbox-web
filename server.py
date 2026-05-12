@@ -43,6 +43,26 @@ except ImportError:
     print('[AI] WARNING: google-genai not installed — AI extraction disabled')
 
 
+_GEMINI_CALL_TIMEOUT = 20  # seconds — hard cap for any single Gemini SDK call
+
+
+def _timed_genai_call(fn, *args, **kwargs):
+    """Run a Gemini SDK call in a worker thread with a hard timeout.
+
+    Raises TimeoutError if the call exceeds _GEMINI_CALL_TIMEOUT seconds so the
+    outer extract/classify handlers can classify the failure as upstream_timeout
+    (504) instead of hanging the request thread indefinitely.
+    All other exceptions propagate from the worker thread unchanged.
+    """
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError as _FTout
+    with ThreadPoolExecutor(max_workers=1) as _ex:
+        _fut = _ex.submit(fn, *args, **kwargs)
+        try:
+            return _fut.result(timeout=_GEMINI_CALL_TIMEOUT)
+        except _FTout:
+            raise TimeoutError(f'Gemini call timed out after {_GEMINI_CALL_TIMEOUT}s')
+
+
 def _verify_gemini_model_at_startup():
     """Run once at startup: confirm the configured model exists and supports generateContent.
 
@@ -656,7 +676,8 @@ def _call_gemini(content):
             categories=', '.join(_CRBOX_CATEGORIES),
             content=content,
         )
-        response = client.models.generate_content(
+        response = _timed_genai_call(
+            client.models.generate_content,
             model=_GEMINI_MODEL,
             contents=prompt,
             config=_gtypes.GenerateContentConfig(
@@ -760,7 +781,8 @@ def _call_gemini_draft(context):
         from google.genai import types as _gtypes
         client = genai.Client(api_key=_GEMINI_API_KEY)
         prompt = _DRAFT_PROMPT_TEMPLATE.format(**context)
-        response = client.models.generate_content(
+        response = _timed_genai_call(
+            client.models.generate_content,
             model=_GEMINI_MODEL,
             contents=prompt,
             config=_gtypes.GenerateContentConfig(
@@ -947,7 +969,8 @@ def _call_gemini_estimate(product_name, category):
             category=category or 'otros',
         )
         from google.genai import types as _gtypes2
-        response = client.models.generate_content(
+        response = _timed_genai_call(
+            client.models.generate_content,
             model=_GEMINI_MODEL,
             contents=prompt,
             config=_gtypes2.GenerateContentConfig(
@@ -1196,7 +1219,8 @@ def _call_gemini_search_fallback(url):
             url=url,
             categories=', '.join(_CRBOX_CATEGORIES),
         )
-        response = client.models.generate_content(
+        response = _timed_genai_call(
+            client.models.generate_content,
             model=_GEMINI_MODEL,
             contents=prompt,
             config=_gtypes.GenerateContentConfig(
@@ -1248,7 +1272,8 @@ def _call_gemini_search_fallback(url):
                 + (_tail[1] if len(_tail) > 1 else '')
             )
             try:
-                response2 = client.models.generate_content(
+                response2 = _timed_genai_call(
+                    client.models.generate_content,
                     model=_GEMINI_MODEL,
                     contents=no_search_prompt,
                     config=_gtypes.GenerateContentConfig(
@@ -1623,7 +1648,8 @@ def _gemini_classify(product_name, product_url=None, price_usd=None):
             url_context=url_ctx,
             price_context=price_ctx,
         )
-        response = client.models.generate_content(
+        response = _timed_genai_call(
+            client.models.generate_content,
             model=_GEMINI_MODEL,
             contents=prompt,
             config=_gtypes.GenerateContentConfig(
@@ -1718,13 +1744,13 @@ def _handle_ai_classify(handler):
         length = int(handler.headers.get('Content-Length', 0))
         body   = json.loads(handler.rfile.read(length)) if length else {}
     except Exception:
-        handler._json_response(400, {'error': 'bad_request'})
+        handler._json_error(400, 'Solicitud inválida.', code='bad_request')
         return
 
     ip = (handler.headers.get('X-Forwarded-For') or
           handler.client_address[0] or '0.0.0.0').split(',')[0].strip()
     if not _classify_rate_check(ip):
-        handler._json_response(429, {'error': 'rate_limit'})
+        handler._json_error(429, 'Demasiadas solicitudes. Intenta de nuevo más tarde.', code='rate_limit')
         return
 
     product_name = str(body.get('product_name') or '').strip()[:300]
@@ -1734,7 +1760,7 @@ def _handle_ai_classify(handler):
     except (TypeError, ValueError):
         price_usd = None
     if not product_name or len(product_name) < 2:
-        handler._json_response(400, {'error': 'product_name required (min 2 chars)'})
+        handler._json_error(400, 'product_name requerido (mínimo 2 caracteres).', code='validation_error')
         return
 
     # Context-free requests use cache; contextual requests (URL/price) bypass it
@@ -1823,7 +1849,7 @@ def _do_handle_ai_extract(handler):
         length = int(handler.headers.get('Content-Length', 0))
         body   = json.loads(handler.rfile.read(length)) if length else {}
     except Exception:
-        handler._json_response(400, {'error': 'bad_request'})
+        handler._json_error(400, 'Solicitud inválida.', code='bad_request')
         return
 
     url = (body.get('url') or '').strip()
@@ -8967,11 +8993,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         allowed_set = _allowed_origins()
         if not allowed_set:
             if _is_prod():
-                self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
+                self._json_error(403, 'Cross-origin requests are not permitted.', code='forbidden_origin')
                 return True
             return False
         if origin not in allowed_set:
-            self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
+            self._json_error(403, 'Cross-origin requests are not permitted.', code='forbidden_origin')
             return True
         return False
 
@@ -8998,10 +9024,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         origin = self.headers.get('Origin', '')
         allowed_set = _allowed_origins()
         if origin and allowed_set and origin not in allowed_set:
-            self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
+            self._json_error(403, 'Cross-origin requests are not permitted.', code='forbidden_origin')
             return
         if origin and not allowed_set and _is_prod():
-            self._json_response(403, {'error': 'Cross-origin requests are not permitted'})
+            self._json_error(403, 'Cross-origin requests are not permitted.', code='forbidden_origin')
             return
         self.send_response(204)
         self.end_headers()
@@ -9131,7 +9157,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         casillero_id = self._portal_auth()
         if not casillero_id:
-            self._json_response(401, {'error': 'Autenticación requerida.'})
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
 
         filepath = os.path.join(self._INVOICE_UPLOAD_DIR, filename)
@@ -9163,13 +9189,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         _global_rate_exempt = {'/api/chat'}
         if not self.path.startswith('/admin') and self.path not in _global_rate_exempt:
             if not _check_rate_limit(client_ip):
-                self._json_response(429, {'error': 'Demasiadas solicitudes. Espera un momento e intenta de nuevo.'})
+                self._json_error(429, 'Demasiadas solicitudes. Espera un momento e intenta de nuevo.', code='rate_limit')
                 return
         is_upload = self.path in ('/api/invoice-upload', '/api/proxy/saveBill')
         max_body = _MAX_BODY_UPLOAD if is_upload else _MAX_BODY_REGULAR
         content_length = int(self.headers.get('Content-Length', 0) or 0)
         if content_length > max_body:
-            self._json_response(413, {'error': 'Payload too large'})
+            self._json_error(413, 'Payload too large', code='payload_too_large')
             return
 
         if self.path == '/admin/login':
@@ -9287,8 +9313,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(200, {'ok': True, 'smtp': 'ok'})
         else:
             print(f'[HEALTH] SMTP probe failed: {err}')
-            self._json_response(503, {'ok': False, 'smtp': 'error',
-                                      'error': 'SMTP connectivity check failed'})
+            self._json_error(503, 'SMTP connectivity check failed.', code='smtp_unavailable')
 
     # ── /send-quote ────────────────────────────────────────────────────────
     def _handle_send_quote(self):
@@ -9301,7 +9326,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         if not all([smtp_host, smtp_user, smtp_pass]):
             _log_quote_submission('', '', '', 'failed', 'smtp_not_configured', ip=client_ip)
-            self._json_response(503, {'ok': False, 'error': 'El servicio de email no está configurado en el servidor.'})
+            self._json_error(503, 'El servicio de email no está configurado en el servidor.',
+                             code='smtp_not_configured')
             return
 
         try:
@@ -9309,7 +9335,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             data = json.loads(raw)
         except Exception:
             _log_quote_submission('', '', '', 'failed', 'invalid_request_body', ip=client_ip)
-            self._json_response(400, {'ok': False, 'error': 'Solicitud inválida.'})
+            self._json_error(400, 'Solicitud inválida.', code='bad_request')
             return
 
         # Strip CR/LF from any value that ends up in a MIME header to block
@@ -9325,13 +9351,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         if not user_email or not body_text:
             _log_quote_submission(user_name, user_email, subject, 'failed', 'missing_required_fields', ip=client_ip)
-            self._json_response(400, {'ok': False, 'error': 'Faltan campos requeridos (correo o cuerpo del mensaje).'})
+            self._json_error(400, 'Faltan campos requeridos (correo o cuerpo del mensaje).',
+                             code='validation_error')
             return
 
         # Basic email format guard (frontend validates too, but defense in depth)
         if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', user_email):
             _log_quote_submission(user_name, user_email, subject, 'failed', 'invalid_email_format', ip=client_ip)
-            self._json_response(400, {'ok': False, 'error': 'Correo electrónico inválido.'})
+            self._json_error(400, 'Correo electrónico inválido.', code='validation_error')
             return
 
         # Build MIME message
@@ -9369,13 +9396,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         except smtplib.SMTPAuthenticationError:
             _log_quote_submission(user_name, user_email, subject, 'failed', 'SMTPAuthenticationError', ip=client_ip)
-            self._json_response(502, {'ok': False, 'error': 'Error de autenticación SMTP. Verifica las credenciales del servidor.'})
+            self._json_error(502, 'Error de autenticación SMTP. Verifica las credenciales del servidor.',
+                             code='smtp_auth_error')
         except smtplib.SMTPException as e:
             _log_quote_submission(user_name, user_email, subject, 'failed', f'SMTPException: {e}', ip=client_ip)
-            self._json_response(502, {'ok': False, 'error': 'No se pudo enviar el email. Intenta de nuevo.'})
+            self._json_error(502, 'No se pudo enviar el email. Intenta de nuevo.', code='smtp_error')
         except Exception as e:
             _log_quote_submission(user_name, user_email, subject, 'failed', f'Exception: {e}', ip=client_ip)
-            self._json_response(500, {'ok': False, 'error': 'Error interno del servidor al enviar el email.'})
+            self._json_error(500, 'Error interno del servidor al enviar el email.', code='server_error')
 
     # ── POST /api/solicitudes ──────────────────────────────────────────────
     def _handle_solicitudes_post(self):
@@ -9445,7 +9473,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             errors.append('declared_value_usd debe ser un número mayor que 0.')
 
         if errors:
-            self._json_response(400, {'ok': False, 'errors': errors})
+            self._json_response(400, {'ok': False, 'errors': errors, 'code': 'validation_error'})
             return
 
         # Normalise single-product submissions into one-item products array
@@ -9559,7 +9587,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 conn.close()
         except Exception as exc:
             print(f'[SOLICITUDES] DB error: {exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error interno al guardar la solicitud.'})
+            self._json_error(500, 'Error interno al guardar la solicitud.', code='server_error')
             return
 
         print(f'[SOLICITUDES] Stored {scb_id} for {customer_email}')
@@ -9605,7 +9633,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         sales_token = _effective_sales_token()
         provided_token = self.headers.get('X-Sales-Token', '').strip()
         if not provided_token or provided_token != sales_token:
-            self._json_response(401, {'ok': False, 'error': 'Token inválido o faltante.'})
+            self._json_error(401, 'Token inválido o faltante.', code='auth_required')
             return
 
         try:
@@ -9620,7 +9648,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         note = (data.get('note') or '').strip() or None
 
         if new_status not in _LEGAL_TRANSITIONS:
-            self._json_response(400, {'ok': False, 'error': f'Estado desconocido: {new_status}'})
+            self._json_error(400, f'Estado desconocido: {new_status}', code='validation_error')
             return
 
         try:
@@ -9631,14 +9659,15 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 ).fetchone()
                 if row is None:
                     conn.close()
-                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    self._json_error(404, f'{scb_id} no encontrado.', code='not_found')
                     return
 
                 current_status = row['status']
                 if new_status not in _LEGAL_TRANSITIONS.get(current_status, set()):
                     conn.close()
-                    self._json_response(400, {'ok': False, 'error':
-                        f'Transición inválida: {current_status} → {new_status}'})
+                    self._json_error(400,
+                        f'Transición inválida: {current_status} → {new_status}',
+                        code='validation_error')
                     return
 
                 now_iso = _now_iso()
@@ -9673,7 +9702,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                                        'from': current_status, 'to': new_status})
         except Exception as exc:
             print(f'[SOLICITUDES] Status update error: {exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+            self._json_error(500, 'Error interno.', code='server_error')
 
     # ── Portal auth helper ─────────────────────────────────────────────────
     _CRBOX_API_BASE = 'https://clients.crbox.cr/api/crboxwebapi'
@@ -9792,7 +9821,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def _handle_solicitudes_list(self):
         casillero_id = self._portal_auth()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
 
         # Optional ?status= filter
@@ -9823,13 +9852,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(200, {'ok': True, 'solicitudes': results})
         except Exception as exc:
             print(f'[SOLICITUDES] List error: {exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+            self._json_error(500, 'Error interno.', code='server_error')
 
     # ── GET /api/solicitudes/:id ───────────────────────────────────────────
     def _handle_solicitudes_detail(self, scb_id):
         casillero_id = self._portal_auth()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
 
         try:
@@ -9841,7 +9870,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
                 if row is None:
                     conn.close()
-                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    self._json_error(404, f'{scb_id} no encontrado.', code='not_found')
                     return
 
                 row_dict = dict(row)
@@ -9852,7 +9881,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 row_cas = (row_dict.get('casillero_id') or '').strip()
                 if not row_cas or row_cas != casillero_id:
                     conn.close()
-                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    self._json_error(404, f'{scb_id} no encontrado.', code='not_found')
                     return
 
                 history = conn.execute(
@@ -9870,16 +9899,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(200, {'ok': True, 'solicitud': row_dict})
         except Exception as exc:
             print(f'[SOLICITUDES] Detail error: {exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+            self._json_error(500, 'Error interno.', code='server_error')
 
     # ── GET /api/solicitudes/check-orphaned ───────────────────────────────
     def _handle_check_orphaned(self):
         casillero_id, email = self._portal_auth_full()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
         if not email or '@' not in email:
-            self._json_response(400, {'ok': False, 'error': 'Email requerido.'})
+            self._json_error(400, 'Email requerido.', code='validation_error')
             return
         try:
             with _DB_LOCK:
@@ -9900,16 +9929,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             })
         except Exception as exc:
             print(f'[SOLICITUDES] check-orphaned error: {exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+            self._json_error(500, 'Error interno.', code='server_error')
 
     # ── POST /api/solicitudes/link-guest ──────────────────────────────────
     def _handle_link_guest(self):
         casillero_id, email = self._portal_auth_full()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
         if not email or '@' not in email:
-            self._json_response(400, {'ok': False, 'error': 'Email requerido.'})
+            self._json_error(400, 'Email requerido.', code='validation_error')
             return
         try:
             with _DB_LOCK:
@@ -9926,18 +9955,18 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(200, {'ok': True, 'linked': linked})
         except Exception as exc:
             print(f'[SOLICITUDES] link-guest error: {exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+            self._json_error(500, 'Error interno.', code='server_error')
 
     # ── POST /api/solicitudes/check-duplicate ─────────────────────────────
     def _handle_check_duplicate(self):
         try:
             raw = self._read_body(_MAX_BODY_REGULAR)
             if raw is None:
-                self._json_response(413, {'ok': False, 'error': 'Payload too large'})
+                self._json_error(413, 'Payload too large.', code='payload_too_large')
                 return
             data = json.loads(raw.decode('utf-8'))
         except Exception:
-            self._json_response(400, {'ok': False, 'error': 'Solicitud inválida.'})
+            self._json_error(400, 'Solicitud inválida.', code='bad_request')
             return
 
         product_name   = (data.get('product_name') or '').strip()
@@ -10013,7 +10042,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._json_response(200, {'ok': True, 'duplicate': False, 'existing_id': None})
         except Exception as exc:
             print(f'[SOLICITUDES] check-duplicate error: {exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+            self._json_error(500, 'Error interno.', code='server_error')
 
     # ── POST /api/proxy/saveBill ───────────────────────────────────────────
     # Server-side proxy for the WordPress invoice-file upload endpoint.
@@ -10030,12 +10059,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         try:
             ct = self.headers.get('Content-Type', '')
             if not ct.lower().startswith('multipart/form-data'):
-                self._json_response(400, {'error': 'Content-Type must be multipart/form-data'})
+                self._json_error(400, 'Content-Type must be multipart/form-data.', code='bad_request')
                 return
 
             length = int(self.headers.get('Content-Length', 0))
             if length <= 0 or length > self._SAVEBILL_MAX:
-                self._json_response(413, {'error': 'Tamaño de archivo inválido o demasiado grande.'})
+                self._json_error(413, 'Tamaño de archivo inválido o demasiado grande.', code='payload_too_large')
                 return
 
             body = self.rfile.read(length)
@@ -10080,7 +10109,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         except Exception as exc:
             print(f'[PROXY/saveBill] Unexpected error: {exc}')
-            self._json_response(502, {'error': 'Error de comunicación con el servicio externo.'})
+            self._json_error(502, 'Error de comunicación con el servicio externo.', code='upstream_error')
 
     # ── POST /api/invoice-upload ───────────────────────────────────────────
     # Stores the invoice file locally and returns a public URL so the client
@@ -10105,13 +10134,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         # Require portal auth so only logged-in clients can store files
         casillero_id = self._portal_auth()
         if not casillero_id:
-            self._json_response(401, {'error': 'Autenticación requerida.'})
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
 
         ct     = self.headers.get('Content-Type', '')
         length = int(self.headers.get('Content-Length', 0))
         if length <= 0 or length > self._INVOICE_MAX_BYTES:
-            self._json_response(413, {'error': 'Tamaño de archivo inválido o demasiado grande (máx. 2 MB).'})
+            self._json_error(413, 'Tamaño de archivo inválido o demasiado grande (máx. 2 MB).', code='payload_too_large')
             return
 
         # Read the full body into memory before parsing so there are no
@@ -10120,7 +10149,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             body = self.rfile.read(length)
         except Exception as exc:
             print(f'[INVOICE_UPLOAD] Body read error: {exc}')
-            self._json_response(400, {'error': 'No se pudo leer el cuerpo de la solicitud.'})
+            self._json_error(400, 'No se pudo leer el cuerpo de la solicitud.', code='bad_request')
             return
 
         # Parse the multipart body using email.parser (stdlib, no deprecated cgi).
@@ -10130,7 +10159,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             msg     = _ep.BytesParser(policy=_epol.compat32).parsebytes(raw_msg)
         except Exception as exc:
             print(f'[INVOICE_UPLOAD] Multipart parse error: {exc}')
-            self._json_response(400, {'error': 'No se pudo leer el formulario. Intenta de nuevo.'})
+            self._json_error(400, 'No se pudo leer el formulario. Intenta de nuevo.', code='bad_request')
             return
 
         # Walk the MIME tree to find the part named "invoice"
@@ -10161,7 +10190,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             break
 
         if not file_bytes:
-            self._json_response(400, {'error': 'Campo "invoice" requerido o archivo vacío.'})
+            self._json_error(400, 'Campo "invoice" requerido o archivo vacío.', code='validation_error')
             return
 
         orig_name = orig_name.strip()
@@ -10172,7 +10201,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             _, dot, orig_ext = orig_name.rpartition('.')
             ext = ('.' + orig_ext.lower()) if dot else '.bin'
             if ext not in ('.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp'):
-                self._json_response(415, {'error': 'Tipo de archivo no permitido. Usa PDF, JPG, PNG, GIF o WEBP.'})
+                self._json_error(415, 'Tipo de archivo no permitido. Usa PDF, JPG, PNG, GIF o WEBP.', code='unsupported_media_type')
                 return
 
         # Persist with a UUID name so the path is unguessable
@@ -10184,7 +10213,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 fh.write(file_bytes)
         except Exception as exc:
             print(f'[INVOICE_UPLOAD] Write error: {exc}')
-            self._json_response(500, {'error': 'Error al guardar el archivo. Intenta de nuevo.'})
+            self._json_error(500, 'Error al guardar el archivo. Intenta de nuevo.', code='server_error')
             return
 
         print(f'[INVOICE_UPLOAD] Saved: {filename} ({len(file_bytes)} bytes) casillero={casillero_id}')
@@ -10198,7 +10227,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def _handle_cancel_solicitud(self, scb_id):
         casillero_id = self._portal_auth()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
         try:
             with _DB_LOCK:
@@ -10208,20 +10237,19 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 ).fetchone()
                 if row is None:
                     conn.close()
-                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    self._json_error(404, f'{scb_id} no encontrado.', code='not_found')
                     return
                 row_dict = dict(row)
                 row_cas = (row_dict.get('casillero_id') or '').strip()
                 if not row_cas or row_cas != casillero_id:
                     conn.close()
-                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    self._json_error(404, f'{scb_id} no encontrado.', code='not_found')
                     return
                 if row_dict.get('status') != 'enviada':
                     conn.close()
-                    self._json_response(400, {
-                        'ok': False,
-                        'error': 'Solo se pueden cancelar solicitudes en estado "Enviada".'
-                    })
+                    self._json_error(400,
+                        'Solo se pueden cancelar solicitudes en estado "Enviada".',
+                        code='invalid_transition')
                     return
                 now_iso  = _now_iso()
                 hist_id  = _uuid4_hex()
@@ -10254,7 +10282,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(200, {'ok': True, 'id': scb_id, 'status': 'cancelada'})
         except Exception as exc:
             print(f'[SOLICITUDES] Cancel error: {exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+            self._json_error(500, 'Error interno.', code='server_error')
 
     # ── POST /api/solicitudes/:id/intent ───────────────────────────────────
     def _handle_solicitudes_intent(self, scb_id):
@@ -10268,14 +10296,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         """
         casillero_id = self._portal_auth()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
         try:
             length = int(self.headers.get('Content-Length', 0))
             raw = self.rfile.read(length).decode('utf-8')
             data = json.loads(raw)
         except Exception:
-            self._json_response(400, {'ok': False, 'error': 'Solicitud inválida.'})
+            self._json_error(400, 'Solicitud inválida.', code='bad_request')
             return
 
         intent = (data.get('intent') or '').strip()
@@ -10285,7 +10313,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             'cancel':  'cancelada',
         }
         if intent not in _INTENT_MAP:
-            self._json_response(400, {'ok': False, 'error': f'Intent inválido: {intent}'})
+            self._json_error(400, f'Intent inválido: {intent}', code='validation_error')
             return
 
         new_status = _INTENT_MAP[intent]
@@ -10303,20 +10331,19 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 ).fetchone()
                 if row is None:
                     conn.close()
-                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    self._json_error(404, f'{scb_id} no encontrado.', code='not_found')
                     return
                 row_dict = dict(row)
                 row_cas = (row_dict.get('casillero_id') or '').strip()
                 if not row_cas or row_cas != casillero_id:
                     conn.close()
-                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    self._json_error(404, f'{scb_id} no encontrado.', code='not_found')
                     return
                 if row_dict.get('status') != 'respondida':
                     conn.close()
-                    self._json_response(400, {
-                        'ok': False,
-                        'error': 'Solo se puede confirmar una intención en solicitudes respondidas.'
-                    })
+                    self._json_error(400,
+                        'Solo se puede confirmar una intención en solicitudes respondidas.',
+                        code='invalid_transition')
                     return
 
                 now_iso = _now_iso()
@@ -10356,7 +10383,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(200, {'ok': True, 'id': scb_id, 'new_status': new_status})
         except Exception as exc:
             print(f'[SOLICITUDES] Intent error: {exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+            self._json_error(500, 'Error interno.', code='server_error')
 
     # ── POST /api/solicitudes/:id/tracking ─────────────────────────────────
     def _handle_solicitudes_tracking(self, scb_id):
@@ -10367,19 +10394,19 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         """
         casillero_id = self._portal_auth()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Autenticación requerida.'})
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
         try:
             length = int(self.headers.get('Content-Length', 0))
             raw = self.rfile.read(length).decode('utf-8')
             data = json.loads(raw)
         except Exception:
-            self._json_response(400, {'ok': False, 'error': 'Solicitud inválida.'})
+            self._json_error(400, 'Solicitud inválida.', code='bad_request')
             return
 
         tracking = (data.get('tracking_number') or '').strip()
         if not tracking:
-            self._json_response(400, {'ok': False, 'error': 'Número de seguimiento requerido.'})
+            self._json_error(400, 'Número de seguimiento requerido.', code='validation_error')
             return
 
         try:
@@ -10390,20 +10417,19 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 ).fetchone()
                 if row is None:
                     conn.close()
-                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    self._json_error(404, f'{scb_id} no encontrado.', code='not_found')
                     return
                 row_dict = dict(row)
                 row_cas = (row_dict.get('casillero_id') or '').strip()
                 if not row_cas or row_cas != casillero_id:
                     conn.close()
-                    self._json_response(404, {'ok': False, 'error': f'{scb_id} no encontrado.'})
+                    self._json_error(404, f'{scb_id} no encontrado.', code='not_found')
                     return
                 if row_dict.get('status') != 'pendiente_compra_cliente':
                     conn.close()
-                    self._json_response(400, {
-                        'ok': False,
-                        'error': 'Esta acción solo aplica a solicitudes con compra propia pendiente.'
-                    })
+                    self._json_error(400,
+                        'Esta acción solo aplica a solicitudes con compra propia pendiente.',
+                        code='invalid_transition')
                     return
                 conn.execute(
                     'UPDATE quote_requests SET expected_tracking_number = ? WHERE id = ?',
@@ -10416,7 +10442,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(200, {'ok': True, 'id': scb_id, 'tracking_number': tracking})
         except Exception as exc:
             print(f'[SOLICITUDES] Tracking error: {exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error interno.'})
+            self._json_error(500, 'Error interno.', code='server_error')
 
     # ── /crbox-svc-token ───────────────────────────────────────────────────
     def _handle_svc_token(self):
@@ -10877,7 +10903,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         """
         casillero_id, _ = self._portal_auth_full()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
+            self._json_error(401, 'Sesión requerida o expirada.', code='auth_required')
             return
         with _DB_LOCK:
             conn = _get_db()
@@ -10906,20 +10932,20 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         """
         casillero_id, _ = self._portal_auth_full()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
+            self._json_error(401, 'Sesión requerida o expirada.', code='auth_required')
             return
         try:
             raw = self._read_body(_MAX_BODY_REGULAR)
             if raw is None:
-                self._json_response(413, {'ok': False, 'error': 'Payload demasiado grande.'})
+                self._json_error(413, 'Payload demasiado grande.', code='payload_too_large')
                 return
             group = json.loads(raw.decode('utf-8'))
         except Exception:
-            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            self._json_error(400, 'Datos inválidos.', code='bad_request')
             return
         gid = str(group.get('id') or '').strip()
         if not gid:
-            self._json_response(400, {'ok': False, 'error': 'ID de grupo requerido.'})
+            self._json_error(400, 'ID de grupo requerido.', code='validation_error')
             return
         now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
         with _DB_LOCK:
@@ -10945,16 +10971,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         """
         casillero_id, _ = self._portal_auth_full()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
+            self._json_error(401, 'Sesión requerida o expirada.', code='auth_required')
             return
         try:
             raw = self._read_body(_MAX_BODY_REGULAR)
             if raw is None:
-                self._json_response(413, {'ok': False, 'error': 'Payload demasiado grande.'})
+                self._json_error(413, 'Payload demasiado grande.', code='payload_too_large')
                 return
             updated_group = json.loads(raw.decode('utf-8'))
         except Exception:
-            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            self._json_error(400, 'Datos inválidos.', code='bad_request')
             return
         now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
         with _DB_LOCK:
@@ -10994,7 +11020,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             affected = cursor.rowcount
             conn.close()
         if affected == 0:
-            self._json_response(404, {'ok': False, 'error': 'Grupo no encontrado.'})
+            self._json_error(404, 'Grupo no encontrado.', code='not_found')
             return
         self._json_response(200, {'ok': True, 'group': updated_group})
 
@@ -11007,7 +11033,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         """
         casillero_id, _ = self._portal_auth_full()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
+            self._json_error(401, 'Sesión requerida o expirada.', code='auth_required')
             return
         with _DB_LOCK:
             conn = _get_db()
@@ -11029,16 +11055,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         # Validate session via CRBOX API — rejects invalid/expired tokens
         casillero_id, verified_email = self._portal_auth_full()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
+            self._json_error(401, 'Sesión requerida o expirada.', code='auth_required')
             return
         try:
             raw = self._read_body(_MAX_BODY_REGULAR)
             if raw is None:
-                self._json_response(413, {'ok': False, 'error': 'Payload demasiado grande.'})
+                self._json_error(413, 'Payload demasiado grande.', code='payload_too_large')
                 return
             data = json.loads(raw.decode('utf-8'))
         except Exception:
-            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            self._json_error(400, 'Datos inválidos.', code='bad_request')
             return
 
         group_id      = str(data.get('groupId') or '').strip()
@@ -11058,14 +11084,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         packages      = data.get('packages') or []
 
         if not group_name:
-            self._json_response(400, {'ok': False, 'error': 'Nombre de grupo requerido.'})
+            self._json_error(400, 'Nombre de grupo requerido.', code='validation_error')
             return
 
         # Generate unique acknowledgment token and store it on the group record.
         # Require a valid groupId that resolves to an owned row — refuse to send
         # the email if the token can't be persisted, which would produce a dead link.
         if not group_id:
-            self._json_response(400, {'ok': False, 'error': 'ID de grupo requerido para enviar confirmación.'})
+            self._json_error(400, 'ID de grupo requerido para enviar confirmación.', code='validation_error')
             return
         import secrets as _secrets
         ack_token = _secrets.token_urlsafe(32)
@@ -11096,7 +11122,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 token_stored = True
             conn_tok.close()
         if not token_stored:
-            self._json_response(400, {'ok': False, 'error': 'Grupo no encontrado. No se pudo enviar la confirmación.'})
+            self._json_error(400, 'Grupo no encontrado. No se pudo enviar la confirmación.', code='not_found')
             return
 
         esc = _html.escape
@@ -11257,10 +11283,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(200, {'ok': True})
         except Exception as exc:
             print(f'[PKG-GROUP] Email send failed: {exc}')
-            self._json_response(500, {
-                'ok': False,
-                'error': 'No pudimos enviar el correo. Puedes escribirnos directamente a facturas@crbox.cr.'
-            })
+            self._json_error(500,
+                'No pudimos enviar el correo. Puedes escribirnos directamente a facturas@crbox.cr.',
+                code='server_error')
 
     # ── POST /api/notify-miami-arrivals ────────────────────────────────────
     def _handle_notify_miami_arrivals(self):
@@ -11276,16 +11301,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         """
         casillero_id, verified_email = self._portal_auth_full()
         if not casillero_id:
-            self._json_response(401, {'ok': False, 'error': 'Sesión requerida o expirada.'})
+            self._json_error(401, 'Sesión requerida o expirada.', code='auth_required')
             return
         try:
             raw = self._read_body(_MAX_BODY_REGULAR)
             if raw is None:
-                self._json_response(413, {'ok': False, 'error': 'Payload demasiado grande.'})
+                self._json_error(413, 'Payload demasiado grande.', code='payload_too_large')
                 return
             data = json.loads(raw.decode('utf-8'))
         except Exception:
-            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            self._json_error(400, 'Datos inválidos.', code='bad_request')
             return
 
         packages = data.get('packages') or []
@@ -11538,26 +11563,26 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         try:
             raw = self._read_body(_MAX_BODY_REGULAR)
             if raw is None:
-                self._json_response(413, {'ok': False, 'error': 'Payload too large'})
+                self._json_error(413, 'Payload too large.', code='payload_too_large')
                 return
             data   = json.loads(raw.decode('utf-8'))
         except Exception:
-            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            self._json_error(400, 'Datos inválidos.', code='bad_request')
             return
         nombre   = (data.get('nombre') or '').strip()
         correo   = (data.get('correo') or '').strip()
         pregunta = (data.get('pregunta') or '').strip()
         if not nombre or not correo or not pregunta:
-            self._json_response(400, {'ok': False, 'error': 'Todos los campos son requeridos.'})
+            self._json_error(400, 'Todos los campos son requeridos.', code='validation_error')
             return
         if '@' not in correo or '.' not in correo.split('@')[-1] or len(correo) > 254:
-            self._json_response(400, {'ok': False, 'error': 'Ingresa un correo electrónico válido.'})
+            self._json_error(400, 'Ingresa un correo electrónico válido.', code='validation_error')
             return
         try:
             new_id = _store_inquiry(nombre, correo, pregunta, 'faq-como-funciona')
         except Exception as db_exc:
             print(f'[FAQ-PREGUNTA] DB insert failed: {db_exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error al guardar la consulta.'})
+            self._json_error(500, 'Error al guardar la consulta.', code='server_error')
             return
         try:
             settings  = _smtp_settings()
@@ -12131,11 +12156,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         or {error: "..."} on failure.
         """
         if _admin_password() is None:
-            self._json_response(404, {'error': 'not_found'})
+            self._json_error(404, 'Not found.', code='not_found')
             return
         token = self._admin_get_session_token()
         if not _admin_validate_session(token):
-            self._json_response(401, {'error': 'auth_required'})
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
 
         # Parse JSON body
@@ -12143,13 +12168,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             length = int(self.headers.get('Content-Length', 0))
             body   = json.loads(self.rfile.read(length)) if length else {}
         except Exception:
-            self._json_response(400, {'error': 'invalid_request'})
+            self._json_error(400, 'Solicitud inválida.', code='bad_request')
             return
 
         _VALID_AVAIL = {'disponible', 'no_disponible', 'disponible_con_condiciones'}
         availability = str(body.get('availability') or '').strip()
         if availability not in _VALID_AVAIL:
-            self._json_response(400, {'error': 'availability es obligatorio y debe ser un valor válido.'})
+            self._json_error(400, 'availability es obligatorio y debe ser un valor válido.', code='validation_error')
             return
 
         # confirmed_price is optional; only used if a valid positive number
@@ -12183,7 +12208,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         # Guard: only for active solicitudes without existing response
         if row.get('status') not in ('enviada', 'en_revision') or row.get('response_json'):
-            self._json_response(409, {'error': 'Esta solicitud ya tiene una respuesta enviada.'})
+            self._json_error(409, 'Esta solicitud ya tiene una respuesta enviada.', code='conflict')
             return
 
         # ── Build context for prompt ─────────────────────────────────────
@@ -12246,13 +12271,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         # ── Call Gemini ──────────────────────────────────────────────────
         if not _GEMINI_API_KEY:
-            self._json_response(503, {'error': 'Gemini no está configurado en este entorno.'})
+            self._json_error(503, 'Gemini no está configurado en este entorno.', code='service_unavailable')
             return
 
         draft, err = _call_gemini_draft(context)
         if err or draft is None:
             print(f'[ADMIN] suggest-draft Gemini error for {scb_id}: {err}')
-            self._json_response(502, {'error': 'No se pudo generar el borrador. Intenta de nuevo.'})
+            self._json_error(502, 'No se pudo generar el borrador. Intenta de nuevo.', code='upstream_error')
             return
 
         # Enforce blank difference_explanation when conditions require it
@@ -12686,14 +12711,14 @@ def _handle_ai_chat(handler):
     # ── 1. Body size guard ────────────────────────────────────────────────────
     raw_body = handler._read_body(_CHAT_MAX_BODY)
     if raw_body is None:
-        handler._json_response(413, {'error': 'request_too_large'})
+        handler._json_response(413, {'error': 'request_too_large', 'code': 'payload_too_large'})
         return
     try:
         body = json.loads(raw_body) if raw_body else {}
         if not isinstance(body, dict):
             raise ValueError('body must be object')
     except Exception:
-        handler._json_response(400, {'error': 'bad_request'})
+        handler._json_response(400, {'error': 'bad_request', 'code': 'bad_request'})
         return
 
     # ── 2. Rate limiting ──────────────────────────────────────────────────────
@@ -12701,7 +12726,7 @@ def _handle_ai_chat(handler):
           handler.client_address[0] or '0.0.0.0').split(',')[0].strip()
 
     if not _chat_rate_check(ip):
-        handler._json_response(429, {'error': 'rate_limit', 'reply': 'Por favor espera un momento antes de enviar otro mensaje.'})
+        handler._json_response(429, {'error': 'rate_limit', 'code': 'rate_limited', 'reply': 'Por favor espera un momento antes de enviar otro mensaje.'})
         return
 
     if not _GEMINI_SDK_OK or not _GEMINI_API_KEY:
@@ -12782,12 +12807,12 @@ def _handle_ai_chat(handler):
 
     last_user = next((t for t in reversed(clean_history) if t['role'] == 'user'), None)
     if not last_user:
-        handler._json_response(400, {'error': 'no_message'})
+        handler._json_response(400, {'error': 'no_message', 'code': 'validation_error'})
         return
 
     user_text = last_user['text']  # already stripped + capped above
     if not user_text:
-        handler._json_response(400, {'error': 'empty_message'})
+        handler._json_response(400, {'error': 'empty_message', 'code': 'validation_error'})
         return
 
     contents.append({'role': 'user', 'parts': [{'text': page_context + user_text}]})
@@ -12795,7 +12820,8 @@ def _handle_ai_chat(handler):
     try:
         from google import genai as _gv
         client = _gv.Client(api_key=_GEMINI_API_KEY)
-        resp = client.models.generate_content(
+        resp = _timed_genai_call(
+            client.models.generate_content,
             model=_GEMINI_MODEL,
             contents=contents,
             config={
