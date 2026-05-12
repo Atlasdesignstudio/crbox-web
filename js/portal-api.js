@@ -150,6 +150,19 @@
     return res.json().catch(function () { return null; });
   }
 
+  // ─── Classified response error ────────────────────────────────────────────
+  // Creates a thrown Error that carries errorCategory / status / isAuthError
+  // so downstream catch handlers can branch without losing the classification
+  // that _request() stamped onto the Response object.
+  // Usage:  if (!res.ok) throw _responseError(res, 'Mensaje en español.');
+  function _responseError(res, msg) {
+    var e = new Error(msg || 'Error inesperado (' + res.status + ').');
+    e.status        = res && res.status;
+    e.isAuthError   = false;
+    e.errorCategory = (res && res._errorCategory) || (res && res.status >= 500 ? 'transient' : 'client');
+    return e;
+  }
+
   // ─── Date helper → DD-MM-YYYY ─────────────────────────────────────────────
   function formatDate(date) {
     var d = (date instanceof Date) ? date : new Date(date);
@@ -235,7 +248,7 @@
     return _request(BASE + '/getuserinfo/' + encodeURIComponent(email), {}, {})
     .then(function (res) {
       if (!res.ok) {
-        throw new Error('No se pudo obtener la información de tu cuenta (' + res.status + '). Intenta de nuevo.');
+        throw _responseError(res, 'No se pudo obtener la información de tu cuenta (' + res.status + '). Intenta de nuevo.');
       }
       return _parseJSON(res);
     }).then(function (data) {
@@ -258,7 +271,7 @@
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: payload
     }, {}).then(function (res) {
-      if (!res.ok) throw new Error('Error al guardar el perfil (' + res.status + ').');
+      if (!res.ok) throw _responseError(res, 'Error al guardar el perfil (' + res.status + ').');
       return _parseJSON(res);
     }).then(function (data) {
       var sr = data && (data.StatusResult || data.statusResult || '');
@@ -295,7 +308,7 @@
       encodeURIComponent(stat);
 
     return _request(url, {}, {}).then(function (res) {
-      if (!res.ok) throw new Error('No se pudieron cargar los paquetes (' + res.status + '). Intenta de nuevo.');
+      if (!res.ok) throw _responseError(res, 'No se pudieron cargar los paquetes (' + res.status + '). Intenta de nuevo.');
       return _parseJSON(res);
     });
   }
@@ -327,7 +340,7 @@
       encodeURIComponent(email) + '/' + start + '/' + end;
 
     return _request(url, {}, {}).then(function (res) {
-      if (!res.ok) throw new Error('No se pudieron cargar las facturas (' + res.status + '). Intenta de nuevo.');
+      if (!res.ok) throw _responseError(res, 'No se pudieron cargar las facturas (' + res.status + '). Intenta de nuevo.');
       return _parseJSON(res);
     }).then(function (data) {
       var raw = _unwrapBillsEnvelope(data);
@@ -443,7 +456,7 @@
       body: body.toString()
     }, {}).then(function (res) {
       if (!res.ok) {
-        var err = new Error('No se pudo registrar la factura en el sistema (' + res.status + '). El archivo ya fue subido pero el registro falló.');
+        var err = _responseError(res, 'No se pudo registrar la factura en el sistema (' + res.status + '). El archivo ya fue subido pero el registro falló.');
         err.step = 'createPurchaseBill';
         throw err;
       }
@@ -467,7 +480,7 @@
   function recoverPassword(email) {
     return _request(BASE + '/getuserpasswordrecovery/' + encodeURIComponent(email), {}, { skipAuth: true })
       .then(function (res) {
-        if (!res.ok) throw new Error('Error de red al recuperar contraseña (' + res.status + ').');
+        if (!res.ok) throw _responseError(res, 'Error de red al recuperar contraseña (' + res.status + ').');
         return _parseJSON(res);
       })
       .then(function (data) {
