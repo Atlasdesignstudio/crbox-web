@@ -1613,7 +1613,7 @@
                 padding: .28rem .28rem .28rem .88rem;
                 border: 1.5px solid #e9eaed;
             }
-            .cqc-input-wrap:focus-within { border-color: #FF6B00; background: #fff; }
+            .cqc-input-wrap:focus-within { background: #fff; }
             .cqc-input-field {
                 flex: 1; background: transparent; border: none; outline: none;
                 font-size: .91rem; font-family: inherit; color: #1a1a2e;
@@ -1621,9 +1621,11 @@
             }
             .cqc-input-field::placeholder { color: #9ca3af; }
             .cqc-send-btn {
-                width: 35px; height: 35px; border-radius: 50%; flex-shrink: 0;
+                width: 35px; height: 35px; min-width: 35px; min-height: 35px;
+                border-radius: 50%; flex-shrink: 0;
                 background: #FF6B00; color: #fff; border: none;
                 display: flex; align-items: center; justify-content: center;
+                overflow: hidden; line-height: 35px;
                 cursor: pointer; font-size: .82rem; transition: background .14s;
             }
             .cqc-send-btn:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
@@ -2097,8 +2099,7 @@
                 transition: border-color .2s, box-shadow .2s;
             }
             .cqd-input-inner:focus-within {
-                border-color: rgba(255,107,0,.55);
-                box-shadow: 0 0 0 5px rgba(255,107,0,.12), 0 2px 18px rgba(0,0,0,.09);
+                box-shadow: 0 0 0 5px rgba(0,0,0,.04), 0 2px 18px rgba(0,0,0,.09);
             }
 
             /* ── One-shot orange stroke sweep on greeting ── */
@@ -2694,7 +2695,6 @@
                 box-shadow: 0 2px 10px rgba(0,0,0,.04);
             }
             .cqd-input-inner:focus-within {
-                border-color: rgba(255,107,0,.65);
                 box-shadow: 0 2px 14px rgba(0,0,0,.06);
             }
             .cqd-input-bar {
@@ -2868,9 +2868,8 @@
                 box-shadow: 0 2px 12px rgba(0,0,0,.07);
             }
             .cqd-input-inner:focus-within {
-                border-color: rgba(255,107,0,.56);
                 box-shadow: 0 2px 14px rgba(0,0,0,.07),
-                            0 0 0 3px rgba(255,107,0,.09);
+                            0 0 0 3px rgba(0,0,0,.04);
             }
 
             /* 19 · Action buttons — subtle hover lift */
@@ -2906,7 +2905,7 @@
             /* Input bar — linen background */
             .cqc-input-bar { background: rgba(245,243,239,.92); border-top-color: rgba(0,0,0,.06); }
             .cqc-input-wrap { background: #fff; border-color: #dedad3; }
-            .cqc-input-wrap:focus-within { border-color: #FF6B00; background: #fff; }
+            .cqc-input-wrap:focus-within { background: #fff; }
             /* Typing dots — warm surface */
             .cqc-typing { background: #FDFCFA; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
             /* Post-submit casillero card — orange shimmer top */
