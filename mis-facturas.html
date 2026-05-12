@@ -79,6 +79,19 @@
       input[type="date"].form-control::-webkit-calendar-picker-indicator {
         opacity: .55; cursor: pointer;
       }
+      /* Restore left padding for icon-prefixed inputs; the .form-control
+         shorthand padding above overrides Tailwind's pl-10 (2.5rem). */
+      .form-control.pl-10 { padding-left: 2.5rem; }
+      /* Hide the browser's native date-picker calendar icon on date inputs
+         that already carry a custom Font Awesome calendar icon, so only
+         the FA icon is visible and there is no double-icon conflict.
+         WebKit/Blink (Chrome, Safari, Edge): the native icon is on the left,
+         so hiding it is required to prevent overlap with the FA icon.
+         Firefox: the native icon sits on the right side and does not overlap
+         the left-positioned FA icon, so no additional rule is needed there. */
+      input[type="date"].form-control.pl-10::-webkit-calendar-picker-indicator {
+        display: none;
+      }
 
       /* ---- Filter bar -------------------------------------------- */
       .filter-card {
