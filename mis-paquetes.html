@@ -3559,7 +3559,74 @@
                 _loadPackages(idConsignee);
               }
             } else {
-              _diag('ERROR: idConsignee vacío. Revisa tu perfil.');
+              // getUserInfo resolved but returned no idConsignee — CRBOX likely returned
+              // a non-JSON response (HTML login redirect) for this browser request.
+              // Show an immediate "retrying" message, then retry once via our server-side
+              // proxy which makes the call Python→CRBOX, bypassing any browser-level issue.
+              _diag('idConsignee vacío — reintentando vía proxy...');
+              var _tbNull = document.getElementById('packages-tbody');
+              if (_tbNull) {
+                _tbNull.innerHTML =
+                  '<tr><td colspan="15" class="text-center py-8 text-gray-400">' +
+                    '<i class="fas fa-spinner fa-spin mr-2"></i>' +
+                    'Obteniendo datos de tu cuenta&hellip;' +
+                  '</td></tr>';
+              }
+              var _pxyEmail = (window.CRBOXAuth && CRBOXAuth.getEmail) ? CRBOXAuth.getEmail() : '';
+              var _pxyToken = (window.CRBOXAuth && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
+              if (_pxyEmail && _pxyToken) {
+                fetch('/api/userinfo-proxy?email=' + encodeURIComponent(_pxyEmail), {
+                  headers: { 'Authorization': 'Bearer ' + _pxyToken }
+                })
+                .then(function (r) { return r.ok ? r.json().catch(function () { return null; }) : null; })
+                .then(function (proxyInfo) {
+                  var _tbP = document.getElementById('packages-tbody');
+                  if (!proxyInfo) {
+                    _diag('ERROR: proxy userinfo no devolvió datos.');
+                    if (_tbP) _tbP.innerHTML =
+                      '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
+                        '<i class="fas fa-exclamation-triangle mr-2"></i>' +
+                        'No se pudo cargar tu cuenta. ' +
+                        '<button onclick="location.reload();" ' +
+                          'class="underline font-medium text-orange-500">Reintentar</button>' +
+                      '</td></tr>';
+                    return;
+                  }
+                  var proxyId = _applyHeader(proxyInfo);
+                  _cachedConsigneeId = proxyId;
+                  try { localStorage.setItem('crbox_cached_id_consignee', String(proxyId)); } catch (_e) {}
+                  if (proxyId) {
+                    _diag('proxy OK — idCons=' + proxyId + '. Cargando paquetes...');
+                    _loadPackages(proxyId);
+                  } else {
+                    _diag('ERROR: proxy devolvió idConsignee vacío.');
+                    if (_tbP) _tbP.innerHTML =
+                      '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
+                        '<i class="fas fa-user-slash mr-2"></i>' +
+                        'Tu perfil no tiene casillero asignado. Contacta a soporte.' +
+                        '<br><button onclick="location.reload();" ' +
+                          'class="underline font-medium text-orange-500 mt-2 inline-block">Reintentar</button>' +
+                      '</td></tr>';
+                  }
+                })
+                .catch(function () {
+                  _diag('ERROR: proxy userinfo — fallo de red.');
+                  var _tbC = document.getElementById('packages-tbody');
+                  if (_tbC) _tbC.innerHTML =
+                    '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
+                      '<i class="fas fa-wifi mr-2"></i>Error de red al cargar tu cuenta. ' +
+                      '<button onclick="location.reload();" ' +
+                        'class="underline font-medium text-orange-500">Reintentar</button>' +
+                    '</td></tr>';
+                });
+              } else {
+                _diag('ERROR: sin credenciales para proxy.');
+                if (_tbNull) _tbNull.innerHTML =
+                  '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
+                    '<i class="fas fa-lock mr-2"></i>Sesión inválida. ' +
+                    '<a href="login.html" class="underline font-medium">Iniciar sesión</a>' +
+                  '</td></tr>';
+              }
             }
 
             // Init "Enviar paquetes juntos" grouping flow

@@ -9092,6 +9092,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_package_group_ack()
         elif self.path.startswith('/api/packages-proxy'):
             self._handle_packages_proxy()
+        elif self.path.startswith('/api/userinfo-proxy'):
+            self._handle_userinfo_proxy()
         elif self.path.startswith('/api/solicitudes'):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/api/solicitudes':
@@ -10190,6 +10192,62 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         except Exception as exc:
             print(f'[PROXY/packages] Unexpected error: {exc}')
+            self._json_error(502, 'Error de comunicación con el servicio externo.', code='upstream_error')
+
+    # ── GET /api/userinfo-proxy ─────────────────────────────────────────────
+    # Server-side proxy for the CRBOX getuserinfo API endpoint.
+    # Called when the browser's direct fetch to clients.crbox.cr returns a
+    # non-JSON response (e.g. HTML login redirect), causing getUserInfo() to
+    # resolve with null and idConsignee to be empty.  Making the same request
+    # Python→CRBOX bypasses any browser-level connection or session issue.
+    #
+    # Query param:  email   (the consignee's login email)
+    # Header:       Authorization: Bearer <token>  (forwarded verbatim to CRBOX)
+    _CRBOX_USERINFO_BASE = 'https://clients.crbox.cr/api/crboxwebapi/getuserinfo'
+
+    def _handle_userinfo_proxy(self):
+        auth_header = self.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            self._json_error(401, 'Autorización requerida.', code='auth_required')
+            return
+
+        parsed = urllib.parse.urlparse(self.path)
+        qs     = urllib.parse.parse_qs(parsed.query, keep_blank_values=False)
+        email  = qs.get('email', [''])[0].strip()
+
+        if not email:
+            self._json_error(400, 'Parámetro email faltante.', code='bad_request')
+            return
+
+        crbox_url = self._CRBOX_USERINFO_BASE + '/' + urllib.parse.quote(email, safe='')
+
+        req = urllib.request.Request(crbox_url)
+        req.add_header('Authorization', auth_header)
+        req.add_header('Accept',        'application/json')
+        req.add_header('User-Agent',    'CRBOX-Portal-Proxy/1.0')
+
+        try:
+            try:
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    resp_body = resp.read(1 * 1024 * 1024)   # 1 MB cap
+                    resp_code = resp.status
+                    resp_ct   = resp.headers.get('Content-Type', 'application/json')
+            except urllib.error.HTTPError as exc:
+                resp_body = exc.read(512 * 1024)
+                resp_code = exc.code
+                resp_ct   = exc.headers.get('Content-Type', 'application/json')
+                print(f'[PROXY/userinfo] CRBOX HTTP {resp_code} for {email!r}')
+
+            self.send_response(resp_code)
+            self.send_header('Content-Type',
+                             'application/json' if 'json' in resp_ct else resp_ct)
+            self.send_header('Content-Length', str(len(resp_body)))
+            self.send_header('Cache-Control',  'no-store')
+            self.end_headers()
+            self.wfile.write(resp_body)
+
+        except Exception as exc:
+            print(f'[PROXY/userinfo] Unexpected error: {exc}')
             self._json_error(502, 'Error de comunicación con el servicio externo.', code='upstream_error')
 
     # ── POST /api/invoice-upload ───────────────────────────────────────────
