@@ -424,6 +424,9 @@
         product_classification: productClassification || null,
       };
       if (_priceCtx > 0) body.price_context = _priceCtx;
+      // Signal the backend when this is the opening turn so Gemini holds off
+      // on showing any widget and replies conversationally first.
+      if (_history.length === 1) body.first_mention = true;
       fetch(CHAT_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -493,8 +496,14 @@
 
     // Also detect purchase-intent phrasing and extract the product term.
     // Handles: "quiero traer un iPhone", "me gustaría comprar zapatillas Adidas"
+    // Guard: skip if the message contains personal/contextual trailing phrases
+    // (e.g. "para mi papá", "para el cumpleaños") — these are conversational
+    // openers, not precise product requests, and should not trigger classification.
     function _extractProductIntent(t) {
       if (!t || t.length > 150) return null;
+      // Presence of "para [mi/el/la/su/mis/...]" or "de [mi/mis/nuestro]" signals
+      // a conversational sentence rather than a deliberate product query.
+      if (/\b(?:para\s+(?:mi|el|la|los|las|su|mis|nuestro[as]?|mí)\b|de\s+(?:mi|mis|nuestro[as]?)\b)/i.test(t)) return null;
       var m = t.match(/(?:quiero|quisiera|me gustar[íi]a|necesito|busco)\s+(?:traer|comprar|importar|pedir|ordenar|buscar|un[ao]s?\s+)?(.{3,80}?)(?:\s+que\s+|\s+por\s+|\s*$)/i);
       if (m) {
         var prod = m[1].trim().replace(/^(?:un[ao]s?\s+)/i, '').trim();
