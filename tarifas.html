@@ -1137,16 +1137,6 @@
 </button>
 
 <script>
-    // Verificar si los elementos de los tabs existen
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log("=== Tab Elements Check ===");
-        console.log("tab-peso:", !!document.getElementById('tab-peso'));
-        console.log("tab-manejo:", !!document.getElementById('tab-manejo'));
-        console.log("tab-valores:", !!document.getElementById('tab-valores'));
-        console.log("tab-peso-btn:", !!document.getElementById('tab-peso-btn'));
-        console.log("tab-manejo-btn:", !!document.getElementById('tab-manejo-btn'));
-        console.log("tab-valores-btn:", !!document.getElementById('tab-valores-btn'));
-    });
 
     // Función para manejar las pestañas con un diseño mejorado
 function showTab(tabId) {
@@ -1184,7 +1174,6 @@ function showTab(tabId) {
         selectedBtn.style.borderColor = '#1e293b';
     }
     
-    console.log('Tab cambiado a:', tabId);
 }
 
     // Inicializar la pestaña por defecto cuando la página carga
@@ -1293,14 +1282,14 @@ showTab('tab-peso');
 <script src="js/mobile-drawer.js?v=1" defer></script>
 <script src="js/nav-auth.js?v=2" defer></script>
 <script src="js/seo-config.js" defer></script>
-<script src="js/analytics.js"></script>
-    <script src="js/product-categories.js?v=1"></script>
-    <script src="js/tariff-adapter.js?v=3"></script>
-    <script src="js/calculator-engine.js"></script>
-    <script src="js/crbox-knowledge.js"></script>
-    <script src="js/chat-calculator.js"></script>
-    <script src="js/chat-quote.js"></script>
-    <script src="js/chat-panel.js"></script>
+<script src="js/analytics.js" defer></script>
+    <script src="js/product-categories.js?v=1" defer></script>
+    <script src="js/tariff-adapter.js?v=3" defer></script>
+    <script src="js/calculator-engine.js" defer></script>
+    <script src="js/crbox-knowledge.js" defer></script>
+    <script src="js/chat-calculator.js" defer></script>
+    <script src="js/chat-quote.js" defer></script>
+    <script src="js/chat-panel.js" defer></script>
     <script>
         (function () {
             var container = document.getElementById('peso-scroll-container');

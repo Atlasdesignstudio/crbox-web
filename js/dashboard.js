@@ -48,20 +48,24 @@ function initStickyHeader() {
     
     let lastScrollTop = 0;
     
-    window.addEventListener('scroll', function() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        // Add shadow when scrolling down
-        if (scrollTop > 10) {
-            header.classList.add('sticky-active');
-            if (tabBar) tabBar.classList.add('sticky-active');
-        } else {
-            header.classList.remove('sticky-active');
-            if (tabBar) tabBar.classList.remove('sticky-active');
-        }
-        
-        lastScrollTop = scrollTop;
-    });
+    window.addEventListener('scroll', (function () {
+        var _rafId = null;
+        return function () {
+            if (_rafId) return;
+            _rafId = requestAnimationFrame(function () {
+                var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                if (scrollTop > 10) {
+                    header.classList.add('sticky-active');
+                    if (tabBar) tabBar.classList.add('sticky-active');
+                } else {
+                    header.classList.remove('sticky-active');
+                    if (tabBar) tabBar.classList.remove('sticky-active');
+                }
+                lastScrollTop = scrollTop;
+                _rafId = null;
+            });
+        };
+    }()));
 }
 
 /**
