@@ -862,7 +862,7 @@
 <script src="js/analytics.js" defer></script>
 <script src="js/cr-locations.js" defer></script>
 <script src="js/portal-api.js?v=1" defer></script>
-<script src="js/auth.js?v=1" defer></script>
+<script src="js/auth.js?v=2" defer></script>
 <script src="js/nav-auth.js?v=2" defer></script>
 <script src="js/mobile-drawer.js?v=1" defer></script>
 <script src="js/main.js?v=6" defer></script>
@@ -1198,9 +1198,9 @@
       '1000'
     ).then(function (data) {
       var raw = Array.isArray(data) ? data : (data.packages || data.Packages || []);
-      // Cache raw packages so mis-paquetes can render instantly on navigation.
+      // Cache raw packages in localStorage so mis-paquetes renders instantly.
       if (raw.length > 0) {
-        try { sessionStorage.setItem('crbox_pkg_cache', JSON.stringify({ ts: Date.now(), raw: raw })); } catch (_e) {}
+        try { localStorage.setItem('crbox_pkg_cache', JSON.stringify({ ts: Date.now(), raw: raw })); } catch (_e) {}
       }
       // "En camino" = statuses 1–4 only (MIAMI, SJO, CARGADO, EN TRÁNSITO).
       // EN ESPERA (6) is counted separately and shown in its own notice.

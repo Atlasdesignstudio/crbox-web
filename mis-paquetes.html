@@ -295,6 +295,13 @@
             <!-- Diagnostic line: only visible when API returns 0 packages -->
             <p id="pkg-debug-line" class="hidden text-xs text-gray-400 font-mono text-center mb-2 px-4"></p>
 
+            <!-- Stale-cache notice: shown only when live refresh fails but cached data is still visible -->
+            <div id="pkg-cache-stale-banner" class="hidden flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 mb-4 mx-4">
+              <i class="fas fa-exclamation-circle flex-shrink-0"></i>
+              <span>No se pudo actualizar. Mostrando datos guardados.</span>
+              <button onclick="location.reload();" class="ml-auto underline font-medium flex-shrink-0">Reintentar</button>
+            </div>
+
             <!-- Barra de búsqueda y filtros mejorada -->
             <div class="bg-white rounded-xl shadow-md border border-gray-100 mb-8 overflow-hidden">
                 <div class="p-6 border-b border-gray-100">
@@ -1420,7 +1427,7 @@
     <script src="js/analytics.js" defer></script>
     <script src="js/cr-locations.js" defer></script>
     <script src="js/portal-api.js?v=1" defer></script>
-    <script src="js/auth.js?v=1" defer></script>
+    <script src="js/auth.js?v=2" defer></script>
     <script src="js/nav-auth.js?v=2" defer></script>
     <script src="js/mobile-drawer.js?v=1" defer></script>
     <script src="js/main.js?v=6" defer></script>
@@ -2719,19 +2726,21 @@
           tracking    : _trackArg,
           status      : _statArg
         });
-        // ── Instant render from sessionStorage cache (set by dashboard) ─────
-        // If the user navigated here from the dashboard the packages are already
-        // available in sessionStorage (max 5 min old). Render them immediately so
-        // the table is never blank, then let the real API call below refresh.
+        // ── Instant render from localStorage cache ──────────────────────────
+        // Packages are cached in localStorage (max 10 min) each time they load
+        // from the live API on any page (dashboard or mis-paquetes). Render
+        // immediately so the table is never blank; refresh via the live call below.
+        var _cacheRendered = false;
         try {
-          var _pkgCache = JSON.parse(sessionStorage.getItem('crbox_pkg_cache') || 'null');
-          if (_pkgCache && (Date.now() - _pkgCache.ts) < 300000 &&
+          var _pkgCache = JSON.parse(localStorage.getItem('crbox_pkg_cache') || 'null');
+          if (_pkgCache && (Date.now() - _pkgCache.ts) < 600000 &&
               Array.isArray(_pkgCache.raw) && _pkgCache.raw.length > 0) {
             var _cachedMapped = _pkgCache.raw.map(function (r) { return CRBOXPortalAPI.mapPackage(r); });
             _cachedPackages = _cachedMapped;
             _renderStats(_cachedMapped);
             _renderAll(_cachedMapped, true);
             clearTimeout(_slowTimer);
+            _cacheRendered = true;
           }
         } catch (_cacheErr) {}
 
@@ -2766,6 +2775,10 @@
           console.log('[CRBOX mis-paquetes] unwrapped raw.length =', raw.length);
           var packages = raw.map(function (r) { return CRBOXPortalAPI.mapPackage(r); });
           _cachedPackages = packages;
+          // Persist fresh data to localStorage so the next visit renders instantly.
+          if (raw.length > 0) {
+            try { localStorage.setItem('crbox_pkg_cache', JSON.stringify({ ts: Date.now(), raw: raw })); } catch (_e) {}
+          }
           // Pass package pool to the grouping flow so selector can show MIAMI packages.
           // Wrapped in try-catch: any error in the grouping UI must NOT block the
           // main packages table from rendering (they are independent features).
@@ -2865,21 +2878,29 @@
           clearTimeout(_slowTimer);
           console.error('[CRBOX] getPackages error (isAuthError=' + (err && err.isAuthError) + '):', err);
           if (window.CRBOX && CRBOX.track) { try { CRBOX.track.api_error(err && err.isAuthError ? 'auth' : 'network'); } catch (_e) {} }
-          var errMsg;
           if (err && err.isAuthError) {
-            // Token was rejected by the server — redirect is in flight, but show
-            // a message in case the navigation is delayed or blocked.
-            errMsg = '<i class="fas fa-lock mr-2"></i>' +
+            // Auth errors always take priority — session is dead regardless of cache.
+            var authMsg = '<i class="fas fa-lock mr-2"></i>' +
               'Tu sesión ha expirado. ' +
               '<button onclick="location.href=\'login.html\';" class="underline font-medium">Iniciar sesión</button>';
+            tbody.innerHTML = '<tr><td colspan="15" class="text-center py-8 text-orange-500">' + authMsg + '</td></tr>';
+            if (gridView) {
+              gridView.innerHTML = '<div class="col-span-3 text-center py-8 text-orange-500">' + authMsg + '</div>';
+            }
+          } else if (_cacheRendered) {
+            // Live refresh failed but cached data is already visible — don't
+            // overwrite the table. Show a small unobtrusive banner instead.
+            var bannerEl = document.getElementById('pkg-cache-stale-banner');
+            if (bannerEl) bannerEl.classList.remove('hidden');
           } else {
-            errMsg = '<i class="fas fa-exclamation-triangle mr-2"></i>' +
+            // No cache and live call failed — show full error in the table.
+            var errMsg = '<i class="fas fa-exclamation-triangle mr-2"></i>' +
               'No se pudieron cargar los paquetes. ' +
               '<button onclick="location.reload();" class="underline font-medium">Reintentar</button>';
-          }
-          tbody.innerHTML = '<tr><td colspan="15" class="text-center py-8 text-orange-500">' + errMsg + '</td></tr>';
-          if (gridView) {
-            gridView.innerHTML = '<div class="col-span-3 text-center py-8 text-orange-500">' + errMsg + '</div>';
+            tbody.innerHTML = '<tr><td colspan="15" class="text-center py-8 text-orange-500">' + errMsg + '</td></tr>';
+            if (gridView) {
+              gridView.innerHTML = '<div class="col-span-3 text-center py-8 text-orange-500">' + errMsg + '</div>';
+            }
           }
         });
       }

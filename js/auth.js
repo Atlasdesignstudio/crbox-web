@@ -103,7 +103,8 @@
     'crbox_activation_toast_shown',
     'crbox_onboarding',
     'crbox_display_name',
-    'crbox_casillero_num'
+    'crbox_casillero_num',
+    'crbox_pkg_cache'
   ];
 
   function clearToken() {
