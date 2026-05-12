@@ -2100,6 +2100,37 @@
                 border-color: rgba(255,107,0,.55);
                 box-shadow: 0 0 0 5px rgba(255,107,0,.12), 0 2px 18px rgba(0,0,0,.09);
             }
+
+            /* ── One-shot orange stroke sweep on greeting ── */
+            @keyframes cqd-bar-stroke-glow {
+                0%   { border-color: rgba(255,107,0,.22); box-shadow: 0 0 0 4px rgba(255,107,0,.07), 0 2px 12px rgba(0,0,0,.07); }
+                25%  { border-color: rgba(255,107,0,.8);  box-shadow: 0 0 0 5px rgba(255,107,0,.2), 0 0 24px rgba(255,107,0,.38), 0 2px 12px rgba(0,0,0,.07); }
+                70%  { border-color: rgba(255,107,0,.55); box-shadow: 0 0 0 5px rgba(255,107,0,.11), 0 2px 12px rgba(0,0,0,.07); }
+                100% { border-color: rgba(255,107,0,.22); box-shadow: 0 0 0 4px rgba(255,107,0,.07), 0 2px 12px rgba(0,0,0,.07); }
+            }
+            @keyframes cqd-bar-stroke-sweep {
+                from { background-position: -100% 0; }
+                to   { background-position: 200% 0; }
+            }
+            .cqd-bar-stroke-anim {
+                animation: cqd-bar-stroke-glow 1.4s cubic-bezier(.4,0,.2,1) forwards !important;
+                transition: none !important;
+            }
+            .cqd-bar-stroke-anim::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                border-radius: inherit;
+                background: linear-gradient(90deg, transparent 20%, rgba(255,160,60,.35) 50%, transparent 80%);
+                background-size: 300% 100%;
+                animation: cqd-bar-stroke-sweep 1.4s cubic-bezier(.4,0,.2,1) forwards;
+                pointer-events: none;
+                z-index: 3;
+            }
+            @media (prefers-reduced-motion: reduce) {
+                .cqd-bar-stroke-anim,
+                .cqd-bar-stroke-anim::after { animation: none !important; }
+            }
             .cqd-input-field {
                 flex: 1; background: transparent; border: none; outline: none;
                 font-size: .95rem; font-family: inherit;
@@ -5426,6 +5457,17 @@
                     : sal + ' Soy el asistente de <strong>CRBOX</strong> — más de 20 años ayudando a costarricenses a importar desde USA. ¿Qué querés traer?';
                 setTimeout(function() {
                     _say(greeting);
+                    // One-shot orange stroke animation on the input bar
+                    var _innerEl = document.querySelector('.cqd-input-inner');
+                    if (_innerEl) {
+                        _innerEl.classList.add('cqd-bar-stroke-anim');
+                        _innerEl.addEventListener('animationend', function _onStrokeEnd(ev) {
+                            if (ev.animationName === 'cqd-bar-stroke-glow') {
+                                _innerEl.classList.remove('cqd-bar-stroke-anim');
+                                _innerEl.removeEventListener('animationend', _onStrokeEnd);
+                            }
+                        });
+                    }
                     if (cb) setTimeout(cb, 350);
                 }, 280);
             }

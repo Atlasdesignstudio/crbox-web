@@ -698,6 +698,39 @@
     discardBtn.addEventListener('click', _onDiscard);
   }
 
+  // ─── One-shot stroke animation on purchase-bot input ─────────────────────
+  function _triggerPbInputStroke() {
+    var pbInput = document.getElementById('pb-product-input');
+    var pbWrap  = document.getElementById('pb-input-inner-wrap');
+    if (!pbInput) return;
+    pbInput.classList.add('pb-bar-stroke-anim');
+    if (pbWrap) pbWrap.classList.add('pb-bar-stroke-anim');
+    pbInput.addEventListener('animationend', function _onPbStrokeEnd(ev) {
+      if (ev.animationName === 'pb-bar-stroke-glow') {
+        pbInput.classList.remove('pb-bar-stroke-anim');
+        if (pbWrap) pbWrap.classList.remove('pb-bar-stroke-anim');
+        pbInput.removeEventListener('animationend', _onPbStrokeEnd);
+      }
+    });
+  }
+
+  // ─── Render initial purchase-bot greeting ─────────────────────────────────
+  function _renderPbGreeting() {
+    var chat = document.getElementById('pb-chat');
+    if (!chat) return;
+    var h   = new Date().getHours();
+    var sal = h < 12 ? '¡Buenos días! ☀️' : h < 19 ? '¡Buenas tardes! 👋' : '¡Buenas noches! 🌙';
+    var row = document.createElement('div');
+    row.className = 'pb-msg-row';
+    var bubble = document.createElement('div');
+    bubble.className = 'pb-msg-bot';
+    bubble.innerHTML = sal + ' ¿Qué querés traer de USA hoy? Cuéntame el producto y te ayudo a cotizarlo.';
+    row.appendChild(bubble);
+    chat.appendChild(row);
+    // Trigger the one-shot stroke animation after the greeting is visible
+    setTimeout(_triggerPbInputStroke, 300);
+  }
+
   // ─── Init ──────────────────────────────────────────────────────────────────
   function init() {
     if (!CRBOXAuth.isLoggedIn()) return;
@@ -729,6 +762,9 @@
       if (loadingEl) loadingEl.classList.add('hidden');
       if (contentEl) contentEl.classList.remove('hidden');
       renderList(list);
+
+      // Render purchase-bot greeting (triggers stroke animation after it appears)
+      setTimeout(_renderPbGreeting, 480);
 
       // Handle URL params
       var params = new URLSearchParams(window.location.search);
