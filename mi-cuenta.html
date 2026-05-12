@@ -822,6 +822,12 @@
                             window.__crboxUserInfo = result.userInfo || rawInfo;
                             if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('notifications'); } catch (_e) {} }
                             btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
+                            // Re-fetch from server to confirm saved state is reflected
+                            CRBOXPortalAPI.clearUserInfoCache();
+                            CRBOXPortalAPI.getUserInfo().then(function (info) {
+                                window.__crboxUserInfo = info;
+                                if (typeof window.__crboxApplyProfile === 'function') window.__crboxApplyProfile(info);
+                            }).catch(function () {});
                             setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
                         })
                         .catch(function (err) {
@@ -891,6 +897,12 @@
                         .then(function (result) {
                             window.__crboxUserInfo = result.userInfo || rawInfo;
                             if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('security'); } catch (_e) {} }
+                            // Re-fetch from server to confirm saved state
+                            CRBOXPortalAPI.clearUserInfoCache();
+                            CRBOXPortalAPI.getUserInfo().then(function (info) {
+                                window.__crboxUserInfo = info;
+                                if (typeof window.__crboxApplyProfile === 'function') window.__crboxApplyProfile(info);
+                            }).catch(function () {});
                             btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Contraseña actualizada!';
                             document.getElementById('new_password').value = '';
                             document.getElementById('confirm_password').value = '';

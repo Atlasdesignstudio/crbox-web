@@ -1357,7 +1357,13 @@
           }
         }).catch(function (err) {
           if (errorMsg) {
-            errorMsg.textContent = 'Error de conexión. Verifica tu internet e intenta de nuevo.';
+            var isTimeout = (err && (err.errorCategory === 'timeout' || err.errorCategory === 'network'));
+            errorMsg.innerHTML = (isTimeout
+              ? 'No se pudo contactar el servidor. '
+              : 'Error de conexión. Verifica tu internet e intenta de nuevo. ') +
+              'También puedes enviarnos tu solicitud por ' +
+              '<a href="https://wa.me/50689794418" target="_blank" rel="noopener" class="underline font-medium">WhatsApp</a>' +
+              ' o a <a href="mailto:ventas@crbox.cr" class="underline font-medium">ventas@crbox.cr</a>.';
             errorMsg.classList.remove('hidden');
           }
           if (submitBtn) {

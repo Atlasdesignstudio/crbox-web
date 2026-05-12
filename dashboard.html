@@ -1163,7 +1163,9 @@
       statEl.textContent = '—';
       _setFacturasPendientesError();
       var _msgEl = document.getElementById('greet-message');
-      if (_msgEl) _msgEl.textContent = 'No pudimos cargar el resumen de tu cuenta. Intenta refrescar la página.';
+      if (_msgEl) _msgEl.innerHTML = 'No pudimos cargar el resumen de tu cuenta. ' +
+        '<button onclick="CRBOXPortalAPI.clearUserInfoCache();location.reload();" ' +
+        'class="underline font-medium">Reintentar</button>';
     });
   }
 

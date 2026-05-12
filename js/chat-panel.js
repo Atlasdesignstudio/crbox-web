@@ -201,6 +201,12 @@
       var slug = _pageSlug();
       var msg = _greetingForPage(slug);
       if (!_open) _showDot();
+      // When the knowledge base failed to load, append a brief notice so the
+      // user knows the assistant may not have full context — keeps expectations
+      // accurate without blocking the conversation.
+      if (typeof CRBOXKnowledgeFailed !== 'undefined' && CRBOXKnowledgeFailed) {
+        msg += ' (Nota: estoy en modo limitado; algunos detalles pueden no estar disponibles.)';
+      }
       _appendAIMessage(msg);
       _appendFAQPills();
     }, GREETING_DELAY);

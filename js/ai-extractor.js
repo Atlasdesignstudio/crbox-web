@@ -4,7 +4,7 @@
 
     var EXTRACT_ENDPOINT  = '/api/ai/extract';
     var CONFIDENCE_HIGH   = 0.90;
-    var CONFIDENCE_MED    = 0.70;
+    var CONFIDENCE_MED    = 0.80; // Fields below this require manual confirmation (task-481 spec: 0.80)
 
     // ── Step loader (replaces the simple spinner during analysis) ─────────────
 

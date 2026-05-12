@@ -36,11 +36,13 @@
     .then(function (r) { return r.json(); })
     .then(function (data) { _applyKb(data); })
     .catch(function (err) {
-      console.warn('[CRBox] crbox-kb.json load failed:', err);
+      console.warn('[CRBox] crbox-kb.json load failed:', err && err.message);
+      global.CRBOXKnowledgeFailed = true;
       _applyKb({});
     })
     .finally(function () { if (_kbTimer) clearTimeout(_kbTimer); });
 
   global.CRBOX_KNOWLEDGE = null;
+  global.CRBOXKnowledgeFailed = false;
   global.CRBOXKnowledgeReady = onReady;
 })(window);
