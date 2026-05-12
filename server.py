@@ -8732,6 +8732,33 @@ _CSP_POLICY = (
     "object-src 'none'"
 )
 
+# Pages that are intentionally embedded as iframes inside the portal.
+# These pages must NOT receive X-Frame-Options or frame-ancestors restrictions,
+# because they are loaded inside mis-solicitudes.html which may itself be nested
+# inside the Replit dev preview iframe (cross-origin ancestor).
+# The CSP they receive still restricts all other directives (scripts, styles, etc.).
+_EMBEDDABLE_PATHS = {'/cotizar.html'}
+
+# CSP for embeddable portal pages — identical to _CSP_POLICY but without
+# frame-ancestors so the portal iframe chain is never broken.
+_CSP_POLICY_EMBEDDABLE = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline' "
+    "https://www.googletagmanager.com https://www.google-analytics.com "
+    "https://cdn.jsdelivr.net https://unpkg.com; "
+    "style-src 'self' 'unsafe-inline' "
+    "https://cdnjs.cloudflare.com "
+    "https://cdn.jsdelivr.net https://unpkg.com; "
+    "img-src 'self' data: https:; "
+    "font-src 'self' https://cdnjs.cloudflare.com "
+    "https://cdn.jsdelivr.net; "
+    "connect-src 'self' https://clients.crbox.cr "
+    "https://generativelanguage.googleapis.com "
+    "https://www.googletagmanager.com https://www.google-analytics.com; "
+    "frame-src 'self' https://www.googletagmanager.com https://maps.google.com https://www.google.com; "
+    "object-src 'none'"
+)
+
 _MAX_BODY_REGULAR  = 512 * 1024      # 512 KB for regular endpoints
 _MAX_BODY_UPLOAD   = 2 * 1024 * 1024   # 2 MB for file-upload endpoints
 
@@ -8792,14 +8819,24 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         if add_pragma:
             self.send_header("Pragma", "no-cache")
             self.send_header("Expires", "0")
-        self.send_header("X-Frame-Options", "SAMEORIGIN")
+        # Determine whether the current page is an embeddable portal page.
+        # Strip the query string to match the bare path (e.g. /cotizar.html?portal=1 → /cotizar.html).
+        bare_path = self.path.split('?', 1)[0]
+        _is_embeddable = bare_path in _EMBEDDABLE_PATHS
+        if not _is_embeddable:
+            # Standard pages: protect against clickjacking with X-Frame-Options.
+            self.send_header("X-Frame-Options", "SAMEORIGIN")
+        # Embeddable pages intentionally omit X-Frame-Options so the portal
+        # iframe chain (which may include cross-origin Replit preview frames)
+        # is never broken. Their CSP already restricts scripts/styles/etc.
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
         self.send_header("Permissions-Policy",
                          "geolocation=(), microphone=(), camera=()")
         self.send_header("Strict-Transport-Security",
                          "max-age=31536000; includeSubDomains")
-        self.send_header("Content-Security-Policy", _CSP_POLICY)
+        csp = _CSP_POLICY_EMBEDDABLE if _is_embeddable else _CSP_POLICY
+        self.send_header("Content-Security-Policy", csp)
         origin = self.headers.get('Origin', '')
         allowed_set = _allowed_origins()
         if origin:
