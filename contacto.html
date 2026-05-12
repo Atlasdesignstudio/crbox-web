@@ -1227,12 +1227,18 @@
                         }),
                     })
                         .then(function (res) {
+                            // Confirm HTTP success before parsing body; a non-2xx
+                            // status indicates a server-side failure — surface a
+                            // generic message rather than exposing raw backend text.
+                            if (!res.ok) {
+                                throw new Error("HTTP " + res.status);
+                            }
                             return res.json();
                         })
                         .then(function (data) {
                             submitBtn.disabled = false;
                             btnLabel.textContent = "Enviar mensaje";
-                            if (data.ok) {
+                            if (data && data.ok) {
                                 form.reset();
                                 successEl.classList.remove("hidden");
                                 successEl.scrollIntoView({
@@ -1240,9 +1246,11 @@
                                     block: "nearest",
                                 });
                             } else {
+                                // Use a safe, user-friendly message regardless of
+                                // what the backend returns — never display raw API
+                                // error strings directly to end users.
                                 errorText.textContent =
-                                    data.error ||
-                                    "Ocurrió un error. Intenta de nuevo.";
+                                    "No se pudo enviar el mensaje. Por favor intenta de nuevo o escríbenos a ventas@crbox.cr.";
                                 errorEl.classList.remove("hidden");
                             }
                         })
@@ -1250,7 +1258,7 @@
                             submitBtn.disabled = false;
                             btnLabel.textContent = "Enviar mensaje";
                             errorText.textContent =
-                                "Error de conexión. Por favor intenta de nuevo.";
+                                "Error de conexión. Por favor intenta de nuevo o escríbenos a ventas@crbox.cr.";
                             errorEl.classList.remove("hidden");
                         });
                 });
