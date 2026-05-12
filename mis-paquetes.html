@@ -2622,6 +2622,7 @@
       }
 
       function _applyHeader(info) {
+        if (!info) return null;
         var c = info.Consignee || info;
         var firstName = c.consigneename  || c.ConsigneeName  || '';
         var lastName1 = c.consigneelastname1 || c.ConsigneeLastName1 || '';
@@ -2698,10 +2699,16 @@
           var raw = Array.isArray(data) ? data : (data.packages || data.Packages || []);
           var packages = raw.map(function (r) { return CRBOXPortalAPI.mapPackage(r); });
           _cachedPackages = packages;
-          // Pass package pool to the grouping flow so selector can show MIAMI packages
+          // Pass package pool to the grouping flow so selector can show MIAMI packages.
+          // Wrapped in try-catch: any error in the grouping UI must NOT block the
+          // main packages table from rendering (they are independent features).
           if (window.CRBOXEnviarJuntos) {
-            CRBOXEnviarJuntos.setPackages(packages);
-            CRBOXEnviarJuntos.renderSection();
+            try {
+              CRBOXEnviarJuntos.setPackages(packages);
+              CRBOXEnviarJuntos.renderSection();
+            } catch (ejErr) {
+              console.warn('[CRBOX] enviar-juntos render error (non-fatal):', ejErr);
+            }
           }
 
           // Fire-and-forget: notify server of Miami arrivals for proactive email
@@ -3498,7 +3505,7 @@
     }());
     </script>
     <script src="js/portal-nav-offset.js" defer></script>
-    <script src="js/enviar-juntos.js?v=1"></script>
+    <script src="js/enviar-juntos.js?v=2"></script>
 
     <!-- Hidden user data cache for enviar-juntos.js -->
     <span id="ej-user-name-cache" class="hidden" aria-hidden="true"></span>
