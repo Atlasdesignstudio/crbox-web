@@ -876,81 +876,6 @@
                 flex-shrink: 0;
             }
 
-            /* ── Testimonials carousel (mobile only) ────────────── */
-            @media (max-width: 767px) {
-                #testimonials-grid {
-                    display: block;
-                    position: relative;
-                }
-                #testimonials-grid .testimonial-card-v2 {
-                    display: none;
-                }
-                #testimonials-grid .testimonial-card-v2.carousel-active {
-                    display: flex;
-                    animation: cfFadeIn 0.3s ease;
-                }
-                @keyframes cfFadeIn {
-                    from {
-                        opacity: 0;
-                        transform: translateX(20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateX(0);
-                    }
-                }
-                .cf-carousel-controls {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 1rem;
-                    margin-top: 1.25rem;
-                }
-                .cf-carousel-btn {
-                    width: 38px;
-                    height: 38px;
-                    border-radius: 50%;
-                    border: 2px solid #ff6b00;
-                    background: #fff;
-                    color: #ff6b00;
-                    font-size: 0.85rem;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    transition:
-                        background 0.2s,
-                        color 0.2s;
-                }
-                .cf-carousel-btn:hover {
-                    background: #ff6b00;
-                    color: #fff;
-                }
-                .cf-carousel-dots {
-                    display: flex;
-                    gap: 6px;
-                    align-items: center;
-                }
-                .cf-dot {
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background: #d1d5db;
-                    transition:
-                        background 0.25s,
-                        transform 0.25s;
-                    cursor: pointer;
-                }
-                .cf-dot.active {
-                    background: #ff6b00;
-                    transform: scale(1.25);
-                }
-            }
-            @media (min-width: 768px) {
-                .cf-carousel-controls {
-                    display: none !important;
-                }
-            }
         </style>
         <link rel="stylesheet" href="css/chat-panel.css">
 </head>
@@ -1997,152 +1922,94 @@
             </div>
         </section>
 
-        <!-- Testimonials Section -->
-        <section class="py-16 md:py-20 bg-gray-50">
+        <!-- Cotizar CTA Module -->
+        <section id="cotizar-cta" class="py-16 md:py-20 bg-gray-50">
             <div class="container mx-auto px-4">
-                <div class="text-center mb-12">
-                    <span
-                        class="text-orange-600 font-semibold mb-2 inline-block tracking-widest text-sm"
-                        >TESTIMONIOS</span
-                    >
-                    <h2 class="text-3xl font-bold mb-3">
-                        Lo que dicen nuestros clientes
-                    </h2>
-                    <p class="text-lg text-gray-500 max-w-2xl mx-auto">
-                        Miles de costarricenses confían en CRBOX para sus
-                        compras internacionales.
-                    </p>
-                </div>
+                <div class="max-w-5xl mx-auto">
+                    <!-- Card wrapper -->
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl" style="background:#fff;">
+                        <!-- Top gradient bar -->
+                        <div class="h-1.5 w-full" style="background:linear-gradient(90deg,#ff6b00,#ff9d4d,#f43f5e,#a855f7,#6366f1)"></div>
+                        <!-- Orange glow orb top-right -->
+                        <div class="absolute top-0 right-0 w-72 h-72 rounded-full pointer-events-none" style="background:radial-gradient(circle at 70% 30%,rgba(255,107,0,0.12) 0%,transparent 70%);"></div>
+                        <!-- Indigo orb bottom-left -->
+                        <div class="absolute bottom-0 left-0 w-56 h-56 rounded-full pointer-events-none" style="background:radial-gradient(circle at 30% 70%,rgba(99,102,241,0.09) 0%,transparent 70%);"></div>
 
-                <div
-                    id="testimonials-grid"
-                    class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto"
-                >
-                    <!-- Testimonial 1 -->
-                    <div
-                        class="testimonial-card-v2 carousel-active"
-                        data-index="0"
-                    >
-                        <div class="flex items-center justify-between">
-                            <div class="testimonial-stars">
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                            </div>
-                            <div class="testimonial-quote-icon">
-                                <i
-                                    class="fas fa-quote-right"
-                                    style="font-size: 0.85rem"
-                                ></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-body">
-                            "He utilizado CRBOX durante más de un año y el
-                            servicio es excelente. Mis paquetes siempre llegan
-                            en perfectas condiciones y en el tiempo prometido."
-                        </p>
-                        <div class="testimonial-attribution">
-                            <div class="testimonial-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div>
-                                <p class="testimonial-name">María Fernández</p>
-                                <p class="testimonial-location">San José</p>
+                        <div class="relative p-8 md:p-12">
+                            <div class="flex flex-col md:flex-row md:items-center md:gap-12">
+
+                                <!-- Left: text + CTAs -->
+                                <div class="flex-1 min-w-0">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-widest mb-4" style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;">
+                                        <i class="fas fa-shopping-cart"></i> COTIZAR
+                                    </span>
+                                    <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-3">
+                                        ¿Listo para tu próxima<br class="hidden md:block"> compra en USA?
+                                    </h2>
+                                    <p class="text-gray-500 text-base md:text-lg mb-6 leading-relaxed max-w-lg">
+                                        Envíanos el link del producto que quieres comprar y te cotizamos el envío en minutos — sin sorpresas.
+                                    </p>
+
+                                    <!-- Trust pills -->
+                                    <div class="flex flex-wrap gap-2 mb-8">
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">
+                                            <i class="fas fa-check-circle text-xs"></i> Sin costo de registro
+                                        </span>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;">
+                                            <i class="fas fa-bolt text-xs"></i> Respuesta rápida
+                                        </span>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium" style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;">
+                                            <i class="fas fa-shield-alt text-xs"></i> Envío protegido
+                                        </span>
+                                    </div>
+
+                                    <!-- CTAs -->
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        <a href="cotizar.html" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-bold text-white text-base transition-all" style="background:#ff6b00;box-shadow:0 4px 20px rgba(255,107,0,0.35);" onmouseover="this.style.background='#e85500'" onmouseout="this.style.background='#ff6b00'">
+                                            <i class="fas fa-shopping-bag"></i>
+                                            Cotizar Ahora
+                                        </a>
+                                        <a href="calculadora.html" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-gray-700 text-base transition-all" style="border:1.5px solid #e5e7eb;background:#f9fafb;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='#f9fafb'">
+                                            <i class="fas fa-calculator text-orange-500"></i>
+                                            Calcular Envío
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Right: visual stat cards -->
+                                <div class="mt-10 md:mt-0 flex-shrink-0 flex flex-col gap-4 md:w-64">
+                                    <div class="rounded-2xl p-4 flex items-center gap-4" style="background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1px solid #fed7aa;">
+                                        <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#ff6b00;">
+                                            <i class="fas fa-shipping-fast text-white text-base"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-gray-900 text-lg leading-none">2–4 días</p>
+                                            <p class="text-gray-500 text-xs mt-0.5">Tiempo promedio de entrega</p>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-2xl p-4 flex items-center gap-4" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #bfdbfe;">
+                                        <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#3b82f6;">
+                                            <i class="fas fa-map-marker-alt text-white text-base"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-gray-900 text-lg leading-none">7 provincias</p>
+                                            <p class="text-gray-500 text-xs mt-0.5">Cobertura nacional</p>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-2xl p-4 flex items-center gap-4" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #bbf7d0;">
+                                        <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#16a34a;">
+                                            <i class="fas fa-headset text-white text-base"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-gray-900 text-lg leading-none">Soporte real</p>
+                                            <p class="text-gray-500 text-xs mt-0.5">Atención personalizada</p>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                     </div>
-
-                    <!-- Testimonial 2 -->
-                    <div class="testimonial-card-v2" data-index="1">
-                        <div class="flex items-center justify-between">
-                            <div class="testimonial-stars">
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                            </div>
-                            <div class="testimonial-quote-icon">
-                                <i
-                                    class="fas fa-quote-right"
-                                    style="font-size: 0.85rem"
-                                ></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-body">
-                            "La consolidación de paquetes me ha ahorrado mucho
-                            dinero. El proceso es sencillo y el seguimiento en
-                            tiempo real me da tranquilidad sobre mis compras."
-                        </p>
-                        <div class="testimonial-attribution">
-                            <div class="testimonial-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div>
-                                <p class="testimonial-name">Carlos Montero</p>
-                                <p class="testimonial-location">Heredia</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Testimonial 3 -->
-                    <div class="testimonial-card-v2" data-index="2">
-                        <div class="flex items-center justify-between">
-                            <div class="testimonial-stars">
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                                <i class="fas fa-star text-yellow-400"></i>
-                            </div>
-                            <div class="testimonial-quote-icon">
-                                <i
-                                    class="fas fa-quote-right"
-                                    style="font-size: 0.85rem"
-                                ></i>
-                            </div>
-                        </div>
-                        <p class="testimonial-body">
-                            "El servicio al cliente es excepcional. Siempre
-                            responden rápidamente a mis consultas y me mantienen
-                            informada sobre el estado de mis envíos."
-                        </p>
-                        <div class="testimonial-attribution">
-                            <div class="testimonial-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div>
-                                <p class="testimonial-name">Laura Jiménez</p>
-                                <p class="testimonial-location">Cartago</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- /testimonials-grid -->
-
-                <!-- Carousel controls — visible on mobile only -->
-                <div class="cf-carousel-controls" id="cf-carousel-controls">
-                    <button
-                        class="cf-carousel-btn"
-                        id="cf-prev"
-                        aria-label="Anterior"
-                    >
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <div class="cf-carousel-dots" id="cf-dots">
-                        <span class="cf-dot active" data-dot="0"></span>
-                        <span class="cf-dot" data-dot="1"></span>
-                        <span class="cf-dot" data-dot="2"></span>
-                    </div>
-                    <button
-                        class="cf-carousel-btn"
-                        id="cf-next"
-                        aria-label="Siguiente"
-                    >
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
                 </div>
             </div>
         </section>
@@ -2392,68 +2259,9 @@
                     });
                 }
 
-                /* ─── Testimonials carousel ───────────────────────────── */
-                function initCarousel() {
-                    var grid = document.getElementById("testimonials-grid");
-                    var prev = document.getElementById("cf-prev");
-                    var next = document.getElementById("cf-next");
-                    var dots = document.querySelectorAll(".cf-dot");
-                    if (!grid || !prev || !next) return;
-
-                    var cards = Array.from(grid.querySelectorAll(".testimonial-card-v2"));
-                    var total = cards.length;
-                    var cur = 0;
-
-                    function goTo(idx) {
-                        /* Remove active from previous */
-                        cards[cur].classList.remove("carousel-active");
-                        if (dots[cur]) dots[cur].classList.remove("active");
-                        cur = (idx + total) % total;
-                        /* Add active to new card */
-                        cards[cur].classList.add("carousel-active");
-                        if (dots[cur]) dots[cur].classList.add("active");
-                    }
-
-                    prev.addEventListener("click", function () {
-                        goTo(cur - 1);
-                    });
-                    next.addEventListener("click", function () {
-                        goTo(cur + 1);
-                    });
-                    dots.forEach(function (dot) {
-                        dot.addEventListener("click", function () {
-                            goTo(parseInt(dot.dataset.dot, 10));
-                        });
-                    });
-
-                    /* Touch swipe on the grid */
-                    var touchStartX = 0;
-                    grid.addEventListener(
-                        "touchstart",
-                        function (e) {
-                            touchStartX = e.changedTouches[0].screenX;
-                        },
-                        { passive: true },
-                    );
-                    grid.addEventListener(
-                        "touchend",
-                        function (e) {
-                            var dx = e.changedTouches[0].screenX - touchStartX;
-                            if (Math.abs(dx) > 40) {
-                                goTo(dx < 0 ? cur + 1 : cur - 1);
-                            }
-                        },
-                        { passive: true },
-                    );
-
-                    /* Initialise first card as active */
-                    goTo(0);
-                }
-
                 document.addEventListener("DOMContentLoaded", function () {
                     initFAQ();
                     initConsolAccordion();
-                    initCarousel();
                 });
             })();
         </script>
