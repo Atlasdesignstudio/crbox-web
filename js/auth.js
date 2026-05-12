@@ -104,7 +104,8 @@
     'crbox_onboarding',
     'crbox_display_name',
     'crbox_casillero_num',
-    'crbox_pkg_cache'
+    'crbox_pkg_cache',
+    'crbox_cached_id_consignee'
   ];
 
   function clearToken() {

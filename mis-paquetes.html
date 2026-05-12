@@ -1428,8 +1428,8 @@
     <script src="js/analytics.js" defer></script>
     <script src="js/cr-locations.js" defer></script>
     <script src="js/portal-api.js?v=1" defer></script>
-    <script src="js/auth.js?v=2" defer></script>
-    <script src="js/nav-auth.js?v=2" defer></script>
+    <script src="js/auth.js?v=3" defer></script>
+    <script src="js/nav-auth.js?v=3" defer></script>
     <script src="js/mobile-drawer.js?v=1" defer></script>
     <script src="js/main.js?v=6" defer></script>
     <!-- JavaScript Mejorado -->
@@ -3485,13 +3485,35 @@
           return;
         }
 
-        // 5-second slow-timer for getUserInfo (mirrors the one inside _loadPackages
-        // for getPackages). If getUserInfo hangs, show a message + Reintentar button
-        // instead of leaving the static HTML spinner forever.
+        // ── EARLY RENDER: show packages immediately from cache ─────────────────
+        // Do NOT wait for getUserInfo. Read the localStorage package cache and
+        // cached idConsignee right now. If both are fresh (<10 min), call
+        // _loadPackages immediately so packages appear before getUserInfo resolves.
+        // This means mis-paquetes NEVER shows a blank spinner to a returning user.
+        var _earlyLoaded = false;
+        var _earlyCachedIdStr = '';
+        try {
+          _earlyCachedIdStr = localStorage.getItem('crbox_cached_id_consignee') || '';
+          if (_earlyCachedIdStr) {
+            var _earlyCache = JSON.parse(localStorage.getItem('crbox_pkg_cache') || 'null');
+            if (_earlyCache && (Date.now() - _earlyCache.ts) < 600000 &&
+                Array.isArray(_earlyCache.raw) && _earlyCache.raw.length > 0) {
+              _cachedConsigneeId = _earlyCachedIdStr;
+              _earlyLoaded = true;
+              _diag('cargando desde caché (' + _earlyCache.raw.length + ' pkgs)...');
+              // _loadPackages renders the cache instantly AND fires a live refresh call
+              _loadPackages(_earlyCachedIdStr);
+            }
+          }
+        } catch (_earlyErr) {}
+
+        // 5-second slow-timer for getUserInfo — only matters if early cache was NOT
+        // available (i.e. first visit, cache expired, or different user). Prevents
+        // the static HTML spinner from hanging indefinitely.
         var _guiTimer = setTimeout(function () {
           var _tb3 = document.getElementById('packages-tbody');
           if (_tb3 && _tb3.querySelector('.fa-spinner')) {
-            _diag('getUserInfo tardando mucho — posible problema de red');
+            _diag('conexión lenta — mostrando opción de reintento');
             _tb3.innerHTML =
               '<tr><td colspan="15" class="text-center py-8 text-gray-400">' +
                 '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando&hellip; ' +
@@ -3503,7 +3525,7 @@
           }
         }, 5000);
 
-        _diag('getUserInfo iniciado...');
+        _diag(_earlyLoaded ? 'actualizando datos en segundo plano...' : 'getUserInfo iniciado...');
 
         // ?receipt=<num> — navigated here from a Mis Facturas recibo row.
         // Pre-fill the search input as a visual cue; then load all packages and
@@ -3523,9 +3545,22 @@
             clearTimeout(_guiTimer);
             var idConsignee = _applyHeader(info);
             _cachedConsigneeId = idConsignee;
-            _diag('getUserInfo OK — idCons=' + (idConsignee || '?') + '. Cargando paquetes...');
-            if (idConsignee) _loadPackages(idConsignee);
-            else _diag('ERROR: idConsignee vacío. Revisa tu perfil.');
+            // Persist idConsignee so next page load can render from cache immediately
+            // without waiting for this getUserInfo round-trip.
+            try { localStorage.setItem('crbox_cached_id_consignee', String(idConsignee)); } catch (_e) {}
+            if (idConsignee) {
+              if (_earlyLoaded && String(idConsignee) === _earlyCachedIdStr) {
+                // Early render already called _loadPackages with the same idConsignee.
+                // A live refresh is already in-flight — no need to call again.
+                _diag('getUserInfo OK — idCons=' + idConsignee + ' (actualización en curso)');
+              } else {
+                // Either no early render, or idConsignee changed — start fresh.
+                _diag('getUserInfo OK — idCons=' + idConsignee + '. Cargando paquetes...');
+                _loadPackages(idConsignee);
+              }
+            } else {
+              _diag('ERROR: idConsignee vacío. Revisa tu perfil.');
+            }
 
             // Init "Enviar paquetes juntos" grouping flow
             if (window.CRBOXEnviarJuntos) {

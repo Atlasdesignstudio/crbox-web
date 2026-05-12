@@ -862,8 +862,8 @@
 <script src="js/analytics.js" defer></script>
 <script src="js/cr-locations.js" defer></script>
 <script src="js/portal-api.js?v=1" defer></script>
-<script src="js/auth.js?v=2" defer></script>
-<script src="js/nav-auth.js?v=2" defer></script>
+<script src="js/auth.js?v=3" defer></script>
+<script src="js/nav-auth.js?v=3" defer></script>
 <script src="js/mobile-drawer.js?v=1" defer></script>
 <script src="js/main.js?v=6" defer></script>
 <script src="js/dashboard.js?v=2" defer></script>
@@ -1630,7 +1630,12 @@
         }
         var c = (info && info.Consignee) ? info.Consignee : info;
         var idCons = c && (c.idconsignee || c.IdConsignee);
-        if (idCons) _loadCaminoStat(idCons);
+        if (idCons) {
+          _loadCaminoStat(idCons);
+          // Cache idConsignee so mis-paquetes can render from cache immediately
+          // on the next visit without waiting for its own getUserInfo round-trip.
+          try { localStorage.setItem('crbox_cached_id_consignee', String(idCons)); } catch (_e) {}
+        }
         _loadSolicitudesBadge();
       })
       .catch(function (err) {
@@ -1657,7 +1662,10 @@
       _applyUserInfo(info);
       var c = (info && info.Consignee) ? info.Consignee : info;
       var idCons = c && (c.idconsignee || c.IdConsignee);
-      if (idCons) _loadCaminoStat(idCons);
+      if (idCons) {
+        _loadCaminoStat(idCons);
+        try { localStorage.setItem('crbox_cached_id_consignee', String(idCons)); } catch (_e) {}
+      }
     }).catch(function () {});
   });
 }());
