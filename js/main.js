@@ -652,9 +652,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    window.addEventListener('resize', function() {
-        requestAnimationFrame(init);
-    });
+    window.addEventListener('resize', _rafThrottle(init));
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () { requestAnimationFrame(init); });
