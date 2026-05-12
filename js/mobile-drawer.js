@@ -48,16 +48,32 @@
       + '><i class="fas ' + _esc(item.icon) + '"></i><span>' + _esc(item.label) + '</span></a>';
   }
 
+  // ── localStorage keys for cross-page name/casillero cache ────────────────────
+  var KEY_DISPLAY_NAME  = 'crbox_display_name';
+  var KEY_CASILLERO_NUM = 'crbox_casillero_num';
+
+  function _cacheRead(key) {
+    try { return localStorage.getItem(key) || ''; } catch (e) { return ''; }
+  }
+  function _cacheWrite(key, val) {
+    try { if (val) localStorage.setItem(key, val); } catch (e) {}
+  }
+
   // ── Build header (orange) ─────────────────────────────────────────────────────
   function _buildHead() {
     var a = _auth();
     if (a && a.isLoggedIn()) {
       var nameEl = document.getElementById('mobile-user-name');
       var subEl  = document.getElementById('mobile-casillero-badge');
-      var name   = (nameEl && nameEl.textContent.trim() && nameEl.textContent.trim() !== 'Cargando...')
-                   ? nameEl.textContent.trim() : (a.getEmail ? a.getEmail() : 'Usuario CRBOX');
-      var sub    = (subEl && subEl.textContent.trim() && subEl.textContent.trim() !== 'Casillero #—')
-                   ? subEl.textContent.trim() : 'Usuario CRBOX';
+      var domName = (nameEl && nameEl.textContent.trim() && nameEl.textContent.trim() !== 'Cargando...')
+                    ? nameEl.textContent.trim() : '';
+      var domSub  = (subEl && subEl.textContent.trim() && subEl.textContent.trim() !== 'Casillero #—')
+                    ? subEl.textContent.trim() : '';
+      // Persist to cache whenever we have fresh portal values
+      if (domName) _cacheWrite(KEY_DISPLAY_NAME, domName);
+      if (domSub)  _cacheWrite(KEY_CASILLERO_NUM, domSub);
+      var name = domName || _cacheRead(KEY_DISPLAY_NAME) || (a.getEmail ? a.getEmail() : 'Usuario CRBOX');
+      var sub  = domSub  || _cacheRead(KEY_CASILLERO_NUM) || 'Usuario CRBOX';
       return '<div class="crbox-dh">'
         + '<a href="index.html" class="crbox-dh-logo-wrap" tabindex="-1">'
         + '<img src="img/crbox-logo.png" alt="CRBOX" class="crbox-dh-logo"></a>'
@@ -209,10 +225,19 @@
     var subEl  = document.getElementById('mobile-casillero-badge');
     var dn = _wrap.querySelector('#crbox-dh-name');
     var ds = _wrap.querySelector('#crbox-dh-sub');
-    if (dn && nameEl && nameEl.textContent.trim() && nameEl.textContent.trim() !== 'Cargando...')
-      dn.textContent = nameEl.textContent.trim();
-    if (ds && subEl && subEl.textContent.trim() && subEl.textContent.trim() !== 'Casillero #—')
-      ds.textContent = subEl.textContent.trim();
+
+    var domName = (nameEl && nameEl.textContent.trim() && nameEl.textContent.trim() !== 'Cargando...')
+                  ? nameEl.textContent.trim() : '';
+    var domSub  = (subEl && subEl.textContent.trim() && subEl.textContent.trim() !== 'Casillero #—')
+                  ? subEl.textContent.trim() : '';
+
+    // Persist fresh portal values to cache
+    if (domName) _cacheWrite(KEY_DISPLAY_NAME, domName);
+    if (domSub)  _cacheWrite(KEY_CASILLERO_NUM, domSub);
+
+    // Update the displayed name: portal DOM → localStorage cache
+    if (dn) dn.textContent = domName || _cacheRead(KEY_DISPLAY_NAME) || dn.textContent;
+    if (ds) ds.textContent = domSub  || _cacheRead(KEY_CASILLERO_NUM) || ds.textContent;
   }
 
   // ── Open ──────────────────────────────────────────────────────────────────────

@@ -101,7 +101,9 @@
     'crbox_auto_added_groups',
     'crbox_ambiguous_miami_pkgs',
     'crbox_activation_toast_shown',
-    'crbox_onboarding'
+    'crbox_onboarding',
+    'crbox_display_name',
+    'crbox_casillero_num'
   ];
 
   function clearToken() {
