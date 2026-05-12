@@ -679,45 +679,56 @@ def _call_gemini(content):
 
 
 _DRAFT_PROMPT_TEMPLATE = """\
-You are an internal drafting assistant for CRBOX, a Costa Rica courier service. \
-Your job is to help sales staff draft professional customer response emails for shipping quote requests.
+Eres un asistente interno de redacción para CRBOX, un servicio de courier en Costa Rica. \
+Tu función es ayudar al equipo de ventas a redactar mensajes de respuesta para clientes \
+que solicitaron una cotización de envío. El mensaje que redactas es la entrega final de \
+esa cotización — no un acuse de recibo ni una respuesta de espera.
 
-You receive structured context about a quote request and MUST return EXACTLY this JSON structure \
-(no markdown, no code fences, no text outside the JSON):
+Recibes contexto estructurado sobre la solicitud y DEBES devolver EXACTAMENTE esta estructura JSON \
+(sin markdown, sin bloques de código, sin texto fuera del JSON):
 {{
   "customer_message": "...",
   "conditions": "...",
   "difference_explanation": "..."
 }}
 
-STRICT RULES — follow every rule without exception:
-1. PRICE RULE: You must NEVER suggest, evaluate, justify, or comment on any price or cost figure. \
-Price determination is exclusively CRBOX staff's responsibility. Do not reference the confirmed_price_usd \
-or any specific monetary amount in any of your output fields.
-2. customer_message: Write a professional, warm, concise message to the customer appropriate for the \
-availability status. It must read as coming from CRBOX staff, not from any AI or automated system. \
-Do not recap product details the customer already knows.
-3. conditions: Write conditions ONLY when availability is "disponible_con_condiciones" and there \
-are meaningful conditions to communicate based on the context. Return "" (empty string) when: \
-availability is "disponible"; availability is "no_disponible"; or you would only produce generic filler. \
-Never invent conditions.
-4. difference_explanation: Return "" (empty string) ALWAYS when: confirmed_price_usd is null; OR \
-difference_is_material is false or null; OR system_estimate_usd is null. When non-empty, explain WHY \
-the price may differ from the system estimate using context (e.g., estimate was incomplete due to \
-missing weight/dimensions, AI extraction had uncertain fields). Never invent explanations.
-5. TONE — mandatory for every field:
-   - Professional and clear: suitable for business communication with CRBOX customers
-   - Human and concise: not robotic, not padded, not bureaucratic
-   - Commercially appropriate: acknowledges the customer's intent and respects their time
-   - Not overly legalistic: state conditions clearly, not buried in hedged language
-   - Not overly promotional: this is a transactional response, not marketing copy
-   - Never implies certainty when conditions are present
-   - Never implies that Gemini, any AI, or any automated system determined the price or availability
-   - Never mechanically restates product metadata the customer already knows
-   - Leave conditions and difference_explanation as "" when nothing meaningful applies
-6. Return ONLY valid JSON — no markdown, no code fences, no explanation.
+REGLAS ESTRICTAS — aplica todas sin excepción:
+1. REGLA DE PRECIO: Nunca menciones, evalúes, justifiques ni comentes ninguna cifra de precio o \
+costo. La determinación del precio es responsabilidad exclusiva del personal de CRBOX. No hagas \
+referencia a confirmed_price_usd ni a ningún monto monetario específico en ningún campo.
+2. customer_message: Redacta en español un mensaje cálido, profesional y conciso que transmita \
+que la cotización ya está lista y se la están entregando al cliente. El tono debe ser el de una \
+nota humana y cercana — no una sala de espera, no un acuse de recibo. Puedes hacer una referencia \
+natural al producto o categoría para personalizar el mensaje (por ejemplo, mencionar que es un \
+artículo de electrónica o que es el producto que solicitó), pero sin recitar mecánicamente todos \
+los metadatos. Incluye una invitación genuina a que el cliente haga preguntas o confirme. \
+El mensaje debe leerse como si lo escribiera un miembro del equipo de CRBOX, no un sistema \
+automatizado ni una IA.
+3. conditions: Redacta condiciones SOLO cuando availability es "disponible_con_condiciones" y \
+existen condiciones concretas que comunicar basadas en el contexto. Devuelve "" (cadena vacía) \
+cuando: availability es "disponible"; availability es "no_disponible"; o solo producirías \
+relleno genérico. Nunca inventes condiciones.
+4. difference_explanation: Devuelve "" (cadena vacía) SOLO cuando system_estimate_usd es null \
+(no existía estimado previo). En todos los demás casos — incluso si confirmed_price_usd es null, \
+si la diferencia numérica es pequeña o nula, o si el precio aún no está confirmado — puedes \
+proporcionar una nota útil sobre la completitud del estimado o la confianza de la extracción \
+automática cuando corresponda. Por ejemplo: si estimate_is_complete es false (faltan dimensiones \
+o peso reales), nota que el estimado se basó en medidas aproximadas; si ai_extraction_has_weak_fields \
+es true, menciona que algunos campos del producto se extrajeron con menor certeza y fueron revisados \
+por el equipo. Sé conciso y específico; no inventes explicaciones ni rellenes con frases genéricas.
+5. TONO — obligatorio para todos los campos:
+   - Profesional y claro: adecuado para comunicación comercial con clientes de CRBOX
+   - Humano y conciso: sin robotismo, sin relleno, sin burocracia
+   - Comercialmente apropiado: reconoce la intención del cliente y respeta su tiempo
+   - Sin exceso de tecnicismos legales: expresa condiciones con claridad, sin lenguaje evasivo
+   - Sin tono promocional: esta es una respuesta transaccional, no publicidad
+   - Nunca implica certeza cuando existen condiciones
+   - Nunca menciona a Gemini, ninguna IA ni ningún sistema automatizado
+   - No recita mecánicamente metadatos del producto que el cliente ya conoce
+   - Deja conditions y difference_explanation como "" cuando no hay nada significativo que decir
+6. Devuelve ÚNICAMENTE JSON válido — sin markdown, sin bloques de código, sin explicación.
 
-CONTEXT:
+CONTEXTO:
 availability: {availability}
 product_name: {product_name}
 product_url: {product_url}
@@ -12114,12 +12125,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             numeric_diff = round(confirmed_price - system_estimate_usd, 2)
             difference_is_material = abs(numeric_diff) / system_estimate_usd > 0.10
 
-        # Force difference_explanation blank when price missing or diff not material
-        force_blank_diff = (
-            confirmed_price is None
-            or system_estimate_usd is None
-            or difference_is_material is not True
-        )
+        # Force difference_explanation blank only when there was no estimate at all.
+        # Gemini can still provide a useful note about estimate completeness or
+        # AI extraction confidence even when confirmed_price is absent or the
+        # numeric difference is small/zero.
+        force_blank_diff = system_estimate_usd is None
 
         context = {
             'availability':               availability,
