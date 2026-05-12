@@ -9090,6 +9090,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_package_groups_get()
         elif self.path.startswith('/api/package-group-ack'):
             self._handle_package_group_ack()
+        elif self.path.startswith('/api/packages-proxy'):
+            self._handle_packages_proxy()
         elif self.path.startswith('/api/solicitudes'):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/api/solicitudes':
@@ -10121,6 +10123,73 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         except Exception as exc:
             print(f'[PROXY/saveBill] Unexpected error: {exc}')
+            self._json_error(502, 'Error de comunicación con el servicio externo.', code='upstream_error')
+
+    # ── GET /api/packages-proxy ────────────────────────────────────────────
+    # Server-side proxy for the CRBOX getuserpackages API endpoint.
+    # The browser calls this same-origin endpoint so that the actual request to
+    # clients.crbox.cr is made server-to-server, bypassing any browser-level
+    # CORS issues, network routing restrictions, or connection race conditions
+    # that can cause the direct client-side fetch to hang or fail silently.
+    #
+    # Query params: id, start, end, tracking, status
+    # Authorization: Bearer <token>  (forwarded verbatim to CRBOX)
+    _CRBOX_PACKAGES_BASE = 'https://clients.crbox.cr/api/crboxwebapi/getuserpackages'
+
+    def _handle_packages_proxy(self):
+        auth_header = self.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            self._json_error(401, 'Autorización requerida.', code='auth_required')
+            return
+
+        parsed    = urllib.parse.urlparse(self.path)
+        qs        = urllib.parse.parse_qs(parsed.query, keep_blank_values=False)
+        id_cons   = qs.get('id',       [''])[0].strip()
+        start     = qs.get('start',    [''])[0].strip()
+        end       = qs.get('end',      [''])[0].strip()
+        tracking  = qs.get('tracking', ['null'])[0].strip() or 'null'
+        status    = qs.get('status',   ['1000'])[0].strip() or '1000'
+
+        if not id_cons or not start or not end:
+            self._json_error(400, 'Parámetros faltantes (id, start, end).', code='bad_request')
+            return
+
+        crbox_url = '/'.join([
+            self._CRBOX_PACKAGES_BASE,
+            urllib.parse.quote(id_cons,  safe=''),
+            urllib.parse.quote(start,    safe=''),
+            urllib.parse.quote(end,      safe=''),
+            urllib.parse.quote(tracking, safe=''),
+            urllib.parse.quote(status,   safe=''),
+        ])
+
+        req = urllib.request.Request(crbox_url)
+        req.add_header('Authorization', auth_header)
+        req.add_header('Accept',        'application/json')
+        req.add_header('User-Agent',    'CRBOX-Portal-Proxy/1.0')
+
+        try:
+            try:
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    resp_body = resp.read(8 * 1024 * 1024)   # 8 MB cap
+                    resp_code = resp.status
+                    resp_ct   = resp.headers.get('Content-Type', 'application/json')
+            except urllib.error.HTTPError as exc:
+                resp_body = exc.read(512 * 1024)
+                resp_code = exc.code
+                resp_ct   = exc.headers.get('Content-Type', 'application/json')
+                print(f'[PROXY/packages] CRBOX HTTP {resp_code} for consignee {id_cons!r}')
+
+            self.send_response(resp_code)
+            self.send_header('Content-Type',
+                             'application/json' if 'json' in resp_ct else resp_ct)
+            self.send_header('Content-Length', str(len(resp_body)))
+            self.send_header('Cache-Control',  'no-store')
+            self.end_headers()
+            self.wfile.write(resp_body)
+
+        except Exception as exc:
+            print(f'[PROXY/packages] Unexpected error: {exc}')
             self._json_error(502, 'Error de comunicación con el servicio externo.', code='upstream_error')
 
     # ── POST /api/invoice-upload ───────────────────────────────────────────

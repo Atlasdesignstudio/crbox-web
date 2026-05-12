@@ -2719,8 +2719,37 @@
           tracking    : _trackArg,
           status      : _statArg
         });
-        CRBOXPortalAPI.getPackages(idConsignee,
-          _startArg, _endArg, _trackArg, _statArg)
+        (function () {
+          var _token = CRBOXAuth.getToken();
+          var _email = (CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '') || '';
+          if (!_token) {
+            var _noTokErr = new Error('Sesión no iniciada. Por favor inicia sesión.');
+            return Promise.reject(_noTokErr);
+          }
+          var _qs = '?id='       + encodeURIComponent(idConsignee) +
+                    '&start='    + encodeURIComponent(CRBOXPortalAPI.formatDate(_startArg)) +
+                    '&end='      + encodeURIComponent(CRBOXPortalAPI.formatDate(_endArg))   +
+                    '&tracking=' + encodeURIComponent(_trackArg || 'null') +
+                    '&status='   + encodeURIComponent(_statArg  || '1000');
+          return fetch('/api/packages-proxy' + _qs, {
+            headers: {
+              'Authorization':     'Bearer ' + _token,
+              'X-Casillero-Email': _email
+            }
+          }).then(function (res) {
+            if (res.status === 401) {
+              CRBOXAuth.clearToken();
+              window.location.replace('login.html?msg=session-expired');
+              var _ae = new Error('Sesión expirada');
+              _ae.isAuthError = true;
+              throw _ae;
+            }
+            if (!res.ok) {
+              throw new Error('No se pudieron cargar los paquetes (' + res.status + '). Intenta de nuevo.');
+            }
+            return res.json();
+          });
+        }())
         .then(function (data) {
           clearTimeout(_slowTimer);
           console.log('[CRBOX mis-paquetes] getPackages raw response →',
