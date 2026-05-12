@@ -1236,7 +1236,7 @@
                         <i class="fas fa-chevron-left"></i>
                     </button>
                     <div class="steps-carousel-wrap">
-                        <div class="steps-carousel-track" id="steps-carousel-track" data-carousel-track="steps">
+                        <div class="steps-carousel-track" id="steps-carousel-track" data-carousel-track="steps" data-gap="12">
                             <!-- Step 1 -->
                             <div class="step-editorial-card">
                                 <span class="step-num-bg" aria-hidden="true">01</span>
@@ -1367,6 +1367,7 @@
                         <div
                             id="features-banner-grid"
                             class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
+                            data-gap="12"
                         >
                             <div class="feature-banner-item">
                                 <div class="feat-icon-ring">
@@ -2470,12 +2471,17 @@
 
                 /* Use pixel-based translation including inter-card gap so each
                    navigation step lands cleanly on the next card boundary.
-                   columnGap covers both CSS gap on flex tracks and explicit margins. */
+                   columnGap covers both CSS gap on flex tracks and explicit margins.
+                   Falls back to data-gap attribute if getComputedStyle returns 0
+                   (e.g. before layout is fully computed or browser quirks). */
                 function cardStep() {
                     var cardEl = track.children[0];
                     if (!cardEl) return 0;
                     var w = cardEl.offsetWidth;
                     var gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+                    if (gap === 0) {
+                        gap = parseFloat(track.getAttribute('data-gap')) || 0;
+                    }
                     return w + gap;
                 }
 
