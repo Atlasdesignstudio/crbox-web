@@ -2347,6 +2347,9 @@
                 background: #fff;
             }
             .cqd-lo-field::placeholder { color: #94a3b8; }
+            .cqd-lo-field.cqd-lo-field-error { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239,68,68,.12) !important; }
+            @keyframes cqd-shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+            .cqd-lo-field.cqd-lo-field-error { animation: cqd-shake .35s ease; }
 
             /* ── CTA button ── */
             .cqd-lo-start-btn {
@@ -5434,8 +5437,25 @@
                 var loStartBtn = document.getElementById('cqd-lo-start');
 
                 function _collectAndStart(chipQuery) {
-                    _userFirstName = (loNameEl ? loNameEl.value.trim().split(' ')[0] : '') || '';
-                    _userEmail     = (loEmailEl ? loEmailEl.value.trim() : '') || '';
+                    var nameVal  = loNameEl  ? loNameEl.value.trim()  : '';
+                    var emailVal = loEmailEl ? loEmailEl.value.trim() : '';
+                    var emailOk  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
+
+                    // Validate — block and highlight empty/invalid fields
+                    var invalid = false;
+                    [loNameEl, loEmailEl].forEach(function(el) { if (el) el.classList.remove('cqd-lo-field-error'); });
+                    if (!nameVal) {
+                        if (loNameEl) { loNameEl.classList.add('cqd-lo-field-error'); loNameEl.focus(); }
+                        invalid = true;
+                    }
+                    if (!emailVal || !emailOk) {
+                        if (loEmailEl) { loEmailEl.classList.add('cqd-lo-field-error'); if (!invalid) loEmailEl.focus(); }
+                        invalid = true;
+                    }
+                    if (invalid) return;
+
+                    _userFirstName = nameVal.split(' ')[0];
+                    _userEmail     = emailVal;
                     // Pre-fill right-panel contact fields if user gave us their info
                     var rpNameEl  = document.getElementById('f-customer-name');
                     var rpEmailEl = document.getElementById('f-customer-email');
@@ -5447,6 +5467,11 @@
                         _startChatMode();
                     }
                 }
+
+                // Clear error highlight as soon as user starts typing
+                [loNameEl, loEmailEl].forEach(function(el) {
+                    if (el) el.addEventListener('input', function() { el.classList.remove('cqd-lo-field-error'); });
+                });
 
                 // Expose on window so the button onclick always reaches it
                 window._cqdStart = function(q) { _collectAndStart(q || null); };
@@ -5903,7 +5928,7 @@
     <script src="js/crbox-knowledge.js"></script>
     <script src="js/chat-calculator.js"></script>
     <script src="js/chat-quote.js"></script>
-    <script src="js/chat-panel.js"></script>
+    <script src="js/chat-panel.js?v=2"></script>
     <!-- ══ MOBILE CHAT ══ -->
     <script src="js/cqchat.js?v=3"></script>
     <!-- ══ CART BOTTOM SHEET ══ -->
