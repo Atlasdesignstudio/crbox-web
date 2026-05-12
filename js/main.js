@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu — handled by js/mobile-drawer.js
 
-    // Simple tracking form
+    // Simple tracking form — no .tracking-form exists in current pages;
+    // package tracking is handled in mis-paquetes.html.
     const trackingForm = document.querySelector('.tracking-form');
     if (trackingForm) {
         trackingForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            // Implementar lógica de tracking
-            alert('Funcionalidad de tracking en desarrollo');
+            window.location.href = 'mis-paquetes.html';
         });
     }
 

@@ -359,6 +359,7 @@
                                 Agregar Dirección
                             </button>
                         </div>
+                        <p id="add-address-notice" class="hidden text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3"></p>
                         
                         <div id="cr-addresses-list">
                             <p class="text-gray-400 text-sm py-2">Cargando direcciones...</p>
@@ -771,8 +772,12 @@
             
             if (addAddressBtn) {
                 addAddressBtn.addEventListener('click', function() {
-                    // In a real implementation, this would open a modal or form
-                    alert('Esta funcionalidad estará disponible próximamente.');
+                    var notice = document.getElementById('add-address-notice');
+                    if (notice) {
+                        notice.textContent = 'Para agregar o cambiar tu dirección de entrega, contáctanos en ventas@crbox.cr o por WhatsApp.';
+                        notice.classList.remove('hidden');
+                        setTimeout(function () { notice.classList.add('hidden'); }, 6000);
+                    }
                 });
             }
             
@@ -781,7 +786,12 @@
             if (saveNotificationsBtn) {
                 saveNotificationsBtn.addEventListener('click', function () {
                     if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) {
-                        alert('Debes iniciar sesión para guardar cambios.');
+                        var notifErrEl = document.getElementById('notifications-save-error');
+                        if (notifErrEl) {
+                            notifErrEl.textContent = 'Debes iniciar sesión para guardar cambios.';
+                            notifErrEl.classList.remove('hidden');
+                            setTimeout(function () { notifErrEl.classList.add('hidden'); }, 5000);
+                        }
                         return;
                     }
                     var btn = this;
@@ -819,18 +829,26 @@
             const updatePasswordBtn = document.getElementById('update-password-btn');
             if (updatePasswordBtn) {
                 updatePasswordBtn.addEventListener('click', function () {
+                    var pwdErrEl = document.getElementById('password-save-error');
+                    function _showPwdError(msg) {
+                        if (pwdErrEl) {
+                            pwdErrEl.textContent = msg;
+                            pwdErrEl.classList.remove('hidden');
+                            setTimeout(function () { pwdErrEl.classList.add('hidden'); }, 5000);
+                        }
+                    }
                     if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) {
-                        alert('Debes iniciar sesión para guardar cambios.');
+                        _showPwdError('Debes iniciar sesión para guardar cambios.');
                         return;
                     }
                     var newPwd  = (document.getElementById('new_password')      || {}).value || '';
                     var confPwd = (document.getElementById('confirm_password')  || {}).value || '';
                     if (!newPwd || !confPwd) {
-                        alert('Por favor ingresa la nueva contraseña y su confirmación.');
+                        _showPwdError('Por favor ingresa la nueva contraseña y su confirmación.');
                         return;
                     }
                     if (newPwd !== confPwd) {
-                        alert('Las contraseñas no coinciden. Verifica e intenta de nuevo.');
+                        _showPwdError('Las contraseñas no coinciden. Verifica e intenta de nuevo.');
                         return;
                     }
                     var btn = this;
