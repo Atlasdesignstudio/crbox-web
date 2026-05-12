@@ -51,12 +51,47 @@
   // ── localStorage keys for cross-page name/casillero cache ────────────────────
   var KEY_DISPLAY_NAME  = 'crbox_display_name';
   var KEY_CASILLERO_NUM = 'crbox_casillero_num';
+  var _API_BASE         = 'https://clients.crbox.cr/api/crboxwebapi';
+  var _fetchInFlight    = false;
 
   function _cacheRead(key) {
     try { return localStorage.getItem(key) || ''; } catch (e) { return ''; }
   }
   function _cacheWrite(key, val) {
     try { if (val) localStorage.setItem(key, val); } catch (e) {}
+  }
+
+  // ── Async: fetch user info from CRBOX API and patch the drawer header ─────────
+  // Only fires when both cache keys are empty (i.e. first open on a public page).
+  function _fetchAndPatchHeader() {
+    var a = _auth();
+    if (!a || !a.isLoggedIn()) return;
+    if (_cacheRead(KEY_DISPLAY_NAME) && _cacheRead(KEY_CASILLERO_NUM)) return;
+    if (_fetchInFlight) return;
+    var email = a.getEmail && a.getEmail();
+    var token = a.getToken && a.getToken();
+    if (!email || !token) return;
+    _fetchInFlight = true;
+    fetch(_API_BASE + '/getuserinfo/' + encodeURIComponent(email), {
+      headers: { 'Authorization': 'Bearer ' + token }
+    }).then(function (res) {
+      return res.ok ? res.json() : null;
+    }).then(function (c) {
+      _fetchInFlight = false;
+      if (!c) return;
+      var first  = c.consigneename      || c.ConsigneeName      || '';
+      var last   = c.consigneelastname1 || c.ConsigneeLastName1 || '';
+      var num    = String(c.idconsignee || c.IdConsignee || '');
+      var full   = (first + ' ' + last).trim() || first;
+      var casStr = num ? 'Casillero #' + num : '';
+      if (full)   _cacheWrite(KEY_DISPLAY_NAME, full);
+      if (casStr) _cacheWrite(KEY_CASILLERO_NUM, casStr);
+      // Patch the already-rendered drawer header in place
+      var dn = document.getElementById('crbox-dh-name');
+      var ds = document.getElementById('crbox-dh-sub');
+      if (dn && full)   dn.textContent = full;
+      if (ds && casStr) ds.textContent = casStr;
+    }).catch(function () { _fetchInFlight = false; });
   }
 
   // ── Build header (orange) ─────────────────────────────────────────────────────
@@ -245,6 +280,7 @@
     _build();
     _prevFocus = document.activeElement;
     _refreshHead();
+    _fetchAndPatchHeader();
     _wrap.setAttribute('aria-hidden', 'false');
     _wrap.classList.add('is-open');
     document.body.classList.add('crbox-drawer-open');
