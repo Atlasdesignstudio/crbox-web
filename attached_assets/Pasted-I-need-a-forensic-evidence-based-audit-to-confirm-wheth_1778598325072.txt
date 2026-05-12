@@ -1,0 +1,123 @@
+I need a forensic, evidence-based audit to confirm whether the CRBOX client portal — including login — is connected directly to the AWS RDS database or whether it is consuming data through the legacy API/system.
+
+Context:
+We found an AWS RDS instance named `crboxdbserver`, MySQL Community, database name `crboxfabric`, with port 3306 open through a security group. The new client portal is running in Replit, but I need to know whether Replit/the portal connects directly to this database or only talks to the existing CRBOX backend/API.
+
+Please audit the real code and configuration. Do not guess.
+
+Scope:
+Audit the full client portal data flow, including:
+
+1. Login
+2. Session/token storage
+3. Dashboard
+4. Mis paquetes
+5. Mis facturas
+6. Mi cuenta
+7. Cotizaciones, if present
+8. Password recovery
+9. Registration / afiliate
+
+Questions to answer with evidence:
+
+1. Does the portal connect directly to MySQL/RDS anywhere?
+2. Does login connect directly to the database or to an API endpoint?
+3. Does any frontend/browser code contain database credentials, database host, port 3306, or RDS endpoint?
+4. Does any backend/server-side Replit code connect to RDS directly?
+5. Are there environment variables/secrets such as:
+   - DATABASE_URL
+   - DB_HOST
+   - DB_PORT
+   - DB_USER
+   - DB_PASSWORD
+   - MYSQL_HOST
+   - MYSQL_USER
+   - MYSQL_PASSWORD
+   - MYSQL_DATABASE
+   - RDS_HOST
+6. Are there database libraries installed or imported, such as:
+   - mysql
+   - mysql2
+   - pymysql
+   - sequelize
+   - prisma
+   - sqlalchemy
+   - knex
+   - TypeORM
+7. Which exact endpoints are used for:
+   - login/auth token
+   - getUserInfo
+   - packages
+   - invoices
+   - profile update
+   - password recovery
+   - registration
+8. For each endpoint, identify whether it is:
+   - a CRBOX legacy API,
+   - a Replit proxy/API route,
+   - a direct database call,
+   - or a static/mock/local implementation.
+
+Known legacy endpoints to verify against:
+- POST `https://clients.crbox.cr/authtoken`
+- GET `https://clients.crbox.cr/api/crboxwebapi/getuserinfo/{email}`
+- GET `https://clients.crbox.cr/api/crboxwebapi/getuserpackages/{idConsignee}/{fecha_inicial}/{fecha_final}/{tracking}/{status}`
+- GET `https://clients.crbox.cr/api/crboxwebapi/getfacturas/{email}/{fecha_inicial}/{fecha_final}`
+- POST `https://clients.crbox.cr/api/crboxwebapi/postedituser`
+- GET `https://clients.crbox.cr/api/crboxwebapi/getuserpasswordrecovery/{email}`
+- POST registration endpoint currently validated against the test CRBOX API, if still present.
+
+Important:
+- Do not modify production data.
+- Do not create database connections.
+- Do not change AWS, RDS, security groups, credentials, or environment variables.
+- Do not expose secrets in the response.
+- If secrets exist, only report their variable names and whether they point to RDS/legacy API, masking values.
+- Do not use the master database user.
+- Do not add mock data.
+- Do not change the architecture yet.
+
+Expected output:
+Provide a clear report with:
+
+1. Current architecture diagram in text:
+   - Browser → ?
+   - Replit server/API → ?
+   - Legacy CRBOX API → ?
+   - AWS RDS → ?
+
+2. A page-by-page table:
+   - Page/module
+   - File(s)
+   - Function(s)
+   - Data source
+   - Endpoint or DB access
+   - Auth method
+   - Whether it depends on legacy API
+   - Whether it touches RDS directly
+
+3. A login-specific breakdown:
+   - What happens when the user submits email/password.
+   - Where credentials are sent.
+   - What token is returned.
+   - Where the token is stored.
+   - Whether the login touches RDS directly or indirectly.
+
+4. A definitive answer:
+   - “The portal is directly connected to RDS” or
+   - “The portal is not directly connected to RDS; it uses legacy APIs” or
+   - “Mixed architecture: these modules use legacy APIs, these modules use direct DB.”
+
+5. Evidence:
+   - File paths.
+   - Function names.
+   - Endpoint constants.
+   - Relevant code snippets with secrets masked.
+   - Network request examples.
+
+6. Recommendation:
+   - If it currently uses legacy APIs, recommend the safest path to create a faster read-only backend connection to RDS.
+   - If it already connects to RDS, audit whether it is using read-only credentials, whether credentials are server-side only, and whether permissions are safe.
+
+Main goal:
+I need to know with certainty whether the client portal, including login, is currently getting data directly from the AWS database or indirectly through the old CRBOX backend/API, before we decide how to optimize performance and data loading.

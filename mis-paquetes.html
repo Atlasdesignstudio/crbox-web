@@ -1427,7 +1427,7 @@
 
     <script src="js/analytics.js" defer></script>
     <script src="js/cr-locations.js" defer></script>
-    <script src="js/portal-api.js?v=2" defer></script>
+    <script src="js/portal-api.js?v=3" defer></script>
     <script src="js/auth.js?v=3" defer></script>
     <script src="js/nav-auth.js?v=3" defer></script>
     <script src="js/mobile-drawer.js?v=1" defer></script>
@@ -3555,98 +3555,17 @@
                 _loadPackages(idConsignee);
               }
             } else {
-              // getUserInfo resolved with null (CRBOX returned non-JSON for browser request).
-              _diag('getUserInfo null' + (_earlyLoaded ? ' — paquetes ya en curso' : ' — proxy...'));
-
-              if (_earlyLoaded) {
-                // _loadPackages is already running with the cached id.
-                // Packages WILL appear — just try the proxy silently to get the navbar name.
-                var _pxE = (window.CRBOXAuth && CRBOXAuth.getEmail) ? CRBOXAuth.getEmail() : '';
-                var _pxT = (window.CRBOXAuth && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
-                if (_pxE && _pxT) {
-                  fetch('/api/userinfo-proxy?email=' + encodeURIComponent(_pxE), {
-                    headers: { 'Authorization': 'Bearer ' + _pxT }
-                  })
-                  .then(function (r) { return r.ok ? r.json().catch(function () { return null; }) : null; })
-                  .then(function (pi) {
-                    if (pi) {
-                      var pid = _applyHeader(pi);
-                      if (pid) {
-                        _cachedConsigneeId = pid;
-                        try { localStorage.setItem('crbox_cached_id_consignee', String(pid)); } catch (_e) {}
-                        // If proxy gave a different id than what we used for early load, refresh.
-                        if (String(pid) !== _earlyCachedIdStr) {
-                          _diag('proxy id difiere — recargando paquetes con id=' + pid);
-                          _loadPackages(pid);
-                        }
-                      }
-                    }
-                  })
-                  .catch(function () { /* navbar name stays "..." — packages still visible */ });
-                }
-              } else {
-                // No cached id and getUserInfo returned null — need the proxy for everything.
-                var _tbNull = document.getElementById('packages-tbody');
-                if (_tbNull) {
-                  _tbNull.innerHTML =
-                    '<tr><td colspan="15" class="text-center py-8 text-gray-400">' +
-                      '<i class="fas fa-spinner fa-spin mr-2"></i>' +
-                      'Obteniendo datos de tu cuenta&hellip;' +
-                    '</td></tr>';
-                }
-                var _pxyEmail = (window.CRBOXAuth && CRBOXAuth.getEmail) ? CRBOXAuth.getEmail() : '';
-                var _pxyToken = (window.CRBOXAuth && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
-                if (_pxyEmail && _pxyToken) {
-                  fetch('/api/userinfo-proxy?email=' + encodeURIComponent(_pxyEmail), {
-                    headers: { 'Authorization': 'Bearer ' + _pxyToken }
-                  })
-                  .then(function (r) { return r.ok ? r.json().catch(function () { return null; }) : null; })
-                  .then(function (proxyInfo) {
-                    var _tbP = document.getElementById('packages-tbody');
-                    if (!proxyInfo) {
-                      _diag('ERROR: proxy userinfo sin datos.');
-                      if (_tbP) _tbP.innerHTML =
-                        '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
-                          '<i class="fas fa-exclamation-triangle mr-2"></i>' +
-                          'No se pudo cargar tu cuenta. ' +
-                          '<button onclick="location.reload();" ' +
-                            'class="underline font-medium text-orange-500">Reintentar</button>' +
-                        '</td></tr>';
-                      return;
-                    }
-                    var proxyId = _applyHeader(proxyInfo);
-                    _cachedConsigneeId = proxyId;
-                    try { localStorage.setItem('crbox_cached_id_consignee', String(proxyId)); } catch (_e) {}
-                    if (proxyId) {
-                      _diag('proxy OK — id=' + proxyId + '. Cargando paquetes...');
-                      _loadPackages(proxyId);
-                    } else {
-                      if (_tbP) _tbP.innerHTML =
-                        '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
-                          '<i class="fas fa-user-slash mr-2"></i>' +
-                          'Tu perfil no tiene casillero asignado. Contacta a soporte.' +
-                          '<br><button onclick="location.reload();" ' +
-                            'class="underline font-medium text-orange-500 mt-2 inline-block">Reintentar</button>' +
-                        '</td></tr>';
-                    }
-                  })
-                  .catch(function () {
-                    var _tbC = document.getElementById('packages-tbody');
-                    if (_tbC) _tbC.innerHTML =
-                      '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
-                        '<i class="fas fa-wifi mr-2"></i>Error de red al cargar tu cuenta. ' +
-                        '<button onclick="location.reload();" ' +
-                          'class="underline font-medium text-orange-500">Reintentar</button>' +
-                      '</td></tr>';
-                  });
-                } else {
-                  if (_tbNull) _tbNull.innerHTML =
-                    '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
-                      '<i class="fas fa-lock mr-2"></i>Sesión inválida. ' +
-                      '<a href="login.html" class="underline font-medium">Iniciar sesión</a>' +
-                    '</td></tr>';
-                }
-              }
+              // getUserInfo resolved but returned no idConsignee — the CRBOX account
+              // exists (auth passed) but has no casillero assigned. portal-api.js already
+              // tried the server-side proxy before resolving here, so this is a genuine
+              // "no casillero" state, not a transient network or origin issue.
+              _diag('getUserInfo OK pero sin casillero asignado — mostrar aviso');
+              var _tbNoCas = document.getElementById('packages-tbody');
+              if (_tbNoCas) _tbNoCas.innerHTML =
+                '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
+                  '<i class="fas fa-user-slash mr-2"></i>' +
+                  'Tu perfil no tiene casillero asignado. Contacta a soporte.' +
+                '</td></tr>';
             }
 
             // Init "Enviar paquetes juntos" grouping flow

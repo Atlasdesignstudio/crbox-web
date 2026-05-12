@@ -1,0 +1,80 @@
+I need a complete fix, not another partial patch.
+
+Right now the portal login/dashboard works, but mis-paquetes still does not work correctly. The page loads visually, but it shows 0 packages and empty counters because the package-loading flow is broken when browser storage is empty.
+
+Confirmed evidence:
+DevTools → Application → Storage shows 0 B used for the current Replit domain. That means `crbox_cached_id_consignee` is not present. Therefore, mis-paquetes cannot rely only on that cached key to load packages.
+
+I need you to make mis-paquetes fully functional in all real scenarios.
+
+Required behavior:
+
+1. Fresh session / empty storage:
+   - User logs in.
+   - User goes to mis-paquetes.
+   - Page must NOT show fake zeros immediately.
+   - Page must bootstrap the real user using the canonical logged-in token/email flow.
+   - It must call getUserInfo if `crbox_cached_id_consignee` is missing.
+   - It must extract `Consignee.idconsignee`.
+   - It must save `crbox_cached_id_consignee`.
+   - It must then call the real packages API.
+   - It must render the real packages or a truthful empty state only after the API response.
+
+2. Existing session with cached id:
+   - If `crbox_cached_id_consignee` exists and is valid, mis-paquetes can call packages immediately.
+   - In parallel, it may refresh getUserInfo.
+   - If getUserInfo returns a different id, update the cache and reload packages with the correct id.
+
+3. Dashboard → mis-paquetes navigation:
+   - If dashboard has already loaded user info, mis-paquetes must reuse the same identity/session state.
+   - Dashboard and mis-paquetes must use the same storage key names and same user bootstrap logic.
+   - No page should depend on a key that another page never writes.
+
+4. Hard refresh:
+   - Cmd+Shift+R / Ctrl+Shift+R on mis-paquetes must still work.
+   - The page must recover from empty or partial storage.
+   - It must not get stuck at 0 packages.
+
+5. Logout/login:
+   - Logout must clear user-specific cache.
+   - Login must re-establish token/email/user identity.
+   - mis-paquetes must work after logging in again.
+
+6. API correctness:
+   - Confirm the exact getuserpackages request being sent.
+   - Confirm idConsignee is valid and numeric.
+   - Confirm dates use DD-MM-YYYY.
+   - Confirm default status is correct: 1000 for Todos.
+   - Confirm empty tracking is sent in the format expected by the backend.
+   - Confirm Authorization Bearer token is included if required.
+   - Confirm the API response shape is mapped correctly into the UI table/cards.
+
+7. UI state correctness:
+   - Loading state while identity/packages are loading.
+   - Real empty state only if the packages API returns 200 with [].
+   - Error state if getUserInfo or packages API fails.
+   - Retry button should retry the failed flow only.
+   - Never replace the whole body with a retry screen while requests are still in progress.
+   - Never show 0 counters before confirming the packages API returned successfully.
+
+8. No fake data:
+   - Do not add mock packages.
+   - Do not hardcode Mathias/user data.
+   - Do not fake counters.
+   - Do not fake success.
+   - Everything must come from the real backend or be shown as honestly unavailable/error.
+
+Deliverables:
+- Implement the full fix.
+- Tell me exactly which files/functions changed.
+- Explain the root cause in one paragraph.
+- Show the real request URL pattern being called for packages.
+- Provide a QA checklist proving these scenarios work:
+  1. fresh login with empty storage,
+  2. dashboard then mis-paquetes,
+  3. hard refresh on mis-paquetes,
+  4. logout/login,
+  5. real empty API response,
+  6. API failure.
+
+Do not stop at making the visual page look correct. I need the real package data flow working end-to-end.

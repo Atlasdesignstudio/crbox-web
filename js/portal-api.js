@@ -245,6 +245,38 @@
       return Promise.reject(new Error('No se encontró el correo de sesión. Por favor inicia sesión de nuevo.'));
     }
 
+    // ── Server-side proxy fallback for getUserInfo ─────────────────────────
+    // Called when the direct browser fetch returns non-JSON (e.g. HTML redirect
+    // on a dev origin) or throws a transient network/CORS error. The proxy makes
+    // the same request Python→CRBOX server-to-server, bypassing origin issues.
+    // Errors are tagged _fromProxy=true so the outer catch does not retry.
+    function _tryUserInfoProxy() {
+      return fetch('/api/userinfo-proxy?email=' + encodeURIComponent(email), {
+        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+      }).then(function (r) {
+        if (!r.ok) {
+          if (r.status === 401 || r.status === 403) throw _handleAuthFailure(r.status);
+          var pe = new Error('No se pudo obtener la información de tu cuenta (' + r.status + ').');
+          pe.isAuthError = false; pe._fromProxy = true; throw pe;
+        }
+        return r.json().catch(function () {
+          var pe2 = new Error('No se pudo obtener la información de tu cuenta (respuesta inválida).');
+          pe2.isAuthError = false; pe2._fromProxy = true; throw pe2;
+        });
+      }).then(function (data) {
+        if (!data) {
+          var ne = new Error('No se pudo obtener la información de tu cuenta.');
+          ne.isAuthError = false; ne._fromProxy = true; throw ne;
+        }
+        _userInfoCache = data;
+        return data;
+      }).catch(function (err) {
+        if (err && err._fromProxy) throw err;
+        var ne2 = err || new Error('Error de red al obtener la información de tu cuenta.');
+        ne2.isAuthError = false; ne2._fromProxy = true; throw ne2;
+      });
+    }
+
     return _request(BASE + '/getuserinfo/' + encodeURIComponent(email), {}, {})
     .then(function (res) {
       if (!res.ok) {
@@ -252,8 +284,17 @@
       }
       return _parseJSON(res);
     }).then(function (data) {
-      _userInfoCache = data;
-      return data;
+      if (data !== null) {
+        _userInfoCache = data;
+        return data;
+      }
+      // Direct call returned non-JSON body (e.g. HTML on this origin) → use proxy.
+      return _tryUserInfoProxy();
+    }).catch(function (err) {
+      if (err && err.isAuthError) throw err;
+      if (err && err._fromProxy) throw err;  // proxy already failed — do not retry
+      // Direct call threw a transient/network error → try server-side proxy.
+      return _tryUserInfoProxy();
     });
   }
 
@@ -307,9 +348,48 @@
       encodeURIComponent(track) + '/' +
       encodeURIComponent(stat);
 
+    // ── Server-side proxy fallback for getPackages ─────────────────────────
+    // Called when the direct browser fetch returns non-JSON or throws a
+    // transient error. The proxy makes the same request Python→CRBOX,
+    // bypassing any origin-based response differences.
+    // A valid empty array [] from CRBOX is returned as-is (honest empty state).
+    function _tryPackagesProxy() {
+      var qs = '?id='       + encodeURIComponent(String(idConsignee)) +
+               '&start='    + encodeURIComponent(start) +
+               '&end='      + encodeURIComponent(end)   +
+               '&tracking=' + encodeURIComponent(track) +
+               '&status='   + encodeURIComponent(stat);
+      return fetch('/api/packages-proxy' + qs, {
+        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+      }).then(function (r) {
+        if (!r.ok) {
+          if (r.status === 401 || r.status === 403) throw _handleAuthFailure(r.status);
+          var pe = new Error('No se pudieron cargar los paquetes (' + r.status + ').');
+          pe.isAuthError = false; pe._fromProxy = true; throw pe;
+        }
+        return r.json().catch(function () {
+          var pe2 = new Error('No se pudieron cargar los paquetes (respuesta inválida del servidor).');
+          pe2.isAuthError = false; pe2._fromProxy = true; throw pe2;
+        });
+      }).catch(function (err) {
+        if (err && err._fromProxy) throw err;
+        var ne = err || new Error('Error de red en proxy de paquetes.');
+        ne.isAuthError = false; ne._fromProxy = true; throw ne;
+      });
+    }
+
     return _request(url, {}, {}).then(function (res) {
       if (!res.ok) throw _responseError(res, 'No se pudieron cargar los paquetes (' + res.status + '). Intenta de nuevo.');
       return _parseJSON(res);
+    }).then(function (data) {
+      if (data !== null) return data;
+      // Direct call returned non-JSON body → fall back to server-side proxy.
+      return _tryPackagesProxy();
+    }).catch(function (err) {
+      if (err && err.isAuthError) throw err;
+      if (err && err._fromProxy) throw err;  // proxy already failed — do not retry
+      // Direct call threw a transient/network error → try server-side proxy.
+      return _tryPackagesProxy();
     });
   }
 
