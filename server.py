@@ -902,12 +902,14 @@ def _normalize_compliance(raw_compliance):
         return {'classification': 'RESTRICTED', 'risk_level': 'MEDIUM',
                 'reason': 'No se pudo verificar el cumplimiento de este producto. Requiere revisión del equipo CRBOX.',
                 'authority': None, 'verdict': 'ship_with_permits'}
-    cls     = str(raw_compliance.get('classification') or 'ALLOWED').upper().strip()
-    risk    = str(raw_compliance.get('risk_level') or 'LOW').upper().strip()
-    verdict = str(raw_compliance.get('verdict') or 'safe').lower().strip()
-    if cls     not in _VALID_CLASSIFICATIONS: cls     = 'ALLOWED'
-    if risk    not in _VALID_RISK_LEVELS:     risk    = 'LOW'
-    if verdict not in _VALID_VERDICTS:        verdict = 'safe'
+    cls     = str(raw_compliance.get('classification') or '').upper().strip()
+    risk    = str(raw_compliance.get('risk_level') or '').upper().strip()
+    verdict = str(raw_compliance.get('verdict') or '').lower().strip()
+    # If Gemini omits or garbles a field, default to RESTRICTED/MEDIUM/ship_with_permits
+    # (needs review) rather than ALLOWED/LOW/safe (implicitly cleared).
+    if cls     not in _VALID_CLASSIFICATIONS: cls     = 'RESTRICTED'
+    if risk    not in _VALID_RISK_LEVELS:     risk    = 'MEDIUM'
+    if verdict not in _VALID_VERDICTS:        verdict = 'ship_with_permits'
     return {
         'classification': cls,
         'risk_level':     risk,

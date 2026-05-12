@@ -222,6 +222,26 @@ const CALCULATOR_ENGINE = (function () {
       ? TARIFF_ADAPTER.getTariffRate(item.category)
       : { rate: 0.2995, source: 'local_estimated' };
 
+    // Guard: if this category has no numeric rate (manual_review_required),
+    // return a special object so callers can show a manual-quote message
+    // instead of computing taxes as 0 (null * CIF = 0).
+    if (tariff.rate === null || tariff.source === 'manual_review_required') {
+      return {
+        manualReviewRequired: true,
+        manualReviewMessage:  tariff.message || 'Este producto requiere cotización manual. Contáctenos para un estimado.',
+        category:             item.category || 'otros',
+        source:               'manual_review_required',
+        // Freight components are still estimated so the user has partial info
+        freight:    airFreightCost(billableKg),
+        billableKg, realKg, volKg,
+        totalValue,
+        taxes:    null,
+        total:    null,
+        taxRate:  null,
+        destination: item.destination,
+      };
+    }
+
     const breakdown = buildBreakdown(billableKg, realKg, volKg, totalValue, tariff.rate, item.destination, tariff.source);
     breakdown.destination = item.destination;
     _fireCalculatorResult(breakdown, 'aereo');
@@ -289,10 +309,19 @@ const CALCULATOR_ENGINE = (function () {
     let sumTaxes = 0;
     let allSameSource = true;
     let firstSource = null;
+    let hasManualReview = false;
+    let manualReviewMessages = [];
     itemBillables.forEach(({ item, realKg, volKg }) => {
       const tariff = (typeof TARIFF_ADAPTER !== 'undefined')
         ? TARIFF_ADAPTER.getTariffRate(item.category)
         : { rate: 0.2995, source: 'local_estimated' };
+      // Guard: if any item has no numeric rate, flag the whole consolidated quote.
+      // Do NOT multiply by null (which would silently produce $0 in taxes).
+      if (tariff.rate === null || tariff.source === 'manual_review_required') {
+        hasManualReview = true;
+        manualReviewMessages.push(tariff.message || 'Este producto requiere cotización manual.');
+        return; // skip this item's tax contribution
+      }
       // Use the dominant axis weight for this item to compute its freight share
       const itemAxisKg = sumReal >= sumVol ? realKg : volKg;
       const freightPortion = dominantSum > 0 ? (itemAxisKg / dominantSum) * freight : 0;
@@ -309,6 +338,13 @@ const CALCULATOR_ENGINE = (function () {
     breakdown.total = breakdown.freight + breakdown.fuel + breakdown.handling + sumTaxes + breakdown.insurance + breakdown.delivery;
     breakdown.taxRate = null; // mixed rates; display handled in UI
     breakdown.destination = destination;
+    // If any item requires manual review, surface it clearly so the UI
+    // can warn the user instead of presenting a silently incomplete total.
+    if (hasManualReview) {
+      breakdown.manualReviewRequired = true;
+      breakdown.manualReviewMessage  = manualReviewMessages[0] || 'Uno o más productos requieren cotización manual.';
+      breakdown.taxesPartial = true; // taxes above are partial (regulated items excluded)
+    }
     _fireCalculatorResult(breakdown, 'aereo');
     return breakdown;
   }

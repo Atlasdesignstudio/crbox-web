@@ -199,7 +199,7 @@
       id: 'cargador', code: 'cargador',
       name: 'Cargadores y Cables',
       group: 'Electrónica',
-      aliases: ['cargador', 'charger', 'cable usb', 'cable lightning', 'cable tipo c', 'power bank'],
+      aliases: ['cargador', 'charger', 'cable usb', 'cable lightning', 'cable tipo c'],
       dutyRate: null, totalEstimatedRate: 0.1413, source: 'local_estimated', requiresPermit: false, needsReview: false,
     },
     {
@@ -1160,7 +1160,7 @@
       name: 'Partes y Accesorios de Calzado',
       group: 'Moda',
       aliases: ['plantillas', 'cordones', 'suelas'],
-      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: true,
     },
     {
       id: 'beauty_fragrance', code: 'beauty_fragrance',
@@ -1209,14 +1209,14 @@
       name: 'Accesorios Automotrices',
       group: 'Automotriz',
       aliases: ['dashcam', 'cámara retroceso', 'radio carro', 'luces LED carro'],
-      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: true,
     },
     {
       id: 'sports_outdoor', code: 'sports_outdoor',
       name: 'Bicicletas, Pesca y Outdoor',
       group: 'Deportes',
       aliases: ['bicicleta montaña', 'smartwatch deportivo', 'pesca', 'surf'],
-      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: true,
     },
     {
       id: 'drones_rc', code: 'drones_rc',
@@ -1251,7 +1251,7 @@
       name: 'Relojes y Joyería',
       group: 'Moda / Lujo',
       aliases: ['reloj', 'joyería', 'anillo', 'collar', 'pulsera', 'aretes'],
-      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: false,
+      dutyRate: null, totalEstimatedRate: null, source: 'local_estimated', requiresPermit: false, needsReview: true,
     },
     {
       id: 'eyewear_medical', code: 'eyewear_medical',
