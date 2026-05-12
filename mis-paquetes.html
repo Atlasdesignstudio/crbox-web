@@ -485,6 +485,7 @@
                                 <td colspan="15" class="text-center py-12 text-gray-400">
                                     <i class="fas fa-spinner fa-spin text-2xl mb-3 block"></i>
                                     Cargando paquetes...
+                                    <span id="init-diag" class="block text-xs mt-2 text-gray-400 font-mono"></span>
                                 </td>
                             </tr>
                         </tbody>
@@ -3455,7 +3456,54 @@
       });
 
       function _initPage() {
-        if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
+        // ── Visible diagnostics: updates the inline span so we can see progress ──
+        var _diagEl = document.getElementById('init-diag');
+        var _diagT0 = Date.now();
+        function _diag(msg) {
+          if (!_diagEl) return;
+          var secs = ((Date.now() - _diagT0) / 1000).toFixed(1);
+          _diagEl.textContent = '[+' + secs + 's] ' + msg;
+        }
+        _diag('verificando sesión...');
+
+        if (typeof CRBOXPortalAPI === 'undefined') {
+          _diag('ERROR: portal-api.js no cargó. Recarga la página.');
+          var _tb = document.getElementById('packages-tbody');
+          if (_tb) _tb.innerHTML = '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
+            '<i class="fas fa-exclamation-triangle mr-2"></i>Error interno: recarga la página o contacta soporte.' +
+            '</td></tr>';
+          return;
+        }
+
+        if (!CRBOXAuth.isLoggedIn()) {
+          _diag('sesión expirada — redirigiendo a login...');
+          var _tb2 = document.getElementById('packages-tbody');
+          if (_tb2) _tb2.innerHTML = '<tr><td colspan="15" class="text-center py-8 text-orange-500">' +
+            '<i class="fas fa-lock mr-2"></i>Tu sesión ha expirado. ' +
+            '<a href="login.html" class="underline font-medium">Iniciar sesión</a></td></tr>';
+          setTimeout(function () { window.location.replace('login.html'); }, 2500);
+          return;
+        }
+
+        // 5-second slow-timer for getUserInfo (mirrors the one inside _loadPackages
+        // for getPackages). If getUserInfo hangs, show a message + Reintentar button
+        // instead of leaving the static HTML spinner forever.
+        var _guiTimer = setTimeout(function () {
+          var _tb3 = document.getElementById('packages-tbody');
+          if (_tb3 && _tb3.querySelector('.fa-spinner')) {
+            _diag('getUserInfo tardando mucho — posible problema de red');
+            _tb3.innerHTML =
+              '<tr><td colspan="15" class="text-center py-8 text-gray-400">' +
+                '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando&hellip; ' +
+                '<span class="block mt-2 text-xs text-gray-400">Esto está tardando más de lo normal. ' +
+                  '<button onclick="location.reload();" ' +
+                    'class="underline text-orange-500 font-medium">Reintentar</button>' +
+                '</span>' +
+              '</td></tr>';
+          }
+        }, 5000);
+
+        _diag('getUserInfo iniciado...');
 
         // ?receipt=<num> — navigated here from a Mis Facturas recibo row.
         // Pre-fill the search input as a visual cue; then load all packages and
@@ -3472,9 +3520,12 @@
 
         CRBOXPortalAPI.getUserInfo()
           .then(function (info) {
+            clearTimeout(_guiTimer);
             var idConsignee = _applyHeader(info);
             _cachedConsigneeId = idConsignee;
+            _diag('getUserInfo OK — idCons=' + (idConsignee || '?') + '. Cargando paquetes...');
             if (idConsignee) _loadPackages(idConsignee);
+            else _diag('ERROR: idConsignee vacío. Revisa tu perfil.');
 
             // Init "Enviar paquetes juntos" grouping flow
             if (window.CRBOXEnviarJuntos) {
@@ -3607,7 +3658,9 @@
             }
           })
           .catch(function (err) {
+            clearTimeout(_guiTimer);
             if (err && err.isAuthError) return; // redirect already in flight from portal-api.js
+            _diag('ERROR getUserInfo: ' + (err && err.message || 'desconocido'));
             console.warn('[CRBOX] getUserInfo error (transient):', err);
             var tbody = document.getElementById('packages-tbody');
             if (tbody) {
