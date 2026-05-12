@@ -109,8 +109,12 @@
           html += '<button class="crbox-drawer-link" id="crbox-d-admin">'
             + '<i class="fas fa-shield-alt"></i><span>Panel Admin</span></button>';
         } else {
-          html += '<a href="dashboard.html" class="crbox-drawer-link">'
-            + '<i class="fas fa-tachometer-alt"></i><span>Mi Portal</span></a>';
+          html += '<div class="crbox-db-dash-cta-wrap">'
+            + '<a href="dashboard.html" class="crbox-db-dash-cta">'
+            + '<i class="fas fa-tachometer-alt"></i><span>Ir al Dashboard</span></a>'
+            + '</div>';
+          html += '<button class="crbox-drawer-link crbox-drawer-link--danger" id="crbox-d-logout-public">'
+            + '<i class="fas fa-sign-out-alt"></i><span>Cerrar Sesión</span></button>';
         }
       }
     }
@@ -158,6 +162,16 @@
     var logoutBtn = wrap.querySelector('#crbox-d-logout');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', function () {
+        _close();
+        var real = document.getElementById('mobile-logout-button');
+        if (real)                        real.click();
+        else if (_auth() && _auth().logout) _auth().logout();
+      });
+    }
+
+    var logoutPublicBtn = wrap.querySelector('#crbox-d-logout-public');
+    if (logoutPublicBtn) {
+      logoutPublicBtn.addEventListener('click', function () {
         _close();
         var real = document.getElementById('mobile-logout-button');
         if (real)                        real.click();

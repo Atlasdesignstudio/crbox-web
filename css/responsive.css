@@ -1413,11 +1413,14 @@ body.crbox-drawer-open {
   z-index: 9002;
   box-sizing: border-box;
   padding: 0;
-  line-height: 1;
-  aspect-ratio: 1;
+  line-height: 40px;
+  aspect-ratio: 1 / 1;
   width: 40px;
   height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   border-radius: 50%;
+  overflow: hidden;
   background: rgba(255, 255, 255, 0.18);
   border: 1.5px solid rgba(255, 255, 255, 0.4);
   display: flex;
@@ -1612,3 +1615,28 @@ body.crbox-drawer-open {
   transition: background 0.15s !important;
 }
 .crbox-df-cta:hover { background: #e05c00 !important; }
+
+/* Dashboard CTA button — shown to logged-in users on public pages */
+.crbox-db-dash-cta-wrap {
+  padding: 0.75rem 1.25rem 0.25rem;
+}
+.crbox-db-dash-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: #FF6B00;
+  color: #fff !important;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: background 0.15s;
+  box-sizing: border-box;
+}
+.crbox-db-dash-cta i { font-size: 0.95rem; }
+.crbox-db-dash-cta:hover { background: #e05c00; color: #fff !important; }
