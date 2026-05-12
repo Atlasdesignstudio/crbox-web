@@ -1,0 +1,476 @@
+Act as a Senior Web Performance Engineer, Core Web Vitals specialist, and production frontend optimization lead for CRBOX.
+
+Your job is to run a complete performance, speed, Core Web Vitals, and production loading audit across the entire CRBOX public website and client portal. This is not a passive audit. It is an actionable performance hardening sprint.
+
+Scan the entire project, identify every issue affecting loading speed, rendering, mobile performance, perceived performance, layout stability, asset delivery, script execution, CSS loading, third-party loading, API-driven loading states, and production stability. Then fix everything that can be fixed safely inside the codebase.
+
+Context:
+CRBOX includes a public website and client portal, including pages such as:
+- Homepage
+- Servicios
+- Cómo funciona
+- Tarifas
+- Calculadora
+- Contacto
+- Afíliate / registration
+- Login
+- Dashboard
+- Mi cuenta
+- Mis paquetes
+- Mis facturas
+- Cotizaciones / quote flow
+- Any other public, portal, private or support page found in the repo
+
+Primary goal:
+Make the website and portal feel fast, stable, lightweight, responsive, and production-grade on both mobile and desktop without changing visible design, layout, copy, brand voice, business logic, analytics intent, SEO intent, authentication behavior, or backend contracts.
+
+Important:
+Do not redesign anything.
+Do not rewrite copy.
+Do not remove functionality.
+Do not fake performance by hiding important content.
+Do not break analytics, SEO, schema, auth, portal data, forms or API behavior.
+Do not change the visual design unless the change is technically invisible or necessary to prevent layout instability.
+Do not make speculative optimizations that risk breaking the site.
+Preserve the current visual experience.
+
+Performance principles:
+1. Improve real user experience, not just synthetic scores.
+2. Prioritize mobile performance.
+3. Prioritize above-the-fold rendering.
+4. Prevent layout shift.
+5. Reduce unnecessary blocking resources.
+6. Keep third-party scripts under control.
+7. Preserve crawlability and analytics.
+8. Preserve truthful loading, empty and error states.
+9. Make improvements production-safe and reversible.
+10. Document anything that requires hosting/CDN/backend changes.
+
+PHASE 1 — Full performance inventory
+
+Scan the entire project and create a performance map.
+
+Inventory:
+- All HTML pages.
+- All CSS files.
+- All JavaScript files.
+- All images and media assets.
+- All fonts.
+- All third-party scripts.
+- All CDN dependencies.
+- All analytics/tag scripts.
+- All preconnect/preload/prefetch hints.
+- All forms and API-driven flows.
+- All pages with portal/private data.
+- All pages with heavy visual sections.
+- All pages with calculator/quote logic.
+- All mobile-specific CSS.
+- All duplicate or repeated resource loading.
+
+For every page, identify:
+- Main CSS files loaded.
+- Main JS files loaded.
+- Third-party scripts loaded.
+- Above-the-fold images.
+- Below-the-fold images.
+- Hero image or primary visual.
+- Fonts loaded.
+- Render-blocking resources.
+- Possible layout shift sources.
+- Possible JavaScript execution bottlenecks.
+- Dynamic data dependencies.
+- Loading/empty/error states.
+- Any unnecessary private-page prefetching.
+- Any duplicate asset loading.
+
+PHASE 2 — Core Web Vitals audit
+
+Audit and optimize for:
+
+Largest Contentful Paint:
+- Identify likely LCP element per page.
+- Check if the LCP image/text is delayed by CSS, JS, lazy loading or render-blocking resources.
+- Ensure hero images are not lazy-loaded.
+- Add fetchpriority="high" only to the true primary hero image when appropriate.
+- Add width and height to hero images.
+- Add decoding strategy where useful.
+- Ensure critical visible content is available in HTML and not unnecessarily delayed.
+
+Cumulative Layout Shift:
+- Add explicit width and height to images.
+- Reserve space for banners, cards, forms, embedded widgets, and dynamic portal modules.
+- Prevent late-loading fonts from causing major shifts.
+- Prevent dynamically injected content from moving the layout unexpectedly.
+- Avoid loading states that collapse and then expand.
+- Ensure portal cards, tables and empty states have stable dimensions where appropriate.
+
+Interaction to Next Paint:
+- Detect heavy click handlers.
+- Detect unnecessary JavaScript on pages that do not need it.
+- Defer non-critical scripts where safe.
+- Avoid repeated DOM scans if unnecessary.
+- Avoid expensive scroll listeners without throttling/debouncing.
+- Avoid large synchronous work on user interaction.
+- Ensure calculators and filters respond quickly.
+- Ensure portal filters and search do not freeze the UI.
+
+First Contentful Paint:
+- Reduce render-blocking resources where safe.
+- Add or correct preconnects for critical third-party origins.
+- Avoid loading unnecessary page-specific JS on all pages if possible.
+- Avoid redundant CSS or duplicate external libraries.
+- Ensure fonts are loaded efficiently.
+
+Time to Interactive / Total Blocking Time:
+- Add defer to non-critical scripts where safe.
+- Avoid duplicate script execution.
+- Remove unused or obsolete JS when clearly safe.
+- Split or conditionally initialize page-specific behavior where practical.
+- Ensure third-party scripts do not block core UI.
+
+PHASE 3 — Image and media optimization
+
+Audit every image:
+- Missing width/height.
+- Missing loading strategy.
+- Missing decoding.
+- Overly large image dimensions.
+- Incorrect image format.
+- Broken image path.
+- Duplicate image usage.
+- Image used above the fold but lazy-loaded.
+- Image below the fold not lazy-loaded.
+- Decorative images that should not affect accessibility/SEO.
+- Portal images or icons that shift layout.
+
+Fix directly where safe:
+- Add width and height attributes based on actual or intended display dimensions.
+- Add loading="lazy" to below-the-fold images.
+- Remove lazy loading from above-the-fold hero images.
+- Add fetchpriority="high" only to one true primary hero image per page where appropriate.
+- Add decoding="async" where useful.
+- Add stable containers around images if needed to prevent CLS.
+- Flag images that should be compressed, converted or resized externally.
+
+Do not:
+- Replace images with different creative.
+- Crop or visually alter images.
+- Change visible layout.
+- Add fake placeholders that change the design.
+
+PHASE 4 — CSS performance audit
+
+Audit:
+- Number of CSS files per page.
+- Duplicate CSS rules.
+- Inline styles that can cause maintenance/performance issues.
+- Render-blocking CSS.
+- Unused page-specific CSS loaded globally.
+- Heavy animations.
+- Expensive box shadows or filters used excessively.
+- Mobile CSS overrides that cause layout instability.
+- Repeated CSS variables or inconsistent tokens.
+- CSS that causes horizontal overflow on mobile.
+- CSS that causes large layout recalculations.
+
+Fix directly where safe:
+- Remove clearly duplicated CSS only if it does not change visuals.
+- Consolidate repeated rules only when low risk.
+- Ensure responsive CSS prevents overflow.
+- Ensure animations respect performance and do not trigger excessive layout.
+- Prefer transform/opacity for animations where applicable.
+- Preserve the current visual design.
+
+PHASE 5 — JavaScript performance audit
+
+Audit:
+- All scripts loaded on every page.
+- Scripts that should be page-specific.
+- Blocking scripts without defer.
+- Duplicate event listeners.
+- DOMContentLoaded handlers that initialize features not present on the page.
+- Expensive scroll listeners.
+- Expensive resize listeners.
+- Repeated querySelectorAll calls inside scroll/resize/click loops.
+- Large calculator logic duplication.
+- Dashboard animation overhead.
+- Third-party library usage.
+- Console logs left in production.
+- Broken JS causing runtime errors.
+- JS that blocks forms or navigation.
+
+Fix directly where safe:
+- Add defer to local scripts where safe.
+- Guard page-specific code so it only runs when relevant elements exist.
+- Throttle/debounce scroll and resize handlers when needed.
+- Remove production console logs unless intentionally debug-only.
+- Prevent duplicate event binding.
+- Make calculators and filters efficient.
+- Ensure runtime errors do not break the rest of the page.
+- Preserve all behavior.
+
+Do not:
+- Rewrite the app architecture unless necessary.
+- Remove features.
+- Break analytics events.
+- Break portal interactions.
+- Break mobile menus.
+
+PHASE 6 — Third-party dependency and CDN loading audit
+
+Inventory all third-party dependencies:
+- Tailwind CDN.
+- Font Awesome.
+- Google Fonts.
+- Swiper.
+- Analytics/GTM/GA4.
+- Any chat/AI/widget scripts.
+- Any other CDN resources.
+
+Audit:
+- Are they loaded on pages where not needed?
+- Are there duplicate versions?
+- Are they render-blocking?
+- Are preconnects present where helpful?
+- Are unused libraries loaded globally?
+- Are CSS/JS dependencies slowing first render?
+- Are CDN failures handled gracefully?
+- Is there a possibility of self-hosting critical assets later?
+
+Fix directly where safe:
+- Add defer where appropriate for JS.
+- Add preconnect only where beneficial.
+- Remove duplicate CDN includes if clearly duplicated.
+- Avoid loading optional libraries where not used, if safe.
+- Document larger dependency changes for a future phase if risky.
+
+Do not:
+- Remove a library if it might break current UI.
+- Replace frameworks without explicit instruction.
+- Break icon rendering.
+
+PHASE 7 — Fonts audit
+
+Audit:
+- Font providers.
+- Preconnects.
+- Duplicate font imports.
+- Unused weights.
+- Font-display behavior.
+- Layout shift caused by font loading.
+- Consistency across public and portal pages.
+
+Fix directly where safe:
+- Add preconnect for font origins if needed.
+- Remove duplicate font requests if clearly redundant.
+- Ensure font loading does not block rendering excessively.
+- Document if self-hosting fonts is recommended.
+
+PHASE 8 — Navigation and prefetch audit
+
+Audit:
+- Prefetch links.
+- Preload links.
+- Preconnect links.
+- Any prefetch of private portal pages from public pages.
+- Any unnecessary resource hints.
+- Any missing critical preconnect.
+- Any incorrect preload.
+
+Fix directly:
+- Remove unnecessary prefetches that waste bandwidth.
+- Avoid prefetching private pages unless there is a clear reason.
+- Keep only resource hints that materially improve performance.
+- Ensure preloads match actual used resources.
+- Avoid preload warnings.
+
+PHASE 9 — Portal loading performance
+
+Audit:
+- Login loading behavior.
+- Profile bootstrap loading.
+- Dashboard loading.
+- Packages loading.
+- Invoices loading.
+- Account/profile loading.
+- Quote loading.
+- Refresh behavior.
+- Empty states.
+- Error states.
+- Slow API behavior.
+- Data rendering performance.
+- Filters/search performance.
+
+Fix directly:
+- Add stable loading states where missing.
+- Avoid showing fake static data while loading.
+- Prevent layout jump from loading to loaded state.
+- Disable buttons during submission/loading where appropriate.
+- Avoid repeated requests if unnecessary.
+- Ensure refresh actions do not spam calls.
+- Ensure API failures do not freeze the UI.
+- Ensure session-expired state is clear and fast.
+
+PHASE 10 — Mobile performance audit
+
+Prioritize mobile.
+
+Audit:
+- Mobile header/menu performance.
+- Mobile layout shifts.
+- Large mobile images.
+- Buttons and forms causing reflow.
+- Heavy shadows/animations on mobile.
+- Tables and horizontal overflow.
+- Portal cards on mobile.
+- Calculator mobile experience.
+- Registration mobile experience.
+- Quote flow mobile experience.
+- Tap responsiveness.
+- Any scroll jank.
+
+Fix directly:
+- Prevent horizontal overflow.
+- Stabilize cards/forms/tables.
+- Reduce excessive animations on mobile if needed.
+- Ensure mobile menu opens quickly.
+- Ensure forms remain responsive.
+- Preserve design.
+
+PHASE 11 — Production delivery and caching audit
+
+If hosting/server config exists, audit and improve:
+- Cache-Control for static assets.
+- Cache-Control for HTML.
+- Cache-Control for private pages.
+- Compression readiness.
+- Brotli/Gzip recommendation.
+- Correct MIME types.
+- CDN behavior.
+- Asset fingerprinting.
+- 404 behavior.
+- Redirect behavior.
+- HTML caching risks for portal pages.
+
+Fix directly if repo supports it.
+If not, document exact external hosting/CDN actions.
+
+Recommended:
+- Fingerprinted assets: long cache immutable.
+- HTML: short cache/revalidate.
+- Private portal/account pages: no-store.
+- robots/sitemap/llms: reasonable cache.
+- Images: long cache if versioned.
+- JS/CSS: long cache if versioned, otherwise conservative.
+
+PHASE 12 — Error and runtime stability audit
+
+Audit:
+- Console errors.
+- Missing elements causing JS errors.
+- Broken selectors.
+- Scripts assuming elements exist on every page.
+- Broken image paths.
+- Broken CSS paths.
+- Broken links.
+- Failed external resources.
+- Forms causing runtime exceptions.
+- Calculator edge-case crashes.
+- Portal empty-data crashes.
+
+Fix directly:
+- Add safe guards.
+- Prevent null-reference errors.
+- Make scripts resilient across pages.
+- Ensure missing optional elements do not break the page.
+- Remove or fix broken references.
+- Preserve behavior.
+
+PHASE 13 — Validation
+
+After fixes:
+- Open every public page.
+- Open every portal page if possible.
+- Test mobile width.
+- Test desktop width.
+- Test calculator.
+- Test registration interactions.
+- Test login interactions if possible.
+- Test package/invoice/profile screens if possible.
+- Check console errors.
+- Check for layout shifts visually.
+- Check that hero images still load correctly.
+- Check that no analytics/SEO/auth behavior broke.
+- Check that public pages still render content.
+- Check that private pages still guard data.
+- Check that mobile menu still works.
+- Check that all changed pages remain visually unchanged.
+
+Deliverables:
+1. Executive summary:
+   - Current performance posture.
+   - Biggest performance risks found.
+   - What was fixed.
+   - What remains for hosting/CDN/backend/image pipeline.
+
+2. Page performance inventory:
+   Columns:
+   - Page/path
+   - Likely LCP element
+   - Major assets
+   - Main blocking resources
+   - Image issues
+   - JS/CSS issues
+   - Fixes applied
+   - Remaining action
+
+3. Core Web Vitals findings table:
+   Columns:
+   - Metric
+   - Page/path
+   - Issue
+   - Cause
+   - Fix applied
+   - Expected impact
+   - Validation status
+
+4. Asset optimization table:
+   Columns:
+   - Asset
+   - Page(s)
+   - Issue
+   - Fix applied
+   - Remaining recommendation
+
+5. Files changed.
+
+6. External recommendations:
+   - CDN/cache
+   - compression
+   - image compression/conversion
+   - dependency self-hosting
+   - hosting headers
+   - monitoring
+
+7. Manual QA checklist:
+   - Desktop pages
+   - Mobile pages
+   - Calculator
+   - Registration
+   - Login
+   - Portal
+   - Forms
+   - Console
+   - Network
+   - Visual comparison
+
+Implementation priority:
+1. Fix layout shift risks.
+2. Fix image loading and sizing.
+3. Fix blocking scripts and runtime errors.
+4. Fix unnecessary resource hints.
+5. Fix mobile performance.
+6. Fix portal loading states.
+7. Document hosting/CDN improvements.
+
+Start by scanning the repository. Then build a performance inventory. Then apply safe fixes in priority order. End with the full report and QA checklist.

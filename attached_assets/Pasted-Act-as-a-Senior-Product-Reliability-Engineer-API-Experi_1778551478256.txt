@@ -1,0 +1,660 @@
+Act as a Senior Product Reliability Engineer, API Experience Auditor, and graceful-failure implementation lead for the CRBOX client portal and website.
+
+Your job is to audit how the CRBOX website and client portal behave when backend/API calls succeed, fail, timeout, return empty data, return partial data, return unexpected data, reject authentication, expire the session, or become unavailable. This is not a passive audit. It is an actionable reliability hardening sprint.
+
+Scan the entire project, identify every reliability gap, broken backend assumption, missing loading state, missing empty state, missing error state, fake success state, uncontrolled failure, double-submit risk, stale-data risk, retry issue, and user confusion point. Then fix everything that can be fixed safely inside the codebase.
+
+Context:
+CRBOX includes public and portal flows such as:
+- Login
+- Password recovery
+- Registration / affiliation
+- Dashboard
+- User profile / Mi cuenta
+- Packages / Mis paquetes
+- Invoices / Mis facturas
+- Quote / Cotización flow
+- Calculator
+- Contact
+- Upload factura or document flows if present
+- Tracking/search
+- Logout/session management
+- Public CTAs into portal flows
+
+Primary goal:
+Make the experience resilient, honest and user-friendly even when backend services are slow, fail, return empty results, or behave unexpectedly.
+
+The user should never feel stuck, misled or abandoned.
+
+Important:
+Do not fake backend success.
+Do not invent data.
+Do not show fake packages, invoices, quote statuses, user data, activity, or confirmations.
+Do not hide backend failures behind fake success messages.
+Do not expose raw technical/backend errors to users.
+Do not break real backend contracts.
+Do not redesign the UI.
+Do not rewrite the product.
+Do not make broad architecture changes unless absolutely necessary.
+Preserve existing visual design and business logic.
+
+Reliability principles:
+1. Every async action needs a loading state.
+2. Every backend-dependent screen needs an empty state.
+3. Every backend failure needs a clear error state.
+4. Every successful state must be based on real confirmation.
+5. Every user action needs a safe next step.
+6. Expired sessions must be handled gracefully.
+7. Partial data should not crash the UI.
+8. Missing fields should not break rendering.
+9. Duplicate submissions must be prevented.
+10. Errors must be useful to the user but safe.
+11. Data must not be stale without indication.
+12. Retry should be available where useful.
+13. Unsupported actions must be honest.
+14. Real backend constraints must be respected.
+15. The system must fail closed for private data.
+
+PHASE 1 — Full backend/API interaction inventory
+
+Scan the entire project and identify:
+- Every fetch call.
+- Every XMLHttpRequest.
+- Every form submission.
+- Every API endpoint.
+- Every auth call.
+- Every profile/user-info call.
+- Every package call.
+- Every invoice/factura call.
+- Every quote/cotización call.
+- Every registration call.
+- Every password recovery call.
+- Every profile update call.
+- Every upload call if present.
+- Every calculator flow if it uses remote data.
+- Every contact form backend if present.
+- Every proxy/server endpoint if present.
+- Every place where API data is rendered into the UI.
+- Every local/session storage dependency.
+- Every cached user/profile/data dependency.
+
+For each backend/API interaction document:
+- Flow/page.
+- Endpoint or action.
+- Trigger.
+- Required inputs.
+- Expected success response.
+- Empty response behavior.
+- Error response behavior.
+- Timeout behavior.
+- Auth/session requirement.
+- Current loading state.
+- Current empty state.
+- Current error state.
+- Whether success is real or fake.
+- Whether data is validated before rendering.
+- Whether retry exists.
+- Whether duplicate submission is prevented.
+- Whether sensitive data is logged or exposed.
+
+PHASE 2 — Define a reliability state model
+
+Ensure all backend-driven flows support these states where relevant:
+
+1. idle
+The user has not started the action yet.
+
+2. validating
+Client-side validation is running.
+
+3. loading
+Request is in progress.
+
+4. success
+Real backend confirmation received.
+
+5. empty
+Request succeeded but no data exists.
+
+6. partial
+Request succeeded but some expected fields are missing.
+
+7. error
+Request failed in a recoverable way.
+
+8. unauthorized
+Session is missing, expired or invalid.
+
+9. unavailable
+Backend/system feature is not currently supported.
+
+10. timeout
+Request took too long or network failed.
+
+11. retrying
+User or system is trying again.
+
+12. stale
+Old cached data is visible while fresh data is loading or failed.
+
+Implement consistent state handling where missing.
+
+PHASE 3 — Authentication and session reliability
+
+Audit:
+- Login request.
+- Token/session storage.
+- Profile bootstrap after login.
+- Direct access to private pages.
+- Expired session.
+- Invalid token.
+- Logout.
+- Refresh after session expiry.
+- Multiple tabs if relevant.
+- Session missing but private page opened.
+- Backend returns 401/403.
+- Backend returns malformed response.
+- Network fails during login.
+
+Fix:
+- Login button disables while loading.
+- Login cannot double-submit.
+- Invalid credentials show clear message.
+- Network failure shows clear retry message.
+- Login success only after real token/confirmation.
+- After login, profile bootstrap starts cleanly.
+- Private pages do not show sensitive/fake data before auth completes.
+- 401/403 redirects or prompts user to log in again.
+- Session expiry clears sensitive data.
+- Logout clears token/session/user data.
+- Logout success does not depend on fake state.
+- If profile bootstrap fails, show clear error and retry/logout options.
+- No raw backend auth errors shown.
+- No token logged.
+
+PHASE 4 — Registration reliability
+
+Audit:
+- Personal registration.
+- Business registration.
+- Account type selection.
+- Required fields.
+- Duplicate email/ID errors.
+- Backend validation errors.
+- Network failure.
+- Timeout.
+- Success confirmation.
+- Next step after success.
+- Double submission.
+- Partial backend response.
+- Unsupported business account flow if applicable.
+
+Fix:
+- Submit button disables during request.
+- Clear client-side validation before submit.
+- Success only after real backend success.
+- Duplicate email/ID handled clearly.
+- Business account flow is honest if not fully supported.
+- Failed submission preserves user-entered safe fields where appropriate.
+- User understands next step.
+- No raw backend errors shown.
+- No PII logged.
+- No fake account created state.
+
+PHASE 5 — Password recovery reliability
+
+Audit:
+- Email input validation.
+- Submit behavior.
+- Loading state.
+- Backend success/failure.
+- Unknown email behavior.
+- Timeout/network failure.
+- Return to login.
+- Double submission.
+
+Fix:
+- Loading state.
+- Safe success/error messaging.
+- No raw backend error.
+- No PII logging.
+- Clear next step.
+- Retry or return to login.
+
+PHASE 6 — Portal bootstrap and user profile reliability
+
+Audit:
+- User info load.
+- Missing fields.
+- Partial profile.
+- Empty addresses.
+- Empty phones.
+- Missing branch/sucursal.
+- Invalid response.
+- Network failure.
+- Auth failure.
+- Refetch after update.
+- Cached profile state.
+- Header/account state while loading.
+- Direct page refresh.
+
+Fix:
+- Safe loading skeleton/state.
+- Safe empty/missing field fallbacks.
+- Header shows loading/authenticated/logged-out correctly.
+- No hardcoded profile data.
+- Profile rendering does not crash on missing arrays/objects.
+- Refetch after successful update.
+- Retry profile load.
+- Logout option when profile cannot load.
+- Clear error if profile unavailable.
+
+PHASE 7 — Dashboard reliability
+
+Audit:
+- Dashboard depends on profile, packages, invoices, quotes or other data.
+- Summary cards.
+- Recent activity.
+- Notifications.
+- Quick actions.
+- Partial data.
+- Empty package/invoice data.
+- Backend failures.
+- Stale data.
+- Refresh action.
+
+Fix:
+- Summary cards use real data or honest unavailable/empty state.
+- No fake recent activity.
+- No fake notifications.
+- No fake package/invoice totals.
+- Dashboard can load even if one data source fails.
+- Partial failures are shown per section instead of breaking the whole page.
+- Refresh action actually refreshes or is clearly disabled/unavailable.
+- Clear next actions.
+
+PHASE 8 — Packages reliability
+
+Audit:
+- Package list endpoint.
+- Date filters.
+- Status filters.
+- Tracking search.
+- Refresh.
+- Empty response.
+- 401/403.
+- Timeout.
+- Network failure.
+- Malformed package rows.
+- Missing package fields.
+- Unsupported actions.
+- Count calculations.
+- Status mapping.
+
+Fix:
+- Loading state for package fetch.
+- Empty state when no packages.
+- Error state with retry.
+- Session-expired state.
+- Counts derived only from real list.
+- Filters do not crash.
+- Search does not expose raw errors.
+- Missing package fields display safe fallback.
+- Unsupported actions hidden or labeled unavailable.
+- No fake rows.
+- Refresh prevents spam/double calls.
+- Date formatting handles invalid dates.
+
+PHASE 9 — Invoices / Facturas reliability
+
+Audit:
+- Invoice endpoint.
+- Date filters.
+- Empty response.
+- Loading state.
+- Error state.
+- Download/view/upload actions.
+- Missing invoice fields.
+- Invoice totals/counts.
+- Unsupported actions.
+- Upload success/failure if present.
+
+Fix:
+- Loading state.
+- Empty state.
+- Error + retry.
+- Counts/totals real or unavailable.
+- Unsupported invoice actions not shown as working.
+- Upload success only after real confirmation.
+- Missing invoice fields do not crash.
+- No fake invoice rows.
+- No raw backend errors.
+
+PHASE 10 — Quote / Cotización reliability
+
+Audit:
+- Quote request start.
+- Profile prefill.
+- Product/item fields.
+- URL/product analysis if present.
+- Multi-product behavior.
+- Estimate logic.
+- Submission.
+- Backend confirmation.
+- Quote history/status.
+- Quote response.
+- Empty states.
+- Errors.
+- Timeout.
+- Unsupported backend paths.
+- Next step.
+
+Fix:
+- Quote form validates clearly.
+- Submit disabled while loading.
+- Success only after real submission.
+- If backend quote submission is not available, present honest contact/request fallback.
+- Estimate clearly labeled as estimate if not official.
+- No fake quote statuses/history.
+- No fake admin response.
+- Error state explains what to do.
+- Retry or contact fallback exists.
+- User always knows what happens next.
+- No product URLs/free text logged unsafely.
+- Partial/missing quote data does not crash.
+
+PHASE 11 — Profile update reliability
+
+Audit:
+- Editable fields.
+- Required hidden IDs.
+- Address/phone preservation.
+- Save action.
+- Backend confirmation.
+- Validation errors.
+- Network errors.
+- Partial update failure.
+- Refetch after save.
+- Duplicate save.
+- Error recovery.
+
+Fix:
+- Save disabled while loading.
+- Success only after real backend confirmation.
+- Preserve required IDs.
+- Prevent accidental clearing of required fields.
+- Refetch profile after save.
+- Show field-level or section-level errors where possible.
+- Missing backend support is clearly unavailable.
+- No raw backend messages.
+
+PHASE 12 — Contact and support reliability
+
+Audit:
+- Contact form backend.
+- WhatsApp links.
+- Email links.
+- Phone links.
+- Success state.
+- Error state.
+- Network failure.
+- Missing backend support.
+
+Fix:
+- If contact form backend exists, handle loading/success/error correctly.
+- If not, provide honest fallback using email/WhatsApp.
+- No fake submission success.
+- Contact links work.
+- Validation clear.
+
+PHASE 13 — Calculator reliability
+
+Audit:
+- Empty inputs.
+- Invalid inputs.
+- Negative values.
+- Extreme values.
+- Missing category.
+- Missing destination.
+- Air/maritime toggle.
+- Result rendering.
+- Edge cases.
+- Runtime errors.
+- Estimate vs official label.
+- CTA after result.
+
+Fix:
+- Validate safely.
+- Prevent NaN/Infinity/negative results.
+- Show clear errors.
+- Do not crash on missing elements.
+- Results only render when valid.
+- Estimate labeling clear.
+- Next action logical.
+- Mobile behavior stable.
+
+PHASE 14 — Upload/file reliability if present
+
+Audit:
+- Upload button.
+- File selection.
+- File validation.
+- File size/type.
+- Upload loading.
+- Success/failure.
+- Retry.
+- Unsupported state.
+- Missing backend.
+- Filename handling.
+
+Fix:
+- If upload is unsupported, label honestly.
+- If supported, loading/success/error states.
+- Validate file type and size client-side.
+- Success only after real confirmation.
+- No raw filenames exposed unsafely.
+- No fake upload success.
+
+PHASE 15 — Global fetch/error utility
+
+If project structure allows, implement or improve a shared safe request helper.
+
+It should support:
+- Auth header attachment where needed.
+- Timeout.
+- Safe JSON parsing.
+- Network error handling.
+- 401/403 handling.
+- Sanitized error category.
+- No token logging.
+- Retry option where appropriate.
+- Consistent response shape.
+- Safe handling of empty arrays/objects.
+- Clear distinction between:
+  - network_error
+  - timeout
+  - unauthorized
+  - forbidden
+  - not_found
+  - validation_error
+  - server_error
+  - malformed_response
+  - unsupported_feature
+
+Do not introduce a large architecture rewrite if the repo does not support it.
+Use minimal, safe, incremental improvements.
+
+PHASE 16 — Global UI state patterns
+
+Ensure consistent user-facing states:
+
+Loading:
+- Clear but not disruptive.
+- Prevent duplicate actions.
+- Preserve layout stability.
+
+Empty:
+- Honest.
+- Helpful.
+- Includes next step where appropriate.
+
+Error:
+- User-friendly.
+- Safe.
+- No raw stack traces.
+- No raw backend internals.
+- Retry or alternative path.
+
+Unavailable:
+- Used when feature is not backend-supported.
+- Honest and clear.
+- No fake behavior.
+
+Success:
+- Only after real confirmation.
+- Specific enough for the user to understand what happened.
+
+Session expired:
+- Clear.
+- Clears sensitive data.
+- Leads back to login.
+
+PHASE 17 — Data validation before rendering
+
+Audit all rendering of backend data:
+- Null/undefined fields.
+- Missing arrays.
+- Unexpected types.
+- Empty strings.
+- Invalid dates.
+- Invalid numbers.
+- Unknown statuses.
+- Unknown branch.
+- Missing IDs.
+- Partial nested objects.
+
+Fix:
+- Safe optional access.
+- Fallback labels.
+- Empty arrays.
+- Unknown status mapping.
+- Date parsing guard.
+- Number formatting guard.
+- No rendering crash.
+- No fake replacement data.
+
+PHASE 18 — Logging and debugging reliability
+
+Audit:
+- console.log of backend responses.
+- console.log of tokens.
+- console.log of user data.
+- console.error with sensitive info.
+- Debug banners.
+- Development-only logs.
+
+Fix:
+- Remove sensitive logs.
+- Keep only safe non-sensitive errors if useful.
+- Avoid logging full backend payloads.
+- Avoid logging PII.
+- Avoid logging tokens.
+- Avoid logging passwords.
+- Avoid logging tracking/invoice/customer IDs.
+
+PHASE 19 — Manual failure simulation checklist
+
+After fixes, provide a QA script to simulate:
+- Offline network.
+- Slow network.
+- Login invalid credentials.
+- Login timeout.
+- Expired token.
+- Profile endpoint empty.
+- Profile endpoint error.
+- Packages empty.
+- Packages error.
+- Invoices empty.
+- Invoices error.
+- Registration duplicate email.
+- Registration backend error.
+- Quote submission error.
+- Calculator invalid inputs.
+- Contact form error.
+- Logout while data is loading.
+- Direct access to private page without session.
+- Mobile refresh of portal page.
+
+Deliverables:
+1. Executive summary:
+   - Current reliability posture.
+   - Biggest backend/API assumptions found.
+   - What was fixed.
+   - What still requires backend/business confirmation.
+
+2. API interaction inventory:
+   Columns:
+   - Page/flow
+   - Action
+   - Endpoint/backend dependency
+   - Expected success
+   - Empty behavior
+   - Error behavior
+   - Current issue
+   - Fix applied
+   - Remaining dependency
+
+3. Failure-state matrix:
+   Columns:
+   - Flow
+   - Loading
+   - Empty
+   - Error
+   - Unauthorized
+   - Timeout
+   - Retry
+   - Success confirmation
+   - Status after fix
+
+4. Fake success / fake data table:
+   Columns:
+   - Page/flow
+   - Misleading state
+   - Why it was unsafe
+   - Replacement
+   - Status
+
+5. User-facing error message inventory:
+   Columns:
+   - Flow
+   - Error type
+   - Message shown
+   - Retry/next step
+   - PII-safe status
+
+6. Files changed.
+
+7. Remaining backend requirements:
+   - Endpoint behavior to confirm.
+   - Missing status codes.
+   - Missing server validation.
+   - Missing rate limits.
+   - Missing upload support.
+   - Missing quote lifecycle support.
+   - Missing structured error responses.
+
+8. Manual QA script:
+   Step-by-step tests for success, empty, error, timeout and unauthorized states across all key flows.
+
+Implementation priority:
+1. Auth/session failures.
+2. Fake success and fake data.
+3. Missing loading/empty/error states.
+4. Portal packages/invoices/profile reliability.
+5. Registration reliability.
+6. Quote flow reliability.
+7. Calculator/contact reliability.
+8. Logging cleanup.
+9. Final QA documentation.
+
+Start by scanning all backend/API interactions. Build the reliability map. Fix the most trust-breaking failures first. End with the full report and QA script.

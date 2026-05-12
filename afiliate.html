@@ -991,6 +991,7 @@
                                         </button>
                                     </div>
                                     <p class="text-xs text-gray-400 mt-2 mb-0">Puedes cambiar tu sucursal preferida más adelante en Mi Cuenta.</p>
+                                    <p id="delivery-selection-error" class="hidden text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2 flex items-center gap-1.5"><i class="fas fa-exclamation-circle"></i> Por favor elige cómo prefieres recibir tus paquetes.</p>
 
                                     <!-- Domicilio address form -->
                                     <div id="domicilio-address-form" class="hidden">
@@ -1297,6 +1298,7 @@
                                         </button>
                                     </div>
                                     <p class="text-xs text-gray-400 mt-2">Pueden cambiar la sucursal preferida en Mi Cuenta.</p>
+                                    <p id="biz-delivery-selection-error" class="hidden text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2 flex items-center gap-1.5"><i class="fas fa-exclamation-circle"></i> Por favor elige cómo prefieren recibir sus paquetes.</p>
 
                                     <!-- Domicilio address form -->
                                     <div id="biz-domicilio-address-form" class="hidden">
@@ -2583,7 +2585,12 @@ const locationDatabase = {
                 if (!delivery) {
                     var firstCard = panel.querySelector('.delivery-card');
                     if (firstCard) firstCard.focus();
-                    alert('Por favor elige cómo prefieres recibir tus paquetes.');
+                    var delivErrEl = document.getElementById('delivery-selection-error');
+                    if (delivErrEl) {
+                        delivErrEl.classList.remove('hidden');
+                        delivErrEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        setTimeout(function () { delivErrEl.classList.add('hidden'); }, 6000);
+                    }
                     return false;
                 }
                 if (delivery === 'domicilio') {
@@ -2880,7 +2887,12 @@ const locationDatabase = {
                 if (!delivery) {
                     var firstCard = panel.querySelector('.biz-delivery-card');
                     if (firstCard) firstCard.focus();
-                    alert('Por favor elige cómo prefieres recibir tus paquetes.');
+                    var bizDelivErrEl = document.getElementById('biz-delivery-selection-error');
+                    if (bizDelivErrEl) {
+                        bizDelivErrEl.classList.remove('hidden');
+                        bizDelivErrEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        setTimeout(function () { bizDelivErrEl.classList.add('hidden'); }, 6000);
+                    }
                     return false;
                 }
                 if (delivery === 'domicilio') {

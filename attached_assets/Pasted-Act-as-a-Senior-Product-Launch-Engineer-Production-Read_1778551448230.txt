@@ -1,0 +1,631 @@
+Act as a Senior Product Launch Engineer, Production Readiness Lead, and end-to-end QA owner for CRBOX.
+
+Your job is to run a complete production-readiness audit across the CRBOX public website and client portal. This is not a passive checklist. It is an actionable launch-hardening sprint.
+
+Scan the entire project and detect anything that would make the website or client portal feel unfinished, unstable, risky, misleading, broken, incomplete, unprofessional, untracked, uncrawlable, insecure, inaccessible, slow, or not ready for real users. Then fix everything that can be fixed safely inside the repo.
+
+Context:
+CRBOX includes a public website and client portal, including pages such as:
+- Homepage
+- Servicios
+- Cómo funciona
+- Tarifas
+- Calculadora
+- Contacto
+- Afíliate / registration
+- Login
+- Password recovery
+- Dashboard
+- Mi cuenta
+- Mis paquetes
+- Mis facturas
+- Cotizaciones / quote flow
+- Any other public, portal, private, admin, support or test page found in the repo
+
+Primary goal:
+Leave the product in the strongest possible launch-ready state without redesigning it, rewriting it, inventing backend functionality, faking data, or changing the business model.
+
+Important:
+Do not fake production readiness.
+Do not hide unresolved issues.
+Do not invent data, features, backend responses, analytics, security, package records, invoice records, quote records, profile data, or success states.
+Do not change visual design unless fixing a clear bug.
+Do not rewrite copy broadly.
+Do not break existing backend contracts, analytics, SEO, security, authentication or UI behavior.
+If something cannot be fixed inside the repo, document it clearly as an external dependency with exact action required.
+
+Definition of production-ready:
+The CRBOX experience must be:
+- Coherent
+- Truthful
+- Stable
+- Secure enough for launch pending infrastructure controls
+- Crawlable where public
+- Noindexed where private
+- Analytics-ready
+- Mobile-ready
+- Accessible enough for real usage
+- Fast enough to feel professional
+- Free of fake data
+- Free of dead CTAs
+- Free of broken links/assets
+- Clear in loading/empty/error states
+- Clear about what is real, unavailable, estimated, pending or official
+- Ready for manual QA and deployment verification
+
+PHASE 1 — Full product inventory
+
+Scan the entire repository and inventory:
+- All HTML pages/routes.
+- Public pages.
+- Private/client portal pages.
+- Login and registration pages.
+- Quote/cotización pages.
+- Calculator pages.
+- Contact/support pages.
+- CSS files.
+- JavaScript files.
+- Assets/images/icons.
+- External scripts/CDNs.
+- Forms.
+- CTAs.
+- API calls.
+- Auth/session-related behavior.
+- SEO/crawl files.
+- Analytics/GTM/GA4 tags.
+- Robots/sitemap/llms files.
+- Any test/demo/deprecated files.
+- Any admin/private routes.
+- Any hidden or unused pages.
+
+For every page classify:
+- Public
+- Private/client portal
+- Login/auth
+- Support/contact
+- Tool/calculator
+- Quote flow
+- Admin/internal
+- Test/demo/deprecated
+- Unknown/requires decision
+
+PHASE 2 — Launch blocker audit
+
+Identify launch blockers by severity.
+
+Critical launch blockers:
+- User cannot log in when they should.
+- Private portal shows fake or hardcoded customer data.
+- Private pages are indexable.
+- Forms pretend to submit but do not.
+- Success states fire without real confirmation.
+- Buttons lead nowhere or to broken routes.
+- Major JS errors break core pages.
+- Public pages are not accessible.
+- Sitemap/robots severely wrong.
+- Analytics missing from key pages.
+- Security-sensitive data exposed.
+- Broken registration/login/portal flows.
+- Quote flow is misleading or dead-ended.
+- Calculator produces broken or misleading results.
+- Mobile experience is unusable.
+
+High launch blockers:
+- Missing loading/empty/error states.
+- Broken images or important assets.
+- Duplicate or conflicting navigation.
+- Inconsistent logged-in/logged-out headers.
+- Important CTAs inconsistent.
+- SEO metadata missing on key public pages.
+- Analytics duplicated or noisy.
+- Forms missing validation.
+- API failures shown as raw errors.
+- Portal data not refreshed correctly.
+- Mobile layout overflow.
+- Major accessibility gaps in forms/navigation.
+
+Medium launch issues:
+- Performance inefficiencies.
+- Minor metadata inconsistencies.
+- Non-critical broken links.
+- Inconsistent labels.
+- Non-critical console warnings.
+- Missing optional schema.
+- Minor mobile spacing issues.
+- Non-critical empty state improvements.
+
+Low launch polish:
+- Minor CSS cleanup.
+- Small copy clarity fixes.
+- Minor visual inconsistencies.
+- Non-blocking dependency upgrades.
+- Documentation gaps.
+
+PHASE 3 — Public website readiness
+
+Audit every public page:
+- Page loads without console-breaking errors.
+- Header works.
+- Footer works if present.
+- Mobile menu works.
+- CTAs point to correct destinations.
+- Public/private states are correct.
+- No fake portal/customer data appears.
+- SEO metadata exists.
+- Canonical is correct.
+- Page is indexable if public.
+- Images load.
+- Main content is visible in HTML.
+- Forms validate.
+- Contact methods work.
+- Analytics base tag is present if intended.
+- No broken internal links.
+- No broken external links if detectable.
+- Layout works on mobile and desktop.
+- No horizontal overflow.
+- No obvious layout jumps.
+- No duplicate IDs causing issues.
+
+Fix directly:
+- Broken links.
+- Broken image references.
+- Missing safe metadata basics.
+- Incorrect noindex/index.
+- Mobile nav issues.
+- CTA destination issues.
+- Form validation gaps.
+- Runtime errors.
+- Basic semantic issues.
+- Loading/empty/error states where applicable.
+
+PHASE 4 — Auth and portal readiness
+
+Audit:
+- Login page.
+- Password recovery.
+- Session persistence.
+- Logout.
+- Direct access to private pages.
+- Expired session behavior.
+- User bootstrap/profile loading.
+- Header account state.
+- Dashboard.
+- Mi cuenta.
+- Mis paquetes.
+- Mis facturas.
+- Cotizaciones.
+- Portal navigation desktop/mobile.
+
+Check:
+- No fake user data.
+- No hardcoded names, locker numbers, invoices, packages or activity.
+- Portal pages wait for real authentication/profile data.
+- Empty states are honest.
+- Error states are clear.
+- Loading states are stable.
+- Actions only appear when supported.
+- Success states only appear after real confirmation.
+- Logout fully clears state.
+- Private pages noindex/no-store recommendation exists.
+- Private pages are excluded from sitemap.
+
+Fix directly:
+- Fake data.
+- Broken route guards.
+- Misleading buttons.
+- Static dashboard metrics.
+- Inconsistent account menus.
+- Missing loading/empty/error states.
+- Broken logout.
+- Broken mobile portal nav.
+- Unsupported actions presented as real.
+
+PHASE 5 — Registration and account creation readiness
+
+Audit:
+- Personal account selection.
+- Business account selection.
+- Required fields.
+- Form validation.
+- Duplicate submission handling.
+- Success/error states.
+- Backend confirmation dependency.
+- Next step after registration.
+- Mobile usability.
+- Terms/privacy acknowledgement if present.
+- Branch/sucursal logic if present.
+- Business account behavior if backend support differs from personal account.
+
+Check:
+- Personal registration works truthfully.
+- Business registration does not pretend to be complete if unsupported.
+- Required fields are clear.
+- Invalid data is blocked.
+- Success only appears after real confirmation.
+- Errors are user-friendly.
+- No PII is sent to analytics.
+- User understands next step.
+
+Fix directly where safe.
+
+PHASE 6 — Quote/cotización readiness
+
+Audit the quote experience as a complete loop:
+- Entry points.
+- Quote start.
+- Form fields.
+- Product/item logic.
+- Calculator/estimate relationship.
+- Submission.
+- Confirmation.
+- Quote status.
+- Quote response.
+- Next step.
+- Portal visibility.
+- Admin/team handoff if implied.
+- Error handling.
+- Mobile behavior.
+
+Check:
+- Does the flow start clearly?
+- Does the user know what they are submitting?
+- Is it an estimate or official quote?
+- Is there real backend confirmation?
+- Does the user know what happens next?
+- Are quote statuses real or fake?
+- Are quote history/response states real or fake?
+- Are unsupported states clearly labeled?
+- Does the flow avoid dead ends?
+
+Fix directly:
+- Misleading wording.
+- Fake quote statuses.
+- Dead-end states.
+- Unsupported actions.
+- Broken CTAs.
+- Missing confirmations/errors.
+- Inconsistent estimate/official labels.
+
+PHASE 7 — Calculator readiness
+
+Audit:
+- Inputs.
+- Validation.
+- Edge cases.
+- Negative numbers.
+- Empty values.
+- Extreme values.
+- Air/maritime toggle.
+- Category selection.
+- Result display.
+- Estimate labeling.
+- Next action after result.
+- Mobile behavior.
+- Runtime errors.
+
+Check:
+- Calculator does not crash.
+- Result is not presented as official invoice unless it is.
+- Invalid inputs produce clear errors.
+- Results are coherent.
+- Next CTA is logical.
+- Analytics event can fire if measurement exists.
+- No hidden fake assumptions are presented as final.
+
+Fix directly where safe.
+
+PHASE 8 — Forms readiness
+
+Audit every form:
+- Login.
+- Password recovery.
+- Registration.
+- Contact.
+- Calculator.
+- Quote.
+- Profile update.
+- Package search/tracking.
+- Invoice upload if present.
+
+Check:
+- Required fields.
+- Validation.
+- Loading state.
+- Disabled state during submission.
+- Double-submit prevention.
+- Success state.
+- Error state.
+- Backend failure behavior.
+- Mobile behavior.
+- PII safety.
+- No raw backend errors.
+- No fake submission.
+
+Fix directly where safe.
+
+PHASE 9 — SEO and crawl readiness basics
+
+Audit:
+- Public pages indexable.
+- Private pages noindex.
+- Sitemap includes only public canonical URLs.
+- Robots does not block required assets.
+- Canonicals correct.
+- Metadata present on public pages.
+- OG/Twitter basics present if intended.
+- No private URLs in sitemap/llms.
+- No customer data in public crawl files.
+- 404 behavior documented if not fixable.
+
+Fix directly:
+- Incorrect noindex/index.
+- Missing sitemap/robots basics.
+- Private route leakage in sitemap.
+- Missing canonical basics.
+- Broken metadata where safe.
+
+PHASE 10 — Analytics readiness basics
+
+Audit:
+- GTM/GA4 snippets present once where intended.
+- Key pages covered.
+- No duplicate base tags.
+- No PII tracking.
+- Key conversion-intent actions instrumented if measurement layer exists.
+- Success events require real success.
+- No random noisy overtracking.
+- Portal analytics does not send customer identifiers.
+
+Fix directly if current analytics setup supports it.
+If not, document exact remaining GTM/GA4 setup.
+
+PHASE 11 — Security readiness basics
+
+Audit launch-relevant basics:
+- No exposed secrets.
+- No hardcoded tokens.
+- No customer data in source.
+- No raw passwords/logging.
+- Private pages not in sitemap.
+- External links safe.
+- Basic form validation.
+- No obvious unsafe DOM injection from user inputs.
+- No debug logs with sensitive data.
+- No fake security claims.
+- Security headers documented or configured if repo supports it.
+
+Fix directly:
+- Remove sensitive logs.
+- Remove exposed demo data.
+- Add safe link attributes.
+- Add noindex to private pages.
+- Add safe client-side validation where relevant.
+- Document external WAF/rate-limiting needs.
+
+PHASE 12 — Accessibility readiness basics
+
+Audit:
+- Labels for forms.
+- Button/link semantics.
+- Keyboard navigation basics.
+- Icon-only button labels.
+- Mobile menu accessibility.
+- Focus visibility.
+- Main landmarks.
+- Alt text basics.
+- Error message clarity.
+
+Fix directly:
+- Missing labels.
+- Missing aria-labels.
+- Broken semantics.
+- Basic focus/keyboard issues.
+- Preserve design.
+
+PHASE 13 — Performance readiness basics
+
+Audit:
+- Broken assets.
+- Image dimensions.
+- Lazy loading.
+- Hero image loading.
+- Blocking scripts.
+- Duplicate resource loading.
+- Console errors.
+- Mobile overflow.
+- Loading skeletons/states.
+
+Fix directly:
+- Missing image dimensions.
+- Wrong lazy loading.
+- Defer safe scripts.
+- Runtime errors.
+- Mobile overflow.
+- Unnecessary prefetches.
+- Preserve design.
+
+PHASE 14 — Browser and device readiness
+
+Check:
+- Mobile Safari.
+- Chrome mobile.
+- Desktop Chrome.
+- Desktop Safari if relevant.
+- Responsive breakpoints.
+- Touch targets.
+- Form input zoom issues.
+- Sticky headers.
+- Dropdowns.
+- Modal/menus.
+- Tables and filters.
+- Portal cards.
+- Calculator.
+
+Fix low-risk issues directly.
+Document anything requiring manual cross-browser testing.
+
+PHASE 15 — Deployment readiness
+
+Audit repo/deployment assumptions:
+- Required files present.
+- Asset paths correct for deployment root.
+- Case-sensitive file paths.
+- Environment variables documented.
+- API base URLs documented.
+- Production vs test endpoints separated.
+- 404 behavior.
+- Redirect behavior.
+- HTTPS/canonical host assumptions.
+- Cache/header config if available.
+- Robots/sitemap served from root.
+- llms.txt served from root if present.
+
+Fix directly if possible.
+Document external deployment actions.
+
+PHASE 16 — Final validation
+
+After fixes:
+- Open every public page.
+- Open every private page.
+- Test login/logout if possible.
+- Test registration flow.
+- Test password recovery.
+- Test calculator.
+- Test quote flow.
+- Test contact form.
+- Test packages.
+- Test invoices.
+- Test profile update.
+- Test mobile menu.
+- Test all major CTAs.
+- Check console.
+- Check network errors.
+- Check no fake data remains.
+- Check sitemap/robots.
+- Check analytics does not duplicate.
+- Check private pages noindex.
+- Check visuals unchanged.
+
+Deliverables:
+1. Launch readiness score:
+   - Overall readiness: percentage or clear status
+   - Public website readiness
+   - Portal readiness
+   - Registration readiness
+   - Quote readiness
+   - Analytics readiness
+   - SEO readiness
+   - Security readiness
+   - Performance readiness
+   - Accessibility readiness
+
+2. Go / No-Go recommendation:
+   - Ready to launch
+   - Ready with minor issues
+   - Not ready due to blockers
+
+3. Critical blockers table:
+   Columns:
+   - Severity
+   - Area
+   - Page/flow
+   - Issue
+   - User impact
+   - Fix applied
+   - Remaining dependency
+   - Status
+
+4. Full findings table:
+   Columns:
+   - Severity
+   - Area
+   - Page/path
+   - Issue
+   - Fix applied
+   - Test status
+   - Remaining action
+
+5. Public/private route inventory:
+   Columns:
+   - Route/file
+   - Classification
+   - Indexing status
+   - Sitemap status
+   - Notes
+
+6. Fake/demo/incomplete element table:
+   Columns:
+   - Page
+   - Element
+   - Problem
+   - Replacement/fix
+   - Status
+
+7. Forms readiness table:
+   Columns:
+   - Form
+   - Validation
+   - Loading state
+   - Success state
+   - Error state
+   - Backend dependency
+   - Status
+
+8. CTA/link readiness table:
+   Columns:
+   - Page
+   - CTA/link
+   - Destination
+   - Status
+   - Fix applied
+
+9. Files changed.
+
+10. External launch checklist:
+   - DNS/domain/canonical host
+   - HTTPS
+   - WAF/rate limiting
+   - GA4/GTM publish
+   - Search Console sitemap submission
+   - Backend endpoint confirmation
+   - CORS confirmation
+   - Header/cache config
+   - Error monitoring
+   - Backup/rollback
+   - Manual QA
+   - Stakeholder approval
+
+11. Manual QA script:
+   Include step-by-step QA for:
+   - New visitor
+   - Returning visitor
+   - Personal registration
+   - Business registration
+   - Login
+   - Password recovery
+   - Expired session
+   - Dashboard
+   - Profile update
+   - Packages
+   - Invoices
+   - Quote request
+   - Calculator
+   - Contact
+   - Logout
+   - Mobile navigation
+   - SEO/crawl files
+   - Analytics debug
+
+Implementation priority:
+1. Critical launch blockers.
+2. Fake/demo/private data issues.
+3. Broken flows.
+4. Broken links/assets/runtime errors.
+5. Registration/login/portal consistency.
+6. Quote/calculator/contact completion.
+7. SEO/analytics/security basics.
+8. Mobile/accessibility/performance basics.
+9. Documentation and final QA.
+
+Start by scanning the entire repository. Build the product inventory. Identify launch blockers. Fix safe issues directly in priority order. End with the full readiness report, changed files and go/no-go recommendation.
