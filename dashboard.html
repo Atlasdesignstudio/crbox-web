@@ -280,35 +280,114 @@
         </section>
 
         <!-- Welcome Banner -->
-<div class="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl overflow-hidden mb-8">
-    <div class="absolute inset-0 bg-pattern opacity-5 pointer-events-none"></div>
-    <div class="absolute right-0 top-0 w-64 h-full opacity-10 pointer-events-none">
-        <div class="floating-shape circle-1 absolute top-10 right-10 w-32 h-32 rounded-full bg-orange-500 opacity-20"></div>
-        <div class="floating-shape circle-2 absolute bottom-10 right-32 w-24 h-24 rounded-full bg-blue-500 opacity-20"></div>
-        <div class="floating-shape circle-3 absolute top-40 right-40 w-16 h-16 rounded-full bg-green-500 opacity-20"></div>
-    </div>
+<style>
+  /* ── Welcome banner — light vibrant futuristic ── */
+  #wb-card {
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04), 0 20px 60px -12px rgba(255,107,0,0.08), 0 12px 40px -8px rgba(99,102,241,0.06);
+  }
+  /* Multi-stop rainbow accent bar */
+  #wb-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(90deg, #ff6b00, #ff9d4d, #f43f5e, #a855f7, #6366f1, #22d3ee);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  /* Dot-grid texture */
+  #wb-dots {
+    background-image: radial-gradient(circle, #d1d5db 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  /* Glow orbs */
+  #wb-orb-1 {
+    background: radial-gradient(circle at 60% 40%, rgba(255,107,0,0.18) 0%, rgba(255,157,77,0.08) 50%, transparent 70%);
+  }
+  #wb-orb-2 {
+    background: radial-gradient(circle at 40% 60%, rgba(99,102,241,0.13) 0%, rgba(34,211,238,0.07) 50%, transparent 70%);
+  }
+  /* Casillero sub-card */
+  #wb-casillero {
+    background: linear-gradient(135deg, #ff6b00 0%, #e85500 60%, #c93d00 100%);
+    box-shadow: 0 0 0 1px rgba(255,107,0,0.3), 0 8px 32px rgba(255,107,0,0.35), 0 2px 8px rgba(0,0,0,0.12);
+    position: relative;
+    overflow: hidden;
+  }
+  #wb-casillero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  /* Icon ring inside casillero */
+  #wb-box-icon {
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  /* Rastrear button on light bg */
+  #wb-rastrear {
+    color: #374151;
+    border: 1.5px solid #e5e7eb;
+    background: rgba(249,250,251,0.8);
+    transition: all 0.2s ease;
+  }
+  #wb-rastrear:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #111827;
+  }
+  /* "Cuenta Activa" on light */
+  #wb-status-badge {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+  #wb-discount-badge {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+  }
+</style>
+
+<div id="wb-card" class="relative rounded-2xl overflow-hidden mb-8">
+    <!-- Dot grid -->
+    <div id="wb-dots" class="absolute inset-0 opacity-30 pointer-events-none"></div>
+    <!-- Glow orbs -->
+    <div id="wb-orb-1" class="absolute inset-0 pointer-events-none"></div>
+    <div id="wb-orb-2" class="absolute inset-0 pointer-events-none"></div>
+
     <div class="p-5 md:p-8 relative">
         <div class="flex flex-col md:flex-row md:items-center md:gap-8">
             <!-- Text + CTAs -->
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2 mb-3">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500 bg-opacity-20 text-green-300 border border-green-500 border-opacity-40">
-                        <span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5 animate-pulse flex-shrink-0"></span>
+                    <span id="wb-status-badge" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse flex-shrink-0"></span>
                         Cuenta Activa
                     </span>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-500 bg-opacity-20 text-orange-300 border border-orange-500 border-opacity-30 hidden" id="discount-badge">
+                    <span id="discount-badge" class="wb-discount-badge inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold hidden" style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa">
                         <i class="fas fa-tag mr-1"></i>
                         <span id="discount-badge-text">Descuento Disponible</span>
                     </span>
                 </div>
-                <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tight" id="welcome-name-span">Hola.</h1>
-                <p id="greet-message" class="text-gray-300 text-sm md:text-base mb-5 leading-relaxed max-w-xl">Cargando el resumen de tu cuenta…</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2 tracking-tight" id="welcome-name-span">Hola.</h1>
+                <p id="greet-message" class="text-gray-500 text-sm md:text-base mb-5 leading-relaxed max-w-xl">Cargando el resumen de tu cuenta…</p>
                 <div class="flex flex-col sm:flex-row gap-2.5" data-cta-zone="hero_button">
-                    <a href="mis-solicitudes.html" class="button-3d primary-action bg-orange-500 text-white hover:bg-orange-600 py-3 px-5 rounded-xl font-medium flex items-center justify-center transition-all shadow-lg">
+                    <a href="mis-solicitudes.html" class="button-3d primary-action py-3 px-5 rounded-xl font-medium flex items-center justify-center transition-all shadow-lg" style="background:#ff6b00;color:#fff;">
                         <i class="fas fa-shopping-bag mr-2"></i>
                         Cotizar
                     </a>
-                    <a href="mis-paquetes.html" class="py-3 px-5 rounded-xl font-medium flex items-center justify-center transition-colors text-white border border-white border-opacity-25 hover:border-opacity-50 hover:bg-white hover:bg-opacity-10">
+                    <a id="wb-rastrear" href="mis-paquetes.html" class="py-3 px-5 rounded-xl font-medium flex items-center justify-center">
                         <i class="fas fa-search mr-2"></i>
                         Rastrear Paquete
                     </a>
@@ -316,20 +395,20 @@
             </div>
             <!-- Casillero card -->
             <div class="mt-5 md:mt-0 flex-shrink-0">
-                <div class="glass-card orange-card rounded-2xl p-4 md:p-6">
+                <div id="wb-casillero" class="rounded-2xl p-4 md:p-6">
                     <div class="flex items-center gap-4 md:flex-col md:items-center md:gap-0 md:text-center">
-                        <div class="flex-shrink-0 flex items-center justify-center w-12 h-12 md:w-14 md:h-14 bg-white text-orange-600 rounded-xl md:rounded-2xl md:mb-3 shadow-md">
+                        <div id="wb-box-icon" class="flex-shrink-0 flex items-center justify-center w-12 h-12 md:w-14 md:h-14 text-white rounded-xl md:rounded-2xl md:mb-3">
                             <i class="fas fa-box-open text-lg md:text-xl"></i>
                         </div>
                         <div class="flex-1 min-w-0">
                             <span class="block text-white font-bold text-2xl tracking-wider leading-none tabular-nums card-number" id="dashboard-casillero-num">—</span>
-                            <span class="block text-orange-200 text-xs font-medium mt-1">Número de casillero</span>
-                            <span class="flex items-center text-white text-xs mt-1 hidden md:justify-center" id="dashboard-sucursal-wrap" style="opacity:.75">
+                            <span class="block text-orange-100 text-xs font-medium mt-1">Número de casillero</span>
+                            <span class="flex items-center text-orange-100 text-xs mt-1 hidden md:justify-center" id="dashboard-sucursal-wrap" style="opacity:.85">
                                 <i class="fas fa-map-marker-alt mr-1 flex-shrink-0"></i>
                                 <span id="dashboard-sucursal" class="truncate"></span>
                             </span>
                             <div class="mt-2.5 md:mt-3 md:flex md:justify-center">
-                                <button id="copy-casillero" class="copy-button inline-flex items-center gap-1.5 text-xs font-medium text-white bg-white/15 hover:bg-white/30 border border-white/30 hover:border-white/50 rounded-full px-3 py-1 transition-all active:scale-95" style="-webkit-tap-highlight-color:transparent">
+                                <button id="copy-casillero" class="copy-button inline-flex items-center gap-1.5 text-xs font-medium text-white rounded-full px-3 py-1 transition-all active:scale-95" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);-webkit-tap-highlight-color:transparent">
                                     <i class="far fa-copy text-xs"></i>
                                     <span>Copiar</span>
                                 </button>
