@@ -1429,6 +1429,7 @@
             .cqc-messages {
                 flex: 1;
                 overflow-y: auto;
+                overflow-x: hidden;
                 padding: .875rem .875rem 1rem;
                 display: flex; flex-direction: column; gap: .5rem;
                 -webkit-overflow-scrolling: touch;
@@ -1453,6 +1454,8 @@
                 font-size: .87rem; line-height: 1.48;
                 word-break: break-word;
                 overflow-wrap: anywhere;
+                min-width: 0;
+                max-width: 100%;
             }
             .cqc-row.bot .cqc-bubble {
                 background: #fff; color: #1a1a2e;
