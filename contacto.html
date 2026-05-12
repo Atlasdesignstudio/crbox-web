@@ -1231,9 +1231,13 @@
                     submitBtn.disabled = true;
                     btnLabel.textContent = "Enviando…";
 
+                    var _contactCtrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                    var _contactTimer = _contactCtrl ? setTimeout(function () { _contactCtrl.abort(); }, 15000) : null;
+
                     fetch("/api/consultas", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
+                        signal: _contactCtrl ? _contactCtrl.signal : undefined,
                         body: JSON.stringify({
                             nombre: nombre,
                             correo: correo,
@@ -1244,6 +1248,7 @@
                         }),
                     })
                         .then(function (res) {
+                            if (_contactTimer) clearTimeout(_contactTimer);
                             // Confirm HTTP success before parsing body; a non-2xx
                             // status indicates a server-side failure — surface a
                             // generic message rather than exposing raw backend text.
@@ -1267,16 +1272,21 @@
                                 // Use a safe, user-friendly message regardless of
                                 // what the backend returns — never display raw API
                                 // error strings directly to end users.
-                                errorText.textContent =
-                                    "No se pudo enviar el mensaje. Por favor intenta de nuevo o escríbenos a ventas@crbox.cr.";
+                                errorText.innerHTML =
+                                    "No se pudo enviar el mensaje. Por favor intenta de nuevo, " +
+                                    "escríbenos a <a href=\"mailto:ventas@crbox.cr\" class=\"underline font-medium\">ventas@crbox.cr</a> " +
+                                    "o por <a href=\"https://wa.me/50689794418\" target=\"_blank\" rel=\"noopener\" class=\"underline font-medium\">WhatsApp</a>.";
                                 errorEl.classList.remove("hidden");
                             }
                         })
                         .catch(function () {
+                            if (_contactTimer) clearTimeout(_contactTimer);
                             submitBtn.disabled = false;
                             btnLabel.textContent = "Enviar mensaje";
-                            errorText.textContent =
-                                "Error de conexión. Por favor intenta de nuevo o escríbenos a ventas@crbox.cr.";
+                            errorText.innerHTML =
+                                "Error de conexión. Por favor intenta de nuevo, " +
+                                "escríbenos a <a href=\"mailto:ventas@crbox.cr\" class=\"underline font-medium\">ventas@crbox.cr</a> " +
+                                "o por <a href=\"https://wa.me/50689794418\" target=\"_blank\" rel=\"noopener\" class=\"underline font-medium\">WhatsApp</a>.";
                             errorEl.classList.remove("hidden");
                         });
                 });

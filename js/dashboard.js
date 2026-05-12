@@ -1092,12 +1092,17 @@ function initSolicitudesBadge() {
                   'pendiente_confirmacion_pago_cliente', 'pagado_por_cliente', 'comprado',
                   'listo_para_retiro', 'pendiente_compra_cliente'];
 
+    var badgeCtrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var badgeTimer = badgeCtrl ? setTimeout(function () { badgeCtrl.abort(); }, 10000) : null;
+
     fetch('/api/solicitudes', {
         headers: {
             'Authorization': 'Bearer ' + token,
             'X-Casillero-Email': email
-        }
+        },
+        signal: badgeCtrl ? badgeCtrl.signal : undefined
     }).then(function (res) {
+        if (badgeTimer) clearTimeout(badgeTimer);
         if (!res.ok) return null;
         return res.json();
     }).then(function (data) {
@@ -1110,6 +1115,7 @@ function initSolicitudesBadge() {
             badge.classList.remove('hidden');
         }
     }).catch(function (err) {
+        if (badgeTimer) clearTimeout(badgeTimer);
         // Non-critical — badge simply stays hidden on error
         console.warn('[Dashboard] solicitudes badge fetch error:', err && err.message);
     });

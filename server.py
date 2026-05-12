@@ -1805,15 +1805,15 @@ def _handle_ai_extract(handler):
         if _is_timeout:
             print(f'[AI] extract timed out: {_exc}')
             try:
-                handler._json_response(504, {'error': 'upstream_timeout',
-                                             'message': 'La extracción tardó demasiado. Intenta de nuevo.'})
+                handler._json_error(504, 'La extracción tardó demasiado. Intenta de nuevo.',
+                                    code='upstream_timeout')
             except Exception:
                 pass
         else:
             traceback.print_exc()
             try:
-                handler._json_response(500, {'error': 'server_error',
-                                             'message': 'Error interno al procesar la extracción.'})
+                handler._json_error(500, 'Error interno al procesar la extracción.',
+                                    code='server_error')
             except Exception:
                 pass
 
@@ -9016,7 +9016,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             import traceback
             traceback.print_exc()
             try:
-                self._json_response(500, {'error': 'An unexpected error occurred'})
+                self._json_response(500, {'error': 'An unexpected error occurred',
+                                          'code': 'server_error'})
             except Exception:
                 pass
 
@@ -9085,7 +9086,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             import traceback
             traceback.print_exc()
             try:
-                self._json_response(500, {'error': 'An unexpected error occurred'})
+                self._json_response(500, {'error': 'An unexpected error occurred',
+                                          'code': 'server_error'})
             except Exception:
                 pass
 
@@ -9096,7 +9098,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             import traceback
             traceback.print_exc()
             try:
-                self._json_response(500, {'error': 'An unexpected error occurred'})
+                self._json_response(500, {'error': 'An unexpected error occurred',
+                                          'code': 'server_error'})
             except Exception:
                 pass
 
@@ -9139,7 +9142,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_response(200, {'ok': True})
         except Exception as exc:
             print(f'[INVOICE_DELETE] Error removing {filename}: {exc}')
-            self._json_response(500, {'error': 'No se pudo eliminar el archivo.'})
+            self._json_error(500, 'No se pudo eliminar el archivo.')
 
     def do_POST(self):
         try:
@@ -9148,7 +9151,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             import traceback
             traceback.print_exc()
             try:
-                self._json_response(500, {'error': 'An unexpected error occurred'})
+                self._json_response(500, {'error': 'An unexpected error occurred',
+                                          'code': 'server_error'})
             except Exception:
                 pass
 
@@ -9246,8 +9250,20 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
-    def _json_error(self, status, message):
-        self._json_response(status, {'error': message})
+    def _json_error(self, status, message, code=None):
+        # Derive a machine-readable code from the HTTP status when not provided.
+        # Every error response therefore includes both a human-readable 'error'
+        # string and a stable 'code' key that clients can branch on.
+        if code is None:
+            _CODE_MAP = {
+                400: 'bad_request', 401: 'unauthorized', 403: 'forbidden',
+                404: 'not_found',   413: 'payload_too_large',
+                429: 'rate_limit',  500: 'server_error',
+                502: 'upstream_error', 503: 'service_unavailable',
+                504: 'upstream_timeout',
+            }
+            code = _CODE_MAP.get(status, 'error')
+        self._json_response(status, {'error': message, 'code': code})
 
     # ── /health ────────────────────────────────────────────────────────────
     def _handle_health(self):

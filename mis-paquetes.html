@@ -1607,7 +1607,7 @@
                 navigator.clipboard.writeText(text)
                     .then(() => {})
                     .catch(err => {
-                        console.error('Error al copiar:', err);
+                        console.warn('Error al copiar:', err && err.message);
                         fallbackCopyToClipboard(text);
                     });
             } else {
@@ -1627,7 +1627,7 @@
             try {
                 document.execCommand('copy');
             } catch (err) {
-                console.error('Error en fallback copy:', err);
+                console.warn('Error en fallback copy:', err && err.message);
             }
             
             document.body.removeChild(textarea);
@@ -3180,10 +3180,8 @@
             })
             .catch(function(err) {
               _setInvoiceSubmitting(false);
-              console.error('[CRBOX] Invoice upload error:', err,
-                'step:', err && err.step,
-                'message:', err && err.message,
-                'stack:', err && err.stack);
+              console.warn('[CRBOX] Invoice upload error — step:', err && err.step,
+                '— message:', err && err.message);
 
               if (err && err.isAuthError) return; // redirect already in flight
 

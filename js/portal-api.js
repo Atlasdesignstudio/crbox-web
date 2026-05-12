@@ -50,58 +50,86 @@
   //   opts     — standard fetch options (method, headers, body, signal, …)
   //   config   — {
   //                timeout?  : ms before abort (default 15 000)
+  //                retries?  : automatic retries for transient 5xx (default 1)
   //                skipAuth? : true = do not add Authorization header
   //              }
   //
   // What this wrapper does:
   //   • Attaches 'Authorization: Bearer <token>' unless skipAuth=true
   //   • Enforces a configurable timeout via AbortController
+  //   • Automatically retries once (1 s delay) on transient 5xx responses
   //   • Calls _handleAuthFailure on 401/403 and rethrows with isAuthError=true
-  //   • Classifies abort as err.isTimeout=true with a user-friendly message
-  //   • Marks all other failures with isAuthError=false so callers know
-  //     not to log the user out on transient / network errors
+  //   • Classifies errors into: auth_error | transient | client | timeout | network
   //   • NEVER logs token values
   //
   // Returns the raw Response so each caller can parse the body as needed.
   function _request(url, opts, config) {
     config = config || {};
-    var ms       = (config.timeout != null) ? config.timeout : 15000;
+    var ms       = (config.timeout  != null) ? config.timeout  : 15000;
+    var retries  = (config.retries  != null) ? config.retries  : 1;
     var skipAuth = config.skipAuth || false;
 
-    var ctrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-    var timer = (ctrl && ms > 0) ? setTimeout(function () { ctrl.abort(); }, ms) : null;
+    function _attempt(attemptsLeft) {
+      var ctrl  = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = (ctrl && ms > 0) ? setTimeout(function () { ctrl.abort(); }, ms) : null;
 
-    var fetchOpts = Object.assign({}, opts || {});
-    if (ctrl) fetchOpts.signal = ctrl.signal;
+      var fetchOpts = Object.assign({}, opts || {});
+      if (ctrl) fetchOpts.signal = ctrl.signal;
 
-    if (!skipAuth) {
-      var tok = CRBOXAuth.getToken();
-      if (tok) {
-        fetchOpts.headers = Object.assign(
-          { 'Authorization': 'Bearer ' + tok },
-          fetchOpts.headers || {}
-        );
+      if (!skipAuth) {
+        var tok = CRBOXAuth.getToken();
+        if (tok) {
+          fetchOpts.headers = Object.assign(
+            { 'Authorization': 'Bearer ' + tok },
+            fetchOpts.headers || {}
+          );
+        }
       }
+
+      return fetch(url, fetchOpts).then(function (res) {
+        if (timer) clearTimeout(timer);
+        if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
+
+        // Transient server error — retry if we have attempts left
+        if (res.status >= 500 && attemptsLeft > 0) {
+          return new Promise(function (resolve) { setTimeout(resolve, 1000); })
+            .then(function () { return _attempt(attemptsLeft - 1); });
+        }
+
+        // Classify client errors (4xx except auth) as 'client' so callers know
+        // not to retry and can surface the server's error body to the user.
+        if (res.status >= 400) {
+          res._errorCategory = 'client';
+        }
+
+        return res;
+      }).catch(function (err) {
+        if (timer) clearTimeout(timer);
+        if (err && err.isAuthError) throw err;
+
+        var isAbort = err && (err.name === 'AbortError' || err.name === 'TimeoutError');
+        if (isAbort) {
+          var te = new Error('La solicitud tardó demasiado. Verifica tu conexión e intenta de nuevo.');
+          te.isTimeout      = true;
+          te.isAuthError    = false;
+          te.errorCategory  = 'timeout';
+          throw te;
+        }
+
+        // Retry transient network failures (not AbortErrors, which are intentional)
+        if (attemptsLeft > 0 && !err.isAuthError) {
+          return new Promise(function (resolve) { setTimeout(resolve, 1000); })
+            .then(function () { return _attempt(attemptsLeft - 1); });
+        }
+
+        var ne = err || new Error('Error de red. Verifica tu conexión e intenta de nuevo.');
+        ne.isAuthError   = false;
+        ne.errorCategory = ne.errorCategory || 'network';
+        throw ne;
+      });
     }
 
-    return fetch(url, fetchOpts).then(function (res) {
-      if (timer) clearTimeout(timer);
-      if (_isAuthStatus(res.status)) throw _handleAuthFailure(res.status);
-      return res;
-    }).catch(function (err) {
-      if (timer) clearTimeout(timer);
-      if (err && err.isAuthError) throw err;
-      var isAbort = err && (err.name === 'AbortError' || err.name === 'TimeoutError');
-      if (isAbort) {
-        var te = new Error('La solicitud tardó demasiado. Verifica tu conexión e intenta de nuevo.');
-        te.isTimeout   = true;
-        te.isAuthError = false;
-        throw te;
-      }
-      var ne = err || new Error('Error de red. Verifica tu conexión e intenta de nuevo.');
-      ne.isAuthError = false;
-      throw ne;
-    });
+    return _attempt(retries);
   }
 
   // ─── Date helper → DD-MM-YYYY ─────────────────────────────────────────────

@@ -825,7 +825,7 @@
                             setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
                         })
                         .catch(function (err) {
-                            console.error('[CRBOX] saveNotifications error:', err);
+                            console.warn('[CRBOX] saveNotifications error:', err && err.message);
                             if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_error('notifications', 'api_error'); } catch (_e) {} }
                             var userMsg = (err && err.message) || 'No se pudo guardar la preferencia. Intenta de nuevo.';
                             btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Error al guardar';
@@ -899,7 +899,7 @@
                             setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2200);
                         })
                         .catch(function (err) {
-                            console.error('[CRBOX] updatePassword error:', err);
+                            console.warn('[CRBOX] updatePassword error:', err && err.message);
                             if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_error('security', 'api_error'); } catch (_e) {} }
                             var userMsg = (err && err.message) || 'No se pudo actualizar la contraseña. Intenta de nuevo.';
                             btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Error al guardar';

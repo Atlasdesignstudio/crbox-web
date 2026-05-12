@@ -139,25 +139,23 @@ const CALCULATOR_ENGINE = (function () {
     const total      = freight + fuel + handling + taxes + insurance + delivery;
     const weightMode = billableKg === volKg ? 'volumetrico' : 'real';
 
-    // Guard: replace any NaN or Infinity that slipped through with 0 so the
-    // UI never renders "NaN" or "Infinity" as a price to the user.
-    function _safe(n) { return (typeof n === 'number' && isFinite(n)) ? n : 0; }
+    // Guard: if any component came out as NaN or Infinity — e.g. because the
+    // caller passed extreme or degenerate inputs — surface an explicit invalid
+    // state rather than coercing to 0 (which would give the user a misleadingly
+    // cheap-or-free estimate).
+    const _isValid = (n) => typeof n === 'number' && isFinite(n);
+    if (!_isValid(freight) || !_isValid(fuel) || !_isValid(handling) ||
+        !_isValid(taxes)   || !_isValid(total)) {
+      return {
+        invalidResult: true,
+        message: 'Valor no válido — verifica los datos ingresados.',
+        billableKg, realKg, volKg, totalValue, taxRate
+      };
+    }
 
     return {
-      freight:    _safe(freight),
-      fuel:       _safe(fuel),
-      handling:   _safe(handling),
-      cif:        _safe(cif),
-      taxes:      _safe(taxes),
-      insurance:  _safe(insurance),
-      delivery:   _safe(delivery),
-      total:      _safe(total),
-      billableKg: _safe(billableKg),
-      realKg:     _safe(realKg),
-      volKg:      _safe(volKg),
-      weightMode,
-      taxRate,
-      tariffSource
+      freight, fuel, handling, cif, taxes, insurance, delivery, total,
+      billableKg, realKg, volKg, weightMode, taxRate, tariffSource
     };
   }
 
@@ -225,6 +223,17 @@ const CALCULATOR_ENGINE = (function () {
     const volKg = volumetricWeight(l, w, h);
     const billableKg = Math.max(realKg, volKg);
     const totalValue = parseFloat(item.value) || 0;
+
+    // Guard: zero billable weight means there is nothing to calculate.
+    // Returning an invalidInput object instead of calculating a $0-estimate
+    // prevents the UI from showing a misleadingly cheap-or-free result.
+    if (billableKg <= 0) {
+      return {
+        invalidInput: true,
+        message: 'El peso debe ser mayor que cero para calcular el envío.',
+        destination: item.destination,
+      };
+    }
     const tariff = (typeof TARIFF_ADAPTER !== 'undefined')
       ? TARIFF_ADAPTER.getTariffRate(item.category)
       : { rate: 0.2995, source: 'local_estimated' };
@@ -250,6 +259,10 @@ const CALCULATOR_ENGINE = (function () {
     }
 
     const breakdown = buildBreakdown(billableKg, realKg, volKg, totalValue, tariff.rate, item.destination, tariff.source);
+
+    // If the engine detected invalid/degenerate inputs, propagate immediately.
+    if (breakdown && breakdown.invalidResult) return breakdown;
+
     breakdown.destination = item.destination;
     _fireCalculatorResult(breakdown, 'aereo');
     return breakdown;
@@ -341,8 +354,13 @@ const CALCULATOR_ENGINE = (function () {
     });
     const tariffSource = allSameSource ? (firstSource || 'local_estimated') : 'local_estimated';
 
-    // Build breakdown with pre-computed taxes (pass null tariffRate to signal override)
+    // Build breakdown with pre-computed taxes (pass 0 tariffRate — taxes are
+    // summed per-item above and injected below).
     const breakdown = buildBreakdown(billableKg, sumReal, sumVol, sumValue, 0, destination, tariffSource);
+
+    // If the engine detected invalid/degenerate inputs, propagate immediately.
+    if (breakdown && breakdown.invalidResult) return breakdown;
+
     breakdown.taxes = sumTaxes;
     breakdown.total = breakdown.freight + breakdown.fuel + breakdown.handling + sumTaxes + breakdown.insurance + breakdown.delivery;
     breakdown.taxRate = null; // mixed rates; display handled in UI

@@ -2110,6 +2110,15 @@
             // Consolidated result
             const consolidated = CALCULATOR_ENGINE.calcConsolidated(items, destination);
 
+            // Guard: engine detected degenerate inputs (NaN/Infinity in math).
+            // Items already validate weight > 0 before being added, so this is
+            // a safety net for extreme edge cases — show a clear message rather
+            // than rendering NaN as a price.
+            if (consolidated && (consolidated.invalidInput || consolidated.invalidResult)) {
+                alert(consolidated.message || 'Valor no válido — revisa los datos de los artículos.');
+                return;
+            }
+
             // Separate results
             const separateRes = CALCULATOR_ENGINE.calcSeparate(items, destination);
             const separateTotal = separateRes.grandTotal;

@@ -3255,7 +3255,7 @@ const locationDatabase = {
                 }
             })
             .catch(function (err) {
-                console.error('[CRBOX] Business registration network error:', err);
+                console.warn('[CRBOX] Business registration network error:', err && err.message);
                 if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_error('network'); } catch (e) {} }
                 showRegError(form, 'Error de conexión. Intente de nuevo más tarde.');
                 if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
@@ -3470,7 +3470,7 @@ const locationDatabase = {
                 }
             })
             .catch(function (err) {
-                console.error('[CRBOX] Registration network error:', err);
+                console.warn('[CRBOX] Registration network error:', err && err.message);
                 if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_error('network'); } catch (e) {} }
                 showRegError(form, 'Error de conexión. Intente de nuevo más tarde.');
                 if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
@@ -3727,7 +3727,7 @@ const locationDatabase = {
                     showNetworkFallback();
                 } else {
                     // Non-network failure: lifecycle health issue. Do NOT silently show success.
-                    console.error('[CRBOX] Auto-login after registration FAILED (lifecycle health issue):', err);
+                    console.warn('[CRBOX] Auto-login after registration FAILED (lifecycle health issue):', err && err.message);
                     var detail = (err && err.message)
                         ? 'Error reportado: ' + err.message
                         : 'No se recibió un detalle del error.';

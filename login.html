@@ -519,7 +519,7 @@
                     })
                     .catch(function (err) {
                         if (submitBtn) { submitBtn.innerHTML = origBtnHTML; submitBtn.disabled = false; }
-                        console.error('[CRBOX] recoverPassword error:', err);
+                        console.warn('[CRBOX] recoverPassword error:', err && err.message);
                         _showRecoveryMsg('Ocurrió un error de conexión. Por favor intenta más tarde.', true);
                     });
             });
