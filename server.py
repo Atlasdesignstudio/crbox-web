@@ -137,6 +137,11 @@ _CLASSIFY_RATE      = {}
 _CLASSIFY_RATE_LOCK = threading.Lock()
 _CLASSIFY_RATE_LIMIT = 120  # calls per IP per hour
 
+# ── /api/check-known-email rate limiter ────────────────────────────────────────
+_KNOWN_EMAIL_RATE       = {}           # ip -> [ts, ...]
+_KNOWN_EMAIL_RATE_LOCK  = threading.Lock()
+_KNOWN_EMAIL_RATE_LIMIT = 10           # max calls per IP per 60 seconds
+
 def _classify_rate_check(ip):
     now = time.time()
     with _CLASSIFY_RATE_LOCK:
@@ -146,6 +151,19 @@ def _classify_rate_check(ip):
             return False
         ts.append(now)
         _CLASSIFY_RATE[ip] = ts
+    return True
+
+
+def _known_email_rate_check(ip):
+    """Return True if the IP is within the 10-req/60-s budget for /api/check-known-email."""
+    now = time.time()
+    with _KNOWN_EMAIL_RATE_LOCK:
+        ts = _KNOWN_EMAIL_RATE.get(ip, [])
+        ts = [t for t in ts if now - t < 60]
+        if len(ts) >= _KNOWN_EMAIL_RATE_LIMIT:
+            return False
+        ts.append(now)
+        _KNOWN_EMAIL_RATE[ip] = ts
     return True
 
 _CRBOX_CATEGORIES = (
@@ -9249,6 +9267,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 else:
                     self.send_response(404)
                     self.end_headers()
+        elif self.path.startswith('/api/check-known-email'):
+            self._handle_check_known_email()
         elif self.path == '/api/package-groups':
             self._handle_package_groups_get()
         elif self.path.startswith('/api/package-group-ack'):
@@ -10244,6 +10264,47 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             print(f'[SOLICITUDES] check-duplicate error: {exc}')
             self._json_error(500, 'Error interno.', code='server_error')
+
+    # ── GET /api/check-known-email ─────────────────────────────────────────
+    def _handle_check_known_email(self):
+        """Return {"known": true/false} indicating whether the given email has
+        previously submitted a quote via the local SQLite quote_requests table.
+
+        Note on naming: the task spec calls this the "solicitudes" table, which
+        matches the user-facing name for quote requests.  The underlying SQLite
+        table is `quote_requests` — both names refer to the same data store.
+
+        Rate-limited to 10 requests per IP per 60 seconds.  Syntax validation
+        runs *before* the rate-limit check so that repeated invalid blurs (e.g.
+        during fast typing) do not consume rate-limit quota.
+        """
+        qs = urllib.parse.urlparse(self.path).query
+        params = urllib.parse.parse_qs(qs)
+        email = (params.get('email', [''])[0]).strip().lower()
+
+        # Reject syntactically invalid email before touching rate-limit counters
+        if not email or not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            self._json_response(200, {'known': False})
+            return
+
+        client_ip = (self.headers.get('X-Forwarded-For') or
+                     self.client_address[0] or '0.0.0.0').split(',')[0].strip()
+        if not _known_email_rate_check(client_ip):
+            self._json_error(429, 'Demasiadas solicitudes. Espera un momento.', code='rate_limit')
+            return
+
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row = conn.execute(
+                    'SELECT 1 FROM quote_requests WHERE LOWER(customer_email) = ? LIMIT 1',
+                    (email,)
+                ).fetchone()
+                conn.close()
+            self._json_response(200, {'known': row is not None})
+        except Exception as exc:
+            print(f'[CHECK-KNOWN-EMAIL] error: {exc}')
+            self._json_response(200, {'known': False})
 
     # ── POST /api/proxy/saveBill ───────────────────────────────────────────
     # Server-side proxy for the WordPress invoice-file upload endpoint.

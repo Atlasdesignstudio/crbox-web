@@ -658,19 +658,30 @@
                     +'<div class="cqc-form-field"><label class="cqc-lbl" for="'+oid+'">Notas adicionales '
                     +'<span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>'
                     +'<input type="text" id="'+oid+'" class="cqc-finp" placeholder="Color, talla, modelo específico…" maxlength="300"></div>'
+                    +'<div id="cqd-known-banner-mobile-'+mid+'" style="margin-bottom:.35rem;"></div>'
                     +'<button type="button" id="'+sid+'" class="cqc-submit-cta">'
                     +'<i class="fas fa-paper-plane"></i> Enviar solicitud</button>'
                     +'<div style="display:flex;align-items:center;justify-content:center;gap:.3rem;margin-top:.42rem;">'
                     +'<i class="fas fa-lock" style="font-size:.62rem;color:#9ca3af;"></i>'
-                    +'<span style="font-size:.7rem;color:#9ca3af;">Solo CRBOX usa esta información para contactarte.</span></div>',
+                    +'<span style="font-size:.7rem;color:#9ca3af;">Solo CRBOX usa esta información para contactarte.</span></div>'
+                    +'<div style="text-align:center;margin-top:.5rem;font-size:.74rem;color:#64748b;">'
+                    +'¿Ya tenés cuenta CRBOX? <a href="login.html" style="color:#FF6B00;text-decoration:underline;font-weight:500;">Iniciá sesión →</a></div>',
                     'wide'
                 );
                 var sb = document.getElementById(sid), em = document.getElementById(mid);
+                var mobileBannerId = 'cqd-known-banner-mobile-'+mid;
                 if (sb) sb.addEventListener('click', function(){ submitQuote(nid,mid,oid,eid,sid); });
                 if (em) {
                     setTimeout(function(){ em.focus(); }, 180);
                     em.addEventListener('keydown', function(e){
                         if (e.key==='Enter') { e.preventDefault(); submitQuote(nid,mid,oid,eid,sid); }
+                    });
+                    em.addEventListener('blur', function() {
+                        if (window._cqdCheckKnownEmail) window._cqdCheckKnownEmail(em.value, mobileBannerId);
+                    });
+                    // Reset per-container dismissed state when user edits the mobile email field
+                    em.addEventListener('input', function() {
+                        if (window._cqdResetKnownEmail) window._cqdResetKnownEmail(mobileBannerId);
                     });
                 }
             }, 340);

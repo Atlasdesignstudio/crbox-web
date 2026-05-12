@@ -2434,6 +2434,53 @@
                 margin-top: .55rem; text-align: center;
                 font-size: .7rem; color: #94a3b8;
             }
+
+            /* ── "Ya tengo cuenta" static link ── */
+            .cqd-lo-login-link {
+                display: block; text-align: center;
+                margin-top: .6rem;
+                font-size: .74rem; color: #64748b;
+            }
+            .cqd-lo-login-link a {
+                color: #FF6B00; text-decoration: underline;
+                text-underline-offset: 2px; font-weight: 500;
+                transition: color .15s;
+            }
+            .cqd-lo-login-link a:hover { color: #e05a00; }
+
+            /* ── Known-email inline banner ── */
+            .cqd-known-banner {
+                display: flex; align-items: flex-start; gap: .65rem;
+                background: #fff7ed; border: 1.5px solid #fed7aa;
+                border-radius: .65rem; padding: .75rem .9rem;
+                margin-bottom: .6rem;
+                animation: cqd-banner-in .28s ease both;
+            }
+            @keyframes cqd-banner-in {
+                from { opacity: 0; transform: translateY(-6px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+            .cqd-known-banner-icon {
+                font-size: 1rem; flex-shrink: 0; line-height: 1.4;
+            }
+            .cqd-known-banner-body { flex: 1; }
+            .cqd-known-banner-msg {
+                font-size: .74rem; color: #92400e; line-height: 1.45; margin-bottom: .45rem;
+            }
+            .cqd-known-banner-btn {
+                display: inline-flex; align-items: center; gap: .3rem;
+                background: #FF6B00; color: #fff; border: none; border-radius: .45rem;
+                padding: .35rem .75rem; font-size: .72rem; font-weight: 600;
+                cursor: pointer; font-family: inherit; text-decoration: none;
+                transition: background .15s, transform .12s;
+            }
+            .cqd-known-banner-btn:hover { background: #e05a00; transform: translateY(-1px); }
+            .cqd-known-banner-close {
+                background: none; border: none; cursor: pointer; color: #b45309;
+                font-size: .9rem; line-height: 1; padding: 0; flex-shrink: 0;
+                opacity: .7; transition: opacity .15s;
+            }
+            .cqd-known-banner-close:hover { opacity: 1; }
             .cqd-lo-divider {
                 display: flex; align-items: center; gap: .65rem;
                 margin: .9rem 0 .65rem; color: #cbd5e1; font-size: .73rem;
@@ -3526,11 +3573,15 @@
                                 <input type="email" id="cqd-lo-email" class="cqd-lo-field"
                                     placeholder="Tu correo (te enviamos el estimado)" autocomplete="email" maxlength="120">
                             </div>
+                            <div id="cqd-known-banner-desktop"></div>
                             <button class="cqd-lo-start-btn" id="cqd-lo-start" type="button"
                             onclick="if(window._cqdStart)window._cqdStart()">
                             <span class="cqd-lo-btn-label">Empezar cotización</span>
                             <span class="cqd-lo-btn-arrow"><i class="fas fa-arrow-right"></i></span>
                         </button>
+                            <div class="cqd-lo-login-link">
+                                ¿Ya tenés cuenta CRBOX? <a href="login.html">Iniciá sesión →</a>
+                            </div>
                             <div class="cqd-lo-form-note">
                                 <i class="fas fa-lock" style="font-size:.62rem;margin-right:.25rem;color:#d1d5db;"></i>
                                 Datos seguros · Sin spam · Solo para tu estimado
@@ -5889,6 +5940,105 @@
 
                 // Expose on window so the button onclick always reaches it
                 window._cqdStart = function(q) { _collectAndStart(q || null); };
+
+                // ── Known-email nudge ─────────────────────────────────────
+                (function() {
+                    // Per-container state — each form layout is tracked independently
+                    var _shownForMap    = {};  // containerId -> email string when banner is visible
+                    var _dismissedSet   = {};  // containerId -> true when user dismissed for current email
+                    var _debounceTimers = {};  // containerId -> setTimeout handle
+                    var _reqVersion     = {};  // containerId -> monotonic counter to cancel stale responses
+
+                    function _buildBanner(containerId) {
+                        var wrap = document.getElementById(containerId);
+                        if (!wrap) return;
+                        wrap.innerHTML =
+                            '<div class="cqd-known-banner" role="alert">'
+                            + '<span class="cqd-known-banner-icon">👤</span>'
+                            + '<div class="cqd-known-banner-body">'
+                            +   '<div class="cqd-known-banner-msg">Parece que ya cotizaste con nosotros.'
+                            +   ' ¿Tenés cuenta CRBOX? Iniciá sesión para ver tu historial.</div>'
+                            +   '<a href="login.html" class="cqd-known-banner-btn">'
+                            +     '<i class="fas fa-sign-in-alt"></i> Iniciar sesión'
+                            +   '</a>'
+                            + '</div>'
+                            + '<button type="button" class="cqd-known-banner-close" aria-label="Cerrar">×</button>'
+                            + '</div>';
+                        var closeBtn = wrap.querySelector('.cqd-known-banner-close');
+                        if (closeBtn) {
+                            closeBtn.addEventListener('click', function() {
+                                wrap.innerHTML = '';
+                                // Mark dismissed for this container only; resets on next input change
+                                _dismissedSet[containerId] = true;
+                                delete _shownForMap[containerId];
+                            });
+                        }
+                    }
+
+                    function _clearBanner(containerId) {
+                        var wrap = document.getElementById(containerId);
+                        if (wrap) wrap.innerHTML = '';
+                        delete _shownForMap[containerId];
+                    }
+
+                    // Called when the email field value changes — resets dismissed state
+                    // so the nudge can appear again if the user types a different known email.
+                    function _resetContainer(containerId) {
+                        delete _dismissedSet[containerId];
+                        // Bump version so any in-flight request is treated as stale
+                        _reqVersion[containerId] = (_reqVersion[containerId] || 0) + 1;
+                        _clearBanner(containerId);
+                    }
+
+                    function _checkEmailNow(emailVal, containerId) {
+                        if (_dismissedSet[containerId]) return;
+                        var norm = emailVal.trim().toLowerCase();
+                        if (!norm || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(norm)) {
+                            _clearBanner(containerId);
+                            return;
+                        }
+                        // Skip API call if this container already shows a banner for this email
+                        if (_shownForMap[containerId] === norm) return;
+                        _clearBanner(containerId);
+                        // Stamp this request with the current version to detect stale responses
+                        var ver = (_reqVersion[containerId] || 0) + 1;
+                        _reqVersion[containerId] = ver;
+                        fetch('/api/check-known-email?email=' + encodeURIComponent(norm))
+                            .then(function(r) { return r.ok ? r.json() : null; })
+                            .then(function(d) {
+                                // Discard response if email has changed since this request was fired
+                                if (_reqVersion[containerId] !== ver) return;
+                                if (d && d.known) {
+                                    _shownForMap[containerId] = norm;
+                                    _buildBanner(containerId);
+                                }
+                            })
+                            .catch(function() {});
+                    }
+
+                    // Debounced wrapper — 300 ms per container to avoid rapid-fire API calls
+                    function _checkEmail(emailVal, containerId) {
+                        clearTimeout(_debounceTimers[containerId]);
+                        _debounceTimers[containerId] = setTimeout(function() {
+                            _checkEmailNow(emailVal, containerId);
+                        }, 300);
+                    }
+
+                    // Desktop email field
+                    if (loEmailEl) {
+                        loEmailEl.addEventListener('blur', function() {
+                            _checkEmail(loEmailEl.value, 'cqd-known-banner-desktop');
+                        });
+                        // Reset per-container dismissed state when user edits the email
+                        loEmailEl.addEventListener('input', function() {
+                            _resetContainer('cqd-known-banner-desktop');
+                        });
+                    }
+
+                    // Expose for mobile chat form (cqchat.js attaches blur + input listeners)
+                    window._cqdCheckKnownEmail  = _checkEmail;
+                    window._cqdResetKnownEmail  = _resetContainer;
+                })();
 
                 // ── Parallax grid on mouse move ──────────────────────────
                 (function() {
