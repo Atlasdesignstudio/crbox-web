@@ -5143,7 +5143,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
   </summary>
   <div style="padding:.8rem .9rem;">
     {_url_link}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 0.72fr;gap:.5rem;margin-bottom:.5rem;">
       <div>
         <label style="font-size:.7rem;color:#6b7280;display:block;margin-bottom:.15rem;">Valor declarado (USD)</label>
         <input class="adm-calc-inp adm-calc-value" type="number" min="0" step="0.01" value="{_pdecval}" style="width:100%;padding:.35rem .45rem;border:1px solid #d1d5db;border-radius:.35rem;font-size:.83rem;">
@@ -5157,6 +5157,16 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
             style="width:100%;padding:.35rem .45rem;border:1px solid #d1d5db;border-radius:.35rem;font-size:.83rem;box-sizing:border-box;background:#fff;cursor:pointer;">
           <div class="adm-cat-dropdown"></div>
         </div>
+      </div>
+      <div>
+        <label style="font-size:.7rem;color:#6b7280;display:block;margin-bottom:.15rem;">Arancel&nbsp;% <span style="color:#9ca3af;font-weight:400;">(manual)</span></label>
+        <div style="position:relative;">
+          <input class="adm-calc-inp adm-calc-arancel" type="number" min="0" max="200" step="0.1"
+            placeholder="Auto"
+            style="width:100%;padding:.35rem 1.8rem .35rem .45rem;border:1px solid #d1d5db;border-radius:.35rem;font-size:.83rem;box-sizing:border-box;">
+          <span style="position:absolute;right:.45rem;top:50%;transform:translateY(-50%);font-size:.78rem;color:#9ca3af;pointer-events:none;">%</span>
+        </div>
+        <div style="font-size:.63rem;color:#9ca3af;margin-top:.18rem;line-height:1.3;">Deja vacío para usar el estimado de la categoría</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.4rem;margin-bottom:.45rem;">
@@ -5518,7 +5528,10 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         var pVal = parseFloat((el.querySelector('.adm-calc-value')||{{}}).value)||p.declared_value_usd||0;
         var pCat = ((el.querySelector('.adm-calc-category')||{{}}).value)||p.category||'otros';
         var pName = p.name||('Producto '+(idx+1));
-        if (w>0) items.push({{name:pName,value:pVal,weight:w,length:l||0.1,width:wi||0.1,height:h||0.1,category:pCat,destination:DEST_ZONE}});
+        var _arEl = el.querySelector('.adm-calc-arancel');
+        var _arRaw = _arEl ? _arEl.value.trim() : '';
+        var pCustomRate = (_arRaw!==''&&!isNaN(parseFloat(_arRaw))) ? parseFloat(_arRaw)/100 : undefined;
+        if (w>0) items.push({{name:pName,value:pVal,weight:w,length:l||0.1,width:wi||0.1,height:h||0.1,category:pCat,customRate:pCustomRate,destination:DEST_ZONE}});
       }});
       if (!items.length) {{ showErr('Ingresa el peso de al menos un producto.'); return; }}
       hideErr();
@@ -5683,7 +5696,8 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
           wi:(el.querySelector('.adm-calc-width')||{{}}).value||'',
           h:(el.querySelector('.adm-calc-height')||{{}}).value||'',
           v:(el.querySelector('.adm-calc-value')||{{}}).value||'',
-          c:(el.querySelector('.adm-calc-category')||{{}}).value||''
+          c:(el.querySelector('.adm-calc-category')||{{}}).value||'',
+          a:(el.querySelector('.adm-calc-arancel')||{{}}).value||''
         }});
       }});
       try {{ localStorage.setItem(_CALC_KEY,JSON.stringify(state)); }} catch(e) {{}}
@@ -5698,7 +5712,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
           var s=state[idx]; if (!s) return;
           var sv=function(cls,val){{ var inp=el.querySelector(cls); if(inp&&val) inp.value=val; }};
           sv('.adm-calc-weight',s.w); sv('.adm-calc-length',s.l); sv('.adm-calc-width',s.wi);
-          sv('.adm-calc-height',s.h); sv('.adm-calc-value',s.v); sv('.adm-calc-category',s.c);
+          sv('.adm-calc-height',s.h); sv('.adm-calc-value',s.v); sv('.adm-calc-category',s.c); sv('.adm-calc-arancel',s.a);
           // sync combobox display text after restoring hidden input
           var _rhi=el.querySelector('.adm-calc-category'), _rsi=el.querySelector('.adm-cat-search');
           if (_rhi&&_rsi&&window._BRAIN_CATS_ADM) {{

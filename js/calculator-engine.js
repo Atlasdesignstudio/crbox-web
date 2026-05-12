@@ -235,7 +235,7 @@ const CALCULATOR_ENGINE = (function () {
       };
     }
     const tariff = (typeof TARIFF_ADAPTER !== 'undefined')
-      ? TARIFF_ADAPTER.getTariffRate(item.category)
+      ? TARIFF_ADAPTER.getTariffRate(item.category, item.customRate)
       : { rate: 0.2995, source: 'local_estimated' };
 
     // Guard: if this category has no numeric rate (manual_review_required),
@@ -335,7 +335,7 @@ const CALCULATOR_ENGINE = (function () {
     let manualReviewMessages = [];
     itemBillables.forEach(({ item, realKg, volKg }) => {
       const tariff = (typeof TARIFF_ADAPTER !== 'undefined')
-        ? TARIFF_ADAPTER.getTariffRate(item.category)
+        ? TARIFF_ADAPTER.getTariffRate(item.category, item.customRate)
         : { rate: 0.2995, source: 'local_estimated' };
       // Guard: if any item has no numeric rate, flag the whole consolidated quote.
       // Do NOT multiply by null (which would silently produce $0 in taxes).
