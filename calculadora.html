@@ -512,11 +512,16 @@
             </div>
 
             <!-- ── Calculate button ───────────────────────────── -->
-            <div id="calc-btn-wrap" class="mb-10 opacity-50 pointer-events-none transition-all" style="transition: opacity .3s">
+            <div id="calc-btn-wrap" class="mb-4 opacity-50 pointer-events-none transition-all" style="transition: opacity .3s">
                 <button id="btn-calculate" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg py-5 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all">
                     <i class="fas fa-calculator"></i>
                     Calcular y comparar envíos
                 </button>
+            </div>
+            <!-- Inline error shown when the engine returns an invalid result -->
+            <div id="calc-engine-error" class="hidden mb-6 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+                <i class="fas fa-exclamation-triangle flex-shrink-0 mt-0.5 text-red-500"></i>
+                <span id="calc-engine-error-text">Valor no válido — revisa los datos ingresados.</span>
             </div>
 
             <!-- ═══════════════════════════════════════════════════ -->
@@ -2112,12 +2117,21 @@
 
             // Guard: engine detected degenerate inputs (NaN/Infinity in math).
             // Items already validate weight > 0 before being added, so this is
-            // a safety net for extreme edge cases — show a clear message rather
-            // than rendering NaN as a price.
+            // a safety net for extreme edge cases — show a clear inline error
+            // rather than rendering NaN as a price or using an alert().
             if (consolidated && (consolidated.invalidInput || consolidated.invalidResult)) {
-                alert(consolidated.message || 'Valor no válido — revisa los datos de los artículos.');
+                var _engineErr = $('calc-engine-error');
+                var _engineErrTxt = $('calc-engine-error-text');
+                if (_engineErr) {
+                    if (_engineErrTxt) _engineErrTxt.textContent =
+                        consolidated.message || 'Valor no válido — revisa los datos ingresados.';
+                    _engineErr.classList.remove('hidden');
+                    _engineErr.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
                 return;
             }
+            var _engineErr2 = $('calc-engine-error');
+            if (_engineErr2) _engineErr2.classList.add('hidden');
 
             // Separate results
             const separateRes = CALCULATOR_ENGINE.calcSeparate(items, destination);

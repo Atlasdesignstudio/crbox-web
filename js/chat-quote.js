@@ -123,9 +123,9 @@
       .catch(function (err) {
         if (_qTimer) clearTimeout(_qTimer);
         if (err && err.name === 'AbortError') {
-          showErr('La solicitud tomó demasiado tiempo. Intenta de nuevo.');
+          showErr('La solicitud tomó demasiado tiempo. Intenta de nuevo o escríbenos por WhatsApp.');
         } else {
-          showErr('Error de conexión. Intenta de nuevo.');
+          showErr('Error de conexión. Intenta de nuevo o contáctanos por WhatsApp (+506 8979-4418).');
         }
         btn.disabled = false;
         btn.textContent = 'Solicitar cotización';

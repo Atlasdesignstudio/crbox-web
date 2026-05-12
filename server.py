@@ -10839,11 +10839,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         try:
             raw = self._read_body(_MAX_BODY_REGULAR)
             if raw is None:
-                self._json_response(413, {'ok': False, 'error': 'Payload too large'})
+                self._json_error(413, 'Payload too large')
                 return
             data   = json.loads(raw.decode('utf-8'))
         except Exception:
-            self._json_response(400, {'ok': False, 'error': 'Datos inválidos.'})
+            self._json_error(400, 'Datos inválidos.')
             return
         nombre  = (data.get('nombre')  or '').strip()
         correo  = (data.get('correo')  or '').strip()
@@ -10852,16 +10852,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         mensaje = (data.get('mensaje') or '').strip()
         source  = (data.get('source')  or 'contacto').strip()
         if not nombre or not correo or not mensaje:
-            self._json_response(400, {'ok': False, 'error': 'Nombre, correo y mensaje son requeridos.'})
+            self._json_error(400, 'Nombre, correo y mensaje son requeridos.')
             return
         if '@' not in correo or '.' not in correo.split('@')[-1] or len(correo) > 254:
-            self._json_response(400, {'ok': False, 'error': 'Ingresa un correo electrónico válido.'})
+            self._json_error(400, 'Ingresa un correo electrónico válido.')
             return
         try:
             _save_general_inquiry(nombre, correo, telefono, asunto, mensaje, source)
         except Exception as db_exc:
             print(f'[API/CONSULTAS] DB insert failed: {db_exc}')
-            self._json_response(500, {'ok': False, 'error': 'Error al guardar la consulta. Intenta de nuevo.'})
+            self._json_error(500, 'Error al guardar la consulta. Intenta de nuevo.')
             return
         self._json_response(200, {'ok': True})
 

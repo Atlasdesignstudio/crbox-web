@@ -96,6 +96,16 @@
             .then(function () { return _attempt(attemptsLeft - 1); });
         }
 
+        // Final attempt also returned 5xx — throw a classified transient error
+        // so callers don't silently accept a broken response.
+        if (res.status >= 500) {
+          var se = new Error('Error del servidor. Intenta de nuevo más tarde.');
+          se.isAuthError   = false;
+          se.errorCategory = 'transient';
+          se.status        = res.status;
+          throw se;
+        }
+
         // Classify client errors (4xx except auth) as 'client' so callers know
         // not to retry and can surface the server's error body to the user.
         if (res.status >= 400) {
@@ -130,6 +140,14 @@
     }
 
     return _attempt(retries);
+  }
+
+  // ─── Safe JSON parser ─────────────────────────────────────────────────────
+  // Wraps Response.json() so malformed or empty bodies never throw an
+  // unhandled exception. Returns null when the body cannot be parsed.
+  function _parseJSON(res) {
+    if (!res) return Promise.resolve(null);
+    return res.json().catch(function () { return null; });
   }
 
   // ─── Date helper → DD-MM-YYYY ─────────────────────────────────────────────
@@ -219,7 +237,7 @@
       if (!res.ok) {
         throw new Error('No se pudo obtener la información de tu cuenta (' + res.status + '). Intenta de nuevo.');
       }
-      return res.json();
+      return _parseJSON(res);
     }).then(function (data) {
       _userInfoCache = data;
       return data;
@@ -241,7 +259,7 @@
       body: payload
     }, {}).then(function (res) {
       if (!res.ok) throw new Error('Error al guardar el perfil (' + res.status + ').');
-      return res.json();
+      return _parseJSON(res);
     }).then(function (data) {
       var sr = data && (data.StatusResult || data.statusResult || '');
       if (sr !== 'OK') {
@@ -278,7 +296,7 @@
 
     return _request(url, {}, {}).then(function (res) {
       if (!res.ok) throw new Error('No se pudieron cargar los paquetes (' + res.status + '). Intenta de nuevo.');
-      return res.json();
+      return _parseJSON(res);
     });
   }
 
@@ -310,7 +328,7 @@
 
     return _request(url, {}, {}).then(function (res) {
       if (!res.ok) throw new Error('No se pudieron cargar las facturas (' + res.status + '). Intenta de nuevo.');
-      return res.json();
+      return _parseJSON(res);
     }).then(function (data) {
       var raw = _unwrapBillsEnvelope(data);
       return raw.map(function (r) { return mapBill(r); });
@@ -429,7 +447,7 @@
         err.step = 'createPurchaseBill';
         throw err;
       }
-      return res.json();
+      return _parseJSON(res);
     }).then(function (data) {
       var sr = data && (data.StatusResult || data.statusResult || '');
       if (sr !== 'OK') {
@@ -450,7 +468,7 @@
     return _request(BASE + '/getuserpasswordrecovery/' + encodeURIComponent(email), {}, { skipAuth: true })
       .then(function (res) {
         if (!res.ok) throw new Error('Error de red al recuperar contraseña (' + res.status + ').');
-        return res.json();
+        return _parseJSON(res);
       })
       .then(function (data) {
         var msg = (data && (data.Message || data.message || '')).toUpperCase();
