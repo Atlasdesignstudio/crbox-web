@@ -2696,7 +2696,26 @@
           tracking   || '',
           status     || '1000')
         .then(function (data) {
-          var raw = Array.isArray(data) ? data : (data.packages || data.Packages || []);
+          // Safely unwrap the API envelope regardless of shape.
+          // The CRBOX portal may return: a bare array, a keyed object, an
+          // ASP.NET $values wrapper, or null on a malformed body — all handled.
+          var raw;
+          if (Array.isArray(data)) {
+            raw = data;
+          } else if (!data || typeof data !== 'object') {
+            raw = [];
+          } else {
+            var envKeys = ['Packages', 'packages', 'data', 'Data', 'Result', 'result', 'Items', 'items'];
+            raw = null;
+            for (var _k = 0; _k < envKeys.length; _k++) {
+              if (Array.isArray(data[envKeys[_k]])) { raw = data[envKeys[_k]]; break; }
+              // ASP.NET $values wrapper: { Packages: { $values: [...] } }
+              if (data[envKeys[_k]] && Array.isArray(data[envKeys[_k]].$values)) { raw = data[envKeys[_k]].$values; break; }
+            }
+            // top-level $values
+            if (!raw && Array.isArray(data.$values)) raw = data.$values;
+            if (!raw) raw = [];
+          }
           var packages = raw.map(function (r) { return CRBOXPortalAPI.mapPackage(r); });
           _cachedPackages = packages;
           // Pass package pool to the grouping flow so selector can show MIAMI packages.
@@ -3167,7 +3186,21 @@
                 _statusFilterToCode(_statusVal)
               ).then(function(data) {
                 // Refresh succeeded — update state and re-render
-                var raw      = Array.isArray(data) ? data : (data.packages || data.Packages || []);
+                var raw;
+                if (Array.isArray(data)) {
+                  raw = data;
+                } else if (!data || typeof data !== 'object') {
+                  raw = [];
+                } else {
+                  var _eKeys = ['Packages','packages','data','Data','Result','result','Items','items'];
+                  raw = null;
+                  for (var _i = 0; _i < _eKeys.length; _i++) {
+                    if (Array.isArray(data[_eKeys[_i]])) { raw = data[_eKeys[_i]]; break; }
+                    if (data[_eKeys[_i]] && Array.isArray(data[_eKeys[_i]].$values)) { raw = data[_eKeys[_i]].$values; break; }
+                  }
+                  if (!raw && Array.isArray(data.$values)) raw = data.$values;
+                  if (!raw) raw = [];
+                }
                 var packages = raw.map(function(r) { return CRBOXPortalAPI.mapPackage(r); });
                 _cachedPackages = packages;
                 _renderStats(packages);
