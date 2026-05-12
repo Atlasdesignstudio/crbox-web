@@ -336,7 +336,7 @@
       dropdownMenu.innerHTML =
         '<div class="py-2 px-4">' +
           '<a href="dashboard.html" class="flex items-center w-full px-2 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition-colors duration-150">' +
-            '<i class="fas fa-th-large mr-3 text-orange-500"></i>' +
+            '<i class="fas fa-border-all mr-3 text-orange-500"></i>' +
             '<span>Dashboard</span>' +
           '</a>' +
         '</div>' +
@@ -360,7 +360,7 @@
           if (textLabel) textLabel.textContent = 'Sesión activa';
           linkPair.innerHTML =
             '<a href="dashboard.html" class="flex-1 flex items-center justify-center py-2 px-4 bg-orange-50 border border-orange-200 rounded-md text-orange-700 hover:bg-orange-100 transition-colors duration-200">' +
-              '<i class="fas fa-th-large mr-2"></i>' +
+              '<i class="fas fa-border-all mr-2"></i>' +
               '<span>Dashboard</span>' +
             '</a>' +
             '<button id="mobile-header-logout-btn" class="flex-1 flex items-center justify-center py-2 px-4 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300 transition-colors duration-200">' +

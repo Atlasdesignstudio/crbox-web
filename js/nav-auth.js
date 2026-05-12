@@ -107,7 +107,7 @@
                 dashLink.href = 'dashboard.html';
                 dashLink.className = 'secondary-btn flex items-center gap-2';
                 dashLink.style.textDecoration = 'none';
-                dashLink.innerHTML = '<i class="fas fa-th-large"></i><span>Dashboard</span>';
+                dashLink.innerHTML = '<i class="fas fa-border-all"></i><span>Dashboard</span>';
                 userDropdown.parentNode.replaceChild(dashLink, userDropdown);
             }
         }

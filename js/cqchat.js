@@ -741,7 +741,13 @@
                 }, 420);
             } else {
                 if (sb) { sb.disabled=false; sb.innerHTML='<i class="fas fa-paper-plane"></i> Enviar solicitud'; }
-                say('Hubo un inconveniente al enviar. Por favor intentá de nuevo en un momento.');
+                var errMsg = 'Hubo un inconveniente al enviar. Por favor intentá de nuevo en un momento.';
+                if (res.status === 429 || (data && data.code === 'rate_limit')) {
+                    errMsg = 'Demasiadas solicitudes seguidas. Esperá unos segundos e intentá de nuevo.';
+                } else if (data && data.errors && data.errors[0]) {
+                    errMsg = data.errors[0];
+                }
+                say(errMsg);
                 S.phase = 'contact';
             }
         } catch(e) {

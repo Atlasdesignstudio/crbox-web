@@ -22,7 +22,7 @@
   ];
 
   var PORTAL_NAV = [
-    { label: 'Dashboard',      href: 'dashboard.html',       icon: 'fa-th-large' },
+    { label: 'Dashboard',      href: 'dashboard.html',       icon: 'fa-border-all' },
     { label: 'Mis Paquetes',   href: 'mis-paquetes.html',    icon: 'fa-box' },
     { label: 'Mis Facturas',   href: 'mis-facturas.html',    icon: 'fa-file-invoice-dollar' },
     { label: 'Cotizaciones',   href: 'mis-solicitudes.html', icon: 'fa-shopping-bag' },
@@ -162,7 +162,7 @@
         } else {
           html += '<div class="crbox-db-dash-cta-wrap">'
             + '<a href="dashboard.html" class="crbox-db-dash-cta">'
-            + '<i class="fas fa-th-large"></i><span>Ir al Dashboard</span></a>'
+            + '<i class="fas fa-border-all"></i><span>Ir al Dashboard</span></a>'
             + '</div>';
           html += '<button class="crbox-drawer-link crbox-drawer-link--danger" id="crbox-d-logout-public">'
             + '<i class="fas fa-sign-out-alt"></i><span>Cerrar Sesión</span></button>';

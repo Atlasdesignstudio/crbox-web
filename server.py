@@ -3806,7 +3806,7 @@ _rate_window = {}
 _QUOTE_LOG_PATH = 'quote_submissions.log'
 _quote_log_lock = threading.Lock()
 
-_RATE_LIMIT   = 5
+_RATE_LIMIT   = 10   # raised from 5 — multi-product flows can legitimately submit several times
 _RATE_SECONDS = 60
 
 # ── SMTP health monitor ────────────────────────────────────────────────────────
@@ -9375,7 +9375,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         if self._cors_reject():
             return
         client_ip = self.client_address[0]
-        _global_rate_exempt = {'/api/chat'}
+        # These endpoints either carry their own per-endpoint rate limits or are
+        # pre-flight / read-style calls that should never count against the global
+        # submission budget. Adding them here prevents the classify + check-duplicate
+        # burst (normal for multi-product flows) from blocking the actual solicitud.
+        _global_rate_exempt = {
+            '/api/chat',
+            '/api/ai/classify',
+            '/api/ai/extract',
+            '/api/solicitudes/check-duplicate',
+        }
         if not self.path.startswith('/admin') and self.path not in _global_rate_exempt:
             if not _check_rate_limit(client_ip):
                 self._json_error(429, 'Demasiadas solicitudes. Espera un momento e intenta de nuevo.', code='rate_limit')
