@@ -839,12 +839,39 @@
       container.innerHTML =
         _qbBanner +
         '<div class="ej-empty-state">' +
-          '<div class="ej-empty-icon"><i class="fas fa-layer-group"></i></div>' +
-          '<p class="ej-empty-title">Aún no tienes grupos de envío</p>' +
-          '<p class="ej-empty-desc">Crea un grupo para organizar los paquetes que quieres que CRBOX procese juntos.</p>' +
-          '<button class="ej-btn ej-btn-purple" id="ej-create-btn-empty">' +
+          '<div class="ej-empty-icon"><i class="fas fa-boxes"></i></div>' +
+          '<h3 class="ej-empty-title">¡Empieza a ahorrar en envíos!</h3>' +
+          '<p class="ej-empty-desc">Agrupa tus paquetes de Miami y CRBOX los envía juntos a Costa Rica para que pagues menos flete.</p>' +
+          '<ol class="ej-how-steps">' +
+            '<li class="ej-how-step">' +
+              '<span class="ej-step-badge">1</span>' +
+              '<span class="ej-step-icon"><i class="fas fa-shopping-cart"></i></span>' +
+              '<div class="ej-step-body">' +
+                '<strong class="ej-step-title">Compra en línea</strong>' +
+                '<span class="ej-step-text">Usa tu dirección CRBOX en Miami como destino de envío en cualquier tienda de EE.UU.</span>' +
+              '</div>' +
+            '</li>' +
+            '<li class="ej-how-step">' +
+              '<span class="ej-step-badge">2</span>' +
+              '<span class="ej-step-icon"><i class="fas fa-warehouse"></i></span>' +
+              '<div class="ej-step-body">' +
+                '<strong class="ej-step-title">Tus paquetes llegan a Miami</strong>' +
+                '<span class="ej-step-text">Los recibimos en nuestra bodega y aparecen automáticamente en "Mis paquetes".</span>' +
+              '</div>' +
+            '</li>' +
+            '<li class="ej-how-step">' +
+              '<span class="ej-step-badge">3</span>' +
+              '<span class="ej-step-icon"><i class="fas fa-layer-group"></i></span>' +
+              '<div class="ej-step-body">' +
+                '<strong class="ej-step-title">Agrupálos y ahorrás</strong>' +
+                '<span class="ej-step-text">Crea un grupo, seleccioná los paquetes que querés consolidar y CRBOX se encarga del resto.</span>' +
+              '</div>' +
+            '</li>' +
+          '</ol>' +
+          '<button class="ej-btn ej-btn-purple ej-btn-secondary" id="ej-create-btn-empty">' +
             '<i class="fas fa-plus"></i> <span class="ej-btn-label">Crear mi primer grupo</span>' +
           '</button>' +
+          '<p class="ej-empty-no-pkgs">¿Todavía no tienes paquetes en Miami? Compra usando tu <a href="como-funciona.html" class="ej-link">dirección CRBOX</a> y aparecerán aquí.</p>' +
         '</div>';
       var emptyBtn = _el('ej-create-btn-empty');
       if (emptyBtn) emptyBtn.addEventListener('click', openCreateModal);

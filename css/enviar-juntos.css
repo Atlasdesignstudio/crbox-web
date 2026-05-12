@@ -284,11 +284,108 @@
 .ej-empty-desc {
   font-size: 0.875rem;
   color: #6b7280;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
   max-width: 28rem;
   margin-left: auto;
   margin-right: auto;
   line-height: 1.5;
+}
+
+/* ── Empty state — how-it-works steps ───────────────────── */
+.ej-how-steps {
+  list-style: none;
+  margin: 0 auto 1.75rem;
+  padding: 0;
+  max-width: 26rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.ej-how-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.ej-step-badge {
+  flex-shrink: 0;
+  width: 1.625rem;
+  height: 1.625rem;
+  background: #7c3aed;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 0.125rem;
+}
+.ej-step-icon {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  background: #ede9fe;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7c3aed;
+  font-size: 0.875rem;
+  margin-top: 0.0625rem;
+}
+.ej-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.ej-step-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.4;
+}
+.ej-step-text {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Secondary CTA button variant */
+.ej-btn.ej-btn-secondary {
+  opacity: 0.85;
+}
+.ej-btn.ej-btn-secondary:hover {
+  opacity: 1;
+}
+
+/* "No packages yet" note */
+.ej-empty-no-pkgs {
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.5;
+  max-width: 26rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+.ej-link {
+  color: #7c3aed;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ej-link:hover {
+  color: #6d28d9;
+}
+
+@media (max-width: 480px) {
+  .ej-how-steps {
+    max-width: 100%;
+  }
+  .ej-empty-no-pkgs {
+    max-width: 100%;
+  }
 }
 
 /* ── Group cards ─────────────────────────────────────────── */
