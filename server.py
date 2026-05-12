@@ -1521,6 +1521,22 @@ special_requirements: [] for standard; list specific permits/agencies otherwise.
 """
 
 
+_SPLIT_PROMPT = """\
+You are a product-name splitter for a Miami-to-Costa Rica import concierge.
+
+Given a user query in Spanish (or mixed Spanish/English), decide if it contains MULTIPLE distinct purchasable products. Return only JSON — no markdown.
+
+RULES:
+- Split on "y", "e", "también", "además", "más", "plus", "and", "," ONLY when each side is a clearly distinct purchasable item.
+- Do NOT split: brand+model combos ("iPhone 15 Pro Max"), accessory bundles ("MacBook con su cargador"), vague bundles ("ropa y accesorios"), or things clearly for the same product.
+- DO split: "camisa y libro", "laptop, mouse y teclado", "iPhone 15 y AirPods Pro".
+
+Query: "{query}"
+
+Return ONLY: {{"products": ["name1", "name2", ...]}}
+Use one element if single product or ambiguous."""
+
+
 def _normalize_for_match(s):
     """Lowercase, remove accents, strip punctuation for fuzzy matching."""
     import unicodedata
@@ -1834,6 +1850,77 @@ def _handle_ai_classify(handler):
             'adminNotes': '',
             'actionForCustomer': '', 'actionForAdmin': '', 'estimatedRange': '',
         })
+
+
+_SPLIT_CACHE      = {}
+_SPLIT_CACHE_LOCK = threading.Lock()
+
+def _split_cache_get(key):
+    with _SPLIT_CACHE_LOCK:
+        entry = _SPLIT_CACHE.get(key)
+        if entry and time.time() < entry[1]:
+            return entry[0]
+        return None
+
+def _split_cache_set(key, result):
+    with _SPLIT_CACHE_LOCK:
+        _SPLIT_CACHE[key] = (result, time.time() + 3600)
+
+_SPLIT_CONJUNCTION_RE = re.compile(r'\b(y|e|también|tambien|además|ademas|más|mas|plus|and)\b|,', re.I)
+
+def _handle_ai_split_products(handler):
+    """POST /api/ai/split-products — detect and split multi-product queries."""
+    try:
+        length = int(handler.headers.get('Content-Length', 0))
+        body   = json.loads(handler.rfile.read(length)) if length else {}
+    except Exception:
+        handler._json_error(400, 'Solicitud inválida.', code='bad_request')
+        return
+
+    query = str(body.get('query') or '').strip()[:300]
+    if not query or len(query) < 2:
+        handler._json_response(200, {'products': [query] if query else [], 'is_multi': False})
+        return
+
+    # Skip Gemini if no conjunction words present — return single immediately
+    if not _SPLIT_CONJUNCTION_RE.search(query):
+        handler._json_response(200, {'products': [query], 'is_multi': False})
+        return
+
+    cache_key = 'split:' + _normalize_for_match(query)
+    cached = _split_cache_get(cache_key)
+    if cached:
+        handler._json_response(200, cached)
+        return
+
+    if not _GEMINI_API_KEY:
+        handler._json_response(200, {'products': [query], 'is_multi': False})
+        return
+
+    try:
+        from google import genai as _genai
+        from google.genai import types as _gtypes
+        client   = _genai.Client(api_key=_GEMINI_API_KEY)
+        prompt   = _SPLIT_PROMPT.format(query=query)
+        response = _timed_genai_call(
+            client.models.generate_content,
+            model=_GEMINI_MODEL,
+            contents=prompt,
+            config=_gtypes.GenerateContentConfig(temperature=0.1, max_output_tokens=150),
+        )
+        text = (response.text or '').strip()
+        if text.startswith('```'): text = text.split('\n', 1)[-1] if '\n' in text else text[3:]
+        if text.endswith('```'):   text = text[:-3].rstrip()
+        raw      = json.loads(text)
+        products = [str(p).strip() for p in (raw.get('products') or []) if str(p).strip()]
+        if not products:
+            products = [query]
+        result = {'products': products, 'is_multi': len(products) > 1}
+        _split_cache_set(cache_key, result)
+        handler._json_response(200, result)
+    except Exception as ex:
+        print(f'[SPLIT] Error: {ex}')
+        handler._json_response(200, {'products': [query], 'is_multi': False})
 
 
 def _handle_ai_extract(handler):
@@ -9512,6 +9599,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             '/api/chat',
             '/api/ai/classify',
             '/api/ai/extract',
+            '/api/ai/split-products',
             '/api/solicitudes/check-duplicate',
         }
         if not self.path.startswith('/admin') and self.path not in _global_rate_exempt:
@@ -9535,6 +9623,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             _handle_ai_extract(self)
         elif self.path == '/api/ai/classify':
             _handle_ai_classify(self)
+        elif self.path == '/api/ai/split-products':
+            _handle_ai_split_products(self)
         elif self.path == '/api/chat':
             _handle_ai_chat(self)
         elif self.path == '/api/solicitudes':

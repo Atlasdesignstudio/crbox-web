@@ -23,6 +23,7 @@
         serviceType: 'aereo', destination: '',
         customerName: '', email: '', notes: '',
         _returnToShipping: false,
+        _pendingQueue: [],
     };
     var _lastSender = null;
 
@@ -92,6 +93,26 @@
         var l = text.toLowerCase();
         for (var i = 0; i < _LC.length; i++) if (_LC[i][0].test(l)) return _LC[i][1];
         return null;
+    }
+
+    /* ── Multi-product detection ── */
+    var _CONJ_RE = /\b(y|e|también|tambien|además|ademas|más|mas|plus|and)\b|,/i;
+    function _looksMultiProduct(q) { return _CONJ_RE.test(q); }
+
+    /* Calls /api/ai/split-products; always resolves with an array of product name strings */
+    function _detectProducts(query, cb) {
+        if (!_looksMultiProduct(query)) { cb([query]); return; }
+        fetch('/api/ai/split-products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query }),
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+            var list = d && d.products && d.products.length ? d.products : [query];
+            cb(list);
+        })
+        .catch(function() { cb([query]); });
     }
 
     /* ── Category helpers ── */
@@ -281,7 +302,8 @@
 
     /* ═══════════════════════════════════════════
        PHASE: CLASSIFY
-       Combines fast local classifier with AI for best results
+       Combines fast local classifier with AI for best results.
+       Detects multi-product queries and runs them as a sequential queue.
     ═══════════════════════════════════════════ */
     function startClassify(query) {
         if (S.phase === 'classifying') return;
@@ -290,33 +312,63 @@
         _lastSender = null;
         addRow(query, 'user');
 
-        /* Pre-classify locally for instant category detection */
-        var cleanName = extractCleanName(query);
-        var localCat  = localClassify(query) || localClassify(normalizeQ(query));
-
         setTimeout(function() {
             showTyping();
-            var render = function(result) {
-                hideTyping();
-                /* Product label: always the clean name extracted from the user's query.
-                   (result.displayName is the category name, not the specific product name.) */
-                var label = cleanName;
-                /* Category code: prefer Gemini/Brain legacyCode (e.g. "celulares", "ropa")
-                   → local keyword fallback → 'otros'.
-                   The server response uses `legacyCode` for the category code used by
-                   emoji/label lookups; the old `result.category` field is no longer returned. */
+            _detectProducts(query, function(productNames) {
+                if (productNames.length > 1) {
+                    /* Multi-product path — classify all in parallel, then show as a queue */
+                    _startMultiQueue(productNames, query);
+                } else {
+                    /* Single-product path — existing flow */
+                    var cleanName = extractCleanName(query);
+                    var localCat  = localClassify(query) || localClassify(normalizeQ(query));
+                    var render = function(result) {
+                        hideTyping();
+                        var cat = (result && result.legacyCode && result.legacyCode !== 'otros')
+                            ? result.legacyCode : (localCat || 'otros');
+                        S.current = { name: cleanName, category: cat, brainResult: result || null };
+                        showProductCard(S.current, result);
+                    };
+                    if (typeof CRBOXProductClassifier !== 'undefined') {
+                        CRBOXProductClassifier.classify(normalizeQ(query)).then(render).catch(function(){ render(null); });
+                    } else {
+                        setTimeout(function(){ render(null); }, 700);
+                    }
+                }
+            });
+        }, 400);
+    }
+
+    /* ── Multi-product queue ── */
+    function _startMultiQueue(names, originalQuery) {
+        /* Classify all products in parallel, collect results, then launch queue */
+        var total   = names.length;
+        var results = new Array(total);
+        var done    = 0;
+
+        names.forEach(function(name, idx) {
+            var localCat = localClassify(name) || localClassify(normalizeQ(name));
+            var finish = function(result) {
+                var cleanName = extractCleanName(name);
                 var cat = (result && result.legacyCode && result.legacyCode !== 'otros')
-                    ? result.legacyCode
-                    : (localCat || 'otros');
-                S.current = { name: label, category: cat, brainResult: result || null };
-                showProductCard(S.current, result);
+                    ? result.legacyCode : (localCat || 'otros');
+                results[idx] = { name: cleanName, category: cat, brainResult: result || null, result: result };
+                done++;
+                if (done === total) _launchQueue(results);
             };
             if (typeof CRBOXProductClassifier !== 'undefined') {
-                CRBOXProductClassifier.classify(normalizeQ(query)).then(render).catch(function(){ render(null); });
+                CRBOXProductClassifier.classify(normalizeQ(name)).then(finish).catch(function(){ finish(null); });
             } else {
-                setTimeout(function(){ render(null); }, 700);
+                setTimeout(function(){ finish(null); }, 700);
             }
-        }, 400);
+        });
+    }
+
+    function _launchQueue(items) {
+        hideTyping();
+        S._pendingQueue = items.slice(1);
+        say('¡Detecté <strong>' + items.length + ' productos</strong>! Los cotizo uno a uno para que puedas ingresar el precio de cada uno 🛍️');
+        setTimeout(function() { showProductCard(items[0], items[0].result); }, 280);
     }
 
     /* ═══════════════════════════════════════════
@@ -415,6 +467,18 @@
             if (S._returnToShipping) {
                 S._returnToShipping = false;
                 setTimeout(phaseReview, 400);
+                return;
+            }
+
+            /* Multi-product queue — auto-advance to the next product */
+            if (S._pendingQueue && S._pendingQueue.length > 0) {
+                var _next = S._pendingQueue.shift();
+                var _rem  = S._pendingQueue.length;
+                var _nextMsg = _rem > 0
+                    ? 'Ahora el siguiente producto:'
+                    : '¡Último producto!';
+                say(_nextMsg);
+                setTimeout(function() { showProductCard(_next, _next.result); }, 300);
                 return;
             }
 

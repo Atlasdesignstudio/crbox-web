@@ -344,6 +344,30 @@
     return el;
   }
 
+  // ── Multi-product quote widget ─────────────────────────────────────────────
+  // Shown when Gemini detects multiple distinct products in one message.
+  // Renders one compact quote-form widget per product, stacked vertically.
+  function _showMultiQuotePanel(results) {
+    _hideTyping();
+    var count = results.length;
+    var intro = 'Detecté <strong>' + count + ' productos</strong> en tu mensaje. Completá la info de cada uno para solicitar la cotización:';
+    var container = document.createElement('div');
+    container.style.cssText = 'display:flex;flex-direction:column;gap:.85rem;margin-top:.4rem;';
+    results.forEach(function(item) {
+      var lbl = document.createElement('div');
+      lbl.style.cssText = 'font-size:.72rem;font-weight:700;color:#FF6B00;text-transform:uppercase;letter-spacing:.05em;padding:.15rem 0 .05rem;';
+      lbl.textContent = item.name || '';
+      container.appendChild(lbl);
+      if (global.CHAT_QUOTE) {
+        container.appendChild(CHAT_QUOTE.createQuoteWidget({ productName: item.name || '' }));
+      }
+    });
+    _appendAIMessage(intro, container);
+    _pending = false;
+    $send.disabled = false;
+    $input.focus();
+  }
+
   // ── Send message ──────────────────────────────────────────────────────────
   function _sendMessage() {
     var text = $input.value.trim().slice(0, MAX_MSG_CHARS);
@@ -549,6 +573,45 @@
     }
 
     if (_productText && typeof CRBOXProductClassifier !== 'undefined') {
+      var _MULTI_CONJ = /\b(y|e|también|tambien|además|ademas|más|mas|plus|and)\b|,/i;
+      if (_MULTI_CONJ.test(_productText)) {
+        // Potentially multiple products — ask the split endpoint first
+        fetch('/api/ai/split-products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: _productText }),
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var names = (d && d.products && d.products.length > 1) ? d.products : null;
+          if (names) {
+            // Multi-product: classify each in parallel, then render stacked widgets
+            var total = names.length, collected = new Array(total), cnt = 0;
+            names.forEach(function(name, idx) {
+              CRBOXProductClassifier.classify(name, { noFallback: true })
+                .then(function(r)  { collected[idx] = { name: name, result: r }; })
+                .catch(function()  { collected[idx] = { name: name, result: null }; })
+                ['finally'](function() {
+                  cnt++;
+                  if (cnt === total) _showMultiQuotePanel(collected);
+                });
+            });
+          } else {
+            // Single product after all
+            CRBOXProductClassifier.classify(_productText, { noFallback: true })
+              .then(function(result) { _doSend(result && result.brainCategoryId !== 'unknown_manual_review' ? result : null); })
+              .catch(function() { _doSend(null); });
+          }
+        })
+        .catch(function() {
+          // Split endpoint failed — fall back to single classify
+          CRBOXProductClassifier.classify(_productText, { noFallback: true })
+            .then(function(result) { _doSend(result && result.brainCategoryId !== 'unknown_manual_review' ? result : null); })
+            .catch(function() { _doSend(null); });
+        });
+        return;
+      }
+      // No conjunction detected — single product, existing flow
       CRBOXProductClassifier.classify(_productText, { noFallback: true }).then(function (result) {
         _doSend(result && result.brainCategoryId !== 'unknown_manual_review' ? result : null);
       }).catch(function () { _doSend(null); });
