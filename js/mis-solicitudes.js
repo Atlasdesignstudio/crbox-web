@@ -763,9 +763,6 @@
       if (contentEl) contentEl.classList.remove('hidden');
       renderList(list);
 
-      // Render purchase-bot greeting (triggers stroke animation after it appears)
-      setTimeout(_renderPbGreeting, 480);
-
       // Handle URL params
       var params = new URLSearchParams(window.location.search);
       if (params.get('new') === '1') {
