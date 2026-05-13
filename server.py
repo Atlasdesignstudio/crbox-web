@@ -9783,20 +9783,18 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def _api_public_overview(self):
         kb = _CRBOX_KB
         c = kb.get('company', {})
+        mw = kb.get('miami_warehouse', {})
         self._json_response(200, {
             'schemaVersion': '1.0',
-            'name': c.get('name', 'CRBOX'),
+            'name': c.get('name', ''),
             'tagline': c.get('tagline', ''),
-            'description': (
-                'CRBOX es un servicio costarricense de casillero virtual y courier '
-                'con más de 20 años de experiencia. Asigna una dirección gratuita en '
-                'Miami para que los clientes costarricenses puedan comprar en tiendas '
-                'de EE.UU. y recibir sus paquetes en Costa Rica por vía aérea o marítima.'
-            ),
-            'website': c.get('website', 'https://crbox.cr'),
+            'description': c.get('description', ''),
+            'website': c.get('website', ''),
             'experienceYears': c.get('experience_years'),
-            'serviceArea': 'USA → Costa Rica',
-            'warehouseLocation': 'Miami, Florida, EE.UU.',
+            'clients': c.get('clients'),
+            'shipments': c.get('shipments'),
+            'serviceArea': c.get('service_area', ''),
+            'warehouseLocation': mw.get('address', ''),
             'publicPages': {
                 'home': 'https://crbox.cr/',
                 'services': 'https://crbox.cr/servicios.html',
@@ -9836,21 +9834,24 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 'contact': intl.get('contact', ''),
                 'url': 'https://crbox.cr/servicios.html',
             })
+        notes = kb.get('public_notes', {})
         self._json_response(200, {
             'schemaVersion': '1.0',
             'services': result,
-            'note': 'El casillero virtual es 100% gratuito. Solo se paga el flete al enviar.',
+            'note': notes.get('casillero_free', ''),
         })
 
     def _api_public_how_it_works(self):
         kb = _CRBOX_KB
         steps = kb.get('how_it_works', [])
+        notes = kb.get('public_notes', {})
+        air_transit = kb.get('services', {}).get('carga_aerea', {}).get('transit_days', '')
         self._json_response(200, {
             'schemaVersion': '1.0',
             'steps': [{'position': i + 1, 'description': s} for i, s in enumerate(steps)],
-            'typicalTransitDays': '2–4 días hábiles (aéreo desde Miami)',
+            'typicalTransitDaysAir': air_transit,
             'registrationUrl': 'https://crbox.cr/afiliate.html',
-            'invoiceNote': 'La factura de compra es requerida por Aduanas de Costa Rica.',
+            'invoiceNote': notes.get('invoice_required', ''),
         })
 
     def _api_public_faqs(self):
@@ -9884,14 +9885,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         handling = kb.get('handling_fees_usd', [])
         delivery = kb.get('delivery_fees_usd', {})
         maritime = kb.get('maritime_cargo', {})
+        notes = kb.get('public_notes', {})
+        air_svc = kb.get('services', {}).get('carga_aerea', {})
         self._json_response(200, {
             'schemaVersion': '1.0',
-            'disclaimer': (
-                'Estos valores son de referencia. El precio final puede variar según '
-                'peso real, peso volumétrico, valor declarado y zona de entrega. '
-                'Usá la calculadora oficial para un estimado preciso: '
-                'https://crbox.cr/calculadora.html'
-            ),
+            'disclaimer': notes.get('estimate_disclaimer', ''),
+            'calculatorUrl': 'https://crbox.cr/calculadora.html',
             'airFreight': {
                 'rateTable': air.get('table', []),
                 'over20kg': air.get('over_20kg'),
@@ -9899,8 +9898,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 'fuelSurchargePct': air.get('fuel_surcharge_pct'),
                 'insurancePer100usd': air.get('insurance_per_100_usd'),
                 'volumetricFormula': air.get('volumetric_formula'),
-                'chargingRule': 'Se cobra el mayor entre peso real y peso volumétrico',
-                'transitDays': '2–4 días hábiles desde Miami',
+                'chargingRule': air.get('charging_rule', ''),
+                'transitDays': air_svc.get('transit_days', ''),
             },
             'handlingFees': handling,
             'homeDelivery': {
@@ -9911,12 +9910,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 'pickupNote': delivery.get('pickup_note', ''),
             },
             'seaFreight': {
-                'rateUnit': maritime.get('rate_unit', 'por pie cúbico'),
-                'transitDays': maritime.get('transit_days', '6–7 días hábiles desde Miami'),
+                'rateUnit': maritime.get('rate_unit', ''),
+                'transitDays': maritime.get('transit_days', ''),
                 'options': maritime.get('options', []),
-                'quoteContact': maritime.get('quote_contact', 'ventas@crbox.cr'),
+                'quoteContact': maritime.get('quote_contact', ''),
             },
-            'calculatorUrl': 'https://crbox.cr/calculadora.html',
         })
 
     def _handle_ai_context_json(self):
@@ -9935,6 +9933,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         how = kb.get('how_it_works', [])
         faq = kb.get('faq', [])
         compliance = kb.get('compliance', {})
+        notes = kb.get('public_notes', {})
 
         context = {
             'schemaVersion': '1.1',
@@ -10012,27 +10011,24 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                     'para estimados precisos.'
                 ),
                 'inputFields': ['weightKg', 'heightCm', 'widthCm', 'lengthCm', 'valuedUsd', 'zone'],
-                'chargingRule': 'Se cobra el mayor entre peso real y peso volumétrico',
+                'chargingRule': air.get('charging_rule', ''),
                 'volumetricFormula': air.get('volumetric_formula'),
             },
             'ratesGuidance': {
-                'disclaimer': (
-                    'Valores de referencia. El precio final depende del peso real, '
-                    'peso volumétrico, valor declarado y zona de entrega. '
-                    'Calculadora oficial: https://crbox.cr/calculadora.html'
-                ),
+                'disclaimer': notes.get('estimate_disclaimer', ''),
+                'calculatorUrl': 'https://crbox.cr/calculadora.html',
                 'airFreightTable': air.get('table', []),
                 'airFreightOver20kg': air.get('over_20kg'),
                 'fuelSurchargePct': air.get('fuel_surcharge_pct'),
                 'insurancePer100usd': air.get('insurance_per_100_usd'),
                 'volumetricFormula': air.get('volumetric_formula'),
-                'chargingRule': 'Se cobra el mayor entre peso real y peso volumétrico',
+                'chargingRule': air.get('charging_rule', ''),
                 'handlingFees': handling,
                 'homeDelivery': {
                     'sanJoseHerediaAlajuela': delivery.get('san_jose_heredia_alajuela', []),
                     'cartago': delivery.get('cartago', []),
                     'provincesRemote': delivery.get('provinces_remote', []),
-                    'pickupFree': True,
+                    'pickupFree': delivery.get('pickup_free', True),
                     'pickupNote': delivery.get('pickup_note', ''),
                 },
             },

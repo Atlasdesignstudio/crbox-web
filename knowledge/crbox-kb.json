@@ -10,7 +10,14 @@
     "website": "https://crbox.cr",
     "experience_years": 20,
     "clients": 33000,
-    "shipments": 586000
+    "shipments": 586000,
+    "service_area": "USA → Costa Rica",
+    "description": "CRBOX es un servicio costarricense de casillero virtual y courier con más de 20 años de experiencia. Asigna una dirección gratuita en Miami para que los clientes costarricenses puedan comprar en tiendas de EE.UU. y recibir sus paquetes en Costa Rica por vía aérea o marítima."
+  },
+  "public_notes": {
+    "casillero_free": "El casillero virtual es 100% gratuito. Solo se paga el flete al enviar.",
+    "invoice_required": "La factura de compra es requerida por Aduanas de Costa Rica.",
+    "estimate_disclaimer": "Valores de referencia. El precio final depende del peso real, peso volumétrico, valor declarado y zona de entrega."
   },
   "miami_warehouse": {
     "address": "1000 NW 57th Ct, Suite 100, Miami, FL 33126, USA",
@@ -56,6 +63,7 @@
     }
   },
   "air_rates_usd": {
+    "charging_rule": "Se cobra el mayor entre peso real y peso volumétrico",
     "table": [
       {
         "kg": 0.5,
