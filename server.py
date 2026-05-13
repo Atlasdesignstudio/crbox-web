@@ -1522,19 +1522,31 @@ special_requirements: [] for standard; list specific permits/agencies otherwise.
 
 
 _SPLIT_PROMPT = """\
-You are a product-name splitter for a Miami-to-Costa Rica import concierge.
+You are a product-name extractor for a Miami-to-Costa Rica import concierge.
 
-Given a user query in Spanish (or mixed Spanish/English), decide if it contains MULTIPLE distinct purchasable products. Return only JSON — no markdown.
+Given a user query in Spanish (or English), return every individual purchasable item as a separate element. Return ONLY valid JSON — no markdown.
 
-RULES:
-- Split on "y", "e", "también", "además", "más", "plus", "and", "," ONLY when each side is a clearly distinct purchasable item.
-- Do NOT split: brand+model combos ("iPhone 15 Pro Max"), accessory bundles ("MacBook con su cargador"), vague bundles ("ropa y accesorios"), or things clearly for the same product.
-- DO split: "camisa y libro", "laptop, mouse y teclado", "iPhone 15 y AirPods Pro".
+HARD RULES (follow in order):
+1. COMMA = ALWAYS SPLIT. Any comma between items means they are separate products, no exceptions.
+   "cafeterea, el filtro y unas medias" → ["cafeterea", "filtro", "medias"]
+2. "Y" / "E" = SPLIT unless the two sides form a single product unit:
+   - DO NOT split: "iPhone 15 Pro Max", "MacBook Pro con cargador", "zapatos y medias del mismo outfit"
+   - DO split: "iPhone 15 y AirPods", "camisa y libro", "laptop y mouse"
+3. Strip leading Spanish articles (un, una, unos, unas, el, la, los, las) from each product name.
+4. When in doubt, SPLIT. It is better to separate than to merge.
+
+EXAMPLES:
+"una cafeterea, el filtro y unas medias" → ["cafeterea", "filtro", "medias"]
+"camisa y libro" → ["camisa", "libro"]
+"laptop, mouse y teclado" → ["laptop", "mouse", "teclado"]
+"iPhone 15 y AirPods Pro" → ["iPhone 15", "AirPods Pro"]
+"tenis Nike" → ["tenis Nike"]
+"MacBook Pro con su cargador" → ["MacBook Pro"]
+"proteína y creatina" → ["proteína", "creatina"]
 
 Query: "{query}"
 
-Return ONLY: {{"products": ["name1", "name2", ...]}}
-Use one element if single product or ambiguous."""
+Return ONLY: {{"products": ["name1", "name2", ...]}}"""
 
 
 def _normalize_for_match(s):
