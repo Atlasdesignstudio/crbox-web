@@ -99,13 +99,22 @@
     var _CONJ_RE = /\b(y|e|también|tambien|además|ademas|más|mas|plus|and)\b|,/i;
     function _looksMultiProduct(q) { return _CONJ_RE.test(q); }
 
+    /* Strip common intent verbs from the start of a query before sending to split-products.
+       "quiero una cafetera, una patineta y anteojos" → "una cafetera, una patineta y anteojos" */
+    function _stripIntentPrefix(q) {
+        return q.trim()
+            .replace(/^(quiero\s+traer\s+|quiero\s+|deseo\s+traer\s+|deseo\s+|necesito\s+traer\s+|necesito\s+|busco\s+traer\s+|busco\s+|quisiera\s+traer\s+|quisiera\s+|traer\s+|comprar\s+)/i, '')
+            .trim();
+    }
+
     /* Calls /api/ai/split-products; always resolves with an array of product name strings */
     function _detectProducts(query, cb) {
         if (!_looksMultiProduct(query)) { cb([query]); return; }
+        var cleanedQuery = _stripIntentPrefix(query);
         fetch('/api/ai/split-products', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: query }),
+            body: JSON.stringify({ query: cleanedQuery }),
         })
         .then(function(r) { return r.json(); })
         .then(function(d) {

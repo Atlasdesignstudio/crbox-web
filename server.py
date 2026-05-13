@@ -1537,6 +1537,7 @@ HARD RULES (follow in order):
 
 EXAMPLES:
 "una cafeterea, el filtro y unas medias" → ["cafeterea", "filtro", "medias"]
+"quiero una cafetera, una patineta y los anteojos de nadar" → ["cafetera", "patineta", "anteojos de nadar"]
 "camisa y libro" → ["camisa", "libro"]
 "laptop, mouse y teclado" → ["laptop", "mouse", "teclado"]
 "iPhone 15 y AirPods Pro" → ["iPhone 15", "AirPods Pro"]
