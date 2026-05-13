@@ -47,6 +47,11 @@ timeoutMs = 30000
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = "587"
 SMTP_USER = "ventas@crbox.cr"
+MYSQL_HOST = "crboxdbserver.cvfe6dzk8nhz.us-east-1.rds.amazonaws.com"
+MYSQL_PORT = "3306"
+MYSQL_DATABASE = "crbox_dev1"
+MYSQL_USER = "CrBoxUser"
+USE_RDS_PORTAL_API = "true"
 
 [[ports]]
 localPort = 3000
