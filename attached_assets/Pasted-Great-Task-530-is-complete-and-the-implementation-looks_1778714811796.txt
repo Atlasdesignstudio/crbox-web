@@ -1,0 +1,68 @@
+Great. Task #530 is complete and the implementation looks safe.
+
+Before connecting any frontend module to RDS, I want a controlled validation pass using the new shadow comparison endpoint.
+
+Goal:
+Validate that `/api/portal/packages-rds` returns data equivalent to the current legacy `getuserpackages` flow for a small set of controlled users/date ranges.
+
+Important:
+Do not change frontend behavior.
+Do not modify mis-paquetes.
+Do not modify portal JS.
+Do not replace the legacy API.
+Do not query production.
+Do not run writes.
+Only use `crbox_dev1`.
+Keep everything admin-only and shadow mode.
+
+Task:
+Create a validation note/report, for example:
+
+docs/rds-packages-shadow-validation.md
+
+Run or prepare controlled tests for 3–5 known users/emails that have package activity in `crbox_dev1`.
+
+For each test case, use:
+- email
+- date range within 90 days
+- optional status filter if useful
+- optional tracking prefix if useful
+
+Use:
+
+GET /api/admin/rds-shadow-compare
+
+If a valid Bearer token is available, include it so legacy comparison can run.
+If no Bearer token is available, only validate RDS shape and document that legacy comparison was skipped.
+
+For each case, report:
+1. Email masked
+2. idConsignee
+3. Date range
+4. RDS package count
+5. Legacy package count, if available
+6. countDelta
+7. statusIdDistribution comparison
+8. statusNameDistribution comparison
+9. missingInRds
+10. missingInLegacy
+11. statusMismatch
+12. Any field-shape differences
+13. Whether the case passes, partially passes, or fails
+
+Acceptance criteria:
+- No frontend files changed.
+- No portal JS changed.
+- mis-paquetes still uses legacy only.
+- No writes/destructive SQL.
+- No SELECT *.
+- Only crbox_dev1 queried.
+- No raw sensitive customer data included in the report.
+- Emails should be masked in documentation.
+
+Outcome:
+At the end, give a recommendation:
+A. Safe to proceed to feature-flagged frontend wiring for mis-paquetes, or
+B. Need to adjust RDS mapping/query first, with exact issues listed.
+
+Do not implement frontend wiring in this task.
