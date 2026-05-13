@@ -9308,6 +9308,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         full_path = self.path          # e.g. /js/portal-api.js?v=1
         p = full_path.split('?')[0]   # bare path without query string
         qs = full_path[len(p):]        # e.g. ?v=1  (empty string if none)
+        # Public read-only API and agent context: cacheable by CDN/browsers
+        if p.startswith('/api/public/') or p == '/ai-context.json':
+            return 'public, max-age=3600', False
         # API, auth, admin, health: never cache
         if (p.startswith('/api/') or p.startswith('/admin') or
                 p.startswith('/authtoken') or p in ('/health',)):
@@ -9360,7 +9363,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Security-Policy", csp)
         origin = self.headers.get('Origin', '')
         allowed_set = _allowed_origins()
-        if origin:
+        _bare_cors = self.path.split('?')[0]
+        _is_public_ep = (_bare_cors.startswith('/api/public/') or _bare_cors == '/ai-context.json')
+        if _is_public_ep:
+            # Public read-only endpoints are open to all origins (no credentials)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        elif origin:
             if allowed_set and origin in allowed_set:
                 # Echo back the matching origin (required when allowlist has >1 entry)
                 self.send_header("Access-Control-Allow-Origin", origin)
@@ -9476,6 +9485,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 else:
                     self.send_response(404)
                     self.end_headers()
+        elif self.path.startswith('/api/public/'):
+            self._handle_public_api()
+        elif self.path == '/ai-context.json':
+            self._handle_ai_context_json()
         elif self.path.startswith('/api/check-known-email'):
             self._handle_check_known_email()
         elif self.path == '/api/package-groups':
@@ -9723,6 +9736,315 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             }
             code = _CODE_MAP.get(status, 'error')
         self._json_response(status, {'error': message, 'code': code})
+
+    # ── /api/public/* and /ai-context.json ────────────────────────────────
+    def _handle_public_api(self):
+        """Dispatch GET /api/public/<resource> to the correct sub-handler.
+
+        All endpoints are:
+        - Publicly accessible (no authentication required)
+        - CORS-open (Access-Control-Allow-Origin: *)
+        - Cacheable (Cache-Control: public, max-age=3600)
+        - Sourced exclusively from _CRBOX_KB (no private/customer data)
+        """
+        p = self.path.split('?')[0].rstrip('/')
+        if p == '/api/public/overview':
+            self._api_public_overview()
+        elif p == '/api/public/services':
+            self._api_public_services()
+        elif p == '/api/public/how-it-works':
+            self._api_public_how_it_works()
+        elif p == '/api/public/faqs':
+            self._api_public_faqs()
+        elif p == '/api/public/contact':
+            self._api_public_contact()
+        elif p == '/api/public/rates-guidance':
+            self._api_public_rates_guidance()
+        else:
+            self._json_response(404, {'error': 'Public endpoint not found', 'code': 'not_found'})
+
+    def _api_public_overview(self):
+        kb = _CRBOX_KB
+        c = kb.get('company', {})
+        self._json_response(200, {
+            'schemaVersion': '1.0',
+            'name': c.get('name', 'CRBOX'),
+            'tagline': c.get('tagline', ''),
+            'description': (
+                'CRBOX es un servicio costarricense de casillero virtual y courier '
+                'con más de 20 años de experiencia. Asigna una dirección gratuita en '
+                'Miami para que los clientes costarricenses puedan comprar en tiendas '
+                'de EE.UU. y recibir sus paquetes en Costa Rica por vía aérea o marítima.'
+            ),
+            'website': c.get('website', 'https://crbox.cr'),
+            'experienceYears': c.get('experience_years'),
+            'serviceArea': 'USA → Costa Rica',
+            'warehouseLocation': 'Miami, Florida, EE.UU.',
+            'publicPages': {
+                'home': 'https://crbox.cr/',
+                'services': 'https://crbox.cr/servicios.html',
+                'howItWorks': 'https://crbox.cr/como-funciona.html',
+                'rates': 'https://crbox.cr/tarifas.html',
+                'calculator': 'https://crbox.cr/calculadora.html',
+                'contact': 'https://crbox.cr/contacto.html',
+                'register': 'https://crbox.cr/afiliate.html',
+            },
+            'machineReadableResources': {
+                'aiContext': 'https://crbox.cr/ai-context.json',
+                'llmsTxt': 'https://crbox.cr/llms.txt',
+                'sitemapXml': 'https://crbox.cr/sitemap.xml',
+            },
+        })
+
+    def _api_public_services(self):
+        kb = _CRBOX_KB
+        svcs = kb.get('services', {})
+        result = []
+        for key, svc in svcs.items():
+            result.append({
+                'id': key,
+                'name': svc.get('name', ''),
+                'description': svc.get('description', ''),
+                'cost': svc.get('cost'),
+                'transitDays': svc.get('transit_days'),
+                'url': 'https://crbox.cr/' + svc.get('url', ''),
+            })
+        # Also include international logistics summary
+        intl = kb.get('international_logistics', {})
+        if intl:
+            result.append({
+                'id': 'logistica_internacional',
+                'name': 'Logística Internacional',
+                'description': intl.get('description', ''),
+                'contact': intl.get('contact', ''),
+                'url': 'https://crbox.cr/servicios.html',
+            })
+        self._json_response(200, {
+            'schemaVersion': '1.0',
+            'services': result,
+            'note': 'El casillero virtual es 100% gratuito. Solo se paga el flete al enviar.',
+        })
+
+    def _api_public_how_it_works(self):
+        kb = _CRBOX_KB
+        steps = kb.get('how_it_works', [])
+        self._json_response(200, {
+            'schemaVersion': '1.0',
+            'steps': [{'position': i + 1, 'description': s} for i, s in enumerate(steps)],
+            'typicalTransitDays': '2–4 días hábiles (aéreo desde Miami)',
+            'registrationUrl': 'https://crbox.cr/afiliate.html',
+            'invoiceNote': 'La factura de compra es requerida por Aduanas de Costa Rica.',
+        })
+
+    def _api_public_faqs(self):
+        kb = _CRBOX_KB
+        faqs = kb.get('faq', [])
+        self._json_response(200, {
+            'schemaVersion': '1.0',
+            'faqs': [{'question': item.get('q', ''), 'answer': item.get('a', '')} for item in faqs],
+            'moreInfo': 'https://crbox.cr/como-funciona.html',
+        })
+
+    def _api_public_contact(self):
+        kb = _CRBOX_KB
+        c = kb.get('company', {})
+        branches = kb.get('branches', [])
+        self._json_response(200, {
+            'schemaVersion': '1.0',
+            'phone': '+506-4000-1114',
+            'whatsapp': c.get('whatsapp', ''),
+            'salesEmail': c.get('email', 'ventas@crbox.cr'),
+            'customerServiceEmail': 'servicioalcliente@crbox.cr',
+            'invoicesEmail': c.get('facturas_email', 'facturas@crbox.cr'),
+            'contactForm': 'https://crbox.cr/contacto.html',
+            'branches': branches,
+            'miamWarehouse': {
+                'address': '1000 NW 57th Ct, Suite 100, Miami, FL 33126, USA',
+                'purpose': 'Receiving packages from US stores',
+            },
+        })
+
+    def _api_public_rates_guidance(self):
+        kb = _CRBOX_KB
+        air = kb.get('air_rates_usd', {})
+        handling = kb.get('handling_fees_usd', [])
+        delivery = kb.get('delivery_fees_usd', {})
+        maritime = kb.get('maritime_cargo', {})
+        self._json_response(200, {
+            'schemaVersion': '1.0',
+            'disclaimer': (
+                'Estos valores son de referencia. El precio final puede variar según '
+                'peso real, peso volumétrico, valor declarado y zona de entrega. '
+                'Usá la calculadora oficial para un estimado preciso: '
+                'https://crbox.cr/calculadora.html'
+            ),
+            'airFreight': {
+                'rateTable': air.get('table', []),
+                'over20kg': air.get('over_20kg'),
+                'over100kg': air.get('over_100kg'),
+                'fuelSurchargePct': air.get('fuel_surcharge_pct'),
+                'insurancePer100usd': air.get('insurance_per_100_usd'),
+                'volumetricFormula': air.get('volumetric_formula'),
+                'chargingRule': 'Se cobra el mayor entre peso real y peso volumétrico',
+                'transitDays': '2–4 días hábiles desde Miami',
+            },
+            'handlingFees': handling,
+            'homeDelivery': {
+                'sanJoseHerediaAlajuela': delivery.get('san_jose_heredia_alajuela', []),
+                'cartago': delivery.get('cartago', []),
+                'provincesRemote': delivery.get('provinces_remote', []),
+                'pickupFree': delivery.get('pickup_free', True),
+                'pickupNote': delivery.get('pickup_note', ''),
+            },
+            'seaFreight': {
+                'rateUnit': maritime.get('rate_unit', 'por pie cúbico'),
+                'transitDays': maritime.get('transit_days', '6–7 días hábiles desde Miami'),
+                'options': maritime.get('options', []),
+                'quoteContact': maritime.get('quote_contact', 'ventas@crbox.cr'),
+            },
+            'calculatorUrl': 'https://crbox.cr/calculadora.html',
+        })
+
+    def _handle_ai_context_json(self):
+        """Serve /ai-context.json — a comprehensive agent-readable context document.
+
+        Sourced entirely from _CRBOX_KB. No private customer data, no fake data.
+        Publicly accessible, CORS-open, cacheable.
+        """
+        kb = _CRBOX_KB
+        c = kb.get('company', {})
+        svcs = kb.get('services', {})
+        air = kb.get('air_rates_usd', {})
+        handling = kb.get('handling_fees_usd', [])
+        delivery = kb.get('delivery_fees_usd', {})
+        branches = kb.get('branches', [])
+        how = kb.get('how_it_works', [])
+        faq = kb.get('faq', [])
+        compliance = kb.get('compliance', {})
+
+        context = {
+            'schemaVersion': '1.1',
+            'lastUpdated': '2026-05-13',
+            'brand': {
+                'name': c.get('name', 'CRBOX'),
+                'tagline': c.get('tagline', ''),
+                'website': c.get('website', 'https://crbox.cr'),
+                'experienceYears': c.get('experience_years'),
+                'description': (
+                    'CRBOX es un operador costarricense de casillero virtual y courier '
+                    'con más de 20 años de experiencia. Proporciona direcciones gratuitas '
+                    'en Miami para compras en tiendas de EE.UU., con envío aéreo o '
+                    'marítimo a Costa Rica.'
+                ),
+            },
+            'publicResources': {
+                'home': 'https://crbox.cr/',
+                'services': 'https://crbox.cr/servicios.html',
+                'howItWorks': 'https://crbox.cr/como-funciona.html',
+                'rates': 'https://crbox.cr/tarifas.html',
+                'calculator': 'https://crbox.cr/calculadora.html',
+                'contact': 'https://crbox.cr/contacto.html',
+                'register': 'https://crbox.cr/afiliate.html',
+                'aiContext': 'https://crbox.cr/ai-context.json',
+                'llmsTxt': 'https://crbox.cr/llms.txt',
+                'sitemapXml': 'https://crbox.cr/sitemap.xml',
+                'publicApiOverview': 'https://crbox.cr/api/public/overview',
+                'publicApiServices': 'https://crbox.cr/api/public/services',
+                'publicApiHowItWorks': 'https://crbox.cr/api/public/how-it-works',
+                'publicApiFaqs': 'https://crbox.cr/api/public/faqs',
+                'publicApiContact': 'https://crbox.cr/api/public/contact',
+                'publicApiRatesGuidance': 'https://crbox.cr/api/public/rates-guidance',
+            },
+            'restrictedResources': {
+                'note': (
+                    'Las siguientes páginas requieren autenticación y no deben ser '
+                    'usadas para responder preguntas públicas.'
+                ),
+                'pages': [
+                    'https://crbox.cr/dashboard.html',
+                    'https://crbox.cr/mis-paquetes.html',
+                    'https://crbox.cr/mis-facturas.html',
+                    'https://crbox.cr/mi-cuenta.html',
+                    'https://crbox.cr/login.html',
+                ],
+            },
+            'contact': {
+                'phone': '+506-4000-1114',
+                'whatsapp': c.get('whatsapp', ''),
+                'salesEmail': c.get('email', 'ventas@crbox.cr'),
+                'customerServiceEmail': 'servicioalcliente@crbox.cr',
+                'invoicesEmail': c.get('facturas_email', 'facturas@crbox.cr'),
+                'contactForm': 'https://crbox.cr/contacto.html',
+            },
+            'branches': branches,
+            'services': [
+                {
+                    'id': k,
+                    'name': v.get('name', ''),
+                    'description': v.get('description', ''),
+                    'cost': v.get('cost'),
+                    'transitDays': v.get('transit_days'),
+                    'url': 'https://crbox.cr/' + v.get('url', ''),
+                }
+                for k, v in svcs.items()
+            ],
+            'howItWorks': [
+                {'position': i + 1, 'description': s}
+                for i, s in enumerate(how)
+            ],
+            'ratesGuidance': {
+                'disclaimer': (
+                    'Valores de referencia. El precio final depende del peso real, '
+                    'peso volumétrico, valor declarado y zona de entrega. '
+                    'Calculadora oficial: https://crbox.cr/calculadora.html'
+                ),
+                'airFreightTable': air.get('table', []),
+                'airFreightOver20kg': air.get('over_20kg'),
+                'fuelSurchargePct': air.get('fuel_surcharge_pct'),
+                'insurancePer100usd': air.get('insurance_per_100_usd'),
+                'volumetricFormula': air.get('volumetric_formula'),
+                'chargingRule': 'Se cobra el mayor entre peso real y peso volumétrico',
+                'handlingFees': handling,
+                'homeDelivery': {
+                    'sanJoseHerediaAlajuela': delivery.get('san_jose_heredia_alajuela', []),
+                    'cartago': delivery.get('cartago', []),
+                    'provincesRemote': delivery.get('provinces_remote', []),
+                    'pickupFree': True,
+                    'pickupNote': delivery.get('pickup_note', ''),
+                },
+            },
+            'compliance': {
+                'prohibited': compliance.get('prohibited', []),
+                'restricted': compliance.get('restricted', []),
+                'allowedExamples': compliance.get('allowed_examples', []),
+            },
+            'faqs': [
+                {'question': item.get('q', ''), 'answer': item.get('a', '')}
+                for item in faq
+            ],
+            'agentGuidance': {
+                'language': 'es-CR',
+                'purpose': (
+                    'Proporciona contexto estructurado sobre CRBOX para que agentes de IA, '
+                    'LLMs y herramientas automatizadas puedan responder preguntas públicas '
+                    'con precisión y sin datos inventados.'
+                ),
+                'doUse': [
+                    'Este archivo y los endpoints /api/public/* para responder preguntas públicas.',
+                    'https://crbox.cr/calculadora.html para estimados de envío.',
+                    'https://crbox.cr/contacto.html para derivar preguntas específicas.',
+                ],
+                'doNotDo': [
+                    'No inferir precios, tiempos o políticas no declarados explícitamente aquí.',
+                    'No usar páginas del portal autenticado (dashboard, paquetes, facturas) como fuente pública.',
+                    'No divulgar datos de clientes, paquetes, facturas ni cuentas individuales.',
+                    'No presentar valores estimados de la calculadora como precios definitivos.',
+                    'Información exacta de cuenta/paquete/factura requiere autenticación en crbox.cr.',
+                ],
+                'toolContracts': 'https://crbox.cr/docs/crbox-agent-architecture.md (ver documentación)',
+            },
+        }
+        self._json_response(200, context)
 
     # ── /health ────────────────────────────────────────────────────────────
     def _handle_health(self):

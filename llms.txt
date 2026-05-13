@@ -1,5 +1,5 @@
 # CRBOX — LLM Discoverability File
-# Last updated: 2026-05-12
+# Last updated: 2026-05-13
 # Format: llms.txt (https://llmstxt.org/)
 
 ## About CRBOX
@@ -16,7 +16,7 @@ CRBOX is registered with Costa Rican Customs (Aduanas de Costa Rica) as an autho
 
 - **Compras por Encargo (Assisted Purchases)**: CRBOX staff can make purchases on behalf of customers who don't have an international credit card.
 
-- **Carga Aérea (Air Freight)**: Express air courier from Miami to Costa Rica. Estimated delivery: 3–5 business days. Priced by weight (real or volumetric, whichever is greater). Base rate: approximately $7.50 per pound.
+- **Carga Aérea (Air Freight)**: Express air courier from Miami to Costa Rica. Estimated delivery: 2–4 business days. Priced by weight (real or volumetric, whichever is greater).
 
 - **Carga Marítima (Sea Freight)**: Economy sea freight for high-volume or heavy shipments. Estimated delivery: 6–7 days from Miami. Priced per cubic foot.
 
@@ -34,7 +34,7 @@ CRBOX is registered with Costa Rican Customs (Aduanas de Costa Rica) as an autho
 ## Pricing Summary
 
 - **Casillero (mailbox)**: Free — no monthly fee, no sign-up cost.
-- **Air freight**: ~$7.50/lb (base); minimum charge applies for packages under 1 lb.
+- **Air freight**: Reference rate table at https://crbox.cr/tarifas.html; minimum charge applies for packages under 1 lb. Final price depends on real vs. volumetric weight.
 - **Sea freight**: Charged per cubic foot; suitable for large or heavy cargo.
 - **Handling fee**: A handling/management fee applies based on the declared value of the goods (CIF value).
 - **Home delivery**: Additional fee depending on zone and weight. Pickup at branch is free.
@@ -52,7 +52,7 @@ CRBOX cannot ship: prohibited weapons, live animals, perishable food, flammable 
 - **Account creation**: Free. No credit card required to register.
 - **Invoice requirement**: A purchase invoice or payment receipt showing product value is required for customs clearance.
 - **Package consolidation**: Customers can wait for multiple packages to arrive in Miami and ship them together, saving on freight costs.
-- **Volumetric weight formula**: (Length × Width × Height in inches) ÷ 139 = Volumetric pounds.
+- **Volumetric weight formula**: (Length × Width × Height in cm) ÷ 6000 = Volumetric kg.
 - **Charging rule**: The greater of actual weight or volumetric weight is charged.
 - **Business accounts**: CRBOX also serves businesses (empresas) with a separate registration flow.
 
@@ -86,6 +86,33 @@ Contact the main office for exact address.
 - Shipping calculator: https://crbox.cr/calculadora.html
 - Contact: https://crbox.cr/contacto.html
 - Registration / Sign up: https://crbox.cr/afiliate.html
+
+## Machine-Readable Public Resources
+
+The following structured resources are publicly accessible with CORS (Access-Control-Allow-Origin: *), no authentication, and a 1-hour cache (Cache-Control: public, max-age=3600):
+
+- **AI context document**: https://crbox.cr/ai-context.json — comprehensive structured JSON with all public facts, agent guidance, rates, FAQs, contact info, and service descriptions.
+- **Overview API**: https://crbox.cr/api/public/overview — brand overview and public page map.
+- **Services API**: https://crbox.cr/api/public/services — all service descriptions.
+- **How It Works API**: https://crbox.cr/api/public/how-it-works — step-by-step process.
+- **FAQs API**: https://crbox.cr/api/public/faqs — frequently asked questions.
+- **Contact API**: https://crbox.cr/api/public/contact — contact info and branch locations.
+- **Rates Guidance API**: https://crbox.cr/api/public/rates-guidance — air freight table, handling fees, delivery fees. Always include the disclaimer; exact prices must be confirmed via the calculator.
+
+## Sitemap and Crawling
+
+- **Sitemap**: https://crbox.cr/sitemap.xml
+- **robots.txt**: https://crbox.cr/robots.txt
+
+## AI Guidance for Systems Using This File
+
+1. **Use official public pages and the structured resources above** as the source of truth for public CRBOX information.
+2. **Do not infer unsupported prices, delivery times, package statuses, or policies** not stated in this file or the public API endpoints.
+3. **Do not use private portal pages** (dashboard, packages, invoices, account) as sources for public answers — they require authentication.
+4. **Exact account, package, or invoice information** requires an authenticated CRBOX session at crbox.cr — AI agents cannot access this without customer authorization.
+5. **Exact rates must be confirmed** through the official calculator at https://crbox.cr/calculadora.html or by contacting CRBOX directly.
+6. **Do not invent testimonials, reviews, ratings, or customer data** — none are exposed in this file.
+7. **For custom logistics** (international freight, vehicles, large cargo, business accounts), direct the user to ventas@crbox.cr.
 
 ## What CRBOX Does NOT Do
 
