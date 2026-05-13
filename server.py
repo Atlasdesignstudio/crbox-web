@@ -9526,6 +9526,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         elif self.path.startswith('/api/admin/rds-count/'):
             _rds_tbl = urllib.parse.unquote(self.path.split('/api/admin/rds-count/')[1].split('?')[0])
             self._handle_admin_rds_count(_rds_tbl)
+        elif self.path.startswith('/api/portal/packages-rds'):
+            self._handle_portal_packages_rds()
+        elif self.path.startswith('/api/admin/rds-shadow-compare'):
+            self._handle_admin_rds_shadow_compare()
         elif self.path.startswith('/api/solicitudes'):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/api/solicitudes':
@@ -13452,6 +13456,443 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             print(f'[RDS-COUNT] query failed for table {table_name!r}: {exc}')
             self._json_error(502, f'RDS query failed: {exc}', code='rds_error')
+
+    # ── GET /api/portal/packages-rds ──────────────────────────────────────────
+    #
+    # Admin-session-gated, read-only shadow endpoint.  Queries crbox_dev1 via
+    # the getwarehousereceipts view for a consignee identified by email.
+    #
+    # IMPORTANT — admin-session-only scope:
+    # ?email= is accepted from query params only because access is restricted to
+    # admin sessions for controlled shadow testing.  Before this endpoint is ever
+    # made portal-user-facing it MUST stop accepting arbitrary email from query
+    # params and MUST derive the identity from the authenticated user's
+    # session / token instead.
+    #
+    # Date format: YYYY-MM-DD (window ≤ 90 days).
+    # NOTE: the legacy getuserpackages API uses DD-MM-YYYY.  Any call to the
+    # legacy proxy for comparison must convert dates before building that URL.
+    #
+    # Query params:
+    #   email    — consignee login email (admin test identity)
+    #   start    — YYYY-MM-DD
+    #   end      — YYYY-MM-DD, window ≤ 90 days
+    #   status   — optional int; filter by statusId
+    #   tracking — optional string; prefix search (must not contain % or _)
+    #   limit    — int 1–200, default 50
+    #   offset   — int ≥ 0, default 0
+
+    def _handle_portal_packages_rds(self):
+        import datetime as _dt
+
+        # 1. Admin session gate — 401 if missing or invalid
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._json_error(401, 'Admin authentication required.', code='admin_auth_required')
+            return
+        # 2. Feature flag gate — 503 if disabled
+        if os.environ.get('USE_RDS_PORTAL_API', '').strip().lower() != 'true':
+            self._json_error(503,
+                'RDS portal API is disabled. Set USE_RDS_PORTAL_API=true to enable.',
+                code='feature_disabled')
+            return
+
+        parsed = urllib.parse.urlparse(self.path)
+        qs     = urllib.parse.parse_qs(parsed.query, keep_blank_values=False)
+
+        email        = qs.get('email',    [''])[0].strip().lower()
+        start_str    = qs.get('start',    [''])[0].strip()
+        end_str      = qs.get('end',      [''])[0].strip()
+        status_str   = qs.get('status',   [''])[0].strip()
+        tracking_raw = qs.get('tracking', [''])[0].strip()
+
+        try:
+            limit = max(1, min(200, int(qs.get('limit',  ['50'])[0])))
+        except (ValueError, IndexError):
+            limit = 50
+        try:
+            offset = max(0, int(qs.get('offset', ['0'])[0]))
+        except (ValueError, IndexError):
+            offset = 0
+
+        if not email:
+            self._json_error(400, 'Missing required parameter: email.', code='bad_request')
+            return
+        if not start_str or not end_str:
+            self._json_error(400,
+                'Missing required parameters: start and end (YYYY-MM-DD).',
+                code='bad_request')
+            return
+
+        try:
+            start_date = _dt.date.fromisoformat(start_str)
+            end_date   = _dt.date.fromisoformat(end_str)
+        except ValueError:
+            self._json_error(400, 'Invalid date format. Use YYYY-MM-DD.', code='bad_request')
+            return
+        if start_date > end_date:
+            self._json_error(400, 'start must be on or before end.', code='bad_request')
+            return
+        if (end_date - start_date).days > 90:
+            self._json_error(400,
+                'Date window exceeds the 90-day maximum for shadow testing.',
+                code='bad_request')
+            return
+
+        # Reject embedded SQL wildcards in tracking
+        tracking = None
+        if tracking_raw:
+            if '%' in tracking_raw or '_' in tracking_raw:
+                self._json_error(400,
+                    'tracking must not contain % or _ characters.', code='bad_request')
+                return
+            tracking = tracking_raw
+
+        status_id = None
+        if status_str:
+            try:
+                status_id = int(status_str)
+            except ValueError:
+                self._json_error(400, 'status must be an integer.', code='bad_request')
+                return
+
+        try:
+            import rds_client as _rds
+            result = _rds_query_packages(
+                _rds, email, start_date, end_date,
+                status_id=status_id, tracking=tracking,
+                limit=limit, offset=offset,
+            )
+        except _RdsEmailNotFoundError:
+            self._json_error(404, 'No consignee found for the given email.', code='not_found')
+            return
+        except _RdsWrongDatabaseError as exc:
+            print(f'[RDS-PACKAGES] wrong database detected: {exc}')
+            self._json_error(503,
+                'Unexpected database active. Query aborted for safety.',
+                code='unexpected_database')
+            return
+        except Exception as exc:
+            print(f'[RDS-PACKAGES] query error: {exc}')
+            self._json_error(502, 'RDS query failed.', code='rds_error')
+            return
+
+        self._json_response(200, {
+            'ok':          True,
+            'source':      'rds',
+            'mode':        'shadow',
+            'authMode':    'admin_session',
+            'database':    'crbox_dev1',
+            'idConsignee': result['id_consignee'],
+            'count':       len(result['packages']),
+            'limit':       limit,
+            'offset':      offset,
+            'packages':    result['packages'],
+        })
+
+    # ── GET /api/admin/rds-shadow-compare ─────────────────────────────────────
+    #
+    # Admin-only endpoint that calls both the new RDS packages path and the
+    # legacy getuserpackages proxy for the same user/date range and returns a
+    # structured diff for data-quality validation.
+    #
+    # The legacy call is skipped (legacy: null) when no Bearer token is present.
+    # A legacy failure never fails the overall response — the error reason is
+    # reported in legacyError and the RDS result is still returned.
+    #
+    # Date format note: accepts YYYY-MM-DD (RDS format).  Internally converts to
+    # DD-MM-YYYY when calling the legacy getuserpackages endpoint.
+    #
+    # Query params: email, start (YYYY-MM-DD), end (YYYY-MM-DD)
+    # Header:       Authorization: Bearer <token>  (optional; triggers legacy call)
+
+    def _handle_admin_rds_shadow_compare(self):
+        import datetime as _dt
+
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._json_error(401, 'Admin authentication required.', code='admin_auth_required')
+            return
+        if os.environ.get('USE_RDS_PORTAL_API', '').strip().lower() != 'true':
+            self._json_error(503, 'RDS portal API is disabled.', code='feature_disabled')
+            return
+
+        parsed = urllib.parse.urlparse(self.path)
+        qs     = urllib.parse.parse_qs(parsed.query, keep_blank_values=False)
+
+        email     = qs.get('email', [''])[0].strip().lower()
+        start_str = qs.get('start', [''])[0].strip()
+        end_str   = qs.get('end',   [''])[0].strip()
+
+        if not email:
+            self._json_error(400, 'Missing required parameter: email.', code='bad_request')
+            return
+        if not start_str or not end_str:
+            self._json_error(400,
+                'Missing required parameters: start and end (YYYY-MM-DD).', code='bad_request')
+            return
+        try:
+            start_date = _dt.date.fromisoformat(start_str)
+            end_date   = _dt.date.fromisoformat(end_str)
+        except ValueError:
+            self._json_error(400, 'Invalid date format. Use YYYY-MM-DD.', code='bad_request')
+            return
+        if start_date > end_date:
+            self._json_error(400, 'start must be on or before end.', code='bad_request')
+            return
+        if (end_date - start_date).days > 90:
+            self._json_error(400, 'Date window exceeds the 90-day maximum.', code='bad_request')
+            return
+
+        # ── RDS side ──────────────────────────────────────────────────────────
+        rds_pkgs     = []
+        id_consignee = None
+        rds_error    = None
+        try:
+            import rds_client as _rds
+            result       = _rds_query_packages(_rds, email, start_date, end_date,
+                                               limit=200, offset=0)
+            id_consignee = result['id_consignee']
+            rds_pkgs     = result['packages']
+        except _RdsEmailNotFoundError:
+            rds_error = 'no_consignee_for_email'
+        except _RdsWrongDatabaseError as exc:
+            print(f'[RDS-COMPARE] wrong database: {exc}')
+            rds_error = 'unexpected_database'
+        except Exception as exc:
+            print(f'[RDS-COMPARE] RDS error: {exc}')
+            rds_error = 'rds_query_failed'
+
+        if rds_error:
+            self._json_error(502, f'RDS query failed: {rds_error}', code=rds_error)
+            return
+
+        rds_section = {
+            'count':                  len(rds_pkgs),
+            'statusIdDistribution':   _status_distribution(rds_pkgs, 'statusId'),
+            'statusNameDistribution': _status_distribution(rds_pkgs, 'statusName'),
+            'sample':                 rds_pkgs[:3],
+        }
+
+        # ── Legacy side (only when Bearer token is provided) ──────────────────
+        legacy_pkgs    = []
+        legacy_section = None
+        legacy_error   = None
+        auth_header    = self.headers.get('Authorization', '')
+
+        if auth_header.startswith('Bearer ') and id_consignee is not None:
+            # Legacy API uses DD-MM-YYYY; convert from YYYY-MM-DD
+            start_legacy = start_date.strftime('%d-%m-%Y')
+            end_legacy   = end_date.strftime('%d-%m-%Y')
+            legacy_url   = '/'.join([
+                'https://clients.crbox.cr/api/crboxwebapi/getuserpackages',
+                urllib.parse.quote(str(id_consignee), safe=''),
+                urllib.parse.quote(start_legacy,      safe=''),
+                urllib.parse.quote(end_legacy,        safe=''),
+                'null',
+                '1000',
+            ])
+            try:
+                req = urllib.request.Request(legacy_url)
+                req.add_header('Authorization', auth_header)
+                req.add_header('Accept',        'application/json')
+                req.add_header('User-Agent',    'CRBOX-Shadow-Compare/1.0')
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    raw = resp.read(8 * 1024 * 1024)
+                data = json.loads(raw)
+                if isinstance(data, list):
+                    legacy_pkgs = data
+                elif isinstance(data, dict):
+                    legacy_pkgs = data.get('data') or data.get('packages') or []
+                legacy_section = {
+                    'count':                  len(legacy_pkgs),
+                    'statusIdDistribution':   _status_distribution(legacy_pkgs, 'statusId'),
+                    'statusNameDistribution': _status_distribution(legacy_pkgs, 'statusName'),
+                    'sample':                 legacy_pkgs[:3],
+                }
+            except urllib.error.HTTPError as exc:
+                print(f'[RDS-COMPARE] legacy HTTP {exc.code}')
+                legacy_error = f'http_error_{exc.code}'
+            except urllib.error.URLError:
+                legacy_error = 'timeout_or_network_error'
+            except (json.JSONDecodeError, ValueError):
+                legacy_error = 'parse_error'
+            except Exception as exc:
+                print(f'[RDS-COMPARE] legacy unexpected error: {exc}')
+                legacy_error = 'unexpected_error'
+
+        self._json_response(200, {
+            'email':       email,
+            'idConsignee': id_consignee,
+            'dateRange':   {'start': str(start_date), 'end': str(end_date)},
+            'rds':         rds_section,
+            'legacy':      legacy_section,
+            'legacyError': legacy_error,
+            'diff':        _compute_packages_diff(rds_pkgs, legacy_pkgs),
+        })
+
+
+# ── RDS packages helpers ───────────────────────────────────────────────────────
+# Shared by _handle_portal_packages_rds and _handle_admin_rds_shadow_compare.
+# Defined at module level so they can be exercised independently.
+
+class _RdsEmailNotFoundError(Exception):
+    """Raised when no consignee row exists for the given email."""
+
+class _RdsWrongDatabaseError(Exception):
+    """Raised when the active MySQL database is not crbox_dev1."""
+
+
+def _rds_query_packages(rds_module, email, start_date, end_date,
+                         status_id=None, tracking=None,
+                         limit=50, offset=0):
+    """Query getwarehousereceipts for a consignee identified by email.
+
+    Returns {'id_consignee': int, 'packages': list[dict]}.
+
+    Raises:
+        _RdsEmailNotFoundError  — no row in consignee for the given email.
+        _RdsWrongDatabaseError  — active DB is not crbox_dev1.
+        Exception               — any other RDS / network error.
+
+    Date format note:
+        start_date / end_date are datetime.date objects (YYYY-MM-DD).
+        The legacy getuserpackages API uses DD-MM-YYYY — callers that bridge to
+        the legacy proxy must convert dates before building that URL.
+    """
+    import datetime as _dt
+    import decimal  as _decimal
+
+    # Safety: confirm active database before touching any customer data.
+    # Aborts immediately if connected to anything other than crbox_dev1.
+    db_row    = rds_module.fetch_one('SELECT DATABASE() AS db')
+    active_db = (db_row or {}).get('db', '')
+    if active_db != 'crbox_dev1':
+        raise _RdsWrongDatabaseError(active_db)
+
+    # Resolve idConsignee server-side from email — never accepted from caller.
+    cons_row = rds_module.fetch_one(
+        'SELECT idConsignee FROM consignee WHERE email = %s LIMIT 1',
+        (email,)
+    )
+    if not cons_row:
+        raise _RdsEmailNotFoundError()
+
+    id_consignee = int(cons_row['idConsignee'])
+
+    # Explicit column list — no SELECT *.
+    # End bound extended to 23:59:59 so the full end day is included.
+    sql = (
+        'SELECT idWarehouseReceipt, number, statusId, statusName, trackingNumber, '
+        'receivedDateTime, createdDate, totalPieces, totalWeight, totalVolume, '
+        'totalVolumetricWeight, shipperName, carrierName, airShipmentNumber, '
+        'masterAirShipmentNumber, emision, invoicesCount, descripcion, '
+        'montoFactura, descripcionFactura, consigneeNotes '
+        'FROM getwarehousereceipts '
+        'WHERE idConsignee = %s AND receivedDateTime BETWEEN %s AND %s'
+    )
+    params = [id_consignee, str(start_date), str(end_date) + ' 23:59:59']
+
+    if status_id is not None:
+        sql += ' AND statusId = %s'
+        params.append(status_id)
+
+    if tracking:
+        # Prefix match only — %value% is intentionally avoided to prevent
+        # expensive full-view scans on the large getwarehousereceipts view.
+        sql += ' AND (trackingNumber LIKE %s OR number LIKE %s)'
+        prefix = tracking + '%'
+        params.extend([prefix, prefix])
+
+    sql += ' ORDER BY receivedDateTime DESC LIMIT %s OFFSET %s'
+    params.extend([limit, offset])
+
+    rows = rds_module.fetch_all(sql, tuple(params))
+
+    packages = []
+    for row in (rows or []):
+        pkg       = {}
+        admin_dbg = {}
+        for k, v in row.items():
+            if k == 'consigneeNotes':
+                # SECURITY BOUNDARY: consigneeNotes may contain internal or
+                # operational notes not intended for customers.  Excluded from
+                # the default package payload and placed under _adminDebug for
+                # this admin-only shadow endpoint only.  Do NOT promote to a
+                # client-facing field without explicit security review.
+                if v is not None:
+                    admin_dbg['consigneeNotes'] = v
+                continue
+            if isinstance(v, (_dt.datetime, _dt.date)):
+                pkg[k] = v.isoformat()
+            elif isinstance(v, _decimal.Decimal):
+                pkg[k] = float(v)
+            elif v is not None:
+                pkg[k] = v
+            # None values are omitted to keep the payload lean
+        if admin_dbg:
+            pkg['_adminDebug'] = admin_dbg
+        packages.append(pkg)
+
+    return {'id_consignee': id_consignee, 'packages': packages}
+
+
+def _status_distribution(packages, key):
+    """Count occurrences of a status key across a list of package dicts."""
+    dist = {}
+    for pkg in packages:
+        val = pkg.get(key)
+        if val is not None:
+            dist[str(val)] = dist.get(str(val), 0) + 1
+    return dist
+
+
+def _compute_packages_diff(rds_pkgs, legacy_pkgs):
+    """Compute a diff between RDS and legacy package lists.
+
+    Primary match key: idWarehouseReceipt (the stable identifier on the RDS
+    side; documented as the canonical key for this diff).
+    Fallback: number field if idWarehouseReceipt is absent on either side.
+    """
+    def _pkg_key(pkg):
+        wrid = (pkg.get('idWarehouseReceipt')
+                or pkg.get('WarehouseReceiptId')
+                or pkg.get('idwarehousereceipt'))
+        if wrid is not None:
+            return ('idWarehouseReceipt', str(wrid))
+        num = (pkg.get('number')
+               or pkg.get('Number')
+               or pkg.get('warehouseReceiptNumber'))
+        return ('number', str(num)) if num else ('unknown', '')
+
+    rds_index    = {_pkg_key(p): p for p in rds_pkgs}
+    legacy_index = {_pkg_key(p): p for p in legacy_pkgs}
+
+    rds_keys    = set(rds_index.keys())
+    legacy_keys = set(legacy_index.keys())
+
+    missing_in_rds    = [str(k) for k in sorted(legacy_keys - rds_keys)]
+    missing_in_legacy = [str(k) for k in sorted(rds_keys - legacy_keys)]
+
+    status_mismatch = []
+    for k in sorted(rds_keys & legacy_keys):
+        rds_sid = rds_index[k].get('statusId')
+        leg_sid = (legacy_index[k].get('statusId')
+                   or legacy_index[k].get('StatusId'))
+        if rds_sid != leg_sid:
+            status_mismatch.append({
+                'key':            str(k),
+                'rdsStatusId':    rds_sid,
+                'legacyStatusId': leg_sid,
+            })
+
+    return {
+        'primaryKey':       'idWarehouseReceipt',
+        'countDelta':       len(rds_pkgs) - len(legacy_pkgs),
+        'missingInRds':     missing_in_rds,
+        'missingInLegacy':  missing_in_legacy,
+        'statusMismatch':   status_mismatch,
+    }
 
 
 # ── Invoice upload orphan cleanup ─────────────────────────────────────────────

@@ -1,0 +1,56 @@
+The #530 plan looks good. Please proceed, but apply these refinements before implementation.
+
+1. Date format compatibility
+The new RDS endpoint can accept start/end as YYYY-MM-DD for the shadow endpoint, but please document clearly that the legacy API currently expects DD-MM-YYYY. If the shadow comparison endpoint calls the legacy API/proxy, it must convert dates correctly for the legacy side so the comparison is fair.
+
+2. Validate date range
+Reject invalid dates with 400.
+Reject start > end with 400.
+Add a reasonable maximum date window for shadow testing, for example 90 days, unless explicitly overridden later. This avoids accidental large scans.
+
+3. Be careful with tracking search
+Use prefix search only as planned:
+trackingNumber LIKE value%
+number LIKE value%
+
+Do not use %value% because that can become expensive on large views.
+
+4. Confirm view/database safety
+Before running package queries, confirm the active database is still crbox_dev1.
+Do not query CrBox, crboxfabric, or any other schema.
+
+5. Avoid exposing consigneeNotes by default
+Since consigneeNotes may contain internal or sensitive notes, please exclude it by default from the response, or include it only under a clearly named admin/debug field for this admin-only shadow endpoint. Do not assume it is safe for future client-facing use.
+
+6. Legacy comparison should be optional and light
+The /api/admin/rds-shadow-compare endpoint should not call the legacy API unless a valid Bearer token is provided.
+Only call legacy once per request.
+Do not loop or retry aggressively.
+If legacy fails, return legacy: null with the failure reason, but do not fail the whole RDS test.
+
+7. Normalize status distribution carefully
+Status labels may differ between legacy and RDS. Compare both:
+- statusId distribution
+- statusName distribution if available
+
+8. Package identity for diff
+Use a stable package identifier for comparison:
+- Prefer idWarehouseReceipt if both sides expose it.
+- Otherwise compare by number / trackingNumber.
+Clearly document which identifier is used.
+
+9. Security response
+Make sure the endpoint returns 401 without admin session and 503 when USE_RDS_PORTAL_API is not true, as planned.
+Do not expose stack traces or SQL errors to the response.
+
+10. Final confirmation
+At the end, explicitly confirm:
+- No frontend files changed.
+- No portal JS changed.
+- mis-paquetes still uses legacy API only.
+- No database writes were run.
+- No SELECT * was added.
+- Only crbox_dev1 was queried.
+- The old website, legacy API, internal/backoffice tool, AWS settings, security groups, and production DB were not modified.
+
+With these refinements, proceed with Task #530.

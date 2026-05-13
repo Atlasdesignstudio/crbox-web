@@ -1,0 +1,126 @@
+Great. The full crbox_dev1 schema discovery is complete and the report confirms that:
+
+- `consignee` is the canonical customer/portal-user table.
+- `warehousereceipt` is the central operational package entity.
+- `getwarehousereceipts` is likely the best pre-joined source for `mis-paquetes`.
+- `resumenmawb` is the likely invoice/billing source.
+- No frontend behavior changed.
+- No writes were executed.
+- Only `crbox_dev1` was queried.
+
+Now I want to proceed with the safest possible next step: build a read-only RDS-backed packages endpoint in shadow mode.
+
+Important:
+Do not replace the current `mis-paquetes` frontend behavior yet.
+Do not disconnect or modify the legacy API.
+Do not touch the old website, internal/backoffice tool, AWS settings, security groups, database users, or production database.
+Do not query production.
+Do not run any writes.
+Do not expose raw sensitive data.
+
+Goal:
+Create a backend-only, read-only endpoint:
+
+GET /api/portal/packages-rds
+
+This endpoint should query only the dev database `crbox_dev1`, using the `getwarehousereceipts` view, and return package data for a specific authenticated user/consignee.
+
+Implementation rules:
+
+1. Authentication / identity:
+   - Do not let the frontend freely request arbitrary `idConsignee`.
+   - Use the existing portal session/token/email flow where possible.
+   - Derive `idConsignee` from the authenticated user email by querying `consignee`.
+   - If this is not possible yet, implement the endpoint behind admin-only protection first for testing with a controlled email parameter.
+   - Clearly label whether the endpoint is admin-test-only or portal-auth-ready.
+
+2. Query source:
+   - Use `getwarehousereceipts` view as the primary source.
+   - Filter by `idConsignee`.
+   - Add date range filters using the correct date column, likely `receivedDateTime`.
+   - Add optional status filter.
+   - Add optional tracking/search filter, but only if it can be done safely.
+   - Add LIMIT/pagination.
+   - Never return all rows.
+
+3. Safety:
+   - Read-only only.
+   - No INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, REVOKE.
+   - No SELECT *.
+   - Select only the columns needed for the package list.
+   - Do not expose PII beyond what the logged-in user already sees.
+   - Do not expose other users’ packages.
+   - Do not expose internal-only columns unless explicitly needed.
+
+4. Recommended columns to return:
+   - idWarehouseReceipt
+   - number
+   - statusId
+   - statusName
+   - trackingNumber
+   - receivedDateTime
+   - createdDate
+   - totalPieces
+   - totalWeight
+   - totalVolume
+   - totalVolumetricWeight
+   - shipperName
+   - carrierName
+   - airShipmentNumber
+   - masterAirShipmentNumber
+   - emision
+   - invoicesCount
+   - descripcion
+   - montoFactura
+   - descripcionFactura
+   - consolidadoFactura if available
+   - consigneeNotes if safe
+
+5. Response shape:
+   Return a normalized JSON object that can later be mapped to the current `mis-paquetes` UI, for example:
+
+   {
+     "ok": true,
+     "source": "rds",
+     "mode": "shadow",
+     "database": "crbox_dev1",
+     "idConsignee": 12345,
+     "count": 10,
+     "packages": [...]
+   }
+
+6. Shadow comparison:
+   Do not change the frontend yet.
+   If possible, add an admin-only comparison endpoint or script that compares:
+   - legacy API getuserpackages response
+   - new RDS /api/portal/packages-rds response
+
+   Compare for the same user/date/status:
+   - number of packages
+   - status
+   - tracking
+   - received date
+   - invoice count
+   - major missing fields
+
+   Do not call the legacy API heavily. Use one controlled test user only.
+
+7. Feature flag:
+   Keep the endpoint behind a feature flag:
+   USE_RDS_PORTAL_API=true
+
+   Do not make the frontend consume it unless a separate task explicitly asks for it.
+
+8. Deliverables:
+   - Implement /api/portal/packages-rds
+   - Add safe pagination/date/status params
+   - Add admin/test protection if portal auth integration is not ready
+   - Document exact SQL query used
+   - Document response fields
+   - Document how idConsignee is resolved
+   - Add a small test plan
+   - Confirm no frontend behavior changed
+   - Confirm no writes/destructive SQL were run
+   - Confirm only crbox_dev1 was queried
+
+9. Do not proceed to invoices, profile, writes, login, registration, or frontend migration in this task.
