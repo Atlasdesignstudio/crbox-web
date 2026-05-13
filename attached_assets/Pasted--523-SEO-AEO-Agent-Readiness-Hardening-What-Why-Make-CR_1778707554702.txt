@@ -1,0 +1,519 @@
+#523 - SEO/AEO/Agent Readiness Hardening
+
+What & Why  
+Make CRBOX machine-readable, LLM-discoverable, crawler-efficient, and agent-ready across its public layer.
+
+The foundation is already in place: robots.txt, sitemap.xml, llms.txt, and noindex handling on private pages. This task builds the next missing layers:
+
+- a public structured JSON context file
+- safe public API endpoints
+- JSON-LD schema improvements on every public page
+- complete per-page metadata
+- basic performance wins
+- accessibility essentials
+- public/private truthfulness checks
+- a future-agent/MCP architecture document
+
+The end goal is that Google can reliably crawl and index the correct public pages, LLMs can answer core CRBOX questions from structured public data without guessing, and future AI agents have a documented, safe interface architecture to build on.
+
+This is an implementation task, not just an audit.
+
+Done looks like
+
+- /ai-context.json is served correctly, valid JSON, public-only, schema-versioned, and parseable by any agent.
+- Public read-only API endpoints exist in server.py:
+  - /api/public/overview
+  - /api/public/services
+  - /api/public/how-it-works
+  - /api/public/faqs
+  - /api/public/contact
+  - /api/public/rates-guidance
+- All public endpoints return structured JSON sourced from knowledge/crbox-kb.json and/or existing approved public knowledge. No private data, no fake data.
+- Public endpoints are CORS-open, cacheable, and safe for agents to consume.
+- Every public HTML page has:
+  - unique <title>
+  - unique <meta name="description">
+  - correct <link rel="canonical">
+  - matching Open Graph tags
+  - matching Twitter/X tags
+  - lang="es" on <html>
+- Every public page has appropriate JSON-LD:
+  - Organization and WebSite where appropriate
+  - WebPage on every public page
+  - FAQPage only where real visible FAQ content exists
+  - Service schema only where real visible service content exists
+  - no fake reviews, no fake ratings, no fake prices, no unsupported claims
+- Key public images have width and height attributes.
+- Below-the-fold images use loading="lazy" and decoding="async".
+- Hero/LCP images are not lazy-loaded.
+- Non-critical scripts use defer where safe.
+- Icon-only buttons have aria-label.
+- Forms have proper label/input relationships.
+- Active nav links use aria-current="page".
+- Every public page has a <main> landmark.
+- No fake/demo/private content appears in public HTML, schema, public JSON, or public JS.
+- docs/crbox-agent-architecture.md exists and defines the future CRBOX agent architecture clearly.
+- llms.txt and ai-context.json reference all relevant public machine-readable resources.
+- Existing UI, layout, backend contracts, authenticated flows, analytics, and portal behavior remain unchanged.
+
+Out of scope
+
+- Redesigning existing UI or page layouts
+- Changing authenticated endpoints
+- Changing login flow
+- Changing registration flow
+- Changing portal logic
+- Implementing a live MCP server
+- Changing GTM or analytics configuration
+- Replacing or generating new image assets
+- Making cotizar.html publicly indexable
+- Any changes to private portal pages beyond confirming noindex/private treatment is correct
+- Backend migrations or risky architecture changes
+
+Core rules
+
+1. Do not fake anything.  
+Do not invent prices, services, delivery times, testimonials, ratings, customer names, package data, invoice data, branches, policies, or business facts.
+
+2. Use knowledge/crbox-kb.json as the primary source of truth.  
+Where possible, public JSON, API endpoints, schema, and llms.txt should all derive from the same approved knowledge source to avoid inconsistencies.
+
+3. Do not expose private data.  
+No customer names, emails, package IDs, invoice data, addresses, account details, tokens, backend secrets, or private operational data should appear in public files, schema, endpoints, or llms.txt.
+
+4. Do not break existing behavior.  
+Preserve the current visual design, authenticated flows, portal functionality, calculators, registration, login, forms, and navigation.
+
+5. Act safely.  
+Implement everything that is safe in the current codebase. Leave only blocked or risky items as follow-ups.
+
+Steps
+
+1. Create /ai-context.json
+
+Create a complete schema-versioned JSON file served at /ai-context.json.
+
+Source facts from:
+- knowledge/crbox-kb.json
+- existing llms.txt
+- existing approved public website content
+
+Include:
+
+- schemaVersion
+- lastUpdated
+- brand
+- publicResources
+- restrictedResources
+- services
+- howItWorks
+- calculatorOrEstimate
+- contact
+- faqs
+- agentGuidance
+
+Requirements:
+
+- valid JSON
+- public-only data
+- no private data
+- no fake data
+- no unsupported pricing or delivery claims
+- clear limitations for rates/estimates
+- cache header: Cache-Control: public, max-age=3600
+
+2. Add public API endpoints
+
+Add six safe GET endpoints in server.py:
+
+- /api/public/overview
+- /api/public/services
+- /api/public/how-it-works
+- /api/public/faqs
+- /api/public/contact
+- /api/public/rates-guidance
+
+Each endpoint should:
+
+- return structured JSON
+- source data from knowledge/crbox-kb.json
+- expose only public information
+- include no customer/private/admin data
+- include no secrets or internal-only URLs
+- include CORS header: Access-Control-Allow-Origin: *
+- include cache header: Cache-Control: public, max-age=3600
+- be rate-limit-exempt if the app has rate limiting
+- fail gracefully with safe error messages
+- avoid exposing stack traces
+
+Add these endpoints to the public resources section of llms.txt and ai-context.json.
+
+3. Audit and fix per-page metadata
+
+For each public HTML page currently intended to be public/indexable, including:
+
+- index.html
+- servicios.html
+- como-funciona.html
+- tarifas.html
+- calculadora.html
+- contacto.html
+- afiliate.html
+- privacidad.html
+- terminos.html
+
+Ensure:
+
+- unique descriptive <title>
+- unique meta description
+- correct canonical URL
+- og:title
+- og:description
+- og:url
+- og:image only if the referenced asset exists
+- twitter:card
+- twitter:title
+- twitter:description
+- twitter:image only if the referenced asset exists
+- lang="es" on <html>
+
+Guidelines:
+
+- titles should be clear and useful, not keyword-stuffed
+- meta descriptions should explain the page purpose clearly
+- canonical URLs must match the production public URL
+- do not change body content as part of this step unless necessary for schema/landmark/accessibility work
+
+4. Improve JSON-LD structured data
+
+Audit all existing JSON-LD on public pages.
+
+Implement or improve:
+
+- Organization schema from real CRBOX public data
+- WebSite schema where appropriate
+- WebPage schema on every public page
+- BreadcrumbList where breadcrumbs exist or are appropriate
+- FAQPage only where visible Q&A exists in the HTML
+- Service schema on service-related pages using real visible service descriptions
+- ContactPoint only if real public contact information exists
+
+Strict rules:
+
+- no fake Review schema
+- no fake AggregateRating
+- no fake Product schema
+- no fake prices
+- no unsupported delivery promises
+- no schema that contradicts visible page content
+- no private portal/client data
+- no duplicated conflicting schema blocks
+
+Validate JSON syntax after implementation.
+
+5. Performance quick wins
+
+On all public pages:
+
+- add width and height to <img> tags that are missing them
+- add loading="lazy" decoding="async" to below-the-fold images
+- do not lazy-load first hero/LCP image
+- use fetchpriority="high" for the main LCP image only if appropriate
+- add defer to non-critical scripts where safe
+- do not defer scripts that must run before dependent scripts
+- avoid changing build tools or bundling
+- avoid risky dependency rewrites
+
+Document any larger performance recommendations separately, especially if they require:
+
+- replacing CDN Tailwind
+- replacing Font Awesome
+- image compression/replacement
+- bundling changes
+- hosting/CDN configuration
+
+6. Accessibility essentials
+
+On public pages:
+
+- add aria-label to icon-only buttons
+- ensure hamburger/search/close buttons have accessible names
+- add for/id pairs for form labels where missing
+- add autocomplete attributes to common form fields where safe
+- add aria-current="page" to the active nav link
+- ensure each public page has a <main> landmark
+- preserve visible design
+- do not redesign components
+
+7. Fake/demo/private content audit
+
+Search public HTML and public JS for:
+
+- hardcoded customer names
+- test emails
+- test phone numbers
+- fake package IDs
+- fake package counts
+- fake tracking statuses
+- fake invoices
+- fake dashboard metrics
+- fake testimonials
+- fake reviews
+- placeholder business claims
+- test credentials
+- secrets or token-like strings
+
+Act:
+
+- remove or replace fake public data with honest empty/loading/unavailable states
+- do not touch private portal/dashboard files except to confirm they are noindex/private
+- do not expose private information through schema, ai-context.json, llms.txt, public JSON, or APIs
+
+8. Update llms.txt
+
+Update llms.txt to reference:
+
+- /ai-context.json
+- /api/public/overview
+- /api/public/services
+- /api/public/how-it-works
+- /api/public/faqs
+- /api/public/contact
+- /api/public/rates-guidance
+
+Also include guidance for AI systems:
+
+- use official public pages and structured resources
+- do not infer unsupported prices, delivery times, package statuses, or policies
+- do not use private portal pages for public answers
+- exact account/package/invoice information requires authenticated CRBOX flows
+- exact rates should be confirmed through official calculator/contact flow when applicable
+
+9. Write docs/crbox-agent-architecture.md
+
+Create docs/crbox-agent-architecture.md.
+
+Include:
+
+A. Purpose  
+Explain why CRBOX needs an official agent-readable layer.
+
+B. Layered architecture  
+Define:
+
+- human website
+- AI-readable static layer
+- public API/data layer
+- future MCP server layer
+- future authenticated customer tools
+- internal/admin tools
+
+C. Public tool contracts  
+Define future public tools:
+
+- get_crbox_overview
+- get_services
+- get_how_it_works
+- get_public_rates
+- calculate_shipping_estimate
+- get_contact_options
+- get_branch_locations
+- explain_registration_steps
+- get_public_faqs
+- get_required_purchase_information
+
+For each tool include:
+
+- purpose
+- privacy level
+- input schema
+- output schema
+- data source
+- risk level
+- authentication requirement
+- example response
+
+D. Future private/authenticated tools  
+Define but do not implement:
+
+- get_my_packages
+- get_my_invoices
+- get_my_account
+- upload_invoice
+- update_profile
+- request_consolidation
+- track_package_authenticated
+- manage_delivery_preferences
+
+E. Security requirements  
+Include:
+
+- secure login
+- scoped tokens
+- user consent
+- short-lived sessions
+- least privilege
+- rate limiting
+- audit logs
+- session isolation
+- no cross-user data exposure
+- no private data in public tools
+
+F. MCP security rules  
+Include:
+
+- no arbitrary command execution
+- no unrestricted database access
+- no secrets in prompts or responses
+- strict tool allowlisting
+- input validation
+- output sanitization
+- prompt injection resistance
+- domain allowlisting
+- logging and monitoring
+- safe error messages
+- public/private data separation
+
+G. Roadmap  
+Define:
+
+- Phase A: llms.txt, ai-context.json, public JSON/API, schema, robots/sitemap
+- Phase B: public API hardening and cacheable public data
+- Phase C: public-only MCP prototype
+- Phase D: authenticated customer tools after security review
+- Phase E: ChatGPT/Claude/Gemini integration strategy
+
+H. What must never be exposed  
+List:
+
+- passwords
+- tokens
+- API keys
+- backend credentials
+- private customer data
+- account data without authentication
+- package/invoice data without authentication
+- payment data
+- internal admin operations
+- arbitrary file access
+- arbitrary shell access
+- raw database access
+- secrets in logs
+
+10. Validation
+
+After implementation, verify:
+
+Crawl/index:
+
+- robots.txt loads
+- sitemap.xml loads
+- sitemap excludes private/client/admin pages
+- public pages have canonicals
+- private pages remain noindex
+- cotizar.html remains intentionally excluded if that is the current product decision
+
+AI/agent:
+
+- /llms.txt loads
+- /ai-context.json loads and parses
+- all six public endpoints return valid JSON
+- endpoints include CORS and cache headers
+- endpoints expose no private data
+- llms.txt references the new public resources
+
+Schema:
+
+- JSON-LD parses
+- schema matches visible content
+- no fake reviews
+- no fake ratings
+- no fake prices
+- no unsupported delivery promises
+
+Performance:
+
+- key images have dimensions
+- below-the-fold images lazy-load
+- hero/LCP images are not delayed
+- scripts are deferred only where safe
+- no obvious CLS introduced
+
+Functionality:
+
+- navigation still works
+- mobile navigation still works
+- calculator still works
+- registration still works
+- login still works
+- public forms still work
+- contact links still work
+- visual design remains consistent
+
+Final deliverable
+
+Provide a final implementation report with:
+
+1. Executive summary  
+What was implemented and why it matters for Google, AI search, LLMs, agents, performance, and users.
+
+2. Files changed  
+Exact list.
+
+3. New files created  
+Exact list.
+
+4. Endpoints created  
+List endpoint, purpose, data source, cache/CORS behavior.
+
+5. Structured resources created  
+List llms.txt updates, ai-context.json, and any public JSON/API resources.
+
+6. Issues found and fixed  
+Group by:
+
+- crawlability/indexing
+- LLM/AEO readability
+- agent readiness
+- structured data
+- performance/Core Web Vitals
+- metadata/social
+- accessibility
+- public/private protection
+- fake/demo/private data cleanup
+
+7. Issues found but not fixed  
+Only include items blocked by:
+
+- missing business information
+- backend access
+- authentication/security architecture
+- deployment/server configuration
+- asset replacement
+- legal/business approval
+- risky migration
+
+8. QA checklist  
+Include manual verification steps.
+
+9. Recommended next phase  
+Suggest the next technical step, such as:
+
+- Search Console validation
+- Rich Results / schema validation
+- Lighthouse/PageSpeed validation
+- production logs for endpoint traffic
+- public API hardening
+- public MCP prototype
+- authenticated agent architecture
+- ChatGPT/Claude/Gemini integration strategy
+
+Final instruction
+
+Do not stop at recommendations.
+
+Implement everything safe and possible in the current codebase.
+
+Only leave recommendations when implementation is blocked by missing information, missing credentials, server/deployment configuration, security/authentication requirements, legal/business approval, asset replacement, or risky migration.
+
+The expected outcome is a safer, faster, more structured, more truthful, more machine-readable, and more agent-ready CRBOX public layer prepared for Google, AI search, LLM retrieval, and future AI agent/MCP integrations.
