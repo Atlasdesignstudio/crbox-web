@@ -1,0 +1,491 @@
+Great — the RDS connection to `crbox_dev1` is working and all 4 admin endpoints pass:
+
+- /api/admin/rds-health
+
+- /api/admin/rds-tables
+
+- /api/admin/rds-columns/<table>
+
+- /api/admin/rds-count/<table>
+
+Now proceed with the full schema discovery report, but keep it strictly read-only and non-invasive.
+
+Important safety reminders:
+
+- Only query `crbox_dev1`.
+
+- Do not query `CrBox`, `crboxfabric`, or any other database.
+
+- Do not modify frontend behavior.
+
+- Do not connect dashboard, mis-paquetes, mis-facturas, mi-cuenta, login, or registration to RDS yet.
+
+- Do not touch the old website, legacy API, AWS settings, database users, security groups, or internal/backoffice tool.
+
+- Do not run writes or destructive SQL.
+
+- Do not run INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, REVOKE.
+
+- Do not run migrations, seed scripts, account creation, profile edits, invoice uploads, or package edits.
+
+- Do not expose raw customer data or credentials.
+
+Performance guardrails:
+
+Some tables are large:
+
+- warehousereceipt: 481,768 rows
+
+- purchase_bill: 249,046 rows
+
+- consignee: 31,838 rows
+
+- client: 26,973 rows
+
+Do not run:
+
+- SELECT * on large tables
+
+- unbounded SELECT queries
+
+- full table exports
+
+- joins across large tables
+
+- ORDER BY on large tables
+
+- expensive aggregations
+
+Use only:
+
+- table list
+
+- column list
+
+- row counts
+
+- schema/column inference
+
+- limited masked samples only if absolutely necessary, and ask first before doing that
+
+Full discovery goal:
+
+Create/update `docs/rds-discovery-report.md` with a complete read-only forensic schema report.
+
+Please include:
+
+1. Executive summary
+
+- Connection status
+
+- Active database confirmed as `crbox_dev1`
+
+- MySQL version
+
+- Number of tables found
+
+- Key high-level observations
+
+2. Table inventory summary
+
+For all 91 tables, include:
+
+- table name
+
+- row count
+
+- number of columns
+
+- likely category:
+
+  - customer
+
+  - logistics
+
+  - package/shipping
+
+  - financial/invoice
+
+  - configuration
+
+  - audit/logging
+
+  - background jobs
+
+  - unknown
+
+- sensitivity level:
+
+  - safe
+
+  - sensitive
+
+  - critical
+
+- confidence level:
+
+  - confirmed
+
+  - strong hypothesis
+
+  - weak hypothesis
+
+  - unknown
+
+3. Table-by-table schema map
+
+For each table, document:
+
+- columns
+
+- likely primary key
+
+- likely relationship fields
+
+- date/time fields
+
+- status fields
+
+- customer/user-related fields
+
+- financial fields
+
+- logistics/package fields
+
+- whether populated or empty
+
+- what the table seems to represent
+
+4. Portal module mapping
+
+Map likely database tables to the current client portal modules:
+
+- Login / authentication
+
+- User profile / consignee
+
+- Dashboard summary
+
+- Mis paquetes
+
+- Mis facturas
+
+- Mi cuenta
+
+- Addresses / direcciones
+
+- Phones / teléfonos
+
+- Branches / sucursales
+
+- Package status history
+
+- Uploaded invoices / purchase bills
+
+- Registration / account creation
+
+- Password recovery
+
+- Discounts / pending discounts
+
+- Notifications / events / audit logs
+
+For each module, include:
+
+- likely tables
+
+- key columns
+
+- how the data may relate
+
+- what fields the current frontend/API probably expects
+
+- what fields may need transformation
+
+- what is safe for read-only migration
+
+- what requires write logic later
+
+- what should remain legacy API for now
+
+- confidence level
+
+- validation needed
+
+5. Key table deep-dive
+
+Prioritize deeper schema analysis for these tables:
+
+- consignee
+
+- client
+
+- warehousereceipt
+
+- purchase_bill
+
+- package
+
+- user
+
+- airshipment
+
+- piece
+
+- etiquetaembarque
+
+- etiquetaentrega
+
+- couriermanifest
+
+- plan
+
+- store
+
+- supplier
+
+- payment_method
+
+- notifications
+
+- discount
+
+- facturaaduanal
+
+For each one, explain:
+
+- what it likely represents
+
+- why it matters
+
+- what portal module it could power
+
+- whether it contains sensitive data
+
+- whether it seems client-facing, admin-only, or internal-only
+
+6. Unused / underused data opportunities
+
+Identify data that exists in the database but may not currently be surfaced in the new portal.
+
+Look for opportunities around:
+
+- richer package tracking timeline
+
+- warehouse receipt history
+
+- shipment/manifest status
+
+- invoice upload status
+
+- purchase bill status
+
+- package consolidation
+
+- missing invoice alerts
+
+- discounts / pending discounts
+
+- customer notifications
+
+- branch/sucursal preferences
+
+- customer segmentation
+
+- business account indicators
+
+- operational notes
+
+- audit logs
+
+- service preferences
+
+- package exceptions
+
+- admin reporting
+
+- loyalty/frequency signals
+
+For each opportunity, report:
+
+- what table/field suggests it
+
+- confidence level
+
+- whether it appears populated
+
+- potential client portal value
+
+- potential admin/backoffice value
+
+- whether it should be client-facing, admin-only, or hidden
+
+- risks / validation needed
+
+7. Legacy API comparison
+
+Compare the discovered schema against the known legacy API contracts, without stressing the live legacy API.
+
+Known endpoints:
+
+- getuserinfo/{email}
+
+- getuserpackages/{idConsignee}/{fecha_inicial}/{fecha_final}/{tracking}/{status}
+
+- getfacturas/{email}/{fecha_inicial}/{fecha_final}
+
+- postedituser
+
+- postregisteruser
+
+- password recovery
+
+- purchase bill endpoints, if identifiable
+
+For each endpoint, infer:
+
+- likely DB tables involved
+
+- fields the API probably returns
+
+- fields available in DB but not exposed
+
+- business logic likely handled by the legacy API
+
+- risks of bypassing the legacy API
+
+- what we would need to replicate in the new backend
+
+8. Migration recommendation
+
+Recommend a safe migration order using these categories:
+
+A. Safe read-only migration first:
+
+- dashboard reads
+
+- profile reads
+
+- packages reads
+
+- invoices reads
+
+B. Needs deeper validation:
+
+- package status logic
+
+- invoice upload / purchase bill logic
+
+- discounts
+
+- delivery / sucursal logic
+
+- dashboard summary calculations
+
+- package consolidation logic
+
+C. Should remain legacy API for now:
+
+- login
+
+- registration
+
+- password recovery
+
+- profile edits
+
+- any flow with side effects
+
+- any flow whose business logic is not fully understood
+
+D. Future write migration:
+
+- account creation
+
+- profile update
+
+- invoice upload
+
+- package grouping/consolidation
+
+- notification preferences
+
+- support requests
+
+9. What to build next
+
+Recommend the first safe implementation step after the discovery report.
+
+Likely candidates:
+
+- /api/portal/me-rds
+
+- /api/portal/packages-rds
+
+- /api/portal/invoices-rds
+
+But do not implement them yet. Only recommend.
+
+10. What not to touch yet
+
+Explicitly list:
+
+- login
+
+- registration
+
+- password recovery
+
+- profile writes
+
+- package status writes
+
+- invoice upload writes
+
+- production database
+
+- legacy API replacement
+
+- old website/internal tool
+
+11. Unknowns / questions for CRBOX dev team
+
+List specific questions that require validation from the dev team, such as:
+
+- exact meaning of status fields
+
+- whether `consignee` or `client` is the canonical customer table
+
+- how `warehousereceipt`, `package`, `piece`, and `purchase_bill` relate
+
+- whether `crbox_dev1` schema matches production
+
+- whether dev data is current or stale
+
+- which tables should never be exposed to clients
+
+12. Final safety confirmations
+
+At the end, explicitly confirm:
+
+- No frontend behavior changed.
+
+- No portal HTML/JS files were modified.
+
+- No writes/destructive queries were run.
+
+- Only `crbox_dev1` was queried.
+
+- The old website was not touched.
+
+- The internal/backoffice tool was not touched.
+
+- The legacy API was not modified.
+
+- AWS/RDS/security settings were not changed.
+
+- No credentials were exposed.
+
+- No raw sensitive customer data was exposed.
+
+Proceed with the full schema discovery and update `docs/rds-discovery-report.md`.
