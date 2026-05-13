@@ -1,0 +1,247 @@
+We are starting the CRBOX RDS/MySQL discovery and migration foundation.
+
+I want you to understand the bigger goal before doing anything.
+
+Current situation:
+The new CRBOX client portal currently does NOT connect directly to AWS RDS. It uses the legacy CRBOX API for login, dashboard, packages, invoices, profile, registration, and password recovery.
+
+We now have MySQL/RDS connection information from the CRBOX dev.
+
+Known database context:
+- There is one AWS RDS MySQL server.
+- Inside that server there are multiple databases.
+- The dev/test backoffice database is: crbox_dev1.
+- RDS host: crboxdbserver.cvfe6dzk8nhz.us-east-1.rds.amazonaws.com
+- Port: 3306
+- Database to use first: crbox_dev1
+- User: CrBoxUser
+- I will provide the password directly in Replit Secrets. Do not write it in code, logs, responses, or prompts.
+- USE_RDS_PORTAL_API should be true only for the protected admin discovery endpoints.
+
+Important:
+Connecting Replit to the database should NOT disconnect or replace the old website, the legacy API, or the current internal tool. This must be an additional backend connection used only for controlled read-only discovery. Do not change anything that could affect the existing systems.
+
+Even if the database user technically has write permissions, treat this entire phase as READ-ONLY.
+
+Do NOT:
+- Do not modify frontend behavior.
+- Do not connect dashboard, mis-paquetes, mis-facturas, mi-cuenta, login, registration, or any user-facing page to RDS yet.
+- Do not replace the legacy API yet.
+- Do not change or reset any database password.
+- Do not change AWS security groups, firewall rules, RDS settings, certificates, users, grants, or permissions.
+- Do not run INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, REVOKE.
+- Do not run migrations.
+- Do not seed data.
+- Do not create users.
+- Do not edit packages, invoices, accounts, addresses, phones, or any records.
+- Do not expose credentials.
+- Do not print or log MYSQL_PASSWORD.
+- Do not return full sensitive customer data in discovery responses.
+
+Allowed queries only:
+- SELECT DATABASE();
+- SELECT VERSION();
+- SHOW TABLES;
+- SHOW COLUMNS FROM `<table>`;
+- DESCRIBE `<table>`;
+- SELECT COUNT(*) FROM `<table>`;
+- Limited SELECT samples only when needed, with LIMIT, and with sensitive values masked or avoided.
+
+Phase goal:
+This is not just a basic connection test. I want a full read-only forensic discovery of the dev database schema so we can understand what data exists, what powers the current portal, and what additional data exists that is currently not being used but could be valuable for the future portal.
+
+Main objective:
+Build a complete understanding of the database model before reconnecting any frontend module.
+
+Please proceed in controlled phases.
+
+PHASE 1 — Secrets and connection setup
+First, guide me step by step on where to add the Replit Secrets, or prepare the project so I can add them safely.
+
+Secrets to add:
+
+MYSQL_HOST=crboxdbserver.cvfe6dzk8nhz.us-east-1.rds.amazonaws.com
+MYSQL_PORT=3306
+MYSQL_DATABASE=crbox_dev1
+MYSQL_USER=CrBoxUser
+MYSQL_PASSWORD=<I will paste this directly into Replit Secrets only>
+USE_RDS_PORTAL_API=true
+
+After I add the Secrets, test only the existing protected admin discovery endpoints:
+- GET /api/admin/rds-health
+- GET /api/admin/rds-tables
+- GET /api/admin/rds-columns/<table>
+- GET /api/admin/rds-count/<table>
+
+Report:
+1. Whether the connection works.
+2. Which database is active.
+3. MySQL version.
+4. Whether tables are visible.
+5. If it fails, identify whether the failure is credentials, network/security group, SSL, timeout, permissions, or missing env vars.
+
+PHASE 2 — Full schema inventory
+Once connected, list all tables in `crbox_dev1`.
+
+For every table, collect:
+- table name
+- row count
+- columns
+- likely primary key
+- likely foreign keys or relationship fields
+- date fields
+- status fields
+- user/customer-related fields
+- whether it looks like operational, financial, customer, logistics, audit, config, or legacy data
+- whether it appears empty or populated
+- whether it seems safe, sensitive, or critical
+
+Do not return full rows of sensitive data. Use structure and counts first.
+
+PHASE 3 — Portal data mapping
+Identify the likely tables and relationships for the current client portal modules:
+
+1. Login / authentication
+2. User / consignee profile
+3. Dashboard summary
+4. Mis paquetes
+5. Mis facturas
+6. Mi cuenta
+7. Addresses / direcciones
+8. Phones / teléfonos
+9. Branches / sucursales
+10. Package status history
+11. Uploaded invoices / purchase bills
+12. Registration / account creation
+13. Password recovery
+14. Discounts / pending discounts
+15. Any notification, event, or audit tables
+
+For each module, report:
+- likely table(s)
+- key columns
+- how the module would query the data
+- what fields the current frontend/API expects
+- what fields are missing or need transformation
+- whether the module is safe to migrate read-only first
+- whether it requires write logic later
+- whether it should stay on the legacy API for now
+
+PHASE 4 — Discover unused or underused data
+Look beyond the obvious portal tables and identify any data that exists in the database but is not currently used by the new portal and could be useful.
+
+Look for possible data related to:
+- package lifecycle/history
+- warehouse events
+- status timestamps
+- invoice/payment status
+- customer segmentation
+- discounts
+- branches/sucursales
+- service preferences
+- delivery preferences
+- package consolidation
+- uploaded invoices
+- purchase bills
+- operational notes
+- audit logs
+- notifications
+- customer service interactions
+- pricing/tariff logic
+- package exceptions
+- tax/refund workflows
+- abandoned/incomplete registrations
+- business accounts
+- loyalty or frequency indicators
+- any hidden admin/backoffice functionality
+
+For each potentially valuable unused table or field, report:
+- what it seems to represent
+- confidence level
+- whether it is populated
+- how it could improve the client portal
+- whether it could improve admin/backoffice workflows
+- whether it is sensitive
+- whether it should be exposed to clients, admins only, or not exposed at all
+- what further validation is needed
+
+PHASE 5 — Compare against legacy API
+Do not replace the legacy API yet.
+
+After mapping likely tables, compare what the database contains against what the current legacy API returns:
+
+- getuserinfo/{email}
+- getuserpackages/{idConsignee}/{fecha_inicial}/{fecha_final}/{tracking}/{status}
+- getfacturas/{email}/{fecha_inicial}/{fecha_final}
+- postedituser
+- postregisteruser
+- password recovery
+- purchase bill endpoints, if present
+
+For each legacy endpoint, identify:
+- likely DB tables involved
+- fields returned by the API
+- fields not returned but available in DB
+- business logic that may exist in the legacy API and not be obvious from raw tables
+- risks of bypassing the legacy API
+- what must be replicated in the new backend before replacing it
+
+PHASE 6 — Migration recommendation
+After discovery, recommend the safest migration order.
+
+Suggested categories:
+A. Safe read-only migration first:
+- dashboard reads
+- profile reads
+- packages reads
+- invoices reads
+
+B. Needs deeper validation:
+- package status logic
+- invoice upload/purchase bill logic
+- discounts
+- delivery/sucursal logic
+
+C. Should remain legacy API for now:
+- login
+- registration
+- password recovery
+- profile edits
+- any flow with side effects
+
+D. Future write migration:
+- account creation
+- profile update
+- invoice upload
+- package grouping/consolidation
+- notification preferences
+- support requests
+
+For every recommended next step, include:
+- required tables
+- required fields
+- required backend endpoint
+- frontend module affected
+- risk level
+- rollback/fallback plan
+
+PHASE 7 — Output format
+Give me a clear report with these sections:
+
+1. Connection status
+2. Database active
+3. Table inventory summary
+4. Table-by-table schema map
+5. Portal module mapping
+6. Unused/underused data opportunities
+7. Sensitive data / risk warnings
+8. Legacy API comparison
+9. Recommended migration order
+10. What we should build next
+11. What we should NOT touch yet
+12. Confirmation that no write/destructive queries were run
+13. Confirmation that no frontend behavior was changed
+14. Confirmation that the old website, legacy API, and current internal tool were not changed or disconnected
+
+Final reminder:
+This is a controlled read-only discovery phase. The goal is to understand the database deeply before building or changing portal functionality. Do not “make random stuff work.” Connect, inspect, map, compare, and then propose the next controlled implementation step.

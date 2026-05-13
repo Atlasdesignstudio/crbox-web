@@ -9870,15 +9870,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             'schemaVersion': '1.0',
             'phone': c.get('phone', ''),
             'whatsapp': c.get('whatsapp', ''),
-            'salesEmail': c.get('email', 'ventas@crbox.cr'),
-            'customerServiceEmail': 'servicioalcliente@crbox.cr',
-            'invoicesEmail': c.get('facturas_email', 'facturas@crbox.cr'),
+            'salesEmail': c.get('email', ''),
+            'customerServiceEmail': c.get('customer_service_email', ''),
+            'invoicesEmail': c.get('facturas_email', ''),
             'contactForm': 'https://crbox.cr/contacto.html',
             'branches': branches,
-            'miamiWarehouse': {
-                'address': '1000 NW 57th Ct, Suite 100, Miami, FL 33126, USA',
-                'purpose': 'Receiving packages from US stores',
-            },
+            'miamiWarehouse': kb.get('miami_warehouse', {}),
         })
 
     def _api_public_rates_guidance(self):
@@ -9943,16 +9940,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             'schemaVersion': '1.1',
             'lastUpdated': '2026-05-13',
             'brand': {
-                'name': c.get('name', 'CRBOX'),
+                'name': c.get('name', ''),
                 'tagline': c.get('tagline', ''),
-                'website': c.get('website', 'https://crbox.cr'),
+                'website': c.get('website', ''),
                 'experienceYears': c.get('experience_years'),
-                'description': (
-                    'CRBOX es un operador costarricense de casillero virtual y courier '
-                    'con más de 20 años de experiencia. Proporciona direcciones gratuitas '
-                    'en Miami para compras en tiendas de EE.UU., con envío aéreo o '
-                    'marítimo a Costa Rica.'
-                ),
+                'clients': c.get('clients'),
+                'shipments': c.get('shipments'),
             },
             'publicResources': {
                 'home': 'https://crbox.cr/',
@@ -9988,11 +9981,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             'contact': {
                 'phone': c.get('phone', ''),
                 'whatsapp': c.get('whatsapp', ''),
-                'salesEmail': c.get('email', 'ventas@crbox.cr'),
-                'customerServiceEmail': 'servicioalcliente@crbox.cr',
-                'invoicesEmail': c.get('facturas_email', 'facturas@crbox.cr'),
+                'salesEmail': c.get('email', ''),
+                'customerServiceEmail': c.get('customer_service_email', ''),
+                'invoicesEmail': c.get('facturas_email', ''),
                 'contactForm': 'https://crbox.cr/contacto.html',
             },
+            'miamiWarehouse': kb.get('miami_warehouse', {}),
             'branches': branches,
             'services': [
                 {
@@ -10009,6 +10003,18 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 {'position': i + 1, 'description': s}
                 for i, s in enumerate(how)
             ],
+            'calculatorOrEstimate': {
+                'description': 'Calculadora oficial de envíos de CRBOX',
+                'url': 'https://crbox.cr/calculadora.html',
+                'note': (
+                    'No existe un endpoint programático de cálculo exacto. '
+                    'Los agentes deben dirigir a los usuarios a la calculadora oficial '
+                    'para estimados precisos.'
+                ),
+                'inputFields': ['weightKg', 'heightCm', 'widthCm', 'lengthCm', 'valuedUsd', 'zone'],
+                'chargingRule': 'Se cobra el mayor entre peso real y peso volumétrico',
+                'volumetricFormula': air.get('volumetric_formula'),
+            },
             'ratesGuidance': {
                 'disclaimer': (
                     'Valores de referencia. El precio final depende del peso real, '

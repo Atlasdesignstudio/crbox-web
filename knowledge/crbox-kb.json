@@ -6,10 +6,15 @@
     "whatsapp": "https://wa.me/50689794418",
     "email": "ventas@crbox.cr",
     "facturas_email": "facturas@crbox.cr",
+    "customer_service_email": "servicioalcliente@crbox.cr",
     "website": "https://crbox.cr",
     "experience_years": 20,
     "clients": 33000,
     "shipments": 586000
+  },
+  "miami_warehouse": {
+    "address": "1000 NW 57th Ct, Suite 100, Miami, FL 33126, USA",
+    "purpose": "Receiving packages from US stores on behalf of Costa Rican customers"
   },
   "branches": [
     {

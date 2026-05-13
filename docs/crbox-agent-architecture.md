@@ -295,13 +295,23 @@ If a future CRBOX MCP server is built, the following rules are mandatory:
 ## G. Phased Roadmap
 
 ### Phase A — Complete (current state)
+
+**Machine-readable public layer:**
 - `llms.txt` public discoverability file
 - `robots.txt` with correct public/private split
 - `sitemap.xml` covering all public pages
-- `ai-context.json` comprehensive structured context document
-- Six public read-only API endpoints (`/api/public/*`)
-- JSON-LD structured data on all public pages (Organization, WebSite, WebPage, FAQPage, HowTo, Service, BreadcrumbList)
+- `ai-context.json` structured context document (all fields KB-derived: services, rates, FAQs, contact, compliance, how-it-works, calculatorOrEstimate, agentGuidance)
+- Six public read-only API endpoints (`/api/public/*`) — CORS-open, cacheable, KB-sourced, no private data
 - `docs/crbox-agent-architecture.md` (this document)
+
+**Per-page SEO/AEO hardening:**
+- All 9 public HTML pages have unique `<title>`, `<meta name="description">`, `<link rel="canonical">`, OG and Twitter Card tags
+- All 9 public pages have `<html lang="es">` and `<main>` landmark
+- JSON-LD schemas present on all public pages: WebPage (all), Organization+WebSite (index only), FAQPage (como-funciona, tarifas, servicios), HowTo (como-funciona), Service+ItemList (servicios), WebApplication (calculadora), LocalBusiness+ContactPoint (contacto), RegisterAction (afiliate), BreadcrumbList (all applicable pages)
+- `aria-current="page"` on active nav link (desktop + mobile) for all 5 pages that appear in the nav: servicios, como-funciona, tarifas, calculadora, contacto
+- `aria-label` on mobile hamburger buttons (all pages)
+- Images: `width`/`height` and `decoding="async"` on logo (all pages); `loading="lazy" decoding="async"` on all below-the-fold images; `fetchpriority="high"` on LCP image where applicable
+- No fake/demo/private content found in any public HTML page (form placeholders are legitimate)
 
 ### Phase B — Recommended next
 - Google Search Console submission and structured data validation
