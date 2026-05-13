@@ -9504,7 +9504,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                     self.end_headers()
         elif self.path.startswith('/api/public/'):
             self._handle_public_api()
-        elif self.path == '/ai-context.json':
+        elif self.path.split('?')[0] == '/ai-context.json':
             self._handle_ai_context_json()
         elif self.path.startswith('/api/check-known-email'):
             self._handle_check_known_email()
