@@ -9431,7 +9431,24 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         return data
 
     def do_OPTIONS(self):
-        """Handle CORS preflight requests. Reject if origin not allowlisted."""
+        """Handle CORS preflight requests.
+
+        Public endpoints (/api/public/* and /ai-context.json) respond with an
+        open preflight (Access-Control-Allow-Origin: *) so that any origin can
+        make cross-origin GET requests to them without restriction.
+
+        All other paths reject preflights from origins not in the allowlist.
+        """
+        p = self.path.split('?')[0]
+        _is_public_ep = p.startswith('/api/public/') or p == '/ai-context.json'
+        if _is_public_ep:
+            # Public endpoints: accept all preflights unconditionally
+            self.send_response(204)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+            self.send_header('Access-Control-Max-Age', '3600')
+            super().end_headers()
+            return
         origin = self.headers.get('Origin', '')
         allowed_set = _allowed_origins()
         if origin and allowed_set and origin not in allowed_set:
@@ -9851,14 +9868,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         branches = kb.get('branches', [])
         self._json_response(200, {
             'schemaVersion': '1.0',
-            'phone': '+506-4000-1114',
+            'phone': c.get('phone', ''),
             'whatsapp': c.get('whatsapp', ''),
             'salesEmail': c.get('email', 'ventas@crbox.cr'),
             'customerServiceEmail': 'servicioalcliente@crbox.cr',
             'invoicesEmail': c.get('facturas_email', 'facturas@crbox.cr'),
             'contactForm': 'https://crbox.cr/contacto.html',
             'branches': branches,
-            'miamWarehouse': {
+            'miamiWarehouse': {
                 'address': '1000 NW 57th Ct, Suite 100, Miami, FL 33126, USA',
                 'purpose': 'Receiving packages from US stores',
             },
@@ -9969,7 +9986,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 ],
             },
             'contact': {
-                'phone': '+506-4000-1114',
+                'phone': c.get('phone', ''),
                 'whatsapp': c.get('whatsapp', ''),
                 'salesEmail': c.get('email', 'ventas@crbox.cr'),
                 'customerServiceEmail': 'servicioalcliente@crbox.cr',
