@@ -5799,7 +5799,7 @@
             var sendBtn = document.getElementById('cqd-send');
             if (!cqd || !msgsEl || !inputEl || !sendBtn) return;
 
-            var D = { lastSender: null, classifying: false, phase: 'intro' };
+            var D = { lastSender: null, classifying: false, phase: 'intro', pendingQueue: [] };
 
             // Dynamically pin #cqd below the actual rendered navbar height
             (function() {
@@ -6107,6 +6107,9 @@
             }
 
             // ── Handle user input ─────────────────────────────────────────────
+            var _deskIntentPrefixRe = /^(quiero\s+traer\s+|quiero\s+|deseo\s+traer\s+|deseo\s+|necesito\s+traer\s+|necesito\s+|busco\s+traer\s+|busco\s+|quisiera\s+traer\s+|quisiera\s+|traer\s+|comprar\s+)/i;
+            var _deskConjRe = /\b(y|e|también|tambien|además|ademas|más|mas|and)\b|,/i;
+
             function _handleInput(raw) {
                 var txt = (raw || '').trim();
                 if (!txt || txt.length < 2 || D.classifying) return;
@@ -6120,29 +6123,88 @@
                 sendBtn.disabled = true;
                 D.lastSender = null;
                 _addRow(txt, 'user');
+
+                var cleanedForSplit = txt.replace(_deskIntentPrefixRe, '').trim();
+
+                setTimeout(function() {
+                    _showTyping();
+
+                    if (_deskConjRe.test(cleanedForSplit)) {
+                        fetch('/api/ai/split-products', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ query: cleanedForSplit })
+                        })
+                        .then(function(r) { return r.json(); })
+                        .then(function(d) {
+                            if (d && d.products && d.products.length > 1) {
+                                _hideTyping();
+                                D.classifying = false;
+                                sendBtn.disabled = false;
+                                _startDesktopQueue(d.products);
+                            } else {
+                                _singleProductClassify(txt);
+                            }
+                        })
+                        .catch(function() { _singleProductClassify(txt); });
+                    } else {
+                        _singleProductClassify(txt);
+                    }
+                }, 340);
+            }
+
+            function _singleProductClassify(txt) {
                 var displayName = _cleanName(txt);
                 var intent = /\b(quiero|traer|comprar|necesito|importar|busco)\b/i.test(txt)
                     ? txt : 'quiero traer ' + txt;
-                setTimeout(function() {
-                    _showTyping();
-                    if (typeof CRBOXProductClassifier !== 'undefined') {
-                        CRBOXProductClassifier.classify(intent).then(function(res) {
-                            _hideTyping();
-                            _showProductCard(displayName, res);
-                        }).catch(function() {
-                            _hideTyping();
-                            _showProductCard(displayName, null);
-                        }).finally(function() {
-                            D.classifying = false;
-                            sendBtn.disabled = false;
-                        });
-                    } else {
+                if (typeof CRBOXProductClassifier !== 'undefined') {
+                    CRBOXProductClassifier.classify(intent).then(function(res) {
+                        _hideTyping();
+                        _showProductCard(displayName, res);
+                    }).catch(function() {
                         _hideTyping();
                         _showProductCard(displayName, null);
+                    }).finally(function() {
                         D.classifying = false;
                         sendBtn.disabled = false;
+                    });
+                } else {
+                    _hideTyping();
+                    _showProductCard(displayName, null);
+                    D.classifying = false;
+                    sendBtn.disabled = false;
+                }
+            }
+
+            function _startDesktopQueue(names) {
+                var total = names.length;
+                var classified = new Array(total);
+                var done = 0;
+                function _tryLaunch() {
+                    done++;
+                    if (done < total) return;
+                    _hideTyping();
+                    _say('¡Detecté <strong>' + total + ' productos</strong>! Los cotizo uno por uno — ingresá el precio de cada uno.');
+                    D.pendingQueue = classified.slice(1);
+                    setTimeout(function() {
+                        _showProductCard(classified[0].name, classified[0].result);
+                    }, 280);
+                }
+                names.forEach(function(pname, idx) {
+                    var intent = 'quiero traer ' + pname;
+                    if (typeof CRBOXProductClassifier !== 'undefined') {
+                        CRBOXProductClassifier.classify(intent).then(function(res) {
+                            classified[idx] = { name: pname, result: res };
+                            _tryLaunch();
+                        }).catch(function() {
+                            classified[idx] = { name: pname, result: null };
+                            _tryLaunch();
+                        });
+                    } else {
+                        classified[idx] = { name: pname, result: null };
+                        _tryLaunch();
                     }
-                }, 340);
+                });
             }
 
             // ── Product card widget ───────────────────────────────────────────
@@ -6470,6 +6532,21 @@
 
                 D.lastSender = null;
                 setTimeout(function() {
+                    // If there are queued products, skip the "add another?" prompt and auto-advance
+                    if (D.pendingQueue && D.pendingQueue.length > 0) {
+                        var nextItem = D.pendingQueue.shift();
+                        var remaining = D.pendingQueue.length;
+                        var doneMsg = '✅ <strong>' + _esc(name) + '</strong> agregado — $' + price.toFixed(2) + ' USD.';
+                        if (remaining > 0) {
+                            doneMsg += ' Quedan <strong>' + remaining + '</strong> producto' + (remaining > 1 ? 's' : '') + ' más.';
+                        } else {
+                            doneMsg += ' Último producto del lote:';
+                        }
+                        _say(doneMsg);
+                        setTimeout(function() { _showProductCard(nextItem.name, nextItem.result); }, 300);
+                        return;
+                    }
+
                     // Build "add another?" decision card
                     var consHtml = nProds >= 2
                         ? '<div class="cqd-addmore-consolidation"><i class="fas fa-boxes"></i><span><strong>Tip de ahorro:</strong> Con ' + nProds + ' productos en el mismo envío el flete se divide — pagás menos por ítem.</span></div>'
