@@ -1,0 +1,77 @@
+Great. The `mi-cuenta` profile shadow endpoint is approved as a safe backend-only first pass, but the current recommendation is correctly B — needs validation before frontend wiring.
+
+Please do not wire `mi-cuenta.html` yet.
+
+Next task:
+Resolve the remaining NEEDS VALIDATION items and run the live shadow compare for `prueba@crbox.cr`.
+
+Scope:
+- Backend/admin shadow validation only
+- No frontend wiring
+- No changes to `mi-cuenta.html`
+- No changes to portal-api.js
+- No changes to auth/login/registration/password recovery
+- No packages or invoices work touched
+- No writes
+- No production DB queries
+- Only `crbox_dev1`
+- No SELECT *
+- No raw PII in docs/logs
+
+Please run explicit `SHOW COLUMNS` / schema validation for:
+- `client`
+- `Sucursal`
+- `consignee_has_address`
+- `consignee_has_phone`
+- `plan`
+- `identificationtype`
+
+Confirm:
+1. Correct FK path between `consignee` and `client`.
+2. Correct column for casillero/company code.
+3. Correct display-name column for sucursal.
+4. Whether `consignee_has_address.isPrimary` and `isActive` exist and how they should be interpreted.
+5. Whether `consignee_has_phone.isPrimary` and `isActive` exist and how they should be interpreted.
+6. Correct plan name and discount columns.
+7. Correct identification type join.
+
+Then update `/api/admin/rds-profile-shadow` queries if any assumed column names are wrong.
+
+After schema validation:
+Run `/api/admin/rds-profile-shadow-compare?email=prueba@crbox.cr` with a valid temporary Bearer token.
+
+Compare:
+- idConsignee
+- email
+- name/surnames/fullName
+- casillero / companyCode
+- sucursal id/name
+- addresses count and primary address logic
+- phones count and primary phone logic
+- identification type
+- isCompany
+- newsletter preference
+- pending discount
+- plan fields if available
+
+Classify differences as:
+- exact_match
+- formatting_only
+- field_naming_casing
+- missing_join
+- stale_dev_snapshot
+- legacy_business_logic_transform
+- withheld_for_privacy
+- true_mapping_issue
+
+Please update `docs/rds-profile-shadow.md` with:
+- observed live compare results
+- resolved column names
+- joinValidationStatus
+- failedJoins if any
+- final recommendation A/B/C
+
+Goal:
+Move this from B to A only if all critical joins are validated and there are no unresolved `true_mapping_issue` entries.
+
+Do not proceed to frontend wiring until I approve the updated report.

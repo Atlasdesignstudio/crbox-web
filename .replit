@@ -55,6 +55,7 @@ USE_RDS_PORTAL_API = "true"
 USE_RDS_PACKAGES_FRONTEND = "true"
 
 [userenv.development]
+USE_RDS_INVOICES_FRONTEND = "true"
 
 [[ports]]
 localPort = 3000
