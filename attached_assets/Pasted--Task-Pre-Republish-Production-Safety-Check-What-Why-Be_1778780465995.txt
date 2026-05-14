@@ -1,0 +1,95 @@
+# Task — Pre-Republish Production Safety Check
+
+What & Why
+Before I click Republish in Replit, I want a quick safety check to confirm that publishing the latest code to the existing Replit production URL will not unintentionally activate RDS, change DNS, or alter the legacy-backed cutover model.
+
+Current production Replit URL:
+https://crbox-web.replit.app
+
+Important:
+Republishing Replit should only update the existing Replit production deployment. It must not change Route 53, crbox.cr, www.crbox.cr, clients.crbox.cr, or admin.crbox.cr.
+
+Goal
+Confirm it is safe to click Republish now.
+
+Do not change anything.
+Do not modify code.
+Do not enable feature flags.
+Do not change secrets.
+Do not change DNS.
+Do not add custom domains yet.
+Do not touch AWS/Route 53.
+Do not query production RDS.
+
+Check the following:
+
+1. RDS frontend flags
+Confirm whether these are unset/false in the current Replit production environment or documented as not enabled:
+- USE_RDS_PACKAGES_FRONTEND
+- USE_RDS_INVOICES_FRONTEND
+- USE_RDS_PROFILE_FRONTEND
+- USE_RDS_PORTAL_API
+
+Expected:
+All should be false/unset for the domain cutover preparation.
+
+2. Legacy-backed data paths
+Confirm that with RDS flags off:
+- login remains legacy-backed through clients.crbox.cr/authtoken
+- signup remains legacy-backed through postregisteruser
+- password recovery remains legacy-backed through getuserpasswordrecovery
+- packages use legacy/fallback path
+- invoices use legacy/fallback path
+- profile writes remain legacy-backed through postedituser
+
+3. Republish impact
+Confirm that clicking Republish will:
+- update https://crbox-web.replit.app
+- not affect crbox.cr
+- not affect www.crbox.cr
+- not affect clients.crbox.cr
+- not affect admin.crbox.cr
+- not change Route 53
+- not change DNS
+- not activate RDS
+- not migrate auth/signup/password recovery
+
+4. Latest code readiness
+Confirm the latest merged fixes are present in the codebase:
+- password recovery 60-second cooldown
+- mobile admin list aligned with desktop admin list
+- branch-aware account completion logic
+- newsletter UI honest state model
+- RDS write-base separation using __crboxUserInfoLegacy
+- password minimum length validation
+- portal pages remain noindex
+- public pages remain canonical/indexable
+
+5. Post-republish smoke test checklist
+Create a short checklist to run after Republish on:
+https://crbox-web.replit.app
+
+Include:
+- homepage loads
+- servicios loads
+- calculadora loads
+- contacto loads
+- afiliate loads
+- login works
+- logout works
+- password recovery cooldown works
+- dashboard loads after login
+- mis-paquetes loads
+- mis-facturas loads
+- mi-cuenta loads
+- mobile navigation works
+- no major console errors
+- /api/config confirms expected flags
+
+Final answer
+Return:
+- Safe to republish? Yes / No
+- Any blockers?
+- Any flags/secrets that must be checked manually in Replit before clicking?
+- Exact post-republish smoke test
+- Confirmation that no DNS/domain change happens from Republish alone
