@@ -58,12 +58,12 @@ With the single recommended fix (see Section G), the current auth/signup/recover
 
 **Storage on success:**
 
-| Key | Content | Expiry |
-|-----|---------|--------|
-| `crbox_access_token` | Bearer token string | See below |
-| `crbox_expires_at` | Unix timestamp (ms) | Same |
-| `crbox_remember` | `'true'` / `'false'` | Persists |
-| `crbox_email` | Account email address | Persists |
+| Key | Content | Expiry | Rating |
+|-----|---------|--------|--------|
+| `crbox_access_token` | Bearer token string | See below | **Fix later** — `localStorage` exposes token to JS; mitigated by CSP and absence of current XSS vectors; HTTP-only cookie preferred long-term |
+| `crbox_expires_at` | Unix timestamp (ms) | Same | **Acceptable** — client-side expiry check is defense-in-depth; server validates token on every API call |
+| `crbox_remember` | `'true'` / `'false'` | Persists | **Acceptable** — preference flag only, no security impact |
+| `crbox_email` | Account email address | Persists | **Fix later** — email in `localStorage` is readable by JS; lower risk than token but contributes to the XSS surface; same long-term mitigation as token |
 
 **Expiry logic (`saveToken`):**  
 - `remember = false` → uses `expires_in` from API (default `86399` s, ~24 h, applied when API omits the field)  
@@ -210,6 +210,38 @@ All pages in `PROTECTED_PAGES` call `enforceAuthGate()` on `DOMContentLoaded`. T
 
 ---
 
+### B.7 Admin Portal Access
+
+| Property | Value |
+|----------|-------|
+| **Files** | `js/nav-auth.js`, `js/mobile-drawer.js`, `server.py` |
+| **Key symbols** | `_goAdminPortal` (nav-auth.js), `_goAdmin` (mobile-drawer.js), `_handle_admin_portal_login`, `_portal_auth_email_only`, `_PORTAL_ADMIN_EMAILS`, `_admin_validate_session` |
+| **Endpoint** | `GET /admin/portal-login` |
+| **Auth** | Bearer user token + `X-Casillero-Email` header |
+
+**Client-side UX layer (not authoritative):**  
+`js/nav-auth.js` has an `ADMIN_EMAILS` array (5 entries) used only to decide whether to inject an admin badge button in the desktop nav and mobile menu. `js/mobile-drawer.js` has a single `ADMIN_EMAIL` string (1 entry — one specific account) used to decide whether to show "Panel Admin" in the mobile drawer. These lists control UI only; they cannot grant access.
+
+**Server-side gate (`_handle_admin_portal_login`):**  
+1. Calls `_portal_auth_email_only()` which: extracts the `Authorization` header; uses `X-Casillero-Email` **only to construct the CRBOX API URL**; calls `GET /getuserinfo/{header_email}` with the bearer token.  
+2. Parses the email from the API response. If the API returns no email field → returns `None` → access denied.  
+3. Compares the API-derived email (lowercased) against the server-side `_PORTAL_ADMIN_EMAILS` set. Identity is derived exclusively from the CRBOX API response; `X-Casillero-Email` is never used as the authorization value.  
+4. Success: `302 → /admin/solicitudes` with `Set-Cookie: admin_session=<token>; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800; [Secure]`. Failure: `403` with no `Set-Cookie`.
+
+**Admin session cookie properties:**
+
+| Property | Value |
+|----------|-------|
+| Storage | In-memory Python dict (`_admin_sessions`); lost on server restart |
+| Token entropy | `secrets.token_hex(32)` — 256-bit |
+| TTL | 8 hours (`_ADMIN_SESSION_TTL = 28800`), sliding (renewed on each authenticated admin request) |
+| Flags | `HttpOnly`, `SameSite=Strict`, `Secure` (when `X-Forwarded-Proto: https`), `Path=/` |
+
+**`_admin_validate_session` coverage — confirmed consistent:**  
+Every admin handler calls `_admin_validate_session(token)` before processing any request. Confirmed via source search: **18 call sites** across all admin page handlers — `_handle_admin_solicitudes_get`, `_handle_admin_dashboard_get`, `_handle_admin_consultas_get`, `_handle_admin_consultas_detail`, `_handle_admin_solicitudes_detail`, `_handle_admin_solicitudes_status`, `_handle_admin_solicitudes_add_note`, `_handle_admin_solicitudes_respond`, `_handle_admin_solicitudes_resend_response`, `_handle_admin_solicitudes_suggest_draft`, `_handle_admin_solicitudes_link_package`, `_handle_admin_solicitudes_delete`, all `/api/admin/rds-*` handlers, and the login GET handler (redirects if already authenticated). No admin route was found that bypasses this check.
+
+---
+
 ## C. Security Findings Table
 
 | # | Finding | Severity | Evidence (file + symbol) | Risk | Recommendation | Blocking for domain cutover? |
@@ -227,6 +259,8 @@ All pages in `PROTECTED_PAGES` call `enforceAuthGate()` on `DOMContentLoaded`. T
 | C-11 | `console.warn` in `login.html` may log recovery error message | Informational | `login.html` line ~522: `console.warn('[CRBOX] recoverPassword error:', err && err.message)` | Error message only (not token or email); low risk | Verify `err.message` never contains raw email in CRBOX API error payloads | No |
 | C-12 | Auto-login after registration holds password in JS closure briefly | Informational | `afiliate.html` post-register success handler | No practical attack surface beyond what any SPA registration flow exposes | No action — unavoidable given UX requirement | No |
 | C-13 | `Token` body field duplicates `Authorization` header in `postedituser` | Informational | `js/auth.js` `buildUpdateProfilePayload` `params.set('Token', getToken())` | CRBOX API appears to require both; no additional attack surface beyond token theft | No action needed | No |
+| C-14 | `_handle_userinfo_proxy` logs email address on upstream HTTP errors | Low | `server.py` `_handle_userinfo_proxy` line ~11056: `print(f'[PROXY/userinfo] CRBOX HTTP {resp_code} for {email!r}')` | Account email written to server process stdout on any upstream 4xx/5xx; visible in application logs and Replit log streams | Replace with a redacted log: log only the HTTP status code and a hash or prefix of the email, not the full address | No |
+| C-15 | `_handle_packages_proxy` logs consignee ID on upstream HTTP errors | Informational | `server.py` `_handle_packages_proxy` line ~11000: `print(f'[PROXY/packages] CRBOX HTTP {resp_code} for consignee {id_cons!r}')` | Numeric casillero/consignee ID written to stdout on upstream errors; lower risk than email but still a data-minimisation concern | Replace with status-code-only log | No |
 
 ---
 
@@ -265,6 +299,8 @@ Classification per auth/account endpoint found:
 | `POST /crbox-svc-token` (local proxy) | Local `server.py` | CRBOX website | **Keep legacy for now** | Service-account proxy pattern is correct; consider dedicated rate-limit bucket |
 | `GET /admin/portal-login` (local bridge) | Local `server.py` | CRBOX website | **Keep legacy for now** | Server-side gate is correctly implemented; identity from API response |
 | `GET /api/solicitudes/check-orphaned` | Local `server.py` | CRBOX website | **Keep legacy for now** | Post-login UX enhancement; failure falls through gracefully |
+| `GET /api/userinfo-proxy?email=...` | Local `server.py` `_handle_userinfo_proxy` | CRBOX website | **Keep legacy for now** | Fallback proxy for `getUserInfo()` when direct browser fetch fails; logs email on upstream errors (C-14) |
+| `GET /api/packages-proxy?id=...` | Local `server.py` `_handle_packages_proxy` | CRBOX website | **Keep legacy for now** | Fallback proxy for `getPackages()` when direct browser fetch fails; logs consignee ID on upstream errors (C-15) |
 
 ---
 
@@ -287,6 +323,7 @@ However, the following action is strongly recommended as a pre-cutover measure b
 | Add password strength indicator | — | Visual complexity feedback beyond the 8-character minimum improves security hygiene. |
 | Confirm CRBOX API behaviour on password change | C-02 | Test whether existing sessions are invalidated when `postedituser` updates the password. Document the result. |
 | Resolve `unsafe-inline` in CSP | C-08 | Move inline scripts to external files with nonces or hashes. Reduces XSS blast radius for token exposure (C-07). |
+| Redact email from `_handle_userinfo_proxy` error log | C-14 | Replace `email!r` in the `print(f'[PROXY/userinfo] ...')` statement with a hash or domain-only prefix. Prevents PII from appearing in stdout/log streams. |
 
 ### Tier 3 — Future modernisation
 
