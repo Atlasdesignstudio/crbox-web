@@ -1,0 +1,108 @@
+Manual QA update for `mi-cuenta`:
+
+The RDS profile endpoint is now firing correctly.
+
+Confirmed:
+- `/api/config` returns `useRdsProfile:true`
+- `/api/portal/profile-rds` fires
+- response has `"source": "rds"`
+- profile data renders from the RDS endpoint
+- identification is masked as `identificationNumberMasked`
+- phone is masked as `phoneMasked`
+- no raw `identificationnumber`
+- no raw `phonenumber`
+- no `birthDate`
+- no `responsabilidad`
+- no `omitirReceptor`
+- no `_bIsDeleted`
+- no `_bIsChanged`
+- no `cedulaJuridica`
+- no `joinValidationStatus`
+- no `failedJoins`
+
+Please continue/finalize the browser QA checklist for `mi-cuenta`.
+
+In addition to the core profile fields, please specifically audit the two UI sections shown in the screenshots:
+
+1. Newsletter / Promociones UI
+Section:
+- “Canales de Notificación”
+- “Suscripciones”
+- “Promociones y ofertas especiales”
+- “Guardar Preferencias”
+
+Please check:
+- Whether the checkbox reflects the current `receivesNewsletter` value correctly when loaded from RDS.
+- If `receivesNewsletter:true`, the checkbox should appear checked.
+- If `receivesNewsletter:false`, the checkbox should appear unchecked.
+- Whether clicking “Guardar Preferencias” calls a real endpoint.
+- Which endpoint it calls.
+- Whether it uses the existing legacy write path or something else.
+- Whether the change persists after refresh.
+- Whether fallback to legacy affects the checkbox state.
+- Whether the UI shows a correct success/error message.
+
+Important:
+Do not create new write logic yet.
+If the newsletter save is not truly wired, document it as not functional / pending.
+If it is wired through legacy, confirm it still works without changing the RDS read-only profile flow.
+
+2. Change Password UI
+Section:
+- “Cambiar Contraseña”
+- “Nueva Contraseña”
+- “Confirmar Nueva Contraseña”
+- “Actualizar Contraseña”
+
+Please audit only. Do NOT test by submitting a real password change unless explicitly approved.
+
+Check:
+- Whether the form is connected to a real endpoint.
+- Which endpoint it calls.
+- Whether it requires Bearer authentication.
+- Whether password values are sent securely in the request body, never in the URL.
+- Whether it validates empty fields, mismatched passwords, and password strength client-side.
+- Whether it shows safe success/error messages.
+- Whether it could accidentally overwrite the test account password.
+- Whether it should remain enabled, be marked “próximamente”, or be disabled until the backend behavior is confirmed.
+
+Important:
+Do not submit a real password change.
+Do not change the password of `prueba@crbox.cr`.
+Do not implement a new password endpoint.
+Do not modify auth or login flows.
+This is an audit/report only.
+
+3. Visual/mobile QA
+Please also confirm:
+- The Newsletter tab displays correctly on mobile.
+- The Security tab displays correctly on mobile.
+- The WhatsApp floating button does not block critical buttons.
+- The tab navigation remains usable.
+- No layout overflow or cut-off content appears.
+
+4. Final report
+Please update/create the final `mi-cuenta` browser QA report with:
+- RDS profile QA result
+- secure response boundary confirmation
+- newsletter UI/functionality status
+- password UI/functionality status
+- edit/save flow status
+- fallback behavior
+- mobile layout result
+- known limitations
+- final recommendation
+
+Do not touch:
+- profile edit/save implementation
+- password write logic
+- newsletter write logic
+- login
+- registration
+- packages
+- invoices
+- dashboard
+- AWS/RDS settings
+- DB schema
+
+Only audit and document newsletter/password behavior unless a small non-destructive visual bug is found.
