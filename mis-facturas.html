@@ -792,8 +792,8 @@
     <!-- Scripts -->
     <script src="js/analytics.js" defer></script>
     <script src="js/cr-locations.js" defer></script>
-    <script src="js/portal-api.js?v=3" defer></script>
-    <script src="js/auth.js?v=3" defer></script>
+    <script src="js/portal-api.js?v=4"></script>
+    <script src="js/auth.js?v=3"></script>
     <script src="js/nav-auth.js?v=4" defer></script>
     <script src="js/mobile-drawer.js?v=1" defer></script>
     <script src="js/main.js?v=6" defer></script>
@@ -1023,7 +1023,8 @@
         }
       }
 
-      var _cachedBills = [];
+      var _cachedBills    = [];
+      var _useRdsInvoices = false; // set by /api/config on page load; false = legacy path
 
       // Empty-state row used when the API returns [] for the period.
       function _preservedEmptyStateRow() {
@@ -1105,7 +1106,29 @@
           '<i class="fas fa-spinner fa-spin mr-2"></i>Cargando facturas...</td></tr>';
         _resetBillsStats();
 
-        return CRBOXPortalAPI.getBills(email, startDate, endDate)
+        // ── RDS-first with silent legacy fallback ──────────────────────────
+        // When _useRdsInvoices is true (set by /api/config fetch on init), the
+        // RDS endpoint is tried first.  Any failure except auth errors falls
+        // back to the legacy getBills path — the user always sees invoices.
+        // Auth errors (isAuthError=true) are propagated directly and handled
+        // by the .catch() below, which preserves the session-expired behavior.
+        // When _useRdsInvoices is false the call chain is identical to before
+        // this block was added — zero code-path difference.
+        var _useRds = _useRdsInvoices; // snapshot flag at call time
+        return (function () {
+          if (!_useRds) {
+            return CRBOXPortalAPI.getBills(email, startDate, endDate);
+          }
+          return CRBOXPortalAPI.getBillsRDS(startDate, endDate)
+            .catch(function (rdsErr) {
+              if (rdsErr && rdsErr.isAuthError) throw rdsErr; // auth — do not fall back
+              if (typeof console !== 'undefined') {
+                console.debug('[CRBOX] RDS invoices failed, falling back to legacy:',
+                  rdsErr && rdsErr.message);
+              }
+              return CRBOXPortalAPI.getBills(email, startDate, endDate);
+            });
+        }())
           .then(function (bills) {
             _cachedBills = bills;
             _renderBillsStats(bills);
@@ -1252,6 +1275,23 @@
 
       document.addEventListener('DOMContentLoaded', function () {
         if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
+
+        // ── RDS feature flag: fetch /api/config once, fire-and-forget ────────
+        // Sets _useRdsInvoices before the live getBills call returns (the config
+        // endpoint is local and sub-10ms; getBills calls the remote CRBOX API
+        // which takes 300-800ms, so the flag is always set before data arrives).
+        // A failure here is non-critical — _useRdsInvoices stays false and the
+        // legacy path is used unchanged.
+        (function () {
+          fetch('/api/config', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (cfg) {
+              if (cfg && cfg.featureFlags) {
+                _useRdsInvoices = cfg.featureFlags.useRdsInvoices === true;
+              }
+            })
+            .catch(function () {}); // non-critical — default false keeps legacy path
+        }());
 
         CRBOXPortalAPI.getUserInfo()
           .then(_applyFacturasHeader)
@@ -1406,6 +1446,16 @@
         if (!CRBOXAuth.isLoggedIn()) return;
         CRBOXPortalAPI.getUserInfo().then(_applyFacturasHeader).catch(function () {});
       });
+
+      // QA helper — safe to leave in; exposes the invoice loader for browser-console
+      // date-range overrides (e.g. loading historical data from crbox_dev1 snapshot).
+      // Does not expose auth tokens, DB credentials, or admin state.
+      // Usage: _qaLoadBills(new Date('2022-01-01'), new Date('2022-06-30'))
+      window._qaLoadBills = function (start, end) {
+        var email = CRBOXAuth && CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '';
+        if (!email) { console.warn('[QA] Not logged in — cannot load bills.'); return; }
+        _loadBills(email, start || new Date('2022-01-01'), end || new Date('2022-06-30'));
+      };
     }());
     </script>
     <script src="js/portal-nav-offset.js" defer></script>

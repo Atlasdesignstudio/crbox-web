@@ -1,0 +1,100 @@
+Excellent. The invoices backend pre-wiring report is approved.
+
+Recommendation A is accepted: safe to proceed to feature-flagged `mis-facturas` frontend wiring.
+
+Please implement the frontend wiring using the same safe pattern already proven in `mis-paquetes`.
+
+Scope:
+- `mis-facturas.html`
+- `js/portal-api.js`
+- `/api/config` only if needed
+- No other page
+
+Do not modify:
+- packages / mis-paquetes
+- mi-cuenta
+- dashboard
+- login
+- registration
+- password recovery
+- cotizaciones
+- old website
+- internal/backoffice tool
+- AWS settings
+- DB schema
+- DB credentials
+
+Safety:
+- No writes
+- No production DB queries
+- Keep `USE_RDS_INVOICES_FRONTEND` off by default
+- Keep legacy `getBills` / `getfacturas` path intact
+- Add RDS-first only behind feature flag
+- Fallback to legacy on non-auth RDS failure
+- Auth errors must propagate, not silently fallback
+- No credentials exposed
+- No internal fields exposed
+
+Required implementation:
+
+1. Fix script loading order in `mis-facturas.html`
+Apply the same fix used in `mis-paquetes`:
+- remove `defer` from `auth.js`
+- remove `defer` from `portal-api.js`
+only if inline scripts depend on `CRBOXAuth` / `CRBOXPortalAPI`.
+
+2. Add `getBillsRDS()` to `js/portal-api.js`
+It should:
+- call `/api/portal/invoices-rds?start=YYYY-MM-DD&end=YYYY-MM-DD`
+- include the existing portal auth headers:
+  - Authorization: Bearer token
+  - X-Casillero-Email
+- unwrap `data.facturas`
+- map through existing `mapBill()`
+- classify 401/403 as auth errors
+- classify 503/500/502/404/network errors as fallback-safe errors
+
+3. Wire `mis-facturas.html`
+Add the feature-flag pattern:
+- fetch `/api/config`
+- read `useRdsInvoices`
+- if false → use legacy `getBills()` exactly as today
+- if true → try `getBillsRDS()` first
+- on non-auth RDS failure → fallback to `getBills()`
+- on auth failure → preserve current session-expired behavior
+
+4. Add QA helper if needed
+If dev snapshot dates require a manual QA date range, expose a safe helper similar to:
+`window._qaLoadBills(new Date('2022-01-01'), new Date('2022-06-30'))`
+
+Do not expose tokens or sensitive internals.
+
+5. Browser QA checklist
+Create/update:
+`docs/rds-invoices-browser-qa-checklist.md`
+
+Include:
+- flag off behavior
+- flag on behavior
+- RDS endpoint called before legacy
+- fallback to legacy
+- invoice rows render correctly
+- dates render correctly
+- totals match
+- recibos/detail view works
+- descuentoNombre displays correctly when present
+- invoiceFileUrl empty does not break download button
+- mobile layout
+- no internal fields exposed
+
+6. Final report
+After implementation, report:
+- files changed
+- script loading fix confirmation
+- feature flag behavior
+- fallback behavior
+- manual QA steps
+- rollback instructions
+- final safety confirmations
+
+Do not enable broadly yet. After implementation, I will do the same manual browser QA process as with `mis-paquetes`.

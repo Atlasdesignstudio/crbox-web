@@ -538,6 +538,85 @@
     });
   }
 
+  // ─── getBillsRDS ──────────────────────────────────────────────────────────
+  // Calls /api/portal/invoices-rds — the portal-safe, RDS-backed endpoint.
+  //
+  // Auth: sends the portal Bearer token + X-Casillero-Email header.
+  //       The server resolves idConsignee from the verified email.
+  //       Never sends idConsignee from the client.
+  //
+  // Returns a mapped bills array (page never sees raw payload).  Each element
+  // is the output of mapBill(), identical in shape to getBills().
+  //
+  // Error behaviour mirrors the error-classification contract at the top of
+  // this module:
+  //   401/403 → error.isAuthError = true  (caller must not fall back — session dead)
+  //   All other failures → error.isAuthError = false  (caller may fall back to legacy)
+  //
+  // startDate / endDate: Date objects (forwarded to formatDateISO)
+  function getBillsRDS(startDate, endDate) {
+    var token = CRBOXAuth.getToken ? CRBOXAuth.getToken() : '';
+    var email = CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '';
+    if (!token) {
+      var noTokErr = new Error('Sesión no iniciada. Por favor inicia sesión.');
+      noTokErr.isAuthError = true;
+      return Promise.reject(noTokErr);
+    }
+    if (!email) {
+      var noEmailErr = new Error('No se pudo obtener el email de la sesión.');
+      noEmailErr.isAuthError = false;
+      return Promise.reject(noEmailErr);
+    }
+
+    var start = formatDateISO(startDate || _lastNMonths(6));
+    var end   = formatDateISO(endDate   || _defaultEndDate());
+
+    var qs = '?start=' + encodeURIComponent(start) +
+             '&end='   + encodeURIComponent(end);
+
+    return fetch('/api/portal/invoices-rds' + qs, {
+      headers: {
+        'Authorization':     'Bearer ' + token,
+        'X-Casillero-Email': email,
+        'Accept':            'application/json'
+      }
+    }).then(function (r) {
+      if (r.status === 401 || r.status === 403) {
+        throw _handleAuthFailure(r.status);
+      }
+      if (!r.ok) {
+        var e = new Error('RDS invoices endpoint returned ' + r.status + '.');
+        e.isAuthError = false;
+        e._rdsStatus  = r.status;
+        throw e;
+      }
+      return r.json().catch(function () {
+        var je = new Error('RDS invoices response was not valid JSON.');
+        je.isAuthError = false;
+        throw je;
+      });
+    }).then(function (data) {
+      if (!data || typeof data !== 'object') {
+        var se = new Error('RDS invoices response had unexpected shape.');
+        se.isAuthError = false;
+        throw se;
+      }
+      if (!Array.isArray(data.facturas)) {
+        var ae = new Error('RDS invoices response missing facturas array.');
+        ae.isAuthError = false;
+        throw ae;
+      }
+      return data.facturas.map(function (r) { return mapBill(r); });
+    }).catch(function (err) {
+      if (!err) {
+        var ne = new Error('Unknown RDS invoices error.');
+        ne.isAuthError = false;
+        throw ne;
+      }
+      throw err;
+    });
+  }
+
   // ─── saveBill ─────────────────────────────────────────────────────────────
   // Step 1 of the invoice upload flow.
   // Uploads the invoice file to the portal server (/api/invoice-upload), which
@@ -812,6 +891,7 @@
     getPackages:          getPackages,
     getPackagesRDS:       getPackagesRDS,
     getBills:             getBills,
+    getBillsRDS:          getBillsRDS,
     saveBill:             saveBill,
     deleteInvoiceUpload:  deleteInvoiceUpload,
     createPurchaseBill:   createPurchaseBill,
