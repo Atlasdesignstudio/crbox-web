@@ -1,0 +1,185 @@
+Start a separate parallel task for `mi-cuenta` / profile read-only RDS integration preparation.
+
+Important context:
+- `mis-paquetes` RDS integration is already QA-approved.
+- Another agent is currently working on `mis-facturas` / invoices RDS shadow endpoint.
+- This task must NOT touch or interfere with the invoices/facturas work.
+- This task must be isolated to profile/account read-only discovery and backend shadow work.
+
+Goal:
+Prepare the same safe RDS read-only pattern for the `mi-cuenta` page, but do NOT wire the frontend yet unless explicitly approved later.
+
+Scope:
+Build a backend-only, read-only, shadow-mode profile endpoint that can eventually replace the read side of `getuserinfo`, while keeping all write/edit actions on the legacy API for now.
+
+Relevant likely tables:
+- `consignee`
+- `client`
+- `address`
+- `phone`
+- `consignee_has_address`
+- `consignee_has_phone`
+- `Sucursal`
+- `identificationtype`
+- `country`
+- `plan`
+- `addresstype`
+- `phonetype`
+
+Do NOT modify:
+- `mis-facturas.html`
+- any invoices/facturas endpoint
+- `resumenmawb`
+- `facturaaduanal`
+- invoice upload logic
+- `mis-paquetes.html`
+- packages endpoint
+- login
+- registration
+- password recovery
+- dashboard
+- cotizaciones
+- old website
+- internal/backoffice tool
+- AWS settings
+- DB schema
+- DB users/permissions
+
+Safety rules:
+- Read-only only.
+- Use only `crbox_dev1`.
+- No production DB queries.
+- No writes.
+- No INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, REVOKE.
+- No migrations.
+- No SELECT *.
+- No credentials exposed.
+- No raw sensitive data in docs.
+- Do not expose full PII in logs or reports.
+
+Task objective:
+Create a shadow-mode RDS endpoint for profile/account data.
+
+Suggested endpoint:
+GET /api/portal/profile-rds
+
+or if safer for first version:
+GET /api/admin/profile-rds-shadow
+
+Requirements:
+1. Resolve user identity server-side.
+   - Do not accept `idConsignee` from the browser.
+   - For admin shadow testing, accepting `?email=` is okay only behind admin session.
+   - For future portal use, the endpoint must derive email from the logged-in portal token/session.
+   - Resolve `idConsignee` from `consignee.email`.
+
+2. Query explicit columns only.
+   - No SELECT *.
+   - Select only fields needed for profile display.
+   - Join or separately fetch related records:
+     - client/account info
+     - primary address
+     - phones
+     - branch/sucursal
+     - identification type
+     - plan
+   - Avoid exposing sensitive/internal-only fields unless needed for the current `mi-cuenta` UI.
+
+3. Normalize the response shape.
+   Return a clean JSON object that can eventually map to what `mi-cuenta.html` expects, for example:
+
+{
+  "ok": true,
+  "source": "rds",
+  "mode": "shadow",
+  "database": "crbox_dev1",
+  "profile": {
+    "idConsignee": ...,
+    "email": "...",
+    "name": "...",
+    "lastName1": "...",
+    "lastName2": "...",
+    "fullName": "...",
+    "identificationType": "...",
+    "identificationNumberMasked": "...",
+    "isCompany": false,
+    "client": {...},
+    "branch": {...},
+    "addresses": [...],
+    "phones": [...],
+    "plan": {...},
+    "receivesNewsletter": true
+  }
+}
+
+Important:
+- If identificationNumber is needed by the current UI, document it as sensitive.
+- In docs/reports, mask identification numbers, phones, emails, and addresses.
+- Do not expose fields like birthDate, contact identification, OAuth tokens, or internal flags unless explicitly required.
+
+4. Compare against legacy getuserinfo.
+Add a shadow comparison endpoint if useful:
+
+GET /api/admin/rds-profile-shadow-compare
+
+Compare:
+- RDS profile result
+- legacy `getuserinfo/{email}` response
+
+For the comparison:
+- Use one controlled test user first: `prueba@crbox.cr`
+- Do not call legacy heavily.
+- Use Bearer token only as a temporary Authorization header if needed.
+- Do not store or log the token.
+
+Compare:
+- idConsignee
+- email
+- name / surnames / fullName
+- branch/sucursal
+- primary address
+- phone(s)
+- identification type
+- isCompany
+- client/account info
+- plan
+- newsletter preference
+
+5. Document everything.
+Create:
+
+docs/rds-profile-shadow.md
+
+Include:
+- exact SQL queries
+- selected fields
+- identity resolution
+- sensitive field handling
+- field mapping to legacy `getuserinfo`
+- null handling
+- comparison plan
+- risks
+- future frontend wiring plan
+- rollback/fallback approach
+- safety confirmations
+
+6. Deliver a recommendation.
+At the end, recommend one of:
+
+A. Safe to proceed to feature-flagged `mi-cuenta` read-only frontend wiring.
+B. Needs mapping fixes before frontend wiring.
+C. Keep profile reads on legacy for now.
+
+Do not implement frontend wiring in this task unless I explicitly approve it after reviewing the shadow report.
+
+Final safety confirmations required:
+- No frontend files changed.
+- No invoices/facturas work touched.
+- No packages work touched.
+- No writes/destructive SQL.
+- No SELECT *.
+- Only `crbox_dev1` queried.
+- Legacy API untouched except optional single controlled comparison.
+- Old website/internal tool untouched.
+- AWS settings untouched.
+- No credentials or sensitive data exposed.

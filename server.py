@@ -9534,6 +9534,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_config()
         elif self.path.startswith('/api/admin/rds-shadow-compare'):
             self._handle_admin_rds_shadow_compare()
+        elif self.path.startswith('/api/admin/rds-invoices-shadow-compare'):
+            self._handle_admin_rds_invoices_shadow_compare()
+        elif self.path.startswith('/api/portal/invoices-rds'):
+            self._handle_portal_invoices_rds()
         elif self.path.startswith('/api/solicitudes'):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/api/solicitudes':
@@ -13606,6 +13610,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 'useRdsPackages': (
                     os.environ.get('USE_RDS_PACKAGES_FRONTEND', '').strip().lower() == 'true'
                 ),
+                'useRdsInvoices': (
+                    os.environ.get('USE_RDS_INVOICES_FRONTEND', '').strip().lower() == 'true'
+                ),
             }
         })
 
@@ -13964,6 +13971,290 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             'diff':        _compute_packages_diff(rds_pkgs, legacy_pkgs),
         })
 
+    # ── GET /api/portal/invoices-rds ──────────────────────────────────────────
+    #
+    # Portal-user-facing RDS invoices endpoint (stub).  Returns 503 when
+    # USE_RDS_INVOICES_FRONTEND is not true so the frontend can fall back to
+    # the legacy getBills/getfacturas path without any user-visible error.
+    #
+    # Auth model: identical to /api/portal/my-packages — Bearer token +
+    # X-Casillero-Email validated via CRBOX getuserinfo.  idConsignee is
+    # ALWAYS resolved server-side; never accepted from the browser.
+    #
+    # Feature flag: USE_RDS_INVOICES_FRONTEND=true (unset by default).
+    #
+    # Query params:
+    #   start  — YYYY-MM-DD (required), window ≤ 366 days
+    #   end    — YYYY-MM-DD (required)
+    #   limit  — int 1–200, default 50
+    #   offset — int ≥ 0,   default 0
+    #
+    # Phase 2 gaps (documented in docs/rds-invoices-shadow.md):
+    #   recibos        — linked package receipts (not yet joined)
+    #   descuentoNombre — corporate discount name (not yet joined)
+    #   invoiceFileUrl  — invoice PDF URL (not yet found in schema)
+    #
+    # Do NOT wire mis-facturas.html to this endpoint until:
+    #   1. Shadow compare passes (countDelta=0, amountMismatch=[])
+    #   2. Phase 2 gaps are resolved or documented as acceptable
+    #   3. Frontend IIFE + fallback pattern (from mis-paquetes) is applied
+
+    def _handle_portal_invoices_rds(self):
+        import datetime as _dt
+        import decimal  as _decimal
+
+        # 1. Feature flag gate — 503 treated by frontend as "use legacy instead"
+        if os.environ.get('USE_RDS_INVOICES_FRONTEND', '').strip().lower() != 'true':
+            self._json_error(503,
+                'RDS invoices endpoint is disabled.',
+                code='feature_disabled')
+            return
+
+        # 2. Portal auth
+        cas_id, verified_email = self._portal_auth_full()
+        if not cas_id or not verified_email:
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
+            return
+
+        # 3. Parse query params
+        parsed = urllib.parse.urlparse(self.path)
+        qs     = urllib.parse.parse_qs(parsed.query, keep_blank_values=False)
+
+        start_str = qs.get('start', [''])[0].strip()
+        end_str   = qs.get('end',   [''])[0].strip()
+
+        try:
+            limit  = max(1, min(200, int(qs.get('limit',  ['50'])[0])))
+        except (ValueError, IndexError):
+            limit  = 50
+        try:
+            offset = max(0, int(qs.get('offset', ['0'])[0]))
+        except (ValueError, IndexError):
+            offset = 0
+
+        if not start_str or not end_str:
+            self._json_error(400,
+                'Missing required parameters: start and end (YYYY-MM-DD).',
+                code='bad_request')
+            return
+
+        try:
+            start_date = _dt.date.fromisoformat(start_str)
+            end_date   = _dt.date.fromisoformat(end_str)
+        except ValueError:
+            self._json_error(400, 'Invalid date format. Use YYYY-MM-DD.',
+                             code='bad_request')
+            return
+
+        if start_date > end_date:
+            self._json_error(400, 'start must be on or before end.',
+                             code='bad_request')
+            return
+
+        if (end_date - start_date).days > 366:
+            self._json_error(400,
+                'Date window exceeds the 366-day maximum.',
+                code='bad_request')
+            return
+
+        # 4. Query RDS
+        try:
+            import rds_client as _rds
+            result   = _rds_query_invoices(_rds, verified_email,
+                                           start_date, end_date,
+                                           limit=limit, offset=offset)
+            invoices = result['invoices']
+        except _RdsEmailNotFoundError:
+            self._json_response(200, {
+                'ok': True, 'source': 'rds', 'count': 0, 'invoices': []
+            })
+            return
+        except _RdsWrongDatabaseError as exc:
+            print(f'[PORTAL-INVOICES-RDS] wrong database: {exc}')
+            self._json_error(502,
+                'RDS invoices endpoint: unexpected database.',
+                code='rds_wrong_db')
+            return
+        except Exception as exc:
+            print(f'[PORTAL-INVOICES-RDS] RDS error: {exc}')
+            self._json_error(502,
+                'RDS invoices query failed.',
+                code='rds_query_failed')
+            return
+
+        self._json_response(200, {
+            'ok':       True,
+            'source':   'rds',
+            'count':    len(invoices),
+            'invoices': invoices,
+        })
+
+    # ── GET /api/admin/rds-invoices-shadow-compare ────────────────────────────
+    #
+    # Admin-only shadow compare for invoices.  Calls both the RDS invoices
+    # query and the legacy getfacturas CRBOX API for the same user/period and
+    # returns a structured diff for data-quality validation.
+    #
+    # The legacy call is skipped (legacy: null) when no Bearer token is present.
+    # A legacy failure never fails the overall response — the error reason is
+    # reported in legacyError and the RDS result is still returned.
+    #
+    # Query params: email, start (YYYY-MM-DD), end (YYYY-MM-DD)
+    # Header:       Authorization: Bearer <token>  (optional; triggers legacy call)
+    #
+    # Date window: 180 days max (matches the legacy getBills 6-month default).
+    # Legacy date format: DD-MM-YYYY (same convention as getfacturas URL).
+
+    def _handle_admin_rds_invoices_shadow_compare(self):
+        import datetime as _dt
+
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._json_error(401, 'Admin authentication required.',
+                             code='admin_auth_required')
+            return
+        if os.environ.get('USE_RDS_PORTAL_API', '').strip().lower() != 'true':
+            self._json_error(503, 'RDS portal API is disabled.',
+                             code='feature_disabled')
+            return
+
+        parsed = urllib.parse.urlparse(self.path)
+        qs     = urllib.parse.parse_qs(parsed.query, keep_blank_values=False)
+
+        email     = qs.get('email', [''])[0].strip().lower()
+        start_str = qs.get('start', [''])[0].strip()
+        end_str   = qs.get('end',   [''])[0].strip()
+
+        if not email:
+            self._json_error(400, 'Missing required parameter: email.',
+                             code='bad_request')
+            return
+        if not start_str or not end_str:
+            self._json_error(400,
+                'Missing required parameters: start and end (YYYY-MM-DD).',
+                code='bad_request')
+            return
+        try:
+            start_date = _dt.date.fromisoformat(start_str)
+            end_date   = _dt.date.fromisoformat(end_str)
+        except ValueError:
+            self._json_error(400, 'Invalid date format. Use YYYY-MM-DD.',
+                             code='bad_request')
+            return
+        if start_date > end_date:
+            self._json_error(400, 'start must be on or before end.',
+                             code='bad_request')
+            return
+        if (end_date - start_date).days > 180:
+            self._json_error(400,
+                'Date window exceeds the 180-day maximum for invoice shadow compare.',
+                code='bad_request')
+            return
+
+        # ── RDS side ──────────────────────────────────────────────────────────
+        rds_invs     = []
+        id_consignee = None
+        rds_error    = None
+        try:
+            import rds_client as _rds
+            result       = _rds_query_invoices(_rds, email, start_date, end_date,
+                                               limit=200, offset=0)
+            id_consignee = result['id_consignee']
+            rds_invs     = result['invoices']
+        except _RdsEmailNotFoundError:
+            rds_error = 'no_consignee_for_email'
+        except _RdsWrongDatabaseError as exc:
+            print(f'[RDS-INVOICES-COMPARE] wrong database: {exc}')
+            rds_error = 'unexpected_database'
+        except Exception as exc:
+            print(f'[RDS-INVOICES-COMPARE] RDS error: {exc}')
+            rds_error = 'rds_query_failed'
+
+        if rds_error:
+            self._json_error(502, f'RDS query failed: {rds_error}', code=rds_error)
+            return
+
+        rds_totals = sorted(
+            set(i.get('factura', '') for i in rds_invs if i.get('factura')))
+        rds_section = {
+            'count':     len(rds_invs),
+            'totalSum':  round(sum(float(i.get('total') or 0) for i in rds_invs), 2),
+            'facturaNums': rds_totals[:10],
+            'sample':    rds_invs[:3],
+        }
+
+        # ── Legacy side (only when Bearer token is provided) ──────────────────
+        legacy_invs    = []
+        legacy_section = None
+        legacy_error   = None
+        auth_header    = self.headers.get('Authorization', '')
+
+        if auth_header.startswith('Bearer '):
+            # Legacy getfacturas uses email (not idConsignee) and DD-MM-YYYY dates
+            start_legacy = start_date.strftime('%d-%m-%Y')
+            end_legacy   = end_date.strftime('%d-%m-%Y')
+            legacy_url   = '/'.join([
+                'https://clients.crbox.cr/api/crboxwebapi/getfacturas',
+                urllib.parse.quote(email,         safe=''),
+                urllib.parse.quote(start_legacy,  safe=''),
+                urllib.parse.quote(end_legacy,    safe=''),
+            ])
+            try:
+                req = urllib.request.Request(legacy_url)
+                req.add_header('Authorization', auth_header)
+                req.add_header('Accept',        'application/json')
+                req.add_header('User-Agent',    'CRBOX-Invoices-Shadow/1.0')
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    raw_bytes = resp.read(16 * 1024 * 1024)
+                data = json.loads(raw_bytes)
+                # Unwrap response envelope — same keys as _unwrapBillsEnvelope in JS
+                for key in ('Facturas', 'facturas', 'Bills', 'bills',
+                            'data', 'Data', 'Result', 'result'):
+                    if isinstance(data, dict) and key in data:
+                        data = data[key]
+                        break
+                legacy_invs = data if isinstance(data, list) else []
+                leg_totals  = sorted(set(
+                    str((inv.get('Factura') or {}).get('factura') or inv.get('factura') or '')
+                    for inv in legacy_invs
+                    if (inv.get('Factura') or {}).get('factura') or inv.get('factura')
+                ))
+                legacy_section = {
+                    'count':       len(legacy_invs),
+                    'totalSum':    round(sum(
+                        float((inv.get('Factura') or {}).get('total') or
+                              inv.get('total') or 0)
+                        for inv in legacy_invs
+                    ), 2),
+                    'facturaNums': leg_totals[:10],
+                    'sample':      legacy_invs[:3],
+                }
+            except urllib.error.HTTPError as exc:
+                print(f'[RDS-INVOICES-COMPARE] legacy HTTP {exc.code}')
+                legacy_error = f'http_error_{exc.code}'
+            except urllib.error.URLError:
+                legacy_error = 'timeout_or_network_error'
+            except (json.JSONDecodeError, ValueError):
+                legacy_error = 'parse_error'
+            except Exception as exc:
+                print(f'[RDS-INVOICES-COMPARE] legacy unexpected error: {exc}')
+                legacy_error = 'unexpected_error'
+
+        self._json_response(200, {
+            'email':       email,
+            'idConsignee': id_consignee,
+            'dateRange':   {'start': str(start_date), 'end': str(end_date)},
+            'rds':         rds_section,
+            'legacy':      legacy_section,
+            'legacyError': legacy_error,
+            'diff':        _compute_invoices_diff(rds_invs, legacy_invs),
+            'phase2Gaps':  [
+                'recibos (linked package receipts) — not yet joined',
+                'descuentoNombre — descuentocorporativo table not yet joined',
+                'invoiceFileUrl — PDF location not yet found in schema',
+            ],
+        })
+
 
 # ── RDS packages helpers ───────────────────────────────────────────────────────
 # Shared by _handle_portal_packages_rds and _handle_admin_rds_shadow_compare.
@@ -14125,6 +14416,169 @@ def _compute_packages_diff(rds_pkgs, legacy_pkgs):
         'missingInRds':     missing_in_rds,
         'missingInLegacy':  missing_in_legacy,
         'statusMismatch':   status_mismatch,
+    }
+
+
+# ── RDS invoices helpers ───────────────────────────────────────────────────────
+# Shared by _handle_portal_invoices_rds and
+# _handle_admin_rds_invoices_shadow_compare.
+# Defined at module level so they can be exercised independently.
+
+
+def _rds_query_invoices(rds_module, email, start_date, end_date,
+                         limit=50, offset=0):
+    """Query resumenmawb for a consignee identified by email.
+
+    Returns {'id_consignee': int, 'invoices': list[dict]}.
+
+    Raises:
+        _RdsEmailNotFoundError  — no row in consignee for the given email.
+        _RdsWrongDatabaseError  — active DB is not crbox_dev1.
+        Exception               — any other RDS / network error.
+
+    Field mapping notes:
+        volumetricWeigth (DB) → volumentricWeigth (response)
+            Both are typos, but they differ.  The response key matches the
+            typo used in mapBill() so the frontend works without changes.
+        isInvoiced → serialised as bool (0/1 → False/True).
+        recibos, descuentoNombre, invoiceFileUrl → Phase 2 gaps; returned as
+            [], '', '' respectively.  Documented in docs/rds-invoices-shadow.md.
+
+    Date range note:
+        start_date / end_date are datetime.date objects (YYYY-MM-DD).
+        The legacy getfacturas API uses DD-MM-YYYY — callers that bridge to
+        the legacy URL must convert dates before building that URL.
+    """
+    import datetime as _dt
+    import decimal  as _decimal
+
+    # Safety: confirm active database before touching any customer data.
+    db_row    = rds_module.fetch_one('SELECT DATABASE() AS db')
+    active_db = (db_row or {}).get('db', '')
+    if active_db != 'crbox_dev1':
+        raise _RdsWrongDatabaseError(active_db)
+
+    # Resolve idConsignee server-side from email — never accepted from caller.
+    cons_row = rds_module.fetch_one(
+        'SELECT idConsignee FROM consignee WHERE email = %s LIMIT 1',
+        (email,)
+    )
+    if not cons_row:
+        raise _RdsEmailNotFoundError()
+
+    id_consignee = int(cons_row['idConsignee'])
+
+    # Explicit column list — no SELECT *.
+    # volumetricWeigth is the DB column name (typo); remapped below.
+    # Excluded: flete, recargoCombustible, MANBOD, AGAD, DAI, selectivo,
+    #   impuestos, pickup, exoneracion, entrega, SED, seguro, financiamiento,
+    #   unoporciento, treceporciento, mastercharge, declaracionValor, procomer,
+    #   IVA — financial breakdown fields not needed by the portal display layer.
+    # Excluded: hiddenBill, codigoFacturacion, paymentDate, referenceNumber,
+    #   paymentMethod, paymentRegistrationDate, enlace, notas, comments —
+    #   internal/operational fields not intended for portal users.
+    # Excluded: clientName, Consignee — already known from auth; not needed
+    #   in the per-invoice payload.
+    sql = (
+        'SELECT r.idResumenMAWB, r.factura, r.billedDate, r.createdDate, '
+        'r.total, r.weigth, r.volumetricWeigth, r.cantidadBultos, r.isInvoiced, '
+        'm.masterAirShipmentNumber '
+        'FROM resumenmawb r '
+        'LEFT JOIN masterairshipment m '
+        '  ON r.MasterAirshipment = m.idMasterAirShipment '
+        'WHERE r.Consignee = %s AND r.billedDate BETWEEN %s AND %s '
+        'ORDER BY r.billedDate DESC LIMIT %s OFFSET %s'
+    )
+    params = (
+        id_consignee,
+        str(start_date),
+        str(end_date) + ' 23:59:59',
+        limit,
+        offset,
+    )
+    rows = rds_module.fetch_all(sql, params)
+
+    # DB column → response key remapping.
+    # volumetricWeigth (DB) → volumentricWeigth (mapBill typo — different!).
+    FIELD_REMAP = {
+        'volumetricWeigth': 'volumentricWeigth',
+    }
+
+    invoices = []
+    for row in (rows or []):
+        inv = {}
+        for k, v in row.items():
+            out_key = FIELD_REMAP.get(k, k)
+            if isinstance(v, (_dt.datetime, _dt.date)):
+                inv[out_key] = v.isoformat()
+            elif isinstance(v, _decimal.Decimal):
+                inv[out_key] = float(v)
+            elif k == 'isInvoiced':
+                inv[out_key] = bool(v)
+            elif v is not None:
+                inv[out_key] = v
+        # Phase 2 gaps — returned as safe empty values.
+        # recibos:         warehousereceipt ↔ resumenmawb join path needs more
+        #                  investigation (guiasHijas / MasterAirshipment hop).
+        # descuentoNombre: requires JOIN on descuentocorporativo table.
+        # invoiceFileUrl:  PDF location not yet found in schema; may live in a
+        #                  separate documents/files table outside crbox_dev1.
+        inv['recibos']         = []
+        inv['descuentoNombre'] = ''
+        inv['invoiceFileUrl']  = ''
+        # Convenience derived field matching mapBill's bestDate convention.
+        inv['bestDate']        = inv.get('billedDate') or inv.get('createdDate') or ''
+        invoices.append(inv)
+
+    return {'id_consignee': id_consignee, 'invoices': invoices}
+
+
+def _compute_invoices_diff(rds_invs, legacy_invs):
+    """Compute a diff between RDS and legacy invoice lists.
+
+    Primary match key: factura (invoice number) — the stable human identifier
+    on both sides of the comparison.  Legacy responses may be nested under
+    inv['Factura']['factura'] (raw API shape) or flat as inv['factura']
+    (already mapBill'd).  Both are handled.
+    """
+    def _inv_key(inv):
+        fac = (
+            inv.get('factura') or
+            (inv.get('Factura') or {}).get('factura') or
+            ''
+        )
+        return str(fac).strip() if fac else ''
+
+    rds_index    = {_inv_key(i): i for i in rds_invs    if _inv_key(i)}
+    legacy_index = {_inv_key(i): i for i in legacy_invs if _inv_key(i)}
+
+    rds_keys    = set(rds_index.keys())
+    legacy_keys = set(legacy_index.keys())
+
+    missing_in_rds    = sorted(legacy_keys - rds_keys)
+    missing_in_legacy = sorted(rds_keys    - legacy_keys)
+
+    amount_mismatch = []
+    for k in sorted(rds_keys & legacy_keys):
+        rds_total = float(rds_index[k].get('total') or 0)
+        leg_raw   = legacy_index[k]
+        leg_total = float(
+            (leg_raw.get('Factura') or {}).get('total') or
+            leg_raw.get('total') or 0
+        )
+        if abs(rds_total - leg_total) > 0.01:
+            amount_mismatch.append({
+                'factura':     k,
+                'rdsTotal':    rds_total,
+                'legacyTotal': leg_total,
+            })
+
+    return {
+        'primaryKey':       'factura',
+        'countDelta':       len(rds_invs) - len(legacy_invs),
+        'missingInRds':     missing_in_rds[:20],
+        'missingInLegacy':  missing_in_legacy[:20],
+        'amountMismatch':   amount_mismatch[:20],
     }
 
 

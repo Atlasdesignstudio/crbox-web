@@ -1,0 +1,89 @@
+Manual browser QA is complete and everything works phenomenally.
+
+Confirmed:
+- The script-loading fix worked.
+- No more `CRBOXPortalAPI is not defined`.
+- No more `_loadPackages is not defined`.
+- `_qaLoadPackages(new Date('2023-08-01'), new Date('2023-09-01'))` works correctly.
+- 64 packages render successfully in `mis-paquetes`.
+- Counters render correctly:
+  - Todos: 64
+  - Miami: 3
+  - SJO: 4
+  - CRBOX: 57
+  - Sin factura: 3
+- Status filters work.
+- Date/range loading works.
+- Tracking/search works.
+- Mobile layout looks good.
+- No `_adminDebug` appears in the portal response.
+- No `consigneeNotes` appears in the portal response.
+- RDS path works through the frontend.
+- Legacy fallback remains available.
+- No visual or functional issues found during manual QA.
+
+Please update the QA report/final task summary to mark manual browser QA as passed and the feature-flagged `mis-paquetes` RDS integration as ready for controlled enablement.
+
+Next, I want to continue the same safe migration pattern module by module.
+
+Please prepare the next task for `mis-facturas` read-only RDS discovery and shadow endpoint.
+
+Goal:
+Create a backend-only, read-only, feature-flagged RDS endpoint for `mis-facturas`, following the same safety pattern used for packages.
+
+Important:
+- Do not modify the frontend yet.
+- Do not connect `mis-facturas.html` to RDS yet.
+- Do not remove or modify the legacy invoices/facturas path.
+- Do not touch login, registration, password recovery, profile edits, packages, dashboard, cotizaciones, admin/backoffice tool, old website, AWS settings, DB schema, or DB users.
+- No writes.
+- No production DB queries.
+- Only use `crbox_dev1`.
+- No SELECT *.
+- No credentials exposed.
+- Keep everything read-only and reversible.
+
+Task objective:
+Build a shadow-mode RDS endpoint for invoices/facturas and compare it against the current legacy facturas endpoint before any frontend wiring.
+
+Please inspect the schema report and identify the likely invoice/billing tables or views, especially:
+- `resumenmawb`
+- `purchase_bill`
+- `facturaaduanal`
+- any related invoice/payment/billing tables found in the RDS discovery report
+
+Build or propose:
+
+GET /api/portal/invoices-rds
+
+or, if this first version should be admin-shadow-only:
+
+GET /api/admin/invoices-rds-shadow
+
+Requirements:
+1. Resolve user identity server-side from the authenticated email/token flow.
+2. Never accept `idConsignee` directly from the browser.
+3. Query only the required explicit columns.
+4. Add date range filters.
+5. Add pagination/limit.
+6. Return a normalized JSON shape compatible with what `mis-facturas` will eventually need.
+7. Exclude sensitive/internal-only fields.
+8. Add a shadow comparison endpoint if needed:
+   `/api/admin/rds-invoices-shadow-compare`
+   comparing RDS invoices vs legacy `getfacturas/{email}/{fecha_inicial}/{fecha_final}`.
+9. Document exact SQL, fields, assumptions, null handling, and risks.
+10. Do not wire frontend in this task.
+
+Deliverables:
+- RDS invoices/facturas endpoint in shadow mode
+- comparison endpoint or comparison script
+- documentation file, e.g. `docs/rds-invoices-shadow.md`
+- test plan
+- safety confirmations
+
+Use the same level of caution as the packages work:
+- feature flag
+- legacy fallback later
+- shadow compare before frontend wiring
+- no writes
+- no broad rollout

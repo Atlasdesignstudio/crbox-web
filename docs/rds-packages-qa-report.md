@@ -218,6 +218,33 @@ No restart required. Effect is immediate on the next page load.
 
 ---
 
+## Manual Browser QA — PASSED (2026-05-14)
+
+Completed by: manual session as prueba@crbox.cr on the Replit dev URL with
+`USE_RDS_PACKAGES_FRONTEND=true`.
+
+| Check | Result |
+|-------|--------|
+| No `CRBOXPortalAPI is not defined` (script-load fix applied) | ✅ PASS |
+| `/api/config` → `useRdsPackages: true` visible in Network | ✅ PASS |
+| `/api/portal/my-packages` called (not `/api/packages-proxy`) | ✅ PASS |
+| `_qaLoadPackages(new Date('2023-08-01'), new Date('2023-09-01'))` works | ✅ PASS |
+| 64 packages rendered — count matches automated QA | ✅ PASS |
+| Summary counters correct: Todos 64 / Miami 3 / SJO 4 / CRBOX 57 / Sin factura 3 | ✅ PASS |
+| Status filters work | ✅ PASS |
+| Date/range picker fires new requests with correct params | ✅ PASS |
+| Tracking/package number search works | ✅ PASS |
+| Mobile layout looks correct | ✅ PASS |
+| No `_adminDebug` in portal response | ✅ PASS |
+| No `consigneeNotes` in portal response | ✅ PASS |
+| Legacy fallback available (path untouched) | ✅ PASS |
+| No visual or functional issues | ✅ PASS |
+
+**Verdict: Feature-flagged `mis-paquetes` RDS integration is ready for controlled
+broader enablement. `USE_RDS_PACKAGES_FRONTEND=true` remains set in shared env.**
+
+---
+
 ## Final Safety Confirmations
 
 | Confirmation | ✓ |
