@@ -15576,13 +15576,14 @@ def _compute_profile_diff(rds_profile, legacy_data):
     _diff('branch.id',
           str(rds_branch.get('id'))   if rds_branch.get('id')   is not None else None,
           str(leg_suc_id) if leg_suc_id is not None else None)
-    # Branch name: only in RDS (legacy doesn't return it); flag as RDS-only.
-    if rds_branch.get('name'):
-        missing_in_legacy.append(_entry(
-            'branch.name', rds_branch.get('name'), None, 'missing_join',
-            'Branch display name available in RDS via Sucursal join; '
-            'not present in legacy getuserinfo response.'
-        ))
+    # Branch name: RDS resolves via Sucursal.name join; legacy returns it via
+    # Consignee.sucursal._name (confirmed by live getuserinfo payload 2026-05-14).
+    # Compare both sides — expected exact_match for active accounts.
+    rds_bname = rds_branch.get('name')
+    leg_bname  = (leg_suc.get('_name') or leg_suc.get('name') or leg_suc.get('Name')
+                  if isinstance(leg_suc, dict) else None)
+    if rds_bname is not None or leg_bname is not None:
+        _diff('branch.name', rds_bname, leg_bname)
 
     # ── primary address ───────────────────────────────────────────────────
     rds_addrs  = rds_profile.get('addresses') or []
@@ -15639,20 +15640,20 @@ def _compute_profile_diff(rds_profile, legacy_data):
             'Phone present in legacy but no phones returned from RDS query'
         ))
 
-    # ── CompanyCode (casillero) — comes from client table in RDS ──────────
-    rds_client   = rds_profile.get('client') or {}
-    rds_casillero = rds_client.get('companyCode')
-    leg_casillero = (legacy_data.get('CompanyCode') or
-                     legacy_data.get('companyCode'))
-    if rds_casillero is not None or leg_casillero is not None:
-        _diff('client.companyCode',
-              str(rds_casillero) if rds_casillero is not None else None,
-              str(leg_casillero) if leg_casillero is not None else None)
-    else:
-        missing_in_rds.append(_entry(
-            'client.companyCode', None, None, 'missing_join',
-            'CompanyCode (casillero ID) not yet resolved — client table join needs validation'
-        ))
+    # ── casillero (codigoFacturacion) ─────────────────────────────────────
+    # Source confirmed: consignee.codigoFacturacion, surfaced as profile.casillero
+    # (top-level key).  The client table has no CompanyCode column — that was a
+    # pre-schema-fix assumption.  Legacy exposes the value at both top-level
+    # CompanyCode and nested Consignee.codigoFacturacion; both are null for
+    # prueba@crbox.cr (test account), so this classifies as missing_join on the
+    # legacy side.  Production accounts are expected to match.
+    rds_client    = rds_profile.get('client') or {}
+    rds_casillero = rds_profile.get('casillero')
+    leg_casillero = (legacy_data.get('CompanyCode') or legacy_data.get('companyCode')
+                     or leg_c.get('codigoFacturacion') or leg_c.get('CodigoFacturacion'))
+    _diff('casillero',
+          str(rds_casillero) if rds_casillero is not None else None,
+          str(leg_casillero) if leg_casillero is not None else None)
 
     # ── client.idClient ────────────────────────────────────────────────────
     rds_id_client = rds_client.get('idClient')
@@ -15666,6 +15667,27 @@ def _compute_profile_diff(rds_profile, legacy_data):
             'client.idClient', None, None, 'missing_join',
             'idClient not resolved — client table join needs validation; '
             'legacy may not return this field directly.'
+        ))
+
+    # ── client.clientName / client.accountType — RDS-only enrichment ──────
+    # Confirmed by live run 2026-05-14: legacy getuserinfo does not return
+    # clientName or accountType.  Both fields are sourced from the client
+    # table (consignee.idClient FK) in RDS and represent RDS-only enrichment
+    # not available via the legacy API.  Not a data quality issue.
+    rds_client_name = rds_client.get('clientName')
+    if rds_client_name is not None:
+        missing_in_legacy.append(_entry(
+            'client.clientName', rds_client_name, None, 'missing_join',
+            'RDS-only enrichment: sourced from client.name (client table join); '
+            'not present in legacy getuserinfo response.'
+        ))
+
+    rds_acct_type = rds_client.get('accountType')
+    if rds_acct_type is not None:
+        missing_in_legacy.append(_entry(
+            'client.accountType', rds_acct_type, None, 'missing_join',
+            'RDS-only enrichment: sourced from client.accountType (client table join); '
+            'not present in legacy getuserinfo response.'
         ))
 
     # ── plan fields — from plan table in RDS; legacy structure TBD ────────
@@ -15701,8 +15723,8 @@ def _compute_profile_diff(rds_profile, legacy_data):
         missing_in_legacy.append(_entry(
             'plan.planName', str(rds_plan_name) if rds_plan_name is not None else None, None,
             'missing_join',
-            'plan.planName resolved from RDS plan table (NEEDS VALIDATION: PlanName column '
-            'name assumed); not present in known legacy getuserinfo response structure.'
+            'plan.planName resolved from RDS plan table (column confirmed: nombre); '
+            'not present in known legacy getuserinfo response structure.'
         ))
 
     rds_discount  = rds_plan.get('discount')
@@ -15717,9 +15739,8 @@ def _compute_profile_diff(rds_profile, legacy_data):
         missing_in_legacy.append(_entry(
             'plan.discount', str(rds_discount) if rds_discount is not None else None, None,
             'missing_join',
-            'plan.discount (Discount column, NEEDS VALIDATION) resolved from RDS plan table; '
-            'not present in known legacy getuserinfo response structure. '
-            'Also compare with consignee.PendingDiscount which may overlap in meaning.'
+            'plan.discount resolved from RDS plan table (column confirmed: descuento); '
+            'not present in known legacy getuserinfo response structure.'
         ))
 
     return {

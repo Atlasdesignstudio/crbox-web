@@ -1,0 +1,79 @@
+Great work. The `mi-cuenta` RDS profile shadow validation is now clean at the data/query level.
+
+The important results are:
+- joinValidationStatus: all_joins_succeeded
+- failedJoins: []
+- true_mapping_issue: 0
+- critical joins work
+- idConsignee, email, name, identificationType, isCompany, branch.id, branch.name, address type, phone type all match
+- mi-cuenta.html remains untouched
+- no frontend wiring has been done
+- no writes, no production DB queries, no schema changes
+
+Before proceeding to frontend wiring, please do one final cleanup task for the profile shadow tooling and documentation.
+
+Task:
+Fix `_compute_profile_diff` so the admin shadow compare accurately reflects the live validation results.
+
+Known issues to fix:
+
+1. branch.name classification
+Current behavior incorrectly puts `branch.name` into `missingInLegacy`.
+Fix it so it reads the legacy branch name from:
+`Consignee.sucursal._name`
+or the exact legacy path confirmed by the getuserinfo payload.
+If RDS and legacy names match, classify as `exact_match`.
+
+2. client.clientName and client.accountType
+These are now returned by RDS as enrichment fields but are not diffed.
+Add them to the diff output.
+If legacy does not return them, classify them as `missingInLegacy` or `rds_only_enrichment`, depending on the existing classification model.
+Do not treat them as bugs.
+
+3. casillero / codigoFacturacion
+Fix the RDS diff path.
+The source is now confirmed as:
+`profile.casillero`
+from `consignee.codigoFacturacion`.
+Do not read it from `profile.client.companyCode`.
+Compare it against the correct legacy casillero/companyCode field if available.
+If legacy lacks it for `prueba@crbox.cr`, classify clearly as `missingInLegacy` or `stale_dev_snapshot`, not `true_mapping_issue`.
+
+4. Remove stale NEEDS VALIDATION comments
+Update comments around plan fields:
+- plan name column is `nombre`
+- discount column is `descuento`
+Remove stale comments saying `PlanName` or `Discount` are assumed.
+
+5. Re-run the live shadow compare
+Run:
+`/api/admin/rds-profile-shadow-compare?email=prueba@crbox.cr`
+
+Use the same safe temporary Bearer token pattern.
+Do not store or log the token.
+Do not expose raw PII.
+
+6. Update docs/rds-profile-shadow.md
+Add/update:
+- corrected diff behavior
+- observed live compare results
+- final classification counts
+- remaining open decisions
+- final recommendation
+
+Final recommendation rules:
+Move to A only if:
+- all critical joins still succeed
+- failedJoins = []
+- true_mapping_issue = 0
+- remaining differences are classified as stale_dev_snapshot, missingInLegacy/RDS-only enrichment, or withheld_for_privacy
+
+Keep as B only if something still affects frontend wiring.
+
+Do not wire `mi-cuenta.html` yet.
+Do not modify portal-api.js yet.
+Do not change auth/login/registration.
+Do not touch packages or invoices.
+No writes.
+No production DB queries.
+Only crbox_dev1.

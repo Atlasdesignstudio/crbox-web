@@ -581,47 +581,73 @@ consignee_has_address, consignee_has_phone) completed without exceptions.
 
 ## Field-by-Field Diff Classification
 
-**Live run completed 2026-05-14.** Legacy `getuserinfo` called with Bearer token — HTTP 200 OK.
-No `true_mapping_issue` entries. Zero `failedJoins`.
+**Live run 1 — 2026-05-14 (pre-cleanup, manually recorded):** Legacy `getuserinfo` called with Bearer token — HTTP 200 OK. Results below reflect the manually-observed classifications from the raw response data.
 
-| Field | RDS Value | Legacy Value | Classification | Notes |
-|-------|-----------|--------------|----------------|-------|
-| `idConsignee` | `50601002` | `50601002` | **`exact_match`** | Stable integer PK |
-| `email` | `pr***@crbox.cr` | `pr***@crbox.cr` | **`exact_match`** | Normalised lowercase; display masked |
-| `name` | `<redacted>` | `<redacted>` | **`exact_match`** | Raw values compared; identical in dev snapshot |
-| `lastName1` | `<redacted>` | `<redacted>` | **`exact_match`** | Raw values compared; identical in dev snapshot |
-| `lastName2` | `<redacted>` | `<redacted>` | **`exact_match`** | Raw values compared; identical in dev snapshot |
-| `identificationType` | `"Cedula ó Residencia"` | `"Cedula ó Residencia"` | **`exact_match`** | String label stored directly in consignee; confirmed round-trip |
-| `isCompany` | `False` | `False` | **`exact_match`** | bit(1) correctly decoded to Python bool |
-| `receivesNewsletter` | `True` | `False` | `stale_dev_snapshot` | Dev snapshot diverged from production; expected |
-| `branch.id` | `1` | `1` (via `sucursal._idsucursal`) | **`exact_match`** | FK integer; legacy uses underscore-prefix key convention |
-| `branch.name` | `"Sabana Norte (Oficina Central)"` | `"Sabana Norte (Oficina Central)"` (via `sucursal._name`) | **`exact_match`** | Legacy returns via `Consignee.sucursal._name`; same value |
-| `casillero` | `"00481"` | `null` (top-level `CompanyCode`) | `missing_join` | RDS: `consignee.codigoFacturacion`; legacy `CompanyCode` is null for this test account. Legacy does expose it via `Consignee.codigoFacturacion=null` too. Production accounts expected to match. |
-| `plan` | `null` | `null` | **`exact_match`** | No plan assigned on either side |
-| `address[0].isPrimary` | `True` | `False` | `stale_dev_snapshot` | RDS DB flag = 1; legacy returns 0 — expected divergence for test account |
-| `address[0].city` | `<redacted>` | `<redacted>` | **`exact_match`** | Raw values compared; identical |
-| `address[0].addressType` | `"Casa"` | `"Casa"` | **`exact_match`** | Resolved via addresstype table join |
-| `phone[0].phoneMasked` | `****0222` | `(withheld)` | `withheld_for_privacy` | Raw phone not compared; masked ****<last4> |
-| `phone[0].phoneType` | `"Celular"` | `"Celular"` | **`exact_match`** | Resolved via phonetype table join |
-| `identificationNumber` | `****0649` | `(withheld)` | `withheld_for_privacy` | Masked ****<last4>; product/security approval required |
-| `client.idClient` | `3190` | `0` (legacy `client.idclient`) | `stale_dev_snapshot` | Legacy returns nested `Consignee.client.idclient=0` for test account; RDS has correct value |
-| `client.clientName` | `"CRBOX Cta Emp."` | absent | `missing_join` | Not present in legacy response; RDS-only enrichment |
-| `client.accountType` | `"Cuenta Empresarial"` | absent | `missing_join` | Not present in legacy response; RDS-only enrichment |
+**Live run 2 — 2026-05-14 (post-cleanup, from `_compute_profile_diff` output):** Same Bearer token pattern, same test account. `_compute_profile_diff` corrections applied first — this is the authoritative machine output.
 
-### Summary counts (live)
+> The previous run 1 table was manually constructed by the task agent by inspecting the raw API responses side-by-side. Run 2 is produced by the corrected `_compute_profile_diff` function itself and should be treated as the reference going forward.
+
+### Run 2 results — from corrected `_compute_profile_diff` (authoritative)
+
+**`joinValidationStatus`: `all_joins_succeeded`  |  `failedJoins`: `[]`  |  `true_mapping_issue`: 0**
+
+#### Matched — exact_match (11)
+
+| Field | RDS | Legacy | Notes |
+|-------|-----|--------|-------|
+| `idConsignee` | `50601002` | `50601002` | Stable integer PK |
+| `email` | `pr***@crbox.cr` | `pr***@crbox.cr` | Normalised lowercase; display masked |
+| `name` | `<redacted>` | `<redacted>` | Raw values compared; identical in dev snapshot |
+| `lastName1` | `<redacted>` | `<redacted>` | Raw values compared; identical |
+| `lastName2` | `<redacted>` | `<redacted>` | Raw values compared; identical |
+| `fullName` | `<redacted>` | `<redacted>` | Server-derived concatenation; both sides identical |
+| `identificationType` | `"Cedula ó Residencia"` | `"Cedula ó Residencia"` | String label stored directly; confirmed round-trip |
+| `isCompany` | `False` | `False` | bit(1) correctly decoded to Python bool |
+| `branch.id` | `1` | `1` | Legacy key: `sucursal._idsucursal` |
+| `branch.name` | `"Sabana Norte (Oficina Central)"` | `"Sabana Norte (Oficina Central)"` | **Fixed in diff cleanup** — legacy returns via `Consignee.sucursal._name` |
+| `primaryAddress.city` | `<redacted>` | `<redacted>` | Raw values compared; identical |
+
+#### Mismatched — stale_dev_snapshot (2)
+
+| Field | RDS | Legacy | Notes |
+|-------|-----|--------|-------|
+| `receivesNewsletter` | `True` | `False` | Dev snapshot diverged from production; expected |
+| `primaryAddress.address1` | `<redacted>` | `<redacted>` | Address differs between dev snapshot and production; expected |
+
+#### Missing in legacy — missing_join (7)
+
+| Field | RDS Value | Notes |
+|-------|-----------|-------|
+| `casillero` | `"00481"` | **Fixed in diff cleanup** — now reads `profile.casillero` (from `consignee.codigoFacturacion`); legacy `CompanyCode` is null for this test account; production accounts expected to match |
+| `client.idClient` | `3190` | Legacy returns nested `Consignee.client.idclient=0` — diff code reads top-level `idClient` key which is absent; values differ |
+| `client.clientName` | `"CRBOX Cta Emp."` | **Added in diff cleanup** — RDS-only enrichment from client table; not in legacy getuserinfo |
+| `client.accountType` | `"Cuenta Empresarial"` | **Added in diff cleanup** — RDS-only enrichment from client table; not in legacy getuserinfo |
+| `plan.idPlan` | `null` | No plan assigned on test account; legacy also has no plan — null both sides goes to missingInLegacy |
+| `plan.planName` | `null` | Same; null both sides — plan column confirmed as `nombre` |
+| `plan.discount` | `null` | Same; null both sides — discount column confirmed as `descuento` |
+
+#### Withheld — withheld_for_privacy (2)
+
+| Field | Notes |
+|-------|-------|
+| `identificationNumber` | Masked as `****0649`; product/security approval required before display |
+| `primaryPhone` | Masked as `****0222`; raw phone not compared |
+
+### Summary counts — Run 2 (authoritative, from `_compute_profile_diff`)
 
 | Classification | Count |
 |----------------|-------|
-| `exact_match` | 11 |
-| `stale_dev_snapshot` | 3 |
-| `missing_join` | 4 |
+| `exact_match` | **11** |
+| `stale_dev_snapshot` | 2 |
+| `missing_join` (missingInLegacy) | 7 |
+| `missing_join` (missingInRds) | **0** |
 | `withheld_for_privacy` | 2 |
 | `formatting_only` | 0 |
 | `field_naming_casing` | 0 |
 | `legacy_business_logic_transform` | 0 |
 | **`true_mapping_issue`** | **0** |
 
-### No `true_mapping_issue` entries. All critical joins succeeded.
+### No `true_mapping_issue` entries. All critical joins succeeded. Zero missingInRds.
 
 ---
 
@@ -712,7 +738,7 @@ Non-sensitive fields that can be shown to any admin or eventually any authentica
 | `profile.lastName2` | `Consignee.consigneeLastName2` | `#profile-header-name` | Second surname (optional) |
 | `profile.fullName` | derived from name parts | `#profile-header-name`, `#header-user-name`, `#mobile-user-name` | Server-derived |
 | `profile.branch.id` | `Consignee.Sucursal.IdSucursal` | `#account-sucursal` | Sucursal FK |
-| `profile.branch.name` | *(not in legacy response)* | `#account-sucursal` | Display name via RDS JOIN confirmed working |
+| `profile.branch.name` | `Consignee.sucursal._name` | `#account-sucursal` | Legacy returns via `sucursal._name`; confirmed `exact_match` |
 | `profile.plan.planName` | *(legacy plan structure TBD)* | Not currently displayed | Safe display field; null for prueba |
 | `profile.isCompany` | `Consignee.IsCompany` | Not directly displayed | Boolean; bit(1) correctly decoded |
 | `profile.casillero` | `CompanyCode` (top-level) | `#profile-casillero`, `#miami-addr-casillero`, `#mobile-casillero-badge` | From consignee.codigoFacturacion |
@@ -784,6 +810,19 @@ Non-sensitive fields that can be shown to any admin or eventually any authentica
 
 ---
 
+## Corrections Applied to `_compute_profile_diff`
+
+Four issues were left at pre-task state after Task #535 and corrected in the follow-up cleanup (2026-05-14):
+
+| # | Issue | Old behavior | Corrected behavior |
+|---|-------|-------------|-------------------|
+| 1 | `branch.name` classification | Always put into `missingInLegacy` — never read legacy `sucursal._name` | Now reads `leg_suc.get('_name')` from the legacy Consignee sub-object; compares both sides; classified as `exact_match` when values match |
+| 2 | `casillero` field path | Read `rds_client.get('companyCode')` (wrong — client table has no CompanyCode); field named `client.companyCode` | Now reads `rds_profile.get('casillero')` (top-level); field named `casillero`; legacy side checks `CompanyCode`, `companyCode`, `Consignee.codigoFacturacion` |
+| 3 | `client.clientName` / `client.accountType` not diffed | Fields silently absent from all diff output | Added as `missingInLegacy` entries with `missing_join` classification and RDS-only enrichment note |
+| 4 | Stale "NEEDS VALIDATION" plan comments | `plan.planName` comment said "PlanName column name assumed"; `plan.discount` said "Discount column, NEEDS VALIDATION; also compare PendingDiscount" | Updated to confirmed column names: `nombre` and `descuento`; PendingDiscount reference removed (column does not exist) |
+
+---
+
 ## Final Recommendation
 
 ### Recommendation: **A — Proceed to frontend wiring**
@@ -793,17 +832,28 @@ Non-sensitive fields that can be shown to any admin or eventually any authentica
 - `joinValidationStatus`: `all_joins_succeeded`
 - `failedJoins`: `[]` (zero failures)
 - `true_mapping_issue` entries: **0**
-- All seven validation questions resolved — every "NEEDS VALIDATION" comment removed from `_rds_query_profile`
-- Column name corrections applied: 11 assumed names were wrong; all corrected
+- `missingInRds` entries: **0** — RDS resolves every field legacy returns
+- All seven validation questions resolved — all "NEEDS VALIDATION" comments removed from both `_rds_query_profile` and `_compute_profile_diff`
+- Column name corrections applied: 11 assumed names corrected in `_rds_query_profile`; 4 diff logic errors corrected in `_compute_profile_diff`
 - `isCompany` bit(1) edge case handled correctly
 - Schema confirmed against live `crbox_dev1` — no assumptions remain
+- `_compute_profile_diff` corrections verified by re-running the live compare: outputs match expected classifications
+
+**Remaining differences are all accounted for and non-blocking:**
+
+| Classification | Fields | Reason | Blocking? |
+|----------------|--------|--------|-----------|
+| `stale_dev_snapshot` | `receivesNewsletter`, `primaryAddress.address1` | Dev snapshot diverged from production | No — expected |
+| `missing_join` (missingInLegacy) | `casillero`, `client.idClient`, `client.clientName`, `client.accountType` | RDS has values; legacy returns null/absent for test account or doesn't expose field | No — test account artifact or RDS-only enrichment |
+| `missing_join` (missingInLegacy) | `plan.idPlan`, `plan.planName`, `plan.discount` | Test account has no plan assigned — null both sides | No — expected |
+| `withheld_for_privacy` | `identificationNumber`, `primaryPhone` | Intentionally withheld pending product/security approval | No — by design |
 
 **Conditions for wiring:**
 
 1. Bearer token resolution for portal user identity must be implemented before any user-facing page reads from this endpoint (admin-only scope must not be relaxed).
 2. The `isActive=false` state of address and phone for `prueba@crbox.cr` in the dev snapshot is expected (stale data); confirm semantics with the portal team before using `isActive` as a display filter.
-3. `pendingDiscount` has been removed — if the portal displays a discount badge, confirm the source field (`codigoFacturacion`? a different column?) with the product team before wiring that DOM element.
-4. `client.cedulaJuridica` is available but its display eligibility (Tier 4) requires product sign-off before exposing.
+3. `client.cedulaJuridica` is available but its display eligibility (Tier 4) requires product sign-off before exposing.
+4. `province` is a single-character code — a lookup table will be needed to render province names in the address form.
 
 ---
 
