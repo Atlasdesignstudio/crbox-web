@@ -1,0 +1,99 @@
+Newsletter QA still does not fully pass.
+
+Current behavior:
+- I check “Promociones y ofertas especiales”.
+- Click “Guardar Preferencias”.
+- Network shows POST `/api/crboxwebapi/postedituser`.
+- Response is 200 / `{"StatusResult":"OK","Message":""}`.
+- The checkbox now stays checked longer than before.
+- But after roughly 30–60 seconds, it becomes unchecked again.
+
+This means the immediate UI patch and intent guard are working, but once the guard expires, a later live `getuserinfo` / page resume refresh still returns or applies `receivesNewsletter:false`.
+
+Please investigate whether the newsletter preference is truly persisting in the legacy backend.
+
+Do not assume `StatusResult: OK` means the field was saved.
+
+Please validate the full lifecycle:
+
+1. Before save
+Read the current legacy getuserinfo value:
+- Consignee.receivesNewsletter
+- any casing variants such as ReceivesNewsletter / receivesNewsletter
+
+Log only the boolean, no raw PII.
+
+2. Payload sent to postedituser
+Confirm exactly which newsletter field is sent in the payload:
+- field name
+- casing
+- boolean value
+
+Log only:
+`newsletter payload field name: ...`
+`newsletter payload value: true/false`
+
+Do not log the full payload because it contains PII.
+
+3. Immediately after postedituser OK
+Call legacy getuserinfo again and inspect only the newsletter boolean.
+Confirm whether the backend returns:
+- true
+- false
+- null / missing
+
+4. Delayed confirmation
+Call getuserinfo again after:
+- 5 seconds
+- 30 seconds
+- 60 seconds
+
+Confirm whether the value eventually becomes true or stays false.
+
+5. Determine root cause
+Classify the issue as one of:
+- UI patch issue
+- stale API propagation
+- wrong payload field name/casing
+- postedituser ignores newsletter field
+- test account limitation
+- backend returns OK without persisting field
+- other legacy behavior
+
+6. If the payload field name/casing is wrong
+Fix only the newsletter field mapping in the payload builder.
+
+7. If postedituser ignores the newsletter field
+Do not fake persistence.
+Document newsletter save as “wired but not confirmed persistent” and either:
+- disable the save button for newsletter,
+- mark it as próximamente,
+- or keep the checkbox display-only until the correct backend endpoint/field is confirmed.
+
+8. If the backend eventually persists after delay
+Keep the intent guard long enough or clear it only when getuserinfo confirms the saved value.
+Do not let stale false overwrite the saved intent prematurely.
+
+9. If the backend never persists
+Do not mark newsletter as passed.
+Do not mark `mi-cuenta` as ready for controlled enablement until the product decision is made:
+- remove/disable newsletter save, or
+- find the correct endpoint/field.
+
+Important:
+- Do not log raw user objects.
+- Do not log ID, phone, address, token, or full payload.
+- Do not change password.
+- Do not change profile edit logic except the newsletter boolean mapping if needed.
+- Do not touch packages, invoices, login, registration, dashboard, AWS, DB schema, or production.
+
+Validation needed:
+- Save newsletter true.
+- Confirm postedituser OK.
+- Confirm getuserinfo returns true after save.
+- Reload page.
+- Confirm checkbox remains true.
+- Save newsletter false.
+- Confirm getuserinfo returns false after save.
+- Reload page.
+- Confirm checkbox remains false.

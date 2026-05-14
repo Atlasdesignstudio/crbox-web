@@ -819,11 +819,37 @@
                     var formEdits = { receivesNewsletter: newsletterEl ? !!newsletterEl.checked : false };
                     console.log('[CRBOX mi-cuenta] newsletter before save:', formEdits.receivesNewsletter);
                     var payload = CRBOXAuth.buildUpdateProfilePayload(rawInfo, formEdits);
+                    console.log('[CRBOX mi-cuenta] newsletter payload field name: Consignee.ReceivesNewsletter');
                     console.log('[CRBOX mi-cuenta] newsletter payload value:', formEdits.receivesNewsletter);
 
                     CRBOXPortalAPI.updateProfile(payload)
                         .then(function (result) {
                             var savedNewsletter = formEdits.receivesNewsletter;
+                            // ── Diagnostic: confirm whether postedituser actually persisted
+                            // the ReceivesNewsletter field.  result.userInfo is already a
+                            // forced-fresh getUserInfo() re-fetch done inside updateProfile()
+                            // so this is the earliest possible backend confirmation.
+                            var _diag = result.userInfo && (result.userInfo.Consignee || result.userInfo);
+                            var _diagNL = _diag ? (_diag.ReceivesNewsletter !== undefined
+                              ? _diag.ReceivesNewsletter
+                              : _diag.receivesNewsletter) : undefined;
+                            console.log('[CRBOX mi-cuenta] newsletter getuserinfo immediately after save:', _diagNL,
+                              '| expected:', savedNewsletter,
+                              '| persisted:', _diagNL === savedNewsletter);
+                            // Timed re-checks — confirms whether the backend eventually
+                            // propagates the value or never persists it at all.
+                            [5000, 30000, 60000].forEach(function (_delay) {
+                              setTimeout(function () {
+                                CRBOXPortalAPI.getUserInfo({ forceRefresh: true }).then(function (_ti) {
+                                  var _tc = _ti && (_ti.Consignee || _ti);
+                                  var _tnl = _tc ? (_tc.ReceivesNewsletter !== undefined
+                                    ? _tc.ReceivesNewsletter : _tc.receivesNewsletter) : undefined;
+                                  console.log('[CRBOX mi-cuenta] newsletter getuserinfo at +' + (_delay / 1000) + 's:', _tnl,
+                                    '| expected:', savedNewsletter,
+                                    '| confirmed:', _tnl === savedNewsletter);
+                                }).catch(function () {});
+                              }, _delay);
+                            });
                             window.__crboxUserInfoLegacy = result.userInfo || rawInfo;
                             // Eagerly stamp the saved value onto the legacy base so that
                             // any subsequent write payload always uses the correct intent,
@@ -842,9 +868,13 @@
                             // Record the saved intent so _patchNewsletterCheckbox and
                             // _applyProfile (called from crbox:pageresume on tab re-focus,
                             // or any other post-save refresh) cannot overwrite the checkbox
-                            // with a stale CRBOX API value.  The guard expires after 30 s
-                            // or when the API confirms the saved value, whichever comes first.
-                            window.__crboxNewsletterIntent = { value: savedNewsletter, ts: Date.now() };
+                            // with a stale CRBOX API value.
+                            // TTL is 24 h — effectively the whole browser session — because
+                            // diagnostic evidence shows the CRBOX backend does not reliably
+                            // propagate ReceivesNewsletter through getUserInfo() after a save.
+                            // The guard auto-clears early if getUserInfo() eventually confirms
+                            // the saved value, keeping normal refresh behaviour once confirmed.
+                            window.__crboxNewsletterIntent = { value: savedNewsletter, ts: Date.now(), ttl: 86400000 };
                             console.log('[CRBOX mi-cuenta] newsletter intent saved:', savedNewsletter);
                             // Immediately set the checkbox to the saved intent.
                             if (typeof window.__crboxPatchNewsletter === 'function') {
@@ -1031,7 +1061,7 @@
         var newsCheck = document.getElementById('notify_promotions');
         if (newsCheck) {
           var _ni = window.__crboxNewsletterIntent;
-          var _niActive = _ni && (Date.now() - _ni.ts < 30000);
+          var _niActive = _ni && (Date.now() - _ni.ts < (_ni.ttl || 30000));
           if (_niActive && !!newsletter !== _ni.value) {
             console.log('[CRBOX mi-cuenta] newsletter _applyProfile skipped (intent active):', _ni.value, '| incoming:', !!newsletter);
           } else {
@@ -1098,9 +1128,9 @@
         // The guard expires after 30 s or clears automatically when the API
         // confirms the saved value.
         var intent = window.__crboxNewsletterIntent;
-        var intentActive = intent && (Date.now() - intent.ts < 30000);
+        var intentActive = intent && (Date.now() - intent.ts < (intent.ttl || 30000));
         if (intentActive && val !== intent.value) {
-          console.log('[CRBOX mi-cuenta] newsletter patch skipped (intent active):', intent.value, '| incoming:', val);
+          console.log('[CRBOX mi-cuenta] newsletter patch skipped due to recent saved intent:', intent.value, '| incoming:', val);
           return;
         }
         var el = document.getElementById('notify_promotions');
