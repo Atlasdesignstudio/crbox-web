@@ -1,0 +1,107 @@
+Start the next task: Make RDS Database Guard Environment-Driven
+
+Context:
+The RDS Portal Core Production Readiness Plan is complete at:
+docs/rds-production-readiness-plan.md
+
+Final recommendation:
+A — Ready for production read-only shadow compare, but not ready for broad production enablement.
+
+Two blockers were identified before any production DB connection:
+1. Database identity guard is currently hardcoded to `crbox_dev1`.
+2. Production read-only DB user does not exist yet.
+
+This task addresses Blocker 1 only.
+
+Goal:
+Replace the hardcoded database identity guard in `server.py` with an environment-driven guard using `EXPECTED_RDS_DATABASE`.
+
+Important:
+Do NOT connect to production.
+Do NOT change production secrets.
+Do NOT enable production feature flags.
+Do NOT touch AWS/RDS infrastructure.
+Do NOT run writes.
+Do NOT change any RDS query logic beyond the database guard.
+Do NOT modify packages, invoices, profile mappings, login, registration, dashboard, cotizaciones, or frontend behavior unless a test/docs update is strictly required.
+
+Required behavior:
+Before any RDS query is allowed, the app must run:
+
+SELECT DATABASE()
+
+Then compare the result against:
+
+EXPECTED_RDS_DATABASE
+
+Rules:
+- If `EXPECTED_RDS_DATABASE` is missing or empty, RDS access must fail closed.
+- If `SELECT DATABASE()` does not match `EXPECTED_RDS_DATABASE`, RDS access must fail closed with `_RdsWrongDatabaseError`.
+- In development, set/expect:
+  EXPECTED_RDS_DATABASE=crbox_dev1
+- In production later, it will be:
+  EXPECTED_RDS_DATABASE=<production_db_name>
+
+Do not default silently to production or to any unknown database.
+
+Implementation steps:
+
+1. Locate the current hardcoded guard
+Find where `server.py` checks the active database against `'crbox_dev1'`.
+
+2. Replace hardcoded value
+Replace the hardcoded string with `os.environ.get('EXPECTED_RDS_DATABASE')`.
+
+3. Fail closed if missing
+If the env var is missing/empty:
+- raise `_RdsWrongDatabaseError`
+- do not query any portal table/view
+- return the same safe error path currently used for wrong DB
+
+4. Preserve existing behavior in dev
+Set or document that dev/test must include:
+EXPECTED_RDS_DATABASE=crbox_dev1
+
+With that value, all existing dev/test RDS endpoints should continue to work:
+- `/api/portal/my-packages`
+- `/api/portal/invoices-rds`
+- `/api/portal/profile-rds`
+- admin shadow endpoints
+
+5. Update docs
+Update:
+docs/rds-production-readiness-plan.md
+
+Mark Blocker 1 as resolved or partially resolved, depending on test result.
+
+Also add a short section:
+“Database guard is now environment-driven via EXPECTED_RDS_DATABASE.”
+
+6. Tests / validation
+Run safe validation only against dev/test:
+
+- With EXPECTED_RDS_DATABASE=crbox_dev1:
+  - `/api/config` works
+  - RDS endpoints still work when their feature flags are enabled
+  - no regression for packages/invoices/profile
+
+- With EXPECTED_RDS_DATABASE intentionally set to a wrong value in dev/test:
+  - RDS endpoint fails closed
+  - frontend fallback to legacy still works
+  - no raw DB error or secret is exposed to the browser
+
+- With EXPECTED_RDS_DATABASE missing:
+  - RDS endpoint fails closed
+  - frontend fallback to legacy still works
+
+7. Final report
+Report:
+- files changed
+- exact guard behavior
+- test results
+- whether Blocker 1 is resolved
+- remaining Blocker 2: production read-only DB user creation by CRBOX infrastructure team
+
+Do not enable production.
+Do not touch production secrets.
+Do not run production DB queries.

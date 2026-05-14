@@ -13473,8 +13473,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
     # ── GET /api/portal/packages-rds ──────────────────────────────────────────
     #
-    # Admin-session-gated, read-only shadow endpoint.  Queries crbox_dev1 via
-    # the getwarehousereceipts view for a consignee identified by email.
+    # Admin-session-gated, read-only shadow endpoint.  Queries the RDS database
+    # (EXPECTED_RDS_DATABASE) via the getwarehousereceipts view for a consignee
+    # identified by email.
     #
     # IMPORTANT — admin-session-only scope:
     # ?email= is accepted from query params only because access is restricted to
@@ -13596,7 +13597,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             'source':      'rds',
             'mode':        'shadow',
             'authMode':    'admin_session',
-            'database':    'crbox_dev1',
+            'database':    active_db,
             'idConsignee': result['id_consignee'],
             'count':       len(result['packages']),
             'limit':       limit,
@@ -13735,11 +13736,19 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         try:
             import rds_client as _rds
 
-            # Safety: confirm expected development database before touching any data
-            db_row    = _rds.fetch_one('SELECT DATABASE() AS db')
-            active_db = (db_row or {}).get('db', '')
-            if active_db not in ('crbox_dev1',):
-                print(f'[MY-PACKAGES] unexpected database: {active_db!r}')
+            # Safety: confirm expected database before touching any data.
+            # EXPECTED_RDS_DATABASE must be set explicitly — no silent default.
+            db_row       = _rds.fetch_one('SELECT DATABASE() AS db')
+            active_db    = (db_row or {}).get('db', '')
+            _expected_db = os.environ.get('EXPECTED_RDS_DATABASE', '').strip()
+            if not _expected_db:
+                print('[MY-PACKAGES] EXPECTED_RDS_DATABASE not set — query aborted')
+                self._json_error(503,
+                    'EXPECTED_RDS_DATABASE not set. Query aborted for safety.',
+                    code='unexpected_database')
+                return
+            if active_db != _expected_db:
+                print(f'[MY-PACKAGES] unexpected database: {active_db!r} (expected {_expected_db!r})')
                 self._json_error(503,
                     'Unexpected database active. Query aborted for safety.',
                     code='unexpected_database')
@@ -14401,11 +14410,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     # ── GET /api/admin/rds-profile-shadow ─────────────────────────────────────
     #
     # Admin-only, read-only shadow endpoint for profile/account data sourced
-    # from crbox_dev1.  Purpose: validate that all fields needed by mi-cuenta.html
-    # can be reliably resolved from RDS before any frontend wiring is attempted.
+    # from the RDS database.  Purpose: validate that all fields needed by
+    # mi-cuenta.html can be reliably resolved from RDS before any frontend
+    # wiring is attempted.
     #
     # Safety constraints:
-    #   • crbox_dev1 only — aborts if active DB differs.
+    #   • EXPECTED_RDS_DATABASE only — aborts if active DB differs or env var unset.
     #   • No SELECT * — all queries name columns explicitly.
     #   • No writes — read-only rds_client helpers only.
     #   • identificationNumber masked (****<last4>); raw value never returned.
@@ -14419,7 +14429,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     #             before any portal-user-facing version is created).
     #
     # Response shape:
-    #   { ok, source: "rds", mode: "shadow", database: "crbox_dev1",
+    #   { ok, source: "rds", mode: "shadow", database: "<EXPECTED_RDS_DATABASE>",
     #     profile: { idConsignee, email, name, lastName1, lastName2, fullName,
     #                identificationType, identificationNumberMasked, isCompany,
     #                client: {...}, branch: { id, name },
@@ -14464,7 +14474,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             'ok':                  True,
             'source':              'rds',
             'mode':                'shadow',
-            'database':            'crbox_dev1',
+            'database':            os.environ.get('EXPECTED_RDS_DATABASE', 'unknown'),
             'profile':             result['profile'],
             'joinValidationStatus': result['joinValidationStatus'],
             'failedJoins':         result['failedJoins'],
@@ -14628,7 +14638,8 @@ class _RdsEmailNotFoundError(Exception):
     """Raised when no consignee row exists for the given email."""
 
 class _RdsWrongDatabaseError(Exception):
-    """Raised when the active MySQL database is not crbox_dev1."""
+    """Raised when the active MySQL database does not match EXPECTED_RDS_DATABASE,
+    or when EXPECTED_RDS_DATABASE is not set."""
 
 
 def _rds_query_packages(rds_module, email, start_date, end_date,
@@ -14640,7 +14651,8 @@ def _rds_query_packages(rds_module, email, start_date, end_date,
 
     Raises:
         _RdsEmailNotFoundError  — no row in consignee for the given email.
-        _RdsWrongDatabaseError  — active DB is not crbox_dev1.
+        _RdsWrongDatabaseError  — active DB does not match EXPECTED_RDS_DATABASE,
+                                  or EXPECTED_RDS_DATABASE is not set.
         Exception               — any other RDS / network error.
 
     Date format note:
@@ -14651,11 +14663,14 @@ def _rds_query_packages(rds_module, email, start_date, end_date,
     import datetime as _dt
     import decimal  as _decimal
 
-    # Safety: confirm active database before touching any customer data.
-    # Aborts immediately if connected to anything other than crbox_dev1.
-    db_row    = rds_module.fetch_one('SELECT DATABASE() AS db')
-    active_db = (db_row or {}).get('db', '')
-    if active_db != 'crbox_dev1':
+    # Safety: confirm expected database before touching any customer data.
+    # EXPECTED_RDS_DATABASE must be set explicitly — no silent default.
+    db_row       = rds_module.fetch_one('SELECT DATABASE() AS db')
+    active_db    = (db_row or {}).get('db', '')
+    _expected_db = os.environ.get('EXPECTED_RDS_DATABASE', '').strip()
+    if not _expected_db:
+        raise _RdsWrongDatabaseError('EXPECTED_RDS_DATABASE not set')
+    if active_db != _expected_db:
         raise _RdsWrongDatabaseError(active_db)
 
     # Resolve idConsignee server-side from email — never accepted from caller.
@@ -14802,7 +14817,8 @@ def _rds_query_invoices(rds_module, email, start_date, end_date,
 
     Raises:
         _RdsEmailNotFoundError  — no row in consignee for the given email.
-        _RdsWrongDatabaseError  — active DB is not crbox_dev1.
+        _RdsWrongDatabaseError  — active DB does not match EXPECTED_RDS_DATABASE,
+                                  or EXPECTED_RDS_DATABASE is not set.
         Exception               — any other RDS / network error.
 
     Field mapping notes:
@@ -14824,10 +14840,14 @@ def _rds_query_invoices(rds_module, email, start_date, end_date,
     import datetime as _dt
     import decimal  as _decimal
 
-    # Safety: confirm active database before touching any customer data.
-    db_row    = rds_module.fetch_one('SELECT DATABASE() AS db')
-    active_db = (db_row or {}).get('db', '')
-    if active_db != 'crbox_dev1':
+    # Safety: confirm expected database before touching any customer data.
+    # EXPECTED_RDS_DATABASE must be set explicitly — no silent default.
+    db_row       = rds_module.fetch_one('SELECT DATABASE() AS db')
+    active_db    = (db_row or {}).get('db', '')
+    _expected_db = os.environ.get('EXPECTED_RDS_DATABASE', '').strip()
+    if not _expected_db:
+        raise _RdsWrongDatabaseError('EXPECTED_RDS_DATABASE not set')
+    if active_db != _expected_db:
         raise _RdsWrongDatabaseError(active_db)
 
     # Resolve idConsignee server-side from email — never accepted from caller.
@@ -15149,7 +15169,7 @@ def _mask_email_addr(raw):
 
 
 def _rds_query_profile(rds_module, email):
-    """Query crbox_dev1 for a complete profile record for the given email.
+    """Query the RDS database (EXPECTED_RDS_DATABASE) for a complete profile record for the given email.
 
     Returns a dict:
         {
@@ -15161,7 +15181,8 @@ def _rds_query_profile(rds_module, email):
 
     Raises:
         _RdsEmailNotFoundError  — no row in consignee for the given email.
-        _RdsWrongDatabaseError  — active DB is not crbox_dev1.
+        _RdsWrongDatabaseError  — active DB does not match EXPECTED_RDS_DATABASE,
+                                  or EXPECTED_RDS_DATABASE is not set.
         Exception               — any other RDS / network error.
 
     Sensitive field policy:
@@ -15179,10 +15200,14 @@ def _rds_query_profile(rds_module, email):
     import datetime as _dt
     import decimal  as _decimal
 
-    # Safety: confirm active database before touching any customer data.
-    db_row    = rds_module.fetch_one('SELECT DATABASE() AS db')
-    active_db = (db_row or {}).get('db', '')
-    if active_db != 'crbox_dev1':
+    # Safety: confirm expected database before touching any customer data.
+    # EXPECTED_RDS_DATABASE must be set explicitly — no silent default.
+    db_row       = rds_module.fetch_one('SELECT DATABASE() AS db')
+    active_db    = (db_row or {}).get('db', '')
+    _expected_db = os.environ.get('EXPECTED_RDS_DATABASE', '').strip()
+    if not _expected_db:
+        raise _RdsWrongDatabaseError('EXPECTED_RDS_DATABASE not set')
+    if active_db != _expected_db:
         raise _RdsWrongDatabaseError(active_db)
 
     # Tracks every secondary join that failed with an exception.  Populated

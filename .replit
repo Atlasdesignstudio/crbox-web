@@ -57,6 +57,7 @@ USE_RDS_PACKAGES_FRONTEND = "true"
 [userenv.development]
 USE_RDS_INVOICES_FRONTEND = "true"
 USE_RDS_PROFILE_FRONTEND = "true"
+EXPECTED_RDS_DATABASE = "crbox_dev1"
 
 [[ports]]
 localPort = 3000

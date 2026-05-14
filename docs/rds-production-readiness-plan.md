@@ -3,7 +3,8 @@
 **Created:** 2026-05-14  
 **Scope:** `mis-paquetes`, `mis-facturas`, `mi-cuenta`  
 **Author:** Agent (from QA-confirmed dev/test state)  
-**Status:** Ready for production read-only shadow compare — not yet ready for broad production enablement
+**Status:** Ready for production read-only shadow compare — not yet ready for broad production enablement  
+**Last updated:** 2026-05-14 — Blocker 1 (database guard) ✅ RESOLVED
 
 ---
 
@@ -99,7 +100,7 @@ browser → GET /api/config → featureFlags.useRds* = true
 - **All writes remain legacy.** `postedituser`, password change, and newsletter preference all go directly to `clients.crbox.cr` — none are proxied through the RDS path.
 - **Auth errors never silently fall back.** A 401/403 from `_portal_auth_full` is always propagated; it does not trigger the legacy fallback.
 - **Sensitive fields are masked or withheld in `mi-cuenta`.** Raw identification number, raw phone, `cedulaJuridica`, `joinValidationStatus`, `birthDate`, `responsabilidad`, `omitirRecep`, `_bIsDeleted`, `_bIsChanged` are not present in the RDS profile response.
-- **Database identity guard is enforced.** Before any data query, `server.py` runs `SELECT DATABASE()` and raises `_RdsWrongDatabaseError` if the active database does not match the expected value. ⚠️ **See Section 3 — this guard is currently hardcoded and must be made configurable before connecting to a production database.**
+- **Database identity guard is enforced.** Before any data query, `server.py` runs `SELECT DATABASE()` and raises `_RdsWrongDatabaseError` if the active database does not match `EXPECTED_RDS_DATABASE`, or if that env var is unset. ✅ **Guard is now environment-driven — see Section 3.4.**
 
 ---
 
@@ -156,25 +157,37 @@ The production RDS security group must allow inbound TCP on port 3306 from the R
 
 See Section 4 for the full list.
 
-### 3.4 ⚠️ Database identity guard — BLOCKER
+### 3.4 ✅ Database identity guard — RESOLVED (2026-05-14)
 
-**Current behavior:** `server.py` runs `SELECT DATABASE()` and compares the result to the hardcoded string `'crbox_dev1'`. If they do not match, it raises `_RdsWrongDatabaseError` and aborts the request.
+**Previous behavior (before this fix):** `server.py` compared `SELECT DATABASE()` against the hardcoded string `'crbox_dev1'`. This would always fail against any production database.
 
-**Problem for production:** This guard will always fail against a production database because the production database name is not `crbox_dev1`. The guard must be made configurable before a production DB connection can be established.
+**Implemented change:** All four guard locations in `server.py` (the three helper functions `_rds_query_packages`, `_rds_query_invoices`, `_rds_query_profile`, and the inline admin packages handler) now read `EXPECTED_RDS_DATABASE` from the environment:
 
-**Required change (small):** Replace the hardcoded `'crbox_dev1'` string with a check against an `EXPECTED_RDS_DATABASE` environment variable. The application must refuse to serve any RDS data if `EXPECTED_RDS_DATABASE` is unset or if `SELECT DATABASE()` does not match it.
-
-**Recommended logic:**
-```
-EXPECTED_RDS_DATABASE = os.environ.get('EXPECTED_RDS_DATABASE', '')
-if not EXPECTED_RDS_DATABASE:
-    raise _RdsWrongDatabaseError("EXPECTED_RDS_DATABASE not set")
-actual = fetch_one("SELECT DATABASE() AS db")['db']
-if actual != EXPECTED_RDS_DATABASE:
-    raise _RdsWrongDatabaseError(f"Expected {EXPECTED_RDS_DATABASE}, got {actual}")
+```python
+_expected_db = os.environ.get('EXPECTED_RDS_DATABASE', '').strip()
+if not _expected_db:
+    raise _RdsWrongDatabaseError('EXPECTED_RDS_DATABASE not set')
+if active_db != _expected_db:
+    raise _RdsWrongDatabaseError(active_db)
 ```
 
-This is the only code change required before production connection. It is small, safe, and strictly additive.
+**Fail-closed in all three cases:**
+- `EXPECTED_RDS_DATABASE` not set → `_RdsWrongDatabaseError('EXPECTED_RDS_DATABASE not set')` — no query executes
+- `EXPECTED_RDS_DATABASE` is empty string → same (`.strip()` normalises whitespace-only values)
+- `SELECT DATABASE()` does not match → `_RdsWrongDatabaseError(<active_db>)` — no query executes
+
+**Validated (2026-05-14) — all 5 guard scenarios pass:**
+
+| Scenario | Result |
+|---|---|
+| `EXPECTED_RDS_DATABASE=crbox_dev1`, active DB = `crbox_dev1` | ✅ Guard passes — queries proceed |
+| `EXPECTED_RDS_DATABASE=production_db`, active DB = `crbox_dev1` | ✅ Guard fails closed |
+| `EXPECTED_RDS_DATABASE=""` (empty string) | ✅ Guard fails closed — "not set" |
+| `EXPECTED_RDS_DATABASE` not set at all | ✅ Guard fails closed — "not set" |
+| `EXPECTED_RDS_DATABASE=crbox_dev1`, active DB = `some_other_db` | ✅ Guard fails closed |
+
+**Dev/test env var set:** `EXPECTED_RDS_DATABASE=crbox_dev1` (development environment, Replit Secrets).  
+**Production:** set `EXPECTED_RDS_DATABASE=<production_db_name>` when production DB credentials are available. Do not set it in the `shared` environment — it must differ between dev and production.
 
 ---
 
@@ -586,7 +599,7 @@ A 30-second read timeout will cause the frontend fallback to trigger if RDS is s
 ### No-Go criteria (any one blocks production shadow compare)
 
 - [ ] Production DB user has INSERT, UPDATE, DELETE, DROP, ALTER, or GRANT permissions
-- [ ] Database guard still hardcoded to `crbox_dev1` (would reject all production queries)
+- [x] ~~Database guard still hardcoded to `crbox_dev1`~~ — ✅ RESOLVED: guard now reads `EXPECTED_RDS_DATABASE`; hardcoded value removed
 - [ ] Schema differs from dev assumptions (missing table, missing column, different column name)
 - [ ] True field mapping errors (wrong data in a critical field)
 - [ ] Count mismatches that cannot be explained by known limitations
@@ -603,21 +616,21 @@ A 30-second read timeout will cause the frontend fallback to trigger if RDS is s
 
 All three portal modules (`mis-paquetes`, `mis-facturas`, `mi-cuenta`) have passed final manual QA in dev/test. The architecture is sound, the fallback guarantees hold, and the security boundary is confirmed.
 
-**The system is not yet ready for broad production enablement.** Two actions are required before the first production connection can be established:
+**The system is not yet ready for broad production enablement.** One remaining action is required before the first production connection can be established:
 
 ### Blockers before Stage 1 (production shadow compare)
 
-| # | Blocker | What is needed |
+| # | Blocker | Status |
 |---|---|---|
-| 1 | **Database identity guard is hardcoded** | Replace hardcoded `'crbox_dev1'` with `EXPECTED_RDS_DATABASE` env var in `server.py`. Small, safe, additive change. |
-| 2 | **Production read-only DB user does not exist** | CRBOX infrastructure team must create a SELECT-only MySQL user for the production RDS instance and provide credentials for Replit Secrets. |
+| 1 | **Database identity guard was hardcoded** | ✅ **RESOLVED (2026-05-14)** — guard now reads `EXPECTED_RDS_DATABASE`; all 5 guard scenarios validated |
+| 2 | **Production read-only DB user does not exist** | ⏳ **OPEN** — CRBOX infrastructure team must create a SELECT-only MySQL user and provide credentials |
 
 ### Next steps (in order)
 
-1. Fix the database identity guard (Blocker 1 — code change, ~1 hour)
+1. ~~Fix the database identity guard~~ ✅ Done
 2. Confirm production DB name with the CRBOX team
 3. Create production read-only MySQL user (Blocker 2 — infrastructure task)
-4. Set production env vars (`MYSQL_*`, `EXPECTED_RDS_DATABASE`) in Replit production Secrets
+4. Set production env vars (`MYSQL_HOST`, `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, `EXPECTED_RDS_DATABASE`) in Replit **production** Secrets
 5. Run schema parity validation (Section 5)
 6. Run production shadow compare against `prueba@crbox.cr` (Section 6)
 7. Review shadow compare results — if all pass, proceed to Stage 2 (packages frontend flag)

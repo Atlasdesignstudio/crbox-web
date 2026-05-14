@@ -1,0 +1,184 @@
+#539 - Branch-Aware Account Completion Logic
+
+What & Why
+The current account-completion logic appears to require a Costa Rica delivery address for every user. This incorrectly marks pickup-branch users as incomplete and keeps the activation/setup card visible even when their account is already valid for pickup.
+
+Only users whose selected branch/mode is home delivery should require a Costa Rica domicile address.
+
+Known branch IDs:
+- 1 = Sabana Norte / Oficina Central → pickup
+- 12 = Guadalupe / Calle Blancos → pickup
+- 13 = Entrega a domicilio → domicile delivery
+- 14 = Guachipelín Escazú → pickup
+
+Product rule:
+A Costa Rica delivery address is required only for users configured for home delivery / branch ID 13.
+For pickup users, a Costa Rica domicile address is optional and should be presented as an upgrade, not an account-completion requirement.
+
+Important clarification:
+This is NOT dashboard RDS migration.
+This is only a branch-aware correction to the existing account-completion / setup UX using the already available profile data.
+
+Done looks like
+- Pickup-branch users do not see “Termina de configurar tu cuenta” only because they lack a Costa Rica domicile address.
+- Home-delivery users still see the address requirement until a valid Costa Rica delivery address exists.
+- Dashboard activation checklist does not show address as a required incomplete step for pickup users.
+- `mi-cuenta.html` Direcciones tab explains the current delivery setup clearly:
+  - Pickup users: “Actualmente recibes tus paquetes en: [Sucursal].” and optional CTA to add domicile address.
+  - Home-delivery users without address: clear required-address message.
+  - Home-delivery users with address: existing address display remains.
+- RDS and legacy profile paths behave consistently.
+- Mobile layout remains clean.
+
+Out of scope
+- No backend changes.
+- No DB schema changes.
+- No server.py edits.
+- No AWS/RDS changes.
+- No branch switching/editing UI.
+- No package/invoice/login/registration changes.
+- No production configuration changes.
+- No dashboard RDS migration.
+
+Implementation steps
+
+1. Confirm branch data shape in both paths
+Before changing logic, inspect the actual normalized profile object received by:
+- legacy `getUserInfo()`
+- RDS-mapped `getProfileRDS()`
+
+Confirm where branch ID/name live in both cases:
+- legacy likely: `info.Consignee.sucursal._idsucursal` and `info.Consignee.sucursal._name`
+- RDS-mapped should either match that legacy shape or be adapted before `_applyProfile`
+
+If the RDS adapter already maps branch into the legacy-compatible `Consignee.sucursal` object, document that.
+If not, update only the frontend adapter/helper so both paths expose a consistent branch lookup.
+
+2. Add branch-aware helpers
+Create small shared helpers in the relevant page scripts, or duplicate locally if there is no shared file pattern yet:
+
+- `_getBranchInfo(info)`
+  - returns `{ id, name }`
+  - supports both legacy and RDS-mapped shapes
+  - returns null/empty safely if unavailable
+
+- `_isHomeDelivery(info)`
+  - true only when branch ID is 13 or branch name clearly equals/contains “Entrega a domicilio”
+
+- `_isBranchPickup(info)`
+  - true when branch data exists and branch ID is not 13
+  - treat IDs 1, 12, 14 as confirmed pickup
+  - treat any non-13 branch with a valid name as pickup
+  - if branch is absent/uncertain, fall back to old conservative behavior: require address
+
+3. Update dashboard account-completion logic
+In `dashboard.html`, update `_accountStateFrom()` so:
+
+- Required identity/contact fields remain unchanged.
+- Address requirement becomes branch-aware:
+  - pickup branch → address counts as complete for activation purposes
+  - home delivery → address is required
+  - unknown branch → keep old behavior and require address
+
+The function signature and return values should stay the same.
+
+4. Update dashboard activation checklist
+In `_maybeShowActivationCard()`:
+
+- For pickup users:
+  - do not show the address item as incomplete
+  - preferably hide the address checklist item entirely, because it is not required
+  - optionally show neutral copy elsewhere if needed:
+    “Retiro en sucursal configurado”
+
+- For home-delivery users:
+  - keep address checklist item required
+  - if missing, show incomplete state
+
+5. Update `mi-cuenta.html` Direcciones tab
+Above `#cr-addresses-list`, inject a contextual delivery-method block populated inside `_applyProfile()` or the existing profile render flow.
+
+Pickup user copy:
+Title:
+“Entrega actual”
+
+Body:
+“Actualmente recibes tus paquetes en: [Sucursal].”
+
+Supporting copy:
+“Puedes agregar una dirección de domicilio si prefieres recibir tus paquetes en una dirección específica.”
+
+CTA:
+“Agregar dirección de domicilio”
+
+This CTA should feel optional, not like an error.
+
+Home-delivery user without address:
+Title:
+“Entrega a domicilio”
+
+Body:
+“Para recibir tus paquetes en casa, necesitamos una dirección de entrega en Costa Rica.”
+
+CTA:
+“Agregar dirección de entrega”
+
+Home-delivery user with address:
+- Existing address list remains visible.
+- Context may say:
+“Tus paquetes están configurados para entrega a domicilio.”
+
+6. Update setup-mode copy
+In `initSetupMode()` / `tabCopy`, update the address-info text so it does not imply address is required for everyone.
+
+Suggested neutral copy:
+“Aquí puedes ver tu dirección en Miami y agregar una dirección de entrega en Costa Rica si deseas recibir paquetes a domicilio.”
+
+For home-delivery users specifically, use stricter copy:
+“Para recibir tus paquetes a domicilio, necesitas agregar una dirección de entrega en Costa Rica.”
+
+7. QA checks
+Verify:
+
+A. Pickup user — `prueba@crbox.cr`, branch 1 / Sabana Norte
+- no activation card solely because of missing CR domicile address
+- dashboard checklist does not show address as missing
+- Direcciones tab shows:
+  “Actualmente recibes tus paquetes en: Sabana Norte (Oficina Central).”
+- domicile address CTA is optional
+- RDS path works
+- legacy path works
+
+B. Home-delivery user — branch 13, no CR address
+- activation card still appears
+- address step is incomplete
+- Direcciones tab clearly says address is required
+
+C. Home-delivery user — branch 13, with CR address
+- account can be complete
+- address displays normally
+
+D. Unknown branch / missing branch data
+- conservative fallback: require address
+- no crash
+
+E. Mobile
+- contextual delivery block looks clean
+- no overflow
+- CTA remains usable
+- WhatsApp floating button does not block the CTA
+
+8. Documentation
+Update the relevant QA/docs with:
+
+“Costa Rica delivery address is required only for home-delivery accounts, not for pickup-branch accounts.”
+
+Also document:
+- branch ID 13 is treated as home delivery
+- non-13 valid branches are treated as pickup
+- unknown branch data falls back to requiring address for safety
+
+Relevant files
+- dashboard.html
+- mi-cuenta.html
+- js/portal-api.js only if needed to normalize branch shape; otherwise do not touch it

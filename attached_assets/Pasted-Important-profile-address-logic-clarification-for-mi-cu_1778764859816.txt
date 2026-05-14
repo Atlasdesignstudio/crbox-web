@@ -1,0 +1,135 @@
+Important profile/address logic clarification for `mi-cuenta`:
+
+A user should NOT be considered incomplete just because they do not have a Costa Rica delivery address if their selected delivery method/branch is a CRBOX pickup branch.
+
+The experience should clearly distinguish between:
+- Miami warehouse address
+- Pickup branch / sucursal
+- Costa Rica home delivery address
+
+Current logic to audit:
+Find what currently triggers the “Termina de configurar tu cuenta” / account setup warning. Confirm whether it incorrectly treats missing Costa Rica domicile address as required for all users.
+
+Correct product logic:
+
+1. Miami address
+- Always shown.
+- This is the fixed CRBOX Miami warehouse address + the user's casillero.
+- It is not user-editable.
+- It does not count as the user's Costa Rica delivery address.
+
+2. Pickup branch / sucursal
+If the user has a valid pickup branch such as:
+- Sabana Norte
+- Guadalupe / Calle Blancos
+- Guachipelín Escazú
+- any other CRBOX pickup office
+
+Then:
+- The account should be considered configured for pickup.
+- A Costa Rica domicile address should be optional, not required.
+- Do not show “Termina de configurar tu cuenta” only because a domicile address is missing.
+- Instead, show a clear, helpful message explaining where the user currently receives packages.
+
+Suggested copy:
+“Actualmente recibes tus paquetes en: [Sucursal].”
+“Puedes agregar una dirección de domicilio si prefieres recibir tus paquetes en una dirección específica.”
+
+CTA:
+“Agregar dirección de domicilio”
+
+This should feel like an optional upgrade, not an error.
+
+3. Home delivery / entrega a domicilio
+If the user's selected branch/mode is “Entrega a domicilio” or equivalent, then a Costa Rica delivery address is required.
+
+If no valid Costa Rica delivery address exists, show a required setup state.
+
+Suggested copy:
+“Entrega a domicilio seleccionada.”
+“Para recibir tus paquetes en casa, necesitamos una dirección de entrega en Costa Rica.”
+
+CTA:
+“Agregar dirección de entrega”
+
+This can trigger the “Termina de configurar tu cuenta” / incomplete account warning because the selected delivery mode requires an address.
+
+4. User choice / switching intent
+Even when the user currently receives packages in a pickup branch, the UI should make it easy to understand and change intent.
+
+Add or refine a small explanatory block in the Direcciones section:
+
+Suggested structure for pickup users:
+Title:
+“Entrega actual”
+
+Body:
+“Tus paquetes están configurados para retiro en [Sucursal].”
+
+Question:
+“¿Quieres recibir tus paquetes en una dirección específica?”
+
+Supporting copy:
+“Agrega una dirección de domicilio para solicitar entregas a casa cuando lo necesites.”
+
+CTA:
+“Agregar dirección de domicilio”
+
+Suggested structure for home-delivery users:
+Title:
+“Entrega a domicilio”
+
+Body:
+“Tus paquetes están configurados para entrega a domicilio.”
+
+If address exists:
+“Dirección principal: [address summary]”
+
+If address missing:
+“Agrega una dirección para que podamos coordinar tus entregas.”
+
+CTA:
+“Agregar dirección de entrega”
+
+5. Completion logic
+Update the account-completion logic so:
+- Valid pickup branch + no domicile address = account is not incomplete.
+- Home delivery selected + no valid domicile address = account incomplete.
+- Missing name/email/phone/identification may still be incomplete if those are required.
+- Missing domicilio address alone should not trigger incomplete state for pickup users.
+
+6. RDS/legacy compatibility
+This logic should work whether profile is loaded from:
+- RDS profile endpoint
+- legacy getuserinfo fallback
+
+Use branch/sucursal information already available:
+- branch.id / sucursal._idsucursal
+- branch.name / sucursal._name
+
+Do not invent a home-delivery rule if the branch ID/name cannot be confirmed. If uncertain, document the branch IDs and behavior needed.
+
+Known branch IDs from prior validation:
+- 1 Sabana Norte
+- 12 Guadalupe / Calle Blancos
+- 13 Entrega a domicilio
+- 14 Guachipelín Escazú
+
+Treat branch ID 13 / “Entrega a domicilio” as requiring a Costa Rica delivery address.
+Treat pickup branches as address-optional.
+
+7. Documentation and QA
+Update the `mi-cuenta` QA/documentation with this rule:
+“Costa Rica delivery address is required only for domicilio delivery, not for pickup-branch accounts.”
+
+QA checks:
+- Pickup branch user with no Costa Rica address does not see account-incomplete warning only for address.
+- Pickup branch user sees current pickup branch clearly.
+- Pickup branch user sees optional CTA to add domicile address.
+- Home-delivery user without address sees required setup warning.
+- Home-delivery user with address appears configured.
+- Mobile layout remains clean.
+- RDS and legacy paths behave the same.
+
+Do not change backend writes unless absolutely necessary.
+Do not touch packages, invoices, login, registration, dashboard, AWS/RDS settings, DB schema, or production.
