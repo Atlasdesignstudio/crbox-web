@@ -1,0 +1,66 @@
+Manual QA update for `mi-cuenta` after the write-base fix.
+
+Confirmed:
+- `typeof window.__crboxUserInfoLegacy` returns `"object"`.
+- `typeof window.__crboxUserInfo` returns `"object"`.
+- This confirms the legacy write-base object is available in the browser.
+- `/api/portal/profile-rds` works and powers the RDS read path.
+- Password validation works for short passwords: entering `123` / `123` shows “La contraseña debe tener al menos 8 caracteres.”
+- I did not submit a real password change.
+
+Newsletter finding:
+When I check “Promociones y ofertas especiales” and click “Guardar Preferencias”, Network shows a real POST to:
+
+`/api/crboxwebapi/postedituser`
+
+and the response is:
+
+`{"StatusResult":"OK","Message":""}`
+
+So the backend save appears to succeed.
+
+However, the checkbox does not remain visually checked afterward / after refresh. Please investigate and fix this UI/state persistence issue before marking `mi-cuenta` as ready.
+
+Possible causes to check:
+1. The save succeeds, but the checkbox state is not updated locally after `postedituser`.
+2. After save, the page refetches RDS profile data, but `crbox_dev1` is a stale snapshot and may not reflect the newly saved newsletter value.
+3. The newsletter checkbox may be initialized from the RDS display object instead of the live legacy object after a write.
+4. The post-save refresh may update `window.__crboxUserInfoLegacy` but not re-apply the checkbox state.
+5. The payload may save correctly, but the UI immediately overwrites the checkbox from stale RDS `receivesNewsletter`.
+
+Please fix this safely.
+
+Desired behavior:
+- When RDS profile is enabled, RDS can power static profile display.
+- But newsletter is a mutable preference saved through legacy.
+- After “Guardar Preferencias” succeeds, the checkbox should remain in the saved state.
+- On refresh, the checkbox should reflect the latest live legacy value if RDS dev snapshot is stale, or otherwise have a clear source-of-truth decision documented.
+
+Recommended approach:
+- Keep RDS read path for profile display.
+- Use `window.__crboxUserInfoLegacy` as the source for mutable write-backed preferences like `receivesNewsletter`, or immediately update the local UI state after successful save.
+- After successful `postedituser`, refetch legacy `getUserInfo()` and update `window.__crboxUserInfoLegacy`.
+- Then re-apply the newsletter checkbox from the updated legacy object.
+- Do not use masked RDS fields as the write payload base.
+
+Also confirm:
+- The `postedituser` payload is built from `window.__crboxUserInfoLegacy`, not the RDS display object.
+- It does not send masked ID or masked phone values.
+- No raw PII is logged to console or docs.
+
+Password validation:
+- Confirm that when password is shorter than 8 characters, no network request is sent.
+- Do not test a real password change.
+- Do not change the password for `prueba@crbox.cr`.
+
+Do not modify:
+- login
+- registration
+- packages
+- invoices
+- dashboard
+- AWS/RDS settings
+- DB schema
+- production DB
+
+This should be a targeted newsletter state/source-of-truth fix plus final QA documentation.

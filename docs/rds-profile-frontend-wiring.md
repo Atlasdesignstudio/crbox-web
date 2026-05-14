@@ -399,3 +399,56 @@ Once all five pass in a live browser session, set `USE_RDS_PROFILE_FRONTEND=true
 3. Restart the production server.
 4. Verify `window._qaLoadProfile()` in browser console on the live site returns `source: 'rds'`.
 5. Spot-check: confirm `window.__crboxUserInfoLegacy` is populated (object present, not undefined) without logging its contents.
+
+---
+
+## Newsletter Checkbox State Persistence — Fix (2026-05-14)
+
+### Root cause (identified in live QA)
+
+Two distinct failure modes both caused the checkbox to show the wrong state:
+
+**After save (no refresh):** The save handler's post-save `getUserInfo()` re-fetch called
+`window.__crboxApplyProfile(info)` — a full profile re-render. If the CRBOX API hadn't
+yet surfaced the saved `receivesNewsletter` change, `_applyProfile` would reset the
+checkbox to the old value, visually undoing what the user just saved.
+
+**After refresh:** `getProfileRDS()` resolves → `_applyProfile(rdsInfo)` sets the checkbox
+from the RDS snapshot (which may be a stale dev snapshot). The parallel `getUserInfo()` that
+populates `__crboxUserInfoLegacy` had no mechanism to patch the checkbox afterward.
+
+### Fix (mi-cuenta.html only)
+
+Added `_patchNewsletterCheckbox(info)` — a targeted helper that updates **only** the
+`#notify_promotions` checkbox from a profile object, without triggering a full re-render.
+Exposed as `window.__crboxPatchNewsletter` for use by the save handler in the other script
+block.
+
+**Four call sites:**
+
+| Location | When it fires | Purpose |
+|---|---|---|
+| Parallel `getUserInfo()` `.then()` (RDS init path) | When live legacy response arrives | Corrects stale RDS snapshot value on the checkbox |
+| Main `.then()` after `_applyProfile(info)` | When RDS display call resolves (if legacy already resolved) | Ensures live value wins if legacy was faster |
+| Immediately after `postedituser` success | Before re-fetch completes | User sees their change instantly, no flicker |
+| Post-save `getUserInfo()` re-fetch `.then()` | Confirms server state | Replaces old `__crboxApplyProfile(info)` call — targeted patch only |
+
+**Additional safety:** the saved `receivesNewsletter` value is eagerly stamped onto
+`window.__crboxUserInfoLegacy.Consignee.ReceivesNewsletter` after a successful save,
+so any subsequent payload build always uses the correct intent even if the CRBOX API
+lags in reflecting the change.
+
+### Authoritative source for `receivesNewsletter`
+
+| Context | Source of truth |
+|---|---|
+| Display (any path) | `__crboxUserInfoLegacy` (live CRBOX API) patches over RDS snapshot |
+| Write payload base | `__crboxUserInfoLegacy` (unchanged from write-base fix) |
+| Post-save state | Saved intent (`formEdits.receivesNewsletter`) — immediate; confirmed by re-fetch |
+
+### Files changed
+- `mi-cuenta.html` only (no backend, no other pages)
+
+### Remaining live browser check
+- Toggle checkbox → "Guardar Preferencias" → `postedituser` fires (Network: `StatusResult: OK`)
+  → checkbox stays in saved state → refresh → checkbox still matches saved state.

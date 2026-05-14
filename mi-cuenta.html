@@ -821,16 +821,38 @@
 
                     CRBOXPortalAPI.updateProfile(payload)
                         .then(function (result) {
+                            var savedNewsletter = formEdits.receivesNewsletter;
                             window.__crboxUserInfoLegacy = result.userInfo || rawInfo;
+                            // Eagerly stamp the saved value onto the legacy base so that
+                            // any subsequent write payload always uses the correct intent,
+                            // even if the CRBOX API lags in surfacing the change through
+                            // the next getUserInfo() re-fetch.
+                            var _lc = window.__crboxUserInfoLegacy
+                              ? (window.__crboxUserInfoLegacy.Consignee || window.__crboxUserInfoLegacy)
+                              : null;
+                            if (_lc) {
+                              _lc.ReceivesNewsletter = savedNewsletter;
+                              _lc.receivesNewsletter = savedNewsletter;
+                            }
                             window.__crboxUserInfo = result.userInfo || window.__crboxUserInfo;
                             if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('notifications'); } catch (_e) {} }
                             btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
-                            // Re-fetch from server to confirm saved state is reflected
+                            // Immediately confirm the checkbox from the saved value — do
+                            // not wait for the re-fetch which may return a stale value.
+                            if (typeof window.__crboxPatchNewsletter === 'function') {
+                                window.__crboxPatchNewsletter({ Consignee: { ReceivesNewsletter: savedNewsletter } });
+                            }
+                            // Re-fetch to keep __crboxUserInfoLegacy fresh for future
+                            // writes.  We patch only the checkbox here — NOT a full
+                            // _applyProfile re-render — to avoid overwriting the correct
+                            // checkbox state if the CRBOX API hasn't reflected the save yet.
                             CRBOXPortalAPI.clearUserInfoCache();
                             CRBOXPortalAPI.getUserInfo().then(function (info) {
                                 window.__crboxUserInfoLegacy = info;
                                 window.__crboxUserInfo = info;
-                                if (typeof window.__crboxApplyProfile === 'function') window.__crboxApplyProfile(info);
+                                if (typeof window.__crboxPatchNewsletter === 'function') {
+                                    window.__crboxPatchNewsletter(info);
+                                }
                             }).catch(function () {});
                             setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
                         })
@@ -1038,6 +1060,20 @@
         }
       }
 
+      // ── _patchNewsletterCheckbox ──────────────────────────────────────────
+      // Updates ONLY the #notify_promotions checkbox from a profile object.
+      // Called instead of full _applyProfile when we need to correct the
+      // checkbox without re-rendering the rest of the profile (e.g. after
+      // a save, or when the legacy write-base resolves after an RDS display).
+      function _patchNewsletterCheckbox(info) {
+        if (!info) return;
+        var c = (info && info.Consignee) ? info.Consignee : info;
+        var val = c.receivesNewsletter || c.ReceivesNewsletter || false;
+        var el = document.getElementById('notify_promotions');
+        if (el) el.checked = !!val;
+      }
+      window.__crboxPatchNewsletter = _patchNewsletterCheckbox;
+
       var _useRdsProfile = false; // set by /api/config on page load; false = legacy path
 
       window.__crboxApplyProfile = _applyProfile;
@@ -1086,6 +1122,11 @@
           // missing legacy object by falling back to __crboxUserInfo.
           CRBOXPortalAPI.getUserInfo().then(function (legacyInfo) {
             window.__crboxUserInfoLegacy = legacyInfo;
+            // Patch the newsletter checkbox from the live legacy value.
+            // getProfileRDS() may have already resolved with a stale RDS
+            // snapshot value; this corrects it once the authoritative
+            // legacy response arrives.
+            _patchNewsletterCheckbox(legacyInfo);
           }).catch(function () {});
           return CRBOXPortalAPI.getProfileRDS()
             .catch(function (rdsErr) {
@@ -1105,6 +1146,15 @@
           .then(function (info) {
             window.__crboxUserInfo = info;
             _applyProfile(info);
+            // When RDS path is active, the newsletter checkbox is a mutable
+            // preference backed by the live CRBOX API — not the RDS snapshot.
+            // If __crboxUserInfoLegacy already resolved (parallel getUserInfo()
+            // above), patch the checkbox to the live value now.  If it hasn't
+            // resolved yet, the parallel .then() above will patch it when it
+            // does.
+            if (_useRds && window.__crboxUserInfoLegacy) {
+              _patchNewsletterCheckbox(window.__crboxUserInfoLegacy);
+            }
           })
           .catch(function (err) {
             if (err && err.isAuthError) return; // redirect already in flight
