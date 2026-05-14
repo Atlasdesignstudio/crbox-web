@@ -1,0 +1,481 @@
+# Task — Final Go-Live Checklist for CRBOX Domain Cutover
+
+Context update before starting:
+`docs/domain-cutover-readiness-plan.md` has been updated after Task #545.
+
+Auth/signup/password recovery are no longer blockers for cutover. The final auth audit recommendation is:
+
+A — Safe for domain cutover with documented legacy limitations.
+
+The overall domain cutover plan remains:
+
+B — Needs specific fixes before cutover.
+
+The remaining blockers are operational, not architecture/auth blockers:
+1. DNS owner.
+2. SSL custom domain confirmation.
+3. TTL lowering / rollback speed.
+4. Old hosting preserved for rollback.
+5. Production env vars / service credentials confirmed.
+6. Invoice upload end-to-end test.
+
+Use this latest state as the baseline for the final go-live checklist.
+
+What & Why
+We are preparing for a controlled domain cutover where the new CRBOX public website and client portal become the primary experience at `crbox.cr`.
+
+Important context:
+This cutover does NOT mean removing legacy.
+This cutover does NOT mean migrating auth/signup/password recovery to a new database.
+This cutover does NOT mean enabling RDS frontend flags automatically.
+
+The intended model is:
+- `crbox.cr` / `www.crbox.cr` → new CRBOX website and portal UI
+- `clients.crbox.cr` → legacy API/client system remains active
+- `admin.crbox.cr` → internal operations/admin tool remains active
+- auth/signup/password recovery → remain legacy-backed
+- profile writes/invoice writes → remain legacy-backed
+- RDS read paths → activated gradually only after production shadow validation
+- old hosting → preserved for rollback
+
+Goal
+Create the final actionable go-live checklist and execution runbook for safely making the new CRBOX site public on the main domain.
+
+Deliverable
+Create:
+`docs/final-domain-cutover-go-live-checklist.md`
+
+Use as inputs:
+- `docs/domain-cutover-readiness-plan.md`
+- `docs/auth-registration-password-recovery-audit.md`
+- `docs/rds-production-readiness-plan.md`
+- `docs/rds-observability-fallback-plan.md` if available
+- `robots.txt`
+- `sitemap.xml`
+- `server.py`
+- all public and portal HTML files
+- `js/auth.js`
+- `js/portal-api.js`
+- `js/mobile-drawer.js`
+- `js/nav-auth.js`
+- `gtm.config.json`
+- `scripts/inject-gtm.js`
+- `replit.md`
+
+Out of scope
+Do NOT:
+- Change DNS.
+- Change nameservers.
+- Change hosting target.
+- Enable production RDS frontend flags.
+- Modify AWS/RDS.
+- Modify DB credentials.
+- Modify legacy APIs.
+- Modify production secrets.
+- Modify code.
+- Disable old hosting.
+- Touch `admin.crbox.cr`.
+- Touch `clients.crbox.cr`.
+
+This task is planning/checklist only.
+
+---
+
+## 1. Final Cutover Model
+
+Document the intended cutover model clearly:
+
+- New public website served at `crbox.cr`.
+- New client portal UI served under the same new site.
+- Legacy APIs remain active at `clients.crbox.cr`.
+- Internal admin/operations remain active at `admin.crbox.cr`.
+- Old public site/hosting remains available as rollback target.
+- RDS read paths are not required for DNS cutover.
+- Auth/signup/password recovery remain legacy-backed.
+- Legacy decommission is a separate future phase.
+
+Include this explicit policy:
+“Do not migrate login, signup, or password recovery to a new database for this cutover.”
+
+---
+
+## 2. Current Readiness Summary
+
+Summarize current readiness based on the latest docs.
+
+Include:
+- Public marketing site readiness.
+- Portal UI readiness.
+- Auth/signup/password recovery readiness.
+- SEO/indexing readiness.
+- Analytics readiness.
+- DNS/SSL/operational readiness.
+- RDS production readiness.
+- Rollback readiness.
+
+Use current known facts:
+- Auth audit final recommendation: A — safe for domain cutover with documented legacy limitations.
+- Domain cutover plan current recommendation: B — needs operational fixes before cutover.
+- Auth/signup/recovery are no longer blockers.
+- SEO/noindex/canonical status: mostly confirmed.
+- RDS production shadow validation: still separate and not required for DNS cutover if legacy fallback remains active.
+- Production DNS owner / SSL / TTL / old hosting preservation must be confirmed before cutover.
+
+---
+
+## 3. Protected Domains and Subdomains
+
+Create a protected-domain table.
+
+Must include:
+
+| Domain/Subdomain | Purpose | Cutover action |
+|---|---|---|
+| `crbox.cr` | Public website / main domain | Candidate for DNS cutover |
+| `www.crbox.cr` | Public website alias | Candidate for DNS cutover / redirect |
+| `clients.crbox.cr` | Legacy client/API system | Do NOT change |
+| `admin.crbox.cr` | Internal operations/admin tool | Do NOT change |
+
+Add warning:
+If only `crbox.cr` and `www.crbox.cr` DNS records are changed, `clients.crbox.cr` and `admin.crbox.cr` should remain unaffected.
+If nameservers or the entire DNS zone are changed, all existing DNS records must be copied/preserved first.
+
+---
+
+## 4. Final Hard Blockers Before DNS Change
+
+List hard blockers that must be resolved before any DNS change.
+
+At minimum verify:
+
+1. DNS owner identified.
+2. DNS owner available during cutover window.
+3. Current DNS records exported/backed up.
+4. Current old hosting target documented.
+5. New Replit custom domain target documented.
+6. SSL certificate ready or provisioning process confirmed for `crbox.cr` and `www.crbox.cr`.
+7. TTL lowered to approximately 300 seconds at least 24 hours before cutover, or risk explicitly accepted.
+8. Old hosting preserved and reachable for rollback.
+9. `clients.crbox.cr` confirmed reachable.
+10. `admin.crbox.cr` confirmed reachable.
+11. `CRBOX_SVC_EMAIL` and `CRBOX_SVC_PASSWORD` confirmed set in production deployment.
+12. Replit production deployment verified live/stable.
+13. Final smoke test on Replit preview passes.
+14. Rollback owner assigned.
+15. Rollback communication channel assigned.
+16. Invoice upload end-to-end test either passed or explicitly accepted as a non-blocking limitation for initial cutover.
+
+Classify each:
+- Resolved
+- Open
+- Needs owner
+- Not applicable
+
+---
+
+## 5. Pre-Cutover Smoke Test
+
+Create a final smoke test checklist to run before DNS change.
+
+### Public site
+- Homepage loads.
+- Servicios loads.
+- Como funciona loads.
+- Tarifas loads.
+- Calculadora loads and calculates.
+- Contacto loads.
+- Afiliate loads.
+- Privacidad loads.
+- Terminos loads.
+- 404 page works.
+- Mobile navigation works.
+- Footer links work.
+- WhatsApp links work.
+- Contact form works.
+- Calculator result works.
+- No major console errors.
+
+### Auth/account
+- Login page loads.
+- Valid login works.
+- Invalid login shows controlled error.
+- Logout clears session.
+- Logged-out access to portal redirects to login.
+- Expired session redirects correctly.
+- Password recovery modal works.
+- Password recovery cooldown works.
+- Signup personal form loads and validates.
+- Signup business form loads and validates.
+- If real signup test is approved, registration completes and auto-login works.
+- If real signup test is not approved, document accepted limitation.
+
+### Portal
+- Dashboard loads after login.
+- Mis paquetes loads via current active path.
+- Mis facturas loads via current active path.
+- Mi cuenta loads.
+- Mis solicitudes loads.
+- Solicitud page loads.
+- Cotizar page loads.
+- Protected pages are noindex.
+- Portal mobile drawer works.
+- Branch-aware account completion logic works for pickup users.
+- Newsletter persistence limitation documented and non-blocking.
+
+### SEO/indexing
+- robots.txt accessible.
+- sitemap.xml accessible.
+- Public pages have canonical tags.
+- Portal/private pages are noindex.
+- cotizar.html is noindex.
+- 404 returns HTTP 404 status.
+- Search Console access/plan confirmed.
+
+### Analytics
+- GTM loads.
+- GA4 receives page view.
+- CTA event fires.
+- Calculator event fires.
+- Login event fires.
+- Contact/WhatsApp event fires.
+- No PII in event parameters.
+
+### Protected subdomains
+- `clients.crbox.cr` works.
+- `admin.crbox.cr` works.
+- Existing admin login page still loads.
+- No planned DNS change affects either subdomain.
+
+---
+
+## 6. DNS Cutover Execution Plan
+
+Write a step-by-step DNS execution plan.
+
+Include:
+
+### Before cutover
+- Export current DNS zone or at minimum current records for:
+  - `crbox.cr`
+  - `www.crbox.cr`
+  - `clients.crbox.cr`
+  - `admin.crbox.cr`
+- Lower TTL for `crbox.cr` and `www.crbox.cr`.
+- Confirm old hosting rollback target.
+- Confirm new Replit target.
+- Confirm SSL requirements.
+- Confirm rollback owner.
+- Confirm team communication channel.
+- Run pre-cutover smoke test.
+
+### During cutover
+- Change only `crbox.cr` and `www.crbox.cr` records.
+- Do not modify `clients.crbox.cr`.
+- Do not modify `admin.crbox.cr`.
+- Do not modify MX/email records.
+- Do not modify nameservers unless the entire DNS zone has been fully copied and verified.
+- Wait for DNS propagation.
+- Verify SSL.
+- Verify apex and www behavior.
+- Verify redirect from www to non-www if configured.
+
+### After cutover
+- Run post-cutover smoke test.
+- Monitor logs.
+- Monitor GA4/GTM.
+- Monitor login/signup/recovery.
+- Monitor portal pages.
+- Keep old hosting active.
+- Do not enable RDS frontend flags during the DNS cutover window unless explicitly approved separately.
+
+---
+
+## 7. Post-Cutover Smoke Test
+
+Create a checklist to run immediately after DNS propagation.
+
+Include:
+- `https://crbox.cr/` loads new site.
+- `https://www.crbox.cr/` resolves correctly or redirects correctly.
+- SSL valid for both apex and www.
+- All public pages load.
+- Login works.
+- Logout works.
+- Password recovery opens and cooldown works.
+- Signup page loads.
+- Dashboard loads after login.
+- Mis paquetes loads.
+- Mis facturas loads.
+- Mi cuenta loads.
+- Contact form works.
+- WhatsApp links work.
+- Calculator works.
+- GTM loads.
+- GA4 realtime sees traffic.
+- robots.txt and sitemap.xml accessible.
+- Portal pages remain noindex.
+- `clients.crbox.cr` still works.
+- `admin.crbox.cr` still works.
+
+---
+
+## 8. Rollback Plan
+
+Write the final rollback plan.
+
+Rollback triggers:
+- Login broken.
+- Signup broken with no workaround.
+- Password recovery broken with no workaround.
+- Portal unavailable.
+- Public site unavailable.
+- SSL invalid.
+- Private pages indexable.
+- Severe mobile navigation issue.
+- Contact/WhatsApp broken globally.
+- High 5xx error rate.
+- Security-sensitive data exposed.
+- DNS misconfiguration affecting `clients.crbox.cr` or `admin.crbox.cr`.
+
+Rollback steps:
+1. Announce rollback decision in team channel.
+2. Revert `crbox.cr` DNS record to previous old-hosting target.
+3. Revert `www.crbox.cr` DNS record to previous old-hosting target.
+4. Do not touch `clients.crbox.cr`.
+5. Do not touch `admin.crbox.cr`.
+6. Confirm old site loads.
+7. Confirm SSL valid.
+8. Confirm login works on old site.
+9. Confirm public pages load.
+10. Monitor for at least 24 hours.
+11. Document incident and root cause.
+
+Include TTL expectations:
+- If TTL was lowered, rollback should propagate quickly.
+- If TTL was not lowered, rollback may take hours.
+
+---
+
+## 9. Production RDS Position During Cutover
+
+Document clearly:
+
+- RDS production activation is not required for DNS cutover.
+- RDS production shadow compare remains a separate gate.
+- RDS frontend flags should remain off during DNS cutover unless explicitly approved.
+- Legacy fallback should remain active.
+- After cutover stabilizes, RDS reads can be enabled gradually:
+  1. packages
+  2. invoices
+  3. profile
+- No RDS writes are part of this cutover.
+
+Include feature flags:
+- `USE_RDS_PACKAGES_FRONTEND`
+- `USE_RDS_INVOICES_FRONTEND`
+- `USE_RDS_PROFILE_FRONTEND`
+- `USE_RDS_PORTAL_API`
+
+Document recommended state for DNS cutover:
+- frontend RDS flags: false/unset
+- legacy APIs active
+- RDS admin/shadow tools only if needed
+
+---
+
+## 10. Auth/Signup Position During Cutover
+
+Document clearly:
+
+- Login remains legacy-backed through `clients.crbox.cr/authtoken`.
+- Signup remains legacy-backed through `postregisteruser`.
+- Password recovery remains legacy-backed through `getuserpasswordrecovery`.
+- Password change remains legacy-backed through `postedituser`.
+- Auth audit final recommendation is A.
+- Auth/signup/recovery are no longer blockers.
+- Do not migrate auth to a new database for this cutover.
+- Future auth modernization is a separate project.
+
+---
+
+## 11. Final Go / No-Go Decision Table
+
+Create a Go/No-Go table with:
+
+| Area | Status | Cutover impact | Decision |
+|---|---|---|---|
+
+Areas:
+- Public website.
+- SEO/indexing.
+- Analytics.
+- Auth/login.
+- Signup.
+- Password recovery.
+- Portal UI.
+- RDS data path.
+- Legacy APIs.
+- Protected subdomains.
+- DNS owner.
+- SSL.
+- TTL.
+- Old hosting rollback.
+- Production service env vars.
+- Invoice upload end-to-end test.
+- Smoke test.
+- Rollback owner.
+
+Decision options:
+- Go
+- Go with accepted limitation
+- No-Go until resolved
+
+---
+
+## 12. Final Recommendation
+
+Return one of:
+
+A — Ready for controlled DNS cutover.  
+B — Ready after specific listed fixes.  
+C — Not ready; critical blockers remain.
+
+Be strict:
+- If DNS owner is unknown → B or C.
+- If SSL not confirmed → B or C.
+- If old hosting rollback is not confirmed → B or C.
+- If protected subdomains cannot be preserved → C.
+- If login is broken → C.
+- If `clients.crbox.cr` or `admin.crbox.cr` would be affected → C.
+
+If A:
+Provide exact cutover sequence and who must be present.
+
+If B:
+List exact remaining blockers and who owns them.
+
+If C:
+Explain why cutover is unsafe.
+
+---
+
+## 13. Final Output Summary
+
+At the end of the document include:
+- Final A/B/C rating.
+- Remaining blockers.
+- Accepted limitations.
+- Protected subdomains.
+- DNS records to change.
+- DNS records not to change.
+- Smoke test checklist.
+- Rollback checklist.
+- Recommended cutover window.
+- Confirmation that no changes were made by this task.
+
+Final report to user should include:
+- document created
+- rating
+- blockers
+- next steps
+- whether the domain can be made public now or not
