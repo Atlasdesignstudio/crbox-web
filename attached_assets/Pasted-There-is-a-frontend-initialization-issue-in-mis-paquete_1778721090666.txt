@@ -1,0 +1,71 @@
+There is a frontend initialization issue in `mis-paquetes.html`.
+
+During manual browser QA, the page does not load packages correctly and the Console shows:
+
+Uncaught ReferenceError: CRBOXPortalAPI is not defined
+at mis-paquetes.html:2181
+
+Also, when trying to run the QA console workaround, `_loadPackages` is not defined.
+
+This suggests the issue is not RDS itself, but a frontend script loading / initialization / global scope problem.
+
+Please investigate and fix carefully.
+
+Context:
+- I am testing on the Replit URL.
+- I am logged in as prueba@crbox.cr.
+- I am on mis-paquetes.html.
+- The Network tab does not clearly show `/api/config` or `/api/portal/my-packages`.
+- Console shows `CRBOXPortalAPI is not defined`.
+- The page shows 0 packages.
+
+Please check:
+
+1. Script loading order in `mis-paquetes.html`
+   - Confirm `js/portal-api.js` is loaded before any inline script that references `CRBOXPortalAPI`.
+   - Confirm `js/auth.js` is loaded before `portal-api.js` if `portal-api.js` depends on `CRBOXAuth`.
+   - Confirm no `defer`/`async` ordering issue causes inline code to run too early.
+
+2. Global exposure
+   - Confirm `CRBOXPortalAPI` is attached to `window`.
+   - Confirm `getPackagesRDS()` is exposed on `window.CRBOXPortalAPI`.
+   - Confirm `CRBOXPortalAPI.getPackages` still exists.
+   - Confirm `CRBOXPortalAPI.getPackagesRDS` exists after page load.
+
+3. Initialization timing
+   - Ensure the `/api/config` feature flag fetch runs only after `CRBOXPortalAPI` and `CRBOXAuth` are available.
+   - If needed, wrap page initialization in `DOMContentLoaded` or move scripts to correct order.
+
+4. `_loadPackages` availability for QA
+   - For QA only, expose the package loader safely as `window._loadPackages = _loadPackages` if it is currently scoped locally.
+   - Do not expose sensitive internals.
+   - This is only so the browser QA workaround can run:
+     `_loadPackages(..., new Date('2023-08-01'), new Date('2023-09-01'))`
+
+5. Do not change backend logic unless necessary.
+   - The backend RDS endpoint already passed QA.
+   - This appears to be frontend wiring/init only.
+
+6. Preserve safety:
+   - Do not remove legacy fallback.
+   - Do not remove `/api/packages-proxy`.
+   - Do not modify login, dashboard, mi-cuenta, mis-facturas, cotizaciones, or registration.
+   - Do not touch AWS/RDS settings.
+   - No writes.
+   - No production DB queries.
+
+7. After fixing, rerun browser QA:
+   - `/api/config` should appear and return `useRdsPackages:true` when flag is enabled.
+   - `/api/portal/my-packages` should appear when loading packages.
+   - `/api/packages-proxy` should not appear unless fallback is triggered.
+   - Console should have no `CRBOXPortalAPI is not defined`.
+   - Console workaround should work or an equivalent QA function should be provided.
+   - Packages should render correctly for prueba@crbox.cr with the 2023-08-01 → 2023-09-01 range.
+
+Please report:
+- root cause
+- exact files/lines changed
+- whether script order was fixed
+- whether `CRBOXPortalAPI` is now available on `window`
+- whether `_loadPackages` or a safe QA equivalent is available
+- confirmation that no other portal pages were changed

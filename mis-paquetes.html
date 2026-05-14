@@ -1427,8 +1427,8 @@
 
     <script src="js/analytics.js" defer></script>
     <script src="js/cr-locations.js" defer></script>
-    <script src="js/portal-api.js?v=3" defer></script>
-    <script src="js/auth.js?v=3" defer></script>
+    <script src="js/portal-api.js?v=3"></script>
+    <script src="js/auth.js?v=3"></script>
     <script src="js/nav-auth.js?v=4" defer></script>
     <script src="js/mobile-drawer.js?v=1" defer></script>
     <script src="js/main.js?v=6" defer></script>
@@ -3780,6 +3780,17 @@
       window._crbRerender = function(resetPage) {
         var data = _allSortedPackages.length > 0 ? _allSortedPackages : _cachedPackages;
         _renderAll(data, resetPage);
+      };
+
+      // QA helper — safe to leave in; exposes the package loader for browser-console
+      // date-range overrides (e.g. loading historical data from crbox_dev1 snapshot).
+      // Does not expose auth tokens, DB credentials, or admin state.
+      window._qaLoadPackages = function(start, end, tracking, status) {
+        var id = window._cachedConsigneeId ||
+                 localStorage.getItem('crbox_cached_id_consignee') || '';
+        if (!id) { console.warn('[QA] No idConsignee cached yet — log in first.'); return; }
+        _loadPackages(id, start || new Date('2023-08-01'), end || new Date('2023-09-01'),
+                      tracking, status);
       };
     }());
     </script>
