@@ -95,7 +95,7 @@ Removes `crbox_access_token`, `crbox_expires_at`, `crbox_remember`, `crbox_email
 **bfcache and tab-resume re-validation:**  
 - `pageshow` event with `e.persisted === true` → re-checks `isLoggedIn()`. Expired → `clearToken()` + redirect. Valid → dispatches `crbox:pageresume` custom event with `{ reason: 'bfcache' }`.  
 - `visibilitychange` → `visible` → same logic with `{ reason: 'visibilitychange' }`.  
-- Portal pages (`dashboard.html`, `mis-paquetes.html`, `mis-facturas.html`, `mi-cuenta.html`, `mis-solicitudes.html`) listen for `crbox:pageresume` to rehydrate stale data without a full reload.
+- Pages confirmed to have a `crbox:pageresume` listener (verified by source search): `dashboard.html`, `mis-paquetes.html`, `mis-facturas.html`, `mi-cuenta.html`. `mis-solicitudes.html` and `solicitud.html` do **not** have this listener and will not rehydrate on tab-resume — they rely on `DOMContentLoaded` only.
 
 ---
 
@@ -138,7 +138,7 @@ Password minimum 8 characters; password match enforced via `setCustomValidity`; 
 - `_getSvcToken()` in `js/auth.js` calls the local `POST /crbox-svc-token` endpoint.  
 - `_handle_svc_token` in `server.py` reads `CRBOX_SVC_EMAIL` and `CRBOX_SVC_PASSWORD` exclusively from environment variables — they are never read from the request, never returned in any response field, and no `print()` statement logs them.  
 - The endpoint returns only `{ access_token: "<short-lived token>" }` — minimum necessary.  
-- Rate limit: shared `_check_rate_limit(ip)` — 10 requests per 60 seconds per source IP.  
+- Rate limit: shared `_check_rate_limit(ip)` — constants `_RATE_LIMIT = 10` requests per `_RATE_SECONDS = 60` seconds per source IP (defined at `server.py` lines 3927–3928). The rate check is applied in `do_POST` to all POST paths that are neither under `/admin` nor in the `_global_rate_exempt` set; `/crbox-svc-token` is subject to this limit.  
 - No Origin/Referer check (intentionally removed; documented rationale in `server.py` lines 11405–11414: Replit proxy strips non-standard port from `Host`, causing mismatch with browser `Origin`).
 
 **Response shape:** `StatusResult` field. `StatusResult !== undefined` → success path. Missing or unexpected shape → `'Respuesta inesperada del servidor'` error.
@@ -179,7 +179,7 @@ Both personal and business flows call the same `CRBOXAuth.doRegister(params.toSt
 | **Email placement** | URL path (not query string, not body) |
 
 **Modal lifecycle:**  
-Triggered by clicking "¿Olvidaste tu contraseña?" (matches text containing "Olvidaste" / "olvidaste"). Dismissed by close button, backdrop click, Escape key, or success.
+Triggered by clicking "¿Olvidaste tu contraseña?" (matches text containing "Olvidaste" / "olvidaste"). Dismissed by three handlers only: close button (`#close-modal`), "Volver al inicio de sesión" link (`#back-to-login`), and backdrop click (click on the modal overlay itself, line ~531 in `login.html`). There is **no Escape-key handler** and the modal does **not auto-close on success** — the success path updates the form UI with a confirmation message but leaves the modal visible until the user closes it manually.
 
 **Response handling:**  
 `(data.Message || data.message || '').toUpperCase() === 'OK'` → `{ ok: true }`. Any other value → `{ ok: false }`.
