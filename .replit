@@ -52,6 +52,7 @@ MYSQL_PORT = "3306"
 MYSQL_DATABASE = "crbox_dev1"
 MYSQL_USER = "CrBoxUser"
 USE_RDS_PORTAL_API = "true"
+USE_RDS_PACKAGES_FRONTEND = "true"
 
 [userenv.development]
 
