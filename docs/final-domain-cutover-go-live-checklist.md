@@ -96,7 +96,7 @@ Failure to preserve `clients.crbox.cr` would break all logins, signups, password
 | # | Item | Classification | Status | Notes |
 |---|---|---|---|---|
 | 1 | DNS owner / Route 53 access holder identified and available for cutover window | **Blocks DNS cutover** | ✅ **Confirmed 2026-05-14** | Route 53 access confirmed — user retrieved all hosted zone records directly. Registrar: dominios.cr / NIC Costa Rica. Authoritative DNS: AWS Route 53. Nameservers: `ns-1400.awsdns-47.org`, `ns-148.awsdns-18.com`, `ns-1718.awsdns-22.co.uk`, `ns-725.awsdns-26.net`. All cutover changes go in Route 53 only — do not touch dominios.cr. Source: Route 53 record export + `docs/dns-cutover-operational-status.md`. |
-| 2 | Current DNS records exported and backed up | **Blocks DNS cutover** | ⚠️ Partial — all A records confirmed via Route 53; MX/TXT/NS zone export still needed | All 4 A records confirmed directly in Route 53 2026-05-14: `crbox.cr` A `98.90.3.205` TTL 300; `www.crbox.cr` A `98.90.3.205` TTL 300; `clients.crbox.cr` A `100.50.198.105` TTL 300 (protected); `admin.crbox.cr` A `100.50.198.105` TTL 300 (protected). MX, TXT, NS, and any other records must still be exported from Route 53 as a full zone backup before the cutover window opens. Source: Route 53 + `docs/dns-cutover-operational-status.md`. |
+| 2 | Current DNS records exported and backed up | **Blocks DNS cutover** | ✅ **Confirmed 2026-05-14** | Full Route 53 zone backup downloaded: `crbox-cr-route53-backup-2026-05-14.json` (21 record sets, valid JSON). Contains: all 4 A records (confirmed), MX records (Google Workspace — do not touch), TXT/SPF records (do not touch), NS and SOA (do not touch), Mailgun notification records (do not touch), additional subdomains: blog, ftp, newsletter, services, staging, test.clients. No DNS records were changed. Source: Route 53 zone export 2026-05-14 + `docs/dns-cutover-operational-status.md`. |
 | 3 | Old hosting rollback target documented | **Blocks DNS cutover** | ✅ **Confirmed 2026-05-14** | Rollback A record: `98.90.3.205` (AWS EC2 `ec2-98-90-3-205.compute-1.amazonaws.com`, us-east-1). Old site confirmed serving HTTP 200. `www.crbox.cr` 301 → apex, same IP. Source: `docs/dns-cutover-operational-status.md`. |
 | 4 | New Replit custom domain target documented and configured | **Blocks DNS cutover** | ❌ Open — not yet added to Replit | `crbox.cr` and `www.crbox.cr` have NOT yet been added as custom domains in Replit deployment settings. No DNS target value (A record IP or CNAME) has been provided by Replit yet. Must publish production deployment, add both domains, and record the exact target before DNS change. Source: user confirmation 2026-05-14 + `docs/dns-cutover-operational-status.md`. |
 | 5 | SSL certificate provisioned or auto-provisioning confirmed for `crbox.cr` and `www.crbox.cr` on Replit | **Blocks DNS cutover** | ❌ Open — depends on item 4 | Replit auto-provisions SSL once the custom domain is pre-registered in Replit AND DNS is pointed to Replit. Domains must be added to Replit before the cutover window opens. SSL status can only be verified after propagation (part of minute-0 smoke test). Source: `docs/dns-cutover-operational-status.md`. |
@@ -115,10 +115,10 @@ Failure to preserve `clients.crbox.cr` would break all logins, signups, password
 **Hard DNS cutover blockers (must all be resolved before Stage 3):** Items 1–9, 11–14  
 **Broad portal rollout blockers (may be accepted as limitations for initial DNS cutover):** Items 10, 15  
 
-**Status as of 2026-05-14 (latest update — Route 53 records confirmed):**  
-✅ Confirmed resolved: items 1, 3, 6, 8, 9, 16  
-⚠️ Partially confirmed: items 2, 14  
-❌ Open: items 4, 5, 7, 11, 12, 13  
+**Status as of 2026-05-14 (latest update — full zone backup confirmed):**  
+✅ Confirmed resolved: items 1, 2, 3, 6, 8, 9, 16  
+⚠️ Partially confirmed: items 13, 14  
+❌ Open: items 4, 5, 7, 11, 12  
 **Overall rating: B — DNS cutover cannot be scheduled yet.**  
 **See `docs/dns-cutover-operational-status.md` for full detail and ordered action checklist.**
 

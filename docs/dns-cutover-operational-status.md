@@ -13,7 +13,7 @@
 | # | Blocker | Hard DNS blocker? | Status |
 |---|---|---|---|
 | 1 | DNS owner / Route 53 access confirmed | Yes | ✅ **Confirmed** — Route 53 access demonstrated 2026-05-14 |
-| 2 | DNS records exported and backed up (full zone) | Yes | ⚠️ **Partial** — all A records confirmed via Route 53; MX/TXT/NS full zone export still needed |
+| 2 | DNS records exported and backed up (full zone) | Yes | ✅ **Confirmed** — full zone backup downloaded 2026-05-14 (`crbox-cr-route53-backup-2026-05-14.json`, 21 record sets) |
 | 3 | Protected subdomains confirmed safe from apex change | Yes | ✅ **Confirmed** — 2026-05-14 |
 | 4 | Old hosting rollback IP documented | Yes | ✅ **Confirmed** — 2026-05-14 |
 | 5 | Old hosting confirmed preserved for 2–4 weeks post-cutover | Yes | ❌ **Open** — AWS instance owner has not confirmed longevity |
@@ -24,7 +24,7 @@
 | 10 | Communication channel for cutover window designated | Yes | ⚠️ **Partial** — WhatsApp + phone confirmed as method; group not yet set up |
 
 **Current overall rating: B**  
-**Confirmed resolved: 4 / 10 hard blockers** (items 1, 3, 4, 8)  
+**Confirmed resolved: 5 / 10 hard blockers** (items 1, 2, 3, 4, 8)  
 **Path to A:** All 10 items above must reach ✅.  
 **DNS cutover cannot be scheduled yet.**
 
@@ -56,7 +56,9 @@
 
 ## 2. Current DNS Records
 
-**Status: ⚠️ Partial — all A records confirmed via Route 53 with TTL; MX/TXT/NS full zone export still needed**
+**Status: ✅ Confirmed — full zone backup downloaded 2026-05-14**
+
+**Backup file:** `crbox-cr-route53-backup-2026-05-14.json` — 21 record sets, valid JSON. No records were changed.
 
 ### A Records — confirmed directly in Route 53, 2026-05-14
 
@@ -67,14 +69,18 @@
 | `clients.crbox.cr` | A | `100.50.198.105` | 300 s | Simple | No | CRBOX Portal API. AWS EC2. **Protected — must not be changed.** |
 | `admin.crbox.cr` | A | `100.50.198.105` | 300 s | Simple | No | Internal admin/ops. Same server as clients. **Protected — must not be changed.** |
 
-### Records still needed — export from Route 53 before cutover
+### Full zone inventory — confirmed in backup 2026-05-14
 
-- [ ] **MX records** — email routing. Must be exported and preserved exactly. Do not modify.
-- [ ] **TXT records** — SPF, DKIM, domain verification tokens. Export structure; redact values if sensitive. Do not modify.
-- [ ] **NS / SOA records** — document existing values. Must not be changed.
-- [ ] **Any CNAME, SRV, CAA records** — inventoried before any changes.
+| Record type | Status | Rule |
+|---|---|---|
+| A records (all 4) | ✅ Confirmed — see table above | Only `crbox.cr` and `www.crbox.cr` change at cutover |
+| MX records | ✅ Present — Google Workspace | **Do not touch** |
+| TXT / SPF records | ✅ Present | **Do not touch** |
+| NS / SOA records | ✅ Present | **Do not touch** |
+| Mailgun notification records | ✅ Present | **Do not touch** |
+| Additional subdomains | ✅ Present — blog, ftp, newsletter, services, staging, test.clients | **Do not touch** |
 
-**Action required:** In Route 53 → Hosted zones → crbox.cr, export a full zone file (Actions → Export zone file) and store it somewhere accessible to the rollback owner. This is the recovery baseline if something goes wrong.
+**Cutover scope is strictly limited to:** `crbox.cr` A record and `www.crbox.cr` A record only. All other 19 record sets remain unchanged.
 
 ---
 
@@ -220,7 +226,7 @@ Replit automatically provisions a TLS certificate for custom domains once:
 The following actions must be completed before DNS can be changed. Steps 1 and 8 are already done.
 
 1. ✅ **~~Confirm Route 53 access~~** — confirmed 2026-05-14. (Item 1)
-2. [ ] **Export full Route 53 zone backup** — MX, TXT, NS, and all other records. Route 53 → Hosted zones → crbox.cr → Actions → Export zone file. Store in a shared location. (Item 2)
+2. ✅ **~~Export full Route 53 zone backup~~** — downloaded 2026-05-14 (`crbox-cr-route53-backup-2026-05-14.json`, 21 record sets). (Item 2)
 3. [ ] **Publish Replit production deployment** and add `crbox.cr` + `www.crbox.cr` as custom domains. Record the exact A record IP or CNAME that Replit provides. (Items 6, 7, 11)
 4. [ ] **Confirm old AWS instance at `98.90.3.205` will stay live** for 2–4 weeks post-cutover. Get written confirmation from whoever controls that EC2 instance. (Item 5)
 5. [ ] **Assign rollback owner** (the Route 53 access holder, confirmed in step 1) and backup. Document names and phone numbers. (Item 9)
@@ -236,7 +242,7 @@ The following actions must be completed before DNS can be changed. Steps 1 and 8
 | Operational blocker | Status |
 |---|---|
 | DNS owner / Route 53 access confirmed | ✅ Confirmed |
-| DNS records exported (full zone) | ⚠️ Partial — A records + TTL confirmed via Route 53; MX/TXT/NS/other zone export still needed |
+| DNS records exported (full zone) | ✅ Confirmed — `crbox-cr-route53-backup-2026-05-14.json`, 21 record sets |
 | Protected subdomains confirmed safe | ✅ Confirmed |
 | Old hosting rollback IP documented | ✅ Confirmed (`98.90.3.205`) |
 | Old hosting preserved for rollback window | ❌ Open |
@@ -247,7 +253,7 @@ The following actions must be completed before DNS can be changed. Steps 1 and 8
 | Communication channel confirmed | ⚠️ Partial — method confirmed; WhatsApp group not yet set up |
 
 **Rating: B**  
-**Hard blockers confirmed resolved: 4 / 10** (DNS owner, protected subdomains, rollback IP, TTL)  
+**Hard blockers confirmed resolved: 5 / 10** (DNS owner, zone backup, protected subdomains, rollback IP, TTL)  
 **DNS cutover cannot be scheduled until all 10 items reach ✅.**
 
 ---
