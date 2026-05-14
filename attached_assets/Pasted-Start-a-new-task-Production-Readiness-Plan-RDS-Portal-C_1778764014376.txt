@@ -1,0 +1,464 @@
+Start a new task: Production Readiness Plan — RDS Portal Core
+
+Context:
+The three core client portal modules have now been completed and manually QA-approved in dev/test:
+
+1. `mis-paquetes`
+- RDS endpoint implemented.
+- Frontend wiring implemented behind feature flag.
+- Manual browser QA passed.
+- Legacy fallback works.
+- Ready for controlled enablement.
+
+2. `mis-facturas`
+- RDS endpoint implemented.
+- Backend parity validated.
+- Frontend wiring implemented behind feature flag.
+- Manual browser QA passed.
+- Legacy fallback works.
+- Ready for controlled enablement.
+
+3. `mi-cuenta`
+- RDS profile read endpoint implemented.
+- Secure response boundary validated.
+- Frontend wiring implemented behind feature flag.
+- Manual browser QA passed.
+- Write-base separation fixed with `__crboxUserInfoLegacy`.
+- Password validation passed.
+- Fallback passed.
+- Logged-out redirect passed.
+- Mobile layout passed.
+- Newsletter UI state model passed.
+- Newsletter backend persistence is NOT confirmed due to existing legacy API behavior, documented as non-blocking for RDS activation.
+
+Goal:
+Prepare the safe production-readiness plan for enabling the RDS-backed portal core in production.
+
+Important:
+This task is planning, validation design, and readiness documentation only.
+
+Do NOT:
+- Enable production feature flags.
+- Change production database connection.
+- Change AWS settings.
+- Change DB users or permissions.
+- Run writes.
+- Remove legacy fallback.
+- Modify frontend behavior.
+- Modify backend endpoints unless a documentation-only inconsistency is discovered and explicitly justified.
+- Touch login, registration, password recovery, dashboard, cotizaciones, old website, internal/backoffice tool, AWS settings, DB schema, or production data.
+- Query production DB unless explicitly approved later.
+
+Create a document:
+
+`docs/rds-production-readiness-plan.md`
+
+The document should include the following sections:
+
+---
+
+## 1. Current State Summary
+
+Summarize the current status of:
+
+- `mis-paquetes`
+- `mis-facturas`
+- `mi-cuenta`
+
+For each module include:
+- endpoint name
+- frontend page
+- feature flag
+- current environment status
+- QA status
+- fallback behavior
+- known limitations
+
+Feature flags:
+- `USE_RDS_PACKAGES_FRONTEND`
+- `USE_RDS_INVOICES_FRONTEND`
+- `USE_RDS_PROFILE_FRONTEND`
+
+Also document that production/shared flags are currently unset unless otherwise confirmed.
+
+---
+
+## 2. Current Architecture
+
+Explain the current safe pattern:
+
+- Legacy path remains default when flag is off.
+- RDS path is tried first only when feature flag is true.
+- RDS failures fallback to legacy on non-auth errors.
+- Auth errors propagate and do not silently fallback.
+- idConsignee is resolved server-side.
+- The browser never sends idConsignee.
+- RDS endpoints are read-only.
+- Writes remain legacy.
+- Sensitive fields are masked or withheld in `mi-cuenta`.
+
+Include a simple flow:
+
+Flag off:
+browser → legacy API
+
+Flag on:
+browser → local RDS endpoint → RDS  
+fallback → legacy API
+
+---
+
+## 3. Production Database Requirements
+
+Document what is needed before connecting to live production DB:
+
+- Exact production database name.
+- Read-only MySQL/RDS user.
+- SELECT-only permissions.
+- No use of master/admin DB credentials.
+- No write permissions.
+- No schema permissions.
+- No DROP/ALTER/INSERT/UPDATE/DELETE.
+- Network/security group access requirements.
+- Environment variables required.
+
+Recommend using an expected-database guard per environment:
+
+Development:
+- `MYSQL_DATABASE=crbox_dev1`
+- `EXPECTED_RDS_DATABASE=crbox_dev1`
+
+Production:
+- `MYSQL_DATABASE=<production_db_name>`
+- `EXPECTED_RDS_DATABASE=<production_db_name>`
+
+The app must abort if:
+`SELECT DATABASE()` does not equal `EXPECTED_RDS_DATABASE`.
+
+---
+
+## 4. Production Configuration Plan
+
+Document exactly which environment variables need to exist in production.
+
+Include:
+- DB host
+- DB port
+- DB name
+- DB user
+- DB password
+- expected DB name
+- feature flags
+
+Document safe defaults:
+- all RDS frontend flags unset/false by default
+- production legacy remains active until explicitly enabled
+
+Do not include any secrets or actual passwords.
+
+---
+
+## 5. Schema Parity Validation Plan
+
+Before enabling production RDS, verify that the production database contains the same required tables/views/columns already validated in dev.
+
+For packages, validate:
+- `getwarehousereceipts`
+- `warehousereceipt`
+- `status_general`
+- `consignee`
+- columns used by `/api/portal/my-packages`
+
+For invoices, validate:
+- `resumenmawb`
+- `masterairshipment`
+- `descuentocorporativo`
+- `airshipment`
+- `warehousereceipt`
+- status table used for recibos
+- fields used by `/api/portal/invoices-rds`
+
+For profile, validate:
+- `consignee`
+- `client`
+- `Sucursal`
+- `identificationtype`
+- `plan`
+- `address`
+- `phone`
+- `addresstype`
+- `phonetype`
+- `consignee_has_address`
+- `consignee_has_phone`
+
+Rules:
+- read-only schema inspection only
+- no SELECT *
+- no writes
+- no broad scans
+- no raw PII in docs/logs
+
+---
+
+## 6. Production Shadow Compare Plan
+
+Define a controlled shadow compare plan before enabling frontend flags in production.
+
+Start with:
+- `prueba@crbox.cr` if allowed and meaningful in production
+- then 2–3 additional controlled real accounts only if approved
+
+For packages compare:
+- count
+- idWarehouseReceipt
+- tracking
+- statusId/statusName
+- receivedDateTime
+- totalWeight
+- invoicesCount
+- missingInRds
+- missingInLegacy
+- statusMismatch
+
+For invoices compare:
+- count
+- factura numbers
+- totals
+- weight
+- volumetric weight
+- cantidadBultos
+- masterAirShipmentNumber
+- recibos count
+- missingInRds
+- missingInLegacy
+- amountMismatch
+
+For profile compare:
+- idConsignee
+- email
+- name/surnames
+- casillero
+- branch/sucursal
+- addresses count
+- phone count
+- identification type
+- isCompany
+- receivesNewsletter as read-only observation only
+- no raw ID/phone in docs
+
+Document pass/fail criteria:
+- countDelta = 0 for packages/invoices
+- no missing critical records
+- no true mapping issues
+- sensitive fields masked/withheld
+- acceptable differences classified clearly
+
+---
+
+## 7. Feature Flag Rollout Plan
+
+Design a staged rollout.
+
+Stage 0 — Current state:
+- production flags unset
+- legacy only
+
+Stage 1 — Production shadow validation:
+- production RDS connection configured with read-only credentials
+- no frontend flags enabled
+- run admin-only shadow compares
+
+Stage 2 — Enable one module for controlled internal account:
+- packages first
+- monitor logs
+- confirm fallback behavior
+
+Stage 3 — Enable invoices:
+- monitor logs
+- confirm totals and rendering
+
+Stage 4 — Enable profile:
+- monitor profile read
+- confirm secure response boundary
+- confirm writes remain legacy
+- confirm newsletter limitation documented
+
+Stage 5 — Broader enablement:
+- only after no discrepancies
+- keep rollback available
+
+Document whether current flags are global or per-environment only.
+If the current system does not support per-user rollout, recommend adding per-user or allowlist support before broad production activation.
+
+---
+
+## 8. Rollback Plan
+
+Document exact rollback steps:
+
+For packages:
+- unset `USE_RDS_PACKAGES_FRONTEND`
+- restart if required
+- confirm `/api/config` returns `useRdsPackages:false`
+- legacy packages path resumes
+
+For invoices:
+- unset `USE_RDS_INVOICES_FRONTEND`
+- restart if required
+- confirm `/api/config` returns `useRdsInvoices:false`
+- legacy invoices path resumes
+
+For profile:
+- unset `USE_RDS_PROFILE_FRONTEND`
+- restart if required
+- confirm `/api/config` returns `useRdsProfile:false`
+- legacy profile path resumes
+
+Rollback must require:
+- no DB operation
+- no code change
+- no data migration
+- no user-facing write impact
+
+---
+
+## 9. Monitoring / Observability Plan
+
+Recommend production monitoring for:
+
+- RDS endpoint success count
+- RDS endpoint error count
+- fallback count
+- auth error count
+- response time
+- DB connection failures
+- unexpected database guard failures
+- package count anomalies
+- invoice count anomalies
+- profile mapping errors
+- newsletter unconfirmed events
+- frontend JS errors related to RDS paths
+
+Recommend log rules:
+- no tokens
+- no raw ID numbers
+- no raw phone numbers
+- no raw addresses unless absolutely necessary and protected
+- no full payloads
+- no full profile objects
+
+---
+
+## 10. Performance Considerations
+
+Evaluate whether production RDS queries are safe for live traffic.
+
+Include:
+- expected query load
+- indexes likely needed
+- date-range limits
+- package/invoice pagination or limits
+- maximum allowed date ranges
+- slow query risk
+- connection pooling considerations
+- fallback behavior if RDS is slow
+
+Do not modify indexes or schema in this task.
+Only document recommendations.
+
+---
+
+## 11. Security Review
+
+Confirm:
+- endpoints require Bearer auth
+- email is verified through token/userinfo
+- idConsignee is resolved server-side
+- no idConsignee accepted from browser
+- profile endpoint masks raw ID and phone
+- profile endpoint excludes cedulaJuridica and internal fields
+- writes remain legacy
+- DB user should be read-only
+- feature flags default off
+- no secrets exposed
+
+Also include specific note:
+Newsletter backend persistence is an existing legacy write limitation, not an RDS read risk.
+
+---
+
+## 12. Known Limitations
+
+Document current limitations:
+
+Packages:
+- any known dev snapshot/status caveats
+
+Invoices:
+- `invoiceFileUrl` remains empty/stubbed if not available
+- download behavior graceful
+- recibos now supported if implemented
+
+Profile:
+- raw identification number and raw phone are intentionally not exposed
+- newsletter backend persistence not confirmed
+- password change not live-tested with real successful password change
+- current password is not required by legacy API
+- province labels may remain unexpanded if source only provides codes/nulls
+
+---
+
+## 13. Go / No-Go Checklist
+
+Create a final checklist.
+
+Go criteria:
+- production DB read-only user confirmed
+- expected DB guard implemented/configured
+- schema parity confirmed
+- shadow compare passes for packages
+- shadow compare passes for invoices
+- profile read compare passes
+- secure response boundary confirmed
+- feature flags verified off by default
+- rollback tested
+- logs free of PII/secrets
+- controlled production test account approved
+
+No-go criteria:
+- production DB user has write/admin permissions
+- schema differs from dev assumptions
+- true mapping issues found
+- count mismatches unexplained
+- fallback broken
+- auth errors silently fallback
+- raw PII exposed
+- rollback untested
+
+---
+
+## 14. Final Recommendation
+
+Conclude with one of:
+
+A. Ready for production read-only shadow compare.
+B. Needs code/config hardening first.
+C. Needs more dev validation first.
+
+Do not recommend broad production enablement unless production shadow compares have already passed.
+
+Expected recommendation for this task is likely:
+A — Ready for production read-only shadow compare,
+not yet ready for broad production enablement.
+
+---
+
+Deliverables:
+1. `docs/rds-production-readiness-plan.md`
+2. Clear final recommendation A/B/C
+3. List of exact blockers, if any
+4. List of exact next production validation steps
+
+Do not enable any production flags.
+Do not change production configuration.
+Do not touch unrelated modules.

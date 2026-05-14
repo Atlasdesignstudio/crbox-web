@@ -18,3 +18,9 @@ id = "y62F22ijs9ztSDcVyxXUp"
 uri = "file://docs/rds-profile-frontend-wiring.md"
 type = "text"
 title = "QA Report — Newsletter & RDS Profile"
+
+[[outputs]]
+id = "HOsXq-iYkOu2SG-nk92Sh"
+uri = "file://docs/rds-production-readiness-plan.md"
+type = "text"
+title = "RDS Portal Core — Production Readiness Plan"
