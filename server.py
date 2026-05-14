@@ -9536,6 +9536,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_admin_rds_shadow_compare()
         elif self.path.startswith('/api/admin/rds-invoices-shadow-compare'):
             self._handle_admin_rds_invoices_shadow_compare()
+        elif self.path.startswith('/api/admin/rds-profile-shadow-compare'):
+            self._handle_admin_rds_profile_shadow_compare()
+        elif self.path.startswith('/api/admin/rds-profile-shadow'):
+            self._handle_admin_rds_profile_shadow()
         elif self.path.startswith('/api/portal/invoices-rds'):
             self._handle_portal_invoices_rds()
         elif self.path.startswith('/api/solicitudes'):
@@ -14275,6 +14279,227 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             ],
         })
 
+    # ── GET /api/admin/rds-profile-shadow ─────────────────────────────────────
+    #
+    # Admin-only, read-only shadow endpoint for profile/account data sourced
+    # from crbox_dev1.  Purpose: validate that all fields needed by mi-cuenta.html
+    # can be reliably resolved from RDS before any frontend wiring is attempted.
+    #
+    # Safety constraints:
+    #   • crbox_dev1 only — aborts if active DB differs.
+    #   • No SELECT * — all queries name columns explicitly.
+    #   • No writes — read-only rds_client helpers only.
+    #   • identificationNumber masked (****<last4>); raw value never returned.
+    #   • Phone numbers masked (****<last4>).
+    #   • Sensitive fields (birthDate, OAuth tokens, etc.) withheld entirely.
+    #   • No frontend files modified.
+    #
+    # Query params:
+    #   email  — consignee email (admin test identity; accepted because endpoint
+    #             is gated behind admin session — must be resolved server-side
+    #             before any portal-user-facing version is created).
+    #
+    # Response shape:
+    #   { ok, source: "rds", mode: "shadow", database: "crbox_dev1",
+    #     profile: { idConsignee, email, name, lastName1, lastName2, fullName,
+    #                identificationType, identificationNumberMasked, isCompany,
+    #                client: {...}, branch: { id, name },
+    #                addresses: [...], phones: [...],
+    #                plan: {...}, receivesNewsletter },
+    #     _withheldFields: [...],
+    #     _addressLogicNote: "...",
+    #     _phoneLogicNote: "..." }
+
+    def _handle_admin_rds_profile_shadow(self):
+        if not self._rds_admin_gate():
+            return
+
+        parsed = urllib.parse.urlparse(self.path)
+        qs     = urllib.parse.parse_qs(parsed.query, keep_blank_values=False)
+        email  = qs.get('email', [''])[0].strip().lower()
+
+        if not email:
+            self._json_error(400, 'Missing required parameter: email.',
+                             code='bad_request')
+            return
+
+        try:
+            import rds_client as _rds
+            result = _rds_query_profile(_rds, email)
+        except _RdsEmailNotFoundError:
+            self._json_error(404, f'No consignee found for email: {email}',
+                             code='no_consignee_for_email')
+            return
+        except _RdsWrongDatabaseError as exc:
+            print(f'[RDS-PROFILE-SHADOW] wrong database: {exc}')
+            self._json_error(502, f'Unexpected database: {exc}',
+                             code='unexpected_database')
+            return
+        except Exception as exc:
+            print(f'[RDS-PROFILE-SHADOW] error: {exc}')
+            self._json_error(502, f'RDS query failed: {exc}',
+                             code='rds_query_failed')
+            return
+
+        self._json_response(200, {
+            'ok':                  True,
+            'source':              'rds',
+            'mode':                'shadow',
+            'database':            'crbox_dev1',
+            'profile':             result['profile'],
+            'joinValidationStatus': result['joinValidationStatus'],
+            'failedJoins':         result['failedJoins'],
+            '_withheldFields':     result['_withheldFields'],
+            '_addressLogicNote':   result['_addressLogicNote'],
+            '_phoneLogicNote':     result['_phoneLogicNote'],
+        })
+
+    # ── GET /api/admin/rds-profile-shadow-compare ─────────────────────────────
+    #
+    # Admin-only shadow compare endpoint.  Fetches the RDS profile for a single
+    # controlled test user (prueba@crbox.cr) and, when a Bearer token is
+    # supplied via Authorization header, also fetches the legacy getuserinfo
+    # response for a field-by-field diff.
+    #
+    # Safety constraints (same as rds-profile-shadow above, plus):
+    #   • Legacy API called at most once per request.
+    #   • Bearer token never stored or logged.
+    #   • All PII masked in diff output.
+    #   • No multi-user iteration.
+    #
+    # Query params:
+    #   email  — accepted for flexibility during admin testing; defaults to
+    #            prueba@crbox.cr in production use.
+    # Header:
+    #   Authorization: Bearer <token>  (optional; triggers legacy call)
+
+    def _handle_admin_rds_profile_shadow_compare(self):
+        if not self._rds_admin_gate():
+            return
+
+        # This compare endpoint is intentionally limited to a single controlled
+        # test user to prevent broad multi-user comparisons during shadow testing.
+        # Reject any request targeting a different email.
+        _ALLOWED_COMPARE_EMAIL = 'prueba@crbox.cr'
+
+        parsed = urllib.parse.urlparse(self.path)
+        qs     = urllib.parse.parse_qs(parsed.query, keep_blank_values=False)
+        req_email = qs.get('email', [''])[0].strip().lower()
+
+        if req_email and req_email != _ALLOWED_COMPARE_EMAIL:
+            self._json_error(400,
+                f'This compare endpoint is restricted to the single controlled '
+                f'test user ({_ALLOWED_COMPARE_EMAIL}). '
+                f'Use /api/admin/rds-profile-shadow?email=<address> for other accounts.',
+                code='compare_user_restricted')
+            return
+
+        email = _ALLOWED_COMPARE_EMAIL
+
+        # ── RDS side ──────────────────────────────────────────────────────────
+        rds_result = None
+        rds_error  = None
+        try:
+            import rds_client as _rds
+            rds_result = _rds_query_profile(_rds, email)
+        except _RdsEmailNotFoundError:
+            rds_error = 'no_consignee_for_email'
+        except _RdsWrongDatabaseError as exc:
+            print(f'[RDS-PROFILE-COMPARE] wrong database: {exc}')
+            rds_error = 'unexpected_database'
+        except Exception as exc:
+            print(f'[RDS-PROFILE-COMPARE] RDS error: {exc}')
+            rds_error = 'rds_query_failed'
+
+        if rds_error:
+            self._json_error(502, f'RDS query failed: {rds_error}',
+                             code=rds_error)
+            return
+
+        rds_profile = rds_result['profile']
+
+        # ── Legacy side (only when Bearer token is provided) ──────────────────
+        legacy_data  = None
+        legacy_error = None
+        auth_header  = self.headers.get('Authorization', '')
+
+        if auth_header.startswith('Bearer '):
+            legacy_url = (
+                'https://clients.crbox.cr/api/crboxwebapi/getuserinfo/'
+                + urllib.parse.quote(email, safe='')
+            )
+            try:
+                req = urllib.request.Request(legacy_url)
+                req.add_header('Authorization', auth_header)
+                req.add_header('Accept',        'application/json')
+                req.add_header('User-Agent',    'CRBOX-Profile-Shadow/1.0')
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    raw_bytes = resp.read(4 * 1024 * 1024)
+                legacy_data = json.loads(raw_bytes)
+            except urllib.error.HTTPError as exc:
+                print(f'[RDS-PROFILE-COMPARE] legacy HTTP {exc.code}')
+                legacy_error = f'http_error_{exc.code}'
+            except urllib.error.URLError:
+                legacy_error = 'timeout_or_network_error'
+            except (json.JSONDecodeError, ValueError):
+                legacy_error = 'parse_error'
+            except Exception as exc:
+                print(f'[RDS-PROFILE-COMPARE] legacy unexpected error: {exc}')
+                legacy_error = 'unexpected_error'
+
+        # Build a masked legacy summary for the response rather than returning
+        # the raw getuserinfo payload, which can contain full PII.  Only
+        # non-sensitive structural fields and masked values are included.
+        legacy_summary = None
+        if legacy_data and isinstance(legacy_data, dict):
+            leg_c = (legacy_data.get('Consignee') or {}) \
+                if isinstance(legacy_data.get('Consignee'), dict) else legacy_data
+            leg_phones = legacy_data.get('Phones') or leg_c.get('phones') or []
+            leg_addrs  = legacy_data.get('Addresses') or leg_c.get('addresses') or []
+            # Name and address fields are Tier-2 PII — redacted in summary.
+            # Non-PII structural fields (IDs, booleans, counts) are kept.
+            legacy_summary = {
+                'idConsignee': (leg_c.get('idconsignee') or leg_c.get('IdConsignee')
+                                or leg_c.get('idConsignee')),
+                'emailMasked': _mask_email_addr(
+                    (leg_c.get('email') or leg_c.get('Email') or '').strip().lower()),
+                'name':         '<redacted>',
+                'lastName1':    '<redacted>',
+                'lastName2':    '<redacted>',
+                'isCompany':    (leg_c['IsCompany'] if 'IsCompany' in leg_c
+                                 else leg_c.get('isCompany')),
+                'identificationType': (leg_c.get('IdentificationType')
+                                       or leg_c.get('identificationtype')),
+                'identificationNumberMasked': _mask_id_number(
+                    leg_c.get('IdentificationNumber') or leg_c.get('identificationnumber')),
+                'receivesNewsletter': (leg_c['ReceivesNewsletter']
+                                       if 'ReceivesNewsletter' in leg_c
+                                       else leg_c.get('receivesNewsletter')),
+                'sucursalId':   ((leg_c.get('Sucursal') or leg_c.get('sucursal') or {})
+                                 .get('IdSucursal') if isinstance(
+                                     leg_c.get('Sucursal') or leg_c.get('sucursal'), dict)
+                                 else None),
+                'companyCode':  legacy_data.get('CompanyCode') or legacy_data.get('companyCode'),
+                'phoneCount':   len(leg_phones),
+                'addressCount': len(leg_addrs),
+                '_note': 'Masked summary only — raw getuserinfo payload not returned. '
+                         'Name/address fields redacted per sensitive field policy.',
+            }
+
+        self._json_response(200, {
+            'email':               email,
+            'idConsignee':         rds_profile.get('idConsignee'),
+            'rds':                 rds_profile,
+            'legacy':              legacy_summary,
+            'legacyError':         legacy_error,
+            'joinValidationStatus': rds_result['joinValidationStatus'],
+            'failedJoins':         rds_result['failedJoins'],
+            'diff':                _compute_profile_diff(rds_profile, legacy_data),
+            '_withheldFields':     rds_result['_withheldFields'],
+            '_addressLogicNote':   rds_result['_addressLogicNote'],
+            '_phoneLogicNote':     rds_result['_phoneLogicNote'],
+        })
+
 
 # ── RDS packages helpers ───────────────────────────────────────────────────────
 # Shared by _handle_portal_packages_rds and _handle_admin_rds_shadow_compare.
@@ -14759,6 +14984,765 @@ def _compute_invoices_diff(rds_invs, legacy_invs):
         'missingInRds':     missing_in_rds[:20],
         'missingInLegacy':  missing_in_legacy[:20],
         'amountMismatch':   amount_mismatch[:20],
+    }
+
+
+# ── RDS profile helpers ────────────────────────────────────────────────────────
+# Used by _handle_admin_rds_profile_shadow and
+# _handle_admin_rds_profile_shadow_compare.
+# Defined at module level so they can be exercised independently.
+
+
+def _mask_id_number(raw):
+    """Return ****<last4> mask for an identification number, or None if absent."""
+    if not raw:
+        return None
+    s = str(raw).strip()
+    if len(s) <= 4:
+        return '****'
+    return '****' + s[-4:]
+
+
+def _mask_phone(raw):
+    """Return ****<last4> mask for a phone number, or None if absent."""
+    if not raw:
+        return None
+    # Strip non-digit characters for the mask source, keep original shape
+    digits = ''.join(c for c in str(raw) if c.isdigit())
+    if not digits:
+        return '****'
+    if len(digits) <= 4:
+        return '****'
+    return '****' + digits[-4:]
+
+
+def _mask_email_addr(raw):
+    """Return a partial email mask: fi***@domain for a given address."""
+    if not raw:
+        return None
+    raw = str(raw).strip()
+    if '@' not in raw:
+        return raw[:2] + '***'
+    local, domain = raw.split('@', 1)
+    if len(local) <= 2:
+        return local + '***@' + domain
+    return local[:2] + '***@' + domain
+
+
+def _rds_query_profile(rds_module, email):
+    """Query crbox_dev1 for a complete profile record for the given email.
+
+    Returns a dict:
+        {
+          'profile': { ... },
+          '_withheldFields': [...],
+          '_addressLogicNote': '...',
+          '_phoneLogicNote': '...',
+        }
+
+    Raises:
+        _RdsEmailNotFoundError  — no row in consignee for the given email.
+        _RdsWrongDatabaseError  — active DB is not crbox_dev1.
+        Exception               — any other RDS / network error.
+
+    Sensitive field policy:
+        identificationNumber — masked (****<last4>); raw never returned.
+        PhoneNumber          — masked (****<last4>); raw never returned.
+        BirthDate, AlternativeEmail, ResidenceCountry, ContactName1,
+        ContactName2, Responsabilidad, IdResponsabilidad, OmitirReceptor
+                             — withheld entirely; listed in _withheldFields.
+
+    Null handling:
+        All missing/NULL DB values are serialised as None (JSON null), never
+        as missing keys, so callers can distinguish "field present but null"
+        from "field not in response."
+    """
+    import datetime as _dt
+    import decimal  as _decimal
+
+    # Safety: confirm active database before touching any customer data.
+    db_row    = rds_module.fetch_one('SELECT DATABASE() AS db')
+    active_db = (db_row or {}).get('db', '')
+    if active_db != 'crbox_dev1':
+        raise _RdsWrongDatabaseError(active_db)
+
+    # Tracks every secondary join that failed with an exception.  Populated
+    # throughout steps 2-7 and returned so callers can surface a clear
+    # validation status rather than silently swallowing partial-data states.
+    _failed_joins = []
+
+    # ── Step 1: Consignee base row ─────────────────────────────────────────
+    # Resolve idConsignee server-side from email — never accepted from caller.
+    # IdentificationType in consignee stores the type code (string) directly;
+    # a separate identificationtype table may exist — confirmed via SHOW COLUMNS
+    # during schema investigation.  The join to identificationtype for a label
+    # is attempted below; falls back to the raw code if the join table is absent.
+    cons_row = rds_module.fetch_one(
+        'SELECT c.idConsignee, c.email, c.ConsigneeName, c.ConsigneeLastName1, '
+        '       c.ConsigneeLastName2, c.isCompany, c.idSucursal, '
+        '       c.PendingDiscount, c.ReceivesNewsletter, '
+        '       c.IdentificationNumber, c.IdentificationType '
+        'FROM consignee c '
+        'WHERE c.email = %s LIMIT 1',
+        (email,)
+    )
+    if not cons_row:
+        raise _RdsEmailNotFoundError()
+
+    id_consignee = int(cons_row['idConsignee'])
+
+    # ── Step 2: Identification type label ────────────────────────────────
+    # Try to resolve a human-readable label from the identificationtype table.
+    # The FK column name in consignee is IdentificationType (string code);
+    # the lookup table is identificationtype with columns idIdentificationType
+    # and IdentificationType.  NEEDS VALIDATION: column names unconfirmed.
+    id_type_label = cons_row.get('IdentificationType')  # fallback: raw code
+    try:
+        it_row = rds_module.fetch_one(
+            'SELECT IdentificationType FROM identificationtype '
+            'WHERE idIdentificationType = %s LIMIT 1',
+            (cons_row.get('IdentificationType'),)
+        )
+        if it_row and it_row.get('IdentificationType'):
+            id_type_label = it_row['IdentificationType']
+    except Exception as _idtype_exc:
+        print(f'[RDS-PROFILE] identificationtype lookup failed: {_idtype_exc}')
+        _failed_joins.append({'join': 'identificationtype', 'error': str(_idtype_exc)})
+
+    # ── Step 3: Sucursal (branch) ─────────────────────────────────────────
+    # Join consignee.idSucursal → Sucursal.idSucursal.
+    # Display name column is NombreSucursal — NEEDS VALIDATION (column name
+    # based on common Costa Rica courier DB conventions; may differ).
+    branch_id   = cons_row.get('idSucursal')
+    branch_name = None
+    if branch_id is not None:
+        try:
+            suc_row = rds_module.fetch_one(
+                'SELECT idSucursal, NombreSucursal '
+                'FROM Sucursal WHERE idSucursal = %s LIMIT 1',
+                (branch_id,)
+            )
+            if suc_row:
+                branch_name = suc_row.get('NombreSucursal')
+        except Exception as _suc_exc:
+            print(f'[RDS-PROFILE] Sucursal query failed: {_suc_exc}')
+            _failed_joins.append({'join': 'Sucursal', 'error': str(_suc_exc)})
+
+    # ── Step 4: Client account info ───────────────────────────────────────
+    # client table holds account-level info (casillero/CompanyCode, plan FK).
+    # FK from consignee → client is assumed to be consignee.idClient or a
+    # reverse FK client.idConsignee.  NEEDS VALIDATION: the exact FK column
+    # is not confirmed from schema inspection; both approaches attempted below.
+    client_info = {}
+    try:
+        cl_row = rds_module.fetch_one(
+            'SELECT cl.idClient, cl.CompanyCode, cl.idPlan '
+            'FROM client cl '
+            'JOIN consignee c ON cl.idClient = c.idClient '
+            'WHERE c.idConsignee = %s LIMIT 1',
+            (id_consignee,)
+        )
+        if cl_row:
+            client_info = {
+                'idClient':    cl_row.get('idClient'),
+                'companyCode': cl_row.get('CompanyCode'),
+                'idPlan':      cl_row.get('idPlan'),
+            }
+    except Exception as _cl_exc:
+        print(f'[RDS-PROFILE] client primary query failed: {_cl_exc}')
+        _failed_joins.append({'join': 'client (primary FK)', 'error': str(_cl_exc)})
+        # Fallback: try reverse FK (client.idConsignee)
+        try:
+            cl_row2 = rds_module.fetch_one(
+                'SELECT idClient, CompanyCode, idPlan '
+                'FROM client WHERE idConsignee = %s LIMIT 1',
+                (id_consignee,)
+            )
+            if cl_row2:
+                client_info = {
+                    'idClient':    cl_row2.get('idClient'),
+                    'companyCode': cl_row2.get('CompanyCode'),
+                    'idPlan':      cl_row2.get('idPlan'),
+                }
+                print('[RDS-PROFILE] client resolved via fallback FK client.idConsignee')
+        except Exception as _cl2_exc:
+            print(f'[RDS-PROFILE] client fallback query failed: {_cl2_exc} — needs validation')
+            _failed_joins.append({'join': 'client (fallback FK)', 'error': str(_cl2_exc)})
+            client_info = {}
+
+    # ── Step 5: Plan ──────────────────────────────────────────────────────
+    # plan table: idPlan (PK), PlanName (display), Discount (optional).
+    # NEEDS VALIDATION: column names assumed from common naming conventions.
+    plan_info = {}
+    id_plan = client_info.get('idPlan')
+    if id_plan is not None:
+        try:
+            plan_row = rds_module.fetch_one(
+                'SELECT idPlan, PlanName, Discount '
+                'FROM plan WHERE idPlan = %s LIMIT 1',
+                (id_plan,)
+            )
+            if plan_row:
+                disc = plan_row.get('Discount')
+                plan_info = {
+                    'idPlan':   plan_row.get('idPlan'),
+                    'planName': plan_row.get('PlanName'),
+                    'discount': float(disc) if isinstance(disc, _decimal.Decimal)
+                                else disc,
+                }
+        except Exception as _plan_exc:
+            print(f'[RDS-PROFILE] plan query failed: {_plan_exc} — needs validation')
+            _failed_joins.append({'join': 'plan', 'error': str(_plan_exc)})
+            plan_info = {}
+
+    # ── Step 6: CR Delivery Addresses ────────────────────────────────────
+    # consignee_has_address is a junction table between consignee and address.
+    # isPrimary and isActive flags determine the "primary" address.
+    # NEEDS VALIDATION:
+    #   • Whether isPrimary is a tinyint(1) boolean or some other type.
+    #   • Whether isActive controls display eligibility.
+    #   • Whether addresstype.AddressType is the correct column name.
+    #   • Whether Address1/Address2/City/Province are the canonical columns.
+    address_logic_note = (
+        'Primary address: rows with cha.isPrimary=1 returned first; isActive flag '
+        'presence and semantics NEED VALIDATION (column names inferred from schema '
+        'naming conventions — run SHOW COLUMNS FROM consignee_has_address to confirm). '
+        'mi-cuenta.html renders all CR delivery addresses from the Addresses array.'
+    )
+    addresses = []
+    try:
+        addr_rows = rds_module.fetch_all(
+            'SELECT cha.isPrimary, cha.isActive, '
+            '       a.idAddress, a.Address1, a.Address2, a.City, a.Province, '
+            '       at2.idAddressType, at2.AddressType '
+            'FROM consignee_has_address cha '
+            'JOIN address a ON cha.idAddress = a.idAddress '
+            'LEFT JOIN addresstype at2 ON a.idAddressType = at2.idAddressType '
+            'WHERE cha.idConsignee = %s '
+            'ORDER BY cha.isPrimary DESC, a.idAddress ASC',
+            (id_consignee,)
+        )
+        for row in (addr_rows or []):
+            addresses.append({
+                'idAddress':     row.get('idAddress'),
+                'address1':      row.get('Address1'),
+                'address2':      row.get('Address2'),
+                'city':          row.get('City'),
+                'province':      row.get('Province'),
+                'addressType':   row.get('AddressType'),
+                'idAddressType': row.get('idAddressType'),
+                'isPrimary':     bool(row['isPrimary']) if row.get('isPrimary') is not None else None,
+                'isActive':      bool(row['isActive'])  if row.get('isActive')  is not None else None,
+            })
+    except Exception as _addr_exc:
+        print(f'[RDS-PROFILE] address query failed: {_addr_exc}')
+        address_logic_note += ' | Query error: ' + str(_addr_exc)
+        _failed_joins.append({'join': 'consignee_has_address', 'error': str(_addr_exc)})
+
+    # ── Step 7: Phones ────────────────────────────────────────────────────
+    # consignee_has_phone is a junction table between consignee and phone.
+    # isPrimary and isActive flags determine the "primary" phone.
+    # NEEDS VALIDATION:
+    #   • Whether isPrimary / isActive are tinyint(1) booleans.
+    #   • Whether phonetype.PhoneType is the correct column name.
+    #   • Whether PhoneNumber is the canonical column (vs phoneNumber / phone).
+    phone_logic_note = (
+        'Primary phone: rows with chp.isPrimary=1 returned first; isActive flag '
+        'semantics NEED VALIDATION (column names inferred from schema conventions — '
+        'run SHOW COLUMNS FROM consignee_has_phone to confirm). '
+        'mi-cuenta.html displays the first phone in the profile-phone element. '
+        'Raw phone numbers are masked (****<last4>) in this endpoint.'
+    )
+    phones = []
+    try:
+        phone_rows = rds_module.fetch_all(
+            'SELECT chp.isPrimary, chp.isActive, '
+            '       p.idPhone, p.PhoneNumber, '
+            '       pt.idPhoneType, pt.PhoneType '
+            'FROM consignee_has_phone chp '
+            'JOIN phone p ON chp.idPhone = p.idPhone '
+            'LEFT JOIN phonetype pt ON p.idPhoneType = pt.idPhoneType '
+            'WHERE chp.idConsignee = %s '
+            'ORDER BY chp.isPrimary DESC, p.idPhone ASC',
+            (id_consignee,)
+        )
+        for row in (phone_rows or []):
+            phones.append({
+                'idPhone':    row.get('idPhone'),
+                'phoneMasked': _mask_phone(row.get('PhoneNumber')),
+                'phoneType':  row.get('PhoneType'),
+                'idPhoneType': row.get('idPhoneType'),
+                'isPrimary':  bool(row['isPrimary']) if row.get('isPrimary') is not None else None,
+                'isActive':   bool(row['isActive'])  if row.get('isActive')  is not None else None,
+            })
+    except Exception as _ph_exc:
+        print(f'[RDS-PROFILE] phone query failed: {_ph_exc}')
+        phone_logic_note += ' | Query error: ' + str(_ph_exc)
+        _failed_joins.append({'join': 'consignee_has_phone', 'error': str(_ph_exc)})
+
+    # ── Assemble profile dict ──────────────────────────────────────────────
+    name       = cons_row.get('ConsigneeName')       or None
+    last1      = cons_row.get('ConsigneeLastName1')  or None
+    last2      = cons_row.get('ConsigneeLastName2')  or None
+    full_parts = [p for p in [name, last1, last2] if p]
+    full_name  = ' '.join(full_parts) if full_parts else None
+
+    receives_newsletter = cons_row.get('ReceivesNewsletter')
+    if receives_newsletter is not None:
+        receives_newsletter = bool(receives_newsletter)
+
+    is_company = cons_row.get('isCompany')
+    if is_company is not None:
+        is_company = bool(is_company)
+
+    pending_discount = cons_row.get('PendingDiscount')
+    if isinstance(pending_discount, _decimal.Decimal):
+        pending_discount = float(pending_discount)
+
+    profile = {
+        'idConsignee':              id_consignee,
+        'email':                    cons_row.get('email'),
+        'name':                     name,
+        'lastName1':                last1,
+        'lastName2':                last2,
+        'fullName':                 full_name,
+        'identificationType':       id_type_label,
+        'identificationNumberMasked': _mask_id_number(
+            cons_row.get('IdentificationNumber')),
+        'isCompany':                is_company,
+        'pendingDiscount':          pending_discount,
+        'receivesNewsletter':       receives_newsletter,
+        'branch': {
+            'id':   branch_id,
+            'name': branch_name,
+        },
+        'client':   client_info if client_info else None,
+        'plan':     plan_info   if plan_info   else None,
+        'addresses': addresses,
+        'phones':    phones,
+    }
+
+    withheld_fields = [
+        'BirthDate',
+        'AlternativeEmail',
+        'ResidenceCountry',
+        'ContactName1',
+        'ContactName2',
+        'Responsabilidad',
+        'IdResponsabilidad',
+        'OmitirReceptor',
+        'IdentificationNumber (raw — masked as identificationNumberMasked)',
+        'PhoneNumber (raw — masked as phoneMasked per phone entry)',
+    ]
+
+    join_validation_status = (
+        'all_joins_succeeded' if not _failed_joins else 'partial_joins_failed'
+    )
+
+    return {
+        'profile':               profile,
+        'joinValidationStatus':  join_validation_status,
+        'failedJoins':           _failed_joins,
+        '_withheldFields':       withheld_fields,
+        '_addressLogicNote':     address_logic_note,
+        '_phoneLogicNote':       phone_logic_note,
+    }
+
+
+def _compute_profile_diff(rds_profile, legacy_data):
+    """Compare a normalised RDS profile dict against a raw getuserinfo response.
+
+    Returns a structured diff classifying each field difference.
+    All PII is masked in the returned diff output.
+
+    Classification labels (stored in each diff entry's 'classification' key):
+        exact_match                  — values identical after normalisation.
+        formatting_only              — same semantic value, different format
+                                       (e.g. name casing, whitespace trimming).
+        field_naming_casing          — same value, different key name / casing
+                                       convention between RDS and legacy.
+        missing_join                 — field present in legacy but not yet
+                                       joined in the RDS query.
+        stale_dev_snapshot           — value differs because crbox_dev1 is a
+                                       development snapshot, not production data.
+        legacy_business_logic_transform — value differs because legacy applies
+                                       a business rule (e.g. computed fullName).
+        withheld_for_privacy         — field intentionally masked or withheld
+                                       in this endpoint; comparison skipped.
+        true_mapping_issue           — genuine mismatch needing investigation.
+    """
+    if not legacy_data or not isinstance(legacy_data, dict):
+        return {
+            'status': 'legacy_unavailable',
+            'note':   'No Bearer token provided or legacy call failed — diff skipped.',
+            'matched':         [],
+            'formattingOnly':  [],
+            'mismatched':      [],
+            'missingInRds':    [],
+            'missingInLegacy': [],
+            'withheld':        [],
+        }
+
+    # Normalise legacy response: accept both raw (has .Consignee) and flat.
+    leg_c = (legacy_data.get('Consignee') or {}) if isinstance(
+        legacy_data.get('Consignee'), dict) else legacy_data
+
+    def _norm(v):
+        """Normalise a value for comparison: strip, lowercase, cast to str."""
+        if v is None:
+            return ''
+        return str(v).strip().lower()
+
+    def _entry(field, rds_val, leg_val, classification, note=None):
+        entry = {
+            'field':          field,
+            'rds':            rds_val,
+            'legacy':         leg_val,
+            'classification': classification,
+        }
+        if note:
+            entry['note'] = note
+        return entry
+
+    matched        = []
+    formatting_only = []
+    mismatched     = []
+    missing_in_rds = []
+    missing_in_legacy = []
+    withheld       = []
+
+    # Helper: log a diff result
+    # exact_match    — raw string values are identical (strict equality).
+    # formatting_only — normalized values match but raw strings differ
+    #                   (e.g. different casing, leading/trailing whitespace).
+    # field_naming_casing — normalized values match; key name/casing convention
+    #                       differs between RDS and legacy (structural mapping
+    #                       difference, not a data difference).
+    # missing_join   — one side is None/absent while the other has a value.
+    # stale_dev_snapshot — values differ after normalization; default
+    #                       classification for a crbox_dev1 vs production gap.
+    # legacy_business_logic_transform — values differ because legacy applies a
+    #                       derivation rule that RDS does not replicate.
+    # true_mapping_issue — genuine structural mismatch needing investigation;
+    #                       caller sets explicitly via override_classification.
+    def _diff(field, rds_val, leg_val, rds_display=None, leg_display=None,
+              override_classification=None, override_note=None):
+        r = rds_display if rds_display is not None else rds_val
+        l = leg_display if leg_display is not None else leg_val
+        rds_str = str(rds_val) if rds_val is not None else None
+        leg_str = str(leg_val) if leg_val is not None else None
+        # If caller explicitly sets a classification, use it.
+        if override_classification:
+            bucket_map = {
+                'exact_match':                   matched,
+                'formatting_only':               formatting_only,
+                'field_naming_casing':           formatting_only,
+                'missing_join':                  missing_in_rds,
+                'stale_dev_snapshot':            mismatched,
+                'legacy_business_logic_transform': mismatched,
+                'true_mapping_issue':            mismatched,
+            }
+            target = bucket_map.get(override_classification, mismatched)
+            target.append(_entry(field, r, l, override_classification, override_note))
+            return
+        if rds_str == leg_str:
+            # Strict equality — covers both None==None and identical strings.
+            matched.append(_entry(field, r, l, 'exact_match'))
+        elif _norm(rds_val) == _norm(leg_val):
+            # Normalized equality — same semantic value, different whitespace/casing.
+            formatting_only.append(_entry(field, r, l, 'formatting_only'))
+        elif rds_val is None and leg_val is not None:
+            missing_in_rds.append(_entry(field, r, l, 'missing_join',
+                                         'Field present in legacy but null/missing in RDS'))
+        elif rds_val is not None and leg_val is None:
+            missing_in_legacy.append(_entry(field, r, l, 'missing_join',
+                                            'Field present in RDS but absent in legacy'))
+        else:
+            mismatched.append(_entry(field, r, l, 'stale_dev_snapshot',
+                                     'Value differs — likely crbox_dev1 dev snapshot vs production'))
+
+    # ── idConsignee ──────────────────────────────────────────────────────
+    leg_id = (leg_c.get('idconsignee') or leg_c.get('IdConsignee')
+              or leg_c.get('idConsignee'))
+    rds_id = rds_profile.get('idConsignee')
+    _diff('idConsignee', str(rds_id) if rds_id else None,
+          str(leg_id) if leg_id else None)
+
+    # ── email ─────────────────────────────────────────────────────────────
+    leg_email = (leg_c.get('email') or leg_c.get('Email') or '').strip().lower()
+    rds_email = (rds_profile.get('email') or '').strip().lower()
+    # Display masked
+    _diff('email', _mask_email_addr(rds_email), _mask_email_addr(leg_email),
+          rds_display=_mask_email_addr(rds_email),
+          leg_display=_mask_email_addr(leg_email))
+
+    # ── name / lastName1 / lastName2 / fullName ───────────────────────────
+    # Raw values are compared to determine the classification bucket, but the
+    # stored diff entries use '<redacted>' as the display value because these
+    # are personal name fields (Tier-2 PII under the sensitive field policy).
+    _REDACTED = '<redacted>'
+
+    leg_name = (leg_c.get('consigneename') or leg_c.get('ConsigneeName') or '')
+    _diff('name', rds_profile.get('name'), leg_name.strip() or None,
+          rds_display=_REDACTED, leg_display=_REDACTED)
+
+    # ── lastName1 ─────────────────────────────────────────────────────────
+    leg_ln1 = (leg_c.get('consigneelastname1') or leg_c.get('ConsigneeLastName1') or '')
+    _diff('lastName1', rds_profile.get('lastName1'), leg_ln1.strip() or None,
+          rds_display=_REDACTED, leg_display=_REDACTED)
+
+    # ── lastName2 ─────────────────────────────────────────────────────────
+    leg_ln2 = (leg_c.get('consigneelastname2') or leg_c.get('ConsigneeLastName2') or '')
+    _diff('lastName2', rds_profile.get('lastName2'), leg_ln2.strip() or None,
+          rds_display=_REDACTED, leg_display=_REDACTED)
+
+    # ── fullName (derived server-side in RDS; may be pre-built in legacy) ─
+    leg_full = (leg_c.get('fullName') or leg_c.get('FullName') or
+                ' '.join(filter(None, [
+                    leg_c.get('ConsigneeName') or leg_c.get('consigneename'),
+                    leg_c.get('ConsigneeLastName1') or leg_c.get('consigneelastname1'),
+                    leg_c.get('ConsigneeLastName2') or leg_c.get('consigneelastname2'),
+                ])) or None)
+    # fullName is derived from name parts independently in RDS (server-side JOIN)
+    # and in legacy JS.  When values differ it is almost always because of a
+    # business-rule difference in the derivation, not a data snapshot gap.
+    rds_full = rds_profile.get('fullName')
+    if rds_full != leg_full and rds_full and leg_full:
+        _diff('fullName', rds_full, leg_full,
+              rds_display=_REDACTED, leg_display=_REDACTED,
+              override_classification='legacy_business_logic_transform',
+              override_note='fullName is derived differently in RDS (server concatenation) '
+                            'vs legacy (client-side JS or API derivation); '
+                            'raw values redacted per PII policy.')
+    else:
+        _diff('fullName', rds_full, leg_full,
+              rds_display=_REDACTED, leg_display=_REDACTED)
+
+    # ── identificationType ────────────────────────────────────────────────
+    # RDS key: 'identificationType' (camelCase label from identificationtype JOIN).
+    # Legacy key: 'IdentificationType' or 'identificationtype' (PascalCase / lowercase).
+    # When normalized values match despite raw string difference, this is a
+    # field_naming_casing gap rather than a data gap.
+    rds_idtype  = rds_profile.get('identificationType')
+    leg_idtype  = (leg_c.get('identificationtype') or leg_c.get('IdentificationType'))
+    rds_idn_str = str(rds_idtype) if rds_idtype is not None else None
+    leg_idn_str = str(leg_idtype) if leg_idtype is not None else None
+    if rds_idn_str != leg_idn_str and _norm(rds_idtype) == _norm(leg_idtype):
+        # Same value, different key-name/casing convention between the two systems.
+        _diff('identificationType', rds_idtype, leg_idtype,
+              override_classification='field_naming_casing',
+              override_note='RDS uses camelCase key; legacy uses PascalCase/lowercase. '
+                            'Semantic values are equivalent after normalisation.')
+    else:
+        _diff('identificationType', rds_idtype, leg_idtype)
+
+    # ── identificationNumber — withheld for privacy ───────────────────────
+    withheld.append(_entry(
+        'identificationNumber',
+        rds_profile.get('identificationNumberMasked'),
+        '(withheld — not fetched from legacy in this endpoint)',
+        'withheld_for_privacy',
+        'Raw identification number withheld in both RDS and legacy sides of this diff. '
+        'Requires explicit product/security approval before frontend exposure.'
+    ))
+
+    # ── isCompany ─────────────────────────────────────────────────────────
+    # Use explicit None check to preserve valid falsy values (0 / False).
+    def _get_bool_field(d, *keys):
+        """Return first value whose key exists in d, or None if none found."""
+        for k in keys:
+            if k in d:
+                return d[k]
+        return None
+
+    leg_company = _get_bool_field(leg_c, 'IsCompany', 'isCompany')
+    rds_company = rds_profile.get('isCompany')
+    _diff('isCompany',
+          str(bool(rds_company)) if rds_company is not None else None,
+          str(bool(leg_company)) if leg_company is not None else None)
+
+    # ── receivesNewsletter ────────────────────────────────────────────────
+    leg_nl = _get_bool_field(leg_c, 'ReceivesNewsletter', 'receivesNewsletter')
+    rds_nl = rds_profile.get('receivesNewsletter')
+    _diff('receivesNewsletter',
+          str(bool(rds_nl)) if rds_nl is not None else None,
+          str(bool(leg_nl)) if leg_nl is not None else None)
+
+    # ── branch / sucursal ─────────────────────────────────────────────────
+    rds_branch = rds_profile.get('branch') or {}
+    leg_suc    = (leg_c.get('sucursal') or leg_c.get('Sucursal') or {})
+    if isinstance(leg_suc, dict):
+        leg_suc_id = (leg_suc.get('idSucursal') or leg_suc.get('IdSucursal')
+                      or leg_suc.get('_idsucursal'))
+    else:
+        leg_suc_id = None
+    _diff('branch.id',
+          str(rds_branch.get('id'))   if rds_branch.get('id')   is not None else None,
+          str(leg_suc_id) if leg_suc_id is not None else None)
+    # Branch name: only in RDS (legacy doesn't return it); flag as RDS-only.
+    if rds_branch.get('name'):
+        missing_in_legacy.append(_entry(
+            'branch.name', rds_branch.get('name'), None, 'missing_join',
+            'Branch display name available in RDS via Sucursal join; '
+            'not present in legacy getuserinfo response.'
+        ))
+
+    # ── primary address ───────────────────────────────────────────────────
+    rds_addrs  = rds_profile.get('addresses') or []
+    rds_primary_addr = next(
+        (a for a in rds_addrs if a.get('isPrimary')), rds_addrs[0] if rds_addrs else None)
+    leg_addrs  = (legacy_data.get('Addresses') or leg_c.get('addresses') or [])
+    leg_primary_addr = leg_addrs[0] if isinstance(leg_addrs, list) and leg_addrs else None
+
+    if rds_primary_addr and leg_primary_addr and isinstance(leg_primary_addr, dict):
+        # Address fields are Tier-2 PII — compare raw for classification, but
+        # store '<redacted>' in diff entries to avoid exposing delivery addresses
+        # in admin logs or compare responses.
+        rds_a1 = rds_primary_addr.get('address1') or ''
+        leg_a1 = (leg_primary_addr.get('address1') or
+                  leg_primary_addr.get('Address1') or '')
+        _diff('primaryAddress.address1', rds_a1, leg_a1,
+              rds_display=_REDACTED, leg_display=_REDACTED)
+
+        rds_city = rds_primary_addr.get('city') or ''
+        leg_city = (leg_primary_addr.get('city') or
+                    leg_primary_addr.get('City') or '')
+        _diff('primaryAddress.city', rds_city, leg_city,
+              rds_display=_REDACTED, leg_display=_REDACTED)
+    elif rds_primary_addr and not leg_primary_addr:
+        missing_in_legacy.append(_entry(
+            'primaryAddress', _REDACTED, None,
+            'missing_join', 'Primary address present in RDS but no addresses in legacy response'))
+    elif not rds_primary_addr and leg_primary_addr:
+        missing_in_rds.append(_entry(
+            'primaryAddress', None, _REDACTED,
+            'missing_join', 'Primary address present in legacy but no addresses returned from RDS'))
+
+    # ── primary phone — masked ────────────────────────────────────────────
+    rds_phones   = rds_profile.get('phones') or []
+    rds_primary_ph = next(
+        (p for p in rds_phones if p.get('isPrimary')), rds_phones[0] if rds_phones else None)
+    leg_phones   = (legacy_data.get('Phones') or leg_c.get('phones') or [])
+    leg_primary_ph = leg_phones[0] if isinstance(leg_phones, list) and leg_phones else None
+
+    if rds_primary_ph:
+        withheld.append(_entry(
+            'primaryPhone',
+            rds_primary_ph.get('phoneMasked'),
+            '(withheld in legacy side — not compared in plaintext)',
+            'withheld_for_privacy',
+            'Phone numbers masked in RDS output (****<last4>); '
+            'raw legacy phone not included in this diff.'
+        ))
+    elif leg_primary_ph and not rds_primary_ph:
+        missing_in_rds.append(_entry(
+            'primaryPhone', None,
+            '(masked in diff)',
+            'missing_join',
+            'Phone present in legacy but no phones returned from RDS query'
+        ))
+
+    # ── CompanyCode (casillero) — comes from client table in RDS ──────────
+    rds_client   = rds_profile.get('client') or {}
+    rds_casillero = rds_client.get('companyCode')
+    leg_casillero = (legacy_data.get('CompanyCode') or
+                     legacy_data.get('companyCode'))
+    if rds_casillero is not None or leg_casillero is not None:
+        _diff('client.companyCode',
+              str(rds_casillero) if rds_casillero is not None else None,
+              str(leg_casillero) if leg_casillero is not None else None)
+    else:
+        missing_in_rds.append(_entry(
+            'client.companyCode', None, None, 'missing_join',
+            'CompanyCode (casillero ID) not yet resolved — client table join needs validation'
+        ))
+
+    # ── client.idClient ────────────────────────────────────────────────────
+    rds_id_client = rds_client.get('idClient')
+    leg_id_client = (legacy_data.get('idClient') or legacy_data.get('IdClient'))
+    if rds_id_client is not None or leg_id_client is not None:
+        _diff('client.idClient',
+              str(rds_id_client) if rds_id_client is not None else None,
+              str(leg_id_client) if leg_id_client is not None else None)
+    else:
+        missing_in_rds.append(_entry(
+            'client.idClient', None, None, 'missing_join',
+            'idClient not resolved — client table join needs validation; '
+            'legacy may not return this field directly.'
+        ))
+
+    # ── plan fields — from plan table in RDS; legacy structure TBD ────────
+    # The legacy getuserinfo response does not expose a plan sub-object in the
+    # known field set.  RDS plan fields are compared against the closest legacy
+    # equivalents where they exist; otherwise marked as missingInLegacy.
+    rds_plan = rds_profile.get('plan') or {}
+
+    rds_plan_id   = rds_plan.get('idPlan')
+    leg_plan_id   = (legacy_data.get('idPlan') or legacy_data.get('IdPlan')
+                     or (legacy_data.get('Plan') or {}).get('idPlan'))
+    if rds_plan_id is not None or leg_plan_id is not None:
+        _diff('plan.idPlan',
+              str(rds_plan_id) if rds_plan_id is not None else None,
+              str(leg_plan_id) if leg_plan_id is not None else None)
+    else:
+        missing_in_legacy.append(_entry(
+            'plan.idPlan', str(rds_plan_id) if rds_plan_id is not None else None, None,
+            'missing_join',
+            'plan.idPlan resolved from RDS plan table; '
+            'not present in known legacy getuserinfo response structure.'
+        ))
+
+    rds_plan_name = rds_plan.get('planName')
+    leg_plan_name = (legacy_data.get('planName') or legacy_data.get('PlanName')
+                     or (legacy_data.get('Plan') or {}).get('planName')
+                     or (legacy_data.get('Plan') or {}).get('PlanName'))
+    if rds_plan_name is not None or leg_plan_name is not None:
+        _diff('plan.planName',
+              str(rds_plan_name) if rds_plan_name is not None else None,
+              str(leg_plan_name) if leg_plan_name is not None else None)
+    else:
+        missing_in_legacy.append(_entry(
+            'plan.planName', str(rds_plan_name) if rds_plan_name is not None else None, None,
+            'missing_join',
+            'plan.planName resolved from RDS plan table (NEEDS VALIDATION: PlanName column '
+            'name assumed); not present in known legacy getuserinfo response structure.'
+        ))
+
+    rds_discount  = rds_plan.get('discount')
+    leg_discount  = (legacy_data.get('discount') or legacy_data.get('Discount')
+                     or (legacy_data.get('Plan') or {}).get('discount'))
+    # Compare as strings for the diff; both sides normalised.
+    if rds_discount is not None or leg_discount is not None:
+        _diff('plan.discount',
+              str(rds_discount) if rds_discount is not None else None,
+              str(leg_discount) if leg_discount is not None else None)
+    else:
+        missing_in_legacy.append(_entry(
+            'plan.discount', str(rds_discount) if rds_discount is not None else None, None,
+            'missing_join',
+            'plan.discount (Discount column, NEEDS VALIDATION) resolved from RDS plan table; '
+            'not present in known legacy getuserinfo response structure. '
+            'Also compare with consignee.PendingDiscount which may overlap in meaning.'
+        ))
+
+    return {
+        'status':          'compared',
+        'matched':         matched,
+        'formattingOnly':  formatting_only,
+        'mismatched':      mismatched,
+        'missingInRds':    missing_in_rds,
+        'missingInLegacy': missing_in_legacy,
+        'withheld':        withheld,
+        '_classificationGuide': {
+            'exact_match':                    'Values identical after normalisation.',
+            'formatting_only':                'Same semantic value, different format/whitespace.',
+            'field_naming_casing':            'Same value, different key name or casing convention.',
+            'missing_join':                   'Field absent in one side; join or mapping needed.',
+            'stale_dev_snapshot':             'Value differs likely due to crbox_dev1 dev snapshot vs production.',
+            'legacy_business_logic_transform':'Legacy applies a business rule not yet replicated in RDS path.',
+            'withheld_for_privacy':           'Field intentionally masked/withheld; comparison skipped.',
+            'true_mapping_issue':             'Genuine mismatch requiring investigation.',
+        },
     }
 
 
