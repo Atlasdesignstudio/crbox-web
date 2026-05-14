@@ -1,0 +1,64 @@
+Approved. Please proceed with #545 as an audit-only task.
+
+Small refinements before execution:
+
+1. The reference to `server.py _handle_svc_token()` is cut off. Please inspect the relevant handler by function name/search, not only by line number. Confirm:
+- CRBOX_SVC_EMAIL and CRBOX_SVC_PASSWORD are never returned to the browser.
+- They are not logged.
+- `/crbox-svc-token` or equivalent returns only the minimum token/response needed for registration.
+
+2. Do not rely exclusively on line numbers.
+The listed line numbers are useful hints, but if files have shifted, search by:
+- function name
+- endpoint URL
+- form ID
+- handler name
+- constants such as REGISTER_URL, ADMIN_EMAILS, PROTECTED_PAGES, authtoken, getuserpasswordrecovery.
+
+3. Admin access finding must distinguish frontend UI exposure from backend authorization.
+For `nav-auth.js`:
+- Document that the admin badge/link is injected client-side based on `ADMIN_EMAILS`.
+- Then verify `/admin/portal-login` in `server.py` enforces authorization server-side.
+- If backend validates the token/email against an allowlist, classify frontend allowlist as UX exposure / low-to-medium risk.
+- If backend does not validate, classify as critical.
+- Do not overstate the risk without checking the server-side gate.
+
+4. Password recovery endpoint privacy note.
+Because the recovery endpoint uses:
+`GET /getuserpasswordrecovery/{email}`
+document that the email appears in the URL path and may appear in browser history, access logs, proxy logs, or analytics if mishandled.
+Classify severity appropriately and recommend a future POST body-based flow or backend proxy if possible.
+
+5. Registration endpoint environment.
+Please explicitly confirm whether registration currently uses:
+- production `https://clients.crbox.cr/...`
+- test `https://test.clients.crbox.cr/...`
+or both in different code paths.
+This is important for domain cutover readiness.
+
+6. Fake/disconnected scan.
+Please explicitly answer for each:
+- login
+- registration personal
+- registration business, if present
+- password recovery
+- password change
+- admin portal access
+whether the UI is fully wired, partially wired, fake/simulated, or not implemented.
+
+7. Output discipline.
+Do not include:
+- raw tokens
+- passwords
+- service account credentials
+- raw ID numbers
+- raw phone numbers
+- full request payloads with PII
+- screenshots with credentials
+
+Final recommendation should be practical:
+A — safe to keep legacy auth/account flows for cutover
+B — safe after specific fixes
+C — not safe for cutover
+
+Do not make code changes unless a critical credential/token/password leak is found. If found, stop and report first.

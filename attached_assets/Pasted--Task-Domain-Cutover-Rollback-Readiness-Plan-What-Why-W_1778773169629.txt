@@ -1,0 +1,480 @@
+# Task — Domain Cutover & Rollback Readiness Plan
+
+What & Why
+We are preparing the CRBOX new website/portal to eventually become the primary production experience. Before changing any domain/DNS, we need a detailed cutover and rollback plan that maps what currently depends on the old site, what the new site already handles, what still goes through legacy APIs, and how to switch safely without downtime.
+
+This is planning only. Do not change DNS, domains, hosting, production flags, AWS, Replit deployment, or legacy systems.
+
+Goal
+Create a complete domain cutover readiness document for moving public and portal traffic safely to the new deployment when the system is ready.
+
+Deliverable
+Create:
+docs/domain-cutover-readiness-plan.md
+
+Scope
+Audit and document:
+- current public domain behavior
+- current legacy WordPress/site behavior
+- new Replit/Vercel deployment behavior if applicable
+- portal page routes
+- login route
+- signup/afiliación route
+- password recovery
+- public pages
+- redirects
+- canonical URLs
+- sitemap/robots
+- GA4/GTM
+- Search Console
+- SSL/TLS
+- rollback plan
+
+Do not modify anything in this task.
+
+---
+
+## 1. Current domain architecture
+
+Document:
+- current production domain
+- old website / WordPress dependency
+- current client portal dependency
+- new deployment URL
+- which routes are public
+- which routes are portal/private
+- which routes still rely on legacy APIs
+- which routes are fully new
+- which routes are mixed new UI + legacy API
+
+---
+
+## 2. Route inventory
+
+Create a route table.
+
+Public routes:
+- /
+- /servicios
+- /como-funciona
+- /tarifas
+- /calculadora
+- /contacto
+- /afiliate or signup route
+
+Portal/private routes:
+- /login
+- /dashboard
+- /mis-paquetes
+- /mis-facturas
+- /mi-cuenta
+- any solicitud/cotización routes
+- any other portal routes discovered in the codebase
+
+For each route document:
+- route/path
+- exists in new site? yes/no
+- current source: new / legacy / mixed
+- auth required? yes/no
+- SEO indexable? yes/no
+- noindex present? yes/no
+- known dependency
+- readiness status
+- blocker
+- recommended cutover strategy
+
+Recommended cutover strategy options:
+- fully served by new site
+- new UI + legacy API dependency
+- temporary redirect to legacy
+- not ready for cutover
+- should remain noindex/private
+
+---
+
+## 3. Legacy dependency map
+
+Document every legacy dependency still used, including but not limited to:
+- authtoken
+- getuserinfo
+- getuserpackages
+- getfacturas
+- postedituser
+- postregisteruser
+- password recovery
+- any purchase bill / invoice upload endpoints if discovered
+- any quote/cotización endpoints if discovered
+- any other CRBOX legacy endpoint found
+
+For each dependency document:
+- endpoint URL
+- method
+- frontend file/function using it
+- what it does
+- read or write
+- auth required
+- payload type
+- whether it is safe to keep during cutover
+- whether it should later be proxied through the new backend
+- whether it should eventually be replaced
+- whether it is a blocker before cutover
+
+Classification:
+- safe to keep during cutover
+- needs proxy later
+- needs replacement later
+- blocker before cutover
+- needs further discovery
+
+---
+
+## 4. DNS / SSL / hosting plan
+
+Document what will eventually be needed:
+- domain provider
+- current DNS records if visible/documented
+- DNS records likely involved
+- current hosting target
+- new hosting target
+- SSL certificate requirements
+- www / non-www behavior
+- redirect rules
+- cache/CDN considerations
+- expected TTL behavior
+- who needs to approve DNS changes
+
+Do not change DNS.
+
+TTL note:
+Document that TTL should ideally be lowered before cutover, for example to 300 seconds, so rollback is faster. Do not change TTL in this task.
+
+Legacy preservation rule:
+The old site/hosting must remain available during the confidence period after cutover so rollback is possible.
+
+---
+
+## 5. SEO / indexing plan
+
+Document:
+- public pages should be indexable
+- portal/private pages should be noindex
+- robots.txt status
+- sitemap.xml status
+- canonical tags
+- Open Graph/Twitter tags
+- redirects from old URLs to new equivalents
+- 404 handling
+- Search Console verification
+- whether old URLs need 301 redirects
+- whether any route should remain blocked from indexing
+- whether affiliate/signup pages should be indexed or noindexed depending on business decision
+
+Include a checklist:
+- public pages have correct titles/descriptions
+- portal pages have noindex
+- sitemap contains only public indexable URLs
+- robots.txt does not accidentally block public pages
+- canonical URLs point to the final production domain
+- old public URLs map to new equivalents
+- 404 page exists and is useful
+
+---
+
+## 6. Analytics / tracking plan
+
+Document:
+- GA4/GTM presence
+- whether GTM container is loaded on all public pages
+- whether portal pages should track page views without leaking PII
+- critical events to confirm after cutover
+- conversion events
+- calculator events
+- signup/login events if tracked
+- contact/WhatsApp events
+- affiliate CTA events
+- form submit events
+- quote/cotización events if applicable
+- portal events that should not leak PII
+- post-cutover monitoring checklist
+
+Important:
+No analytics event should include:
+- raw ID numbers
+- phone numbers
+- addresses
+- package tracking numbers unless explicitly approved
+- invoice numbers unless explicitly approved
+- tokens
+- passwords
+- full names
+
+---
+
+## 7. Cutover stages
+
+Define stages:
+
+### Stage 0 — Current state
+Old domain/site active. New site/portal under development or staging. Legacy APIs remain the source for auth/writes.
+
+### Stage 1 — Staging validation
+New deployment tested on staging URL. No DNS change. Internal QA only.
+
+### Stage 2 — Soft launch
+Limited internal testing with real flows. No DNS change. Production APIs may be used only if already approved.
+
+### Stage 3 — DNS cutover
+Domain points to new deployment. Legacy system remains available behind the scenes.
+
+### Stage 4 — Post-cutover monitoring
+Monitor:
+- logs
+- analytics
+- forms
+- login
+- signup
+- password recovery
+- packages
+- invoices
+- mi-cuenta
+- mobile navigation
+- SEO/indexing
+- error rates
+
+### Stage 5 — Legacy decommission planning
+Only after a confidence period. Do not decommission legacy until all dependencies are replaced or intentionally retained.
+
+---
+
+## 8. Pre-cutover smoke test checklist
+
+Include a practical checklist to run 24–48 hours before DNS cutover:
+
+Public site:
+- homepage loads
+- servicios loads
+- como-funciona loads
+- tarifas loads
+- calculadora loads
+- contacto loads
+- afiliate/signup route loads
+- mobile nav works
+- footer links work
+- WhatsApp links work
+- contact form works
+- calculator events/results work
+- page speed / Core Web Vitals sanity check
+
+Auth/account:
+- login works
+- logout works
+- expired session redirects correctly
+- logged-out user cannot access private pages
+- password recovery works or approved limitation documented
+- signup/afiliación works or approved strategy documented
+
+Portal:
+- dashboard loads
+- mis-paquetes loads
+- mis-facturas loads
+- mi-cuenta loads
+- profile data displays correctly
+- protected pages are noindex
+- fallback behavior documented
+
+Tracking/SEO:
+- GA4/GTM loads
+- critical events fire
+- robots.txt correct
+- sitemap.xml correct
+- canonical tags correct
+- 404 page works
+- Search Console plan ready
+
+Rollback:
+- DNS rollback owner known
+- old hosting remains available
+- TTL plan documented
+- rollback checklist ready
+
+---
+
+## 9. Rollback plan
+
+Document exact rollback:
+- DNS record revert
+- expected TTL impact
+- what to check after rollback
+- keeping legacy system untouched
+- preserving old hosting until stable
+- who is responsible for rollback
+- how to communicate rollback internally
+- what logs/metrics indicate rollback is needed
+
+Rollback triggers:
+- login broken
+- signup broken without workaround
+- password recovery broken without workaround
+- portal unavailable
+- forms unavailable
+- high 5xx error rate
+- analytics not firing on critical flows
+- incorrect redirects
+- private portal pages indexable
+- severe mobile navigation issue
+- any security-sensitive data exposed
+
+Rollback checklist:
+- revert DNS to previous target
+- confirm old site loads
+- confirm login works on old site
+- confirm public pages load
+- confirm SSL valid
+- confirm GA4/GTM not duplicated in a harmful way
+- monitor for 24 hours
+
+---
+
+## 10. Go / No-Go checklist
+
+Go criteria:
+- public pages work
+- login works
+- logout works
+- signup/recovery strategy approved
+- packages/facturas/mi-cuenta production strategy approved
+- analytics verified
+- SEO basics verified
+- portal pages noindex
+- redirects ready
+- rollback tested conceptually
+- legacy APIs reachable
+- old hosting remains available
+- SSL/TLS ready
+- DNS owner and rollback owner confirmed
+- production RDS/read-only strategy approved or legacy fallback approved
+- no critical unresolved security findings
+
+No-Go criteria:
+- login broken
+- signup unclear or broken without approved workaround
+- password recovery broken without approved workaround
+- portal private pages indexable
+- DNS rollback unclear
+- analytics missing from critical public flows
+- forms not working
+- critical legacy endpoint dependency unknown
+- SSL/TLS not ready
+- old site cannot be preserved for rollback
+- public routes missing or broken
+- mobile navigation broken
+- any token/password/PII exposure found
+
+---
+
+## 11. Current vs future routing decision
+
+For each major route, classify the recommended cutover strategy:
+
+Options:
+- fully served by new site
+- new UI + legacy API dependency
+- temporary redirect to legacy
+- not ready for cutover
+- should remain noindex/private
+
+Include a route readiness table with:
+- route
+- current implementation
+- production dependency
+- cutover strategy
+- blocker
+- final recommendation
+
+Example:
+- `/login` may be new UI + legacy `/authtoken`
+- `/afiliate` may depend on legacy registration endpoint
+- `/mis-paquetes` may be new UI + RDS/legacy fallback
+- `/mis-facturas` may be new UI + RDS/legacy fallback
+- `/mi-cuenta` may be new UI + RDS read + legacy writes
+
+---
+
+## 12. Legacy preservation and decommission policy
+
+Document:
+- legacy site must remain available after cutover
+- legacy APIs remain required for auth/writes
+- old hosting should not be deleted immediately
+- legacy decommission should be a separate future project
+- dependencies must be retired one by one
+- no decommission until monitoring confirms stability
+
+Confidence period recommendation:
+- minimum 1–2 weeks after cutover before considering any legacy reduction
+- longer if signup/auth/writes still depend on legacy
+
+---
+
+## 13. Key blockers and readiness estimate
+
+Create a blocker list:
+- blocker
+- severity
+- affected route/flow
+- owner
+- recommended next action
+- blocking for cutover? yes/no
+
+Also include a readiness percentage estimate for:
+- public marketing site
+- client portal core
+- auth/signup/recovery
+- analytics/SEO
+- DNS/cutover readiness
+- overall domain cutover
+
+Be honest: expected current recommendation is likely B because auth/signup audit and production RDS shadow validation are still in progress.
+
+---
+
+## 14. Final recommendation
+
+Use:
+
+A — Ready for cutover after listed final checks  
+B — Needs specific fixes before cutover  
+C — Not ready; critical blockers remain
+
+Expected current recommendation is likely:
+B — Needs specific fixes before cutover
+
+Reason:
+- auth/signup/password recovery audit is still in progress or pending
+- production RDS shadow validation is still pending
+- DNS/SSL/cutover details may still need owner confirmation
+- old legacy dependencies still exist
+
+---
+
+## Final report
+
+Return:
+- document created
+- key blockers
+- readiness percentage estimate
+- route readiness summary
+- legacy dependency summary
+- cutover strategy summary
+- rollback strategy summary
+- next tasks before cutover
+
+Important:
+Do not make changes.
+Do not change DNS.
+Do not change production hosting.
+Do not enable production flags.
+Do not modify AWS/RDS.
+Do not modify Replit deployment settings.
+Do not modify legacy systems.
+Planning/audit only.
