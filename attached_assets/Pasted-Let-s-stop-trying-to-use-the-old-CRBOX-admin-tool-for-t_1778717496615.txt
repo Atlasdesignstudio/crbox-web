@@ -1,0 +1,83 @@
+Let’s stop trying to use the old CRBOX admin tool for this comparison. I understand now that the old admin tool is not required to connect the new portal to RDS, and it appears to use ASP.NET cookies / SignalR instead of the Bearer token flow needed here.
+
+Let’s use the normal client portal test account instead:
+
+prueba@crbox.cr
+
+Goal:
+Run one controlled shadow comparison for `prueba@crbox.cr` between:
+
+1. RDS direct:
+   /api/portal/packages-rds
+
+2. Legacy API:
+   getuserpackages through the existing legacy/proxy flow
+
+Important:
+- Do not use the old admin tool.
+- Do not require the old admin tool.
+- Do not modify frontend behavior.
+- Do not connect mis-paquetes to RDS yet.
+- Do not modify portal JS.
+- Do not replace the legacy API.
+- Do not query production.
+- Only query `crbox_dev1`.
+- No writes.
+- No SELECT *.
+- Do not store, log, print, or document any Bearer token.
+- Keep this as shadow-mode validation only.
+
+Current blocker:
+I can log into the client portal with `prueba@crbox.cr` and obtain a portal Bearer token from the browser, but I cannot access the Replit/app admin session cookie needed for `/api/admin/rds-shadow-compare`.
+
+Please help me resolve this in the safest way.
+
+Option A:
+Give me the exact Replit/app admin URL and login flow needed to create the admin session cookie required by `_rds_admin_gate()`.
+
+Option B:
+If there is no accessible admin UI, create a safe temporary admin-only way to run this one comparison without making the endpoint public and without storing the Bearer token.
+
+Option C:
+If the comparison cannot be run yet, use RDS only to find a valid 90-day date range where `prueba@crbox.cr` has packages in `crbox_dev1`, then tell me the exact date range to use manually with the client portal Bearer token.
+
+Before running the comparison:
+1. Resolve `idConsignee` for `prueba@crbox.cr` from the `consignee` table.
+2. Find one valid date range under 90 days where that consignee has package activity in `getwarehousereceipts`.
+3. Prefer a range with at least 1–5 packages and, if possible, multiple statuses.
+4. Do not return raw sensitive customer data. Just give me:
+   - masked email
+   - idConsignee
+   - suggested start date
+   - suggested end date
+   - RDS package count
+   - status distribution
+
+Then, once we have the correct date range, run or guide me to run:
+
+GET /api/admin/rds-shadow-compare?email=prueba@crbox.cr&start=<YYYY-MM-DD>&end=<YYYY-MM-DD>
+
+with:
+
+Authorization: Bearer <temporary portal token>
+
+Expected result:
+Update `docs/rds-packages-shadow-validation.md` Addendum with:
+
+- RDS count
+- Legacy count
+- countDelta
+- missingInRds
+- missingInLegacy
+- statusMismatch
+- whether `descripcion` is null or non-null in legacy for the same packages
+- final recommendation on whether packages-rds is safe to proceed to feature-flagged frontend wiring
+
+Acceptance criteria before wiring mis-paquetes:
+- countDelta = 0
+- missingInRds = []
+- missingInLegacy = []
+- statusMismatch = []
+- descripcion either matches legacy or is confirmed not needed
+
+If `prueba@crbox.cr` has no packages in `crbox_dev1`, say that clearly and recommend another safe test account/date range from the validation report, but keep emails masked in docs.
