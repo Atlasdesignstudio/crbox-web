@@ -439,6 +439,7 @@
                                 Guardar Preferencias
                             </button>
                             <p id="notifications-save-error" class="hidden mt-2 text-red-600 text-sm font-medium"></p>
+                            <p id="notifications-save-status" class="hidden mt-2 text-sm font-medium"></p>
                         </div>
                     </div>
                 </div>
@@ -797,6 +798,35 @@
                     }, true);
                 }
 
+                // ── _showNewsletterStatus ──────────────────────────────────
+                // Updates #notifications-save-status with one of three states:
+                //   'confirmed'   — backend confirmed the saved value
+                //   'pending'     — postedituser OK but getuserinfo not yet confirmed
+                //   'unconfirmed' — 60 s elapsed, still not confirmed by backend
+                // 'value' is the boolean the user tried to save.
+                function _showNewsletterStatus(state, value) {
+                    var el = document.getElementById('notifications-save-status');
+                    if (!el) return;
+                    el.className = 'mt-2 text-sm font-medium';
+                    if (state === 'confirmed') {
+                        el.classList.add('text-green-600');
+                        el.innerHTML = value
+                            ? '<i class="fas fa-check-circle mr-1"></i> Preferencias guardadas. Recibirás promociones y ofertas especiales de CRBOX.'
+                            : '<i class="fas fa-check-circle mr-1"></i> Preferencias guardadas. Ya no recibirás promociones y ofertas especiales.';
+                    } else if (state === 'pending') {
+                        el.classList.add('text-gray-500');
+                        el.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Verificando con el servidor...';
+                    } else {
+                        // unconfirmed
+                        el.classList.add('text-amber-600');
+                        el.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i> Recibimos tu solicitud, pero no pudimos confirmar el cambio todavía. Inténtalo de nuevo más tarde o contacta soporte.';
+                    }
+                    el.classList.remove('hidden');
+                    if (state === 'confirmed') {
+                        setTimeout(function () { el.classList.add('hidden'); }, 6000);
+                    }
+                }
+
                 saveNotificationsBtn.addEventListener('click', function () {
                     if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) {
                         var notifErrEl = document.getElementById('notifications-save-error');
@@ -825,36 +855,9 @@
                     CRBOXPortalAPI.updateProfile(payload)
                         .then(function (result) {
                             var savedNewsletter = formEdits.receivesNewsletter;
-                            // ── Diagnostic: confirm whether postedituser actually persisted
-                            // the ReceivesNewsletter field.  result.userInfo is already a
-                            // forced-fresh getUserInfo() re-fetch done inside updateProfile()
-                            // so this is the earliest possible backend confirmation.
-                            var _diag = result.userInfo && (result.userInfo.Consignee || result.userInfo);
-                            var _diagNL = _diag ? (_diag.ReceivesNewsletter !== undefined
-                              ? _diag.ReceivesNewsletter
-                              : _diag.receivesNewsletter) : undefined;
-                            console.log('[CRBOX mi-cuenta] newsletter getuserinfo immediately after save:', _diagNL,
-                              '| expected:', savedNewsletter,
-                              '| persisted:', _diagNL === savedNewsletter);
-                            // Timed re-checks — confirms whether the backend eventually
-                            // propagates the value or never persists it at all.
-                            [5000, 30000, 60000].forEach(function (_delay) {
-                              setTimeout(function () {
-                                CRBOXPortalAPI.getUserInfo({ forceRefresh: true }).then(function (_ti) {
-                                  var _tc = _ti && (_ti.Consignee || _ti);
-                                  var _tnl = _tc ? (_tc.ReceivesNewsletter !== undefined
-                                    ? _tc.ReceivesNewsletter : _tc.receivesNewsletter) : undefined;
-                                  console.log('[CRBOX mi-cuenta] newsletter getuserinfo at +' + (_delay / 1000) + 's:', _tnl,
-                                    '| expected:', savedNewsletter,
-                                    '| confirmed:', _tnl === savedNewsletter);
-                                }).catch(function () {});
-                              }, _delay);
-                            });
+
+                            // ── 1. Update legacy base + eager stamp ────────────────────
                             window.__crboxUserInfoLegacy = result.userInfo || rawInfo;
-                            // Eagerly stamp the saved value onto the legacy base so that
-                            // any subsequent write payload always uses the correct intent,
-                            // even if the CRBOX API lags in surfacing the change through
-                            // the next getUserInfo() re-fetch.
                             var _lc = window.__crboxUserInfoLegacy
                               ? (window.__crboxUserInfoLegacy.Consignee || window.__crboxUserInfoLegacy)
                               : null;
@@ -863,38 +866,82 @@
                               _lc.receivesNewsletter = savedNewsletter;
                             }
                             window.__crboxUserInfo = result.userInfo || window.__crboxUserInfo;
-                            if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('notifications'); } catch (_e) {} }
-                            btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
-                            // Record the saved intent so _patchNewsletterCheckbox and
-                            // _applyProfile (called from crbox:pageresume on tab re-focus,
-                            // or any other post-save refresh) cannot overwrite the checkbox
-                            // with a stale CRBOX API value.
-                            // TTL is 24 h — effectively the whole browser session — because
-                            // diagnostic evidence shows the CRBOX backend does not reliably
-                            // propagate ReceivesNewsletter through getUserInfo() after a save.
-                            // The guard auto-clears early if getUserInfo() eventually confirms
-                            // the saved value, keeping normal refresh behaviour once confirmed.
+
+                            // ── 2. Intent guard (24 h TTL, clears on confirmation) ─────
                             window.__crboxNewsletterIntent = { value: savedNewsletter, ts: Date.now(), ttl: 86400000 };
                             console.log('[CRBOX mi-cuenta] newsletter intent saved:', savedNewsletter);
-                            // Immediately set the checkbox to the saved intent.
+
+                            // ── 3. Immediately apply checkbox to saved intent ──────────
                             if (typeof window.__crboxPatchNewsletter === 'function') {
                                 window.__crboxPatchNewsletter({ Consignee: { ReceivesNewsletter: savedNewsletter } });
                             }
-                            // Re-fetch to keep __crboxUserInfoLegacy accurate for future
-                            // write payloads.  Do NOT touch the checkbox here — the CRBOX
-                            // API may not have reflected the saved value yet, and calling
-                            // _patchNewsletterCheckbox(info) with a stale response would
-                            // undo the correct state the user just saved.
-                            CRBOXPortalAPI.clearUserInfoCache();
-                            CRBOXPortalAPI.getUserInfo().then(function (info) {
-                                window.__crboxUserInfoLegacy = info;
-                                window.__crboxUserInfo = info;
-                                // Intentionally NOT calling _patchNewsletterCheckbox(info)
-                                // here — the saved intent was already applied above.
-                                // If the re-fetch confirms the same value, no change needed.
-                                // If it returns stale (API lag), overwriting would be wrong.
-                            }).catch(function () {});
-                            setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
+
+                            // ── 4. Check whether postedituser actually persisted the field.
+                            // result.userInfo is a forced-fresh getUserInfo() re-fetch already
+                            // done inside updateProfile() — earliest possible confirmation.
+                            var _diag = result.userInfo && (result.userInfo.Consignee || result.userInfo);
+                            var _diagNL = _diag
+                              ? (_diag.ReceivesNewsletter !== undefined ? _diag.ReceivesNewsletter : _diag.receivesNewsletter)
+                              : undefined;
+                            console.log('[CRBOX mi-cuenta] newsletter getuserinfo immediately after save:', _diagNL,
+                              '| expected:', savedNewsletter, '| persisted:', _diagNL === savedNewsletter);
+
+                            if (_diagNL === savedNewsletter) {
+                                // ── Scenario A: backend confirmed immediately ──────────
+                                window.__crboxNewsletterIntent = null; // confirmed — release guard
+                                if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('notifications'); } catch (_e) {} }
+                                btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
+                                _showNewsletterStatus('confirmed', savedNewsletter);
+                                setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
+                                return;
+                            }
+
+                            // ── Scenarios B/C: not confirmed yet — show pending and poll ─
+                            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Verificando...';
+                            _showNewsletterStatus('pending', savedNewsletter);
+
+                            var _nlConfirmed = false;
+                            [5000, 30000, 60000].forEach(function (_delay) {
+                                setTimeout(function () {
+                                    if (_nlConfirmed) return;
+                                    CRBOXPortalAPI.getUserInfo({ forceRefresh: true }).then(function (_ti) {
+                                        var _tc = _ti && (_ti.Consignee || _ti);
+                                        var _tnl = _tc
+                                          ? (_tc.ReceivesNewsletter !== undefined ? _tc.ReceivesNewsletter : _tc.receivesNewsletter)
+                                          : undefined;
+                                        console.log('[CRBOX mi-cuenta] newsletter getuserinfo at +' + (_delay / 1000) + 's:', _tnl,
+                                          '| expected:', savedNewsletter, '| confirmed:', _tnl === savedNewsletter);
+
+                                        if (!_nlConfirmed && _tnl === savedNewsletter) {
+                                            // ── Scenario B: backend confirmed after delay ──
+                                            _nlConfirmed = true;
+                                            window.__crboxUserInfoLegacy = _ti;
+                                            window.__crboxUserInfo = _ti;
+                                            window.__crboxNewsletterIntent = null; // confirmed — release guard
+                                            if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('notifications'); } catch (_e) {} }
+                                            btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
+                                            _showNewsletterStatus('confirmed', savedNewsletter);
+                                            setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
+                                        } else if (!_nlConfirmed && _delay === 60000) {
+                                            // ── Scenario C: backend did not persist the field ─
+                                            // Intent guard stays active so the checkbox holds
+                                            // the user's choice in this session, but the UX
+                                            // honestly reflects that persistence is unconfirmed.
+                                            window.__crboxUserInfoLegacy = _ti;
+                                            window.__crboxUserInfo = _ti;
+                                            if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_error('notifications', 'unconfirmed'); } catch (_e) {} }
+                                            btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Sin confirmar';
+                                            _showNewsletterStatus('unconfirmed', savedNewsletter);
+                                            setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 3000);
+                                        }
+                                    }).catch(function () {
+                                        if (_delay === 60000 && !_nlConfirmed) {
+                                            btn.innerHTML = originalHTML; btn.disabled = false;
+                                            _showNewsletterStatus('unconfirmed', savedNewsletter);
+                                        }
+                                    });
+                                }, _delay);
+                            });
                         })
                         .catch(function (err) {
                             console.warn('[CRBOX] saveNotifications error:', err && err.message);
