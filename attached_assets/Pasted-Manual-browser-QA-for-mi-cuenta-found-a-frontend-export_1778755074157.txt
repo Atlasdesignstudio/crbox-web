@@ -1,0 +1,81 @@
+Manual browser QA for `mi-cuenta` found a frontend export/cache issue.
+
+The feature flag is enabled correctly:
+`/api/config` returns `useRdsProfile:true`.
+
+However, in the browser Console:
+
+CRBOXPortalAPI.getProfileRDS
+
+returns:
+
+undefined
+
+Also, I do not clearly see `/api/portal/profile-rds` firing in Network. The page appears to still rely on legacy or not enter the RDS path.
+
+This means the issue is probably not RDS/backend data. It is likely a frontend wiring/export/cache/script loading issue, similar to the previous `getBillsRDS is not a function` issue in `mis-facturas`.
+
+Please investigate and fix surgically.
+
+Check:
+
+1. `js/portal-api.js`
+- Confirm `getProfileRDS()` exists.
+- Confirm it is exported on the returned/global `CRBOXPortalAPI` object.
+- Confirm the function name is exactly `getProfileRDS`, including casing.
+- Confirm `_mapRdsProfile()` is available internally and used by `getProfileRDS()`.
+
+2. `mi-cuenta.html`
+- Confirm it loads the latest `js/portal-api.js` version.
+- If currently loading `v=3` or stale version, bump to `v=5` or current cache-busting version.
+- Confirm there are no duplicate old `portal-api.js` script tags later in the file.
+- Confirm `auth.js` and `portal-api.js` load before any inline script that reads `CRBOXPortalAPI`.
+- If inline scripts depend on these globals, apply the same defer-removal fix used in `mis-paquetes` and `mis-facturas`.
+
+3. RDS path execution
+- Confirm `mi-cuenta.html` reads `useRdsProfile` from `/api/config`.
+- Confirm that when `useRdsProfile:true`, it calls `CRBOXPortalAPI.getProfileRDS()` first.
+- Confirm that `/api/portal/profile-rds` appears in Network.
+- Confirm that legacy `getuserinfo` only fires if fallback is triggered.
+
+4. Browser QA after fix
+In Console, these should all be true:
+- `window.CRBOXPortalAPI` exists
+- `CRBOXPortalAPI.getUserInfo` is a function
+- `CRBOXPortalAPI.getProfileRDS` is a function
+- `window._qaLoadProfile` exists if implemented
+
+Then run:
+`CRBOXPortalAPI.getProfileRDS().then(console.log).catch(console.error)`
+
+Expected:
+- `/api/portal/profile-rds` fires
+- response does not expose raw PII
+- no raw `identificationnumber`
+- no raw `identificationNumber`
+- no raw `phonenumber`
+- no raw `phoneNumber`
+- no `birthDate`
+- no `responsabilidad`
+- no `omitirReceptor`
+- no `_bIsDeleted`
+- no `_bIsChanged`
+- no `cedulaJuridica`
+- no `joinValidationStatus`
+- no `failedJoins`
+
+5. Do not modify write flows
+Do not change:
+- profile edit/save
+- newsletter save
+- password change
+- postedituser
+- login
+- registration
+- packages
+- invoices
+- dashboard
+- AWS/RDS settings
+- DB schema
+
+This should be a targeted frontend export/cache/script-loading fix only.
