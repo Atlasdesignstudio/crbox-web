@@ -1,0 +1,57 @@
+The shadow compare for prueba@crbox.cr ran successfully.
+
+Results:
+- RDS count: 64
+- Legacy count: 64
+- countDelta: 0
+- missingInRds: []
+- missingInLegacy: []
+- statusMismatch: not empty
+
+This means package identity/count parity passed, but status parity did not.
+
+Please update docs/rds-packages-shadow-validation.md Addendum with these results.
+
+Do not wire mis-paquetes yet.
+
+Next task:
+Investigate the status mismatch before any frontend wiring.
+
+Use the same test case:
+- email: prueba@crbox.cr
+- idConsignee: 50601002
+- date range: 2023-08-01 to 2023-09-01
+- 64 packages
+
+Known mismatches include:
+- idWarehouseReceipt 542368: rdsStatusId=2, legacyStatusId=5
+- idWarehouseReceipt 542382: rdsStatusId=2, legacyStatusId=5
+- idWarehouseReceipt 542394: rdsStatusId=2, legacyStatusId=5
+- idWarehouseReceipt 542437: rdsStatusId=2, legacyStatusId=5
+- idWarehouseReceipt 542451: rdsStatusId=1, legacyStatusId=5
+- idWarehouseReceipt 542479: rdsStatusId=1, legacyStatusId=5
+- idWarehouseReceipt 542506: rdsStatusId=1, legacyStatusId=5
+
+Please determine whether:
+1. The RDS status from getwarehousereceipts.statusId/statusName is raw operational status.
+2. The legacy API transforms package status into a customer-facing status.
+3. The comparison code is reading the wrong legacy status field.
+4. There is another field in the legacy response that maps more correctly to RDS status.
+5. A status mapping table is needed before frontend wiring.
+
+Also check whether legacy has a statusName/statusDescription field for the same packages and compare it against RDS statusName.
+
+Important:
+- Do not modify frontend behavior.
+- Do not wire mis-paquetes.
+- Do not query production.
+- Only use crbox_dev1.
+- No writes.
+- No SELECT *.
+- Do not expose tokens or sensitive customer data.
+
+Outcome needed:
+- Update the validation report addendum.
+- Explain whether the mismatch is a real data issue or just a status-mapping/translation issue.
+- Recommend the correct status mapping for packages-rds.
+- Only if status parity is resolved should we proceed to feature-flagged frontend wiring.
