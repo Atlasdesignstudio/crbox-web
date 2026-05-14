@@ -1,0 +1,94 @@
+# Task — Resolve Final Operational DNS Cutover Blockers
+
+What & Why
+The final go-live checklist concluded that CRBOX is ready for controlled DNS cutover after 7 operational blockers are resolved. This task does not change DNS yet. It gathers the operational information needed to safely schedule the cutover.
+
+Goal
+Resolve or document the remaining Stage 3 operational blockers before changing `crbox.cr` / `www.crbox.cr`.
+
+Do not change DNS yet.
+Do not change nameservers.
+Do not change hosting.
+Do not enable RDS flags.
+Do not modify code.
+Do not touch `clients.crbox.cr`.
+Do not touch `admin.crbox.cr`.
+
+Use:
+- docs/final-domain-cutover-go-live-checklist.md
+- docs/domain-cutover-readiness-plan.md
+
+Steps:
+
+1. Identify DNS owner
+Document:
+- who has registrar/DNS access
+- provider name
+- whether they can execute changes during the cutover window
+- emergency contact method
+
+2. Export current DNS records
+Document current records for:
+- crbox.cr
+- www.crbox.cr
+- clients.crbox.cr
+- admin.crbox.cr
+- MX records
+- TXT records
+
+Do not expose secret values unnecessarily. Redact sensitive TXT values if needed.
+
+3. Confirm protected subdomains
+Verify:
+- clients.crbox.cr resolves and remains untouched
+- admin.crbox.cr resolves and remains untouched
+- changing apex/www will not affect either subdomain
+
+4. Confirm old hosting rollback target
+Document:
+- current old hosting provider
+- current apex/www target
+- exact rollback value for crbox.cr
+- exact rollback value for www.crbox.cr
+- confirmation old hosting will remain active for at least 1–2 weeks after cutover
+
+5. Confirm Replit production deployment target
+Document:
+- Replit production deployment URL
+- custom domain target required by Replit
+- whether crbox.cr and www.crbox.cr are already added in Replit custom domains
+- whether SSL auto-provisioning is ready or pending
+
+6. TTL plan
+Document:
+- current TTL for crbox.cr
+- current TTL for www.crbox.cr
+- whether TTL can be lowered to ~300 seconds
+- when it will be lowered
+- if not lowered, document accepted rollback risk
+
+7. Rollback owner and communication channel
+Document:
+- rollback owner
+- backup rollback owner
+- communication channel
+- authority to call rollback
+
+8. Final readiness update
+Update docs/final-domain-cutover-go-live-checklist.md:
+- mark each operational blocker as Resolved / Open / Accepted risk
+- update final recommendation:
+  - A if all hard blockers are resolved
+  - B if any remain open
+  - C if protected subdomains or rollback path cannot be guaranteed
+
+Final report:
+- DNS owner identified? yes/no
+- DNS records exported? yes/no
+- protected subdomains verified? yes/no
+- old hosting rollback target confirmed? yes/no
+- Replit production target confirmed? yes/no
+- TTL lowered or scheduled? yes/no
+- rollback owner assigned? yes/no
+- final A/B/C readiness
+- whether DNS cutover can now be scheduled
