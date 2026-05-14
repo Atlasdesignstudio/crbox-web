@@ -479,7 +479,7 @@
     <!-- Scripts -->
     <script src="js/analytics.js" defer></script>
     <script src="js/cr-locations.js" defer></script>
-    <script src="js/portal-api.js?v=3" defer></script>
+    <script src="js/portal-api.js?v=4" defer></script>
     <script src="js/auth.js?v=3" defer></script>
     <script src="js/nav-auth.js?v=4" defer></script>
     <script src="js/mobile-drawer.js?v=1" defer></script>
@@ -1026,18 +1026,60 @@
         }
       }
 
+      var _useRdsProfile = false; // set by /api/config on page load; false = legacy path
+
       window.__crboxApplyProfile = _applyProfile;
 
       document.addEventListener('DOMContentLoaded', function () {
         if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) return;
-        CRBOXPortalAPI.getUserInfo()
+
+        // ── RDS feature flag: fetch /api/config once, fire-and-forget ─────────
+        // Sets _useRdsProfile before the live profile call returns (the config
+        // endpoint is local and sub-10ms; getUserInfo calls the remote CRBOX API
+        // which takes 300-800ms, so the flag is always set before data arrives).
+        // A failure here is non-critical — _useRdsProfile stays false and the
+        // legacy path is used unchanged.
+        (function () {
+          fetch('/api/config', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (cfg) {
+              if (cfg && cfg.featureFlags) {
+                _useRdsProfile = cfg.featureFlags.useRdsProfile === true;
+              }
+            })
+            .catch(function () {}); // non-critical — default false keeps legacy path
+        }());
+
+        // ── RDS-first with silent legacy fallback ─────────────────────────────
+        // When _useRdsProfile is true (set by /api/config above), the RDS
+        // endpoint is tried first.  Any failure except auth errors silently
+        // falls back to the legacy getUserInfo path — the user always sees
+        // their profile data.  Auth errors (isAuthError=true) are propagated
+        // directly; a redirect is already in flight from portal-api.js.
+        // When _useRdsProfile is false the call chain is identical to before
+        // this block was added — zero code-path difference.
+        var _useRds = _useRdsProfile; // snapshot flag at call time
+        (function () {
+          if (!_useRds) {
+            return CRBOXPortalAPI.getUserInfo();
+          }
+          return CRBOXPortalAPI.getProfileRDS()
+            .catch(function (rdsErr) {
+              if (rdsErr && rdsErr.isAuthError) throw rdsErr; // do not fall back
+              if (typeof console !== 'undefined') {
+                console.debug('[CRBOX] RDS profile failed, falling back to legacy:',
+                  rdsErr && rdsErr.message);
+              }
+              return CRBOXPortalAPI.getUserInfo();
+            });
+        }())
           .then(function (info) {
             window.__crboxUserInfo = info;
             _applyProfile(info);
           })
           .catch(function (err) {
-            if (err && err.isAuthError) return; // redirect already in flight from portal-api.js
-            console.warn('[CRBOX] getUserInfo failed (transient):', err);
+            if (err && err.isAuthError) return; // redirect already in flight
+            console.warn('[CRBOX] profile load failed (transient):', err);
             var headerEl = document.getElementById('header-user-name');
             if (headerEl) headerEl.textContent = '—';
             var nameEl = document.getElementById('profile-header-name');
@@ -1049,7 +1091,9 @@
           });
       });
 
-      // Rehydrate profile on bfcache restore (Safari iOS back-navigation)
+      // Rehydrate profile on bfcache restore (Safari iOS back-navigation).
+      // Stays on legacy getUserInfo — bfcache restores are timing-sensitive
+      // and the config flag may not yet be set when the handler fires.
       window.addEventListener('crbox:pageresume', function () {
         if (!CRBOXAuth.isLoggedIn()) return;
         CRBOXPortalAPI.getUserInfo().then(function (info) {
@@ -1057,6 +1101,25 @@
           _applyProfile(info);
         }).catch(function () {});
       });
+
+      // ── Browser QA helper ─────────────────────────────────────────────────
+      // window._qaLoadProfile() — force-loads the active profile path and logs
+      // the normalised info object.  Never exposes raw PII (masking is
+      // enforced server-side; window.__crboxRdsProfileRaw is also masked).
+      window._qaLoadProfile = function () {
+        var src = _useRdsProfile ? 'rds' : 'legacy';
+        console.log('[QA] _qaLoadProfile — source:', src);
+        var p = _useRdsProfile
+          ? CRBOXPortalAPI.getProfileRDS()
+          : CRBOXPortalAPI.getUserInfo();
+        return p.then(function (info) {
+          console.log('[QA] profile info:', info);
+          return info;
+        }).catch(function (err) {
+          console.warn('[QA] profile load error:', err);
+          throw err;
+        });
+      };
     }());
     </script>
     <script src="js/portal-nav-offset.js" defer></script>

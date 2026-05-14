@@ -883,6 +883,137 @@
     };
   }
 
+  // ─── _mapRdsProfile ───────────────────────────────────────────────────────
+  // Maps the RDS portal profile shape (from /api/portal/profile-rds) into the
+  // legacy-compatible getUserInfo shape that _applyProfile in mi-cuenta.html
+  // already handles.  _applyProfile itself requires no changes.
+  //
+  // Key mapping decisions (documented in docs/rds-profile-frontend-wiring.md):
+  //   identificationnumber  ← identificationNumberMasked (****<last4>)
+  //   phones[].phonenumber  ← phones[].phoneMasked       (****<last4>)
+  //   sucursal._name        ← branch.name
+  //   idconsignee           ← idConsignee (numeric CRBOX portal ID, not codigoFacturacion)
+  //
+  // PendingDiscount has no column in the consignee table, so the discount badge
+  // in mi-cuenta.html is hidden for RDS-sourced profiles.  This is correct.
+  function _mapRdsProfile(profile) {
+    if (!profile || typeof profile !== 'object') return {};
+    var phones = (profile.phones || []).map(function (p) {
+      return {
+        phonenumber: p.phoneMasked || '',
+        phoneType:   p.phoneType   || '',
+        isPrimary:   p.isPrimary   || false
+      };
+    });
+    var addresses = (profile.addresses || []).map(function (a) {
+      return {
+        address1: a.address1 || '',
+        Address1: a.address1 || '',
+        address2: a.address2 || '',
+        Address2: a.address2 || '',
+        city:     a.city     || '',
+        City:     a.city     || '',
+        province: a.province || '',
+        Province: a.province || ''
+      };
+    });
+    return {
+      _source: 'rds',
+      Consignee: {
+        consigneename:        profile.name      || '',
+        ConsigneeName:        profile.name      || '',
+        consigneelastname1:   profile.lastName1 || '',
+        ConsigneeLastName1:   profile.lastName1 || '',
+        consigneelastname2:   profile.lastName2 || '',
+        ConsigneeLastName2:   profile.lastName2 || '',
+        idconsignee:          profile.idConsignee,
+        IdConsignee:          profile.idConsignee,
+        email:                profile.email     || '',
+        Email:                profile.email     || '',
+        identificationtype:   profile.identificationType || '',
+        IdentificationType:   profile.identificationType || '',
+        identificationnumber: profile.identificationNumberMasked || '',
+        IdentificationNumber: profile.identificationNumberMasked || '',
+        receivesNewsletter:   profile.receivesNewsletter,
+        ReceivesNewsletter:   profile.receivesNewsletter,
+        sucursal: {
+          _name:       (profile.branch && profile.branch.name) || '',
+          _idsucursal: (profile.branch && profile.branch.id)   || null
+        },
+        phones: phones
+      },
+      Addresses: addresses
+    };
+  }
+
+  // ─── getProfileRDS ────────────────────────────────────────────────────────
+  // Calls /api/portal/profile-rds — the portal-safe, RDS-backed profile endpoint.
+  //
+  // Auth: sends the portal Bearer token + X-Casillero-Email header.
+  //       The server resolves identity from the validated CRBOX API response.
+  //       Never sends idConsignee from the client.
+  //
+  // Returns a normalized profile object compatible with _applyProfile in
+  // mi-cuenta.html (same shape as the legacy getUserInfo response via
+  // _mapRdsProfile).
+  //
+  // Error behaviour mirrors the contract at the top of this module:
+  //   401/403 → error.isAuthError = true  (caller must not fall back — session dead)
+  //   All other failures → error.isAuthError = false  (caller may fall back to legacy)
+  function getProfileRDS() {
+    var token = CRBOXAuth.getToken ? CRBOXAuth.getToken() : '';
+    var email = CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '';
+    if (!token) {
+      var noTokErr = new Error('Sesión no iniciada. Por favor inicia sesión.');
+      noTokErr.isAuthError = true;
+      return Promise.reject(noTokErr);
+    }
+    if (!email) {
+      var noEmailErr = new Error('No se pudo obtener el email de la sesión.');
+      noEmailErr.isAuthError = false;
+      return Promise.reject(noEmailErr);
+    }
+
+    return fetch('/api/portal/profile-rds', {
+      headers: {
+        'Authorization':     'Bearer ' + token,
+        'X-Casillero-Email': email,
+        'Accept':            'application/json'
+      }
+    }).then(function (r) {
+      if (r.status === 401 || r.status === 403) {
+        throw _handleAuthFailure(r.status);
+      }
+      if (!r.ok) {
+        var e = new Error('RDS profile endpoint returned ' + r.status + '.');
+        e.isAuthError = false;
+        e._rdsStatus  = r.status;
+        throw e;
+      }
+      return r.json().catch(function () {
+        var je = new Error('RDS profile response was not valid JSON.');
+        je.isAuthError = false;
+        throw je;
+      });
+    }).then(function (data) {
+      if (!data || typeof data !== 'object' || !data.profile) {
+        var se = new Error('RDS profile response had unexpected shape.');
+        se.isAuthError = false;
+        throw se;
+      }
+      // Expose raw profile for QA inspection — no raw PII (all masked server-side)
+      window.__crboxRdsProfileRaw = data.profile;
+      return _mapRdsProfile(data.profile);
+    }).catch(function (err) {
+      if (!err) {
+        var ne = new Error('Unknown RDS profile error.');
+        ne.isAuthError = false;
+        throw ne;
+      }
+      throw err;
+    });
+  }
+
   // ─── Public API ───────────────────────────────────────────────────────────
   global.CRBOXPortalAPI = {
     getUserInfo:          getUserInfo,
@@ -892,6 +1023,7 @@
     getPackagesRDS:       getPackagesRDS,
     getBills:             getBills,
     getBillsRDS:          getBillsRDS,
+    getProfileRDS:        getProfileRDS,
     saveBill:             saveBill,
     deleteInvoiceUpload:  deleteInvoiceUpload,
     createPurchaseBill:   createPurchaseBill,

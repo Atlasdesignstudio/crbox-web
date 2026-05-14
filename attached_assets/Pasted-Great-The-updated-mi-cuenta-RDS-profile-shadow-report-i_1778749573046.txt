@@ -1,0 +1,133 @@
+Great. The updated `mi-cuenta` RDS profile shadow report is approved.
+
+Recommendation A is accepted: safe to proceed to feature-flagged `mi-cuenta` frontend wiring.
+
+Context:
+- `joinValidationStatus = all_joins_succeeded`
+- `failedJoins = []`
+- `true_mapping_issue = 0`
+- `missingInRds = 0`
+- all critical schema joins are confirmed
+- `mi-cuenta.html` has not been touched yet
+- legacy `getuserinfo` remains the current source
+
+Goal:
+Wire `mi-cuenta.html` to use the RDS profile endpoint behind a feature flag, with legacy fallback, following the exact safe pattern already proven for `mis-paquetes` and `mis-facturas`.
+
+Important:
+Do not modify profile write/edit flows.
+Do not modify `postedituser`.
+Do not modify login, registration, password recovery, packages, invoices, dashboard, cotizaciones, old website, internal/backoffice tool, AWS settings, DB schema, or DB credentials.
+Do not run writes.
+Do not query production.
+Only use `crbox_dev1`.
+Keep legacy fallback.
+Keep feature flag off by default.
+
+Required implementation:
+
+1. Create portal-safe profile endpoint
+Create:
+`GET /api/portal/profile-rds`
+
+Requirements:
+- Feature-flagged via `USE_RDS_PROFILE_FRONTEND=true`
+- Returns 503 when flag is off
+- Authenticated with existing portal headers:
+  - Authorization: Bearer <token>
+  - X-Casillero-Email
+- Validate token/email via existing CRBOX `getuserinfo` pattern.
+- Resolve `idConsignee` server-side from verified email.
+- Never accept `idConsignee` from the browser.
+- Reuse the corrected `_rds_query_profile` logic.
+- Return only fields safe for portal-owner display.
+
+2. Sensitive field policy
+For this first frontend wiring:
+- Return `identificationNumberMasked`, not raw identification number.
+- Return phone as masked unless the current UI absolutely requires full phone.
+- Do not expose birthDate, alternativeEmail, residenceCountry, contact fields, responsabilidad, omitirRecep, or internal flags.
+- Do not expose `client.cedulaJuridica` unless explicitly needed; treat it as product/security gated.
+- Do not expose raw PII in logs/docs.
+
+3. Province handling
+`address.provincia` is a single-character code.
+For this first wiring:
+- Either map known province codes to readable labels if there is an existing frontend/legacy mapping,
+- or display the current safe value/fallback exactly as legacy does.
+- Do not invent mappings unless confirmed.
+- Document the choice.
+
+4. Add `getProfileRDS()` to `js/portal-api.js`
+It should:
+- call `/api/portal/profile-rds`
+- send Authorization and X-Casillero-Email headers
+- normalize the RDS response into the same shape or adapter shape expected by existing `mi-cuenta.html` render logic
+- classify 401/403 as auth errors
+- classify 503/500/502/404/network errors as fallback-safe
+
+5. Wire `mi-cuenta.html`
+Use the same feature-flag pattern:
+- fetch `/api/config`
+- read `useRdsProfile`
+- if false → legacy `getUserInfo()` exactly as today
+- if true → try `getProfileRDS()` first
+- on non-auth RDS failure → fallback to legacy `getUserInfo()`
+- on auth failure → preserve current session-expired behavior
+
+6. Script loading order
+Check whether `mi-cuenta.html` has the same `defer` issue found in `mis-paquetes` and `mis-facturas`.
+If inline scripts depend on `CRBOXAuth` or `CRBOXPortalAPI`, remove `defer` only from the required scripts.
+Do not alter unrelated scripts.
+
+7. QA helper
+If needed, expose a safe QA helper similar to:
+`window._qaLoadProfile()`
+Do not expose tokens, DB credentials, raw ID numbers, raw phone numbers, or admin state.
+
+8. Documentation
+Create:
+`docs/rds-profile-frontend-wiring.md`
+and/or
+`docs/rds-profile-browser-qa-checklist.md`
+
+Include:
+- feature flag behavior
+- endpoint shape
+- field mapping
+- sensitive field policy
+- fallback behavior
+- province handling
+- rollback instructions
+- manual QA checklist
+
+9. Manual QA checklist
+Prepare checks for:
+- `/api/config` returns `useRdsProfile:true`
+- `/api/portal/profile-rds` fires before legacy when flag is on
+- legacy `getuserinfo` does not fire unless fallback is triggered
+- profile name renders correctly
+- casillero renders correctly
+- email renders correctly
+- sucursal renders correctly
+- address list renders correctly
+- phone field renders correctly according to masking/display decision
+- identification number renders masked or safely according to policy
+- newsletter checkbox state renders correctly
+- no raw withheld fields appear in Network response
+- mobile layout works
+- fallback to legacy works
+- auth errors still redirect/session-expire correctly
+
+10. Final report
+After implementation, report:
+- files changed
+- endpoint added
+- feature flag added
+- fallback behavior
+- sensitive fields exposed/withheld
+- manual QA instructions
+- rollback instructions
+- safety confirmations
+
+Do not enable broadly yet. After implementation, I will do manual browser QA before marking it ready for controlled enablement.

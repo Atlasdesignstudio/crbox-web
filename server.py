@@ -9542,6 +9542,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_admin_rds_profile_shadow()
         elif self.path.startswith('/api/portal/invoices-rds'):
             self._handle_portal_invoices_rds()
+        elif self.path.startswith('/api/portal/profile-rds'):
+            self._handle_portal_profile_rds()
         elif self.path.startswith('/api/solicitudes'):
             path_no_qs = self.path.split('?')[0]
             if path_no_qs == '/api/solicitudes':
@@ -13617,6 +13619,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 'useRdsInvoices': (
                     os.environ.get('USE_RDS_INVOICES_FRONTEND', '').strip().lower() == 'true'
                 ),
+                'useRdsProfile': (
+                    os.environ.get('USE_RDS_PROFILE_FRONTEND', '').strip().lower() == 'true'
+                ),
             }
         })
 
@@ -14111,6 +14116,120 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             'source':  'rds',
             'count':   len(facturas),
             'facturas': facturas,
+        })
+
+    # ── GET /api/portal/profile-rds ───────────────────────────────────────────
+    #
+    # Portal-user-facing profile endpoint backed by RDS.
+    #
+    # Auth model: Bearer token + X-Casillero-Email validated via CRBOX
+    #   getuserinfo.  Identity is ALWAYS derived from the validated CRBOX API
+    #   response — never from a bare query parameter.
+    #
+    # Feature flag: USE_RDS_PROFILE_FRONTEND=true (unset by default).
+    #   Returns 503 when disabled so the frontend falls back to the legacy
+    #   getUserInfo path without any user-visible error.
+    #
+    # Security boundary (all enforced by _rds_query_profile):
+    #   identificationNumber — returned as identificationNumberMasked (****<last4>) only.
+    #   phoneNumber          — returned as phoneMasked (****<last4>) only.
+    #   client.cedulaJuridica, plan, joinValidationStatus, failedJoins,
+    #   _withheldFields      — not included in this response.
+    #
+    # Response: { ok, source: "rds", profile: { idConsignee, email, name,
+    #   lastName1, lastName2, fullName, identificationType,
+    #   identificationNumberMasked, isCompany, casillero, receivesNewsletter,
+    #   branch: {id, name}, phones: [{phoneMasked, phoneType, isPrimary}],
+    #   addresses: [{address1, address2, city, province, addressType, isPrimary}] } }
+
+    def _handle_portal_profile_rds(self):
+        # 1. Feature flag gate — 503 is treated by frontend as "use legacy instead"
+        if os.environ.get('USE_RDS_PROFILE_FRONTEND', '').strip().lower() != 'true':
+            self._json_error(503,
+                'RDS profile endpoint is disabled.',
+                code='feature_disabled')
+            return
+
+        # 2. Portal auth — Bearer + X-Casillero-Email → (casillero_id, verified_email)
+        #    Identity is ALWAYS derived from the validated CRBOX API response,
+        #    never from query params or an unvalidated header.
+        cas_id, verified_email = self._portal_auth_full()
+        if not cas_id or not verified_email:
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
+            return
+
+        # 3. RDS query
+        try:
+            import rds_client as _rds
+            result = _rds_query_profile(_rds, verified_email)
+        except _RdsEmailNotFoundError:
+            # Authenticated but not yet in RDS — return 503 so the frontend
+            # falls back silently to the legacy getUserInfo path.
+            self._json_error(503,
+                'Profile not found in RDS. Falling back to legacy.',
+                code='rds_not_found')
+            return
+        except _RdsWrongDatabaseError as exc:
+            print(f'[PORTAL-PROFILE-RDS] wrong database: {exc}')
+            self._json_error(502,
+                'Unexpected database active. Query aborted for safety.',
+                code='unexpected_database')
+            return
+        except Exception as exc:
+            print(f'[PORTAL-PROFILE-RDS] RDS error: {exc}')
+            self._json_error(502, 'RDS profile query failed.', code='rds_error')
+            return
+
+        rds_profile = result['profile']
+
+        # 4. Shape the portal-safe response.
+        #    client.cedulaJuridica, plan, and join-validation metadata are
+        #    intentionally excluded — they are admin/shadow-compare concerns only.
+        #    Raw identificationNumber and phoneNumber are never returned from
+        #    _rds_query_profile — masked versions only (double-enforced here).
+        branch = rds_profile.get('branch') or {}
+        phones = [
+            {
+                'phoneMasked': p.get('phoneMasked'),
+                'phoneType':   p.get('phoneType'),
+                'isPrimary':   p.get('isPrimary'),
+            }
+            for p in (rds_profile.get('phones') or [])
+        ]
+        addresses = [
+            {
+                'address1':    a.get('address1'),
+                'address2':    a.get('address2'),
+                'city':        a.get('city'),
+                'province':    a.get('province'),
+                'addressType': a.get('addressType'),
+                'isPrimary':   a.get('isPrimary'),
+            }
+            for a in (rds_profile.get('addresses') or [])
+        ]
+
+        self._json_response(200, {
+            'ok':     True,
+            'source': 'rds',
+            'profile': {
+                'idConsignee':               rds_profile.get('idConsignee'),
+                'email':                     rds_profile.get('email'),
+                'name':                      rds_profile.get('name'),
+                'lastName1':                 rds_profile.get('lastName1'),
+                'lastName2':                 rds_profile.get('lastName2'),
+                'fullName':                  rds_profile.get('fullName'),
+                'identificationType':        rds_profile.get('identificationType'),
+                'identificationNumberMasked': rds_profile.get('identificationNumberMasked'),
+                'isCompany':                 rds_profile.get('isCompany'),
+                'casillero':                 rds_profile.get('casillero'),
+                'receivesNewsletter':        rds_profile.get('receivesNewsletter'),
+                'branch': {
+                    'id':   branch.get('id'),
+                    'name': branch.get('name'),
+                },
+                'phones':    phones,
+                'addresses': addresses,
+            },
         })
 
     # ── GET /api/admin/rds-invoices-shadow-compare ────────────────────────────
