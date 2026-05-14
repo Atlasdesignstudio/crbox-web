@@ -1,0 +1,270 @@
+# Task — Create Production Read-Only MySQL User for RDS Portal
+
+Context:
+The RDS Portal Core Production Readiness Plan is complete.
+
+Current status:
+- Dev/test RDS integrations for `mis-paquetes`, `mis-facturas`, and `mi-cuenta` passed QA.
+- Production frontend RDS flags are still OFF.
+- The database guard has already been fixed to use `EXPECTED_RDS_DATABASE`.
+- Remaining blocker before production read-only shadow compare: create a dedicated production read-only MySQL user.
+
+Important context:
+Replit already has access to the existing production MySQL/RDS user used by the legacy system. That existing user has broad permissions and may be able to write/update data.
+
+Use that existing broad user ONLY as a temporary administrative connection to create and validate the new read-only user.
+
+Do NOT use the broad legacy user as the permanent RDS portal connection.
+
+Goal:
+Create a dedicated MySQL user for the new RDS portal integration with SELECT-only permissions on the exact production database objects needed by the portal RDS endpoints.
+
+Target production DB:
+CrBox
+
+Suggested new user:
+crbox_portal_ro
+
+Purpose of new user:
+- Used by the new portal RDS read endpoints only.
+- Read-only.
+- Safe for production shadow compare.
+- Safe for controlled production rollout.
+- Cannot write, modify, delete, alter, create, or grant permissions.
+
+Critical safety rules:
+- Do not log or print the existing broad legacy password.
+- Do not paste any password into docs, console output, screenshots, comments, or reports.
+- Do not expose DB credentials in browser, frontend, or logs.
+- Do not use the broad legacy DB user in production portal secrets after this task.
+- Do not grant ALL PRIVILEGES.
+- Do not grant INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, EXECUTE, TRIGGER, EVENT, LOCK TABLES, or GRANT OPTION.
+- Do not change table data.
+- Do not run UPDATE/INSERT/DELETE on business tables.
+- Do not change schema.
+- Do not enable frontend RDS feature flags.
+- Do not touch unrelated application logic.
+
+Allowed write operations in this task:
+Only MySQL privilege-management operations required to create the read-only user:
+- CREATE USER
+- ALTER USER only if needed for the new read-only user
+- GRANT SELECT on approved objects
+- REVOKE only if needed to correct the new read-only user
+- FLUSH PRIVILEGES if applicable
+
+No business data writes are allowed.
+
+Required production objects:
+
+Packages:
+- CrBox.getwarehousereceipts
+- CrBox.consignee
+- CrBox.status_general
+
+Invoices:
+- CrBox.resumenmawb
+- CrBox.masterairshipment
+- CrBox.descuentocorporativo
+- CrBox.airshipment
+- CrBox.warehousereceipt
+- CrBox.shipper
+- CrBox.carrierinformation
+- CrBox.carrier
+
+Profile:
+- CrBox.consignee
+- CrBox.identificationtype
+- CrBox.Sucursal
+- CrBox.client
+- CrBox.plan
+- CrBox.address
+- CrBox.consignee_has_address
+- CrBox.addresstype
+- CrBox.phone
+- CrBox.consignee_has_phone
+- CrBox.phonetype
+
+Before executing:
+1. Confirm the active database name:
+   SELECT DATABASE();
+
+2. Confirm production DB exists and is named exactly:
+   CrBox
+
+3. Confirm the existing broad user can create users and grant permissions.
+   If not, stop and report that infrastructure/admin assistance is required.
+
+4. Generate a strong random password for `crbox_portal_ro`.
+   Do not print it in logs or docs.
+   Store it only in the appropriate secret manager / Replit production secrets when ready.
+
+SQL plan:
+Use a safe host pattern depending on how the app connects.
+
+Preferred if possible:
+- restrict host to the known app outbound host/IP or VPC source if available.
+
+If that is not known and the existing DB users use `%`, use:
+- 'crbox_portal_ro'@'%'
+
+Do not invent network restrictions if they would break connectivity. Document the chosen host pattern.
+
+Create user:
+
+CREATE USER IF NOT EXISTS 'crbox_portal_ro'@'%' IDENTIFIED BY '<GENERATED_STRONG_PASSWORD>';
+
+Then grant SELECT only.
+
+Packages grants:
+GRANT SELECT ON CrBox.getwarehousereceipts TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.consignee TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.status_general TO 'crbox_portal_ro'@'%';
+
+Invoices grants:
+GRANT SELECT ON CrBox.resumenmawb TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.masterairshipment TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.descuentocorporativo TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.airshipment TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.warehousereceipt TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.shipper TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.carrierinformation TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.carrier TO 'crbox_portal_ro'@'%';
+
+Profile grants:
+GRANT SELECT ON CrBox.identificationtype TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.Sucursal TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.client TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.plan TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.address TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.consignee_has_address TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.addresstype TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.phone TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.consignee_has_phone TO 'crbox_portal_ro'@'%';
+GRANT SELECT ON CrBox.phonetype TO 'crbox_portal_ro'@'%';
+
+Note:
+CrBox.consignee is already granted in the Packages block and should not need duplicate grant. Duplicate SELECT grant is harmless, but keep the final SQL clean if possible.
+
+Then:
+FLUSH PRIVILEGES;
+
+Validation steps:
+
+1. Verify grants:
+SHOW GRANTS FOR 'crbox_portal_ro'@'%';
+
+Expected:
+- USAGE on *.*
+- SELECT only on the listed CrBox objects
+- no INSERT
+- no UPDATE
+- no DELETE
+- no DROP
+- no ALTER
+- no CREATE
+- no GRANT OPTION
+- no ALL PRIVILEGES
+
+2. Test read access with the new user.
+Connect using the new read-only user and run safe metadata/read tests only:
+
+SELECT DATABASE();
+
+Expected:
+CrBox
+
+Run lightweight checks:
+SELECT COUNT(*) FROM CrBox.consignee LIMIT 1;
+SELECT COUNT(*) FROM CrBox.getwarehousereceipts LIMIT 1;
+SELECT COUNT(*) FROM CrBox.resumenmawb LIMIT 1;
+
+For tables/views where COUNT may be heavy, use:
+SELECT 1 FROM CrBox.<object> LIMIT 1;
+
+Avoid broad scans if tables are large.
+
+3. Test denied write access with the new user.
+Do NOT write to business tables.
+
+Use a safe permission test that does not modify production data.
+
+Preferred:
+Attempt a harmless CREATE TEMPORARY TABLE only if the user should not have CREATE TEMPORARY TABLES. But do not use if uncertain.
+
+Better:
+Use SHOW GRANTS verification as the main write-denial proof.
+
+If you must test write denial, do it only inside a transaction against a temporary/nonexistent object pattern that cannot affect production data, and rollback. Prefer not to perform actual write attempts on production business tables.
+
+The required proof is:
+SHOW GRANTS confirms SELECT-only.
+
+4. Update Replit production secrets for the RDS portal connection:
+MYSQL_HOST=<production RDS endpoint>
+MYSQL_PORT=3306
+MYSQL_DATABASE=CrBox
+MYSQL_USER=crbox_portal_ro
+MYSQL_PASSWORD=<new read-only password>
+EXPECTED_RDS_DATABASE=CrBox
+
+Do not expose the password.
+
+5. Keep frontend RDS flags OFF:
+USE_RDS_PACKAGES_FRONTEND unset or false
+USE_RDS_INVOICES_FRONTEND unset or false
+USE_RDS_PROFILE_FRONTEND unset or false
+
+6. Enable only the backend/admin shadow layer if needed:
+USE_RDS_PORTAL_API=true
+
+7. Confirm `/api/config` still returns frontend flags false unless intentionally enabled.
+Do not enable user-facing RDS paths yet.
+
+8. Run schema parity validation using the new read-only user.
+Use read-only schema checks:
+SHOW COLUMNS FROM CrBox.<object>;
+DESCRIBE CrBox.<object>;
+SHOW CREATE VIEW CrBox.getwarehousereceipts if needed.
+
+Do not run SELECT *.
+Do not log raw PII.
+Do not export production rows.
+
+9. If schema parity passes, proceed to production read-only shadow compare later as a separate task.
+Do not run broad production rollout in this task.
+
+Failure handling:
+- If CREATE USER fails, report the exact non-sensitive error and stop.
+- If GRANT fails for a table/view, report which object is missing or inaccessible.
+- If SHOW GRANTS shows any write/admin permission, revoke it immediately from the new read-only user and report.
+- If the new user cannot connect, check host pattern and RDS security group, but do not weaken permissions.
+- If the production DB name is not exactly CrBox, stop and report; do not guess.
+
+Documentation:
+Update `docs/rds-production-readiness-plan.md` with:
+- Blocker 2 status:
+  - RESOLVED if user is created and validated.
+  - PARTIAL if SQL is prepared but not executed.
+  - OPEN if permission/admin access is missing.
+- New read-only user name: `crbox_portal_ro`
+- Confirmation that only SELECT grants were applied.
+- Confirmation that frontend flags remain off.
+- Confirmation that production broad enablement has not started.
+- Next step: schema parity validation and production read-only shadow compare.
+
+Final report:
+Return a concise report with:
+1. Whether the read-only user was created.
+2. Whether grants were verified.
+3. Whether the user has SELECT-only access.
+4. Whether production secrets were updated.
+5. Whether frontend flags remain off.
+6. Whether schema parity validation was started or left for the next task.
+7. Any blockers.
+
+Do not include:
+- passwords
+- connection strings with passwords
+- raw production customer data
+- screenshots containing secrets
