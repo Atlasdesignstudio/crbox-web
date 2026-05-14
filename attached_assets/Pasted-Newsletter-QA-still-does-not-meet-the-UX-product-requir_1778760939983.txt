@@ -1,0 +1,121 @@
+Newsletter QA still does not meet the UX/product requirement.
+
+Current behavior:
+- I check “Promociones y ofertas especiales”.
+- Click “Guardar Preferencias”.
+- postedituser returns OK.
+- The checkbox may stay checked temporarily.
+- But after changing tabs inside the page, refocusing, waiting, or refreshing, it becomes unchecked again.
+- getuserinfo after the save still appears to return receivesNewsletter:false.
+
+Product/UX requirement:
+This cannot behave like a temporary visual checkbox only. The user needs a clear persistent state that tells them whether they are actually subscribed or unsubscribed.
+
+Desired UX:
+The Newsletter section should communicate one of these states clearly:
+
+1. Confirmed subscribed
+- Checkbox checked.
+- Persistent message/copy:
+  “Estás suscrito a promociones y ofertas especiales.”
+  “Recibirás noticias, descuentos y ofertas exclusivas de CRBOX.”
+
+2. Confirmed unsubscribed
+- Checkbox unchecked.
+- Persistent message/copy:
+  “No estás suscrito a promociones y ofertas especiales.”
+  “No recibirás comunicaciones promocionales de CRBOX.”
+
+3. Pending / not confirmed
+- Do not pretend the preference is confirmed.
+- Show a persistent amber state:
+  “Recibimos tu solicitud, pero todavía no pudimos confirmar el cambio.”
+  “Inténtalo de nuevo más tarde o contacta soporte.”
+
+4. Error
+- Show a clear error state if the request fails.
+
+Important:
+Do not rely on a 24h intent guard to fake persistence.
+The checkbox and message should reflect confirmed backend state, or explicitly say pending/unconfirmed.
+
+Please investigate and implement a safer newsletter state model:
+
+A. Determine backend truth
+- If getuserinfo confirms receivesNewsletter:true after save, show confirmed subscribed.
+- If getuserinfo confirms receivesNewsletter:false after unsubscribe, show confirmed unsubscribed.
+- If postedituser returns OK but getuserinfo never confirms the intended value after the polling window, show pending/not confirmed.
+- Do not show “guardado” as confirmed if getuserinfo disagrees.
+
+B. UI state
+Add a persistent status message inside the Newsletter card, not just a temporary toast/message below the button.
+
+Suggested copy:
+
+When confirmed subscribed:
+“Estás suscrito a promociones y ofertas especiales.”
+“Recibirás noticias, descuentos y ofertas exclusivas de CRBOX.”
+
+When confirmed unsubscribed:
+“No estás suscrito a promociones y ofertas especiales.”
+“Puedes activar esta opción cuando quieras para recibir descuentos y novedades.”
+
+When pending confirmation:
+“Recibimos tu solicitud, pero todavía no pudimos confirmar el cambio.”
+“Inténtalo de nuevo más tarde o contacta soporte.”
+
+When saving:
+“Verificando con el servidor…”
+
+C. Tab/refocus behavior
+- Changing tabs within `mi-cuenta` or refocusing the browser must not create confusing state flips.
+- If backend truth is false, checkbox should be false and message should say unsubscribed.
+- If user just attempted to subscribe but backend did not confirm, show pending/unconfirmed, not fake checked.
+- If backend confirms true, checkbox should remain checked through tab switches and refreshes.
+
+D. Persistence validation
+Test both directions:
+1. Subscribe:
+   - checkbox checked
+   - save
+   - postedituser OK
+   - getuserinfo confirms true → confirmed subscribed
+   - if getuserinfo remains false → pending/not confirmed
+
+2. Unsubscribe:
+   - checkbox unchecked
+   - save
+   - postedituser OK
+   - getuserinfo confirms false → confirmed unsubscribed
+   - if getuserinfo remains true → pending/not confirmed
+
+E. Debugging
+Keep boolean-only diagnostics:
+- intended value
+- payload value
+- getuserinfo immediate value
+- getuserinfo +5s/+30s/+60s value
+- final UI state classification
+
+Do not log:
+- full payload
+- raw ID
+- phone
+- address
+- token
+- full user object
+
+F. Safety
+Do not touch:
+- RDS profile endpoint
+- password change, except preserving current short-password validation
+- login
+- registration
+- packages
+- invoices
+- dashboard
+- AWS/RDS settings
+- DB schema
+
+Goal:
+Make the newsletter UI honest and intuitive. It should not just visually remain checked. It should clearly tell the user whether the subscription is confirmed, unsubscribed, or pending/unconfirmed.

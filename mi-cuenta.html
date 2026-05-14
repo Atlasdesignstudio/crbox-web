@@ -432,6 +432,8 @@
                                     <span class="block text-xs text-gray-500 mt-1">Recibe noticias de descuentos y ofertas exclusivas de CRBOX.</span>
                                 </span>
                             </label>
+                            <!-- Persistent newsletter state card — rendered by _renderNewsletterState() -->
+                            <div id="newsletter-status-card" class="hidden mt-3 rounded-lg px-3 py-2.5 text-sm flex items-start gap-2"></div>
                         </div>
                         <div class="mt-4">
                             <button type="button" id="save-notifications-btn" class="action-btn-primary">
@@ -439,7 +441,6 @@
                                 Guardar Preferencias
                             </button>
                             <p id="notifications-save-error" class="hidden mt-2 text-red-600 text-sm font-medium"></p>
-                            <p id="notifications-save-status" class="hidden mt-2 text-sm font-medium"></p>
                         </div>
                     </div>
                 </div>
@@ -798,35 +799,6 @@
                     }, true);
                 }
 
-                // ── _showNewsletterStatus ──────────────────────────────────
-                // Updates #notifications-save-status with one of three states:
-                //   'confirmed'   — backend confirmed the saved value
-                //   'pending'     — postedituser OK but getuserinfo not yet confirmed
-                //   'unconfirmed' — 60 s elapsed, still not confirmed by backend
-                // 'value' is the boolean the user tried to save.
-                function _showNewsletterStatus(state, value) {
-                    var el = document.getElementById('notifications-save-status');
-                    if (!el) return;
-                    el.className = 'mt-2 text-sm font-medium';
-                    if (state === 'confirmed') {
-                        el.classList.add('text-green-600');
-                        el.innerHTML = value
-                            ? '<i class="fas fa-check-circle mr-1"></i> Preferencias guardadas. Recibirás promociones y ofertas especiales de CRBOX.'
-                            : '<i class="fas fa-check-circle mr-1"></i> Preferencias guardadas. Ya no recibirás promociones y ofertas especiales.';
-                    } else if (state === 'pending') {
-                        el.classList.add('text-gray-500');
-                        el.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Verificando con el servidor...';
-                    } else {
-                        // unconfirmed
-                        el.classList.add('text-amber-600');
-                        el.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i> Recibimos tu solicitud, pero no pudimos confirmar el cambio todavía. Inténtalo de nuevo más tarde o contacta soporte.';
-                    }
-                    el.classList.remove('hidden');
-                    if (state === 'confirmed') {
-                        setTimeout(function () { el.classList.add('hidden'); }, 6000);
-                    }
-                }
-
                 saveNotificationsBtn.addEventListener('click', function () {
                     if (typeof CRBOXPortalAPI === 'undefined' || !CRBOXAuth.isLoggedIn()) {
                         var notifErrEl = document.getElementById('notifications-save-error');
@@ -867,18 +839,16 @@
                             }
                             window.__crboxUserInfo = result.userInfo || window.__crboxUserInfo;
 
-                            // ── 2. Intent guard (24 h TTL, clears on confirmation) ─────
-                            window.__crboxNewsletterIntent = { value: savedNewsletter, ts: Date.now(), ttl: 86400000 };
+                            // ── 2. Start 65 s polling guard ────────────────────────────
+                            // Prevents _applyProfile / _patchNewsletterCheckbox (fired by
+                            // crbox:pageresume or any background refresh) from overriding
+                            // the checkbox and status card while verification is in progress.
+                            window.__crboxNewsletterPoll = { ts: Date.now() };
                             console.log('[CRBOX mi-cuenta] newsletter intent saved:', savedNewsletter);
 
-                            // ── 3. Immediately apply checkbox to saved intent ──────────
-                            if (typeof window.__crboxPatchNewsletter === 'function') {
-                                window.__crboxPatchNewsletter({ Consignee: { ReceivesNewsletter: savedNewsletter } });
-                            }
-
-                            // ── 4. Check whether postedituser actually persisted the field.
-                            // result.userInfo is a forced-fresh getUserInfo() re-fetch already
-                            // done inside updateProfile() — earliest possible confirmation.
+                            // ── 3. Immediate confirmation check ────────────────────────
+                            // result.userInfo is the forced-fresh getUserInfo() re-fetch from
+                            // inside updateProfile() — earliest possible backend confirmation.
                             var _diag = result.userInfo && (result.userInfo.Consignee || result.userInfo);
                             var _diagNL = _diag
                               ? (_diag.ReceivesNewsletter !== undefined ? _diag.ReceivesNewsletter : _diag.receivesNewsletter)
@@ -888,17 +858,27 @@
 
                             if (_diagNL === savedNewsletter) {
                                 // ── Scenario A: backend confirmed immediately ──────────
-                                window.__crboxNewsletterIntent = null; // confirmed — release guard
+                                window.__crboxNewsletterPoll = null; // release polling guard
+                                var _elA = document.getElementById('notify_promotions');
+                                if (_elA) _elA.checked = !!_diagNL;
                                 if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('notifications'); } catch (_e) {} }
                                 btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
-                                _showNewsletterStatus('confirmed', savedNewsletter);
+                                if (typeof window.__crboxRenderNewsletterState === 'function') {
+                                    window.__crboxRenderNewsletterState(savedNewsletter ? 'subscribed' : 'unsubscribed');
+                                }
                                 setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
                                 return;
                             }
 
-                            // ── Scenarios B/C: not confirmed yet — show pending and poll ─
+                            // ── Scenarios B/C: not confirmed yet ──────────────────────
+                            // Set checkbox to backend truth (not the user's intended value)
+                            // — the status card honestly communicates the pending state.
+                            var _elPend = document.getElementById('notify_promotions');
+                            if (_elPend) _elPend.checked = (_diagNL === true);
                             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Verificando...';
-                            _showNewsletterStatus('pending', savedNewsletter);
+                            if (typeof window.__crboxRenderNewsletterState === 'function') {
+                                window.__crboxRenderNewsletterState('pending');
+                            }
 
                             var _nlConfirmed = false;
                             [5000, 30000, 60000].forEach(function (_delay) {
@@ -915,29 +895,40 @@
                                         if (!_nlConfirmed && _tnl === savedNewsletter) {
                                             // ── Scenario B: backend confirmed after delay ──
                                             _nlConfirmed = true;
+                                            window.__crboxNewsletterPoll = null; // release polling guard
                                             window.__crboxUserInfoLegacy = _ti;
                                             window.__crboxUserInfo = _ti;
-                                            window.__crboxNewsletterIntent = null; // confirmed — release guard
+                                            var _elB = document.getElementById('notify_promotions');
+                                            if (_elB) _elB.checked = !!_tnl;
                                             if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('notifications'); } catch (_e) {} }
                                             btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
-                                            _showNewsletterStatus('confirmed', savedNewsletter);
+                                            if (typeof window.__crboxRenderNewsletterState === 'function') {
+                                                window.__crboxRenderNewsletterState(savedNewsletter ? 'subscribed' : 'unsubscribed');
+                                            }
                                             setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
                                         } else if (!_nlConfirmed && _delay === 60000) {
                                             // ── Scenario C: backend did not persist the field ─
-                                            // Intent guard stays active so the checkbox holds
-                                            // the user's choice in this session, but the UX
-                                            // honestly reflects that persistence is unconfirmed.
+                                            // Release the polling guard so the UI returns to
+                                            // showing actual backend state on next page resume.
+                                            window.__crboxNewsletterPoll = null;
                                             window.__crboxUserInfoLegacy = _ti;
                                             window.__crboxUserInfo = _ti;
+                                            var _elC = document.getElementById('notify_promotions');
+                                            if (_elC) _elC.checked = (_tnl === true); // backend truth
                                             if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_error('notifications', 'unconfirmed'); } catch (_e) {} }
                                             btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Sin confirmar';
-                                            _showNewsletterStatus('unconfirmed', savedNewsletter);
+                                            if (typeof window.__crboxRenderNewsletterState === 'function') {
+                                                window.__crboxRenderNewsletterState('unconfirmed');
+                                            }
                                             setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 3000);
                                         }
                                     }).catch(function () {
                                         if (_delay === 60000 && !_nlConfirmed) {
+                                            window.__crboxNewsletterPoll = null;
                                             btn.innerHTML = originalHTML; btn.disabled = false;
-                                            _showNewsletterStatus('unconfirmed', savedNewsletter);
+                                            if (typeof window.__crboxRenderNewsletterState === 'function') {
+                                                window.__crboxRenderNewsletterState('unconfirmed');
+                                            }
                                         }
                                     });
                                 }, _delay);
@@ -1101,21 +1092,18 @@
         var addrCasEl = document.getElementById('miami-addr-casillero');
         if (addrCasEl) addrCasEl.textContent = casillero;
 
-        // Newsletter preference — respect a recent saved intent so that
-        // _applyProfile calls triggered by crbox:pageresume (tab re-focus)
-        // or any other post-save refresh path cannot overwrite the user's
-        // confirmed saved choice with a stale CRBOX API value.
+        // Newsletter preference — skip if a post-save poll is active.
+        // The polling window is 65 s; within it the save handler owns the
+        // checkbox and status card state.  After it expires _applyProfile
+        // resumes normal behaviour and reflects the confirmed backend value.
         var newsCheck = document.getElementById('notify_promotions');
         if (newsCheck) {
-          var _ni = window.__crboxNewsletterIntent;
-          var _niActive = _ni && (Date.now() - _ni.ts < (_ni.ttl || 30000));
-          if (_niActive && !!newsletter !== _ni.value) {
-            console.log('[CRBOX mi-cuenta] newsletter _applyProfile skipped (intent active):', _ni.value, '| incoming:', !!newsletter);
+          var _poll = window.__crboxNewsletterPoll;
+          if (_poll && (Date.now() - _poll.ts < 65000)) {
+            console.log('[CRBOX mi-cuenta] newsletter _applyProfile skipped (poll active)');
           } else {
             newsCheck.checked = !!newsletter;
-            if (_niActive && !!newsletter === _ni.value) {
-              window.__crboxNewsletterIntent = null; // confirmed — release guard
-            }
+            _renderNewsletterState(newsletter ? 'subscribed' : 'unsubscribed');
           }
         }
 
@@ -1161,23 +1149,49 @@
         }
       }
 
+      // ── _renderNewsletterState ────────────────────────────────────────────
+      // Renders a persistent state card inside #newsletter-status-card.
+      // States: 'subscribed' | 'unsubscribed' | 'pending' | 'unconfirmed'
+      // Called by _applyProfile, _patchNewsletterCheckbox, and (via
+      // window.__crboxRenderNewsletterState) by the save handler.
+      function _renderNewsletterState(state) {
+        var card = document.getElementById('newsletter-status-card');
+        if (!card) return;
+        console.log('[CRBOX mi-cuenta] newsletter UI state:', state);
+        var _s = {
+          subscribed:   { cls: 'bg-green-50 text-green-700',  icon: 'fa-check-circle',
+                          main: 'Est\u00e1s suscrito a promociones y ofertas especiales.',
+                          sub:  'Recibir\u00e1s noticias, descuentos y ofertas exclusivas de CRBOX.' },
+          unsubscribed: { cls: 'bg-gray-50 text-gray-500',    icon: 'fa-info-circle',
+                          main: 'No est\u00e1s suscrito a promociones y ofertas especiales.',
+                          sub:  'Puedes activar esta opci\u00f3n cuando quieras para recibir descuentos y novedades.' },
+          pending:      { cls: 'bg-amber-50 text-amber-700',  icon: 'fa-spinner fa-spin',
+                          main: 'Verificando con el servidor\u2026',
+                          sub:  '' },
+          unconfirmed:  { cls: 'bg-amber-50 text-amber-700',  icon: 'fa-exclamation-circle',
+                          main: 'Recibimos tu solicitud, pero todav\u00eda no pudimos confirmar el cambio.',
+                          sub:  'Int\u00e9ntalo de nuevo m\u00e1s tarde o contacta soporte.' }
+        };
+        var cfg = _s[state];
+        if (!cfg) { card.classList.add('hidden'); return; }
+        card.className = 'mt-3 rounded-lg px-3 py-2.5 text-sm flex items-start gap-2 ' + cfg.cls;
+        card.innerHTML = '<i class="fas ' + cfg.icon + ' mt-0.5 flex-shrink-0"></i>'
+          + '<span><span class="font-medium">' + cfg.main + '</span>'
+          + (cfg.sub ? '<br><span class="opacity-80 text-xs mt-0.5 block">' + cfg.sub + '</span>' : '')
+          + '</span>';
+      }
+      window.__crboxRenderNewsletterState = _renderNewsletterState;
+
       // ── _patchNewsletterCheckbox ──────────────────────────────────────────
       // Updates ONLY the #notify_promotions checkbox from a profile object.
-      // Called instead of full _applyProfile when we need to correct the
-      // checkbox without re-rendering the rest of the profile (e.g. after
-      // a save, or when the legacy write-base resolves after an RDS display).
+      // Skipped when a post-save poll is active (the poll owns the state).
       function _patchNewsletterCheckbox(info) {
         if (!info) return;
         var c = (info && info.Consignee) ? info.Consignee : info;
         var val = !!(c.receivesNewsletter || c.ReceivesNewsletter);
-        // Guard: if a recent saved intent exists and the incoming value differs,
-        // skip the patch — the CRBOX API likely hasn't propagated the save yet.
-        // The guard expires after 30 s or clears automatically when the API
-        // confirms the saved value.
-        var intent = window.__crboxNewsletterIntent;
-        var intentActive = intent && (Date.now() - intent.ts < (intent.ttl || 30000));
-        if (intentActive && val !== intent.value) {
-          console.log('[CRBOX mi-cuenta] newsletter patch skipped due to recent saved intent:', intent.value, '| incoming:', val);
+        var _poll = window.__crboxNewsletterPoll;
+        if (_poll && (Date.now() - _poll.ts < 65000)) {
+          console.log('[CRBOX mi-cuenta] newsletter patch skipped (poll active) | incoming:', val);
           return;
         }
         var el = document.getElementById('notify_promotions');
@@ -1186,11 +1200,7 @@
           el.checked = val;
           console.log('[CRBOX mi-cuenta] newsletter after patch DOM checked:', el.checked);
         }
-        // Incoming value confirms the saved intent — release guard so future
-        // refreshes flow through normally.
-        if (intentActive && val === intent.value) {
-          window.__crboxNewsletterIntent = null;
-        }
+        _renderNewsletterState(val ? 'subscribed' : 'unsubscribed');
       }
       window.__crboxPatchNewsletter = _patchNewsletterCheckbox;
 
