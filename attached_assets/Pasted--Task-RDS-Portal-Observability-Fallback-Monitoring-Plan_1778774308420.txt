@@ -1,0 +1,239 @@
+# Task — RDS Portal Observability & Fallback Monitoring Plan
+
+What & Why
+Before enabling any RDS-backed portal module in production, we need a clear monitoring and logging plan to detect errors, fallback behavior, latency, authentication problems, and data anomalies.
+
+The goal is to make production activation observable and reversible. If RDS fails, we should know quickly, understand which module failed, and be able to roll back safely.
+
+This is planning/documentation only. Do not change production, do not enable flags, and do not modify endpoint behavior unless the task explicitly recommends future instrumentation.
+
+Goal
+Create:
+docs/rds-observability-fallback-plan.md
+
+Scope
+Cover the three RDS portal modules:
+- mis-paquetes → /api/portal/my-packages
+- mis-facturas → /api/portal/invoices-rds
+- mi-cuenta → /api/portal/profile-rds
+
+Also cover:
+- /api/config feature flags
+- fallback to legacy APIs
+- auth errors
+- wrong database guard errors
+- RDS connection failures
+- response time monitoring
+- no-PII logging rules
+- rollback triggers
+
+Do not:
+- Enable production flags.
+- Query production.
+- Change DB credentials.
+- Modify AWS/RDS.
+- Modify frontend behavior.
+- Log raw PII.
+- Log tokens.
+- Log full payloads.
+- Change business logic.
+
+Sections to include:
+
+1. Current RDS activation model
+Document:
+- Feature flags per module:
+  - USE_RDS_PACKAGES_FRONTEND
+  - USE_RDS_INVOICES_FRONTEND
+  - USE_RDS_PROFILE_FRONTEND
+- Backend/admin flag:
+  - USE_RDS_PORTAL_API
+- Legacy fallback behavior
+- Auth error behavior
+- Wrong DB guard behavior using EXPECTED_RDS_DATABASE
+
+2. What must be observable
+For each module, define the events/metrics we need:
+
+Packages:
+- RDS request started
+- RDS request succeeded
+- RDS request failed
+- fallback to legacy triggered
+- auth error
+- wrong database error
+- package count returned
+- response time
+
+Invoices:
+- RDS request started
+- RDS request succeeded
+- RDS request failed
+- fallback to legacy triggered
+- auth error
+- invoice count returned
+- total invoice amount if safe and aggregated only
+- response time
+- invoiceFileUrl missing count as informational only
+
+Profile:
+- RDS request started
+- RDS request succeeded
+- RDS request failed
+- fallback to legacy triggered
+- auth error
+- secure response boundary violations if detected
+- newsletter unconfirmed state as informational only
+- response time
+
+3. Logging rules
+Define exactly what can be logged:
+Allowed:
+- endpoint name
+- status code
+- duration_ms
+- feature flag state
+- fallback true/false
+- error type
+- idConsignee if already used internally
+- counts only
+- environment name
+- database guard result
+
+Forbidden:
+- Bearer tokens
+- passwords
+- service credentials
+- raw identification numbers
+- raw phone numbers
+- addresses
+- full names
+- full email if avoidable; masked email preferred
+- tracking numbers
+- invoice numbers
+- full payloads
+- full profile objects
+- raw backend responses
+
+4. Recommended structured log format
+Propose a safe JSON-ish structure, for example:
+
+{
+  "event": "rds_portal_request",
+  "module": "packages",
+  "path": "/api/portal/my-packages",
+  "source": "rds",
+  "fallback": false,
+  "status": 200,
+  "duration_ms": 342,
+  "count": 12,
+  "error_type": null
+}
+
+And fallback example:
+
+{
+  "event": "rds_portal_fallback",
+  "module": "invoices",
+  "reason": "rds_timeout",
+  "fallback_to": "legacy",
+  "duration_ms": 30100
+}
+
+5. Error classification
+Create categories:
+- auth_error
+- feature_disabled
+- wrong_database
+- rds_connection_error
+- rds_timeout
+- schema_mapping_error
+- empty_result
+- legacy_fallback_success
+- legacy_fallback_failure
+- unexpected_exception
+
+For each:
+- meaning
+- expected user impact
+- whether to alert
+- whether to roll back
+
+6. Alerting recommendations
+Define suggested alert thresholds:
+- any wrong_database error in production → immediate alert
+- RDS error rate > 5% for 10 minutes → investigate
+- fallback rate > 10% for 10 minutes → investigate
+- auth error spike → investigate auth/session
+- response p95 > 3s for RDS endpoints → performance review
+- repeated schema_mapping_error → stop rollout
+- raw PII detection in logs → critical incident
+
+7. Rollback triggers
+List when to unset feature flags:
+- wrong_database error
+- repeated 500/502 from RDS endpoint
+- fallback spike
+- data mismatch reported by users
+- profile response exposing forbidden fields
+- package/invoice counts clearly wrong
+- auth errors incorrectly falling back
+- frontend crash tied to RDS path
+
+8. Production smoke monitoring checklist
+After enabling each module:
+Packages:
+- check /api/config
+- check endpoint success
+- check count rendered
+- check no fallback spike
+- check no console errors
+
+Invoices:
+- check endpoint success
+- check totals render
+- check recibos display
+- check download graceful behavior
+
+Profile:
+- check endpoint success
+- check masked ID/phone
+- check writes remain legacy
+- check newsletter limitation appears as expected if triggered
+
+9. Dashboard/reporting recommendation
+Recommend a simple operations dashboard or log query view with:
+- requests by module
+- success/error/fallback rate
+- p50/p95 response time
+- last wrong database error
+- last fallback reason
+- top error type
+- production flag state
+
+10. Implementation recommendations
+Do not implement yet unless asked. But recommend future code changes:
+- central safe logger helper
+- consistent module labels
+- correlation ID per request
+- duration timing wrapper
+- fallback reason enum
+- no-PII sanitizer
+- optional admin-only health endpoint
+
+11. Final recommendation
+Conclude:
+A — Enough observability exists now for controlled production enablement.
+B — Need small logging improvements before enabling production flags.
+C — Observability insufficient; do not enable production flags.
+
+Expected recommendation is likely B unless current logs already cover fallback/error/duration clearly.
+
+Final report
+Return:
+- document created
+- key metrics
+- alert thresholds
+- rollback triggers
+- recommended instrumentation gaps
+- final A/B/C recommendation
