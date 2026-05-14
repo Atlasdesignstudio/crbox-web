@@ -15078,10 +15078,11 @@ def _rds_query_profile(rds_module, email):
     # during schema investigation.  The join to identificationtype for a label
     # is attempted below; falls back to the raw code if the join table is absent.
     cons_row = rds_module.fetch_one(
-        'SELECT c.idConsignee, c.email, c.ConsigneeName, c.ConsigneeLastName1, '
-        '       c.ConsigneeLastName2, c.isCompany, c.idSucursal, '
-        '       c.PendingDiscount, c.ReceivesNewsletter, '
-        '       c.IdentificationNumber, c.IdentificationType '
+        'SELECT c.idConsignee, c.email, c.consigneeName, c.consigneeLastName1, '
+        '       c.consigneeLastName2, c.isCompany, c.idSucursal, '
+        '       c.idPlan, c.idClient, c.codigoFacturacion, '
+        '       c.receivesNewsletter, '
+        '       c.identificationNumber, c.identificationType '
         'FROM consignee c '
         'WHERE c.email = %s LIMIT 1',
         (email,)
@@ -15092,144 +15093,133 @@ def _rds_query_profile(rds_module, email):
     id_consignee = int(cons_row['idConsignee'])
 
     # ── Step 2: Identification type label ────────────────────────────────
-    # Try to resolve a human-readable label from the identificationtype table.
-    # The FK column name in consignee is IdentificationType (string code);
-    # the lookup table is identificationtype with columns idIdentificationType
-    # and IdentificationType.  NEEDS VALIDATION: column names unconfirmed.
-    id_type_label = cons_row.get('IdentificationType')  # fallback: raw code
+    # consignee.identificationType stores the type label string directly
+    # (e.g. "Cedula ó Residencia").  The identificationtype table has columns
+    # idIdentificationType (PK int) and type (UNI varchar).  The lookup joins
+    # by matching the string value so the canonical label is returned.
+    # Schema confirmed: identificationtype.type is the label column.
+    id_type_label = cons_row.get('identificationType')  # fallback: raw value
     try:
         it_row = rds_module.fetch_one(
-            'SELECT IdentificationType FROM identificationtype '
-            'WHERE idIdentificationType = %s LIMIT 1',
-            (cons_row.get('IdentificationType'),)
+            'SELECT type FROM identificationtype '
+            'WHERE type = %s LIMIT 1',
+            (cons_row.get('identificationType'),)
         )
-        if it_row and it_row.get('IdentificationType'):
-            id_type_label = it_row['IdentificationType']
+        if it_row and it_row.get('type'):
+            id_type_label = it_row['type']
     except Exception as _idtype_exc:
         print(f'[RDS-PROFILE] identificationtype lookup failed: {_idtype_exc}')
         _failed_joins.append({'join': 'identificationtype', 'error': str(_idtype_exc)})
 
     # ── Step 3: Sucursal (branch) ─────────────────────────────────────────
     # Join consignee.idSucursal → Sucursal.idSucursal.
-    # Display name column is NombreSucursal — NEEDS VALIDATION (column name
-    # based on common Costa Rica courier DB conventions; may differ).
+    # Schema confirmed: display name column is `name` (not NombreSucursal).
+    # Sucursal also has: idPhone, idAddress, horario.
     branch_id   = cons_row.get('idSucursal')
     branch_name = None
     if branch_id is not None:
         try:
             suc_row = rds_module.fetch_one(
-                'SELECT idSucursal, NombreSucursal '
+                'SELECT idSucursal, name '
                 'FROM Sucursal WHERE idSucursal = %s LIMIT 1',
                 (branch_id,)
             )
             if suc_row:
-                branch_name = suc_row.get('NombreSucursal')
+                branch_name = suc_row.get('name')
         except Exception as _suc_exc:
             print(f'[RDS-PROFILE] Sucursal query failed: {_suc_exc}')
             _failed_joins.append({'join': 'Sucursal', 'error': str(_suc_exc)})
 
     # ── Step 4: Client account info ───────────────────────────────────────
-    # client table holds account-level info (casillero/CompanyCode, plan FK).
-    # FK from consignee → client is assumed to be consignee.idClient or a
-    # reverse FK client.idConsignee.  NEEDS VALIDATION: the exact FK column
-    # is not confirmed from schema inspection; both approaches attempted below.
+    # Schema confirmed: client table has idClient, name, accountType,
+    # cedulaJuridica, owner.  No CompanyCode, no idPlan, no idConsignee.
+    # FK path: consignee.idClient → client.idClient (confirmed).
+    # The casillero/company code is consignee.codigoFacturacion (varchar 150),
+    # already fetched in Step 1.  Plan is also directly on consignee.idPlan.
     client_info = {}
-    try:
-        cl_row = rds_module.fetch_one(
-            'SELECT cl.idClient, cl.CompanyCode, cl.idPlan '
-            'FROM client cl '
-            'JOIN consignee c ON cl.idClient = c.idClient '
-            'WHERE c.idConsignee = %s LIMIT 1',
-            (id_consignee,)
-        )
-        if cl_row:
-            client_info = {
-                'idClient':    cl_row.get('idClient'),
-                'companyCode': cl_row.get('CompanyCode'),
-                'idPlan':      cl_row.get('idPlan'),
-            }
-    except Exception as _cl_exc:
-        print(f'[RDS-PROFILE] client primary query failed: {_cl_exc}')
-        _failed_joins.append({'join': 'client (primary FK)', 'error': str(_cl_exc)})
-        # Fallback: try reverse FK (client.idConsignee)
+    id_client = cons_row.get('idClient')
+    if id_client is not None:
         try:
-            cl_row2 = rds_module.fetch_one(
-                'SELECT idClient, CompanyCode, idPlan '
-                'FROM client WHERE idConsignee = %s LIMIT 1',
-                (id_consignee,)
+            cl_row = rds_module.fetch_one(
+                'SELECT cl.idClient, cl.name, cl.accountType, cl.cedulaJuridica '
+                'FROM client cl '
+                'WHERE cl.idClient = %s LIMIT 1',
+                (id_client,)
             )
-            if cl_row2:
+            if cl_row:
                 client_info = {
-                    'idClient':    cl_row2.get('idClient'),
-                    'companyCode': cl_row2.get('CompanyCode'),
-                    'idPlan':      cl_row2.get('idPlan'),
+                    'idClient':      cl_row.get('idClient'),
+                    'clientName':    cl_row.get('name'),
+                    'accountType':   cl_row.get('accountType'),
+                    'cedulaJuridica': cl_row.get('cedulaJuridica'),
                 }
-                print('[RDS-PROFILE] client resolved via fallback FK client.idConsignee')
-        except Exception as _cl2_exc:
-            print(f'[RDS-PROFILE] client fallback query failed: {_cl2_exc} — needs validation')
-            _failed_joins.append({'join': 'client (fallback FK)', 'error': str(_cl2_exc)})
+        except Exception as _cl_exc:
+            print(f'[RDS-PROFILE] client query failed: {_cl_exc}')
+            _failed_joins.append({'join': 'client', 'error': str(_cl_exc)})
             client_info = {}
 
     # ── Step 5: Plan ──────────────────────────────────────────────────────
-    # plan table: idPlan (PK), PlanName (display), Discount (optional).
-    # NEEDS VALIDATION: column names assumed from common naming conventions.
+    # Schema confirmed: plan table columns are idPlan (PK), nombre (display
+    # name), descuento (float), cantidadPaquetes (int).
+    # idPlan is on consignee directly (not via client).
     plan_info = {}
-    id_plan = client_info.get('idPlan')
+    id_plan = cons_row.get('idPlan')
     if id_plan is not None:
         try:
             plan_row = rds_module.fetch_one(
-                'SELECT idPlan, PlanName, Discount '
+                'SELECT idPlan, nombre, descuento '
                 'FROM plan WHERE idPlan = %s LIMIT 1',
                 (id_plan,)
             )
             if plan_row:
-                disc = plan_row.get('Discount')
+                disc = plan_row.get('descuento')
                 plan_info = {
                     'idPlan':   plan_row.get('idPlan'),
-                    'planName': plan_row.get('PlanName'),
+                    'planName': plan_row.get('nombre'),
                     'discount': float(disc) if isinstance(disc, _decimal.Decimal)
                                 else disc,
                 }
         except Exception as _plan_exc:
-            print(f'[RDS-PROFILE] plan query failed: {_plan_exc} — needs validation')
+            print(f'[RDS-PROFILE] plan query failed: {_plan_exc}')
             _failed_joins.append({'join': 'plan', 'error': str(_plan_exc)})
             plan_info = {}
 
     # ── Step 6: CR Delivery Addresses ────────────────────────────────────
-    # consignee_has_address is a junction table between consignee and address.
-    # isPrimary and isActive flags determine the "primary" address.
-    # NEEDS VALIDATION:
-    #   • Whether isPrimary is a tinyint(1) boolean or some other type.
-    #   • Whether isActive controls display eligibility.
-    #   • Whether addresstype.AddressType is the correct column name.
-    #   • Whether Address1/Address2/City/Province are the canonical columns.
+    # Schema confirmed:
+    #   consignee_has_address has only (idConsignee, idAddress) — no flags.
+    #   isPrimary (tinyint(1)) and isActive (tinyint(1)) are on the address
+    #   table itself.  Address columns: line1, line2, city, zipCode, provincia.
+    #   addresstype join: address.AddressType (int FK) → addresstype.idAddressType;
+    #   label column in addresstype is `type` (not AddressType).
     address_logic_note = (
-        'Primary address: rows with cha.isPrimary=1 returned first; isActive flag '
-        'presence and semantics NEED VALIDATION (column names inferred from schema '
-        'naming conventions — run SHOW COLUMNS FROM consignee_has_address to confirm). '
+        'Primary address: rows with a.isPrimary=1 returned first; isActive and '
+        'isPrimary flags are on the address table (tinyint(1)), not the junction. '
+        'Address columns confirmed: line1, line2, city, zipCode, provincia. '
+        'addresstype label column confirmed: type. '
         'mi-cuenta.html renders all CR delivery addresses from the Addresses array.'
     )
     addresses = []
     try:
         addr_rows = rds_module.fetch_all(
-            'SELECT cha.isPrimary, cha.isActive, '
-            '       a.idAddress, a.Address1, a.Address2, a.City, a.Province, '
-            '       at2.idAddressType, at2.AddressType '
+            'SELECT a.idAddress, a.line1, a.line2, a.city, a.zipCode, '
+            '       a.provincia, a.isPrimary, a.isActive, '
+            '       a.AddressType AS idAddressType, at2.type AS addressTypeLabel '
             'FROM consignee_has_address cha '
             'JOIN address a ON cha.idAddress = a.idAddress '
-            'LEFT JOIN addresstype at2 ON a.idAddressType = at2.idAddressType '
+            'LEFT JOIN addresstype at2 ON a.AddressType = at2.idAddressType '
             'WHERE cha.idConsignee = %s '
-            'ORDER BY cha.isPrimary DESC, a.idAddress ASC',
+            'ORDER BY a.isPrimary DESC, a.idAddress ASC',
             (id_consignee,)
         )
         for row in (addr_rows or []):
             addresses.append({
                 'idAddress':     row.get('idAddress'),
-                'address1':      row.get('Address1'),
-                'address2':      row.get('Address2'),
-                'city':          row.get('City'),
-                'province':      row.get('Province'),
-                'addressType':   row.get('AddressType'),
+                'address1':      row.get('line1'),
+                'address2':      row.get('line2'),
+                'city':          row.get('city'),
+                'zipCode':       row.get('zipCode'),
+                'province':      row.get('provincia'),
+                'addressType':   row.get('addressTypeLabel'),
                 'idAddressType': row.get('idAddressType'),
                 'isPrimary':     bool(row['isPrimary']) if row.get('isPrimary') is not None else None,
                 'isActive':      bool(row['isActive'])  if row.get('isActive')  is not None else None,
@@ -15240,37 +15230,36 @@ def _rds_query_profile(rds_module, email):
         _failed_joins.append({'join': 'consignee_has_address', 'error': str(_addr_exc)})
 
     # ── Step 7: Phones ────────────────────────────────────────────────────
-    # consignee_has_phone is a junction table between consignee and phone.
-    # isPrimary and isActive flags determine the "primary" phone.
-    # NEEDS VALIDATION:
-    #   • Whether isPrimary / isActive are tinyint(1) booleans.
-    #   • Whether phonetype.PhoneType is the correct column name.
-    #   • Whether PhoneNumber is the canonical column (vs phoneNumber / phone).
+    # Schema confirmed:
+    #   consignee_has_phone has only (idConsignee, idPhone) — no flags.
+    #   isPrimary (tinyint(1)) and isActive (tinyint(1)) are on the phone table.
+    #   Phone column is phoneNumber (camelCase).
+    #   phonetype FK: phone.PhoneType (int) → phonetype.idPhoneType;
+    #   label column in phonetype is `type` (not PhoneType).
     phone_logic_note = (
-        'Primary phone: rows with chp.isPrimary=1 returned first; isActive flag '
-        'semantics NEED VALIDATION (column names inferred from schema conventions — '
-        'run SHOW COLUMNS FROM consignee_has_phone to confirm). '
+        'Primary phone: rows with p.isPrimary=1 returned first; isActive and '
+        'isPrimary flags are on the phone table (tinyint(1)), not the junction. '
+        'Phone column confirmed: phoneNumber. phonetype label column confirmed: type. '
         'mi-cuenta.html displays the first phone in the profile-phone element. '
         'Raw phone numbers are masked (****<last4>) in this endpoint.'
     )
     phones = []
     try:
         phone_rows = rds_module.fetch_all(
-            'SELECT chp.isPrimary, chp.isActive, '
-            '       p.idPhone, p.PhoneNumber, '
-            '       pt.idPhoneType, pt.PhoneType '
+            'SELECT p.idPhone, p.phoneNumber, p.isPrimary, p.isActive, '
+            '       p.PhoneType AS idPhoneType, pt.type AS phoneTypeLabel '
             'FROM consignee_has_phone chp '
             'JOIN phone p ON chp.idPhone = p.idPhone '
-            'LEFT JOIN phonetype pt ON p.idPhoneType = pt.idPhoneType '
+            'LEFT JOIN phonetype pt ON p.PhoneType = pt.idPhoneType '
             'WHERE chp.idConsignee = %s '
-            'ORDER BY chp.isPrimary DESC, p.idPhone ASC',
+            'ORDER BY p.isPrimary DESC, p.idPhone ASC',
             (id_consignee,)
         )
         for row in (phone_rows or []):
             phones.append({
                 'idPhone':    row.get('idPhone'),
-                'phoneMasked': _mask_phone(row.get('PhoneNumber')),
-                'phoneType':  row.get('PhoneType'),
+                'phoneMasked': _mask_phone(row.get('phoneNumber')),
+                'phoneType':  row.get('phoneTypeLabel'),
                 'idPhoneType': row.get('idPhoneType'),
                 'isPrimary':  bool(row['isPrimary']) if row.get('isPrimary') is not None else None,
                 'isActive':   bool(row['isActive'])  if row.get('isActive')  is not None else None,
@@ -15281,23 +15270,31 @@ def _rds_query_profile(rds_module, email):
         _failed_joins.append({'join': 'consignee_has_phone', 'error': str(_ph_exc)})
 
     # ── Assemble profile dict ──────────────────────────────────────────────
-    name       = cons_row.get('ConsigneeName')       or None
-    last1      = cons_row.get('ConsigneeLastName1')  or None
-    last2      = cons_row.get('ConsigneeLastName2')  or None
+    # Column names in consignee are camelCase; MySQL is case-insensitive so
+    # both casings work, but we use confirmed names from SHOW COLUMNS.
+    name       = cons_row.get('consigneeName')       or None
+    last1      = cons_row.get('consigneeLastName1')  or None
+    last2      = cons_row.get('consigneeLastName2')  or None
     full_parts = [p for p in [name, last1, last2] if p]
     full_name  = ' '.join(full_parts) if full_parts else None
 
-    receives_newsletter = cons_row.get('ReceivesNewsletter')
+    receives_newsletter = cons_row.get('receivesNewsletter')
     if receives_newsletter is not None:
         receives_newsletter = bool(receives_newsletter)
 
+    # isCompany is bit(1) in MySQL; pymysql returns bytes (e.g. b'\x00' or
+    # b'\x01').  bool(b'\x00') == True because bytes are truthy when non-empty,
+    # so we must compare against the zero-byte sentinel explicitly.
     is_company = cons_row.get('isCompany')
     if is_company is not None:
-        is_company = bool(is_company)
+        if isinstance(is_company, (bytes, bytearray)):
+            is_company = any(b != 0 for b in is_company)
+        else:
+            is_company = bool(is_company)
 
-    pending_discount = cons_row.get('PendingDiscount')
-    if isinstance(pending_discount, _decimal.Decimal):
-        pending_discount = float(pending_discount)
+    # codigoFacturacion is the casillero shown in the portal (e.g. "00481").
+    # PendingDiscount does not exist in consignee — removed.
+    casillero = cons_row.get('codigoFacturacion') or None
 
     profile = {
         'idConsignee':              id_consignee,
@@ -15308,9 +15305,9 @@ def _rds_query_profile(rds_module, email):
         'fullName':                 full_name,
         'identificationType':       id_type_label,
         'identificationNumberMasked': _mask_id_number(
-            cons_row.get('IdentificationNumber')),
+            cons_row.get('identificationNumber')),
         'isCompany':                is_company,
-        'pendingDiscount':          pending_discount,
+        'casillero':                casillero,
         'receivesNewsletter':       receives_newsletter,
         'branch': {
             'id':   branch_id,
@@ -15323,16 +15320,16 @@ def _rds_query_profile(rds_module, email):
     }
 
     withheld_fields = [
-        'BirthDate',
-        'AlternativeEmail',
-        'ResidenceCountry',
-        'ContactName1',
-        'ContactName2',
-        'Responsabilidad',
-        'IdResponsabilidad',
-        'OmitirReceptor',
-        'IdentificationNumber (raw — masked as identificationNumberMasked)',
-        'PhoneNumber (raw — masked as phoneMasked per phone entry)',
+        'birthDate',
+        'alternativeEmail',
+        'residenceCountry',
+        'contactName1',
+        'contactName2',
+        'responsabilidad',
+        'idResponsabilidad',
+        'omitirRecep',
+        'identificationNumber (raw — masked as identificationNumberMasked)',
+        'phoneNumber (raw — masked as phoneMasked per phone entry)',
     ]
 
     join_validation_status = (
