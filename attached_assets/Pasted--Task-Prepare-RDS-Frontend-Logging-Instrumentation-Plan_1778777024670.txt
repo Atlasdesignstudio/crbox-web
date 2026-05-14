@@ -1,0 +1,365 @@
+# Task — Prepare RDS Frontend Logging Instrumentation Plan
+
+What & Why
+The RDS observability plan concluded:
+
+- Level 1: production shadow compare is ready with current prefix logs.
+- Level 2: production frontend flag enablement requires small logging improvements before any user-facing RDS flag is enabled.
+
+This task prepares the exact implementation plan for those logging improvements, but does not implement them yet.
+
+Goal
+Create a focused implementation plan for the five required improvements:
+
+1. Add `duration_ms` timing to the three RDS frontend handlers.
+2. Emit structured success log lines.
+3. Add `fallback_reason` propagation in `portal-api.js`.
+4. Sanitize exception logging.
+5. Define monitoring coverage for the first 2 hours after flag enablement.
+
+Deliverable
+Create:
+
+`docs/rds-frontend-logging-instrumentation-plan.md`
+
+Important
+Do NOT:
+- Implement code.
+- Enable RDS flags.
+- Query production.
+- Modify credentials.
+- Modify AWS/RDS.
+- Change endpoint behavior.
+- Log raw PII.
+- Log tokens.
+- Log full payloads.
+- Touch production env vars.
+
+This is a planning document only.
+
+Use as input:
+- `docs/rds-observability-fallback-plan.md`
+- `server.py`
+- `js/portal-api.js`
+- `docs/rds-production-readiness-plan.md`
+- current RDS endpoint implementation
+
+Scope
+Cover exactly these user-facing RDS paths:
+
+Backend:
+- `_handle_portal_my_packages`
+- `_handle_portal_invoices_rds`
+- `_handle_portal_profile_rds`
+
+Frontend:
+- `getPackagesRDS`
+- `getBillsRDS`
+- `getProfileRDS`
+- the caller fallback logic in `mis-paquetes.html`, `mis-facturas.html`, and `mi-cuenta.html` if relevant
+
+Also cover:
+- `/api/config`
+- feature flag state
+- `EXPECTED_RDS_DATABASE` guard
+- legacy fallback behavior
+
+---
+
+## 1. Current logging gap summary
+
+Summarize the exact gaps found in `docs/rds-observability-fallback-plan.md`:
+
+- no `duration_ms`
+- no structured JSON logs
+- no success logs
+- no `fallback_reason`
+- inconsistent module labels
+- no `db_guard_result: pass`
+- unsanitized `{exc}` logging risk
+- no consistent error type classification in logs
+
+Classify each gap as:
+- Blocking before frontend flag enablement
+- Recommended before frontend flag enablement
+- Future improvement
+
+---
+
+## 2. Exact files and functions to change
+
+Create a table:
+
+| File | Function / area | Change needed | Risk | QA needed |
+|---|---|---|---|---|
+
+Must include:
+- `server.py`
+- `js/portal-api.js`
+- any page-level fallback caller if fallback happens outside `portal-api.js`
+
+For each function, describe exactly where the logging instrumentation should go:
+- request start
+- flag disabled path
+- auth error path
+- wrong database path
+- RDS connection/query error path
+- successful response path
+- fallback path
+
+Do not write production code in this task.
+
+---
+
+## 3. Proposed safe log schema
+
+Define a safe JSON log schema.
+
+Allowed fields:
+- `ts`
+- `event`
+- `module`
+- `endpoint`
+- `status_code`
+- `duration_ms`
+- `flag_state`
+- `source`
+- `fallback_triggered`
+- `fallback_reason`
+- `error_type`
+- `db_guard_result`
+- `count`
+- `environment`
+- `request_id`
+
+Forbidden fields:
+- raw email
+- token
+- password
+- service credentials
+- raw identification number
+- phone number
+- address
+- tracking number
+- invoice number
+- full payload
+- full profile object
+- raw SQL query with user data
+- DB credentials
+- raw exception message if it may contain sensitive values
+
+Make clear whether `idConsignee` is allowed or should be avoided/masked. If used, document why.
+
+---
+
+## 4. Backend instrumentation plan
+
+For each backend handler:
+
+- packages
+- invoices
+- profile
+
+Document:
+
+### Success path
+Should emit:
+- event: `rds_request_success`
+- module
+- endpoint
+- status_code
+- duration_ms
+- flag_state
+- db_guard_result
+- count
+- source: `rds`
+
+### Feature disabled path
+Should emit, if useful:
+- event: `rds_feature_disabled`
+- module
+- endpoint
+- status_code: 503
+- flag_state: false
+- error_type: `feature_disabled`
+
+### Auth error path
+Should emit:
+- event: `rds_auth_error`
+- status_code: 401 or 403
+- error_type: `auth_error`
+- fallback_triggered: false
+
+### Wrong database path
+Should emit:
+- event: `wrong_database_guard_triggered`
+- status_code: 503
+- db_guard_result: `fail` or `env_not_set`
+- error_type: `wrong_database`
+
+Do not log the actual database names.
+
+### RDS error path
+Should emit:
+- event: `rds_request_error`
+- status_code
+- error_type
+- sanitized exception class only
+- duration_ms
+
+Do not log raw exception text unless sanitized.
+
+---
+
+## 5. Frontend fallback instrumentation plan
+
+Document how `portal-api.js` should propagate fallback reason.
+
+For `getPackagesRDS`, `getBillsRDS`, and `getProfileRDS`:
+
+- classify non-auth failures into an error category
+- attach a safe `rdsErrorCategory` or `fallbackReason`
+- when caller falls back to legacy, emit a safe console/debug or analytics-safe event if appropriate
+
+Important:
+- do not send PII
+- do not send tracking numbers
+- do not send invoice numbers
+- do not expose token
+- auth errors should not fallback
+
+Document whether fallback logging should be:
+- browser console only
+- server-side only
+- GA4/GTM event
+- not analytics, logs only
+
+Recommend the safest option.
+
+---
+
+## 6. Exception sanitization plan
+
+Define a safe sanitizer strategy:
+
+Allowed:
+- exception class name
+- generic category
+- short safe message from allowlist
+
+Forbidden:
+- DB connection string
+- hostname with credentials
+- SQL statement with parameters
+- email
+- ID number
+- phone
+- token
+- full stack trace in production logs
+
+Document how to replace current patterns like:
+
+`print(f"... {exc}")`
+
+with safer alternatives.
+
+---
+
+## 7. Before/after log examples
+
+Provide examples for:
+
+1. Successful packages RDS request.
+2. Successful invoices RDS request.
+3. Successful profile RDS request.
+4. Feature disabled fallback.
+5. Wrong database guard.
+6. RDS connection error.
+7. Schema mapping error.
+8. Legacy fallback success.
+
+All examples must contain fake/safe values only.
+
+---
+
+## 8. QA checklist for implementation
+
+Create a QA checklist to run after a future implementation task.
+
+Include:
+
+Backend:
+- success logs emitted for each module
+- duration_ms present
+- no raw exception text
+- no raw email/phone/token/password
+- wrong database log does not include database name
+- count is present
+- error_type is present on failures
+
+Frontend:
+- fallback reason captured
+- auth errors still redirect and do not fallback
+- non-auth failures still fallback to legacy
+- user experience unchanged
+- no PII in console
+- no PII in analytics
+
+Regression:
+- packages still load
+- invoices still load
+- profile still loads
+- feature flags off still fallback cleanly
+- no code path exposes sensitive data
+
+---
+
+## 9. Rollback plan for instrumentation
+
+Document how to roll back if logging instrumentation causes issues:
+
+- revert instrumentation commit
+- leave RDS flags off
+- confirm legacy paths still work
+- confirm no sensitive logs were emitted
+- if PII was emitted, mark as incident and purge/rotate where applicable
+
+---
+
+## 10. Monitoring coverage plan
+
+Define the required human monitoring for the first two hours after any future RDS frontend flag enablement:
+
+- who watches logs
+- what log patterns to watch
+- what thresholds trigger rollback
+- how often to check
+- what screenshots/evidence to capture
+- what must be documented after the two-hour window
+
+Include:
+- packages first
+- invoices second
+- profile third
+- never enable all three at once
+
+---
+
+## 11. Final recommendation
+
+Return one of:
+
+A — Existing logging is enough to enable frontend RDS flags.  
+B — Implement the listed small logging changes before enabling frontend RDS flags.  
+C — Observability is insufficient and needs broader redesign.
+
+Expected recommendation:
+B — Implement small logging changes before enabling frontend RDS flags.
+
+Final report should include:
+- document created
+- files/functions planned for future changes
+- exact logging gaps
+- safe log schema
+- QA checklist
+- final recommendation
