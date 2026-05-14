@@ -53,6 +53,8 @@ MYSQL_DATABASE = "crbox_dev1"
 MYSQL_USER = "CrBoxUser"
 USE_RDS_PORTAL_API = "true"
 
+[userenv.development]
+
 [[ports]]
 localPort = 3000
 externalPort = 80
