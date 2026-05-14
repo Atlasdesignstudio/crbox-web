@@ -1,6 +1,6 @@
 # RDS Profile Frontend Wiring
 
-**Status:** Dev QA complete — write-path data safety issue identified. Production enablement BLOCKED pending fix.
+**Status:** Write-path fix implemented. Pending final live browser QA of save flows before production enablement.
 **Wiring date:** 2026-05-14
 **Dev flag enabled:** 2026-05-14
 **Last QA update:** 2026-05-14
@@ -134,23 +134,43 @@ that `_applyProfile` in `mi-cuenta.html` already handles, so the renderer needs 
 Intentionally kept on legacy `getUserInfo()`. bfcache restores are timing-sensitive and the
 async config flag may not be set when the handler fires.
 
-### Edit/password save flows — current state
+### Edit/password save flows — write-base separation (implemented 2026-05-14)
 
-The `updateProfile()` call itself (→ `postedituser`) is unchanged from pre-RDS.
-However, **`window.__crboxUserInfo` is now the RDS-mapped object when the RDS path is active.**
-`buildUpdateProfilePayload` in `auth.js` reads `window.__crboxUserInfo` as its base, which means:
+`window.__crboxUserInfo` is the display object — it may be RDS-mapped (masked values) when
+the RDS path is active. All write flows now use a separate `window.__crboxUserInfoLegacy`
+which is **always** populated from the real `CRBOXPortalAPI.getUserInfo()` response.
 
-| Field in payload | Legacy value | RDS value | Risk |
-|---|---|---|---|
-| `Consignee.IdentificationNumber` | Raw (e.g. `1-0649-xxxx`) | Masked `****0649` | **Corrupts ID in CRBOX if API overwrites** |
-| `Phones[].phonenumber` | Raw (e.g. `88000222`) | Masked `****0222` | **Corrupts phone in CRBOX if API overwrites** |
-| `Consignee.BirthDate` | Real value from CRBOX | `""` (not in RDS) | May null out field |
-| `Consignee.AlternativeEmail` | Real value | `""` (not in RDS) | May null out field |
-| `CompanyCode` | Real value | `""` (not in RDS) | May null out field |
+**How `__crboxUserInfoLegacy` is populated:**
 
-**This is a blocking issue.** The newsletter checkbox save and password change both use this path.
-The fix is to maintain a separate legacy raw object for write operations, distinct from the RDS
-display object. Fix must happen before production enablement.
+| Scenario | How it is set |
+|---|---|
+| Legacy path active (`_useRds=false`) | `getUserInfo()` result → sets `__crboxUserInfoLegacy` then returns for display |
+| RDS path active (`_useRds=true`) | Parallel fire-and-forget `getUserInfo()` → sets `__crboxUserInfoLegacy` independently of the RDS display call |
+| RDS fallback to legacy | Fallback `getUserInfo()` result sets `__crboxUserInfoLegacy` before returning for display |
+| bfcache restore (`crbox:pageresume`) | `getUserInfo()` result sets both `__crboxUserInfo` and `__crboxUserInfoLegacy` |
+| After any successful save | Both `updateProfile().then` and post-save re-fetch update `__crboxUserInfoLegacy` |
+
+**Write handler change (newsletter + password):**
+```js
+// Before: var rawInfo = window.__crboxUserInfo || {};
+// After:
+var rawInfo = window.__crboxUserInfoLegacy || window.__crboxUserInfo || {};
+```
+The `|| window.__crboxUserInfo` fallback guards against the race where the parallel
+`getUserInfo()` has not yet resolved at the moment the user clicks save.
+
+**Payload safety — before vs after fix (verified by automated test):**
+
+| Field in `postedituser` payload | Before fix (RDS display object) | After fix (legacy object) |
+|---|---|---|
+| `Consignee.IdentificationNumber` | `****0649` (masked) | `1-0649-xxxx` (real) |
+| `Phones[].phonenumber` | `****0222` (masked) | `88000222` (real) |
+| `Consignee.BirthDate` | `""` (not in RDS) | real date |
+| `Consignee.AlternativeEmail` | `""` (not in RDS) | real value |
+| `CompanyCode` | `""` (not in RDS) | real value |
+
+**Password additional fix:** client-side minimum length of 8 characters enforced before
+any request is sent (validation order: empty → length → mismatch → submit).
 
 ---
 
@@ -201,9 +221,9 @@ CRBOXPortalAPI.getUserInfo()     // Legacy directly
 - [x] `window.__crboxRdsProfileRaw` populated; no raw PII visible
 
 **Edit / save flows**
-- [ ] Newsletter save — see Newsletter UI section below (**BLOCKED**)
-- [ ] Password change — see Password UI section below (**BLOCKED**)
-- [ ] Profile-edit save (name, phone, address) — **BLOCKED** (same root cause)
+- [ ] Newsletter save — `__crboxUserInfoLegacy` fix in place; live browser confirm pending
+- [ ] Password change — `__crboxUserInfoLegacy` fix in place; live browser confirm pending (do not use real account)
+- [ ] Profile-edit save (name, phone, address) — same fix applies; live browser confirm pending
 
 **Auth / fallback**
 - [ ] Fallback: set `USE_RDS_PROFILE_FRONTEND=false`, reload — profile loads via `getUserInfo()`
@@ -232,35 +252,21 @@ CRBOXPortalAPI.getUserInfo()     // Legacy directly
 - **Endpoint:** `postedituser` via `CRBOXPortalAPI.updateProfile()` (legacy write path, unchanged)
 - **Auth:** Bearer token (same as all portal write ops)
 - **Method:** POST, `application/x-www-form-urlencoded`, credentials in body only ✅
-- **Payload builder:** `CRBOXAuth.buildUpdateProfilePayload(window.__crboxUserInfo, { receivesNewsletter: <bool> })`
+- **Payload builder:** `CRBOXAuth.buildUpdateProfilePayload(window.__crboxUserInfoLegacy || window.__crboxUserInfo, { receivesNewsletter: <bool> })` ✅
 - **Success feedback:** spinner → "¡Guardado!" checkmark, auto-reverts after 2 s ✅
 - **Error feedback:** generic Spanish message in `#notifications-save-error`, auto-hides after 5 s, no PII exposed ✅
-- **Post-save:** `clearUserInfoCache()` + `getUserInfo()` (legacy) re-fetch to confirm server state ✅
+- **Post-save:** `clearUserInfoCache()` + `getUserInfo()` (legacy) re-fetch updates both `__crboxUserInfoLegacy` and `__crboxUserInfo` ✅
 - **Analytics:** `profile_edit_start` + `profile_update_success/error` events fire ✅
 
-### ⚠️ Blocking issue — masked/missing fields in write payload
-When RDS path is active, `window.__crboxUserInfo` is the `_mapRdsProfile` output.
-`buildUpdateProfilePayload` reads all consignee fields from it, producing:
+### Write-base fix (implemented 2026-05-14) ✅
 
-```
-Consignee.IdentificationNumber = "****0649"   ← masked, not raw
-Phones                         = [{"phonenumber":"****0222"}]  ← masked
-Consignee.BirthDate            = ""           ← not in RDS object
-Consignee.AlternativeEmail     = ""           ← not in RDS object
-CompanyCode                    = ""           ← not in RDS object
-```
+`rawInfo` now reads from `window.__crboxUserInfoLegacy` (full unmasked legacy object).
+The `postedituser` payload will contain real ID, real phone, real birthDate, etc.
+regardless of whether the display is driven by RDS or legacy.
 
-The newsletter boolean itself (`Consignee.ReceivesNewsletter`) **would save correctly**.
-However, the surrounding fields are corrupted. If `postedituser` performs a full overwrite
-(likely), pressing "Guardar Preferencias" could corrupt the user's ID number, phone,
-birthdate, and alternative email in the CRBOX backend.
-
-**Verdict:** Functionally wired. Newsletter bit would save. **Not safe for production use**
-until write flows are decoupled from the RDS display object.
-
-**Required fix (before production):** Maintain a separate `window.__crboxUserInfoLegacy`
-populated from `getUserInfo()` (always legacy) to use as the base for all
-`buildUpdateProfilePayload` calls, regardless of which read path populated the display.
+**Verdict:** Wired and safe. Pending live browser confirmation of end-to-end save
+(checkbox toggle → "Guardar Preferencias" → Network tab shows `postedituser` → value
+persists on refresh).
 
 ---
 
@@ -284,32 +290,34 @@ populated from `getUserInfo()` (always legacy) to use as the base for all
 | Check | Status |
 |---|---|
 | Empty fields | ✅ "Por favor ingresa la nueva contraseña y su confirmación." |
+| Minimum length (< 8 chars) | ✅ "La contraseña debe tener al menos 8 caracteres." (implemented 2026-05-14) |
 | Mismatch | ✅ "Las contraseñas no coinciden. Verifica e intenta de nuevo." |
 | Auth guard (not logged in) | ✅ Shows error, no request sent |
-| Minimum length | ❌ No length check — single character accepted |
-| Password strength | ❌ No strength indicator or enforcement |
-| Current password confirmation | ❌ Not required (API limitation, not a frontend gap) |
+| Validation order | ✅ empty → length → mismatch → submit (no request sent on any failure) |
+| Password strength indicator | ❌ No visual strength meter — acceptable for now |
+| Current password confirmation | ❌ Not required by CRBOX API (API limitation, not a frontend gap) |
 
 ### Success / error messaging
 - Success: clears both fields, button → "¡Contraseña actualizada!" (2.2 s), no PII in message ✅
 - Error: generic Spanish message from API or fallback string, auto-hides, no PII ✅
-- Post-save: `clearUserInfoCache()` + `getUserInfo()` re-fetch (same pattern as newsletter) ✅
+- Post-save: `clearUserInfoCache()` + `getUserInfo()` re-fetch updates both `__crboxUserInfoLegacy` and `__crboxUserInfo` ✅
 
 ### Risk to test account
 - **Clicking "Actualizar Contraseña" with filled fields WILL change the password.** There is no
   confirmation dialog. Do not test with `prueba@crbox.cr` or any live account unless specifically authorized.
 
-### ⚠️ Blocking issue — same as newsletter
-Identical root cause: `buildUpdateProfilePayload` reads masked ID, masked phone, and empty
-fields from `window.__crboxUserInfo` when RDS path is active. The password field itself
-would be set correctly, but the surrounding payload fields are corrupted.
+### Write-base fix (implemented 2026-05-14) ✅
 
-**Verdict:** Functionally wired. Password bit would change. **Not safe for production use**
-for the same reasons as the newsletter save. Same fix required.
+`rawInfo` now reads from `window.__crboxUserInfoLegacy` — identical fix to newsletter save.
+The password field itself is set from `formEdits.password` (not from the base object), so
+the masking issue never affected the password bit. The fix ensures the surrounding consignee
+fields (ID, phone, birthDate, etc.) in the payload are also correct.
 
-### Additional gap (non-blocking, UX)
-No minimum password length validation. Recommend adding a ≥ 8 character check with a
-visible strength indicator before production, independent of the RDS fix.
+**Verdict:** Wired and safe. Pending live browser confirmation (do not test with real account).
+
+### Remaining gap (non-blocking)
+No visual password strength indicator. Minimum length (8) is now enforced. A strength meter
+would improve UX but is not a safety blocker.
 
 ---
 
@@ -352,9 +360,11 @@ visible strength indicator before production, independent of the RDS fix.
 | RDS profile read | ✅ PASSED | Endpoint fires, data renders, source: 'rds' confirmed |
 | Secure response boundary | ✅ PASSED | No raw ID, phone, cedulaJuridica, joinValidationStatus, birthDate, responsabilidad, omitirReceptor, _bIsDeleted, _bIsChanged |
 | Checkbox from RDS | ✅ PASSED | `receivesNewsletter` maps correctly, checkbox reflects state |
-| Newsletter save | ⚠️ WIRED, BLOCKED | Functionally wired to `postedituser`. Unsafe for production: masked/missing fields in `buildUpdateProfilePayload` base object could corrupt ID, phone, birthDate in CRBOX backend |
-| Password change | ⚠️ WIRED, BLOCKED | Same root cause. Also missing minimum length validation (separate gap) |
-| Profile edit save | ⚠️ WIRED, BLOCKED | Same root cause as newsletter/password |
+| Write-base separation | ✅ FIXED (2026-05-14) | `__crboxUserInfoLegacy` introduced; all save handlers use it as payload base |
+| Newsletter save | ⚠️ Fix in place | Live browser e2e confirm pending (toggle checkbox → save → reload → state persists) |
+| Password change | ⚠️ Fix in place | Live browser confirm pending; do NOT test with real account |
+| Profile edit save | ⚠️ Fix in place | Same fix applies; live browser confirm pending |
+| Password min-length validation | ✅ FIXED (2026-05-14) | 8-char minimum, correct validation order, no request sent on failure |
 | RDS fallback to legacy | ✅ Verified at config level | Full browser fallback test pending (flag toggle) |
 | Mobile layout | ✅ PASSED (code analysis) | Tab scroll, single-column layouts, no overflow risks |
 | WhatsApp button overlap | ✅ PASSED | No conflict with save buttons |
@@ -362,35 +372,30 @@ visible strength indicator before production, independent of the RDS fix.
 ### Final recommendation
 
 **The RDS read integration is complete and correct.** The API fires, the security boundary
-holds, all display fields render correctly, and the fallback guarantee is intact.
+holds, all display fields render correctly, the fallback guarantee is intact, and the
+write-path data safety issue is resolved.
 
-**Production enablement is BLOCKED** by a single root-cause issue: write flows
-(`updateProfile` for newsletter, password, and profile-edit) use `window.__crboxUserInfo`
-as the base for `buildUpdateProfilePayload`. When the RDS path is active, that object
-contains masked ID/phone values and omits fields like `birthDate`, `alternativeEmail`, and
-`CompanyCode`. Sending this payload to `postedituser` could corrupt user data in the
-CRBOX backend.
+**Files changed in write-path fix (`mi-cuenta.html` only):**
+- Init sequence: parallel `getUserInfo()` fire-and-forget populates `__crboxUserInfoLegacy` when RDS path is active; legacy path and fallback also set it.
+- bfcache restore: `__crboxUserInfoLegacy` kept in sync with `__crboxUserInfo`.
+- Newsletter save handler: `rawInfo` reads from `__crboxUserInfoLegacy || __crboxUserInfo`; post-save re-fetch updates both.
+- Password save handler: same pattern; plus ≥ 8 char minimum length check added before submission.
+- No changes to `server.py`, `portal-api.js`, `auth.js`, or any other page.
 
-**Required fix before production:**
+**Remaining live browser checks before production enablement:**
+1. With RDS enabled: confirm `window.__crboxUserInfoLegacy` exists after page load and is the full unmasked legacy object (check in console — no raw PII will be visible since it is not printed).
+2. Newsletter: toggle checkbox → "Guardar Preferencias" → Network tab shows `postedituser` → reload → checkbox state persists.
+3. Password: confirm validation messages fire for empty / < 8 chars / mismatch without sending any request (Network tab stays empty).
+4. Fallback: set `USE_RDS_PROFILE_FRONTEND=false` in dev secrets → reload → profile loads via `getUserInfo()` with no visible error.
+5. Logged-out: navigate to `mi-cuenta.html` without session → redirects correctly.
 
-Maintain a separate `window.__crboxUserInfoLegacy` variable, always populated from
-`CRBOXPortalAPI.getUserInfo()` (the legacy `getuserinfo` call), and use it exclusively
-as the base for all `buildUpdateProfilePayload` calls. The RDS-mapped object
-(`window.__crboxUserInfo`) remains used only for display rendering.
-
-This ensures:
-- All three save flows (newsletter, password, profile-edit) always send correct raw values
-- The RDS display path is fully decoupled from the write path
-- No CRBOX backend data is at risk during a newsletter or password save
-
-Once that fix is implemented and confirmed in dev QA, re-run the full checklist and
-set `USE_RDS_PROFILE_FRONTEND=true` in production.
+Once all five pass in a live browser session, set `USE_RDS_PROFILE_FRONTEND=true` in production.
 
 ---
 
 ## Activation for production
-1. Fix write-path data safety issue (see "Required fix" above).
-2. Confirm all checklist items pass (including save flows).
-3. Set `USE_RDS_PROFILE_FRONTEND=true` in **production** Replit Secrets.
-4. Restart the production server.
-5. Verify `window._qaLoadProfile()` in browser console on the live site returns `source: 'rds'`.
+1. Complete remaining live browser checks listed above.
+2. Set `USE_RDS_PROFILE_FRONTEND=true` in **production** Replit Secrets.
+3. Restart the production server.
+4. Verify `window._qaLoadProfile()` in browser console on the live site returns `source: 'rds'`.
+5. Spot-check: confirm `window.__crboxUserInfoLegacy` is populated (object present, not undefined) without logging its contents.

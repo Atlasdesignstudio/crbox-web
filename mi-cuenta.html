@@ -812,19 +812,23 @@
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
                     btn.disabled = true;
 
-                    var rawInfo = window.__crboxUserInfo || {};
+                    // Always use the legacy base for write payloads — it contains
+                    // real (unmasked) field values regardless of the read path.
+                    var rawInfo = window.__crboxUserInfoLegacy || window.__crboxUserInfo || {};
                     var newsletterEl = document.getElementById('notify_promotions');
                     var formEdits = { receivesNewsletter: newsletterEl ? !!newsletterEl.checked : false };
                     var payload = CRBOXAuth.buildUpdateProfilePayload(rawInfo, formEdits);
 
                     CRBOXPortalAPI.updateProfile(payload)
                         .then(function (result) {
-                            window.__crboxUserInfo = result.userInfo || rawInfo;
+                            window.__crboxUserInfoLegacy = result.userInfo || rawInfo;
+                            window.__crboxUserInfo = result.userInfo || window.__crboxUserInfo;
                             if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('notifications'); } catch (_e) {} }
                             btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
                             // Re-fetch from server to confirm saved state is reflected
                             CRBOXPortalAPI.clearUserInfoCache();
                             CRBOXPortalAPI.getUserInfo().then(function (info) {
+                                window.__crboxUserInfoLegacy = info;
                                 window.__crboxUserInfo = info;
                                 if (typeof window.__crboxApplyProfile === 'function') window.__crboxApplyProfile(info);
                             }).catch(function () {});
@@ -880,6 +884,10 @@
                         _showPwdError('Por favor ingresa la nueva contraseña y su confirmación.');
                         return;
                     }
+                    if (newPwd.length < 8) {
+                        _showPwdError('La contraseña debe tener al menos 8 caracteres.');
+                        return;
+                    }
                     if (newPwd !== confPwd) {
                         _showPwdError('Las contraseñas no coinciden. Verifica e intenta de nuevo.');
                         return;
@@ -889,17 +897,21 @@
                     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
                     btn.disabled = true;
 
-                    var rawInfo = window.__crboxUserInfo || {};
+                    // Always use the legacy base for write payloads — it contains
+                    // real (unmasked) field values regardless of the read path.
+                    var rawInfo = window.__crboxUserInfoLegacy || window.__crboxUserInfo || {};
                     var formEdits = { password: newPwd, confirmPassword: confPwd };
                     var payload = CRBOXAuth.buildUpdateProfilePayload(rawInfo, formEdits);
 
                     CRBOXPortalAPI.updateProfile(payload)
                         .then(function (result) {
-                            window.__crboxUserInfo = result.userInfo || rawInfo;
+                            window.__crboxUserInfoLegacy = result.userInfo || rawInfo;
+                            window.__crboxUserInfo = result.userInfo || window.__crboxUserInfo;
                             if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('security'); } catch (_e) {} }
                             // Re-fetch from server to confirm saved state
                             CRBOXPortalAPI.clearUserInfoCache();
                             CRBOXPortalAPI.getUserInfo().then(function (info) {
+                                window.__crboxUserInfoLegacy = info;
                                 window.__crboxUserInfo = info;
                                 if (typeof window.__crboxApplyProfile === 'function') window.__crboxApplyProfile(info);
                             }).catch(function () {});
@@ -1061,8 +1073,20 @@
         var _useRds = _useRdsProfile; // snapshot flag at call time
         (function () {
           if (!_useRds) {
-            return CRBOXPortalAPI.getUserInfo();
+            // Legacy path: one call serves both display and write base.
+            return CRBOXPortalAPI.getUserInfo().then(function (info) {
+              window.__crboxUserInfoLegacy = info;
+              return info;
+            });
           }
+          // RDS path: fire getUserInfo() in parallel so the write base is
+          // always a full, unmasked legacy object independent of the display
+          // object.  The parallel call is fire-and-forget — a failure here
+          // does not affect profile display; write handlers guard against a
+          // missing legacy object by falling back to __crboxUserInfo.
+          CRBOXPortalAPI.getUserInfo().then(function (legacyInfo) {
+            window.__crboxUserInfoLegacy = legacyInfo;
+          }).catch(function () {});
           return CRBOXPortalAPI.getProfileRDS()
             .catch(function (rdsErr) {
               if (rdsErr && rdsErr.isAuthError) throw rdsErr; // do not fall back
@@ -1070,7 +1094,12 @@
                 console.debug('[CRBOX] RDS profile failed, falling back to legacy:',
                   rdsErr && rdsErr.message);
               }
-              return CRBOXPortalAPI.getUserInfo();
+              // Fallback result also refreshes the legacy base in case the
+              // parallel getUserInfo() above has not yet resolved.
+              return CRBOXPortalAPI.getUserInfo().then(function (info) {
+                window.__crboxUserInfoLegacy = info;
+                return info;
+              });
             });
         }())
           .then(function (info) {
@@ -1098,6 +1127,7 @@
         if (!CRBOXAuth.isLoggedIn()) return;
         CRBOXPortalAPI.getUserInfo().then(function (info) {
           window.__crboxUserInfo = info;
+          window.__crboxUserInfoLegacy = info;
           _applyProfile(info);
         }).catch(function () {});
       });

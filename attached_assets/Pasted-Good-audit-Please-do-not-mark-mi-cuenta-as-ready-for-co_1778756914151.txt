@@ -1,0 +1,77 @@
+Good audit. Please do not mark `mi-cuenta` as ready for controlled enablement yet.
+
+The RDS read path passed, but the write-base issue is a blocker.
+
+Please implement the root-cause fix only:
+
+Goal:
+When `USE_RDS_PROFILE_FRONTEND=true`, `mi-cuenta` may use the RDS object for display, but all legacy write actions must continue using a full legacy `getuserinfo` object as their payload base.
+
+Problem:
+With RDS active, `window.__crboxUserInfo` is now the RDS-mapped display object. It contains masked values such as:
+- identificationNumberMasked / ****0649
+- phoneMasked / ****0222
+- empty birthDate
+- empty alternativeEmail
+- empty CompanyCode
+
+The current payload builder for `postedituser` reads from `window.__crboxUserInfo`. If a user clicks “Guardar Preferencias” or changes password, the legacy API may receive masked/empty fields and overwrite real profile data.
+
+Required fix:
+1. Introduce a separate legacy base object:
+   `window.__crboxUserInfoLegacy`
+
+2. Ensure it is always populated from the real legacy `getUserInfo()` response, not from the RDS profile response.
+
+3. When RDS is enabled:
+   - Use RDS profile response only for display/rendering.
+   - Keep or fetch the legacy getuserinfo object separately for write payload construction.
+   - Do not expose the legacy raw object in UI.
+   - Do not log raw PII.
+
+4. Update all write payload builders to use:
+   `window.__crboxUserInfoLegacy`
+   not:
+   `window.__crboxUserInfo`
+
+This applies to:
+- profile edit/save
+- newsletter/promotions save
+- password update if it uses the same postedituser payload base
+- any other `postedituser` call in `mi-cuenta`
+
+5. Keep read fallback behavior unchanged:
+   - RDS read failure → fallback to legacy read
+   - auth failure → session-expired behavior
+
+6. Do not implement new write endpoints.
+7. Do not change `postedituser`.
+8. Do not change backend RDS query logic.
+9. Do not change login, registration, packages, invoices, dashboard, AWS, DB schema, or production.
+
+Additional small password fix:
+Before production readiness, add client-side validation so password cannot be submitted if:
+- new password is empty
+- confirm password is empty
+- values do not match
+- password is below a reasonable minimum length
+
+Do not submit or test a real password change during this task.
+
+Validation required:
+- With RDS enabled, confirm `/api/portal/profile-rds` still powers the display.
+- Confirm `window.__crboxUserInfoLegacy` exists after page load and comes from legacy `getuserinfo`.
+- Confirm `buildUpdateProfilePayload` or equivalent uses `__crboxUserInfoLegacy`.
+- Confirm newsletter save payload would contain real legacy ID/phone values, not masked RDS values.
+- Confirm no raw PII is printed in console or docs.
+- Confirm password form validation blocks weak/empty/mismatched values before any request.
+- Confirm no write request is actually sent during automated validation unless explicitly safe/mocked.
+
+Update `docs/rds-profile-frontend-wiring.md` with:
+- the write-base separation fix
+- files changed
+- validation results
+- remaining live browser checks
+- final recommendation
+
+Only after this fix passes should `mi-cuenta` be considered ready for controlled enablement.
