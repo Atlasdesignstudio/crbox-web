@@ -52,12 +52,12 @@ MYSQL_PORT = "3306"
 MYSQL_DATABASE = "crbox_dev1"
 MYSQL_USER = "CrBoxUser"
 USE_RDS_PORTAL_API = "true"
-USE_RDS_PACKAGES_FRONTEND = "true"
 
 [userenv.development]
 USE_RDS_INVOICES_FRONTEND = "true"
 USE_RDS_PROFILE_FRONTEND = "true"
 EXPECTED_RDS_DATABASE = "crbox_dev1"
+USE_RDS_PACKAGES_FRONTEND = "true"
 
 [userenv.production]
 RDS_PORTAL_HOST = "crboxdbserver.cvfe6dzk8nhz.us-east-1.rds.amazonaws.com"

@@ -1,9 +1,9 @@
 # DNS Cutover — Operational Status
 
 **Document date:** 2026-05-14  
-**Last updated:** 2026-05-14 (Route 53 records confirmed directly; TTL resolved)  
+**Last updated:** 2026-05-14 (Route 53 confirmed; TTL resolved; RDS flag scope corrected)  
 **Purpose:** Tracks the resolution status of the operational blockers identified in `docs/final-domain-cutover-go-live-checklist.md` Section 4 before Stage 3 (DNS change) can proceed.  
-**Mode:** Operational planning document. No DNS, hosting, code, or secret changes were made in producing this document.  
+**Mode:** Operational planning document. No DNS, hosting, code, or secret changes were made in producing this document, with the exception of RDS flag scope correction on 2026-05-14 (see Section 11).  
 **Output discipline:** No raw credentials, passwords, or personally identifying information.
 
 ---
@@ -258,4 +258,65 @@ The following actions must be completed before DNS can be changed. Steps 1 and 8
 
 ---
 
-*Produced: 2026-05-14. No DNS records were changed. No hosting was changed. No code was modified. No secrets were accessed.*
+---
+
+## 11. RDS Flag Scope — Production Safety Correction
+
+**Date:** 2026-05-14  
+**Change:** Environment variable scope correction only. No code, DNS, Route 53, AWS/RDS, or DB schema changes.
+
+### Pre-correction state (was a blocker)
+
+| Flag | Was set in | Leaked into production? |
+|---|---|---|
+| `USE_RDS_PACKAGES_FRONTEND` | shared | **Yes** — user-facing packages RDS path was active in production |
+| `USE_RDS_INVOICES_FRONTEND` | development only | No |
+| `USE_RDS_PROFILE_FRONTEND` | development only | No |
+| `USE_RDS_PORTAL_API` | shared | Technically yes, but admin-session-gated (see below) |
+
+### Correction applied 2026-05-14
+
+| Action | Flag | From | To |
+|---|---|---|---|
+| Deleted | `USE_RDS_PACKAGES_FRONTEND` | shared | — |
+| Added | `USE_RDS_PACKAGES_FRONTEND` | — | development only |
+
+### Post-correction state (production-safe)
+
+| Flag | Scope | Active in production? | Path used in production |
+|---|---|---|---|
+| `USE_RDS_PACKAGES_FRONTEND` | development only | **No** | Legacy fallback (`clients.crbox.cr`) |
+| `USE_RDS_INVOICES_FRONTEND` | development only | No | Legacy fallback |
+| `USE_RDS_PROFILE_FRONTEND` | development only | No | Legacy (`postedituser`) |
+| `USE_RDS_PORTAL_API` | shared | Yes — admin only | Admin diagnostic + shadow compare endpoints only |
+
+### `USE_RDS_PORTAL_API` ruling — admin-only, no user-facing impact
+
+Every code path gated by `USE_RDS_PORTAL_API` first checks for a valid **admin session cookie** (`_rds_admin_gate`). No unauthenticated or user-level request can reach any RDS path through this flag. It enables four admin diagnostic endpoints (`/api/admin/rds-health`, `/api/admin/rds-tables`, `/api/admin/rds-columns`, `/api/admin/rds-count`) and the admin shadow compare tools. These are internal tools with zero user-facing impact. Keeping it in shared is intentional — it allows shadow compare monitoring during the cutover window.
+
+### `MYSQL_DATABASE=crbox_dev1` in shared
+
+The `MYSQL_*` variables (shared) feed into `rds_client.py`, which is used exclusively by the admin diagnostic endpoints gated by `USE_RDS_PORTAL_API` + admin session. The `crbox_dev1` database is the dev/testing RDS database. In production, these admin endpoints would connect to `crbox_dev1` — this is the intended direct-access path for admin tooling. It does not serve user traffic.
+
+The production portal data (packages, invoices, profile) when RDS-enabled would use `RDS_PORTAL_*` variables (production scope, `CrBox` database, read-only user). Those user-facing paths are gated off in production (all three frontend flags are now development-only).
+
+### `/api/config` expected output after republish
+
+```json
+{
+  "featureFlags": {
+    "useRdsPackages": false,
+    "useRdsInvoices": false,
+    "useRdsProfile": false
+  }
+}
+```
+
+### What must happen before user-facing RDS flags are ever enabled in production
+
+Per `docs/rds-observability-fallback-plan.md` (Level 2 verdict B) and `docs/rds-frontend-logging-instrumentation-plan.md` (Task #554):
+1. All 5 blocking logging gaps must be resolved (duration_ms, structured JSON, success lines, fallback_reason, exception sanitization).
+2. Each flag must be enabled one at a time with a 2-hour human watch window.
+3. DNS cutover must complete and production traffic must be stable before RDS flags are considered.
+
+*Updated: 2026-05-14. Only env var scope was changed. No DNS, Route 53, AWS/RDS, DB schema, code, or legacy API changes were made.*

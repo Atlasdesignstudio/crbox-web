@@ -1,0 +1,141 @@
+# Task — Verify and Correct RDS Flag Scope Before Republish
+
+What & Why
+The pre-republish safety check found that two RDS-related flags are active in the shared environment:
+
+- USE_RDS_PORTAL_API=true
+- USE_RDS_PACKAGES_FRONTEND=true
+
+This may be related to the direct RDS/test database setup. If these flags are shared, the Replit production deployment may be using the RDS packages path instead of the safe legacy path. That conflicts with the domain cutover plan, which requires user-facing RDS frontend flags to remain off during the DNS cutover window.
+
+Goal
+Verify whether production Replit is currently using any RDS/dev database configuration, then correct the environment scope so production is safe for republish and domain cutover.
+
+Important
+Do not change code.
+Do not change DNS.
+Do not touch Route 53.
+Do not enable new flags.
+Do not query production customer data.
+Do not modify AWS/RDS.
+Do not modify DB schema.
+Do not change legacy APIs.
+Do not touch clients.crbox.cr or admin.crbox.cr.
+
+1. Verify current production/shared environment
+
+Check and report the current values/scopes for:
+
+- USE_RDS_PORTAL_API
+- USE_RDS_PACKAGES_FRONTEND
+- USE_RDS_INVOICES_FRONTEND
+- USE_RDS_PROFILE_FRONTEND
+- MYSQL_DATABASE
+- EXPECTED_RDS_DATABASE
+- RDS_PORTAL_HOST
+- RDS_PORTAL_DATABASE
+- RDS_PORTAL_USER
+- RDS_PORTAL_PASSWORD presence only, never value
+- MYSQL_HOST presence only, never value
+- MYSQL_USER presence only, never value
+- MYSQL_PASSWORD presence only, never value
+
+For secrets, report only:
+- present / missing
+- environment/scope if visible
+- never print secret values
+
+Specifically answer:
+- Is production currently using crbox_dev1?
+- Is production currently using CrBox?
+- Are any RDS_PORTAL_* production variables configured?
+- Are any user-facing RDS frontend flags active in production because they are set in shared?
+
+2. Verify current production flag output
+
+Check what production /api/config currently returns for:
+
+{
+  "featureFlags": {
+    "useRdsPackages": true/false,
+    "useRdsInvoices": true/false,
+    "useRdsProfile": true/false
+  }
+}
+
+Expected safe cutover state:
+
+{
+  "featureFlags": {
+    "useRdsPackages": false,
+    "useRdsInvoices": false,
+    "useRdsProfile": false
+  }
+}
+
+If useRdsPackages is currently true, treat that as a pre-existing mis-scope that must be corrected before republish/cutover.
+
+3. Correct RDS flag scope
+
+Required production-safe outcome:
+
+- USE_RDS_PACKAGES_FRONTEND must be false/unset in production.
+- USE_RDS_INVOICES_FRONTEND must be false/unset in production.
+- USE_RDS_PROFILE_FRONTEND must be false/unset in production.
+- Packages, invoices, and profile should use legacy/fallback paths in production during DNS cutover.
+
+If RDS testing is still needed:
+- keep RDS flags development-only
+- do not keep user-facing RDS flags in shared
+- do not keep user-facing RDS flags in production
+
+For USE_RDS_PORTAL_API:
+- If it only enables admin/shadow compare tooling and does not serve user-facing traffic, document that clearly.
+- If it is not needed before shadow compare, unset it from shared/production as well.
+- If kept enabled anywhere, justify why and confirm it does not activate user-facing RDS behavior.
+
+Do not enable invoices/profile flags.
+
+4. Verify legacy-backed production behavior after correction
+
+After correcting env scope, verify:
+
+- /api/config returns all frontend RDS flags false.
+- login remains legacy-backed through clients.crbox.cr/authtoken.
+- signup remains legacy-backed through postregisteruser.
+- password recovery remains legacy-backed through getuserpasswordrecovery.
+- packages use legacy/fallback path, not RDS.
+- invoices use legacy/fallback path.
+- profile writes remain legacy-backed through postedituser.
+
+No live registration test.
+No live password change test.
+No production customer data query.
+
+5. Update documentation
+
+Update:
+
+- docs/dns-cutover-operational-status.md
+- docs/final-domain-cutover-go-live-checklist.md
+
+Reflect that:
+- user-facing RDS frontend flags are now false/unset in production
+- production is back to the safe cutover model
+- RDS production activation remains a separate post-cutover gated step
+- RDS frontend logging instrumentation must be implemented before enabling user-facing RDS flags later
+
+If the flags cannot be corrected, mark this as an open blocker before Republish and DNS cutover.
+
+6. Final report
+
+Return:
+
+- Current env/flag findings.
+- Whether production was using shared crbox_dev1 / dev RDS config.
+- Whether any user-facing RDS flag was active in production before correction.
+- Exactly which env vars were changed and from which scope.
+- Final /api/config output.
+- Confirmation that production packages/invoices/profile now use legacy/fallback paths.
+- Confirmation that no DNS, Route 53, code, AWS/RDS, DB schema, or legacy API changes were made.
+- Final answer: Safe to republish now? Yes / No.

@@ -115,12 +115,15 @@ Failure to preserve `clients.crbox.cr` would break all logins, signups, password
 **Hard DNS cutover blockers (must all be resolved before Stage 3):** Items 1–9, 11–14  
 **Broad portal rollout blockers (may be accepted as limitations for initial DNS cutover):** Items 10, 15  
 
-**Status as of 2026-05-14 (latest update — full zone backup confirmed):**  
+**Status as of 2026-05-14 (latest update — RDS flag scope corrected):**  
 ✅ Confirmed resolved: items 1, 2, 3, 6, 8, 9, 16  
 ⚠️ Partially confirmed: items 13, 14  
 ❌ Open: items 4, 5, 7, 11, 12  
 **Overall rating: B — DNS cutover cannot be scheduled yet.**  
 **See `docs/dns-cutover-operational-status.md` for full detail and ordered action checklist.**
+
+**RDS production flag state (corrected 2026-05-14):**  
+`USE_RDS_PACKAGES_FRONTEND` moved from shared → development only. All three user-facing RDS frontend flags are now development-only. Production packages, invoices, and profile use legacy/fallback paths. `USE_RDS_PORTAL_API` remains in shared — admin-session-gated, no user-facing impact. See `docs/dns-cutover-operational-status.md` Section 11.
 
 ---
 
