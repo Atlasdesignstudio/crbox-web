@@ -12,3 +12,9 @@ id = "gvC0sKfhzgSA8Bh2FUd67"
 uri = "file://docs/cotizar-flow.md"
 type = "text"
 title = "Cotizar Flow — End-to-End Reference"
+
+[[outputs]]
+id = "y62F22ijs9ztSDcVyxXUp"
+uri = "file://docs/rds-profile-frontend-wiring.md"
+type = "text"
+title = "QA Report — Newsletter & RDS Profile"
