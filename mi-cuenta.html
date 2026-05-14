@@ -361,7 +361,7 @@
                             </button>
                         </div>
                         <p id="add-address-notice" class="hidden text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3"></p>
-                        
+                        <div id="delivery-context-block"></div>
                         <div id="cr-addresses-list">
                             <p class="text-gray-400 text-sm py-2">Cargando direcciones...</p>
                         </div>
@@ -566,8 +566,8 @@
                         emphasis: []
                     },
                     'address-info': {
-                        title:    'Confirma tu dirección de entrega',
-                        text:     'Define dónde recibirás tus paquetes en Costa Rica. La necesitamos para entrega a domicilio y para tu factura electrónica.',
+                        title:    'Revisa tus opciones de entrega',
+                        text:     'Aquí puedes ver tu dirección en Miami y agregar una dirección de entrega en Costa Rica si deseas recibir paquetes a domicilio.',
                         emphasis: []
                     },
                     'security': {
@@ -1147,6 +1147,105 @@
               '</div>';
           }).join('');
         }
+
+        // Delivery context block — shown above the CR addresses list.
+        // Pickup users: informational note + optional upgrade CTA (not an error).
+        // Home-delivery without address: required-address warning + CTA.
+        // Home-delivery with address: neutral confirmation.
+        // Unknown branch → conservative: treat as home-delivery.
+        var dcBlock = document.getElementById('delivery-context-block');
+        if (dcBlock) {
+          var sucRawId = suc._idsucursal !== undefined ? suc._idsucursal
+                       : (suc.idsucursal  !== undefined ? suc.idsucursal : null);
+          var sucId = (sucRawId !== null && sucRawId !== undefined && sucRawId !== '')
+                    ? Number(sucRawId) : null;
+          var branchUnknown = (sucId === null && !sucName);
+          var isPickupBranch = !branchUnknown && sucId !== 13 && !/domicilio/i.test(sucName);
+          function _esc(s) { var d = document.createElement('span'); d.textContent = String(s || ''); return d.innerHTML; }
+          var isHomeDelivery = !isPickupBranch;
+
+          if (isPickupBranch) {
+            dcBlock.innerHTML =
+              '<div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-sm">' +
+                '<div class="flex items-start gap-3">' +
+                  '<i class="fas fa-store text-blue-500 mt-0.5 flex-shrink-0"></i>' +
+                  '<div>' +
+                    '<p class="text-blue-800 font-medium mb-1">Actualmente recibes tus paquetes en: ' +
+                      _esc(sucName) + '</p>' +
+                    '<p class="text-blue-700 text-xs mb-2">Puedes agregar una direcci\u00f3n en Costa Rica ' +
+                      'si en el futuro deseas recibir paquetes a domicilio.</p>' +
+                    '<button type="button" id="delivery-context-add-addr-btn" ' +
+                      'class="text-xs text-orange-600 hover:text-orange-700 font-medium ' +
+                      'inline-flex items-center transition-colors">' +
+                      '<i class="fas fa-plus mr-1.5"></i>Agregar direcci\u00f3n de domicilio' +
+                    '</button>' +
+                  '</div>' +
+                '</div>' +
+              '</div>';
+            var dcCta = document.getElementById('delivery-context-add-addr-btn');
+            var addAddrBtn = document.getElementById('add-address-btn');
+            if (dcCta && addAddrBtn) {
+              dcCta.addEventListener('click', function () { addAddrBtn.click(); });
+            }
+          } else if (isHomeDelivery && addresses.length === 0) {
+            dcBlock.innerHTML =
+              '<div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-sm">' +
+                '<div class="flex items-start gap-3">' +
+                  '<i class="fas fa-exclamation-triangle text-amber-500 mt-0.5 flex-shrink-0"></i>' +
+                  '<div>' +
+                    '<p class="text-amber-800 font-medium mb-1">Necesitas agregar una direcci\u00f3n ' +
+                      'de entrega en Costa Rica</p>' +
+                    '<p class="text-amber-700 text-xs mb-2">Tu cuenta est\u00e1 configurada para entrega a ' +
+                      'domicilio. Agrega tu direcci\u00f3n para poder recibir paquetes.</p>' +
+                    '<button type="button" id="delivery-context-hd-addr-btn" ' +
+                      'class="text-xs text-orange-600 hover:text-orange-700 font-medium ' +
+                      'inline-flex items-center transition-colors">' +
+                      '<i class="fas fa-plus mr-1.5"></i>Agregar direcci\u00f3n de entrega' +
+                    '</button>' +
+                  '</div>' +
+                '</div>' +
+              '</div>';
+            var dcHdCta = document.getElementById('delivery-context-hd-addr-btn');
+            var addAddrBtnHd = document.getElementById('add-address-btn');
+            if (dcHdCta && addAddrBtnHd) {
+              dcHdCta.addEventListener('click', function () { addAddrBtnHd.click(); });
+            }
+          } else if (isHomeDelivery && addresses.length > 0) {
+            dcBlock.innerHTML =
+              '<div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 text-sm">' +
+                '<div class="flex items-start gap-3">' +
+                  '<i class="fas fa-check-circle text-green-500 mt-0.5 flex-shrink-0"></i>' +
+                  '<div>' +
+                    '<p class="text-green-800 font-medium">Tus paquetes est\u00e1n configurados ' +
+                      'para entrega a domicilio.</p>' +
+                  '</div>' +
+                '</div>' +
+              '</div>';
+          } else {
+            dcBlock.innerHTML = '';
+          }
+        }
+
+        // If the page is in setup mode on the address-info tab, update the
+        // setup banner text for home-delivery users to stricter copy.
+        (function () {
+          var params = new URLSearchParams(location.search);
+          if (params.get('setup') !== '1' || params.get('tab') !== 'address-info') return;
+          var sucRawId2 = suc._idsucursal !== undefined ? suc._idsucursal
+                        : (suc.idsucursal  !== undefined ? suc.idsucursal : null);
+          var sucId2 = (sucRawId2 !== null && sucRawId2 !== undefined && sucRawId2 !== '')
+                     ? Number(sucRawId2) : null;
+          var branchUnknown2 = (sucId2 === null && !sucName);
+          var isPickup2 = !branchUnknown2 && sucId2 !== 13 && !/domicilio/i.test(sucName);
+          if (!isPickup2) {
+            var titleEl2 = document.getElementById('setup-banner-title');
+            var textEl2  = document.getElementById('setup-banner-text');
+            if (titleEl2) titleEl2.textContent = 'Confirma tu direcci\u00f3n de entrega';
+            if (textEl2)  textEl2.textContent  =
+              'Define d\u00f3nde recibir\u00e1s tus paquetes en Costa Rica. ' +
+              'La necesitamos para entrega a domicilio y para tu factura electr\u00f3nica.';
+          }
+        })();
       }
 
       // ── _renderNewsletterState ────────────────────────────────────────────

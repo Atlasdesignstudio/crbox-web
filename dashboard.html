@@ -873,10 +873,39 @@
     var el = document.getElementById(id);
     if (el) el.textContent = text;
   }
+  // ── Branch-aware helpers ────────────────────────────────────────────────
+  // Branch 13 = "Entrega a domicilio" (home delivery) — requires CR address.
+  // Branches 1, 12, 14 (and any other non-13 branch) = pickup — address optional.
+  // Unknown/absent branch data → conservative fallback: treat as home-delivery.
+  function _getBranchInfo(info) {
+    if (!info) return { id: null, name: '' };
+    var c = info.Consignee || info;
+    var suc = c.sucursal || c.Sucursal || {};
+    var rawId = suc._idsucursal !== undefined ? suc._idsucursal
+              : (suc.idsucursal  !== undefined ? suc.idsucursal : null);
+    var id = (rawId !== null && rawId !== undefined && rawId !== '')
+           ? Number(rawId) : null;
+    var name = suc._name || suc.Name || suc.name || '';
+    return { id: id, name: name };
+  }
+  function _isHomeDelivery(info) {
+    var b = _getBranchInfo(info);
+    if (b.id === null && !b.name) return true;
+    if (b.id === 13) return true;
+    if (typeof b.name === 'string' && /domicilio/i.test(b.name)) return true;
+    return false;
+  }
+  function _isBranchPickup(info) {
+    var b = _getBranchInfo(info);
+    if (b.id === null && !b.name) return false;
+    return !_isHomeDelivery(info);
+  }
+
   // ── Activation card (shown for new / incomplete accounts) ──────────────
   function _accountStateFrom(info) {
     // Returns 'incomplete' | 'activated' based on whether profile has the
     // minimum data required to receive packages.
+    // Pickup-branch users (branch != 13) do not require a CR address.
     if (!info) return 'incomplete';
     var c = info.Consignee || info;
     var hasName = !!(c.consigneename || c.ConsigneeName);
@@ -890,15 +919,18 @@
       return a && (a.line1 || a.Line1 || a.direccion || a.Direccion ||
                    a.addressdetails || a.AddressDetails || a.address1 || a.Address1);
     });
-    var ready = hasName && hasIdNo && hasPhone && hasAddress;
+    var addressOk = _isBranchPickup(info) ? true : hasAddress;
+    var ready = hasName && hasIdNo && hasPhone && addressOk;
     return ready ? 'activated' : 'incomplete';
   }
   function _renderActivationProgress(stateMap) {
     var card = document.getElementById('activation-card');
     if (!card) return;
     var items = card.querySelectorAll('.activation-item');
-    var done = 0;
+    var done = 0, total = 0;
     items.forEach(function (li) {
+      if (li.classList.contains('hidden')) return;
+      total++;
       var step = li.getAttribute('data-step');
       var isDone = !!stateMap[step];
       li.classList.toggle('is-complete', isDone);
@@ -908,7 +940,6 @@
       }
       if (isDone) done++;
     });
-    var total = items.length;
     var pct = total ? Math.round((done / total) * 100) : 0;
     var bar = document.getElementById('activation-progress-bar');
     if (bar) bar.style.width = pct + '%';
@@ -939,9 +970,22 @@
       return a && (a.line1 || a.Line1 || a.direccion || a.Direccion ||
                    a.addressdetails || a.AddressDetails || a.address1 || a.Address1);
     });
+
+    // For pickup-branch users, hide the address checklist step entirely —
+    // it is not a required step and showing it as incomplete would be misleading.
+    var isPickup = _isBranchPickup(info);
+    var addressItem = card.querySelector('[data-step="address"]');
+    if (addressItem) {
+      if (isPickup) {
+        addressItem.classList.add('hidden');
+      } else {
+        addressItem.classList.remove('hidden');
+      }
+    }
+
     _renderActivationProgress({
       profile: hasName && hasIdNo && hasPhone,
-      address: hasAddress
+      address: isPickup ? true : hasAddress
     });
     card.classList.remove('hidden');
   }
