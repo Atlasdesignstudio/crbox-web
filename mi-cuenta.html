@@ -839,12 +839,14 @@
                             window.__crboxUserInfo = result.userInfo || window.__crboxUserInfo;
                             if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('notifications'); } catch (_e) {} }
                             btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
+                            // Record the saved intent so _patchNewsletterCheckbox and
+                            // _applyProfile (called from crbox:pageresume on tab re-focus,
+                            // or any other post-save refresh) cannot overwrite the checkbox
+                            // with a stale CRBOX API value.  The guard expires after 30 s
+                            // or when the API confirms the saved value, whichever comes first.
+                            window.__crboxNewsletterIntent = { value: savedNewsletter, ts: Date.now() };
+                            console.log('[CRBOX mi-cuenta] newsletter intent saved:', savedNewsletter);
                             // Immediately set the checkbox to the saved intent.
-                            // We do NOT rely on the post-save re-fetch for the checkbox
-                            // because updateProfile() internally calls getUserInfo() and
-                            // a second re-fetch fires right after — both may return a stale
-                            // value if the CRBOX API hasn't propagated the change yet,
-                            // which would overwrite the correct saved state.
                             if (typeof window.__crboxPatchNewsletter === 'function') {
                                 window.__crboxPatchNewsletter({ Consignee: { ReceivesNewsletter: savedNewsletter } });
                             }
@@ -1022,9 +1024,23 @@
         var addrCasEl = document.getElementById('miami-addr-casillero');
         if (addrCasEl) addrCasEl.textContent = casillero;
 
-        // Newsletter preference
+        // Newsletter preference — respect a recent saved intent so that
+        // _applyProfile calls triggered by crbox:pageresume (tab re-focus)
+        // or any other post-save refresh path cannot overwrite the user's
+        // confirmed saved choice with a stale CRBOX API value.
         var newsCheck = document.getElementById('notify_promotions');
-        if (newsCheck) newsCheck.checked = !!newsletter;
+        if (newsCheck) {
+          var _ni = window.__crboxNewsletterIntent;
+          var _niActive = _ni && (Date.now() - _ni.ts < 30000);
+          if (_niActive && !!newsletter !== _ni.value) {
+            console.log('[CRBOX mi-cuenta] newsletter _applyProfile skipped (intent active):', _ni.value, '| incoming:', !!newsletter);
+          } else {
+            newsCheck.checked = !!newsletter;
+            if (_niActive && !!newsletter === _ni.value) {
+              window.__crboxNewsletterIntent = null; // confirmed — release guard
+            }
+          }
+        }
 
         // Sucursal display in account settings
         var suc = c.sucursal || c.Sucursal || {};
@@ -1076,12 +1092,27 @@
       function _patchNewsletterCheckbox(info) {
         if (!info) return;
         var c = (info && info.Consignee) ? info.Consignee : info;
-        var val = c.receivesNewsletter || c.ReceivesNewsletter || false;
+        var val = !!(c.receivesNewsletter || c.ReceivesNewsletter);
+        // Guard: if a recent saved intent exists and the incoming value differs,
+        // skip the patch — the CRBOX API likely hasn't propagated the save yet.
+        // The guard expires after 30 s or clears automatically when the API
+        // confirms the saved value.
+        var intent = window.__crboxNewsletterIntent;
+        var intentActive = intent && (Date.now() - intent.ts < 30000);
+        if (intentActive && val !== intent.value) {
+          console.log('[CRBOX mi-cuenta] newsletter patch skipped (intent active):', intent.value, '| incoming:', val);
+          return;
+        }
         var el = document.getElementById('notify_promotions');
-        console.log('[CRBOX mi-cuenta] newsletter patch applied:', !!val, '| DOM el found:', !!el);
+        console.log('[CRBOX mi-cuenta] newsletter patch applied:', val, '| DOM el found:', !!el);
         if (el) {
-          el.checked = !!val;
+          el.checked = val;
           console.log('[CRBOX mi-cuenta] newsletter after patch DOM checked:', el.checked);
+        }
+        // Incoming value confirms the saved intent — release guard so future
+        // refreshes flow through normally.
+        if (intentActive && val === intent.value) {
+          window.__crboxNewsletterIntent = null;
         }
       }
       window.__crboxPatchNewsletter = _patchNewsletterCheckbox;

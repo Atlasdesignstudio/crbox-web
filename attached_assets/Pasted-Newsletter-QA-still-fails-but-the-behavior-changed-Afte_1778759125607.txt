@@ -1,0 +1,74 @@
+Newsletter QA still fails, but the behavior changed:
+
+After the latest fix:
+- I check “Promociones y ofertas especiales”.
+- Click “Guardar Preferencias”.
+- Network shows `postedituser` returns 200 / StatusResult OK.
+- The checkbox stays checked for a few seconds.
+- Then it becomes unchecked again.
+
+This means the immediate saved-state patch works, but a later async refresh is still overwriting the checkbox with a stale false value.
+
+Evidence:
+- Network shows many repeated `prueba%40crbox.cr` / legacy getuserinfo calls after the save.
+- The checkbox becomes checked immediately after save, then later flips back to unchecked.
+
+Please investigate and fix only this newsletter post-save overwrite issue.
+
+Likely cause:
+A later `getUserInfo()` / legacy refresh or patch path is still calling `_patchNewsletterCheckbox(info)` with stale legacy data after the save.
+
+Required behavior:
+After a successful `postedituser`, the user’s saved intent must remain authoritative for the checkbox until a later confirmed fresh value is available.
+
+Please implement a small state guard:
+
+1. Capture the saved newsletter intent:
+   `window.__crboxNewsletterIntent = savedNewsletter`
+   or a scoped equivalent.
+
+2. After `postedituser` returns OK:
+   - immediately set checkbox.checked = savedNewsletter
+   - update `window.__crboxUserInfoLegacy.Consignee.ReceivesNewsletter = savedNewsletter`
+   - update any equivalent casing used by the payload builder
+   - prevent stale async refreshes from overwriting the checkbox with the old value
+
+3. Any later `_patchNewsletterCheckbox(info)` should not overwrite the checkbox if:
+   - a recent saved intent exists, and
+   - the incoming info value differs from the saved intent, and
+   - the incoming info is from an immediate post-save legacy refresh likely to be stale.
+
+4. The guard can expire after a reasonable short window, or only be cleared when a confirmed source returns the same value as the saved intent.
+
+5. Add safe boolean-only debug logs:
+   - newsletter intent saved: true/false
+   - incoming patch value: true/false
+   - patch skipped due to recent saved intent: true/false
+   - final DOM checked: true/false
+
+Do not log raw user objects, tokens, payloads, phone, ID, or address.
+
+Also reduce or audit the repeated `getUserInfo()` calls if they are unnecessary:
+- Identify why multiple `prueba%40crbox.cr` calls are firing.
+- Do not remove needed auth/session refreshes blindly.
+- But make sure none of them can overwrite the newsletter checkbox with stale data after a successful save.
+
+Validation after fix:
+- Check newsletter box → save → postedituser OK → checkbox stays checked permanently during the session.
+- Wait at least 10–15 seconds → still checked.
+- Uncheck → save → checkbox stays unchecked.
+- Wait 10–15 seconds → still unchecked.
+- Password short validation still blocks requests.
+- No raw PII logged.
+
+Do not touch:
+- RDS profile endpoint
+- profile edit fields beyond newsletter state handling
+- password change logic except preserving existing validation
+- login
+- registration
+- packages
+- invoices
+- dashboard
+- AWS/RDS settings
+- DB schema
