@@ -220,7 +220,7 @@ All pages in `PROTECTED_PAGES` call `enforceAuthGate()` on `DOMContentLoaded`. T
 | **Auth** | Bearer user token + `X-Casillero-Email` header |
 
 **Client-side UX layer (not authoritative):**  
-`js/nav-auth.js` has an `ADMIN_EMAILS` array (5 entries) used only to decide whether to inject an admin badge button in the desktop nav and mobile menu. `js/mobile-drawer.js` has a single `ADMIN_EMAIL` string (1 entry — one specific account) used to decide whether to show "Panel Admin" in the mobile drawer. These lists control UI only; they cannot grant access.
+`js/nav-auth.js` has an `ADMIN_EMAILS` array (5 entries) used only to decide whether to inject an admin badge button in the desktop nav and mobile menu. `js/mobile-drawer.js` now also uses an `ADMIN_EMAILS` array (5 entries, identical list) with an `indexOf` membership check — previously it used a single `ADMIN_EMAIL` string covering only one account (C-06 fix). These lists control UI only; they cannot grant access.
 
 **Server-side gate (`_handle_admin_portal_login`):**  
 1. Calls `_portal_auth_email_only()` which: extracts the `Authorization` header; uses `X-Casillero-Email` **only to construct the CRBOX API URL**; calls `GET /getuserinfo/{header_email}` with the bearer token.  
@@ -248,10 +248,10 @@ Every admin handler calls `_admin_validate_session(token)` before processing any
 |---|---------|----------|--------------------------|------|----------------|------------------------------|
 | C-01 | Password recovery email in URL path | Low-Medium | `js/portal-api.js` `recoverPassword` line ~750 | Access logs, CDN logs, browser history capture full URL including email address | Add a server-side proxy that accepts email in POST body and calls the legacy GET internally | No — log-exposure risk accepted short-term; log-retention review recommended |
 | C-02 | Password change requires no current-password re-auth | Medium | `mi-cuenta.html` security tab; `js/auth.js` `buildUpdateProfilePayload` | Stolen live token → permanent password change without knowing original password | Add a "current password" field; include it in `postedituser` payload if CRBOX API supports it | No — blocked by CRBOX API capability; document as accepted risk |
-| C-03 | No frontend rate limit on password recovery | Low | `js/portal-api.js` `recoverPassword`; no matching proxy endpoint | Enumeration or spam without per-client throttle | Add per-session cooldown on the login modal reset form (e.g. 60 s between attempts) | No |
+| C-03 | No frontend rate limit on password recovery | Low | `js/portal-api.js` `recoverPassword`; no matching proxy endpoint | Enumeration or spam without per-client throttle | Add per-session cooldown on the login modal reset form (e.g. 60 s between attempts) | No — **IMPLEMENTED** (60-second in-memory cooldown added to `login.html` reset form handler; no email logged or stored) |
 | C-04 | `/crbox-svc-token` has no Origin/Referer check | Low | `server.py` `_handle_svc_token`; comment lines 11405–11414 | Any client can request a service-account token; mitigated by rate limit + narrow token scope | Dedicate a separate rate-limit bucket for token vending, separate from the quote-email window | No |
 | C-05 | Admin email list in client-side JS (information disclosure) | Low-Medium | `js/nav-auth.js` `ADMIN_EMAILS`; `js/mobile-drawer.js` `ADMIN_EMAIL` | Source inspection reveals which email addresses have admin role | Move admin email config to a server-side environment variable in a future hardening pass | No — server-side gate is correct and independent |
-| C-06 | Mobile drawer shows admin shortcut for only one admin account | Low (UX gap) | `js/mobile-drawer.js` `ADMIN_EMAIL` (single string vs array) | Four admin accounts lack mobile "Panel Admin" link | Change `ADMIN_EMAIL` to an array matching `nav-auth.js` `ADMIN_EMAILS` | No |
+| C-06 | Mobile drawer shows admin shortcut for only one admin account | Low (UX gap) | `js/mobile-drawer.js` `ADMIN_EMAIL` (single string vs array) | Four admin accounts lack mobile "Panel Admin" link | Change `ADMIN_EMAIL` to an array matching `nav-auth.js` `ADMIN_EMAILS` | No — **IMPLEMENTED** (`ADMIN_EMAIL` replaced with `ADMIN_EMAILS` array matching `nav-auth.js`; `indexOf` check applied at `_buildBody`) |
 | C-07 | Bearer token in `localStorage` (XSS surface) | Low (accepted) | `js/auth.js` `saveToken`; header comment lines 8–18 | XSS vector could exfiltrate token; HttpOnly cookie not viable for client-side API calls | Periodic CSP audit; see C-08 | No — design rationale documented |
 | C-08 | CSP `unsafe-inline` in `script-src` | Low | `login.html` and `afiliate.html` `<meta http-equiv="Content-Security-Policy">` | Weakens script injection protection; `unsafe-inline` negates hash/nonce XSS guards | Migrate inline scripts to external files; use nonces or hashes | No |
 | C-09 | `connect-src` is tightly scoped | Positive / Informational | `login.html` CSP meta; `afiliate.html` CSP meta | Both pages set `connect-src 'self' https://clients.crbox.cr https://www.google-analytics.com`. All three origins are expected: `'self'` for local endpoints, `clients.crbox.cr` for all CRBOX API calls, `www.google-analytics.com` for GA4 tracking. No unintended domains present. | No action needed; confirm `connect-src` is updated if new API origins are added | — |
@@ -306,20 +306,21 @@ Classification per auth/account endpoint found:
 
 ## F. Recommendations
 
-### Tier 1 — Must fix before domain cutover
+### Tier 1 — Must fix before domain cutover — **both items implemented**
 
 There are **no blocking fixes** required for domain cutover. All auth flows are functional and the server-side security gate is correctly implemented. The two most significant findings (C-01, C-02) are blocked by CRBOX API design constraints and must be accepted as-is for the cutover period.
 
-However, the following action is strongly recommended as a pre-cutover measure because it is low-effort and directly reduces information exposure:
+Both recommended pre-cutover actions have been implemented:
 
-- **Add a per-session cooldown on the password recovery modal** (C-03) — a simple 60-second client-side guard prevents the most obvious enumeration pattern with minimal code.
+- **C-03 — 60-second client-side cooldown on the password recovery modal** — **Done.** In-memory `_recoveryCooldownUntil` variable in `login.html`; no network call fired during the cooldown window; no email stored or logged.
+- **C-06 — Mobile admin list aligned with desktop list** — **Done.** `ADMIN_EMAIL` single string replaced with `ADMIN_EMAILS` array in `js/mobile-drawer.js`; `indexOf` check applied in `_buildBody`.
 
 ### Tier 2 — Recommended before broad launch
 
 | Item | Finding ref | Action |
 |------|-------------|--------|
 | Add server-side proxy for password recovery | C-01 | Accept POST body with email → call legacy GET internally → relay response. Eliminates email from URL and log exposure. |
-| Fix mobile drawer admin list inconsistency | C-06 | Change `ADMIN_EMAIL` single string to an array in `js/mobile-drawer.js` matching `nav-auth.js`. |
+| ~~Fix mobile drawer admin list inconsistency~~ | C-06 | **Done.** `ADMIN_EMAIL` replaced with `ADMIN_EMAILS` array in `js/mobile-drawer.js`; `indexOf` check applied. |
 | Add password strength indicator | — | Visual complexity feedback beyond the 8-character minimum improves security hygiene. |
 | Confirm CRBOX API behaviour on password change | C-02 | Test whether existing sessions are invalidated when `postedituser` updates the password. Document the result. |
 | Resolve `unsafe-inline` in CSP | C-08 | Move inline scripts to external files with nonces or hashes. Reduces XSS blast radius for token exposure (C-07). |
@@ -341,15 +342,9 @@ However, the following action is strongly recommended as a pre-cutover measure b
 
 ## G. Final A/B/C Recommendation
 
-**Recommendation: B — Safe for domain cutover after the listed fixes.**
+**Recommendation: A — Safe for domain cutover with documented legacy limitations.**
 
-The current login, signup, and password recovery flows are all fully wired to the production CRBOX backend. No credential leaks, no fake states, no bypassed server-side gates, and no blocking security issues were found.
-
-The recommended pre-cutover fixes are:
-1. Add a 60-second client-side cooldown on the password recovery modal to limit the most trivial enumeration path.
-2. Update `mobile-drawer.js` to use the same admin-accounts list as `nav-auth.js` (UX consistency, not security).
-
-Both are small, isolated changes. Neither is an architectural requirement.
+The current login, signup, and password recovery flows are all fully wired to the production CRBOX backend. No credential leaks, no fake states, no bypassed server-side gates, and no blocking security issues were found. Both pre-cutover fixes (C-03, C-06) have been implemented and QA-verified.
 
 The two Medium/Low-Medium findings (C-01 email-in-URL, C-02 no current-password re-auth) are real and should be tracked, but neither is a blocker for domain cutover:
 - C-01 is a CRBOX API design constraint; a proxy workaround is Tier 2.
@@ -366,10 +361,11 @@ The two Medium/Low-Medium findings (C-01 email-in-URL, C-02 no current-password 
 | Protected page redirect | `enforceAuthGate()` handles all four token/email partial-state cases; bfcache restore re-validates immediately | **Yes** | None | Yes | Preserve original destination URL |
 | Signup — personal account | Multi-step form; production-only `postregisteruser` via service-account proxy; auto-login on success; all fields wired | **Yes** | None | Yes | Email verification step; dedicated rate-limit bucket for svc-token proxy |
 | Signup — business account | Same `doRegister()` path as personal; different payload shape; production-only endpoint | **Yes** | None | Yes | Same as personal |
-| Password recovery | GET with email in URL path; no auth required; response distinguishes found/not-found accounts | **Yes with fixes** | Add 60-second client-side cooldown on recovery modal (C-03) | Yes | Server-side proxy to move email out of URL path (C-01); uniform "if registered, email sent" response to prevent enumeration |
+| Password recovery | GET with email in URL path; no auth required; response distinguishes found/not-found accounts | **Yes** | ~~Add 60-second client-side cooldown on recovery modal~~ — **Done (C-03)** | Yes | Server-side proxy to move email out of URL path (C-01); uniform "if registered, email sent" response to prevent enumeration |
 | Password change | Authenticated POST to `postedituser`; no current-password re-auth; valid bearer token sufficient | **Yes** | Document accepted risk; confirm CRBOX session-invalidation behaviour on password change | Yes | Add current-password field if CRBOX API supports it (C-02) |
-| Admin portal access | Client badge is UX-only; server gate derives identity exclusively from CRBOX API response; admin session cookie is HttpOnly + SameSite=Strict + 8 h TTL | **Yes with fixes** | Fix mobile drawer admin list to match desktop list (C-06 — UX only, not security) | Yes | Move admin email config to server-side environment variable (C-05) |
+| Admin portal access | Client badge is UX-only; server gate derives identity exclusively from CRBOX API response; admin session cookie is HttpOnly + SameSite=Strict + 8 h TTL | **Yes** | ~~Fix mobile drawer admin list~~ — **Done (C-06)** | Yes | Move admin email config to server-side environment variable (C-05) |
 
 ---
 
-*Audit completed: 2026-05-14. No code was modified. No production accounts were created or modified. No secrets were accessed or logged.*
+*Audit completed: 2026-05-14. No production accounts were created or modified. No secrets were accessed or logged.*  
+*Fixes implemented: 2026-05-14. C-03 (recovery cooldown) and C-06 (mobile admin list) applied in `login.html` and `js/mobile-drawer.js` respectively. Recommendation upgraded from B to A.*

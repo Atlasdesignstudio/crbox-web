@@ -8,7 +8,15 @@
   window.__crboxDrawerInit = true;
 
   // ── Config ────────────────────────────────────────────────────────────────────
-  var ADMIN_EMAIL  = 'prueba@crbox.cr';
+  // Must match the ADMIN_EMAILS list in js/nav-auth.js — UX shortcut only,
+  // not an authorization gate.
+  var ADMIN_EMAILS = [
+    'prueba@crbox.cr',
+    'ventas@crbox.cr',
+    'compras@crbox.cr',
+    'servicioalcliente@crbox.cr',
+    'esteban@crbox.cr'
+  ];
   var PORTAL_PAGES = ['dashboard.html', 'mis-paquetes.html', 'mis-facturas.html',
                       'mis-solicitudes.html', 'mi-cuenta.html'];
 
@@ -135,7 +143,7 @@
   function _buildBody() {
     var a        = _auth();
     var loggedIn = a && a.isLoggedIn();
-    var isAdmin  = loggedIn && a.getEmail && a.getEmail() === ADMIN_EMAIL;
+    var isAdmin  = loggedIn && a.getEmail && ADMIN_EMAILS.indexOf(a.getEmail()) !== -1;
     var inPortal = _inPortal();
     var html     = '<div class="crbox-db">';
 

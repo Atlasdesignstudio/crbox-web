@@ -466,6 +466,10 @@
         }
         
         // Formulario de recuperación de contraseña
+        // In-memory cooldown — 60 s between requests. Never stored to localStorage/sessionStorage.
+        var _recoveryCooldownUntil = 0;
+        var _RECOVERY_COOLDOWN_MS  = 60000;
+
         const resetForm = document.getElementById('reset-password-form');
         if (resetForm) {
             resetForm.addEventListener('submit', function(e) {
@@ -476,10 +480,6 @@
                 const submitBtn = resetForm.querySelector('button[type="submit"]') ||
                                   resetForm.querySelector('button');
                 const origBtnHTML = submitBtn ? submitBtn.innerHTML : '';
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Enviando...';
-                }
 
                 function _showRecoveryMsg(text, isError) {
                     var successEl = document.getElementById('recovery-success-msg');
@@ -501,11 +501,30 @@
                     }
                 }
 
+                // Cooldown gate — no network call, no email logged
+                var _now = Date.now();
+                if (_now < _recoveryCooldownUntil) {
+                    _showRecoveryMsg(
+                        'Por seguridad, espera unos segundos antes de volver a solicitar el correo.',
+                        true
+                    );
+                    return;
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Enviando...';
+                }
+
                 if (typeof CRBOXPortalAPI === 'undefined') {
                     if (submitBtn) { submitBtn.innerHTML = origBtnHTML; submitBtn.disabled = false; }
                     _showRecoveryMsg('Error interno: módulo de API no cargado. Recarga la página.', true);
                     return;
                 }
+
+                // Record cooldown start before the request fires
+                _recoveryCooldownUntil = Date.now() + _RECOVERY_COOLDOWN_MS;
+
                 const doRecover = CRBOXPortalAPI.recoverPassword(email);
 
                 doRecover

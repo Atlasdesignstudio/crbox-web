@@ -1,0 +1,71 @@
+# Task — Auth Cutover Small Fixes
+
+What & Why
+The forensic auth audit (`docs/auth-registration-password-recovery-audit.md`) concluded that login, signup, password recovery, password change, and admin access can safely remain legacy-backed for the domain cutover, but recommended two small pre-cutover fixes:
+
+1. Add a 60-second client-side cooldown to the password recovery modal.
+2. Align the mobile drawer admin list with the desktop admin list.
+
+This task implements only those two small fixes.
+
+Out of scope:
+- No auth architecture rebuild.
+- No HTTP-only cookie migration.
+- No password recovery proxy.
+- No server-side auth changes.
+- No registration changes.
+- No live registration tests.
+- No live password changes.
+- No RDS changes.
+- No production flags.
+- No AWS/RDS/DB changes.
+
+Fix 1 — Password recovery cooldown
+Add a client-side 60-second cooldown to the password recovery modal in `login.html` / `js/portal-api.js` flow.
+
+Expected behavior:
+- User submits password recovery request.
+- If another request is attempted within 60 seconds, block it client-side.
+- Show a friendly message:
+  “Por seguridad, espera unos segundos antes de volver a solicitar el correo.”
+- Do not call the password recovery endpoint during cooldown.
+- Do not reveal whether the account exists.
+- Do not log the email.
+- Do not store the email in localStorage/sessionStorage.
+- Cooldown can be in memory only.
+
+Validation:
+- First submit calls the existing recovery endpoint.
+- Second submit within 60 seconds sends no network request.
+- UI shows clear cooldown message.
+- After cooldown expires, another attempt is allowed.
+- No email/token/password is logged.
+
+Fix 2 — Mobile admin list consistency
+In `js/mobile-drawer.js`, replace the single hardcoded admin email check with the same admin account list used by `js/nav-auth.js`, or refactor to a shared client-side constant if feasible without broader changes.
+
+Expected behavior:
+- Desktop admin shortcut behavior unchanged.
+- Mobile admin shortcut appears for the same admin accounts as desktop.
+- This remains a UX shortcut only.
+- Server-side admin authorization remains the source of truth.
+- No server-side auth behavior is changed.
+
+Validation:
+- Admin account included in desktop list sees mobile admin link.
+- Non-admin account does not see mobile admin link.
+- Clicking mobile admin link still calls `/admin/portal-login`.
+- Backend gate still enforces access.
+
+Documentation:
+Update `docs/auth-registration-password-recovery-audit.md` with:
+- C-03 status: cooldown implemented.
+- C-06 status: mobile admin list aligned.
+- Final recommendation updated from “B — safe after fixes” to “A — safe for domain cutover with documented legacy limitations,” if both fixes pass QA.
+
+Final report:
+- files changed
+- exact behavior implemented
+- QA checks
+- no sensitive data logged
+- no architecture changes
