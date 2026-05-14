@@ -1,0 +1,109 @@
+The #531 plan looks good. Please proceed, but apply these refinements before implementation.
+
+1. Keep it completely isolated
+Do not touch:
+- mis-facturas work
+- mis-paquetes work
+- portal-api.js unless only reading for mapping
+- mi-cuenta.html frontend wiring
+- auth/login/registration/password recovery
+- dashboard
+- any write/update profile logic
+
+This task is backend shadow + documentation only.
+
+2. Sensitive data handling
+Be extra careful with profile data because it contains PII.
+
+Do not expose raw sensitive values in docs or logs:
+- identificationNumber
+- phone numbers
+- full addresses
+- birthDate
+- contact identifications
+- OAuth tokens
+- internal flags
+
+The endpoint may return the fields needed for admin-shadow validation, but the documentation/report must mask them.
+
+Use:
+- identificationNumberMasked
+- phoneMasked
+- emailMasked in docs
+- address summaries instead of full raw addresses in docs
+
+3. Raw identification number
+For the endpoint response, do not return raw `identificationNumber` unless the current legacy `mi-cuenta` UI absolutely requires it for display/editing.
+
+If it is needed later for the frontend, document it as a sensitive field requiring explicit approval before frontend wiring.
+
+For this shadow endpoint, prefer:
+identificationNumberMasked
+
+4. Compare carefully against legacy
+The legacy `getuserinfo/{email}` response may have nested objects with different casing/names than RDS columns.
+
+In the comparison report, separate:
+- exact matches
+- formatting differences only
+- real data mismatches
+- missing fields
+- fields intentionally withheld for privacy
+
+5. Do not treat mismatches as bugs automatically
+If RDS and legacy differ, classify the cause:
+- field naming/casing difference
+- formatting difference
+- missing join
+- stale dev snapshot
+- legacy transformation/business logic
+- true mapping issue
+
+6. Use prueba@crbox.cr first
+Use only `prueba@crbox.cr` as the controlled test user for the first comparison.
+
+Do not run broad profile comparisons across many users yet.
+
+7. Address handling
+Addresses may include multiple active/inactive or primary/non-primary records.
+
+Please identify:
+- how primary address is determined
+- how active addresses are determined
+- whether mi-cuenta expects all addresses or only primary
+- whether address type matters
+
+Do not guess. Mark uncertain logic as "needs validation."
+
+8. Phone handling
+Phones may include multiple records.
+
+Please identify:
+- primary phone logic
+- active phone logic
+- phone type mapping
+- whether mi-cuenta expects all phones or only primary
+
+9. Branch/sucursal mapping
+Confirm `consignee.idSucursal` maps cleanly to `Sucursal.idSucursal`.
+Return both ID and display name.
+
+10. Final recommendation
+At the end, recommend one of:
+
+A. Safe to proceed to feature-flagged mi-cuenta read-only frontend wiring.
+B. Needs mapping fixes before frontend wiring.
+C. Keep profile reads on legacy for now.
+
+Do not implement frontend wiring in this task.
+
+Final safety confirmations required:
+- No frontend files changed.
+- No invoices/facturas files or endpoints touched.
+- No packages files or endpoints touched.
+- No writes/destructive SQL.
+- No SELECT *.
+- Only crbox_dev1 queried.
+- Legacy API only called once if Bearer token is provided.
+- No credentials exposed.
+- No raw PII exposed in docs/logs.
