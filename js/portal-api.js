@@ -1,6 +1,6 @@
 // portal-api.js — CRBOX client portal API module
 // Wraps all authenticated portal endpoints:
-//   getUserInfo, updateProfile, getPackages, getBills, recoverPassword
+//   getUserInfo, updateProfile, getPackages, getPackagesRDS, getBills, recoverPassword
 // Requires auth.js to be loaded first (CRBOXAuth must be available).
 //
 // Error classification:
@@ -393,6 +393,116 @@
     });
   }
 
+  // ─── formatDateISO ────────────────────────────────────────────────────────
+  // Return a YYYY-MM-DD string from a Date object (or anything new Date() accepts).
+  // Used internally by getPackagesRDS because the RDS endpoint expects ISO dates,
+  // while the legacy formatDate() produces DD-MM-YYYY.
+  function formatDateISO(d) {
+    var dt = (d instanceof Date) ? d : new Date(d);
+    var y  = dt.getFullYear();
+    var m  = String(dt.getMonth() + 1).padStart(2, '0');
+    var day = String(dt.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  // ─── getPackagesRDS ───────────────────────────────────────────────────────
+  // Calls /api/portal/my-packages — the portal-safe, RDS-backed endpoint.
+  //
+  // Auth: sends the portal Bearer token + X-Casillero-Email header.
+  //       The server resolves idConsignee from the verified email.
+  //       Never sends idConsignee from the client.
+  //
+  // Returns a raw array of package objects whose field names match the legacy
+  // getuserpackages convention, so the existing mis-paquetes envelope-unwrapper
+  // and mapPackage() work without modification.
+  //
+  // Error behaviour mirrors the error classification contract at the top of this
+  // module:
+  //   401/403 → error.isAuthError = true  (caller must not fall back — session dead)
+  //   All other failures → error.isAuthError = false  (caller may fall back to legacy)
+  //
+  // startDate / endDate: Date objects (forwarded to formatDateISO)
+  // tracking: tracking number prefix filter, '' or 'null' for all
+  // status: status code string, '' or '1000' for all statuses
+  function getPackagesRDS(startDate, endDate, tracking, status) {
+    var token = CRBOXAuth.getToken ? CRBOXAuth.getToken() : '';
+    var email = CRBOXAuth.getEmail ? CRBOXAuth.getEmail() : '';
+    if (!token) {
+      var noTokErr = new Error('Sesión no iniciada. Por favor inicia sesión.');
+      noTokErr.isAuthError = true;
+      return Promise.reject(noTokErr);
+    }
+    if (!email) {
+      var noEmailErr = new Error('No se pudo obtener el email de la sesión.');
+      noEmailErr.isAuthError = false;
+      return Promise.reject(noEmailErr);
+    }
+
+    var start = formatDateISO(startDate || _last30Days());
+    var end   = formatDateISO(endDate   || _defaultEndDate());
+
+    var qs = '?start=' + encodeURIComponent(start) +
+             '&end='   + encodeURIComponent(end);
+
+    // Status: '1000' is the legacy "all" sentinel — omit the param (server default is all)
+    var statStr = (status && String(status).trim()) ? String(status).trim() : '';
+    if (statStr && statStr !== '1000') {
+      qs += '&status=' + encodeURIComponent(statStr);
+    }
+
+    // Tracking: 'null' is the legacy "no filter" sentinel — omit the param
+    var trackStr = (tracking && String(tracking).trim() && String(tracking).trim() !== 'null')
+      ? String(tracking).trim() : '';
+    if (trackStr) {
+      qs += '&tracking=' + encodeURIComponent(trackStr);
+    }
+
+    return fetch('/api/portal/my-packages' + qs, {
+      headers: {
+        'Authorization':     'Bearer ' + token,
+        'X-Casillero-Email': email,
+        'Accept':            'application/json'
+      }
+    }).then(function (r) {
+      if (r.status === 401 || r.status === 403) {
+        throw _handleAuthFailure(r.status);
+      }
+      if (!r.ok) {
+        var e = new Error('RDS packages endpoint returned ' + r.status + '.');
+        e.isAuthError = false;
+        e._rdsStatus  = r.status;
+        throw e;
+      }
+      return r.json().catch(function () {
+        var je = new Error('RDS packages response was not valid JSON.');
+        je.isAuthError = false;
+        throw je;
+      });
+    }).then(function (data) {
+      // Unwrap the { ok, source, packages: [...] } envelope
+      if (!data || typeof data !== 'object') {
+        var se = new Error('RDS packages response had unexpected shape.');
+        se.isAuthError = false;
+        throw se;
+      }
+      if (!Array.isArray(data.packages)) {
+        var ae = new Error('RDS packages response missing packages array.');
+        ae.isAuthError = false;
+        throw ae;
+      }
+      return data.packages;
+    }).catch(function (err) {
+      // Re-throw everything — caller decides whether to fall back.
+      // Auth errors must NOT be swallowed.
+      if (!err) {
+        var ne = new Error('Unknown RDS packages error.');
+        ne.isAuthError = false;
+        throw ne;
+      }
+      throw err;
+    });
+  }
+
   // Accept bare arrays or common .NET envelope wrappers. Centralized
   // here so page code only ever consumes mapped bills.
   function _unwrapBillsEnvelope(data) {
@@ -700,16 +810,18 @@
     clearUserInfoCache:   clearUserInfoCache,
     updateProfile:        updateProfile,
     getPackages:          getPackages,
+    getPackagesRDS:       getPackagesRDS,
     getBills:             getBills,
     saveBill:             saveBill,
     deleteInvoiceUpload:  deleteInvoiceUpload,
     createPurchaseBill:   createPurchaseBill,
     recoverPassword:      recoverPassword,
-    formatDate:         formatDate,
-    last30Days:         _last30Days,
-    lastNMonths:        _lastNMonths,
-    defaultStartDate:   _defaultStartDate,
-    defaultEndDate:     _defaultEndDate,
+    formatDate:           formatDate,
+    formatDateISO:        formatDateISO,
+    last30Days:           _last30Days,
+    lastNMonths:          _lastNMonths,
+    defaultStartDate:     _defaultStartDate,
+    defaultEndDate:       _defaultEndDate,
     // Field accessors
     mapPackage:           mapPackage,
     mapBill:              mapBill,

@@ -9528,6 +9528,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_admin_rds_count(_rds_tbl)
         elif self.path.startswith('/api/portal/packages-rds'):
             self._handle_portal_packages_rds()
+        elif self.path.startswith('/api/portal/my-packages'):
+            self._handle_portal_my_packages()
+        elif self.path.rstrip('/') == '/api/config':
+            self._handle_config()
         elif self.path.startswith('/api/admin/rds-shadow-compare'):
             self._handle_admin_rds_shadow_compare()
         elif self.path.startswith('/api/solicitudes'):
@@ -13588,6 +13592,235 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             'limit':       limit,
             'offset':      offset,
             'packages':    result['packages'],
+        })
+
+    # ── GET /api/config ────────────────────────────────────────────────────────
+    #
+    # Public, unauthenticated endpoint that returns client-side feature flags.
+    # Only boolean flags derived from environment variables — no secrets, no
+    # user data, no operational state.
+
+    def _handle_config(self):
+        self._json_response(200, {
+            'featureFlags': {
+                'useRdsPackages': (
+                    os.environ.get('USE_RDS_PACKAGES_FRONTEND', '').strip().lower() == 'true'
+                ),
+            }
+        })
+
+    # ── GET /api/portal/my-packages ───────────────────────────────────────────
+    #
+    # Portal-user-facing, read-only packages endpoint backed by RDS.
+    #
+    # Auth model:
+    #   Bearer token + X-Casillero-Email header, validated via CRBOX getuserinfo.
+    #   The email and idConsignee are ALWAYS resolved server-side — never accepted
+    #   from query params.  This is the key difference from the admin shadow endpoint.
+    #
+    # Feature flag:
+    #   Requires USE_RDS_PACKAGES_FRONTEND=true.  Returns 503 when disabled so the
+    #   frontend can silently fall back to the legacy getuserpackages path.
+    #
+    # Date format: YYYY-MM-DD (window ≤ 366 days).
+    #
+    # Response field names use the same lowercase conventions as the legacy
+    # getuserpackages API so mapPackage() in portal-api.js works without changes.
+    #
+    # Query params:
+    #   start    — YYYY-MM-DD (required)
+    #   end      — YYYY-MM-DD (required), window ≤ 366 days
+    #   status   — int; omit or pass 1000 for all statuses
+    #   tracking — prefix search string (must not contain % or _)
+    #   limit    — int 1–200, default 100
+    #   offset   — int ≥ 0, default 0
+
+    def _handle_portal_my_packages(self):
+        import datetime as _dt
+        import decimal as _decimal
+
+        # 1. Feature flag gate — 503 treated by frontend as "use legacy instead"
+        if os.environ.get('USE_RDS_PACKAGES_FRONTEND', '').strip().lower() != 'true':
+            self._json_error(503,
+                'RDS packages endpoint is disabled.',
+                code='feature_disabled')
+            return
+
+        # 2. Portal auth — Bearer + X-Casillero-Email → (casillero_id, verified_email)
+        #    Identity is ALWAYS derived from the validated CRBOX API response, never
+        #    from query params or an unvalidated header.
+        cas_id, verified_email = self._portal_auth_full()
+        if not cas_id or not verified_email:
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
+            return
+
+        # 3. Parse query params
+        parsed = urllib.parse.urlparse(self.path)
+        qs     = urllib.parse.parse_qs(parsed.query, keep_blank_values=False)
+
+        start_str    = qs.get('start',    [''])[0].strip()
+        end_str      = qs.get('end',      [''])[0].strip()
+        status_str   = qs.get('status',   [''])[0].strip()
+        tracking_raw = qs.get('tracking', [''])[0].strip()
+
+        try:
+            limit = max(1, min(200, int(qs.get('limit',  ['100'])[0])))
+        except (ValueError, IndexError):
+            limit = 100
+        try:
+            offset = max(0, int(qs.get('offset', ['0'])[0]))
+        except (ValueError, IndexError):
+            offset = 0
+
+        if not start_str or not end_str:
+            self._json_error(400,
+                'Missing required parameters: start and end (YYYY-MM-DD).',
+                code='bad_request')
+            return
+
+        try:
+            start_date = _dt.date.fromisoformat(start_str)
+            end_date   = _dt.date.fromisoformat(end_str)
+        except ValueError:
+            self._json_error(400, 'Invalid date format. Use YYYY-MM-DD.', code='bad_request')
+            return
+
+        if start_date > end_date:
+            self._json_error(400, 'start must be on or before end.', code='bad_request')
+            return
+
+        # Portal users may request up to a year of history
+        if (end_date - start_date).days > 366:
+            self._json_error(400,
+                'Date window exceeds the 366-day maximum.',
+                code='bad_request')
+            return
+
+        # Reject embedded SQL wildcards in tracking to prevent mis-use
+        tracking = None
+        if tracking_raw and tracking_raw.lower() != 'null':
+            if '%' in tracking_raw or '_' in tracking_raw:
+                self._json_error(400,
+                    'tracking must not contain % or _ characters.',
+                    code='bad_request')
+                return
+            tracking = tracking_raw
+
+        # Status: '1000' is the legacy "all statuses" sentinel — treat as no filter
+        status_id = None
+        if status_str and status_str not in ('', '1000'):
+            try:
+                status_id = int(status_str)
+            except ValueError:
+                self._json_error(400, 'status must be an integer.', code='bad_request')
+                return
+
+        # 4. RDS query
+        try:
+            import rds_client as _rds
+
+            # Safety: confirm expected development database before touching any data
+            db_row    = _rds.fetch_one('SELECT DATABASE() AS db')
+            active_db = (db_row or {}).get('db', '')
+            if active_db not in ('crbox_dev1',):
+                print(f'[MY-PACKAGES] unexpected database: {active_db!r}')
+                self._json_error(503,
+                    'Unexpected database active. Query aborted for safety.',
+                    code='unexpected_database')
+                return
+
+            # Resolve idConsignee from server-verified email — never from caller
+            cons_row = _rds.fetch_one(
+                'SELECT idConsignee FROM consignee WHERE email = %s LIMIT 1',
+                (verified_email,)
+            )
+            if not cons_row:
+                # Authenticated but no RDS record — return honest empty list
+                self._json_response(200, {
+                    'ok': True, 'source': 'rds', 'count': 0, 'packages': []
+                })
+                return
+
+            id_consignee = int(cons_row['idConsignee'])
+
+            # Explicit column list — no SELECT *.
+            # Includes consigneeSucursalName, hasPackage, impresoFactura,
+            # consolidadoFactura for full UI parity with the legacy endpoint.
+            # consigneeNotes is intentionally excluded (security boundary).
+            sql = (
+                'SELECT '
+                'idWarehouseReceipt, number, statusId, statusName, trackingNumber, '
+                'receivedDateTime, createdDate, totalPieces, totalWeight, totalVolume, '
+                'totalVolumetricWeight, shipperName, carrierName, airShipmentNumber, '
+                'masterAirShipmentNumber, emision, invoicesCount, descripcion, '
+                'montoFactura, descripcionFactura, '
+                'consigneeSucursalName, hasPackage, impresoFactura, consolidadoFactura '
+                'FROM getwarehousereceipts '
+                'WHERE idConsignee = %s AND receivedDateTime BETWEEN %s AND %s'
+            )
+            params = [id_consignee, str(start_date), str(end_date) + ' 23:59:59']
+
+            if status_id is not None:
+                sql += ' AND statusId = %s'
+                params.append(status_id)
+
+            if tracking:
+                # Prefix match only — avoids expensive full-view scans
+                sql += ' AND (trackingNumber LIKE %s OR number LIKE %s)'
+                prefix = tracking + '%'
+                params.extend([prefix, prefix])
+
+            sql += ' ORDER BY receivedDateTime DESC LIMIT %s OFFSET %s'
+            params.extend([limit, offset])
+
+            rows = _rds.fetch_all(sql, tuple(params))
+
+        except _RdsWrongDatabaseError as exc:
+            print(f'[MY-PACKAGES] wrong database: {exc}')
+            self._json_error(503,
+                'Unexpected database active. Query aborted for safety.',
+                code='unexpected_database')
+            return
+        except Exception as exc:
+            print(f'[MY-PACKAGES] query error: {exc}')
+            self._json_error(502, 'RDS query failed.', code='rds_error')
+            return
+
+        # 5. Serialize with legacy-compatible lowercase field names so that
+        #    mapPackage() in portal-api.js works without any frontend changes.
+        #    consigneeNotes is excluded here too (double safety).
+        _FIELD_REMAP = {
+            'idWarehouseReceipt':    'idwarehousereceipt',
+            'receivedDateTime':      'receiveddatetime',
+            'totalPieces':           'totalpieces',
+            'totalWeight':           'totalweight',
+            'totalVolume':           'totalvolume',
+            'totalVolumetricWeight': 'totalvolumetricweight',
+            'montoFactura':          'montofactura',
+            'descripcionFactura':    'descripcionfactura',
+        }
+
+        packages = []
+        for row in (rows or []):
+            pkg = {}
+            for k, v in row.items():
+                if k == 'consigneeNotes':
+                    continue  # SECURITY BOUNDARY — never expose to portal users
+                out_key = _FIELD_REMAP.get(k, k)
+                if isinstance(v, (_dt.datetime, _dt.date)):
+                    pkg[out_key] = v.isoformat()
+                elif isinstance(v, _decimal.Decimal):
+                    pkg[out_key] = float(v)
+                elif v is not None:
+                    pkg[out_key] = v
+                # None/NULL values are omitted — mapPackage handles missing fields
+            packages.append(pkg)
+
+        self._json_response(200, {
+            'ok':      True,
+            'source':  'rds',
+            'count':   len(packages),
+            'packages': packages,
         })
 
     # ── GET /api/admin/rds-shadow-compare ─────────────────────────────────────

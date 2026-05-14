@@ -2652,6 +2652,7 @@
 
       var _cachedConsigneeId  = null;
       var _cachedIsDomicilio  = false;
+      var _useRdsPackages     = false; // set by /api/config on page load; false = legacy path
       /* _cachedFullName and _cachedCasilleroNum are declared globally above the first <script> block */
 
       function _dateFilterToDate(val) {
@@ -2745,8 +2746,31 @@
           }
         } catch (_cacheErr) {}
 
-        CRBOXPortalAPI.getPackages(idConsignee,
-          _startArg, _endArg, _trackArg, _statArg)
+        // ── RDS-first with silent legacy fallback ──────────────────────────
+        // When _useRdsPackages is true (set by /api/config fetch above), the
+        // RDS endpoint is tried first.  Any failure except auth errors falls
+        // back to the legacy getPackages path — the user always sees packages.
+        // Auth errors (isAuthError=true) are propagated directly and handled
+        // by the .catch() below, which redirects to login.
+        // When _useRdsPackages is false the call chain is identical to before
+        // this block was added — zero code-path difference.
+        var _useRds = _useRdsPackages; // snapshot flag at call time
+        (function () {
+          if (!_useRds) {
+            return CRBOXPortalAPI.getPackages(idConsignee,
+              _startArg, _endArg, _trackArg, _statArg);
+          }
+          return CRBOXPortalAPI.getPackagesRDS(_startArg, _endArg, _trackArg, _statArg)
+            .catch(function (rdsErr) {
+              if (rdsErr && rdsErr.isAuthError) throw rdsErr; // auth — do not fall back
+              if (typeof console !== 'undefined') {
+                console.debug('[CRBOX] RDS packages failed, falling back to legacy:',
+                  rdsErr && rdsErr.message);
+              }
+              return CRBOXPortalAPI.getPackages(idConsignee,
+                _startArg, _endArg, _trackArg, _statArg);
+            });
+        }())
         .then(function (data) {
           clearTimeout(_slowTimer);
           console.log('[CRBOX mis-paquetes] getPackages raw response →',
@@ -3484,6 +3508,23 @@
           setTimeout(function () { window.location.replace('login.html'); }, 2500);
           return;
         }
+
+        // ── RDS feature flag: fetch /api/config once, fire-and-forget ────────────
+        // Sets _useRdsPackages before the live getPackages call returns (the config
+        // endpoint is local and sub-10ms; getPackages calls the remote CRBOX API
+        // which takes 300-800ms, so the flag is always set before data arrives).
+        // A failure here is non-critical — _useRdsPackages stays false and the
+        // legacy path is used unchanged.
+        (function () {
+          fetch('/api/config', { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (cfg) {
+              if (cfg && cfg.featureFlags) {
+                _useRdsPackages = cfg.featureFlags.useRdsPackages === true;
+              }
+            })
+            .catch(function () {}); // non-critical — default false keeps legacy path
+        }());
 
         // ── EARLY START: begin loading packages immediately if we know the user ───
         // crbox_cached_id_consignee is written by dashboard.html and by this page

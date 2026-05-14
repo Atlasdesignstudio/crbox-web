@@ -1,0 +1,199 @@
+Great. The updated validation report resolves the blockers.
+
+The shadow compare for prueba@crbox.cr confirmed:
+- RDS count: 64
+- Legacy count: 64
+- countDelta: 0
+- missingInRds: []
+- missingInLegacy: []
+- statusMismatch: explained as crbox_dev1 snapshot staleness, not a code defect
+- descripcion source verified via piece.description subquery
+- Final recommendation: Safe to proceed to feature-flagged frontend wiring
+
+Now proceed with the next task:
+
+Connect mis-paquetes to the new RDS packages data source, but only behind a feature flag and with a legacy fallback.
+
+Important:
+Do not remove the legacy API path.
+Do not remove /api/packages-proxy.
+Do not modify login/auth flows.
+Do not touch production database.
+Do not run writes.
+Do not use SELECT *.
+Do not expose credentials.
+Do not make the admin-only email-param version client-facing.
+
+Goal:
+Update mis-paquetes so it can use the RDS-backed packages endpoint safely when enabled, while preserving legacy behavior as fallback.
+
+Required architecture:
+
+1. Portal-user endpoint
+The current /api/portal/packages-rds endpoint is admin-shadow-only and accepts ?email= for testing.
+For real portal use, create or adapt a portal-safe endpoint that does NOT accept arbitrary email from query params.
+
+It must derive the user identity from the existing portal session/token/email flow:
+- Use the logged-in user's email from the existing frontend session/localStorage/token flow.
+- Validate the Bearer token against the legacy API or existing auth validation pattern.
+- Resolve idConsignee server-side from consignee.email.
+- Never let the browser send arbitrary idConsignee.
+- Never trust ?email= for client-facing portal use.
+
+2. Feature flag
+Add a client/backend feature flag such as:
+
+USE_RDS_PACKAGES_FRONTEND=true
+
+or use existing USE_RDS_PORTAL_API carefully, but keep frontend migration separately controllable.
+
+When disabled:
+- mis-paquetes must behave exactly as it does today.
+- Use legacy getuserpackages path only.
+
+When enabled:
+- mis-paquetes should try RDS first.
+- If RDS succeeds, render RDS packages.
+- If RDS fails, returns 401/403/404/500/502/503, or returns malformed data, automatically fallback to legacy.
+
+3. Fallback behavior
+Fallback must be silent and safe:
+- User should still see packages from legacy.
+- Do not show technical errors unless both RDS and legacy fail.
+- Log a safe console/debug message only in development.
+- Do not expose SQL/RDS errors to users.
+
+4. Data shape compatibility
+Map the RDS response into the exact shape expected by the existing mis-paquetes UI.
+
+Fields to verify:
+- idWarehouseReceipt
+- number
+- statusId
+- statusName
+- trackingNumber
+- receivedDateTime
+- createdDate
+- totalPieces
+- totalWeight
+- totalVolume
+- totalVolumetricWeight
+- shipperName
+- carrierName
+- airShipmentNumber
+- masterAirShipmentNumber
+- emision
+- invoicesCount
+- descripcion
+- montoFactura
+- descripcionFactura
+
+Ensure optional/null fields do not break rendering:
+- descripcion
+- montoFactura
+- descripcionFactura
+- airShipmentNumber
+- masterAirShipmentNumber
+
+Do not expose _adminDebug or consigneeNotes to the frontend.
+
+5. Date format compatibility
+Current legacy API expects DD-MM-YYYY.
+RDS endpoint expects YYYY-MM-DD.
+Make sure the frontend/backend adapter handles the correct format for each source.
+
+6. Pagination / filters
+Preserve existing mis-paquetes behavior:
+- status filters
+- date filters
+- tracking search
+- refresh button
+- empty state
+- loading state
+- error state
+- counters/cards by status
+
+If RDS does not support any filter exactly yet, fallback to legacy for that case rather than breaking behavior.
+
+7. Safety
+Do not change:
+- login
+- registration
+- password recovery
+- mi-cuenta
+- mis-facturas
+- dashboard
+- cotizaciones
+- admin/backoffice tool
+- old website
+- AWS settings
+- DB schema
+- DB users/permissions
+
+Do not run:
+- INSERT
+- UPDATE
+- DELETE
+- DROP
+- ALTER
+- CREATE
+- TRUNCATE
+- GRANT
+- REVOKE
+- migrations
+- seed scripts
+
+8. Testing
+Test these cases:
+
+A. Feature flag OFF
+- mis-paquetes uses legacy only
+- behavior unchanged
+
+B. Feature flag ON, RDS success
+- mis-paquetes loads packages from RDS
+- cards/counters update correctly
+- table/list renders correctly
+- filters work
+- no _adminDebug exposed
+
+C. Feature flag ON, RDS forced failure
+- automatic fallback to legacy
+- user still sees packages
+- no user-facing technical error
+
+D. Empty state
+- account/date range with no packages renders correct empty state
+
+E. Status filters
+- MIA / SJO / Crbox filters still work correctly
+
+F. Mobile view
+- no layout regression
+
+9. Documentation
+Create/update a doc:
+
+docs/rds-packages-frontend-wiring.md
+
+Include:
+- feature flag behavior
+- RDS-first / legacy-fallback flow
+- endpoint used
+- auth/identity model
+- field mapping
+- known null fields
+- rollback plan
+- test results
+- safety confirmations
+
+10. Final confirmation
+At the end, explicitly confirm:
+- Feature flag OFF preserves current behavior.
+- Legacy API path still exists.
+- mis-paquetes can fallback to legacy.
+- No writes were run.
+- No production database was queried unless explicitly configured later.
+- No frontend module other than mis-paquetes was changed.
+- No credentials exposed.
+- No _adminDebug or consigneeNotes exposed to users.
