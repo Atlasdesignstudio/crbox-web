@@ -1,0 +1,88 @@
+# Task — Update Domain Cutover Readiness After Auth Audit Completion
+
+Context:
+Task #545 Auth / Signup / Password Recovery audit is now complete.
+
+Final auth recommendation:
+A — Safe for domain cutover with documented legacy limitations.
+
+Two pre-cutover fixes were implemented:
+- 60-second in-memory cooldown on password recovery modal.
+- Mobile admin list aligned with desktop admin list.
+
+This means auth/signup/recovery are no longer blockers for DNS cutover. They can remain legacy-backed during the domain cutover.
+
+Goal:
+Update `docs/domain-cutover-readiness-plan.md` to reflect the completed auth audit and revise the readiness/blocker status accordingly.
+
+Important:
+Do not change DNS.
+Do not change hosting.
+Do not enable RDS flags.
+Do not modify code.
+Do not touch AWS/RDS.
+Do not modify legacy systems.
+Documentation update only.
+
+Required updates:
+
+1. Update Section 10 — Go / No-Go Checklist
+Change password recovery audit status from pending/open to confirmed complete.
+
+Specifically:
+- G4 Password recovery delivers email / audit status:
+  update from open/pending to confirmed audit-passed for cutover, with documented legacy limitations.
+- Reference `docs/auth-registration-password-recovery-audit.md`.
+- Note that password recovery still uses legacy GET endpoint with email in URL path, but this is accepted for cutover and listed as future modernization.
+
+2. Update Section 13 — Blocker Table
+Update B2:
+Current:
+Password recovery audit not confirmed passing.
+
+New:
+Password recovery audit completed; recommendation A; cooldown implemented.
+
+Classification:
+Resolved / no longer blocks broad portal rollout.
+
+Do not delete the historical note; mark it as resolved with date and source.
+
+3. Update readiness percentages
+Recalculate:
+- Auth / signup / recovery readiness should increase from 75% to a higher value, likely 90–95%, unless other auth blockers remain.
+- Overall readiness should be updated accordingly.
+- Keep DNS / operational readiness low if DNS owner, SSL, TTL, and rollback owner remain open.
+
+4. Update Section 14 — Final Recommendation
+Keep overall recommendation as B if operational DNS blockers remain.
+
+But clarify:
+- Auth/signup/recovery no longer blocks cutover.
+- The remaining Stage 3 blockers are operational/domain readiness items:
+  - DNS owner
+  - SSL confirmation
+  - TTL lowering
+  - old hosting preservation
+  - production service env vars
+  - invoice upload end-to-end if considered broad portal rollout blocker
+
+5. Add protected subdomains note
+Add explicit note:
+- `admin.crbox.cr` is the internal operations/admin tool and must not be changed.
+- `clients.crbox.cr` is the legacy API/client system and must not be changed.
+- DNS cutover should only target `crbox.cr` and `www.crbox.cr`.
+- If nameservers or the whole DNS zone are moved, all existing records including `admin.crbox.cr` and `clients.crbox.cr` must be preserved.
+
+6. Add “Do not migrate auth yet” policy
+Add a short note:
+For this cutover, login/signup/password recovery should remain legacy-backed. Migrating auth to a new direct database is out of scope and should be treated as a separate future identity modernization project.
+
+7. Final report
+Return:
+- sections updated
+- blockers resolved
+- remaining blockers
+- updated readiness percentages
+- final A/B/C recommendation
+- whether a final go-live checklist task is now ready

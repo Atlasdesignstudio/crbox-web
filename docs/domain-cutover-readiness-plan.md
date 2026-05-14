@@ -607,7 +607,7 @@ Each item is classified as: ✅ Confirmed | ⚠️ Open blocker | ❓ Not yet ve
 | G1 | All 18 HTML pages load without JS errors on Replit preview URL | ❓ Not yet verified | Requires Stage 1 smoke test |
 | G2 | Login, logout, and session expiry work end-to-end | ❓ Not yet verified | Requires Stage 1 smoke test; `js/auth.js` auth gate confirmed in code |
 | G3 | Registration creates a real account end-to-end | ❓ Not yet verified | Requires Stage 2 validation; `/crbox-svc-token` proxy in place |
-| G4 | Password recovery delivers email | ⚠️ Open | `js/portal-api.js` `recoverPassword()` exists; functional audit status pending — source: referenced Task #545 |
+| G4 | Password recovery delivers email — audit status | ✅ Confirmed for cutover | Task #545 complete. Recommendation **A — Safe for domain cutover with documented legacy limitations.** Recovery still uses legacy `GET /getuserpasswordrecovery/{email}` (email in URL path — accepted risk, listed as future modernization). 60-second in-memory cooldown implemented. Source: `docs/auth-registration-password-recovery-audit.md` |
 | G5 | Package list loads for a logged-in user | ❓ Not yet verified | Legacy `getPackages()` path available; RDS shadow validation in progress |
 | G6 | Invoice list loads for a logged-in user | ❓ Not yet verified | Legacy `getBills()` / `getfacturas` path is active; RDS gated |
 | G7 | Invoice upload + `postcreatepurchasebill` end-to-end confirmed in production | ⚠️ Open | Not fully confirmed in production — source: `replit.md` Gotchas |
@@ -695,7 +695,7 @@ The following rules govern the treatment of legacy systems during and after the 
 | # | Blocker | Severity | Affected route or flow | Owner | Recommended next action | Classification |
 |---|---|---|---|---|---|---|
 | B1 | DNS owner not documented | Critical | All routes (DNS cutover cannot proceed) | Unknown — open item | Identify the person with domain registrar access; document their name and contact; confirm they are available for the cutover window | **Blocks DNS cutover** |
-| B2 | Password recovery audit not confirmed passing | High | `/login.html` → password recovery flow | Engineering | Complete the functional audit (referenced Task #545); confirm recovery email is delivered and the link works; document the result | **Blocks broad portal rollout** |
+| B2 | ~~Password recovery audit not confirmed passing~~ — **Resolved 2026-05-14** | ~~High~~ Resolved | `/login.html` → password recovery flow | Engineering | Task #545 complete. Final recommendation: A — Safe for domain cutover with documented legacy limitations. 60-second in-memory cooldown added (`login.html`). Mobile admin list aligned (`js/mobile-drawer.js`). Source: `docs/auth-registration-password-recovery-audit.md`. | **No longer blocks portal rollout** |
 | B3 | `postcreatepurchasebill` end-to-end not confirmed in production | High | `/mis-facturas.html` → invoice upload | Engineering | Execute end-to-end invoice upload test in production (upload → `postcreatepurchasebill` → visible in CRBOX admin); document pass/fail — source: `replit.md` Gotchas | **Blocks broad portal rollout** |
 | B4 | RDS packages shadow validation in progress | Medium | `/mis-paquetes.html` | Engineering | Complete shadow compare via `/api/admin/rds-shadow-compare`; target countDelta=0; activate RDS path after passing — source: `server.py` `/api/admin/rds-shadow-compare` | **Non-blocking but recommended** before activating RDS path |
 | B5 | RDS invoices production shadow validation pending | Medium | `/mis-facturas.html` | Engineering | Run production shadow compare for invoices; QA already passed in dev/test; resolve Phase 2 gaps or document as acceptable — source: `server.py` lines 14015–14018 | **Non-blocking but recommended** before activating RDS path |
@@ -713,10 +713,10 @@ The following rules govern the treatment of legacy systems during and after the 
 |---|---|---|
 | **Public marketing site** (index, servicios, como-funciona, tarifas, calculadora, contacto, afiliate, privacidad, terminos) | **90%** | All pages confirmed present with correct SEO tags and GTM. Blockers: env vars for registration (B6), SSL confirmation (B7). Static content is fully ready. |
 | **Client portal core** (dashboard, packages, invoices, account, solicitudes) | **70%** | Portal UI is built; legacy API fallbacks in place. Blockers: invoice upload end-to-end unconfirmed (B3), RDS shadow validations open (B4, B5). |
-| **Auth / signup / recovery** | **75%** | Login flow is confirmed working (from `replit.md` Gotchas). Registration depends on env vars (B6). Password recovery audit pending (B2). |
+| **Auth / signup / recovery** | **92%** | Login flow confirmed working. Password recovery audit complete (B2 resolved) — recommendation A. 60-second cooldown and mobile admin list fix implemented. Remaining 8%: registration env vars not confirmed in production deployment (B6). |
 | **Analytics / SEO** | **95%** | GTM confirmed in all pages; robots.txt, sitemap, canonicals, noindex all confirmed correct. Minor gap: HTTP 404 status code unconfirmed (B10). |
 | **DNS / cutover readiness** | **40%** | DNS owner unknown (B1), SSL not confirmed (B7), TTL not lowered (B8), old hosting preservation not confirmed (B9). These are all operational blockers, not code issues. |
-| **Overall** | **70%** | Public site and SEO are effectively ready. Portal is functionally complete but requires production validation. DNS/operational blockers are the critical path to Stage 3. |
+| **Overall** | **73%** | Public site and SEO are effectively ready. Auth/signup/recovery are confirmed ready (B2 resolved). Portal is functionally complete but requires production validation. DNS/operational blockers remain the critical path to Stage 3. |
 
 ---
 
@@ -736,19 +736,36 @@ The DNS cutover should be understood as a **domain switch**, not a migration awa
 - The old site hosting will be preserved on standby for the confidence period and must not be decommissioned.
 - Legacy decommission is a separate future project, scoped only after the confidence period ends.
 
+### Do Not Migrate Auth for This Cutover
+
+Login, signup, and password recovery must remain **legacy-backed** through this cutover. They call `clients.crbox.cr` directly (login) or via the server-side proxy (registration). Migrating auth to a new direct database is entirely out of scope and must be treated as a separate future identity modernization project. The auth audit (Task #545) confirmed these flows are safe for cutover as-is.
+
+### Protected Subdomains — Do Not Touch
+
+The DNS cutover scope is limited to `crbox.cr` and `www.crbox.cr` only:
+
+| Subdomain | Purpose | Cutover action |
+|---|---|---|
+| `crbox.cr` | New public site and portal | **Target — cut over** |
+| `www.crbox.cr` | www redirect to `crbox.cr` | **Target — cut over** |
+| `clients.crbox.cr` | Legacy CRBOX API and client portal | **Leave completely unchanged** |
+| `admin.crbox.cr` | Internal CRBOX operations/admin tool | **Leave completely unchanged** |
+
+If the DNS nameservers or the entire DNS zone are moved to a new provider, all existing DNS records — including `clients.crbox.cr` and `admin.crbox.cr` — must be recreated exactly in the new zone before the TTL expires. Failure to preserve these records would break all API calls and the internal admin tool immediately.
+
 ### Items That Must Be Resolved Before Stage 3 (DNS Cutover)
 
 These items must be resolved before the DNS cutover window opens:
 
-| Priority | Item | Blocker ref |
-|---|---|---|
-| 1 | Identify and document the DNS owner; confirm their availability | B1 |
-| 2 | Confirm SSL certificate is provisioned for `crbox.cr` and `www.crbox.cr` on Replit | B7 |
-| 3 | Lower DNS TTL to ~300s at least 24h before the cutover window | B8 |
-| 4 | Confirm old hosting is active and preserved for rollback | B9 |
-| 5 | Verify `CRBOX_SVC_EMAIL` / `CRBOX_SVC_PASSWORD` are set in the Replit production deployment | B6 |
-| 6 | Complete password recovery functional audit (Task #545) | B2 |
-| 7 | Execute `postcreatepurchasebill` end-to-end invoice upload test in production | B3 |
+| Priority | Item | Blocker ref | Status |
+|---|---|---|---|
+| 1 | Identify and document the DNS owner; confirm their availability | B1 | ⚠️ Open |
+| 2 | Confirm SSL certificate is provisioned for `crbox.cr` and `www.crbox.cr` on Replit | B7 | ⚠️ Open |
+| 3 | Lower DNS TTL to ~300s at least 24h before the cutover window | B8 | ⚠️ Open |
+| 4 | Confirm old hosting is active and preserved for rollback | B9 | ⚠️ Open |
+| 5 | Verify `CRBOX_SVC_EMAIL` / `CRBOX_SVC_PASSWORD` are set in the Replit production deployment | B6 | ⚠️ Open |
+| ~~6~~ | ~~Complete password recovery functional audit (Task #545)~~ | B2 | ✅ **Done** — Task #545 complete; recommendation A |
+| 6 | Execute `postcreatepurchasebill` end-to-end invoice upload test in production | B3 | ⚠️ Open |
 
 ### Items Recommended Before Broad Portal Rollout (Stage 4)
 
@@ -764,24 +781,26 @@ These are not Stage 3 blockers but should be resolved during the Stage 4 monitor
 
 | Metric | Value |
 |---|---|
-| **Overall rating** | B — Needs specific fixes before cutover |
+| **Overall rating** | B — Needs specific fixes before cutover (operational/DNS blockers only) |
 | **Public marketing site readiness** | 90% |
 | **Client portal core readiness** | 70% |
-| **Auth / signup / recovery readiness** | 75% |
+| **Auth / signup / recovery readiness** | **92%** *(was 75% — B2 resolved)* |
 | **Analytics / SEO readiness** | 95% |
 | **DNS / cutover operational readiness** | 40% |
-| **Overall readiness** | 70% |
+| **Overall readiness** | **73%** *(was 70%)* |
 | **Hard blockers for DNS cutover** | 4 (B1 DNS owner, B7 SSL, B8 TTL, B9 old hosting) |
-| **Recommended next tasks** | Identify DNS owner, confirm Replit custom domain SSL, set env vars in production, complete Task #545 password recovery audit, execute invoice upload end-to-end test |
+| **Auth is a blocker?** | **No** — Task #545 complete; recommendation A |
+| **Remaining open Stage 3 blockers** | B1, B6, B7, B8, B9, B3 (5 operational + 1 portal validation) |
 
-**Recommended next tasks before cutover:**
+**Remaining tasks before cutover:**
 1. Identify DNS owner and document access credentials (B1)
 2. Confirm Replit custom domain SSL for `crbox.cr` / `www.crbox.cr` (B7)
 3. Lower DNS TTL to ~300s at least 24h before the cutover window (B8)
 4. Confirm old hosting will be preserved for the rollback confidence period (B9)
 5. Verify `CRBOX_SVC_EMAIL` and `CRBOX_SVC_PASSWORD` are set in the Replit deployment environment (B6)
-6. Complete password recovery audit (Task #545) and document result (B2)
-7. Execute invoice upload → `postcreatepurchasebill` → CRBOX admin visibility test in production (B3)
-8. Run the complete Pre-Cutover Smoke Test Checklist (Section 8) against the Replit preview URL
+6. Execute invoice upload → `postcreatepurchasebill` → CRBOX admin visibility test in production (B3)
+7. Run the complete Pre-Cutover Smoke Test Checklist (Section 8) against the Replit preview URL
 
-Once all Stage 3 hard blockers are resolved, the site is ready for DNS cutover with the legacy API coexistence model in place. RDS read path activation can proceed incrementally during Stage 4 without requiring another DNS change.
+*(Password recovery audit — Task #545 — is complete and no longer appears on this list.)*
+
+Once all Stage 3 hard blockers are resolved, the site is ready for DNS cutover with the legacy API coexistence model in place. Auth/signup/recovery remain legacy-backed throughout. RDS read path activation can proceed incrementally during Stage 4 without requiring another DNS change.
