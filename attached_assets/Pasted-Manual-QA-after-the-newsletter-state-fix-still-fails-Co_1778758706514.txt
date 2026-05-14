@@ -1,0 +1,94 @@
+Manual QA after the newsletter state fix still fails.
+
+Confirmed:
+- `postedituser` is called.
+- Response is `{"StatusResult":"OK","Message":""}`.
+- However, after clicking “Guardar Preferencias”, the “Promociones y ofertas especiales” checkbox still does NOT remain visually checked.
+
+So the backend request succeeds, but the UI/checkbox state is still wrong.
+
+Please investigate this specific newsletter checkbox issue only.
+
+Evidence:
+- RDS profile read path works.
+- `window.__crboxUserInfoLegacy` exists.
+- `postedituser` returns OK.
+- But checkbox stays unchecked after save.
+
+Please check:
+
+1. Identify the actual checkbox DOM element
+Confirm the real input element used by the “Promociones y ofertas especiales” UI:
+- its id
+- its name
+- its selector
+- whether it is a real `<input type="checkbox">`
+- whether there is a custom visual wrapper that also needs a class/state update
+
+2. Confirm the click changes the real value
+Before clicking save, log safely:
+- checkbox.checked
+- the value that will be sent as receivesNewsletter
+
+Do not log raw PII.
+
+3. Confirm the payload value
+Inspect the payload builder and confirm that when the box is checked, the payload sent to `postedituser` contains:
+`receivesNewsletter = true`
+or the exact expected legacy field equivalent.
+
+When unchecked, it should send false.
+
+Do not log the full payload if it contains PII. Log only the newsletter boolean.
+
+4. Confirm `_patchNewsletterCheckbox()` targets the correct element
+The helper may be updating the wrong checkbox or a stale DOM reference.
+
+It must update the exact visible checkbox:
+- input.checked = savedValue
+- if there is a custom class/visual state, update that too
+- do not rely on re-rendering the whole profile
+
+5. Confirm no later code overwrites the value
+After postedituser OK:
+- checkbox should be set immediately to the user’s intended value
+- any subsequent `getUserInfo()` or RDS patch must not overwrite it with stale false
+- if legacy response is stale, preserve the user’s saved intent locally until confirmed otherwise
+
+6. Add temporary safe debug logs only for this boolean
+Add logs like:
+`[CRBOX mi-cuenta] newsletter before save: true/false`
+`[CRBOX mi-cuenta] newsletter payload value: true/false`
+`[CRBOX mi-cuenta] newsletter patch applied: true/false`
+`[CRBOX mi-cuenta] newsletter after patch DOM checked: true/false`
+
+Do not log user object, payload, ID, phone, address, or token.
+
+7. Re-test expected behavior
+After fix:
+- Check the box.
+- Click Guardar Preferencias.
+- Network shows postedituser OK.
+- Checkbox remains checked immediately.
+- Reload page.
+- Checkbox remains checked if legacy live value confirms it.
+- Uncheck the box.
+- Click Guardar Preferencias.
+- Checkbox remains unchecked.
+- Reload page.
+- Checkbox remains unchecked if legacy live value confirms it.
+
+8. Important
+Do not touch:
+- RDS profile endpoint
+- profile edit/save beyond the newsletter state handling
+- password change
+- login
+- registration
+- packages
+- invoices
+- dashboard
+- AWS/RDS settings
+- DB schema
+
+This should be a targeted checkbox DOM/state/payload fix only.

@@ -817,7 +817,9 @@
                     var rawInfo = window.__crboxUserInfoLegacy || window.__crboxUserInfo || {};
                     var newsletterEl = document.getElementById('notify_promotions');
                     var formEdits = { receivesNewsletter: newsletterEl ? !!newsletterEl.checked : false };
+                    console.log('[CRBOX mi-cuenta] newsletter before save:', formEdits.receivesNewsletter);
                     var payload = CRBOXAuth.buildUpdateProfilePayload(rawInfo, formEdits);
+                    console.log('[CRBOX mi-cuenta] newsletter payload value:', formEdits.receivesNewsletter);
 
                     CRBOXPortalAPI.updateProfile(payload)
                         .then(function (result) {
@@ -837,22 +839,28 @@
                             window.__crboxUserInfo = result.userInfo || window.__crboxUserInfo;
                             if (window.CRBOX && CRBOX.track) { try { CRBOX.track.profile_update_success('notifications'); } catch (_e) {} }
                             btn.innerHTML = '<i class="fas fa-check mr-2"></i> ¡Guardado!';
-                            // Immediately confirm the checkbox from the saved value — do
-                            // not wait for the re-fetch which may return a stale value.
+                            // Immediately set the checkbox to the saved intent.
+                            // We do NOT rely on the post-save re-fetch for the checkbox
+                            // because updateProfile() internally calls getUserInfo() and
+                            // a second re-fetch fires right after — both may return a stale
+                            // value if the CRBOX API hasn't propagated the change yet,
+                            // which would overwrite the correct saved state.
                             if (typeof window.__crboxPatchNewsletter === 'function') {
                                 window.__crboxPatchNewsletter({ Consignee: { ReceivesNewsletter: savedNewsletter } });
                             }
-                            // Re-fetch to keep __crboxUserInfoLegacy fresh for future
-                            // writes.  We patch only the checkbox here — NOT a full
-                            // _applyProfile re-render — to avoid overwriting the correct
-                            // checkbox state if the CRBOX API hasn't reflected the save yet.
+                            // Re-fetch to keep __crboxUserInfoLegacy accurate for future
+                            // write payloads.  Do NOT touch the checkbox here — the CRBOX
+                            // API may not have reflected the saved value yet, and calling
+                            // _patchNewsletterCheckbox(info) with a stale response would
+                            // undo the correct state the user just saved.
                             CRBOXPortalAPI.clearUserInfoCache();
                             CRBOXPortalAPI.getUserInfo().then(function (info) {
                                 window.__crboxUserInfoLegacy = info;
                                 window.__crboxUserInfo = info;
-                                if (typeof window.__crboxPatchNewsletter === 'function') {
-                                    window.__crboxPatchNewsletter(info);
-                                }
+                                // Intentionally NOT calling _patchNewsletterCheckbox(info)
+                                // here — the saved intent was already applied above.
+                                // If the re-fetch confirms the same value, no change needed.
+                                // If it returns stale (API lag), overwriting would be wrong.
                             }).catch(function () {});
                             setTimeout(function () { btn.innerHTML = originalHTML; btn.disabled = false; }, 2000);
                         })
@@ -1070,7 +1078,11 @@
         var c = (info && info.Consignee) ? info.Consignee : info;
         var val = c.receivesNewsletter || c.ReceivesNewsletter || false;
         var el = document.getElementById('notify_promotions');
-        if (el) el.checked = !!val;
+        console.log('[CRBOX mi-cuenta] newsletter patch applied:', !!val, '| DOM el found:', !!el);
+        if (el) {
+          el.checked = !!val;
+          console.log('[CRBOX mi-cuenta] newsletter after patch DOM checked:', el.checked);
+        }
       }
       window.__crboxPatchNewsletter = _patchNewsletterCheckbox;
 
