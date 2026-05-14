@@ -825,9 +825,16 @@ Four issues were left at pre-task state after Task #535 and corrected in the fol
 
 ## Final Recommendation
 
-### Recommendation: **A — Proceed to frontend wiring**
+### Recommendation: **A — Frontend wiring complete. Dev QA in progress.**
 
-**Rationale:**
+**Wiring status (2026-05-14):**
+- `GET /api/portal/profile-rds` endpoint implemented in `server.py`
+- `CRBOXPortalAPI.getProfileRDS()` + `_mapRdsProfile()` added to `js/portal-api.js` (v4)
+- `mi-cuenta.html` wired with RDS-first + silent legacy fallback pattern (identical to `mis-paquetes` / `mis-facturas`)
+- `USE_RDS_PROFILE_FRONTEND=true` set in `development` environment; production remains off
+- Full QA checklist: `docs/rds-profile-frontend-wiring.md`
+
+**Rationale for original A recommendation:**
 
 - `joinValidationStatus`: `all_joins_succeeded`
 - `failedJoins`: `[]` (zero failures)

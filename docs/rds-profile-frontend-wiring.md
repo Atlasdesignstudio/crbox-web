@@ -1,7 +1,8 @@
 # RDS Profile Frontend Wiring
 
-**Status:** Implemented — feature flag off by default (`USE_RDS_PROFILE_FRONTEND` unset).
-**Date:** 2026-05-14
+**Status:** Dev QA in progress — `USE_RDS_PROFILE_FRONTEND=true` active in `development` environment. Production remains off.
+**Wiring date:** 2026-05-14
+**Dev flag enabled:** 2026-05-14
 **Pattern:** Identical to `mis-paquetes` (RDS packages) and `mis-facturas` (RDS invoices).
 
 ---
@@ -140,8 +141,13 @@ intentionally unchanged — write flows remain on the legacy path in this phase.
 
 ## QA
 
-### Enable the flag (dev only)
-Set `USE_RDS_PROFILE_FRONTEND=true` in Replit Secrets, restart the server.
+### Flag status
+`USE_RDS_PROFILE_FRONTEND=true` is **active in `development` environment**.
+Production is off — will be enabled after this checklist passes.
+
+Verified live:
+- `/api/config` → `{ featureFlags: { useRdsProfile: true, … } }` ✓
+- `/api/portal/profile-rds` (no auth) → `401 auth_required` (not `503`) ✓
 
 ### Browser console helpers
 ```js
@@ -151,26 +157,67 @@ window._qaLoadProfile()
 // Inspect the raw RDS response (all fields already masked by server)
 window.__crboxRdsProfileRaw
 
-// Force-reload the profile from whichever path is active
+// Force-reload from a specific path
 CRBOXPortalAPI.getProfileRDS()   // RDS directly
 CRBOXPortalAPI.getUserInfo()     // Legacy directly
 ```
 
-### Checklist
-- [ ] `USE_RDS_PROFILE_FRONTEND=false` (unset): page loads normally, no console errors.
-- [ ] `USE_RDS_PROFILE_FRONTEND=true`: name, email, casillero, phone, ID, sucursal all render.
-- [ ] `USE_RDS_PROFILE_FRONTEND=true`: profile-edit save still works (legacy write path unchanged).
-- [ ] `USE_RDS_PROFILE_FRONTEND=true`: password-change save still works.
-- [ ] `_qaLoadProfile()` logs `source: 'rds'` when flag is on, `source: 'legacy'` when off.
-- [ ] `window.__crboxRdsProfileRaw` is populated when RDS path runs; no raw PII visible.
-- [ ] Discount badge hidden on RDS path (expected — no PendingDiscount in RDS).
-- [ ] Province field shows raw code or blank (not an error) — matches legacy un-translated behaviour.
-- [ ] Logged-out user: page redirects correctly (auth guard unchanged).
+### Manual QA checklist — `mi-cuenta.html` RDS integration
+
+> Open browser DevTools → Network tab before loading `mi-cuenta.html`.
+> Log in as a test account. Run `window._qaLoadProfile()` in the console after load.
+
+**API / network checks**
+- [ ] `/api/config` response contains `useRdsProfile: true`
+- [ ] `/api/portal/profile-rds` fires on page load (visible in Network tab)
+- [ ] Legacy `getuserinfo` does **not** fire unless fallback is triggered (check Network tab)
+- [ ] `/api/portal/profile-rds` response contains **no** `identificationNumber` (raw)
+- [ ] `/api/portal/profile-rds` response contains **no** `phoneNumber` (raw)
+- [ ] `/api/portal/profile-rds` response contains **no** `cedulaJuridica`
+- [ ] `/api/portal/profile-rds` response contains **no** `joinValidationStatus`, `failedJoins`, or `_withheldFields`
+
+**Profile render — desktop**
+- [ ] Profile name renders correctly (first + last name)
+- [ ] Casillero renders correctly (numeric `idConsignee` shown as `Casillero #XXXXXXXX`)
+- [ ] Email renders correctly
+- [ ] Sucursal renders correctly (branch name, e.g. "Sabana Norte (Oficina Central)")
+- [ ] Address list renders correctly (all CR delivery addresses shown)
+- [ ] Phone field renders masked (e.g. `****0222`) — privacy improvement, expected
+- [ ] Identification number renders masked (e.g. `****0649`) — privacy improvement, expected
+- [ ] Newsletter checkbox / state renders correctly (checked if `receivesNewsletter=true`)
+- [ ] Discount badge is hidden (expected — `PendingDiscount` column does not exist in RDS)
+- [ ] Province field: single-char code or blank is acceptable (not a regression)
+
+**Edit / save flows (must stay on legacy write path)**
+- [ ] Profile-edit save still works correctly (name, phone, address)
+- [ ] Password-change save still works correctly
+
+**Auth / fallback**
+- [ ] Fallback to legacy still works: temporarily set `USE_RDS_PROFILE_FRONTEND=false`, reload page — profile still loads via `getUserInfo()`, no visible error
+- [ ] Logged-out user: page redirects correctly (auth guard unchanged)
+
+**Console / QA helpers**
+- [ ] `_qaLoadProfile()` logs `source: 'rds'` when flag is on
+- [ ] `_qaLoadProfile()` logs `source: 'legacy'` when flag is off
+- [ ] `window.__crboxRdsProfileRaw` is populated after RDS path runs; no raw PII visible
+
+**Mobile layout**
+- [ ] Mobile layout renders correctly (name, casillero badge, all fields visible)
+- [ ] No layout breakage introduced by the wiring changes
+
+---
+
+## Manual QA result
+
+**Outcome:** _(pending — to be filled in after testing)_
+**Tester:** _(pending)_
+**Date tested:** _(pending)_
+**Ready for production enablement:** _(pending)_
 
 ---
 
 ## Activation for production
-1. Confirm QA checklist above passes on dev.
-2. Set `USE_RDS_PROFILE_FRONTEND=true` in **production** Replit Secrets.
+1. Confirm all checklist items above pass.
+2. Set `USE_RDS_PROFILE_FRONTEND=true` in **production** Replit Secrets (not `development` — production requires `shared` or `production` scope).
 3. Restart the production server.
-4. Verify `window._qaLoadProfile()` in browser console on the live site.
+4. Verify `window._qaLoadProfile()` in browser console on the live site returns `source: 'rds'`.
