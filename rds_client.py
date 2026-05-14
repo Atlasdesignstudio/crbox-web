@@ -1,12 +1,28 @@
 """rds_client.py — Read-only MySQL/RDS connection layer for the CRBOX portal.
 
-Credentials are read exclusively from environment variables — never hard-coded:
-  MYSQL_HOST      — RDS endpoint hostname
-                    (e.g. crboxdbserver.xxxx.us-east-1.rds.amazonaws.com)
-  MYSQL_PORT      — TCP port (default: 3306)
-  MYSQL_DATABASE  — Database name (e.g. crboxfabric)
-  MYSQL_USER      — MySQL user (e.g. crbox_portal_readonly)
-  MYSQL_PASSWORD  — Password for that user
+Credentials are read from environment variables — never hard-coded.
+Two credential namespaces are supported with a clear priority order:
+
+  Priority 1 — RDS_PORTAL_* namespace (production portal user)
+    Used automatically when RDS_PORTAL_HOST is set.
+    This namespace carries the dedicated read-only portal credentials
+    (crbox_portal_ro / CrBox) and must never be set in development.
+
+    RDS_PORTAL_HOST      — Production RDS endpoint hostname
+    RDS_PORTAL_PORT      — TCP port (default: 3306)
+    RDS_PORTAL_DATABASE  — Production database name (CrBox)
+    RDS_PORTAL_USER      — Read-only portal user (crbox_portal_ro)
+    RDS_PORTAL_PASSWORD  — Password for crbox_portal_ro (Replit secret)
+
+  Priority 2 — MYSQL_* namespace (development fallback)
+    Used when RDS_PORTAL_HOST is not set.  Dev environment continues to
+    connect as CrBoxUser / crbox_dev1 with no changes required.
+
+    MYSQL_HOST      — Dev RDS endpoint hostname
+    MYSQL_PORT      — TCP port (default: 3306)
+    MYSQL_DATABASE  — Dev database name (crbox_dev1)
+    MYSQL_USER      — Dev user (CrBoxUser)
+    MYSQL_PASSWORD  — Dev password (Replit secret)
 
 This module is intentionally minimal and read-only:
   • Only fetch_one() and fetch_all() are exposed — no write helpers.
@@ -30,23 +46,46 @@ import pymysql.cursors
 
 def _connect():
     """Open a new pymysql connection using environment variables.
-    Raises KeyError with a helpful message when required vars are missing.
-    Never logs the password value.
+
+    Credential namespace priority:
+      1. RDS_PORTAL_* — used when RDS_PORTAL_HOST is set (production).
+      2. MYSQL_*      — fallback when RDS_PORTAL_HOST is absent (development).
+
+    Raises EnvironmentError when required vars in the active namespace are
+    missing.  Never logs the password value.
     """
-    missing = [v for v in ('MYSQL_HOST', 'MYSQL_DATABASE', 'MYSQL_USER', 'MYSQL_PASSWORD')
+    use_portal = bool(os.environ.get('RDS_PORTAL_HOST', '').strip())
+
+    if use_portal:
+        host_key     = 'RDS_PORTAL_HOST'
+        port_key     = 'RDS_PORTAL_PORT'
+        database_key = 'RDS_PORTAL_DATABASE'
+        user_key     = 'RDS_PORTAL_USER'
+        password_key = 'RDS_PORTAL_PASSWORD'
+        namespace    = 'RDS_PORTAL_*'
+    else:
+        host_key     = 'MYSQL_HOST'
+        port_key     = 'MYSQL_PORT'
+        database_key = 'MYSQL_DATABASE'
+        user_key     = 'MYSQL_USER'
+        password_key = 'MYSQL_PASSWORD'
+        namespace    = 'MYSQL_*'
+
+    missing = [v for v in (host_key, database_key, user_key, password_key)
                if not os.environ.get(v, '').strip()]
     if missing:
         raise EnvironmentError(
-            f'RDS credentials not configured. Missing env vars: {", ".join(missing)}. '
-            'Please add them as Replit secrets before enabling USE_RDS_PORTAL_API.'
+            f'RDS credentials not configured ({namespace} namespace). '
+            f'Missing env vars: {", ".join(missing)}. '
+            'Please add them before enabling USE_RDS_PORTAL_API.'
         )
 
     return pymysql.connect(
-        host=os.environ['MYSQL_HOST'].strip(),
-        port=int(os.environ.get('MYSQL_PORT', '3306')),
-        database=os.environ['MYSQL_DATABASE'].strip(),
-        user=os.environ['MYSQL_USER'].strip(),
-        password=os.environ['MYSQL_PASSWORD'],
+        host=os.environ[host_key].strip(),
+        port=int(os.environ.get(port_key, '3306')),
+        database=os.environ[database_key].strip(),
+        user=os.environ[user_key].strip(),
+        password=os.environ[password_key],
         charset='utf8mb4',
         cursorclass=pymysql.cursors.DictCursor,
         autocommit=True,

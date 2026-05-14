@@ -59,6 +59,13 @@ USE_RDS_INVOICES_FRONTEND = "true"
 USE_RDS_PROFILE_FRONTEND = "true"
 EXPECTED_RDS_DATABASE = "crbox_dev1"
 
+[userenv.production]
+RDS_PORTAL_HOST = "crboxdbserver.cvfe6dzk8nhz.us-east-1.rds.amazonaws.com"
+RDS_PORTAL_PORT = "3306"
+RDS_PORTAL_DATABASE = "CrBox"
+RDS_PORTAL_USER = "crbox_portal_ro"
+EXPECTED_RDS_DATABASE = "CrBox"
+
 [[ports]]
 localPort = 3000
 externalPort = 80

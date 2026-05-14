@@ -3,8 +3,8 @@
 **Created:** 2026-05-14  
 **Scope:** `mis-paquetes`, `mis-facturas`, `mi-cuenta`  
 **Author:** Agent (from QA-confirmed dev/test state)  
-**Status:** Ready for production read-only shadow compare — not yet ready for broad production enablement  
-**Last updated:** 2026-05-14 — Blocker 1 (database guard) ✅ RESOLVED
+**Status:** Awaiting production read-only user creation — blocked on CRBOX infra team running `docs/crbox-portal-ro-setup.sql`  
+**Last updated:** 2026-05-14 — Blocker 2 (read-only user + RDS_PORTAL_* wiring) ⏳ PARTIAL — see Section 3.5
 
 ---
 
@@ -187,7 +187,39 @@ if active_db != _expected_db:
 | `EXPECTED_RDS_DATABASE=crbox_dev1`, active DB = `some_other_db` | ✅ Guard fails closed |
 
 **Dev/test env var set:** `EXPECTED_RDS_DATABASE=crbox_dev1` (development environment, Replit Secrets).  
-**Production:** set `EXPECTED_RDS_DATABASE=<production_db_name>` when production DB credentials are available. Do not set it in the `shared` environment — it must differ between dev and production.
+**Production:** `EXPECTED_RDS_DATABASE=CrBox` is set in the production environment. ✅ Done.
+
+---
+
+### 3.5 ⏳ Blocker 2 — Production read-only user creation (PARTIAL — 2026-05-14)
+
+**What is done:**
+
+| Item | Status |
+|---|---|
+| `rds_client.py` updated — dual `RDS_PORTAL_*` / `MYSQL_*` namespace with clean priority check | ✅ Done |
+| Production env vars set: `RDS_PORTAL_HOST`, `RDS_PORTAL_PORT`, `RDS_PORTAL_DATABASE`, `RDS_PORTAL_USER`, `EXPECTED_RDS_DATABASE=CrBox` | ✅ Done |
+| SQL script prepared for CRBOX infra team | ✅ `docs/crbox-portal-ro-setup.sql` |
+| `RDS_PORTAL_PASSWORD` Replit secret | ⏳ Awaiting user to set secret |
+| `crbox_portal_ro` MySQL user created on production RDS | ⏳ Awaiting CRBOX infra team to run SQL script |
+| Dev environment (`MYSQL_*` / `crbox_dev1`) | ✅ Unaffected — verified clean restart |
+| Frontend flags (`USE_RDS_PACKAGES_FRONTEND`, `USE_RDS_INVOICES_FRONTEND`, `USE_RDS_PROFILE_FRONTEND`) | ✅ All OFF in production |
+
+**Why `CrBoxUser` cannot create the portal user:**  
+`CrBoxUser` holds `ALL PRIVILEGES ON CrBox.*` but not the global `CREATE USER` privilege. On RDS, database-level `ALL PRIVILEGES` does not include user management — that requires the RDS master user. `CrBoxUser` cannot be used for this step.
+
+**Required actions (CRBOX infra team):**
+
+1. Connect to the production RDS instance as the master user (or any account with `CREATE USER`).
+2. Retrieve `RDS_PORTAL_PASSWORD` value from the Replit production secrets UI.
+3. Run `docs/crbox-portal-ro-setup.sql`, replacing `<RDS_PORTAL_PASSWORD>` with the actual secret value.
+4. Confirm `SHOW GRANTS FOR 'crbox_portal_ro'@'%'` shows SELECT-only grants — no INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, GRANT OPTION, or ALL PRIVILEGES.
+5. Optionally run the smoke-test queries listed at the bottom of the script.
+6. Notify the CRBOX dev team that the user is ready so the production shadow compare can proceed (Stage 1 of Section 7).
+
+**Required action (dev team / this agent):**
+
+- Add `RDS_PORTAL_PASSWORD` as a Replit production secret (see below — request is in progress).
 
 ---
 
@@ -195,18 +227,36 @@ if active_db != _expected_db:
 
 ### 4.1 Environment variables
 
+**Development** — uses `MYSQL_*` namespace (unchanged, no action required):
+
+| Variable | Value | Scope |
+|---|---|---|
+| `MYSQL_HOST` | dev RDS endpoint | shared |
+| `MYSQL_PORT` | `3306` | shared |
+| `MYSQL_DATABASE` | `crbox_dev1` | shared |
+| `MYSQL_USER` | `CrBoxUser` | shared |
+| `MYSQL_PASSWORD` | (Replit global secret) | global secret |
+| `EXPECTED_RDS_DATABASE` | `crbox_dev1` | development only |
+
+**Production** — uses `RDS_PORTAL_*` namespace (activated by presence of `RDS_PORTAL_HOST`):
+
+| Variable | Value | Scope | Status |
+|---|---|---|---|
+| `RDS_PORTAL_HOST` | `crboxdbserver.cvfe6dzk8nhz.us-east-1.rds.amazonaws.com` | production | ✅ Set |
+| `RDS_PORTAL_PORT` | `3306` | production | ✅ Set |
+| `RDS_PORTAL_DATABASE` | `CrBox` | production | ✅ Set |
+| `RDS_PORTAL_USER` | `crbox_portal_ro` | production | ✅ Set |
+| `RDS_PORTAL_PASSWORD` | (Replit secret — must be added) | global secret | ⏳ Pending |
+| `EXPECTED_RDS_DATABASE` | `CrBox` | production | ✅ Set |
+
+**Feature flags (both environments):**
+
 | Variable | Development value | Production value | Required? |
 |---|---|---|---|
-| `MYSQL_HOST` | dev RDS endpoint | production RDS endpoint | Yes |
-| `MYSQL_PORT` | `3306` | `3306` | Yes |
-| `MYSQL_DATABASE` | `crbox_dev1` | `<production_db_name>` | Yes |
-| `MYSQL_USER` | dev read-only user | production read-only user | Yes |
-| `MYSQL_PASSWORD` | (secret) | (secret — separate production secret) | Yes |
-| `EXPECTED_RDS_DATABASE` | `crbox_dev1` | `<production_db_name>` | Yes — once guard is made configurable |
 | `USE_RDS_PORTAL_API` | `true` | `true` (needed for shadow admin endpoints) | Yes for shadow stage |
-| `USE_RDS_PACKAGES_FRONTEND` | `true` | unset → `false` by default | Set per stage rollout |
-| `USE_RDS_INVOICES_FRONTEND` | `true` | unset → `false` by default | Set per stage rollout |
-| `USE_RDS_PROFILE_FRONTEND` | `true` | unset → `false` by default | Set per stage rollout |
+| `USE_RDS_PACKAGES_FRONTEND` | `true` | unset → `false` | Set per stage rollout |
+| `USE_RDS_INVOICES_FRONTEND` | `true` | unset → `false` | Development only |
+| `USE_RDS_PROFILE_FRONTEND` | `true` | unset → `false` | Development only |
 
 ### 4.2 Safe defaults
 
