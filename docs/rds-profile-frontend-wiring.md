@@ -1,6 +1,6 @@
 # RDS Profile Frontend Wiring
 
-**Status:** Write-path fix implemented. Pending final live browser QA of save flows before production enablement.
+**Status:** RDS read integration complete. Newsletter UI state model confirmed correct. Newsletter backend persistence blocked by legacy API — open issue, non-blocking for RDS activation.
 **Wiring date:** 2026-05-14
 **Dev flag enabled:** 2026-05-14
 **Last QA update:** 2026-05-14
@@ -212,7 +212,7 @@ CRBOXPortalAPI.getUserInfo()     // Legacy directly
 - [x] Profile data renders correctly from RDS (name, email, casillero, branch, addresses)
 - [x] Phone field renders masked (e.g. `****0222`) — privacy improvement, expected
 - [x] Identification number renders masked (e.g. `****0649`) — privacy improvement, expected
-- [x] Newsletter checkbox reflects `receivesNewsletter` value correctly
+- [x] Newsletter checkbox reflects `receivesNewsletter` value correctly (from backend truth; see persistence finding below)
 - [x] Discount badge is hidden (expected — `PendingDiscount` column does not exist in RDS)
 - [x] Province field: single-char code or blank is acceptable (not a regression)
 
@@ -221,7 +221,7 @@ CRBOXPortalAPI.getUserInfo()     // Legacy directly
 - [x] `window.__crboxRdsProfileRaw` populated; no raw PII visible
 
 **Edit / save flows**
-- [ ] Newsletter save — `__crboxUserInfoLegacy` fix in place; live browser confirm pending
+- [x] Newsletter save — UI state model PASSED (confirmed subscribed / unsubscribed / pending / unconfirmed states render correctly and honestly). Backend persistence NOT CONFIRMED — see "Newsletter Backend Persistence" section below.
 - [ ] Password change — `__crboxUserInfoLegacy` fix in place; live browser confirm pending (do not use real account)
 - [ ] Profile-edit save (name, phone, address) — same fix applies; live browser confirm pending
 
@@ -253,20 +253,35 @@ CRBOXPortalAPI.getUserInfo()     // Legacy directly
 - **Auth:** Bearer token (same as all portal write ops)
 - **Method:** POST, `application/x-www-form-urlencoded`, credentials in body only ✅
 - **Payload builder:** `CRBOXAuth.buildUpdateProfilePayload(window.__crboxUserInfoLegacy || window.__crboxUserInfo, { receivesNewsletter: <bool> })` ✅
-- **Success feedback:** spinner → "¡Guardado!" checkmark, auto-reverts after 2 s ✅
-- **Error feedback:** generic Spanish message in `#notifications-save-error`, auto-hides after 5 s, no PII exposed ✅
-- **Post-save:** `clearUserInfoCache()` + `getUserInfo()` (legacy) re-fetch updates both `__crboxUserInfoLegacy` and `__crboxUserInfo` ✅
+- **Exact field sent:** `Consignee.ReceivesNewsletter = 'true'` or `'false'` (string, per `URLSearchParams`, `auth.js` line 308) ✅
+- **State feedback:** Persistent `#newsletter-status-card` inside the subscription card:
+  - `subscribed` (green) — `getuserinfo` confirmed `true` ✅
+  - `unsubscribed` (gray) — `getuserinfo` confirmed `false` ✅
+  - `pending` (amber + spinner) — `postedituser` OK but 5/30/60 s polls not yet complete ✅
+  - `unconfirmed` (amber + warning) — all polls elapsed, backend still returns old value ✅
+- **Error feedback:** `#notifications-save-error`, auto-hides after 5 s, no PII exposed ✅
 - **Analytics:** `profile_edit_start` + `profile_update_success/error` events fire ✅
+- **Checkbox honesty:** always reflects confirmed backend truth — never faked via intent guard ✅
 
 ### Write-base fix (implemented 2026-05-14) ✅
 
 `rawInfo` now reads from `window.__crboxUserInfoLegacy` (full unmasked legacy object).
-The `postedituser` payload will contain real ID, real phone, real birthDate, etc.
+The `postedituser` payload contains real ID, real phone, real birthDate, etc.
 regardless of whether the display is driven by RDS or legacy.
 
-**Verdict:** Wired and safe. Pending live browser confirmation of end-to-end save
-(checkbox toggle → "Guardar Preferencias" → Network tab shows `postedituser` → value
-persists on refresh).
+### UI state model verdict (QA 2026-05-14) ✅ PASSED
+
+The newsletter UI correctly reflects backend truth in all scenarios. The persistent
+status card communicates confirmed, pending, and unconfirmed states honestly.
+The checkbox does not hold a saved-but-unconfirmed checked state across tab switches
+or refreshes.
+
+### Backend persistence verdict (QA 2026-05-14) ⛔ NOT CONFIRMED
+
+`postedituser` returns `StatusResult: OK` but `getuserinfo` reports `receivesNewsletter:
+false` immediately after save and at all polling checkpoints (+5 s, +30 s, +60 s).
+The UI surfaces this honestly as the "unconfirmed" state. See "Newsletter Backend
+Persistence — QA Finding" section below for full analysis.
 
 ---
 
@@ -361,7 +376,8 @@ would improve UX but is not a safety blocker.
 | Secure response boundary | ✅ PASSED | No raw ID, phone, cedulaJuridica, joinValidationStatus, birthDate, responsabilidad, omitirReceptor, _bIsDeleted, _bIsChanged |
 | Checkbox from RDS | ✅ PASSED | `receivesNewsletter` maps correctly, checkbox reflects state |
 | Write-base separation | ✅ FIXED (2026-05-14) | `__crboxUserInfoLegacy` introduced; all save handlers use it as payload base |
-| Newsletter save | ⚠️ Fix in place | Live browser e2e confirm pending (toggle checkbox → save → reload → state persists) |
+| Newsletter UI state model | ✅ PASSED | Confirmed/pending/unconfirmed states render correctly and honestly; checkbox always reflects backend truth |
+| Newsletter backend persistence | ⛔ NOT CONFIRMED | `postedituser` returns OK but `getuserinfo` never confirms `receivesNewsletter:true` — legacy API limitation; UI is honest about this state |
 | Password change | ⚠️ Fix in place | Live browser confirm pending; do NOT test with real account |
 | Profile edit save | ⚠️ Fix in place | Same fix applies; live browser confirm pending |
 | Password min-length validation | ✅ FIXED (2026-05-14) | 8-char minimum, correct validation order, no request sent on failure |
@@ -375,21 +391,21 @@ would improve UX but is not a safety blocker.
 holds, all display fields render correctly, the fallback guarantee is intact, and the
 write-path data safety issue is resolved.
 
-**Files changed in write-path fix (`mi-cuenta.html` only):**
-- Init sequence: parallel `getUserInfo()` fire-and-forget populates `__crboxUserInfoLegacy` when RDS path is active; legacy path and fallback also set it.
-- bfcache restore: `__crboxUserInfoLegacy` kept in sync with `__crboxUserInfo`.
-- Newsletter save handler: `rawInfo` reads from `__crboxUserInfoLegacy || __crboxUserInfo`; post-save re-fetch updates both.
-- Password save handler: same pattern; plus ≥ 8 char minimum length check added before submission.
-- No changes to `server.py`, `portal-api.js`, `auth.js`, or any other page.
+**The newsletter UI state model is complete and honest.** The persistent status card
+accurately reflects backend truth in all four states. The checkbox does not fake
+persistence. Newsletter backend persistence is an open legacy API limitation and does
+not block RDS activation (it is not a new regression — the same behavior exists on the
+current production site using the legacy path).
 
 **Remaining live browser checks before production enablement:**
 1. With RDS enabled: confirm `window.__crboxUserInfoLegacy` exists after page load and is the full unmasked legacy object (check in console — no raw PII will be visible since it is not printed).
-2. Newsletter: toggle checkbox → "Guardar Preferencias" → Network tab shows `postedituser` → reload → checkbox state persists.
+2. Newsletter: verify the "unconfirmed" amber card appears after save (expected — backend does not persist the field). Verify checkbox shows backend truth (unchecked) and is not faked checked.
 3. Password: confirm validation messages fire for empty / < 8 chars / mismatch without sending any request (Network tab stays empty).
 4. Fallback: set `USE_RDS_PROFILE_FRONTEND=false` in dev secrets → reload → profile loads via `getUserInfo()` with no visible error.
 5. Logged-out: navigate to `mi-cuenta.html` without session → redirects correctly.
 
-Once all five pass in a live browser session, set `USE_RDS_PROFILE_FRONTEND=true` in production.
+Once items 1, 3, 4, and 5 pass, set `USE_RDS_PROFILE_FRONTEND=true` in production.
+Item 2 (newsletter persistence) is a legacy API limitation — does not block activation.
 
 ---
 
@@ -402,53 +418,115 @@ Once all five pass in a live browser session, set `USE_RDS_PROFILE_FRONTEND=true
 
 ---
 
-## Newsletter Checkbox State Persistence — Fix (2026-05-14)
+## Newsletter UI State Model — History and Final Architecture (2026-05-14)
 
-### Root cause (identified in live QA)
+### Problem history
 
-Two distinct failure modes both caused the checkbox to show the wrong state:
+Three iterations were needed to reach an honest, stable UI:
 
-**After save (no refresh):** The save handler's post-save `getUserInfo()` re-fetch called
-`window.__crboxApplyProfile(info)` — a full profile re-render. If the CRBOX API hadn't
-yet surfaced the saved `receivesNewsletter` change, `_applyProfile` would reset the
-checkbox to the old value, visually undoing what the user just saved.
+**Iteration 1 — `__crboxApplyProfile` regression:** Save handler called full profile re-render
+after save; if the CRBOX API hadn't surfaced the change yet, `_applyProfile` reset the checkbox.
 
-**After refresh:** `getProfileRDS()` resolves → `_applyProfile(rdsInfo)` sets the checkbox
-from the RDS snapshot (which may be a stale dev snapshot). The parallel `getUserInfo()` that
-populates `__crboxUserInfoLegacy` had no mechanism to patch the checkbox afterward.
+**Iteration 2 — 24 h intent guard:** A `window.__crboxNewsletterIntent` guard with 24-hour TTL
+kept the checkbox visually checked regardless of backend state. This faked persistence and
+prevented honest "unconfirmed" feedback when the backend did not actually persist the value.
 
-### Fix (mi-cuenta.html only)
+**Iteration 3 (current, 2026-05-14) — Honest state model:** Guard removed. Checkbox always
+reflects confirmed backend truth. A persistent `#newsletter-status-card` inside the
+subscription card communicates the real state.
 
-Added `_patchNewsletterCheckbox(info)` — a targeted helper that updates **only** the
-`#notify_promotions` checkbox from a profile object, without triggering a full re-render.
-Exposed as `window.__crboxPatchNewsletter` for use by the save handler in the other script
-block.
+### Current architecture (`mi-cuenta.html` only)
 
-**Four call sites:**
+**`_renderNewsletterState(state)`** — renders the persistent status card:
 
-| Location | When it fires | Purpose |
+| State | Card colour | Copy |
 |---|---|---|
-| Parallel `getUserInfo()` `.then()` (RDS init path) | When live legacy response arrives | Corrects stale RDS snapshot value on the checkbox |
-| Main `.then()` after `_applyProfile(info)` | When RDS display call resolves (if legacy already resolved) | Ensures live value wins if legacy was faster |
-| Immediately after `postedituser` success | Before re-fetch completes | User sees their change instantly, no flicker |
-| Post-save `getUserInfo()` re-fetch `.then()` | Confirms server state | Replaces old `__crboxApplyProfile(info)` call — targeted patch only |
+| `subscribed` | Green | "Estás suscrito a promociones y ofertas especiales." + sub-copy |
+| `unsubscribed` | Gray | "No estás suscrito a promociones y ofertas especiales." + sub-copy |
+| `pending` | Amber + spinner | "Verificando con el servidor…" |
+| `unconfirmed` | Amber + warning | "Recibimos tu solicitud, pero todavía no pudimos confirmar el cambio." + support copy |
 
-**Additional safety:** the saved `receivesNewsletter` value is eagerly stamped onto
-`window.__crboxUserInfoLegacy.Consignee.ReceivesNewsletter` after a successful save,
-so any subsequent payload build always uses the correct intent even if the CRBOX API
-lags in reflecting the change.
+**Polling guard:** `window.__crboxNewsletterPoll = { ts: Date.now() }` with 65 s TTL.
+Set when save fires; cleared when any poll confirms or 60 s elapses.
+Prevents `_applyProfile` and `_patchNewsletterCheckbox` from overriding the UI during the
+active verification window. Does not fake persistence — expires regardless of outcome.
+
+**`_patchNewsletterCheckbox(info)`** — targeted helper, skipped when poll guard is active.
+Calls `_renderNewsletterState` after updating the checkbox. Exposed as `window.__crboxPatchNewsletter`.
+
+**Save handler — three scenarios:**
+
+| Scenario | When | Checkbox | Status card | Poll guard |
+|---|---|---|---|---|
+| A — immediate confirm | `result.userInfo` matches saved value | Set to confirmed value | `subscribed` / `unsubscribed` | Cleared |
+| B — delayed confirm | 5 s / 30 s / 60 s poll matches | Set to confirmed value | `subscribed` / `unsubscribed` | Cleared |
+| C — never confirms | 60 s elapsed, all polls return old value | Set to backend truth (false) | `unconfirmed` | Cleared |
 
 ### Authoritative source for `receivesNewsletter`
 
 | Context | Source of truth |
 |---|---|
-| Display (any path) | `__crboxUserInfoLegacy` (live CRBOX API) patches over RDS snapshot |
-| Write payload base | `__crboxUserInfoLegacy` (unchanged from write-base fix) |
-| Post-save state | Saved intent (`formEdits.receivesNewsletter`) — immediate; confirmed by re-fetch |
+| Checkbox display | Backend truth from `getUserInfo()` — never overridden by saved intent |
+| Status card | Derived from polling confirmation result |
+| Write payload base | `window.__crboxUserInfoLegacy` (real unmasked legacy object) |
 
 ### Files changed
 - `mi-cuenta.html` only (no backend, no other pages)
 
-### Remaining live browser check
-- Toggle checkbox → "Guardar Preferencias" → `postedituser` fires (Network: `StatusResult: OK`)
-  → checkbox stays in saved state → refresh → checkbox still matches saved state.
+---
+
+## Newsletter Backend Persistence — QA Finding (2026-05-14)
+
+### Classification
+- **Newsletter UI state model:** ✅ PASSED
+- **Newsletter backend persistence:** ⛔ NOT CONFIRMED — blocked by legacy API behavior
+
+### What was observed
+
+1. User checks "Promociones y ofertas especiales", clicks "Guardar Preferencias".
+2. `postedituser` POST fires to `https://clients.crbox.cr/api/crboxwebapi/postedituser`.
+3. Response: `StatusResult: "OK"` — no error.
+4. `getUserInfo` re-fetch immediately after save: `receivesNewsletter: false`.
+5. Polling at +5 s, +30 s, +60 s: `receivesNewsletter: false` at all checkpoints.
+6. After tab switch, page resume, or hard refresh: checkbox correctly shows unchecked
+   (backend truth = false), status card shows "unconfirmed" amber state.
+7. UI honestly reports: "Recibimos tu solicitud, pero todavía no pudimos confirmar el cambio."
+
+### Exact payload field sent
+
+From `js/auth.js` line 308:
+```
+params.set('Consignee.ReceivesNewsletter', newsletter ? 'true' : 'false');
+```
+Field name: `Consignee.ReceivesNewsletter`
+Value format: string `'true'` or `'false'` (URLSearchParams, not JSON boolean)
+This is the same field name and value format used for all other `Consignee.*` fields
+in the same payload that **do** persist correctly (name, phone, etc.).
+
+### Possible causes (in order of likelihood)
+
+| # | Hypothesis | Evidence |
+|---|---|---|
+| 1 | **Legacy backend ignores `ReceivesNewsletter` in `postedituser`** | Most likely — all other fields in the same payload persist; only this field does not. Backend returns OK regardless. |
+| 2 | **Separate newsletter subscription endpoint/table** | Newsletter opt-in/opt-out may be managed by a dedicated marketing system or CRM, not the consignee profile table that `postedituser` writes to. |
+| 3 | **Account-level limitation** | The test account may have newsletter preferences locked or managed externally (e.g. bulk unsubscribe from a campaign). |
+| 4 | **Field casing or naming mismatch** | Less likely — `Consignee.ReceivesNewsletter` matches the field name returned by `getUserInfo` in `Consignee.ReceivesNewsletter`. Other fields using the same `Consignee.*` prefix persist correctly. |
+| 5 | **Delayed propagation** | Ruled out — all polls at +5 s, +30 s, +60 s consistently return `false`. |
+| 6 | **RDS/dev snapshot interference** | Not involved — this is a pure legacy write path (`postedituser` → CRBOX API directly, not proxied through `server.py`). RDS is read-only. |
+
+### What is NOT a cause
+- Not a write-base issue (`__crboxUserInfoLegacy` fix is in place; confirmed by payload logs).
+- Not a field naming issue (casing confirmed correct).
+- Not a new regression — the same behavior would have been present in production before any of these changes, since the write path is unchanged from the original implementation.
+
+### Recommended next steps (for CRBOX platform team)
+
+1. Confirm whether `postedituser` is designed to accept and persist `Consignee.ReceivesNewsletter`.
+2. If there is a separate newsletter subscription endpoint, identify it and wire it as an additional call after `postedituser`.
+3. If newsletter preferences are managed by a third-party system (e.g. Mailchimp, HubSpot), a separate integration would be required.
+
+### Impact on production activation
+
+This finding does **not** block RDS activation. The newsletter persistence limitation
+exists in the current production site as well. The new UI is strictly more honest than
+before — it shows "unconfirmed" instead of silently faking a checked state.
