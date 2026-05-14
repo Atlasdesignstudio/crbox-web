@@ -1,0 +1,135 @@
+Manual browser QA for `mis-facturas` is complete and everything is correct.
+
+Please finalize the `mis-facturas` RDS integration task only.
+
+Confirmed during manual QA:
+
+- `USE_RDS_INVOICES_FRONTEND=true` works in dev/test.
+
+- `/api/config` returns `useRdsInvoices:true`.
+
+- `/api/portal/invoices-rds` is called correctly.
+
+- Legacy `getfacturas` does not fire unless fallback is triggered.
+
+- `_qaLoadBills(new Date('2022-01-01'), new Date('2022-06-30'))` works.
+
+- The page renders the expected 3 invoices.
+
+- Total facturas renders as 3.
+
+- Total facturado renders correctly as 66,69.
+
+- Invoice rows render correctly.
+
+- Dates and totals render correctly.
+
+- Summary cards look correct.
+
+- `Recibos` / invoice detail works correctly.
+
+- The download/file behavior does not crash when `fileLocation` is empty.
+
+- No `CRBOXPortalAPI.getBillsRDS` error remains.
+
+- No `undefined` or `[object Object]` visual issues were found.
+
+- No internal fields like `guiasHijas` or `idResumenMAWB` are exposed in the portal response.
+
+- Legacy fallback remains available.
+
+- Mobile layout looks correct.
+
+- Google Analytics/CSP console errors are unrelated to the invoices flow.
+
+Please now do only the closing work for `mis-facturas`:
+
+1. Update the final QA documentation.
+
+Update or create the relevant report, for example:
+
+`docs/rds-invoices-browser-qa-report.md`
+
+Include:
+
+- manual QA date
+
+- tested account: `prueba@crbox.cr`
+
+- tested range: 2022-01-01 to 2022-06-30
+
+- expected result: 3 invoices / 66,69 total
+
+- actual result: pass
+
+- endpoint behavior
+
+- fallback behavior
+
+- fields/security confirmation
+
+- mobile confirmation
+
+- known limitation: `invoiceFileUrl` remains empty/stubbed and download gracefully does nothing/no crash
+
+2. Confirm final files changed.
+
+List exactly which files were changed for the invoices integration:
+
+- `server.py`
+
+- `js/portal-api.js`
+
+- `mis-facturas.html`
+
+- docs files
+
+3. Confirm feature flag behavior.
+
+Document:
+
+- `USE_RDS_INVOICES_FRONTEND=false` or unset → legacy path only
+
+- `USE_RDS_INVOICES_FRONTEND=true` → RDS-first, legacy fallback on non-auth failure
+
+- 401/403 auth errors propagate and do not silently fallback
+
+4. Confirm rollback.
+
+Document the rollback:
+
+- remove or unset `USE_RDS_INVOICES_FRONTEND`
+
+- reload page
+
+- legacy `getfacturas` path resumes
+
+- no code change required
+
+5. Confirm safety invariants.
+
+Explicitly confirm:
+
+- no writes
+
+- no DB schema changes
+
+- no production DB queries
+
+- no AWS settings changed
+
+- no legacy endpoint removed
+
+- no packages/profile/dashboard/login/registration files touched
+
+- no credentials exposed
+
+- no internal fields exposed in portal response
+
+- `idConsignee` is resolved server-side and never accepted from the browser
+
+6. Final recommendation.
+
+Mark `mis-facturas` RDS integration as:
+
+“Ready for controlled enablement.”
