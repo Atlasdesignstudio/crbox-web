@@ -1735,54 +1735,6 @@ textarea:focus-visible {
     margin-bottom: 16px;
 }
 
-/* ─── Activation toast (dashboard one-time congrats) ──────────────── */
-.activation-toast {
-    position: fixed;
-    bottom: 20px; left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: #fff;
-    border: 1.5px solid #fed7aa;
-    border-left: 4px solid #ea580c;
-    border-radius: 14px;
-    padding: 14px 18px;
-    box-shadow: 0 18px 40px -16px rgba(0,0,0,0.25);
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    max-width: calc(100vw - 32px);
-    z-index: 60;
-    opacity: 0;
-    transition: opacity 0.25s ease, transform 0.25s ease;
-}
-.activation-toast.is-visible {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-}
-.activation-toast-icon {
-    width: 32px; height: 32px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: #fff7ed;
-    color: #ea580c;
-    border-radius: 9999px;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-.activation-toast-text {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #1f2937;
-}
-.activation-toast-close {
-    width: 26px; height: 26px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: transparent;
-    border: none;
-    color: #9ca3af;
-    border-radius: 9999px;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-}
-.activation-toast-close:hover { background: #f3f4f6; color: #374151; }
 
 /* ─── Setup-mode field emphasis (Mi Cuenta ?setup=1) ─────────────── */
 .setup-emphasis-wrap {

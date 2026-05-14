@@ -222,14 +222,6 @@
             </div>
         </div>
 
-        <!-- Activation toast (shown once when the account becomes Activated) -->
-        <div id="activation-toast" class="activation-toast hidden" role="status" aria-live="polite">
-            <i class="fas fa-rocket activation-toast-icon"></i>
-            <span class="activation-toast-text">¡Tu casillero está listo! Ya puedes recibir paquetes desde Miami.</span>
-            <button type="button" id="activation-toast-close" class="activation-toast-close" aria-label="Cerrar">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
 
         <!-- Activation Checklist (shown for new / incomplete accounts; non-dismissable) -->
         <section id="activation-card" class="activation-card hidden mb-6" aria-live="polite">
@@ -923,26 +915,6 @@
     var label = document.getElementById('activation-progress-label');
     if (label) label.textContent = done + ' de ' + total + ' completados';
   }
-  function _maybeShowActivationToast() {
-    var toast = document.getElementById('activation-toast');
-    if (!toast) return;
-    var shown = false;
-    try { shown = localStorage.getItem('crbox_activation_toast_shown') === '1'; } catch (e) {}
-    if (shown) return;
-    toast.classList.remove('hidden');
-    setTimeout(function () { toast.classList.add('is-visible'); }, 50);
-    try { localStorage.setItem('crbox_activation_toast_shown', '1'); } catch (e) {}
-    var closeBtn = document.getElementById('activation-toast-close');
-    function hide() {
-      toast.classList.remove('is-visible');
-      setTimeout(function () { toast.classList.add('hidden'); }, 250);
-    }
-    if (closeBtn && !closeBtn._wired) {
-      closeBtn._wired = true;
-      closeBtn.addEventListener('click', hide);
-    }
-    setTimeout(hide, 6000);
-  }
 
   function _maybeShowActivationCard(info) {
     var card = document.getElementById('activation-card');
@@ -953,8 +925,6 @@
     // (Created and Incomplete states both display the checklist.)
     if (state === 'activated') {
       card.classList.add('hidden');
-      // Show the one-time congratulatory toast.
-      _maybeShowActivationToast();
       return;
     }
 
