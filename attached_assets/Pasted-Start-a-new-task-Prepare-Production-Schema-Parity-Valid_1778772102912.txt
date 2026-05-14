@@ -1,0 +1,98 @@
+Start a new task: Prepare Production Schema Parity Validation Script
+
+Context:
+We are waiting for the CRBOX infra/dev team to execute `docs/crbox-portal-ro-setup.sql` and create the production read-only MySQL user `crbox_portal_ro`.
+
+Do not connect to production yet.
+Do not run production queries yet.
+Do not enable frontend RDS flags.
+
+Goal:
+Prepare a safe, read-only schema parity validation script/checklist that can be run later using `crbox_portal_ro` against the production database `CrBox`.
+
+This task is preparation only.
+
+Important:
+Do not touch production.
+Do not run SQL against production.
+Do not change DB credentials.
+Do not enable any RDS frontend flags.
+Do not modify business logic.
+Do not query customer rows.
+Do not log PII.
+No SELECT *.
+No writes.
+
+Deliverables:
+1. Create a document:
+`docs/rds-production-schema-parity-checklist.md`
+
+2. Create an optional SQL file:
+`docs/rds-production-schema-parity.sql`
+
+The SQL file should contain only read-only schema commands such as:
+- SELECT DATABASE();
+- SHOW COLUMNS FROM CrBox.<table>;
+- DESCRIBE CrBox.<table>;
+- SHOW CREATE VIEW CrBox.getwarehousereceipts;
+
+Do not include row-level customer queries.
+Do not include SELECT *.
+Do not include INSERT/UPDATE/DELETE/ALTER/DROP.
+
+Required objects to validate:
+
+Packages:
+- CrBox.getwarehousereceipts
+- CrBox.consignee
+- CrBox.status_general
+
+Invoices:
+- CrBox.resumenmawb
+- CrBox.masterairshipment
+- CrBox.descuentocorporativo
+- CrBox.airshipment
+- CrBox.warehousereceipt
+- CrBox.shipper
+- CrBox.carrierinformation
+- CrBox.carrier
+
+Profile:
+- CrBox.identificationtype
+- CrBox.Sucursal
+- CrBox.client
+- CrBox.plan
+- CrBox.address
+- CrBox.consignee_has_address
+- CrBox.addresstype
+- CrBox.phone
+- CrBox.consignee_has_phone
+- CrBox.phonetype
+
+For each object, document the expected columns based on the dev/test work already completed.
+
+The checklist should include:
+1. Object exists?
+2. Required columns exist?
+3. Column names match dev assumptions?
+4. Case sensitivity/capitalization issues?
+5. View definition available?
+6. Any missing object?
+7. Any missing critical column?
+8. Whether the object is needed by packages, invoices, profile, or multiple modules.
+9. Pass/fail column.
+10. Notes column.
+
+Also include a final classification:
+A. Schema parity passed — ready for production shadow compare.
+B. Minor differences found — code mapping update needed before shadow compare.
+C. Critical missing object/column — stop.
+
+Special notes:
+- `getwarehousereceipts` is critical for packages.
+- `resumenmawb` and `masterairshipment` are critical for invoices.
+- `consignee`, `Sucursal`, `address`, `phone`, and join tables are critical for profile.
+- `CrBox` database name must match `EXPECTED_RDS_DATABASE=CrBox`.
+- If SELECT DATABASE() is not `CrBox`, stop immediately.
+
+Do not execute the script in this task. Only prepare it.

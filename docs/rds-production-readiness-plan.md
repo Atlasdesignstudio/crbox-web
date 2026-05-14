@@ -269,53 +269,51 @@ if active_db != _expected_db:
 
 ## 5. Schema Parity Validation Plan
 
-Before enabling any production RDS frontend flag, confirm that the production database contains all required tables, views, and columns. Use the read-only DB user only. Run `SHOW COLUMNS FROM <table>` or `DESCRIBE <table>` — no `SELECT *`, no broad scans, no writes, no raw PII in output.
+**✅ Preparation complete (2026-05-14)** — artefacts ready for execution once `crbox_portal_ro` is confirmed created (Blocker 2, Section 3.5).
 
-### 5.1 Packages — required objects
+**Gate:** Schema parity execution requires `crbox_portal_ro` to exist on production RDS. Do not execute against production until Blocker 2 is fully resolved.
 
-| Object | Type | Critical columns |
+### 5.1 Artefacts
+
+| Artefact | Location | Purpose |
 |---|---|---|
-| `getwarehousereceipts` | View | `idWarehouseReceipt`, `number`, `statusId`, `statusName`, `trackingNumber`, `receivedDateTime`, `createdDate`, `totalPieces`, `totalWeight`, `totalVolume`, `totalVolumetricWeight`, `shipperName`, `carrierName`, `airShipmentNumber`, `masterAirShipmentNumber`, `emision`, `invoicesCount`, `descripcion`, `montoFactura`, `descripcionFactura`, `consigneeSucursalName`, `hasPackage`, `impresoFactura`, `consolidadoFactura`, `consigneeNotes` |
-| `consignee` | Table | `idConsignee`, `email` |
-| `status_general` | Table | `idStatus`, `statusName` |
+| SQL script | `docs/rds-production-schema-parity.sql` | Ready-to-run schema inspection — `SHOW COLUMNS`, `DESCRIBE`, `SHOW CREATE VIEW` only. No row queries, no DML, no DDL. |
+| Checklist | `docs/rds-production-schema-parity-checklist.md` | Fill in Pass/Fail per object after running the SQL. Includes Blocking? classification and final A/B/C result. |
 
-### 5.2 Invoices — required objects
+### 5.2 Coverage
 
-| Object | Type | Critical columns |
+21 objects across all three portal modules:
+
+| Section | Objects | Critical objects |
 |---|---|---|
-| `resumenmawb` | Table/View | `idResumenMAWB`, `idConsignee`, `factura`, `billedDate`, `createdDate`, `total`, `weigth`, `volumetricWeigth`, `cantidadBultos`, `isInvoiced` |
-| `masterairshipment` | Table | `idMasterAirShipment`, `masterAirShipmentNumber` |
-| `descuentocorporativo` | Table | `idDescuentoCorporativo`, `descuentoNombre` |
-| `airshipment` | Table | `idAirShipment`, `idMasterAirShipment` |
-| `warehousereceipt` | Table | `idWarehouseReceipt`, `idAirShipment`, `number` |
-| `shipper` | Table | `idShipper`, `shipperName` (or equivalent) |
-| `carrierinformation` | Table | Used for carrier join |
-| `carrier` | Table | Carrier name fields |
+| Shared | `consignee`, `status_general` | Both blocking |
+| Packages | `getwarehousereceipts` (view) | Blocking — entire packages module depends on this view |
+| Invoices | `resumenmawb`, `masterairshipment`, `descuentocorporativo`, `airshipment`, `warehousereceipt`, `shipper`, `carrierinformation`, `carrier` | `resumenmawb`, `masterairshipment`, `airshipment`, `warehousereceipt` blocking |
+| Profile | `identificationtype`, `Sucursal`, `client`, `plan`, `address`, `consignee_has_address`, `addresstype`, `phone`, `consignee_has_phone`, `phonetype` | `Sucursal`, `address`, `consignee_has_address`, `phone`, `consignee_has_phone` blocking |
 
-### 5.3 Profile — required objects
+### 5.3 Key casing and typo notes (documented in checklist)
 
-| Object | Type | Critical columns |
-|---|---|---|
-| `consignee` | Table | `idConsignee`, `email`, `consigneeName`, `consigneeLastName1`, `consigneeLastName2`, `isCompany`, `codigoFacturacion`, `receivesNewsletter`, `identificationNumber` |
-| `identificationtype` | Table | `idIdentificationType`, type name |
-| `Sucursal` | Table | `idSucursal`, branch name |
-| `client` | Table | `idClient`, client-tier fields |
-| `plan` | Table | `idPlan`, plan name |
-| `address` | Table | `idAddress`, address fields |
-| `consignee_has_address` | Table | `idConsignee`, `idAddress` join |
-| `addresstype` | Table | `idAddressType`, type label |
-| `phone` | Table | `idPhone`, `phoneNumber` |
-| `consignee_has_phone` | Table | `idConsignee`, `idPhone` join |
-| `phonetype` | Table | `idPhoneType`, type label |
+- `CrBox` — database name; must match `EXPECTED_RDS_DATABASE=CrBox` exactly
+- `Sucursal` — table name has capital S
+- `weigth` — intentional typo in `resumenmawb` column (not `weight`)
+- `volumetricWeigth` — DB column name (typo); remapped to `volumentricWeigth` (different typo) in API response to match `mapBill()` in frontend
+- `warehousereceipt` FK columns: `AirShipment`, `Consignee`, `Status`, `Shipper`, `CarrierInformation` — all capitalised
+- `resumenmawb` FK columns: `Consignee` (capital C), `MasterAirshipment` (mixed case)
+- `phone.PhoneType`, `address.AddressType` — capitalised FK columns
+- Label columns in `addresstype`, `phonetype`, `identificationtype` are named `type`, not the table name
 
-### 5.4 Rules
+### 5.4 Final classification rubric
 
-- Read-only schema inspection only (`SHOW COLUMNS`, `DESCRIBE`, `SHOW CREATE VIEW`)
-- No `SELECT *`
-- No writes
-- No broad row scans
-- No raw PII in documents or logs
-- Document any column name differences vs. dev assumptions as blockers
+- **A** — Schema parity confirmed, all blocking objects and columns present → proceed to Section 6 (shadow compare)
+- **B** — Minor naming/mapping differences found, code update needed in `server.py` before shadow compare
+- **C** — Critical object or blocking column missing → stop, notify CRBOX infra team
+
+### 5.5 Execution rules
+
+- Connect as `crbox_portal_ro` only — not as `CrBoxUser` or any admin user
+- Run `SELECT DATABASE()` first — if result ≠ `CrBox`, stop immediately
+- No row-level queries, no `SELECT *`, no DML, no DDL
+- No customer data (emails, IDs, phone numbers) in output or shared documents
 
 ---
 
