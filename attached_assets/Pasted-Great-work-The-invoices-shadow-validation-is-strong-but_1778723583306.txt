@@ -1,0 +1,82 @@
+Great work. The invoices shadow validation is strong, but do not wire `mis-facturas.html` yet.
+
+The shadow compare passed:
+- countDelta = 0
+- missingInRds = []
+- missingInLegacy = []
+- amountMismatch = []
+- totals match across all tested windows
+
+However, before frontend wiring, please complete the pre-wiring mapping fixes documented in the report.
+
+Next task:
+Prepare the RDS invoices endpoint for frontend compatibility, but still do not wire `mis-facturas.html` yet.
+
+Scope:
+- Backend response shaping only
+- Read-only only
+- crbox_dev1 only
+- no frontend wiring
+- no writes
+- no production DB
+- no legacy path removal
+
+Required fixes:
+
+1. Reshape `/api/portal/invoices-rds` response to match the existing legacy shape expected by `mapBill()`:
+   {
+     "Factura": { ... },
+     "Recibos": [...]
+   }
+
+Do this server-side so `mapBill()` can work unchanged later.
+
+2. Add `descuentoNombre` JOIN:
+   LEFT JOIN descuentocorporativo d
+   ON d.idDescuentoCorporativo = r.idDescuentoCorporativo
+
+Return the discount name where available, otherwise empty string.
+
+3. Implement or finalize the `recibos` strategy:
+   Use the confirmed join path:
+   resumenmawb.guiasHijas → airshipment.airShipmentNumber → warehousereceipt.AirShipment + Consignee
+
+Return `Recibos` in the same shape legacy expects, with explicit selected columns only.
+If there are edge cases, document them clearly.
+
+4. Keep `invoiceFileUrl` as an empty string for now.
+The report confirms it is not in RDS and legacy returned it empty for the test account. Document it as a known limitation.
+
+5. Add or update docs:
+   - exact SQL
+   - response shape
+   - Recibos mapping
+   - descuentoNombre mapping
+   - invoiceFileUrl limitation
+   - remaining risks
+   - final recommendation for whether frontend wiring can begin
+
+6. Run shadow compare again after these fixes:
+   - prueba@crbox.cr
+   - one additional test account if available
+   - verify countDelta = 0
+   - missingInRds = []
+   - missingInLegacy = []
+   - amountMismatch = []
+   - recibos count parity where legacy provides Recibos
+
+Do not modify:
+- mis-facturas.html
+- portal-api.js
+- login/auth
+- packages
+- dashboard
+- AWS/RDS settings
+- DB schema
+- production DB
+
+Final output:
+Give a recommendation:
+A. Safe to proceed to feature-flagged `mis-facturas` frontend wiring
+B. Needs more mapping fixes
+C. Keep facturas on legacy for now

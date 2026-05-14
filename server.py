@@ -14057,16 +14057,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 code='bad_request')
             return
 
-        # 4. Query RDS
+        # 4. Query RDS invoices (flat rows + descuentoNombre + guiasHijas).
         try:
             import rds_client as _rds
             result   = _rds_query_invoices(_rds, verified_email,
                                            start_date, end_date,
                                            limit=limit, offset=offset)
-            invoices = result['invoices']
+            inv_rows = result['invoices']
         except _RdsEmailNotFoundError:
             self._json_response(200, {
-                'ok': True, 'source': 'rds', 'count': 0, 'invoices': []
+                'ok': True, 'source': 'rds', 'count': 0, 'facturas': []
             })
             return
         except _RdsWrongDatabaseError as exc:
@@ -14082,11 +14082,31 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 code='rds_query_failed')
             return
 
+        # 5. Batch-fetch Recibos (warehousereceipt rows) for all returned invoices.
+        #    guiasHijas may contain multiple space-separated AWB tokens (12.6% of
+        #    rows globally); _rds_query_invoice_recibos handles both cases.
+        #    id_consignee scopes the WR query to the authenticated user only.
+        try:
+            recibos_map = _rds_query_invoice_recibos(
+                _rds, result['id_consignee'], inv_rows)
+        except Exception as exc:
+            print(f'[PORTAL-INVOICES-RDS] recibos batch query failed (degraded): {exc}')
+            recibos_map = {}  # invoices still render; recibos column shows —
+
+        # 6. Reshape each invoice into {Factura: {...}, Recibos: [...]} so that
+        #    the existing mapBill() function in portal-api.js works unchanged.
+        #    guiasHijas is intentionally excluded from the portal response.
+        facturas = [
+            _shape_invoice_rds(inv,
+                               recibos_map.get(inv.get('idResumenMAWB'), []))
+            for inv in inv_rows
+        ]
+
         self._json_response(200, {
-            'ok':       True,
-            'source':   'rds',
-            'count':    len(invoices),
-            'invoices': invoices,
+            'ok':      True,
+            'source':  'rds',
+            'count':   len(facturas),
+            'facturas': facturas,
         })
 
     # ── GET /api/admin/rds-invoices-shadow-compare ────────────────────────────
@@ -14431,6 +14451,11 @@ def _rds_query_invoices(rds_module, email, start_date, end_date,
 
     Returns {'id_consignee': int, 'invoices': list[dict]}.
 
+    Each invoice dict contains flat fields only (no nested objects).
+    Callers that need the {Factura, Recibos} shape expected by mapBill() should
+    call _rds_query_invoice_recibos() for the Recibos and then pass both to
+    _shape_invoice_rds().
+
     Raises:
         _RdsEmailNotFoundError  — no row in consignee for the given email.
         _RdsWrongDatabaseError  — active DB is not crbox_dev1.
@@ -14440,9 +14465,12 @@ def _rds_query_invoices(rds_module, email, start_date, end_date,
         volumetricWeigth (DB) → volumentricWeigth (response)
             Both are typos, but they differ.  The response key matches the
             typo used in mapBill() so the frontend works without changes.
-        isInvoiced → serialised as bool (0/1 → False/True).
-        recibos, descuentoNombre, invoiceFileUrl → Phase 2 gaps; returned as
-            [], '', '' respectively.  Documented in docs/rds-invoices-shadow.md.
+        isInvoiced  → serialised as bool (0/1 → False/True).
+        descuentoNombre → d.nombre from descuentocorporativo; '' when no discount.
+        guiasHijas  → included for use by _rds_query_invoice_recibos(); not
+            exposed in the final portal response.
+        invoiceFileUrl → not available in crbox_dev1; see known limitations in
+            docs/rds-invoices-shadow-validation.md.
 
     Date range note:
         start_date / end_date are datetime.date objects (YYYY-MM-DD).
@@ -14470,6 +14498,8 @@ def _rds_query_invoices(rds_module, email, start_date, end_date,
 
     # Explicit column list — no SELECT *.
     # volumetricWeigth is the DB column name (typo); remapped below.
+    # guiasHijas is included so _rds_query_invoice_recibos() can join WRs.
+    # descuentoNombre: d.nombre from descuentocorporativo via idDescuentoCorporativo FK.
     # Excluded: flete, recargoCombustible, MANBOD, AGAD, DAI, selectivo,
     #   impuestos, pickup, exoneracion, entrega, SED, seguro, financiamiento,
     #   unoporciento, treceporciento, mastercharge, declaracionValor, procomer,
@@ -14482,10 +14512,14 @@ def _rds_query_invoices(rds_module, email, start_date, end_date,
     sql = (
         'SELECT r.idResumenMAWB, r.factura, r.billedDate, r.createdDate, '
         'r.total, r.weigth, r.volumetricWeigth, r.cantidadBultos, r.isInvoiced, '
-        'm.masterAirShipmentNumber '
+        'r.guiasHijas, '
+        'm.masterAirShipmentNumber, '
+        'd.nombre AS descuentoNombre '
         'FROM resumenmawb r '
         'LEFT JOIN masterairshipment m '
         '  ON r.MasterAirshipment = m.idMasterAirShipment '
+        'LEFT JOIN descuentocorporativo d '
+        '  ON d.idDescuentoCorporativo = r.idDescuentoCorporativo '
         'WHERE r.Consignee = %s AND r.billedDate BETWEEN %s AND %s '
         'ORDER BY r.billedDate DESC LIMIT %s OFFSET %s'
     )
@@ -14515,22 +14549,168 @@ def _rds_query_invoices(rds_module, email, start_date, end_date,
                 inv[out_key] = float(v)
             elif k == 'isInvoiced':
                 inv[out_key] = bool(v)
-            elif v is not None:
-                inv[out_key] = v
-        # Phase 2 gaps — returned as safe empty values.
-        # recibos:         warehousereceipt ↔ resumenmawb join path needs more
-        #                  investigation (guiasHijas / MasterAirshipment hop).
-        # descuentoNombre: requires JOIN on descuentocorporativo table.
-        # invoiceFileUrl:  PDF location not yet found in schema; may live in a
-        #                  separate documents/files table outside crbox_dev1.
-        inv['recibos']         = []
-        inv['descuentoNombre'] = ''
-        inv['invoiceFileUrl']  = ''
-        # Convenience derived field matching mapBill's bestDate convention.
-        inv['bestDate']        = inv.get('billedDate') or inv.get('createdDate') or ''
+            else:
+                # Store None values as '' for string fields to simplify callers.
+                inv[out_key] = v if v is not None else ''
         invoices.append(inv)
 
     return {'id_consignee': id_consignee, 'invoices': invoices}
+
+
+def _rds_query_invoice_recibos(rds_module, id_consignee, inv_rows):
+    """Batch-fetch warehousereceipt rows for a list of invoice dicts.
+
+    Join path:
+        airshipment.airShipmentNumber  IN  (tokens split from guiasHijas)
+        warehousereceipt.AirShipment = airshipment.idAirShipment
+        warehousereceipt.Consignee   = id_consignee   ← auth scope guard
+
+    guiasHijas can contain a single AWB ('Haw-167858') or multiple AWBs
+    separated by whitespace ('Haw-163848 Haw-163864').  Both cases are
+    handled by splitting on whitespace before building the IN clause.
+    12.6% of resumenmawb rows globally have multi-value guiasHijas, so
+    this is not a rare edge case.
+
+    id_consignee (int) is required to scope the warehousereceipt join to
+    the authenticated user and prevent cross-customer data leakage.
+
+    Returns a dict mapping idResumenMAWB (int) → list of recibo dicts.
+    Each recibo dict is pre-shaped to match the nested structure that
+    mapRecibo() in portal-api.js expects:
+        {
+          'number':                str,
+          'receiveddatetime':      ISO str or '',
+          'totalweight':           float,
+          'totalvolume':           float,
+          'totalvolumetricweight': float,
+          'status':                {'statusname': str},
+          'shipper':               {'shippername': str},
+          'carrierinformation':    {'trackingnumber': str,
+                                    'carrier': {'carriername': str}},
+        }
+
+    Invoices with null/empty guiasHijas (historical stub records, ~0.5%
+    globally) are silently skipped and receive Recibos: [] in the response.
+
+    statusName is resolved via status_general (idStatus, statusName) —
+    the same table used by the getwarehousereceipts view.
+    """
+    import datetime as _dt
+
+    # Build awb_token → [idResumenMAWB, ...] mapping.
+    # Split on whitespace to handle single-AWB and multi-AWB guiasHijas.
+    awb_to_inv_ids = {}
+    for r in (inv_rows or []):
+        guias = (r.get('guiasHijas') or '').strip()
+        if not guias:
+            continue
+        for token in guias.split():
+            awb_to_inv_ids.setdefault(token, []).append(r['idResumenMAWB'])
+
+    if not awb_to_inv_ids:
+        return {}
+
+    all_awbs     = list(awb_to_inv_ids.keys())
+    placeholders = ', '.join(['%s'] * len(all_awbs))
+
+    # Single batched query — explicit column list, no SELECT *.
+    # wr.Consignee = id_consignee enforces auth-scope at the DB level.
+    # status_general matches the getwarehousereceipts view join.
+    sql = (
+        'SELECT '
+        '  a.airShipmentNumber, '
+        '  wr.number, '
+        '  wr.receivedDateTime, '
+        '  wr.totalWeight, '
+        '  wr.totalVolume, '
+        '  wr.totalVolumetricWeight, '
+        '  sg.statusName, '
+        '  sh.shipperName, '
+        '  cai.trackingNumber, '
+        '  ca.carrierName '
+        'FROM airshipment a '
+        'JOIN warehousereceipt wr '
+        '  ON wr.AirShipment = a.idAirShipment '
+        ' AND wr.Consignee   = %s '
+        'LEFT JOIN status_general    sg  ON sg.idStatus             = wr.Status '
+        'LEFT JOIN shipper           sh  ON sh.idShipper            = wr.Shipper '
+        'LEFT JOIN carrierinformation cai ON cai.idCarrierInformation = wr.CarrierInformation '
+        'LEFT JOIN carrier           ca  ON ca.idCarrier             = cai.Carrier '
+        f'WHERE a.airShipmentNumber IN ({placeholders}) '
+        'ORDER BY a.airShipmentNumber, wr.receivedDateTime'
+    )
+    params = (id_consignee,) + tuple(all_awbs)
+    rows   = rds_module.fetch_all(sql, params)
+
+    result = {}
+    for row in (rows or []):
+        awb    = row.get('airShipmentNumber') or ''
+        rcv    = row.get('receivedDateTime')
+        recibo = {
+            'number':                str(row.get('number') or ''),
+            'receiveddatetime':      rcv.isoformat() if isinstance(rcv, _dt.datetime) else
+                                     (rcv.isoformat() if isinstance(rcv, _dt.date) else ''),
+            'totalweight':           float(row['totalWeight']           or 0) if row.get('totalWeight')           is not None else 0.0,
+            'totalvolume':           float(row['totalVolume']           or 0) if row.get('totalVolume')           is not None else 0.0,
+            'totalvolumetricweight': float(row['totalVolumetricWeight'] or 0) if row.get('totalVolumetricWeight') is not None else 0.0,
+            'status':             {'statusname':  str(row.get('statusName')  or '')},
+            'shipper':            {'shippername': str(row.get('shipperName') or '')},
+            'carrierinformation': {
+                'trackingnumber': str(row.get('trackingNumber') or ''),
+                'carrier':        {'carriername': str(row.get('carrierName') or '')},
+            },
+        }
+        for inv_id in awb_to_inv_ids.get(awb, []):
+            result.setdefault(inv_id, []).append(recibo)
+
+    return result
+
+
+def _shape_invoice_rds(inv, recibos):
+    """Reshape a flat RDS invoice dict into the {Factura, Recibos} envelope
+    expected by mapBill() in portal-api.js.
+
+    inv     — flat dict from _rds_query_invoices (guiasHijas excluded from output).
+    recibos — list of pre-shaped recibo dicts from _rds_query_invoice_recibos.
+
+    mapBill() field reference (portal-api.js):
+        f  = raw.Factura
+        mas  = f.masterAirShipment
+          → mas.masterairshipmentnumber || mas.masterAirShipmentNumber
+        disc = f.descuentoCorporativo
+          → disc._nombre || disc.nombre
+        raw.Recibos → mapped via mapRecibo()
+
+    invoiceFileUrl known limitation:
+        Not available in crbox_dev1.  The legacy API also returned this field
+        empty for the test account.  Stubbed as '' via f.fileLocation so
+        mapBill() → invoiceFileUrl = ''.  The download button in
+        mis-facturas.html handles falsy invoiceFileUrl gracefully (no-op).
+        Documented in docs/rds-invoices-shadow-validation.md §4 Gap 3.
+    """
+    master_awb  = inv.get('masterAirShipmentNumber') or ''
+    desc_nombre = inv.get('descuentoNombre') or ''
+
+    factura_obj = {
+        'factura':           inv.get('factura',          ''),
+        'billedDate':        inv.get('billedDate',        ''),
+        'createdDate':       inv.get('createdDate',       ''),
+        # Both lowercase and camelCase keys: mapBill reads either form.
+        'masterAirShipment': {
+            'masterairshipmentnumber': master_awb,
+            'masterAirShipmentNumber': master_awb,
+        },
+        'weigth':            inv.get('weigth',            0),
+        'volumentricWeigth': inv.get('volumentricWeigth', 0),
+        'cantidadBultos':    inv.get('cantidadBultos',    0),
+        'total':             inv.get('total',             0),
+        # mapBill reads: disc._nombre || disc.nombre — provide 'nombre'.
+        'descuentoCorporativo': {'nombre': desc_nombre} if desc_nombre else {},
+        'isInvoiced':        inv.get('isInvoiced',        False),
+        # fileLocation → invoiceFileUrl via mapBill fallback chain.
+        'fileLocation':      '',
+    }
+    return {'Factura': factura_obj, 'Recibos': recibos}
 
 
 def _compute_invoices_diff(rds_invs, legacy_invs):

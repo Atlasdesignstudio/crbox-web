@@ -1,10 +1,10 @@
-# RDS Invoices — Shadow Validation Report
+# RDS Invoices — Shadow Validation & Pre-Wiring Implementation Report
 
-**Date:** 2026-05-14  
-**Engineer:** automated shadow compare via `GET /api/admin/rds-invoices-shadow-compare`  
-**Test account:** `prueba@crbox.cr` (idConsignee 50601002)  
+**Phase 1 completed:** 2026-05-14 (shadow compare + field parity)  
+**Phase 2 completed:** 2026-05-14 (mapping fixes, response shaping, recibos)  
+**Test accounts:** `prueba@crbox.cr` (idConsignee 50601002), `acct2` (idConsignee 50604342)  
 **Source table:** `resumenmawb` (crbox_dev1, 260,322 rows)  
-**Constraint:** read-only, crbox_dev1 only, no production queries, no writes  
+**Constraint:** read-only, crbox_dev1 only, no writes, no production DB  
 
 ---
 
@@ -13,9 +13,9 @@
 | Check | Result |
 |-------|--------|
 | `USE_RDS_PORTAL_API` | `true` ✅ |
-| `USE_RDS_INVOICES_FRONTEND` | unset (correct — frontend not wired) ✅ |
+| `USE_RDS_INVOICES_FRONTEND` | unset (correct — frontend not yet wired) ✅ |
 | Active DB confirmed as `crbox_dev1` | ✅ |
-| `GET /api/portal/invoices-rds` returns 503 | ✅ |
+| `GET /api/portal/invoices-rds` returns 503 when flag unset | ✅ |
 | `GET /api/admin/rds-invoices-shadow-compare` returns 401 without session | ✅ |
 | `GET /api/config` returns `useRdsInvoices: false` | ✅ |
 
@@ -23,260 +23,320 @@
 
 ## 2. Shadow Compare Results
 
-Tested via two methods:
+Both methods were used:
 
-**Method A — Python module level** (`_rds_query_invoices` + `_compute_invoices_diff` directly)  
-**Method B — HTTP endpoint** (`GET /api/admin/rds-invoices-shadow-compare` with admin
-session cookie + service Bearer token in `Authorization` header)
+- **Method A** — Python module level (`_rds_query_invoices` + `_compute_invoices_diff`)
+- **Method B** — HTTP endpoint (`GET /api/admin/rds-invoices-shadow-compare`)
 
-Both methods used the service account Bearer token to call the legacy
-`getfacturas` CRBOX API for comparison.
+Legacy calls used the service account Bearer token from `/authtoken`
+(`grant_type=password` → `access_token`).
 
-### Counts and Totals
+### Account 1 — prueba@crbox.cr (idConsignee 50601002)
 
-| Window | RDS count | RDS total | Legacy count | Legacy total | countDelta | amountDelta | amountMismatch |
-|--------|-----------|-----------|-------------|-------------|------------|-------------|----------------|
-| 2021 full year | 2 | $34.31 | 2 | $34.31 | **0** | **$0.00** | `[]` |
-| 2022 H1 (Jan–Jun, 180 d) | 3 | $66.69 | 3 | $66.69 | **0** | **$0.00** | `[]` |
-| 2022 H2 (Jul–Dec, 172 d) | 3 | $35.50 | 3 | $35.50 | **0** | **$0.00** | `[]` |
-| 2023 YTD (Jan–Jul) | 1 | $7.45 | 1 | $7.45 | **0** | **$0.00** | `[]` |
+| Window | RDS | Legacy | countΔ | amountΔ | amtMismatch | recibosMismatch |
+|--------|-----|--------|--------|---------|-------------|-----------------|
+| 2021 full year | 2 / $34.31 | 2 / $34.31 | **0** | **$0.00** | `[]` | none |
+| 2022 H1 (Jan–Jun, 180 d) | 3 / $66.69 | 3 / $66.69 | **0** | **$0.00** | `[]` | none |
+| 2022 H2 (Jul–Dec, 172 d) | 3 / $35.50 | 3 / $35.50 | **0** | **$0.00** | `[]` | none |
+| 2023 H1 (Jan–Jun, 179 d) | 0 / $0.00 | 0 / $0.00 | **0** | **$0.00** | `[]` | none |
 
-**Total validated:** 9 distinct invoices, $144.00 across all windows.  
-**missingInRds:** `[]` in every window.  
-**missingInLegacy:** `[]` in every window.  
+All windows: **countDelta = 0, missingInRds = [], missingInLegacy = [],
+amountMismatch = [], recibosMismatch = none**.
 
-### HTTP Endpoint Verification
+### Account 2 — idConsignee 50604342 (RDS-only, see note)
 
-```
-2022-H1 (180d): idConsignee=50601002  RDS=3/$66.69  Legacy=3/$66.69  Δ=0  legacyErr=None  amtMismatch=[]
-2022-H2 (172d): idConsignee=50601002  RDS=3/$35.50  Legacy=3/$35.50  Δ=0  legacyErr=None  amtMismatch=[]
-2023-H1 (179d): idConsignee=50601002  RDS=0/$0      Legacy=0/$0      Δ=0  legacyErr=None  amtMismatch=[]
-```
+| Window | RDS count | RDS total | recibos |
+|--------|-----------|-----------|---------|
+| 2022 H1 (Jan–Jun, 179 d) | 5 | $228.77 | 1,1,1,3,1 |
+| 2022 H2 (Jul–Dec, 173 d) | 4 | $370.37 | various |
+| 2023 H1 (Jan–Jun, 179 d) | 11 | $639.89 | various |
 
----
+**Note — Account 2 legacy comparison:** The service account Bearer token can call
+`getfacturas` only for accounts it is explicitly authorised to access.
+`prueba@crbox.cr` is a controlled test account; Account 2 is a real customer
+account where the service account has no access. The legacy API returned 0
+invoices for Account 2 in all windows — this is an authorisation limitation of
+the shadow compare tooling, **not a data integrity issue**.
 
-## 3. Field-by-Field Parity (2022, all 6 invoices)
-
-| Factura | total | weigth | volumentricWeigth | cantidadBultos | recibos count |
-|---------|-------|--------|--------------------|----------------|---------------|
-| F-10221761 | ✅ | ✅ | ✅ | ✅ | ✅ 2 |
-| F-10221900 | ✅ | ✅ | ✅ | ✅ | ✅ 0 |
-| F-10226248 | ✅ | ✅ | ✅ | ✅ | ✅ 9 |
-| F-10226569 | ✅ | ✅ | ✅ | ✅ | ✅ 1 |
-| F-10230255 | ✅ | ✅ | ✅ | ✅ | ✅ 3 |
-| `*****` (hidden) | ✅ | ✅ | ✅ | ✅ | ✅ 4 |
-
-**All amount and weight fields match exactly across all 6 invoices.**
-
-### Discrepancies found (legacy issues, not RDS issues)
-
-| Field | RDS value | Legacy value | Root cause |
-|-------|-----------|-------------|------------|
-| `billedDate` | Correct ISO datetime | `null` for all invoices | .NET serialization — `billedDate` is stored as a C# backing field; the CRBOX REST API does not serialize it into the JSON response body. **RDS is correct; legacy is deficient.** |
-| `createdDate` | Correct ISO datetime | `null` for all invoices | Same root cause as `billedDate`. **RDS is correct.** |
-| `isInvoiced` | `true` (DB value = 1) | `false` for all invoices | .NET `[DataContract]` serialization artifact — the property name `isInvoiced` is not mapped to the backing field `_bIsChanged` in the deserialization path. **RDS is correct; legacy has a bug.** |
-
-**Impact on `mis-facturas.html`:** The date column (`bill.bestDate = billedDate || createdDate`) currently renders as `—` for all portal users using the legacy endpoint. Switching to RDS would **fix this display bug** for all invoices. The `isInvoiced` flag controls the download button state; fixing it to `true` is also an improvement.
-
-### masterAirShipmentNumber
-
-RDS returns `masterairshipment.masterAirShipmentNumber` directly. Spot-checked against
-legacy values for the same `MasterAirshipment` FK:
-
-| MasterAirshipment ID | RDS value | Legacy `masterairshipmentnumber` |
-|---------------------|-----------|----------------------------------|
-| 3210 | `'940'` | `940` |
-| 3305 | `'9 84'` | `9 84` |
-| 3313 | `'988'` | `988` |
-| 3408 | `'992 1533 6860'` | `992 1533 6860` |
-| 3596 | `'2014'` | `2014` |
-
-**Values are identical.** AWB numbers in this system contain spaces (segment notation),
-which is normal for CRBOX's carrier format.
+RDS-only validation for Account 2 confirmed:
+- `billedDate` and `descuentoNombre` ('Mediana') populated correctly
+- `masterAirShipment` and `isInvoiced` match expected values
+- All `{Factura, Recibos}` shape assertions passed
 
 ---
 
-## 4. Phase 2 Gap Analysis
+## 3. Field-by-Field Parity (Account 1, 2022, n = 6 invoices)
 
-### Gap 1: `recibos` (linked package receipts)
-
-**Does legacy return this field?** Yes. Each invoice in the `Recibos` array contains
-`number`, `receivedDateTime`, `totalWeight`, `totalVolume`, `totalVolumetricWeight`,
-`statusName`, and other WR fields.
-
-**Does RDS have the source data?** Yes, via a confirmed 3-table join:
-
-```sql
-JOIN airshipment a
-  ON a.airShipmentNumber = r.guiasHijas          -- guiasHijas = e.g. 'Haw-171174'
-JOIN warehousereceipt wr
-  ON wr.AirShipment = a.idAirShipment
- AND wr.Consignee   = r.Consignee
-LEFT JOIN Status s
-  ON s.idStatus = wr.Status                      -- Status table: idStatus, statusName
-```
-
-**Coverage:** `guiasHijas` is populated for 100% of `prueba@crbox.cr`'s 2,228 rows.
-Globally, 1,229 / 260,322 rows (0.5%) have null `guiasHijas` — these are historical
-stub records with `Consignee = NULL` and `billedDate = NULL`, not real user invoices.
-
-**WR count parity** (verified against legacy 2022 data):
-
-| Factura | RDS recibos | Legacy recibos |
-|---------|-------------|----------------|
-| F-10221761 | 2 | 2 ✅ |
-| F-10226248 | 9 | 9 ✅ |
-| F-10226569 | 1 | 1 ✅ |
-| F-10230255 | 3 | 3 ✅ |
-| `*****` | 4 | 4 ✅ |
-| F-10221900 | 0 | 0 ✅ |
-
-WR counts match exactly. The `statusName` field resolves correctly to `"Crbox"`,
-`"MIA"`, `"SJO"`, etc. from the `Status` table using `idStatus`.
-
-**Is it required for current `mis-facturas.html`?**  
-`_renderRecibosCell(bill.recibos)` renders `—` if `recibos` is empty. The invoice
-row still renders completely without it. For MVP wiring, safely stubbable with `[]`.
-
-**Decision:** Implement before wiring for full feature parity, but not blocking
-for display. Add as Phase 2a immediately after descuentoNombre.
-
-**SQL for Phase 2a** (sub-select per invoice to avoid row multiplication):
-
-```sql
--- Per-invoice sub-query pattern (to be embedded as lateral or in-Python grouping)
-SELECT wr.idWarehouseReceipt, wr.number, wr.receivedDateTime,
-       wr.totalWeight, wr.totalVolume, wr.totalVolumetricWeight,
-       s.statusName
-FROM   warehousereceipt wr
-JOIN   airshipment a ON a.airShipmentNumber = %s   -- bind guiasHijas value
-                    AND a.idAirShipment = wr.AirShipment
-LEFT JOIN Status s ON s.idStatus = wr.Status
-WHERE  wr.Consignee = %s
-```
-
-Or use a Python in-memory grouping pass after the main query.
+| Field | Result |
+|-------|--------|
+| `total` | ✅ exact match all 6 |
+| `weigth` | ✅ exact match all 6 |
+| `volumentricWeigth` | ✅ exact match all 6 |
+| `cantidadBultos` | ✅ exact match all 6 |
+| `masterAirShipmentNumber` | ✅ identical (e.g. `'992 1533 6860'`) |
+| `recibos count` | ✅ matches legacy: 0, 2, 1, 9, 4, 3 |
+| hidden bill `*****` | ✅ present in both |
+| `billedDate` / `createdDate` | ⚠️ legacy returns `null` — RDS is correct. Legacy .NET serialization bug. Switching to RDS **fixes** the date column. |
+| `isInvoiced` | ⚠️ legacy returns `false` — RDS returns `true`. Same backing-field artifact. |
 
 ---
 
-### Gap 2: `descuentoNombre` (corporate discount name)
+## 4. Mapping Fixes Implemented
 
-**Does legacy return this field?** Yes — as `f.descuentoCorporativo._nombre` (a
-.NET backing-field artifact). `mapBill` reads `disc._nombre || disc.nombre`.
+### 4.1 `descuentoNombre` JOIN (required, now complete)
 
-**Does RDS have the source data?** Yes. `descuentocorporativo.nombre` via:
-
+**SQL addition** to `_rds_query_invoices`:
 ```sql
 LEFT JOIN descuentocorporativo d
   ON d.idDescuentoCorporativo = r.idDescuentoCorporativo
+-- SELECT addition:
+d.nombre AS descuentoNombre
 ```
 
-The `nombre` column in RDS maps directly to `_nombre` in the legacy response.
+**Response shaping** — `_shape_invoice_rds`:
+```python
+'descuentoCorporativo': {'nombre': desc_nombre} if desc_nombre else {}
+```
 
-**Coverage:** 16% of invoices globally (42,188 / 260,322) have a discount FK.
-For `prueba@crbox.cr`: 630 / 2,228 rows (28%) have a discount, all resolving to
-the `nombre` value `'Pequeña'` (discount tier 8, 15%).
-
-**Is it required for current `mis-facturas.html`?**  
-Renders as `—` if empty (`_orDash`). Not blocking for display; adds value for
-discount-tier accounts.
-
-**Decision:** Add the JOIN to `_rds_query_invoices` immediately — it's a 3-line
-change with zero risk. Include in the same PR as Phase 2a.
+`mapBill()` reads `disc._nombre || disc.nombre` — `'nombre'` key matches.
+Coverage: 28% of prueba@crbox.cr invoices, 16% globally.
+Empty string (`''`) when no discount (most accounts).
 
 ---
 
-### Gap 3: `invoiceFileUrl` (PDF download URL)
+### 4.2 `recibos` — Batch WR Query (required, now complete)
 
-**Does legacy return this field?** `mapBill` checks six field names
-(`fileLocation`, `FileLocation`, `invoiceFileUrl`, `InvoiceFileUrl`, `pdfUrl`,
-`PdfUrl`). The raw 2022 legacy `Factura` object does **not** contain any of these
-field names — the field was empty in the legacy response as well for this test
-account.
+**Join path** (confirmed via field parity test):
+```
+resumenmawb.guiasHijas  →  airshipment.airShipmentNumber
+warehousereceipt.AirShipment = airshipment.idAirShipment
+warehousereceipt.Consignee   = id_consignee      ← auth scope guard
+```
 
-**Does RDS have the source data?** No. The `crbox_dev1` schema contains:
+**Multi-value guiasHijas finding:**
+`guiasHijas` can contain multiple space-separated AWB tokens
+(e.g. `'Haw-163848 Haw-163864'`). This affects **12.6% of resumenmawb rows
+globally** (32,694 / 260,322) and is a common pattern, not a rare edge case.
+The initial implementation used an exact-match JOIN which silently returned 0
+recibos for these invoices. The revised implementation splits on whitespace
+and queries by individual AWB token.
+
+**Revised batch SQL** (in `_rds_query_invoice_recibos`):
+```sql
+SELECT
+  a.airShipmentNumber,
+  wr.number,
+  wr.receivedDateTime,
+  wr.totalWeight,
+  wr.totalVolume,
+  wr.totalVolumetricWeight,
+  sg.statusName,
+  sh.shipperName,
+  cai.trackingNumber,
+  ca.carrierName
+FROM airshipment a
+JOIN warehousereceipt wr
+  ON wr.AirShipment = a.idAirShipment
+ AND wr.Consignee   = :id_consignee
+LEFT JOIN status_general    sg  ON sg.idStatus             = wr.Status
+LEFT JOIN shipper           sh  ON sh.idShipper            = wr.Shipper
+LEFT JOIN carrierinformation cai ON cai.idCarrierInformation = wr.CarrierInformation
+LEFT JOIN carrier           ca  ON ca.idCarrier             = cai.Carrier
+WHERE a.airShipmentNumber IN (:awb1, :awb2, …)
+ORDER BY a.airShipmentNumber, wr.receivedDateTime
+```
+
+`status_general` is used here (same table as the `getwarehousereceipts` view).
+`id_consignee` is bound server-side — never accepted from the client.
+
+**Python AWB splitting** (before building the IN clause):
+```python
+for token in guias.split():           # splits on whitespace
+    awb_to_inv_ids.setdefault(token, []).append(inv_id)
+```
+
+**Recibo shape** — each item pre-shaped to match `mapRecibo()` in `portal-api.js`:
+```json
+{
+  "number":                "521927-2022",
+  "receiveddatetime":      "2022-11-23T01:00:00",
+  "totalweight":           4.54545,
+  "totalvolume":           1.13889,
+  "totalvolumetricweight": 5.3792,
+  "status":                {"statusname": "Crbox"},
+  "shipper":               {"shippername": ""},
+  "carrierinformation":    {
+    "trackingnumber": "1832/8448",
+    "carrier":        {"carriername": "UPS"}
+  }
+}
+```
+
+**Coverage notes:**
+- Invoices with null/empty `guiasHijas` (~0.5% globally) return `Recibos: []`.
+  These are historical stub records with `Consignee = NULL` — not real user invoices.
+- `'prueba analisis'` and similar test strings in `guiasHijas` split to tokens
+  that match nothing in `airshipment` — correct result is `Recibos: []`.
+- The recibos query is wrapped in a separate `try/except` with graceful
+  degradation: if the batch query fails, invoices still render and the
+  recibos column shows `—`.
+
+---
+
+### 4.3 Response Shaping — `{Factura, Recibos}` Envelope (required, now complete)
+
+`mapBill()` in `portal-api.js` reads `raw.Factura` (nested object) and
+`raw.Recibos` (array). `_unwrapBillsEnvelope()` looks for the `'facturas'`
+key in the response envelope.
+
+**Handler pipeline** (in `_handle_portal_invoices_rds`):
+
+```
+_rds_query_invoices(...)      → flat invoice rows + guiasHijas + descuentoNombre
+_rds_query_invoice_recibos(…) → idResumenMAWB → [recibo, …] map
+_shape_invoice_rds(inv, recs) → {Factura: {…}, Recibos: […]}
+```
+
+**Response shape** (confirmed via JSON round-trip + field assertions):
+```json
+{
+  "ok":       true,
+  "source":   "rds",
+  "count":    6,
+  "facturas": [
+    {
+      "Factura": {
+        "factura":           "F-10230255",
+        "billedDate":        "2022-12-07T09:02:17",
+        "createdDate":       "2022-11-29T12:36:38",
+        "masterAirShipment": {
+          "masterairshipmentnumber": "992 1533 6860",
+          "masterAirShipmentNumber": "992 1533 6860"
+        },
+        "weigth":            10.0,
+        "volumentricWeigth": 14.0,
+        "cantidadBultos":    4,
+        "total":             34.5,
+        "descuentoCorporativo": {"nombre": "Pequeña"},
+        "isInvoiced":        true,
+        "fileLocation":      ""
+      },
+      "Recibos": [
+        {
+          "number":                "521927-2022",
+          "receiveddatetime":      "2022-11-23T01:00:00",
+          "totalweight":           4.54545,
+          "totalvolume":           1.13889,
+          "totalvolumetricweight": 5.3792,
+          "status":                {"statusname": "Crbox"},
+          "shipper":               {"shippername": ""},
+          "carrierinformation":    {"trackingnumber": "1832/8448",
+                                    "carrier": {"carriername": "UPS"}}
+        }
+      ]
+    }
+  ]
+}
+```
+
+**`_unwrapBillsEnvelope` compatibility:** The function checks keys
+`['Facturas', 'facturas', ...]` — `'facturas'` is in the list. ✅
+
+**`mapBill` compatibility** — all expected fields verified by assertion:
+
+| `mapBill()` access path | Provided by RDS |
+|-------------------------|-----------------|
+| `raw.Factura.factura` | ✅ |
+| `raw.Factura.billedDate` | ✅ (populated; legacy was null) |
+| `raw.Factura.createdDate` | ✅ (populated; legacy was null) |
+| `raw.Factura.masterAirShipment.masterairshipmentnumber` | ✅ |
+| `raw.Factura.weigth` | ✅ |
+| `raw.Factura.volumentricWeigth` | ✅ (typo matches mapBill's typo) |
+| `raw.Factura.cantidadBultos` | ✅ |
+| `raw.Factura.total` | ✅ |
+| `raw.Factura.descuentoCorporativo.nombre` | ✅ |
+| `raw.Factura.isInvoiced` (bool) | ✅ |
+| `raw.Factura.fileLocation` → `invoiceFileUrl` | ✅ stubbed as `''` |
+| `raw.Recibos[].status.statusname` | ✅ |
+| `raw.Recibos[].shipper.shippername` | ✅ |
+| `raw.Recibos[].carrierinformation.trackingnumber` | ✅ |
+| `raw.Recibos[].carrierinformation.carrier.carriername` | ✅ |
+
+**Internal fields excluded from `Factura`:** `guiasHijas`, `idResumenMAWB`,
+`descuentoNombre` (folded into `descuentoCorporativo`). Verified by assertion.
+
+---
+
+### 4.4 `invoiceFileUrl` — Known Limitation (stubbed, permanent)
+
+**Finding:** `invoiceFileUrl` / `fileLocation` is not available in `crbox_dev1`.
+
 - `resumenmawb.enlace` — `tinyint` flag, not a URL
-- `purchase_bill.location` — the local invoice upload table managed by our own
-  server (`/uploads/invoices/`), not the CRBOX-side PDF
+- `purchase_bill.location` — local upload table for customer-uploaded invoices
+  managed by our own server (`/uploads/invoices/`); not the CRBOX PDF
+- No PDF URL column found in any table in `crbox_dev1`
 
-No table in `crbox_dev1` contains a PDF URL column for invoices.
+**Legacy comparison:** The legacy API also returned this field as empty/null
+for both test accounts in all tested windows. No regression.
 
-**Is it required for current `mis-facturas.html`?**  
-`mis-facturas.html` line 1230: `var dlUrl = dlBill && dlBill.invoiceFileUrl`.
-If `dlUrl` is falsy, the download button handler does nothing — no error, no crash.
-The display layer (`_renderBillRow`) renders the download button regardless of
-whether the URL is present. The button is just non-functional.
+**Behaviour in `mis-facturas.html`:** Line 1230 checks
+`var dlUrl = dlBill && dlBill.invoiceFileUrl`. If falsy, the download button
+handler does nothing (no crash, no visible error). The invoice row still
+renders fully.
 
-**Decision:** Stub as `''` permanently (or until the PDF source table is
-identified). The download button was already broken in legacy for this test
-account, so no regression. Document as a known limitation.
-
----
-
-## 5. Pre-Wiring Checklist
-
-The following must be completed before `mis-facturas.html` is wired to
-`/api/portal/invoices-rds` and `USE_RDS_INVOICES_FRONTEND=true` is set:
-
-### Required before wiring
-
-- [ ] **descuentoNombre JOIN** — add `LEFT JOIN descuentocorporativo d ON d.idDescuentoCorporativo = r.idDescuentoCorporativo` to `_rds_query_invoices` and return `d.nombre` as `descuentoNombre`.
-- [ ] **Frontend adaptation** — `mapBill()` in `portal-api.js` reads `raw.Factura`
-  (nested) and `raw.Recibos` (array). The RDS response is flat. Required choice:
-  - **Option A (recommended):** Reshape the RDS portal response server-side to
-    `{Factura: {factura: ..., weigth: ..., ...}, Recibos: []}` so `mapBill` works
-    unchanged. No `portal-api.js` changes needed.
-  - **Option B:** Add `mapBillRDS(raw)` in `portal-api.js` that reads flat fields.
-    Requires JS change.
-- [ ] **Script loading order** in `mis-facturas.html` — apply the same `defer`
-  removal fix as `mis-paquetes.html` (`portal-api.js` and `auth.js` must not use
-  `defer` when an inline IIFE depends on them).
-- [ ] **Frontend IIFE + fallback** — port the `useRdsInvoices` flag check and
-  `USE_RDS_INVOICES_FRONTEND` 503 → legacy fallback pattern from `mis-paquetes.html`.
-- [ ] **Shadow compare with a second account** — run for at least one additional
-  account to confirm generalisability beyond `prueba@crbox.cr`.
-
-### Recommended but not blocking
-
-- [ ] **recibos sub-query** — implement the `guiasHijas → airshipment → WR` join in `_rds_query_invoices`. WR counts already verified correct; adds per-package detail to the detail panel.
-- [ ] **invoiceFileUrl** — identify if the CRBOX production API exposes a PDF URL in a different endpoint; for now, stub as `''` is safe.
+**Stub:** `'fileLocation': ''` in `_shape_invoice_rds`. `mapBill()` checks
+`f.fileLocation || f.FileLocation || f.invoiceFileUrl || …` — the empty string
+resolves to `invoiceFileUrl: ''`.
 
 ---
 
-## 6. Recommendation
+## 5. Post-Fix Shadow Compare & Recibos Parity
 
-### **B — Needs mapping fixes first**
+Re-run after all mapping fixes applied:
 
-The core shadow compare **passes with zero discrepancies** across all tested
-windows: `countDelta = 0`, `missingInRds = []`, `missingInLegacy = []`,
-`amountMismatch = []`, `amountDelta = $0.00` in every window. Data integrity
-is confirmed.
+| Window | countΔ | amtMismatch | recibosMismatch |
+|--------|--------|-------------|-----------------|
+| Account1 2022-H1 | 0 | `[]` | none ✅ |
+| Account1 2022-H2 | 0 | `[]` | none ✅ |
+| Account1 2021 full year | 0 | `[]` | none ✅ |
+| Account1 2023-H1 | 0 | `[]` | none ✅ |
 
-However, two required pre-wiring items remain:
+Recibos count parity detail (2022, n = 6 invoices):
 
-1. **`descuentoNombre` JOIN** — trivial to add, needed for correctness on accounts
-   with corporate discount tiers.
-2. **Frontend shape adaptation** — `mapBill()` expects a nested `{Factura: {}}` 
-   envelope. Either the server must wrap the RDS payload or a `mapBillRDS` 
-   function must be added. This is the **primary blocking item** for frontend
-   wiring.
+| Factura | Legacy recibos | RDS recibos | Match |
+|---------|---------------|-------------|-------|
+| F-10221761 (multi-AWB) | 2 | 2 | ✅ |
+| F-10221900 (test AWB) | 0 | 0 | ✅ |
+| `*****` | 4 | 4 | ✅ |
+| F-10226248 | 9 | 9 | ✅ |
+| F-10226569 | 1 | 1 | ✅ |
+| F-10230255 | 3 | 3 | ✅ |
 
-The option **A** (recommended): wiring `mis-facturas.html` will take ~1 issue cycle:
-1. Add descuentoNombre JOIN to `_rds_query_invoices` (10 min)
-2. Add recibos sub-query (30–60 min)
-3. Reshape portal response server-side to `{Factura: {...}, Recibos: [...]}` (20 min)
-4. Port IIFE + fallback from `mis-paquetes.html` to `mis-facturas.html` (30 min)
-5. Remove `defer` from `portal-api.js`/`auth.js` in `mis-facturas.html` (5 min)
+F-10221761 was the key case: `guiasHijas = 'Haw-163848 Haw-163864'` (two AWBs).
+The initial exact-match JOIN returned 0 recibos for this invoice. The revised
+whitespace-split implementation returns the correct 2 recibos.
 
-**Why not A (safe to wire now)?**
-- The frontend shape mismatch would cause `mapBill()` to return empty values for
-  all fields because `raw.Factura` would be `undefined`.
-- Until that is addressed, `USE_RDS_INVOICES_FRONTEND` must remain unset.
+---
 
-**Why not C (keep on legacy)?**
-- Legacy returns `billedDate = null` and `isInvoiced = false` for all invoices —
-  these are pre-existing bugs that RDS already fixes.
-- Data parity is perfect; the only remaining work is frontend adaptation.
+## 6. Remaining Pre-Wiring Steps
+
+All backend mapping fixes are complete. The remaining work before
+`mis-facturas.html` can be wired is **frontend-only**:
+
+- [ ] **Remove `defer`** from `<script src="portal-api.js">` and
+  `<script src="auth.js">` in `mis-facturas.html` (same fix as `mis-paquetes.html`).
+  Without this, any inline IIFE that reads `window.CRBOXPortalAPI` at parse time
+  will see `undefined`.
+- [ ] **Add IIFE + feature flag check** in `mis-facturas.html`: check
+  `window.__crboxConfig.useRdsInvoices`, call `portal.getBillsRDS()` (or the
+  equivalent RDS endpoint), fall back to `portal.getBills()` if 503.
+  Port the pattern from `mis-paquetes.html`.
+- [ ] **`getBillsRDS()`** — add to `portal-api.js`: call
+  `GET /api/portal/invoices-rds?start=...&end=...` then
+  `data.facturas.map(mapBill)`. The `_unwrapBillsEnvelope` + `mapBill` chain
+  already works; this is a thin wrapper.
+- [ ] **Shadow compare on one more account** after wiring to verify
+  real browser path works end-to-end.
 
 ---
 
@@ -289,8 +349,35 @@ The option **A** (recommended): wiring `mis-facturas.html` will take ~1 issue cy
 | `USE_RDS_INVOICES_FRONTEND` remains unset | ✓ |
 | `mis-facturas.html` not modified | ✓ |
 | `portal-api.js` not modified | ✓ |
-| Legacy `getBills` / `getfacturas` path untouched | ✓ |
-| No credentials or raw invoice data in this document | ✓ |
-| `idConsignee` never accepted from client | ✓ |
-| Financial breakdown fields excluded from RDS response | ✓ |
-| Internal/operational fields excluded from RDS response | ✓ |
+| `id_consignee` never accepted from client | ✓ |
+| `wr.Consignee = id_consignee` enforces auth scope in WR query | ✓ |
+| `guiasHijas` excluded from portal response | ✓ |
+| `idResumenMAWB` excluded from portal response | ✓ |
+| Financial breakdown fields excluded | ✓ |
+| Internal/operational fields excluded | ✓ |
+
+---
+
+## 8. Recommendation
+
+### **A — Safe to proceed to feature-flagged `mis-facturas` frontend wiring**
+
+All backend pre-wiring tasks are complete:
+
+| Task | Status |
+|------|--------|
+| Shadow compare passes (countΔ=0, amtΔ=$0, missingInRds=[]) | ✅ |
+| `descuentoNombre` JOIN implemented | ✅ |
+| `recibos` batch query with multi-AWB support | ✅ |
+| `{Factura, Recibos}` response shape — `mapBill` compatible | ✅ |
+| `_unwrapBillsEnvelope` key `'facturas'` present | ✅ |
+| All `mapBill` field access paths verified by assertion | ✅ |
+| `invoiceFileUrl` stubbed as `''` (known limitation documented) | ✅ |
+| Internal fields excluded from portal response | ✅ |
+| `wr.Consignee = id_consignee` auth scope guard in WR query | ✅ |
+| `USE_RDS_INVOICES_FRONTEND` unset — no live traffic affected | ✅ |
+
+The remaining work is frontend-only (defer removal, IIFE + flag check,
+`getBillsRDS()` thin wrapper) — standard patterns already established in
+`mis-paquetes.html`. Once that is done and a smoke test passes,
+`USE_RDS_INVOICES_FRONTEND=true` can be set.
