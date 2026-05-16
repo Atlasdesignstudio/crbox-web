@@ -106,7 +106,7 @@ Failure to preserve `clients.crbox.cr` would break all logins, signups, password
 | 9 | `admin.crbox.cr` confirmed reachable | **Blocks DNS cutover** | ✅ **Confirmed 2026-05-14** | Resolves to `100.50.198.105` (same separate IP as `clients`). Returns HTTP 302. A change to apex A record cannot affect this subdomain. Source: `docs/dns-cutover-operational-status.md`. |
 | 10 | `CRBOX_SVC_EMAIL` and `CRBOX_SVC_PASSWORD` confirmed set in Replit production deployment | **Blocks broad portal rollout** | ⚠️ Open | Registration fails silently without these. Source: `replit.md` Required Env Vars, `server.py` `_handle_svc_token`. For DNS cutover of the public site this is acceptable with a documented limitation; for broad portal rollout (registration live) this is a hard requirement. |
 | 11 | Replit production deployment verified live and stable (not just preview) | **Blocks DNS cutover** | ✅ **Confirmed 2026-05-16** | Production deployment published 2026-05-16 (checkpoint `15656d1f`). App live at `crbox-web.replit.app`. Custom domains `crbox.cr` and `www.crbox.cr` pre-registered in Replit deployment settings. |
-| 12 | Pre-cutover smoke test (Section 5) completed and passed | **Blocks DNS cutover** | ⚠️ Open — Not yet run | Must be run against the Replit preview or production URL before the DNS change window opens. |
+| 12 | Pre-cutover smoke test (Section 5) completed and passed | **Blocks DNS cutover** | ✅ **Passed 2026-05-16** | Tested against `crbox-web.replit.app`. All groups passed: homepage, servicios, calculadora, contacto, afiliate, login, logout, dashboard, mis paquetes, mis facturas, mi cuenta, mobile nav. No major console errors. `/api/config` confirmed `useRdsPackages: false`, `useRdsInvoices: false`, `useRdsProfile: false` — legacy paths active. No DNS or Route 53 changes made. |
 | 13 | Rollback owner assigned and confirmed available during cutover window | **Blocks DNS cutover (rollback safety)** | ✅ **Confirmed 2026-05-16** | Mathias: decision authority, technical rollback owner, Route 53 access holder, and EC2 preservation owner — all roles confirmed. Backup rollback owner explicitly accepted as optional for this cutover. Source: `docs/dns-cutover-operational-status.md` Section 9. |
 | 14 | Rollback communication channel confirmed | **Blocks DNS cutover (rollback safety)** | ✅ **Confirmed 2026-05-16** | Primary: WhatsApp direct chat with Mathias. Backup: direct phone call to Mathias. Single point of contact — Mathias holds all cutover roles. Source: `docs/dns-cutover-operational-status.md` Section 10. |
 | 15 | Invoice upload end-to-end test (`postcreatepurchasebill` → visible in CRBOX admin) either passed or explicitly accepted as a non-blocking limitation for initial DNS cutover | **Blocks broad portal rollout** | ⚠️ Open | Does **not** block DNS cutover of the public marketing site if invoice upload is treated as a documented limitation. Blocks broad portal promotion if invoice upload is a critical user flow. Source: `replit.md` Gotchas. |
@@ -115,12 +115,13 @@ Failure to preserve `clients.crbox.cr` would break all logins, signups, password
 **Hard DNS cutover blockers (must all be resolved before Stage 3):** Items 1–9, 11–14  
 **Broad portal rollout blockers (may be accepted as limitations for initial DNS cutover):** Items 10, 15  
 
-**Status as of 2026-05-16 (latest update — old hosting confirmed; rollback owner confirmed; comms channel confirmed):**  
-✅ Confirmed resolved: items 1, 2, 3, 4, 6, 7, 8, 9, 11, 13, 14, 16  
+**Status as of 2026-05-16 (latest update — pre-cutover smoke test passed; readiness A):**  
+✅ Confirmed resolved: items 1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16  
 ⚠️ Partially confirmed: none  
-❌ Open: item 5 (SSL — self-confirms at cutover, no pre-action possible), item 12 (pre-cutover smoke test)  
-**Overall rating: A− — DNS cutover can be scheduled once item 12 (smoke test) passes. Item 5 (SSL) resolves automatically at cutover.**  
-**See `docs/dns-cutover-operational-status.md` for full detail and ordered action checklist.**
+❌ Open: item 5 (SSL — self-confirms at cutover, no pre-action possible or required)  
+**Overall rating: A — Ready for controlled DNS cutover. All pre-cutover human actions complete.**  
+**Item 5 (SSL) is not a scheduling gate — it resolves automatically when DNS propagates.**  
+**See `docs/dns-cutover-operational-status.md` for full detail and Route 53 change instructions.**
 
 **RDS production flag state (corrected 2026-05-14):**  
 `USE_RDS_PACKAGES_FRONTEND` moved from shared → development only. All three user-facing RDS frontend flags are now development-only. Production packages, invoices, and profile use legacy/fallback paths. `USE_RDS_PORTAL_API` remains in shared — admin-session-gated, no user-facing impact. See `docs/dns-cutover-operational-status.md` Section 11.

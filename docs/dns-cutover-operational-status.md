@@ -1,7 +1,7 @@
 # DNS Cutover — Operational Status
 
 **Document date:** 2026-05-14  
-**Last updated:** 2026-05-16 (old hosting longevity confirmed; rollback owner confirmed; comms channel confirmed — items 5, 9, 10 resolved)  
+**Last updated:** 2026-05-16 (pre-cutover smoke test passed against `crbox-web.replit.app` — readiness upgraded to A)  
 **Purpose:** Tracks the resolution status of the operational blockers identified in `docs/final-domain-cutover-go-live-checklist.md` Section 4 before Stage 3 (DNS change) can proceed.  
 **Mode:** Operational planning document. No DNS, hosting, code, or secret changes were made in producing this document, with the exception of RDS flag scope correction on 2026-05-14 (see Section 11).  
 **Output discipline:** No raw credentials, passwords, or personally identifying information.
@@ -285,9 +285,9 @@ All preparatory steps are complete. One human action remains before the cutover 
 4. ✅ **~~Confirm old AWS instance stays live~~** — Mathias confirmed 2026-05-16; EC2 `CrBox.cr V2` at `98.90.3.205` preserved for rollback window. (Item 5)
 5. ✅ **~~Assign rollback owner~~** — Mathias confirmed 2026-05-16; holds Route 53 access, decision authority, and EC2 ownership. (Item 9)
 6. ✅ **~~Confirm communication channel~~** — WhatsApp direct chat + phone call with Mathias confirmed 2026-05-16. (Item 10)
-7. [ ] **Run pre-cutover smoke test** (Section 5 of go-live checklist) against `crbox-web.replit.app`. All items must pass before the cutover window opens.
+7. ✅ **~~Run pre-cutover smoke test~~** — passed 2026-05-16 against `crbox-web.replit.app`. All groups passed. `/api/config` confirmed all RDS frontend flags false. No console errors. (Checklist item 12)
 8. ✅ **~~TTL pre-lowering wait~~** — eliminated. TTL already at 300 s. No wait required. (Item 8)
-9. [ ] **Open the cutover window** — smoke test passed, Mathias available, Route 53 open.
+9. [ ] **Open the cutover window** — all preparatory steps complete; Mathias available; Route 53 ready.
 
 ---
 
@@ -301,16 +301,16 @@ All preparatory steps are complete. One human action remains before the cutover 
 | Old hosting rollback IP documented | ✅ Confirmed (`98.90.3.205`) |
 | Old hosting preserved for rollback window | ✅ Confirmed — Mathias; EC2 `CrBox.cr V2` kept live 2–4 weeks post-cutover |
 | Replit production deployment target confirmed | ✅ Confirmed — A `34.111.179.208`; TXT token ready |
-| SSL auto-provisioning | ❌ Open — self-confirms at cutover; no pre-action possible |
+| SSL auto-provisioning | ❌ Open — self-confirms at cutover; no pre-action possible or required |
 | TTL at 300 s | ✅ Confirmed — already 300 s; no action needed |
 | Technical rollback owner assigned | ✅ Confirmed — Mathias |
 | Communication channel confirmed | ✅ Confirmed — WhatsApp + phone with Mathias |
+| Pre-cutover smoke test | ✅ Passed — 2026-05-16 against `crbox-web.replit.app` |
 
-**Rating: A−**  
-**Hard blockers confirmed resolved: 9 / 10**  
-**Item 7 (SSL) cannot be pre-confirmed — it resolves automatically when DNS propagates. It is not a scheduling blocker.**  
-**One remaining human action: pre-cutover smoke test (checklist item 12) against `crbox-web.replit.app`.**  
-**DNS cutover can be scheduled once the smoke test passes.**
+**Rating: A — Ready for controlled DNS cutover**  
+**All pre-cutover human actions complete.**  
+**Item 7 (SSL) resolves automatically at cutover — it is not a scheduling gate.**  
+**DNS cutover window can be opened by Mathias at any time.**
 
 ---
 
