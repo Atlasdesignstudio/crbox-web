@@ -238,7 +238,14 @@
       return res.json();
     }).then(function (data) {
       if (!data || !data.StatusResult) {
-        throw new Error('Respuesta inesperada del servidor. Intente de nuevo.');
+        var srvMsg = data && (data.ExceptionMessage || data.Message);
+        console.warn('[CRBOX] Registration: unexpected response (no StatusResult):', JSON.stringify(data));
+        throw new Error(srvMsg
+          ? 'El servicio de registro no está disponible temporalmente. Intente de nuevo en unos minutos.'
+          : 'Respuesta inesperada del servidor. Intente de nuevo.');
+      }
+      if (data.StatusResult !== 'OK') {
+        console.warn('[CRBOX] Registration rejected — StatusResult:', data.StatusResult, '| Message:', data.Message || '(none)');
       }
       return data;
     });
