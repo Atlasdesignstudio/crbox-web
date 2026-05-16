@@ -1,7 +1,7 @@
 # DNS Cutover — Operational Status
 
 **Document date:** 2026-05-14  
-**Last updated:** 2026-05-16 (pre-cutover smoke test passed against `crbox-web.replit.app` — readiness upgraded to A)  
+**Last updated:** 2026-05-16 (TXT verification records added to Route 53; Replit custom domains verifying; SSL pre-provisioning in progress)  
 **Purpose:** Tracks the resolution status of the operational blockers identified in `docs/final-domain-cutover-go-live-checklist.md` Section 4 before Stage 3 (DNS change) can proceed.  
 **Mode:** Operational planning document. No DNS, hosting, code, or secret changes were made in producing this document, with the exception of RDS flag scope correction on 2026-05-14 (see Section 11).  
 **Output discipline:** No raw credentials, passwords, or personally identifying information.
@@ -171,58 +171,65 @@ Mathias confirmed control of this instance and that during the rollback window h
 | A | `www` | `34.111.179.208` |
 | TXT | `www` | `replit-verify=1d390f47-9fd7-473d-8920-c938bd454134` |
 
-### Critical TXT record constraints
+### TXT verification records — ✅ Already added to Route 53 (2026-05-16)
 
-- `crbox.cr` **already has** an existing TXT/SPF record (`"v=spf1 include:_spf.google.com ~all"` and Mailgun entries). **The Replit TXT value must be added as an additional string in the same record set — do not replace the existing TXT/SPF values.** Route 53 supports multiple TXT values per record set.
-- `www.crbox.cr` has no existing TXT record. Create a new TXT record set for `www`.
+| Record | Status | Detail |
+|---|---|---|
+| `crbox.cr` TXT | ✅ Added | `replit-verify=1d390f47-9fd7-473d-8920-c938bd454134` appended as additional value; existing SPF/Google TXT preserved |
+| `www.crbox.cr` TXT | ✅ Added | New record set created with `replit-verify=1d390f47-9fd7-473d-8920-c938bd454134` |
 
-### Scope of DNS change at cutover
+Replit custom domains are currently in **verifying** state. Once TXT propagates and Replit confirms ownership, SSL certificate pre-provisioning begins (see Section 7).
 
-**Only these two A records change:**
+### Scope of DNS change at cutover — now A records only
+
+**TXT records are already in Route 53. Only these two A records change at cutover:**
 
 | Record | Old value | New value |
 |---|---|---|
 | `crbox.cr` A | `98.90.3.205` | `34.111.179.208` |
 | `www.crbox.cr` A | `98.90.3.205` | `34.111.179.208` |
 
-**Added (not changed) at cutover:**
+No other records are touched at cutover. TXT, MX, NS, SOA, SPF, Mailgun, and all subdomains remain unchanged.
 
-| Record | Type | Value |
-|---|---|---|
-| `crbox.cr` TXT | Add entry | `replit-verify=1d390f47-9fd7-473d-8920-c938bd454134` |
-| `www.crbox.cr` TXT | New record set | `replit-verify=1d390f47-9fd7-473d-8920-c938bd454134` |
+### Current A record state (pre-cutover)
+
+- `crbox.cr` A → `98.90.3.205` (old hosting — unchanged)
+- `www.crbox.cr` A → `98.90.3.205` (old hosting — unchanged)
 
 ### Protected records — do not touch
 
 - `clients.crbox.cr` — separate IP (`100.50.198.105`), must not be modified
 - `admin.crbox.cr` — same separate IP, must not be modified
 - MX, NS, SOA — do not touch
-- Existing `crbox.cr` TXT/SPF entries — preserve, only append the Replit TXT value
+- `crbox.cr` TXT — already updated; do not modify again
 
 ### Rollback target preserved
 
-Old A record value `98.90.3.205` is documented. Rollback = change both A records back to `98.90.3.205` and remove the Replit TXT entries.
+Old A record value `98.90.3.205` is documented. Rollback = change both A records back to `98.90.3.205`. TXT records do not need to be removed for rollback (they are harmless with the old IP).
 
 ---
 
 ## 7. SSL Auto-Provisioning
 
-**Status: ❌ Open — domain pre-registered in Replit; SSL provisions automatically once DNS points to `34.111.179.208`**
+**Status: ⚠️ Verifying — TXT records in Route 53; Replit domain verification in progress; SSL pre-provisioning expected before A record cutover**
 
-### What is confirmed
+### Current state (2026-05-16)
 
-- `crbox.cr` and `www.crbox.cr` are added as custom domains in Replit deployment settings (required pre-condition — ✅ done).
-- Replit's DNS target is `34.111.179.208` (A record, confirmed 2026-05-16).
-- The TXT verification token (`replit-verify=1d390f47-9fd7-473d-8920-c938bd454134`) is ready to be added to Route 53.
+| Step | Status |
+|---|---|
+| Custom domains pre-registered in Replit | ✅ Done |
+| TXT verification records added to Route 53 | ✅ Done — 2026-05-16 |
+| Replit domain verification (TXT propagation check) | ⚠️ In progress — Replit UI shows "verifying" |
+| SSL certificate pre-provisioned by Replit | ⏳ Expected once TXT verification completes |
+| A records pointing to `34.111.179.208` | ❌ Not yet — happens at cutover |
+| SSL live and confirmed | ❌ Confirms at cutover minute-0 smoke test |
 
-### What remains open
+### Key implication
 
-Replit provisions the TLS certificate automatically once:
-1. ✅ The custom domain is pre-registered in Replit deployment settings — **done**.
-2. ❌ DNS is pointing to `34.111.179.208` — **not yet done; happens at cutover**.
-3. ❌ Replit completes ACME/Let's Encrypt verification using the TXT token — **happens automatically after DNS propagates**.
+Because TXT verification is happening **before** the A record change, Replit is expected to pre-provision the SSL certificate before cutover. When the A records flip to `34.111.179.208`, HTTPS should be available immediately — eliminating any SSL gap window. This reduces cutover risk.
 
-**SSL cannot be confirmed until the DNS change is live.** Verification step:
+### Confirmation step (unchanged)
+
 - [ ] After DNS propagation, verify `https://crbox.cr/` loads with a valid certificate (no browser warning).
 - [ ] Verify `https://www.crbox.cr/` same.
 - [ ] These are part of the minute-0 smoke test in the cutover window.
@@ -301,7 +308,7 @@ All preparatory steps are complete. One human action remains before the cutover 
 | Old hosting rollback IP documented | ✅ Confirmed (`98.90.3.205`) |
 | Old hosting preserved for rollback window | ✅ Confirmed — Mathias; EC2 `CrBox.cr V2` kept live 2–4 weeks post-cutover |
 | Replit production deployment target confirmed | ✅ Confirmed — A `34.111.179.208`; TXT token ready |
-| SSL auto-provisioning | ❌ Open — self-confirms at cutover; no pre-action possible or required |
+| SSL auto-provisioning | ⚠️ Verifying — TXT records in Route 53; Replit domain verification in progress; SSL pre-provisioning expected before A record flip |
 | TTL at 300 s | ✅ Confirmed — already 300 s; no action needed |
 | Technical rollback owner assigned | ✅ Confirmed — Mathias |
 | Communication channel confirmed | ✅ Confirmed — WhatsApp + phone with Mathias |
