@@ -1,7 +1,7 @@
 # DNS Cutover — Operational Status
 
 **Document date:** 2026-05-14  
-**Last updated:** 2026-05-14 (Route 53 confirmed; TTL resolved; RDS flag scope corrected)  
+**Last updated:** 2026-05-16 (Replit custom domain DNS targets obtained; item 6 resolved)  
 **Purpose:** Tracks the resolution status of the operational blockers identified in `docs/final-domain-cutover-go-live-checklist.md` Section 4 before Stage 3 (DNS change) can proceed.  
 **Mode:** Operational planning document. No DNS, hosting, code, or secret changes were made in producing this document, with the exception of RDS flag scope correction on 2026-05-14 (see Section 11).  
 **Output discipline:** No raw credentials, passwords, or personally identifying information.
@@ -17,14 +17,14 @@
 | 3 | Protected subdomains confirmed safe from apex change | Yes | ✅ **Confirmed** — 2026-05-14 |
 | 4 | Old hosting rollback IP documented | Yes | ✅ **Confirmed** — 2026-05-14 |
 | 5 | Old hosting confirmed preserved for 2–4 weeks post-cutover | Yes | ❌ **Open** — AWS instance owner has not confirmed longevity |
-| 6 | Replit production deployment target (custom domain IP/CNAME) | Yes | ❌ **Open** — not yet added to Replit; target value unknown |
-| 7 | SSL auto-provisioning confirmed | Yes | ❌ **Open** — depends on item 6 |
+| 6 | Replit production deployment target (custom domain IP/CNAME) | Yes | ✅ **Confirmed** — A record target `34.111.179.208`; TXT verification token obtained 2026-05-16 |
+| 7 | SSL auto-provisioning confirmed | Yes | ❌ **Open** — domain pre-registered in Replit; SSL provisions automatically once DNS propagates to `34.111.179.208` |
 | 8 | TTL at ~300 s | Yes (rollback risk) | ✅ **Confirmed** — already 300 s on all records; no change needed; no 24 h wait required |
 | 9 | Technical rollback owner (with Route 53 access) assigned | Yes | ⚠️ **Partial** — Route 53 access confirmed for user; formal rollback owner assignment still needed |
 | 10 | Communication channel for cutover window designated | Yes | ⚠️ **Partial** — WhatsApp + phone confirmed as method; group not yet set up |
 
 **Current overall rating: B**  
-**Confirmed resolved: 5 / 10 hard blockers** (items 1, 2, 3, 4, 8)  
+**Confirmed resolved: 6 / 10 hard blockers** (items 1, 2, 3, 4, 6, 8)  
 **Path to A:** All 10 items above must reach ✅.  
 **DNS cutover cannot be scheduled yet.**
 
@@ -132,40 +132,81 @@ The rollback target is `98.90.3.205` (AWS EC2). If that instance is stopped or d
 
 ---
 
-## 6. Replit Production Deployment Target
+## 6. Replit Production Deployment Target — ✅ Confirmed
 
-**Status: ❌ Open — custom domain not yet added to Replit; DNS target value unknown**
+**Status: ✅ Confirmed — DNS targets obtained 2026-05-16. No DNS changes made yet.**
 
-### What is confirmed
+### Confirmed DNS records to apply at cutover
 
-- Replit autoscale deployment is configured for this project.
-- Dev/preview deployment exists and is being used for testing.
+#### `crbox.cr` (apex)
 
-### What remains open
+| Record type | Hostname | Value |
+|---|---|---|
+| A | `@` | `34.111.179.208` |
+| TXT | `@` | `replit-verify=1d390f47-9fd7-473d-8920-c938bd454134` |
 
-- [ ] **Publish a production deployment** in Replit (Deploy → Publish) if not already done.
-- [ ] **Add `crbox.cr` as a custom domain** in Replit deployment settings (Deployments → Custom Domains → Add domain).
-- [ ] **Add `www.crbox.cr` as a custom domain** (same process).
-- [ ] **Record the A record IP or CNAME target** that Replit provides for each domain. This is the value that goes into Route 53 at cutover time.
-- [ ] **Do not change DNS** until these values are in hand and SSL provisioning status is confirmed (item 7).
+#### `www.crbox.cr`
 
-**Note:** Replit displays the required DNS record (A record IP or CNAME) on the custom domain setup screen. That value is the cutover target. Until it is known, the cutover A record value is undefined.
+| Record type | Hostname | Value |
+|---|---|---|
+| A | `www` | `34.111.179.208` |
+| TXT | `www` | `replit-verify=1d390f47-9fd7-473d-8920-c938bd454134` |
+
+### Critical TXT record constraints
+
+- `crbox.cr` **already has** an existing TXT/SPF record (`"v=spf1 include:_spf.google.com ~all"` and Mailgun entries). **The Replit TXT value must be added as an additional string in the same record set — do not replace the existing TXT/SPF values.** Route 53 supports multiple TXT values per record set.
+- `www.crbox.cr` has no existing TXT record. Create a new TXT record set for `www`.
+
+### Scope of DNS change at cutover
+
+**Only these two A records change:**
+
+| Record | Old value | New value |
+|---|---|---|
+| `crbox.cr` A | `98.90.3.205` | `34.111.179.208` |
+| `www.crbox.cr` A | `98.90.3.205` | `34.111.179.208` |
+
+**Added (not changed) at cutover:**
+
+| Record | Type | Value |
+|---|---|---|
+| `crbox.cr` TXT | Add entry | `replit-verify=1d390f47-9fd7-473d-8920-c938bd454134` |
+| `www.crbox.cr` TXT | New record set | `replit-verify=1d390f47-9fd7-473d-8920-c938bd454134` |
+
+### Protected records — do not touch
+
+- `clients.crbox.cr` — separate IP (`100.50.198.105`), must not be modified
+- `admin.crbox.cr` — same separate IP, must not be modified
+- MX, NS, SOA — do not touch
+- Existing `crbox.cr` TXT/SPF entries — preserve, only append the Replit TXT value
+
+### Rollback target preserved
+
+Old A record value `98.90.3.205` is documented. Rollback = change both A records back to `98.90.3.205` and remove the Replit TXT entries.
 
 ---
 
 ## 7. SSL Auto-Provisioning
 
-**Status: ❌ Open — depends on item 6**
+**Status: ❌ Open — domain pre-registered in Replit; SSL provisions automatically once DNS points to `34.111.179.208`**
 
-Replit automatically provisions a TLS certificate for custom domains once:
-1. The custom domain is added in Replit deployment settings, and
-2. DNS is pointing to Replit's target (so Replit can complete ACME/Let's Encrypt verification).
+### What is confirmed
 
-**This means SSL is not confirmed until the DNS change is live.** The confirmation step is:
+- `crbox.cr` and `www.crbox.cr` are added as custom domains in Replit deployment settings (required pre-condition — ✅ done).
+- Replit's DNS target is `34.111.179.208` (A record, confirmed 2026-05-16).
+- The TXT verification token (`replit-verify=1d390f47-9fd7-473d-8920-c938bd454134`) is ready to be added to Route 53.
+
+### What remains open
+
+Replit provisions the TLS certificate automatically once:
+1. ✅ The custom domain is pre-registered in Replit deployment settings — **done**.
+2. ❌ DNS is pointing to `34.111.179.208` — **not yet done; happens at cutover**.
+3. ❌ Replit completes ACME/Let's Encrypt verification using the TXT token — **happens automatically after DNS propagates**.
+
+**SSL cannot be confirmed until the DNS change is live.** Verification step:
 - [ ] After DNS propagation, verify `https://crbox.cr/` loads with a valid certificate (no browser warning).
-- [ ] This is part of the minute-0 smoke test in the cutover window (Section 5 of the go-live checklist).
-
-**Important:** Do not open the cutover window unless `crbox.cr` and `www.crbox.cr` are already added as custom domains in Replit, even if DNS isn't pointed there yet. Replit needs the domain pre-registered to provision SSL immediately upon propagation.
+- [ ] Verify `https://www.crbox.cr/` same.
+- [ ] These are part of the minute-0 smoke test in the cutover window.
 
 ---
 
