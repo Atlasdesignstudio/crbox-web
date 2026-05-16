@@ -1,7 +1,7 @@
 # DNS Cutover — Operational Status
 
 **Document date:** 2026-05-14  
-**Last updated:** 2026-05-16 (Replit custom domain DNS targets obtained; item 6 resolved)  
+**Last updated:** 2026-05-16 (old hosting longevity confirmed; rollback owner confirmed; comms channel confirmed — items 5, 9, 10 resolved)  
 **Purpose:** Tracks the resolution status of the operational blockers identified in `docs/final-domain-cutover-go-live-checklist.md` Section 4 before Stage 3 (DNS change) can proceed.  
 **Mode:** Operational planning document. No DNS, hosting, code, or secret changes were made in producing this document, with the exception of RDS flag scope correction on 2026-05-14 (see Section 11).  
 **Output discipline:** No raw credentials, passwords, or personally identifying information.
@@ -16,17 +16,17 @@
 | 2 | DNS records exported and backed up (full zone) | Yes | ✅ **Confirmed** — full zone backup downloaded 2026-05-14 (`crbox-cr-route53-backup-2026-05-14.json`, 21 record sets) |
 | 3 | Protected subdomains confirmed safe from apex change | Yes | ✅ **Confirmed** — 2026-05-14 |
 | 4 | Old hosting rollback IP documented | Yes | ✅ **Confirmed** — 2026-05-14 |
-| 5 | Old hosting confirmed preserved for 2–4 weeks post-cutover | Yes | ❌ **Open** — AWS instance owner has not confirmed longevity |
+| 5 | Old hosting confirmed preserved for 2–4 weeks post-cutover | Yes | ✅ **Confirmed** — Mathias confirmed 2026-05-16; EC2 `CrBox.cr V2` (`98.90.3.205`, us-east-1c, running, 3/3 status checks) will be kept live |
 | 6 | Replit production deployment target (custom domain IP/CNAME) | Yes | ✅ **Confirmed** — A record target `34.111.179.208`; TXT verification token obtained 2026-05-16 |
-| 7 | SSL auto-provisioning confirmed | Yes | ❌ **Open** — domain pre-registered in Replit; SSL provisions automatically once DNS propagates to `34.111.179.208` |
+| 7 | SSL auto-provisioning confirmed | Yes | ❌ **Open** — domain pre-registered in Replit; SSL provisions automatically once DNS propagates to `34.111.179.208` (no pre-action possible) |
 | 8 | TTL at ~300 s | Yes (rollback risk) | ✅ **Confirmed** — already 300 s on all records; no change needed; no 24 h wait required |
-| 9 | Technical rollback owner (with Route 53 access) assigned | Yes | ⚠️ **Partial** — Route 53 access confirmed for user; formal rollback owner assignment still needed |
-| 10 | Communication channel for cutover window designated | Yes | ⚠️ **Partial** — WhatsApp + phone confirmed as method; group not yet set up |
+| 9 | Technical rollback owner (with Route 53 access) assigned | Yes | ✅ **Confirmed** — Mathias; holds Route 53 access, decision authority, and EC2 preservation ownership; confirmed 2026-05-16 |
+| 10 | Communication channel for cutover window designated | Yes | ✅ **Confirmed** — WhatsApp direct chat + direct phone call with Mathias; confirmed 2026-05-16 |
 
-**Current overall rating: B**  
-**Confirmed resolved: 6 / 10 hard blockers** (items 1, 2, 3, 4, 6, 8)  
-**Path to A:** All 10 items above must reach ✅.  
-**DNS cutover cannot be scheduled yet.**
+**Current overall rating: A−**  
+**Confirmed resolved: 9 / 10 hard blockers** (items 1, 2, 3, 4, 5, 6, 8, 9, 10)  
+**Item 7 (SSL) self-confirms at cutover — no pre-action possible or required.**  
+**Remaining human action before scheduling: pre-cutover smoke test (checklist item 12).**
 
 ---
 
@@ -118,17 +118,36 @@
 
 ---
 
-## 5. Old Hosting Preservation for Rollback Window
+## 5. Old Hosting Preservation for Rollback Window — ✅ Confirmed
 
-**Status: ❌ Open — AWS instance owner has not confirmed the instance will stay live**
+**Status: ✅ Confirmed — Mathias confirmed 2026-05-16**
 
-The rollback target is `98.90.3.205` (AWS EC2). If that instance is stopped or decommissioned after the cutover, rollback becomes impossible.
+### EC2 instance details (confirmed)
 
-**Required action:**
-- [ ] The person who controls the AWS EC2 instance at `98.90.3.205` must confirm in writing that it will remain running and reachable for at least **2–4 weeks** after the cutover date.
-- [ ] Document who that person is and how to reach them.
+| Field | Value |
+|---|---|
+| Instance name | CrBox.cr V2 |
+| Public / Elastic IP | `98.90.3.205` |
+| Region | us-east-1 |
+| Availability zone | us-east-1c |
+| Instance type | t3.medium |
+| State | Running |
+| Status checks | 3/3 passed |
 
-**Risk if not resolved:** If the old instance goes down after cutover and a rollback trigger fires, the rollback target no longer exists. This converts a recoverable incident into an extended outage.
+### Preservation commitment (confirmed by Mathias, 2026-05-16)
+
+Mathias confirmed control of this instance and that during the rollback window he will **not**:
+- Stop or terminate the instance
+- Decommission it or change its public/Elastic IP
+- Change security groups or shut down the web server
+- Remove the old hosting target
+
+### Rollback target (unchanged)
+
+- `crbox.cr` A → `98.90.3.205`
+- `www.crbox.cr` A → `98.90.3.205`
+
+**No EC2 changes were made. No DNS changes were made.**
 
 ---
 
@@ -225,77 +244,73 @@ Replit provisions the TLS certificate automatically once:
 
 ---
 
-## 9. Rollback Owner Assignment
+## 9. Rollback Owner Assignment — ✅ Confirmed
 
-**Status: ❌ Open — technical rollback owner must be the person with Route 53 access**
+**Status: ✅ Confirmed — all roles assigned to Mathias, 2026-05-16**
 
-| Role | Person | Contact | Status |
-|---|---|---|---|
-| **Decision authority** (calls the rollback) | User / project coordinator | TBD | ⚠️ Identified but not formally assigned |
-| **Technical rollback owner** (executes the DNS change) | Person with AWS Route 53 access | TBD | ❌ Not yet identified/confirmed |
-| **Backup rollback owner** | TBD | TBD | ❌ Not assigned |
+| Role | Person | Status |
+|---|---|---|
+| **Decision authority** (calls the rollback) | Mathias | ✅ Confirmed |
+| **Technical rollback owner** (executes the Route 53 DNS change) | Mathias | ✅ Confirmed — holds Route 53 access |
+| **Route 53 access holder** | Mathias | ✅ Confirmed |
+| **EC2 preservation owner** | Mathias | ✅ Confirmed |
+| **Backup rollback owner** | Not assigned | Accepted as optional for this cutover |
 
-**Key clarification from user (2026-05-14):** The user can coordinate the rollback decision but should not be listed as technical rollback owner unless they have Route 53 access. The technical owner must be whoever can actually edit records in the Route 53 hosted zone.
-
-**Action required:**
-- [ ] Identify and name the person with Route 53 access to the `crbox.cr` hosted zone.
-- [ ] Confirm they are available for the full cutover window plus a 2-hour rollback watch period.
-- [ ] Identify a backup (someone who can also access Route 53 in an emergency).
-- [ ] Record both names and contact details in this document before scheduling the cutover.
+Mathias confirmed he controls the cutover process end-to-end: Route 53 access, EC2 instance ownership, decision authority, and execution of any rollback DNS changes.
 
 ---
 
-## 10. Communication Channel
+## 10. Communication Channel — ✅ Confirmed
 
-**Status: ⚠️ Partial — method confirmed; specific group not yet set up**
+**Status: ✅ Confirmed — 2026-05-16**
 
 | Item | Value | Status |
 |---|---|---|
-| Communication method | WhatsApp group + direct phone call | ✅ Confirmed as method |
-| Cutover WhatsApp group | Not yet created | ❌ Open |
-| Required members | Decision authority + technical rollback owner + backup | ❌ Open (rollback owner not yet assigned) |
+| Primary channel | WhatsApp direct chat with Mathias | ✅ Confirmed |
+| Backup channel | Direct phone call to Mathias | ✅ Confirmed |
+| Decision authority available | Mathias | ✅ Confirmed |
+| Technical rollback owner available | Mathias (same person) | ✅ Confirmed |
 
-**Action required:**
-- [ ] Once rollback owner is assigned (item 9), create a WhatsApp group with: decision authority, technical rollback owner, backup rollback owner.
-- [ ] Confirm all members are active in the group before the cutover window opens.
-- [ ] Document direct phone numbers as a fallback if WhatsApp is unavailable.
+All coordination, decision-making, and rollback execution runs through Mathias. Single point of contact for the cutover window — no group setup required given Mathias holds all roles.
 
 ---
 
 ## Pre-Cutover Action Checklist (ordered)
 
-The following actions must be completed before DNS can be changed. Steps 1 and 8 are already done.
+All preparatory steps are complete. One human action remains before the cutover window can open.
 
 1. ✅ **~~Confirm Route 53 access~~** — confirmed 2026-05-14. (Item 1)
 2. ✅ **~~Export full Route 53 zone backup~~** — downloaded 2026-05-14 (`crbox-cr-route53-backup-2026-05-14.json`, 21 record sets). (Item 2)
-3. [ ] **Publish Replit production deployment** and add `crbox.cr` + `www.crbox.cr` as custom domains. Record the exact A record IP or CNAME that Replit provides. (Items 6, 7, 11)
-4. [ ] **Confirm old AWS instance at `98.90.3.205` will stay live** for 2–4 weeks post-cutover. Get written confirmation from whoever controls that EC2 instance. (Item 5)
-5. [ ] **Assign rollback owner** (the Route 53 access holder, confirmed in step 1) and backup. Document names and phone numbers. (Item 9)
-6. [ ] **Create cutover WhatsApp group** with decision authority, technical rollback owner, and backup. Confirm all members active. (Item 10)
-7. [ ] **Run pre-cutover smoke test** (Section 5 of go-live checklist) against the Replit production URL.
+3. ✅ **~~Publish Replit production deployment~~** — published 2026-05-16; `crbox.cr` + `www.crbox.cr` added as custom domains; DNS target `34.111.179.208` recorded. (Items 6, 7, 11)
+4. ✅ **~~Confirm old AWS instance stays live~~** — Mathias confirmed 2026-05-16; EC2 `CrBox.cr V2` at `98.90.3.205` preserved for rollback window. (Item 5)
+5. ✅ **~~Assign rollback owner~~** — Mathias confirmed 2026-05-16; holds Route 53 access, decision authority, and EC2 ownership. (Item 9)
+6. ✅ **~~Confirm communication channel~~** — WhatsApp direct chat + phone call with Mathias confirmed 2026-05-16. (Item 10)
+7. [ ] **Run pre-cutover smoke test** (Section 5 of go-live checklist) against `crbox-web.replit.app`. All items must pass before the cutover window opens.
 8. ✅ **~~TTL pre-lowering wait~~** — eliminated. TTL already at 300 s. No wait required. (Item 8)
-9. [ ] **Open the cutover window** — all owners on WhatsApp, Route 53 access confirmed live, Replit custom domain target in hand.
+9. [ ] **Open the cutover window** — smoke test passed, Mathias available, Route 53 open.
 
 ---
 
-## Final Readiness Assessment — 2026-05-14 (latest)
+## Final Readiness Assessment — 2026-05-16 (latest)
 
 | Operational blocker | Status |
 |---|---|
-| DNS owner / Route 53 access confirmed | ✅ Confirmed |
+| DNS owner / Route 53 access confirmed | ✅ Confirmed — Mathias |
 | DNS records exported (full zone) | ✅ Confirmed — `crbox-cr-route53-backup-2026-05-14.json`, 21 record sets |
 | Protected subdomains confirmed safe | ✅ Confirmed |
 | Old hosting rollback IP documented | ✅ Confirmed (`98.90.3.205`) |
-| Old hosting preserved for rollback window | ❌ Open |
-| Replit production deployment target confirmed | ❌ Open |
-| SSL confirmation | ❌ Open (depends on Replit custom domain) |
+| Old hosting preserved for rollback window | ✅ Confirmed — Mathias; EC2 `CrBox.cr V2` kept live 2–4 weeks post-cutover |
+| Replit production deployment target confirmed | ✅ Confirmed — A `34.111.179.208`; TXT token ready |
+| SSL auto-provisioning | ❌ Open — self-confirms at cutover; no pre-action possible |
 | TTL at 300 s | ✅ Confirmed — already 300 s; no action needed |
-| Technical rollback owner assigned | ⚠️ Partial — Route 53 access confirmed; formal assignment pending |
-| Communication channel confirmed | ⚠️ Partial — method confirmed; WhatsApp group not yet set up |
+| Technical rollback owner assigned | ✅ Confirmed — Mathias |
+| Communication channel confirmed | ✅ Confirmed — WhatsApp + phone with Mathias |
 
-**Rating: B**  
-**Hard blockers confirmed resolved: 5 / 10** (DNS owner, zone backup, protected subdomains, rollback IP, TTL)  
-**DNS cutover cannot be scheduled until all 10 items reach ✅.**
+**Rating: A−**  
+**Hard blockers confirmed resolved: 9 / 10**  
+**Item 7 (SSL) cannot be pre-confirmed — it resolves automatically when DNS propagates. It is not a scheduling blocker.**  
+**One remaining human action: pre-cutover smoke test (checklist item 12) against `crbox-web.replit.app`.**  
+**DNS cutover can be scheduled once the smoke test passes.**
 
 ---
 
