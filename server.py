@@ -9271,6 +9271,26 @@ _CSP_POLICY_EMBEDDABLE = (
 _MAX_BODY_REGULAR  = 512 * 1024      # 512 KB for regular endpoints
 _MAX_BODY_UPLOAD   = 2 * 1024 * 1024   # 2 MB for file-upload endpoints
 
+# ── Legacy URL redirects (old WordPress / former-site paths) ──────────────────
+# Maps old path (with or without trailing slash) → canonical new URL.
+# All return 301 Permanent so search engines transfer link equity.
+_LEGACY_REDIRECTS = {
+    '/inicio':                    '/',
+    '/inicio/':                   '/',
+    '/preguntas-frecuentes':      '/como-funciona.html',
+    '/preguntas-frecuentes/':     '/como-funciona.html',
+    '/nuestras-sucursales':       '/contacto.html',
+    '/nuestras-sucursales/':      '/contacto.html',
+    '/acerca-de-nuestra-empresa': '/',
+    '/acerca-de-nuestra-empresa/':'/',
+    '/client':                    '/login.html',
+    '/client/':                   '/login.html',
+    '/bills':                     '/login.html',
+    '/bills/':                    '/login.html',
+    '/register':                  '/afiliate.html',
+    '/register/':                 '/afiliate.html',
+}
+
 
 class NoCacheHandler(SimpleHTTPRequestHandler):
 
@@ -9334,6 +9354,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         # HTML: allow conditional revalidation but not stale serving
         if ext == '.html' or not ext:
             return 'no-cache', False
+        # Crawl / discovery files: moderate public cache (1 hour)
+        if p in ('/llms.txt', '/robots.txt', '/sitemap.xml'):
+            return 'public, max-age=3600', False
         # Anything else: safe default
         return 'no-store, no-cache, must-revalidate, max-age=0', True
 
@@ -9475,7 +9498,38 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             except Exception:
                 pass
 
+    def do_HEAD(self):
+        """Handle HEAD requests.
+
+        Public API endpoints and dynamic crawl files are handled by do_GET
+        (via _do_get_inner) and have no body to suppress, so we call
+        _do_get_inner directly. Static files (llms.txt, robots.txt, sitemap.xml)
+        are normally served by SimpleHTTPRequestHandler whose do_HEAD works
+        correctly. For the dynamic JSON endpoints we return correct headers
+        without a body by redirecting through the GET handler; Python's
+        BaseHTTPRequestHandler lets the client handle body-suppression.
+        """
+        p = self.path.split('?')[0]
+        if p.startswith('/api/public/') or p == '/ai-context.json':
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+            self.end_headers()
+        else:
+            super().do_HEAD()
+
     def _do_get_inner(self):
+        # ── Legacy URL redirects ───────────────────────────────────────────────
+        # Check before any other routing so old WordPress / former-site paths
+        # return a proper 301 instead of a hard 404.
+        _legacy_dest = _LEGACY_REDIRECTS.get(self.path.split('?')[0])
+        if _legacy_dest:
+            self.send_response(301)
+            self.send_header('Location', _legacy_dest)
+            self.end_headers()
+            return
+
         if self.path == '/health':
             self._handle_health()
         elif self.path.startswith('/admin'):

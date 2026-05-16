@@ -1,0 +1,119 @@
+# Task — Post-Cutover SEO, AEO & LLM Crawlability Validation
+
+What & Why
+crbox.cr is now live on the new Replit deployment. After the DNS cutover, we need to validate that the site is fully crawlable, indexable, searchable, and optimized for both traditional search engines and AI/LLM crawlers.
+
+Do not change DNS.
+Do not change Route 53.
+Do not touch clients.crbox.cr or admin.crbox.cr.
+Do not modify private portal pages except if documenting findings.
+Do not expose PII.
+Do not enable RDS flags.
+
+Goal
+Audit the live production domain and produce a post-cutover crawlability report.
+
+Check:
+
+1. Core public crawl files
+Verify live status, HTTP status, content type, and content quality for:
+- https://crbox.cr/robots.txt
+- https://crbox.cr/sitemap.xml
+- https://crbox.cr/llms.txt
+- https://crbox.cr/ai-context.json
+
+2. Public API endpoints for AI/LLM context
+Verify live status and JSON validity for:
+- /api/public/overview
+- /api/public/services
+- /api/public/how-it-works
+- /api/public/faqs
+- /api/public/contact
+- /api/public/rates-guidance
+
+For each endpoint, confirm:
+- returns 200
+- valid JSON
+- no PII
+- no private portal data
+- useful for AI agents
+- cache headers acceptable
+- CORS behavior acceptable for read-only public use
+
+3. Robots and indexing
+Confirm:
+- public pages are allowed
+- portal/private pages are disallowed/noindex
+- login/dashboard/mis-paquetes/mis-facturas/mi-cuenta/cotizar/solicitud/admin are not indexable
+- sitemap only includes public pages
+- sitemap uses canonical https://crbox.cr URLs
+
+4. Canonicals and meta tags
+Check all public pages:
+- /
+- /servicios.html
+- /como-funciona.html
+- /tarifas.html
+- /calculadora.html
+- /contacto.html
+- /afiliate.html
+- /privacidad.html
+- /terminos.html
+
+Confirm:
+- canonical tag exists
+- title exists
+- meta description exists
+- OG/Twitter tags exist
+- language is correct
+- no accidental noindex
+
+5. Old URL redirect audit
+Search current indexed/known legacy URLs and verify behavior:
+- /inicio/
+- /como-funciona/
+- /preguntas-frecuentes/
+- /nuestras-sucursales/
+- /acerca-de-nuestra-empresa/
+- /client/
+- /bills/
+- /register/
+- /?p=11338
+
+For each:
+- current HTTP status
+- whether it redirects
+- recommended destination
+- whether missing redirect is SEO/AEO risk
+
+6. LLM answerability test
+Using only llms.txt, ai-context.json, and /api/public/* endpoints, answer:
+- What is CRBOX?
+- How does the Miami-to-Costa-Rica process work?
+- What services are offered?
+- What are the rates or rate guidance?
+- What items may be restricted?
+- How can users contact CRBOX?
+- How can users affiliate/register?
+
+Flag any missing or ambiguous info.
+
+7. Search Console checklist
+Produce a checklist for:
+- submit sitemap
+- inspect homepage
+- inspect key public pages
+- request indexing
+- monitor coverage
+- monitor redirects/404
+- monitor old URLs
+- monitor Core Web Vitals
+
+8. Final report
+Return:
+- crawlability rating A/B/C
+- SEO indexability rating A/B/C
+- LLM/AEO readiness rating A/B/C
+- blockers
+- quick fixes
+- recommended next tasks
