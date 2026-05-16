@@ -1,0 +1,120 @@
+# Task — Fix Bing Webmaster Tools SEO/GEO Issues on Production
+
+Context
+crbox.cr is live after the DNS cutover. Google Search Console is configured correctly:
+- crbox.cr property verified
+- sitemap submitted successfully
+- 9 pages discovered
+- live URL tests passed
+- indexing requested for public pages
+
+Bing Webmaster Tools is also configured:
+- crbox.cr imported
+- sitemap submitted and processing
+- 8 internal public URLs manually submitted
+- homepage is indexed successfully
+
+However, Bing URL Inspection for https://crbox.cr/ reports 2 SEO/GEO issues:
+1. Error — Meta Description tag missing — 1 instance
+2. Notice — Alt attribute for images is missing — 8 instances
+
+Goal
+Audit and fix the real production HTML issues causing Bing’s warnings, without changing DNS, Route 53, Replit domains, private portal pages, RDS flags, auth, or legacy APIs.
+
+Scope
+Public pages only:
+- index.html
+- servicios.html
+- como-funciona.html
+- tarifas.html
+- calculadora.html
+- contacto.html
+- afiliate.html
+- privacidad.html
+- terminos.html
+
+Do not touch:
+- DNS
+- Route 53
+- Replit domains
+- clients.crbox.cr
+- admin.crbox.cr
+- RDS flags
+- private portal pages
+- auth logic
+- legacy APIs
+
+Tasks
+
+1. Investigate Bing “Meta Description tag missing”
+Inspect the production-served homepage HTML for:
+- `https://crbox.cr/`
+- local `index.html`
+
+Confirm:
+- `<meta name="description" content="...">` exists
+- it is inside `<head>`
+- it is not malformed
+- it is not duplicated
+- it appears before any invalid closing `</head>` or malformed markup
+- there is no broken HTML structure causing Bing to miss it
+- the description is not empty
+- it is not only present as `og:description` or `twitter:description`; Bing needs a normal `meta name="description"`
+
+If the tag is missing, malformed, misplaced, duplicated, or empty, fix it.
+
+If the tag is already correct, document this as likely stale Bing cache and recommend reinspection after republish/indexing.
+
+2. Confirm meta descriptions on all public pages
+For each public page:
+- confirm a valid `<meta name="description" content="...">`
+- confirm it is inside the `<head>`
+- confirm it is unique and page-specific enough
+- confirm public pages remain indexable
+
+3. Fix missing image alt attributes
+Audit every `<img>` tag across all public pages.
+
+For each missing alt:
+- decorative image → add `alt=""`
+- meaningful image → add concise descriptive Spanish alt text
+- logo/icon → add concise Spanish alt text
+
+Rules:
+- no keyword stuffing
+- no invented details
+- no fake SEO copy
+- no misleading descriptions
+- keep alt text natural and useful
+
+4. Validate Bing crawlability signals
+Confirm:
+- `https://crbox.cr/sitemap.xml` is live
+- sitemap includes all 9 public URLs
+- `https://crbox.cr/robots.txt` allows public pages
+- public pages do not have noindex
+- HEAD/GET responses are valid
+- internal pages are linked from navigation
+- legacy redirects do not block Bing
+
+5. Documentation
+Update:
+- docs/post-cutover-seo-aeo-crawlability-report.md
+
+Add:
+- Bing Webmaster Tools status
+- sitemap submitted and processing
+- 8 internal URLs manually submitted
+- whether meta description warning was real or stale
+- number of missing alt attributes found
+- number of alt attributes fixed
+- remaining Bing-specific recommendations
+
+6. Final report
+Return:
+- files changed
+- exact issue found for meta description, or confirmation it was stale
+- number of alt issues found and fixed
+- whether public pages still pass SEO/indexability
+- whether another Replit republish is required
+- next manual step in Bing after deployment

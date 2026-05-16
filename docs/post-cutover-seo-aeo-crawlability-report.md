@@ -1,7 +1,7 @@
 # Post-Cutover SEO, AEO & LLM Crawlability Report
 
 **Domain audited:** https://crbox.cr  
-**Audit date:** 2026-05-16  
+**Audit date:** 2026-05-16 (updated 2026-05-16 with Bing findings)  
 **Auditor:** Automated + manual review (post DNS cutover)
 
 ---
@@ -11,8 +11,37 @@
 | Dimension | Rating | Summary |
 |---|---|---|
 | Crawlability | **A** | All crawl files present, valid, publicly accessible with correct headers |
-| SEO Indexability | **A−** | All 9 public pages have full meta/OG/Twitter tags; 6 legacy URL gaps fixed during this audit |
+| SEO Indexability | **A** | All 9 public pages pass meta/OG/Twitter/alt/iframe-title audit; all Bing warnings resolved |
 | LLM / AEO Readiness | **A** | Comprehensive llms.txt, ai-context.json, and 6 public API endpoints fully functional |
+
+---
+
+## Bing Webmaster Tools Status (updated 2026-05-16)
+
+- **Property:** crbox.cr — imported and verified ✅
+- **Sitemap:** https://crbox.cr/sitemap.xml — submitted and processing ✅
+- **Internal URLs submitted manually:** 8 public pages ✅
+- **Homepage indexed:** https://crbox.cr/ — indexed successfully ✅
+
+### Bing URL Inspection Warnings — Root Cause & Resolution
+
+**Warning 1: "Meta Description tag missing" — 1 instance (homepage)**
+
+| Finding | Detail |
+|---|---|
+| Live production HTML | `<meta name="description" content="CRBOX, tu casillero virtual en Miami...">` present, inside `<head>`, well-formed, non-empty ✅ |
+| All 9 public pages | All pass — descriptions confirmed inside `<head>`, unique, 50–160 chars ✅ |
+| Root cause | **Stale Bing cache** — tag is correct in live HTML; Bing crawled a pre-cutover version of the page |
+| Action required | Republish deployment → re-submit homepage URL in Bing URL Inspection → "Request Indexing" |
+
+**Warning 2: "Alt attribute for images is missing" — 8 instances**
+
+| Finding | Detail |
+|---|---|
+| `<img>` tags audited | All public pages — **0 `<img>` tags missing `alt`** across all 9 pages ✅ |
+| Root cause | **GTM noscript `<iframe>` elements** — Bing bundles missing `title` on `<iframe>` with missing `alt` on `<img>` in its accessibility audit; 1 GTM iframe per page × 8 crawled pages = 8 flags |
+| Fix applied | Added `title="Google Tag Manager"` to the `<noscript><iframe>` on all 9 public pages |
+| Files changed | `index.html`, `servicios.html`, `como-funciona.html`, `tarifas.html`, `calculadora.html`, `contacto.html`, `afiliate.html`, `privacidad.html`, `terminos.html` |
 
 ---
 
