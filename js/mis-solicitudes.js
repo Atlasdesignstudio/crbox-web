@@ -1403,12 +1403,6 @@
       });
     }
 
-    // Logout buttons
-    var logoutBtn       = document.getElementById('logout-button');
-    var mobileLogoutBtn = document.getElementById('mobile-logout-button');
-    function doLogout(e) { e.preventDefault(); CRBOXAuth.logout(); }
-    if (logoutBtn)       logoutBtn.addEventListener('click', doLogout);
-    if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', doLogout);
   }
 
   document.addEventListener('DOMContentLoaded', init);

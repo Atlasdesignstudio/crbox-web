@@ -1,0 +1,39 @@
+Audit the full CRBOX authentication and account creation flow.
+
+Focus on verifying how everything currently works in the latest website, without relying on assumptions. Check login, logout, session persistence, protected portal access, personal account registration, and business account registration.
+
+Main goal:
+Confirm exactly what is required for a personal or business account to be created successfully, what is already connected to the real backend, what is incomplete, and what needs to be fixed.
+
+Please audit:
+
+1. Login
+- Verify the current login endpoint, payload, token handling, error handling, loading state, redirect behavior, and profile loading after login.
+- Confirm users cannot enter the portal without a valid authenticated session.
+
+2. Session and protected pages
+- Check that all portal pages are protected.
+- Confirm user data shown in the portal comes from real authenticated backend data, not hardcoded or fake values.
+- Verify logout works consistently across desktop and mobile.
+
+3. Account creation
+- Review both personal and business registration flows.
+- Identify the exact required fields for each account type based on the current website and backend behavior.
+- Confirm what data is submitted, to which endpoint, and what response confirms success.
+- Check duplicate email / duplicate ID handling.
+- Confirm whether business accounts are truly supported by the backend or only visually present in the UI.
+
+4. Truthfulness and gaps
+- Detect any fake success states, fake user data, fake portal data, placeholder actions, broken buttons, or incomplete flows.
+- Do not fake anything. If a flow is not fully supported by the backend, show it honestly or mark it as needing confirmation.
+
+Deliverables:
+- Brief explanation of how authentication currently works.
+- Required fields for personal account creation.
+- Required fields for business account creation.
+- What works now.
+- What is broken or incomplete.
+- Fix anything safe and obvious immediately.
+- List anything that requires backend or business confirmation.
+
+Keep the current UI/design intact unless a small UX fix is needed for loading, error, empty, or success states.
