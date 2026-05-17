@@ -477,12 +477,15 @@
             width: 20px; height: 20px; border-radius: 50%;
             border: 2px solid #d1d5db; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
+            align-self: center;
             transition: all 0.15s ease;
         }
         .delivery-card.is-selected .delivery-card-check { border-color: #ea580c; background: #ea580c; }
         .delivery-card.is-selected .delivery-card-check::after {
-            content: ''; width: 6px; height: 6px;
+            content: ''; display: block;
+            width: 6px; height: 6px;
             border-radius: 50%; background: #fff;
+            flex-shrink: 0;
         }
         /* Hide old span-based children */
         .delivery-card > .delivery-card-title,
@@ -1047,7 +1050,7 @@
                                                 <span class="delivery-card-sublabel">Entrega gratuita a domicilio</span>
                                             </div>
                                             <div class="delivery-card-right">
-                                                <span class="delivery-card-badge">Delivery gratis</span>
+                                                <span class="delivery-card-badge">Entrega gratis</span>
                                                 <div class="delivery-card-check"></div>
                                             </div>
                                         </button>
@@ -1355,7 +1358,7 @@
                                                 <span class="delivery-card-sublabel">Entrega gratuita a domicilio</span>
                                             </div>
                                             <div class="delivery-card-right">
-                                                <span class="delivery-card-badge">Delivery gratis</span>
+                                                <span class="delivery-card-badge">Entrega gratis</span>
                                                 <div class="delivery-card-check"></div>
                                             </div>
                                         </button>
