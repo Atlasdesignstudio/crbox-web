@@ -238,6 +238,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Show session-expired banner when redirected from a portal page
+        // Also pre-fill email when linked from the duplicate-email registration error
         (function () {
           try {
             var params = new URLSearchParams(window.location.search);
@@ -248,6 +249,17 @@
                 box.classList.remove('hidden');
                 box.classList.remove('bg-red-100', 'text-red-700');
                 box.classList.add('bg-orange-100', 'text-orange-700');
+              }
+            }
+            var emailParam = params.get('email');
+            if (emailParam) {
+              var emailInput = document.getElementById('email');
+              if (emailInput) {
+                emailInput.value = decodeURIComponent(emailParam);
+                emailInput.focus();
+                // Move cursor to password field — common UX convention when email is pre-filled
+                var pwInput = document.getElementById('password') || document.querySelector('input[type="password"]');
+                if (pwInput) { emailInput.blur(); pwInput.focus(); }
               }
             }
           } catch (_) {}

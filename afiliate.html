@@ -3228,16 +3228,14 @@ const locationDatabase = {
                     showRegSuccess(form, email, password);
                 } else {
                     var msg = res.Message || '';
-                    var friendly;
-                    if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
-                        friendly = msg;
-                    } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
-                        friendly = msg;
-                    } else {
-                        friendly = msg || 'Ocurrió un error al procesar el registro. Si el problema persiste, escríbenos a ventas@crbox.cr';
-                    }
                     if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_error(msg.indexOf('correo') !== -1 ? 'duplicate_email' : msg.indexOf('identificaci') !== -1 ? 'duplicate_id' : 'validation'); } catch (e) {} }
-                    showRegError(form, friendly);
+                    if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
+                        showDuplicateEmailError(form, email);
+                    } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
+                        showRegError(form, 'Esta cédula jurídica ya está registrada en CRBOX. Si creés que es un error, escribinos a ventas@crbox.cr.');
+                    } else {
+                        showRegError(form, msg || 'Ocurrió un error al procesar el registro. Si el problema persiste, escribinos a ventas@crbox.cr');
+                    }
                     if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
                 }
             })
@@ -3444,16 +3442,14 @@ const locationDatabase = {
                     showRegSuccess(form, email, password);
                 } else {
                     var msg = res.Message || '';
-                    var friendly;
-                    if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
-                        friendly = msg;
-                    } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
-                        friendly = msg;
-                    } else {
-                        friendly = msg || 'Ocurrió un error al procesar el registro. Si el problema persiste, escríbenos a ventas@crbox.cr';
-                    }
                     if (window.CRBOX && CRBOX.track) { try { CRBOX.track.signup_error(msg.indexOf('correo') !== -1 ? 'duplicate_email' : msg.indexOf('identificaci') !== -1 ? 'duplicate_id' : 'validation'); } catch (e) {} }
-                    showRegError(form, friendly);
+                    if (msg.indexOf('correo') !== -1 && msg.indexOf('existe') !== -1) {
+                        showDuplicateEmailError(form, email);
+                    } else if (msg.indexOf('identificaci') !== -1 && msg.indexOf('registrado') !== -1) {
+                        showRegError(form, 'Este número de identificación ya está registrado en CRBOX. Si creés que es un error, escribinos a ventas@crbox.cr.');
+                    } else {
+                        showRegError(form, msg || 'Ocurrió un error al procesar el registro. Si el problema persiste, escribinos a ventas@crbox.cr');
+                    }
                     if (submitBtn) { submitBtn.innerHTML = origLabel; submitBtn.disabled = false; }
                 }
             })
@@ -3506,7 +3502,6 @@ const locationDatabase = {
         if (!box) {
             box = document.createElement('div');
             box.className = 'reg-error-box flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl mb-4 text-sm';
-            box.innerHTML = '<i class="fas fa-circle-exclamation flex-shrink-0 mt-0.5 text-red-500"></i><span class="reg-error-msg"></span>';
             var submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn && submitBtn.parentNode) {
                 submitBtn.parentNode.insertBefore(box, submitBtn);
@@ -3514,8 +3509,34 @@ const locationDatabase = {
                 form.appendChild(box);
             }
         }
-        var msgEl = box.querySelector('.reg-error-msg') || box;
-        msgEl.textContent = msg;
+        // Always reset to single-line structure — the box may have been reused from
+        // a richer duplicate-email layout that has no .reg-error-msg element.
+        box.innerHTML = '<i class="fas fa-circle-exclamation flex-shrink-0 mt-0.5 text-red-500"></i><span class="reg-error-msg"></span>';
+        box.querySelector('.reg-error-msg').textContent = msg;
+        box.style.display = 'flex';
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function showDuplicateEmailError(form, email) {
+        var safeEmail = encodeURIComponent(email || '');
+        var box = form.querySelector('.reg-error-box');
+        if (!box) {
+            box = document.createElement('div');
+            box.className = 'reg-error-box flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl mb-4 text-sm';
+            var submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn && submitBtn.parentNode) {
+                submitBtn.parentNode.insertBefore(box, submitBtn);
+            } else {
+                form.appendChild(box);
+            }
+        }
+        box.innerHTML =
+            '<i class="fas fa-circle-exclamation flex-shrink-0 mt-1 text-red-500"></i>' +
+            '<div>' +
+                '<p class="font-semibold mb-1">Este correo ya tiene una cuenta en CRBOX.</p>' +
+                '<p class="mb-2">¿Ya tenés cuenta? <a href="login.html?email=' + safeEmail + '" class="underline font-semibold hover:text-red-900">Iniciá sesión aquí</a>. Desde esa pantalla también podés recuperar tu contraseña si la olvidaste.</p>' +
+                '<p class="text-xs text-red-500">¿No es tu cuenta? Usá otra dirección de correo para registrarte.</p>' +
+            '</div>';
         box.style.display = 'flex';
         box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
