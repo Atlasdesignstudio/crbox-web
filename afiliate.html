@@ -941,71 +941,24 @@
                             <!-- ─── Step 3: Tu dirección ─── -->
                             <section class="signup-step-panel hidden" data-panel="3">
                                 <div class="panel-step-header">
-                                    <h4>Tu dirección</h4>
-                                    <p>Elige una sucursal para retiro gratis, o entrega a domicilio con tarifa según zona.</p>
+                                    <h4>Tu dirección y entrega</h4>
+                                    <p>Primero ingresá tu dirección (requerida para factura electrónica), luego elegí cómo querés recibir tus paquetes.</p>
                                 </div>
 
                                 <div class="address-entry">
                                     <input type="hidden" name="address_type[]" value="casa">
                                     <input type="hidden" name="delivery_service[]" id="delivery-service-input">
 
-                                    <div class="delivery-rows" role="radiogroup" aria-label="Opción de entrega">
-                                        <button type="button" class="delivery-card" data-delivery="sabana_norte" role="radio" aria-checked="false">
-                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
-                                            <div class="delivery-card-body">
-                                                <span class="delivery-card-label">Sucursal Sabana Norte</span>
-                                                <span class="delivery-card-sublabel">San José · Mata Redonda</span>
-                                            </div>
-                                            <div class="delivery-card-right">
-                                                <span class="delivery-card-badge">Retiro gratis</span>
-                                                <div class="delivery-card-check"></div>
-                                            </div>
-                                        </button>
-                                        <button type="button" class="delivery-card" data-delivery="guadalupe" role="radio" aria-checked="false">
-                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
-                                            <div class="delivery-card-body">
-                                                <span class="delivery-card-label">Sucursal Guadalupe</span>
-                                                <span class="delivery-card-sublabel">San José · Goicoechea</span>
-                                            </div>
-                                            <div class="delivery-card-right">
-                                                <span class="delivery-card-badge">Retiro gratis</span>
-                                                <div class="delivery-card-check"></div>
-                                            </div>
-                                        </button>
-                                        <button type="button" class="delivery-card" data-delivery="guachipelin_escazu" role="radio" aria-checked="false">
-                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
-                                            <div class="delivery-card-body">
-                                                <span class="delivery-card-label">Escazú Centro y Guachipelín</span>
-                                                <span class="delivery-card-sublabel">Entrega gratuita a domicilio</span>
-                                            </div>
-                                            <div class="delivery-card-right">
-                                                <span class="delivery-card-badge">Delivery gratis</span>
-                                                <div class="delivery-card-check"></div>
-                                            </div>
-                                        </button>
-                                        <button type="button" class="delivery-card" data-delivery="domicilio" role="radio" aria-checked="false">
-                                            <div class="delivery-card-icon"><i class="fas fa-home"></i></div>
-                                            <div class="delivery-card-body">
-                                                <span class="delivery-card-label">Entrega a domicilio</span>
-                                                <span class="delivery-card-sublabel">Te llevamos el paquete a tu dirección</span>
-                                            </div>
-                                            <div class="delivery-card-right">
-                                                <span class="delivery-card-badge delivery-card-badge-alt">Tarifa según zona</span>
-                                                <div class="delivery-card-check"></div>
-                                            </div>
-                                        </button>
-                                    </div>
-                                    <p class="text-xs text-gray-400 mt-2 mb-0">Puedes cambiar tu sucursal preferida más adelante en Mi Cuenta.</p>
-                                    <p id="delivery-selection-error" class="hidden text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2 flex items-center gap-1.5"><i class="fas fa-exclamation-circle"></i> Por favor elige cómo prefieres recibir tus paquetes.</p>
-
-                                    <!-- Domicilio address form -->
-                                    <div id="domicilio-address-form" class="hidden">
+                                    <!-- ─ Dirección de domicilio (siempre requerida) ─ -->
+                                    <div id="domicilio-address-form">
                                         <div class="domicilio-panel">
-                                            <h5 class="text-sm font-semibold text-gray-700 mb-1 flex items-center">
-                                                <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
-                                                Dirección de entrega
-                                            </h5>
-                                            <p class="text-xs text-gray-400 mb-3">Necesitamos esta dirección para entregas y factura electrónica.</p>
+                                            <div class="flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                                                <i class="fas fa-file-invoice text-orange-500 text-xl mt-0.5 flex-shrink-0"></i>
+                                                <div>
+                                                    <p class="text-sm font-semibold text-orange-900 mb-1">¿Por qué pedimos tu dirección?</p>
+                                                    <p class="text-xs text-orange-800 leading-snug">La ley costarricense exige una dirección exacta para emitir la factura electrónica de tus importaciones. Si elegís entrega a domicilio, usaremos esta misma dirección para llevarte tus paquetes.</p>
+                                                </div>
+                                            </div>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 <div class="form-group">
                                                     <label class="block text-gray-700 font-medium mb-1.5 text-xs">Provincia *</label>
@@ -1061,6 +1014,57 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <!-- ─ Preferencia de entrega ─ -->
+                                    <p class="text-sm font-semibold text-gray-700 mt-5 mb-2">¿Cómo querés recibir tus paquetes? *</p>
+                                    <div class="delivery-rows" role="radiogroup" aria-label="Opción de entrega">
+                                        <button type="button" class="delivery-card" data-delivery="sabana_norte" role="radio" aria-checked="false">
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Sucursal Sabana Norte</span>
+                                                <span class="delivery-card-sublabel">San José · Mata Redonda</span>
+                                            </div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Retiro gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="delivery-card" data-delivery="guadalupe" role="radio" aria-checked="false">
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Sucursal Guadalupe</span>
+                                                <span class="delivery-card-sublabel">San José · Goicoechea</span>
+                                            </div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Retiro gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="delivery-card" data-delivery="guachipelin_escazu" role="radio" aria-checked="false">
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Escazú Centro y Guachipelín</span>
+                                                <span class="delivery-card-sublabel">Entrega gratuita a domicilio</span>
+                                            </div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Delivery gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="delivery-card" data-delivery="domicilio" role="radio" aria-checked="false">
+                                            <div class="delivery-card-icon"><i class="fas fa-home"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Entrega a domicilio</span>
+                                                <span class="delivery-card-sublabel">Usaremos la dirección que ingresaste arriba</span>
+                                            </div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge delivery-card-badge-alt">Tarifa según zona</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-2 mb-0">Puedes cambiar tu sucursal preferida más adelante en Mi Cuenta.</p>
+                                    <p id="delivery-selection-error" class="hidden text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2 flex items-center gap-1.5"><i class="fas fa-exclamation-circle"></i> Por favor elige cómo prefieres recibir tus paquetes.</p>
                                 </div>
 
                                 <div class="signup-action-zone">
@@ -1210,8 +1214,8 @@
                             <!-- ─── Step 2: Contacto y entrega ─── -->
                             <section class="signup-step-panel hidden" data-panel="2">
                                 <div class="panel-step-header">
-                                    <h4>Contacto y entrega</h4>
-                                    <p>Indica quién representa la empresa y cómo prefieren recibir sus paquetes en Costa Rica.</p>
+                                    <h4>Dirección y entrega</h4>
+                                    <p>Primero ingresen la dirección de la empresa (requerida para factura electrónica), luego elijan cómo prefieren recibir sus paquetes.</p>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
@@ -1255,64 +1259,16 @@
                                     <input type="hidden" name="address_type[]" value="casa">
                                     <input type="hidden" name="delivery_service[]" id="biz-delivery-service-input" value="">
 
-                                    <label class="block text-gray-700 font-semibold text-sm mb-2">¿Dónde retiran sus paquetes? *</label>
-                                    <div class="delivery-rows" role="radiogroup" aria-label="Opción de entrega empresarial">
-                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="sabana_norte" role="radio" aria-checked="false">
-                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
-                                            <div class="delivery-card-body">
-                                                <span class="delivery-card-label">Sucursal Sabana Norte</span>
-                                                <span class="delivery-card-sublabel">San José · Mata Redonda</span>
-                                            </div>
-                                            <div class="delivery-card-right">
-                                                <span class="delivery-card-badge">Retiro gratis</span>
-                                                <div class="delivery-card-check"></div>
-                                            </div>
-                                        </button>
-                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="guadalupe" role="radio" aria-checked="false">
-                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
-                                            <div class="delivery-card-body">
-                                                <span class="delivery-card-label">Sucursal Guadalupe</span>
-                                                <span class="delivery-card-sublabel">San José · Goicoechea</span>
-                                            </div>
-                                            <div class="delivery-card-right">
-                                                <span class="delivery-card-badge">Retiro gratis</span>
-                                                <div class="delivery-card-check"></div>
-                                            </div>
-                                        </button>
-                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="guachipelin_escazu" role="radio" aria-checked="false">
-                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
-                                            <div class="delivery-card-body">
-                                                <span class="delivery-card-label">Escazú Centro y Guachipelín</span>
-                                                <span class="delivery-card-sublabel">Entrega gratuita a domicilio</span>
-                                            </div>
-                                            <div class="delivery-card-right">
-                                                <span class="delivery-card-badge">Delivery gratis</span>
-                                                <div class="delivery-card-check"></div>
-                                            </div>
-                                        </button>
-                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="domicilio" role="radio" aria-checked="false">
-                                            <div class="delivery-card-icon"><i class="fas fa-home"></i></div>
-                                            <div class="delivery-card-body">
-                                                <span class="delivery-card-label">Entrega a domicilio</span>
-                                                <span class="delivery-card-sublabel">Llevamos el paquete a su dirección</span>
-                                            </div>
-                                            <div class="delivery-card-right">
-                                                <span class="delivery-card-badge delivery-card-badge-alt">Tarifa según zona</span>
-                                                <div class="delivery-card-check"></div>
-                                            </div>
-                                        </button>
-                                    </div>
-                                    <p class="text-xs text-gray-400 mt-2">Pueden cambiar la sucursal preferida en Mi Cuenta.</p>
-                                    <p id="biz-delivery-selection-error" class="hidden text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2 flex items-center gap-1.5"><i class="fas fa-exclamation-circle"></i> Por favor elige cómo prefieren recibir sus paquetes.</p>
-
-                                    <!-- Domicilio address form -->
-                                    <div id="biz-domicilio-address-form" class="hidden">
+                                    <!-- ─ Dirección de la empresa (siempre requerida) ─ -->
+                                    <div id="biz-domicilio-address-form">
                                         <div class="domicilio-panel">
-                                            <h5 class="text-sm font-semibold text-gray-700 mb-1 flex items-center">
-                                                <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>
-                                                Dirección de entrega
-                                            </h5>
-                                            <p class="text-xs text-gray-400 mb-3">Necesitamos la dirección para entregas y factura electrónica.</p>
+                                            <div class="flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                                                <i class="fas fa-file-invoice text-orange-500 text-xl mt-0.5 flex-shrink-0"></i>
+                                                <div>
+                                                    <p class="text-sm font-semibold text-orange-900 mb-1">¿Por qué pedimos la dirección?</p>
+                                                    <p class="text-xs text-orange-800 leading-snug">La ley costarricense exige una dirección exacta para emitir la factura electrónica de sus importaciones. Si eligen entrega a domicilio, usaremos esta misma dirección para llevarles sus paquetes.</p>
+                                                </div>
+                                            </div>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 <div class="form-group">
                                                     <label class="block text-gray-700 font-medium mb-1.5 text-xs">Provincia *</label>
@@ -1366,6 +1322,57 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <!-- ─ Preferencia de entrega ─ -->
+                                    <p class="text-sm font-semibold text-gray-700 mt-5 mb-2">¿Cómo prefieren recibir sus paquetes? *</p>
+                                    <div class="delivery-rows" role="radiogroup" aria-label="Opción de entrega empresarial">
+                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="sabana_norte" role="radio" aria-checked="false">
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Sucursal Sabana Norte</span>
+                                                <span class="delivery-card-sublabel">San José · Mata Redonda</span>
+                                            </div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Retiro gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="guadalupe" role="radio" aria-checked="false">
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Sucursal Guadalupe</span>
+                                                <span class="delivery-card-sublabel">San José · Goicoechea</span>
+                                            </div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Retiro gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="guachipelin_escazu" role="radio" aria-checked="false">
+                                            <div class="delivery-card-icon"><i class="fas fa-store"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Escazú Centro y Guachipelín</span>
+                                                <span class="delivery-card-sublabel">Entrega gratuita a domicilio</span>
+                                            </div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge">Delivery gratis</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
+                                        </button>
+                                        <button type="button" class="delivery-card biz-delivery-card" data-delivery="domicilio" role="radio" aria-checked="false">
+                                            <div class="delivery-card-icon"><i class="fas fa-home"></i></div>
+                                            <div class="delivery-card-body">
+                                                <span class="delivery-card-label">Entrega a domicilio</span>
+                                                <span class="delivery-card-sublabel">Usaremos la dirección que ingresaron arriba</span>
+                                            </div>
+                                            <div class="delivery-card-right">
+                                                <span class="delivery-card-badge delivery-card-badge-alt">Tarifa según zona</span>
+                                                <div class="delivery-card-check"></div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-2">Pueden cambiar la sucursal preferida en Mi Cuenta.</p>
+                                    <p id="biz-delivery-selection-error" class="hidden text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mt-2 flex items-center gap-1.5"><i class="fas fa-exclamation-circle"></i> Por favor elige cómo prefieren recibir sus paquetes.</p>
                                 </div>
 
                                 <!-- Action zone -->
@@ -2592,8 +2599,21 @@ const locationDatabase = {
                 }
                 if (idTypeErr) idTypeErr.classList.add('hidden');
             }
-            // Step 3: a delivery option must be selected; if domicilio, address fields are required
+            // Step 3: address fields always required; a delivery option must also be selected
             if (n === 3) {
+                var domFields = Array.prototype.slice.call(
+                    panel.querySelectorAll('[data-domicilio-required]')
+                );
+                for (var j = 0; j < domFields.length; j++) {
+                    var df = domFields[j];
+                    if (!df.value) {
+                        df.focus();
+                        df.setCustomValidity('Este campo es obligatorio.');
+                        if (typeof df.reportValidity === 'function') df.reportValidity();
+                        df.setCustomValidity('');
+                        return false;
+                    }
+                }
                 var delivery = (panel.querySelector('input[name="delivery_service[]"]') || {}).value || '';
                 if (!delivery) {
                     var firstCard = panel.querySelector('.delivery-card');
@@ -2605,21 +2625,6 @@ const locationDatabase = {
                         setTimeout(function () { delivErrEl.classList.add('hidden'); }, 6000);
                     }
                     return false;
-                }
-                if (delivery === 'domicilio') {
-                    var domFields = Array.prototype.slice.call(
-                        panel.querySelectorAll('[data-domicilio-required]')
-                    );
-                    for (var j = 0; j < domFields.length; j++) {
-                        var df = domFields[j];
-                        if (!df.value) {
-                            df.focus();
-                            df.setCustomValidity('Este campo es obligatorio para entrega a domicilio.');
-                            if (typeof df.reportValidity === 'function') df.reportValidity();
-                            df.setCustomValidity('');
-                            return false;
-                        }
-                    }
                 }
             }
             return true;
@@ -2777,14 +2782,6 @@ const locationDatabase = {
                 c.setAttribute('aria-checked', on ? 'true' : 'false');
             });
             hiddenInput.value = value;
-            if (value === 'domicilio') {
-                domicilioForm.classList.remove('hidden');
-                clearAddressInputs();
-            } else {
-                domicilioForm.classList.add('hidden');
-                clearAddressInputs();
-                applyBranch(value);
-            }
             setSubmitEnabled(true);
             if (submitBtn) submitBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -2896,6 +2893,17 @@ const locationDatabase = {
                 }
             }
             if (n === 2) {
+                var domFields = Array.prototype.slice.call(panel.querySelectorAll('[data-domicilio-required]'));
+                for (var j = 0; j < domFields.length; j++) {
+                    var df = domFields[j];
+                    if (!df.value) {
+                        df.focus();
+                        df.setCustomValidity('Este campo es obligatorio.');
+                        if (typeof df.reportValidity === 'function') df.reportValidity();
+                        df.setCustomValidity('');
+                        return false;
+                    }
+                }
                 var delivery = (panel.querySelector('input[name="delivery_service[]"]') || {}).value || '';
                 if (!delivery) {
                     var firstCard = panel.querySelector('.biz-delivery-card');
@@ -2907,19 +2915,6 @@ const locationDatabase = {
                         setTimeout(function () { bizDelivErrEl.classList.add('hidden'); }, 6000);
                     }
                     return false;
-                }
-                if (delivery === 'domicilio') {
-                    var domFields = Array.prototype.slice.call(panel.querySelectorAll('[data-domicilio-required]'));
-                    for (var j = 0; j < domFields.length; j++) {
-                        var df = domFields[j];
-                        if (!df.value) {
-                            df.focus();
-                            df.setCustomValidity('Este campo es obligatorio para entrega a domicilio.');
-                            if (typeof df.reportValidity === 'function') df.reportValidity();
-                            df.setCustomValidity('');
-                            return false;
-                        }
-                    }
                 }
             }
             return true;
@@ -3009,14 +3004,6 @@ const locationDatabase = {
                 c.setAttribute('aria-checked', on ? 'true' : 'false');
             });
             hiddenInput.value = value;
-            if (value === 'domicilio') {
-                domicilioForm.classList.remove('hidden');
-                bizClearAddressInputs();
-            } else {
-                domicilioForm.classList.add('hidden');
-                bizClearAddressInputs();
-                bizApplyBranch(value);
-            }
             bizSetSubmitEnabled(true);
             if (submitBtn) submitBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
