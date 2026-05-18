@@ -3209,6 +3209,11 @@
         _currentInvoicePkg = null;
       }
 
+      // Shared URL for the invoice viewer — set by _openInvoiceViewer(), read by
+      // the "Abrir Factura" click handler in _wireInvoiceViewer().
+      // Declared here (outer scope) so both functions can access it.
+      var _viewerCurrentUrl = '';
+
       // Opens the invoice viewer modal with metadata and a link to open the file.
       // url   — direct URL to the uploaded file (PDF or image)
       // entry — cache entry {numero, monto, descripcion, type, pkgNumber} or null
@@ -3748,8 +3753,7 @@
         }());
 
         // ── Invoice viewer modal wiring ───────────────────────────────────────
-        // _viewerCurrentUrl is set by _openInvoiceViewer() each time the modal opens.
-        var _viewerCurrentUrl = '';
+        // _viewerCurrentUrl is declared in the outer scope (above _openInvoiceViewer).
         (function _wireInvoiceViewer() {
           function _closeViewer() {
             var modal = document.getElementById('invoice-viewer-modal');
