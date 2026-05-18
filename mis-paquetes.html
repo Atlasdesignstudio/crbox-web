@@ -4153,7 +4153,11 @@
       fd.append('invoice_number', invoiceNumber  || '');
       fd.append('amount',         amount         || '');
       fd.append('description',    description    || '');
-      fetch(EMAIL_ENDPOINT, { method: 'POST', body: fd })
+      var _tok = (window.CRBOXAuth && typeof window.CRBOXAuth.getToken === 'function')
+        ? (window.CRBOXAuth.getToken() || '') : '';
+      var _fOpts = { method: 'POST', body: fd };
+      if (_tok) { _fOpts.headers = { 'Authorization': 'Bearer ' + _tok }; }
+      fetch(EMAIL_ENDPOINT, _fOpts)
         .catch(function () { /* best-effort — swallow errors silently */ });
     });
   }

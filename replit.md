@@ -17,6 +17,7 @@ A static HTML/CSS/JS website providing package tracking, tariff calculation, and
 - **Optional Env Vars:**
     - `ALERT_EMAIL` (default: `ventas@crbox.cr`)
     - `SMTP_HEALTH_INTERVAL` (default: `300` seconds)
+    - `WP_APP_PASSWORD` — WordPress Application Password for `wp.crbox.cr`. Format: `wordpress_username:app-password`. When set, the `/api/proxy/saveBill` proxy uses it to upload invoice files directly to WordPress (permanent hosting). Without it, files are stored locally at `uploads/invoices/` (persistent in deployment, but lost on new deployments). To create: log in to `wp.crbox.cr/wp-admin` → Users → Profile → Application Passwords → create one named "CRBOX Portal".
 
 ## Stack
 

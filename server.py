@@ -11058,15 +11058,27 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 'User-Agent':     'CRBOX-Portal-Proxy/1.0',
                 'Connection':     'close',
             }
-            # Forward the caller's Authorization header verbatim.
-            # portal-api.js._request() always injects "Authorization: Bearer <user_token>"
-            # before calling this proxy.  The legacy WordPress endpoint
-            # (postcreatepurchasebill) requires Bearer auth — passing Basic auth
-            # with service-account credentials was the root cause of the
-            # "The user is not logged in" error.
+            # Forward the caller's Authorization header as a baseline.
+            # NOTE: portal-api.js JWTs (issued by clients.crbox.cr / 100.50.198.105)
+            # are NOT accepted by WordPress (wp.crbox.cr / 98.90.3.205) — they are
+            # completely separate auth systems.  WordPress will return
+            # {"Error":"The user is not logged in"}, and the local-storage fallback
+            # below will handle it transparently.
+            #
+            # To restore permanent WordPress file hosting, create a WordPress
+            # Application Password in wp.crbox.cr/wp-admin → Users → Profile →
+            # Application Passwords, then set the secret:
+            #   WP_APP_PASSWORD=wordpress_username:the-app-password
+            # When that secret is present the proxy switches to WP Basic auth
+            # automatically and the local fallback is no longer needed.
             incoming_auth = self.headers.get('Authorization', '')
             if incoming_auth:
                 fwd_headers['Authorization'] = incoming_auth
+            _wp_app_pass = os.environ.get('WP_APP_PASSWORD', '').strip()
+            if _wp_app_pass:
+                import base64 as _b64wp
+                _wp_enc = _b64wp.b64encode(_wp_app_pass.encode('utf-8')).decode('ascii')
+                fwd_headers['Authorization'] = f'Basic {_wp_enc}'
 
             _ssl_ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
             _ssl_ctx.check_hostname = False
@@ -11122,13 +11134,64 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                             return
                 except Exception as norm_err:
                     print(f'[PROXY/saveBill] Normalization error: {norm_err}')
-                print(f'[PROXY/saveBill] Pass-through raw (code={resp_code}, no url field found)')
+                _wp_body_preview = resp_body[:200].decode('utf-8', errors='replace')
+                print(f'[PROXY/saveBill] WordPress no URL (code={resp_code}): {_wp_body_preview}')
 
-            self.send_response(resp_code)
-            self.send_header('Content-Type', 'application/json' if 'json' in resp_ct else resp_ct)
-            self.send_header('Content-Length', str(len(resp_body)))
-            self.end_headers()
-            self.wfile.write(resp_body)
+            # WordPress is unavailable or rejected the request — fall back to saving
+            # the invoice file locally.  Files at /uploads/invoices/ are served from
+            # this host and persist across restarts in the deployed environment.
+            import email.parser as _ep2, email.policy as _epol2, uuid as _uuid2
+            import mimetypes as _mt2
+            _ALLOW2 = {
+                'application/pdf': '.pdf', 'image/jpeg': '.jpg', 'image/jpg': '.jpg',
+                'image/png': '.png', 'image/gif': '.gif', 'image/webp': '.webp',
+            }
+            try:
+                raw_msg2 = b'Content-Type: ' + ct.encode() + b'\r\n\r\n' + body
+                msg2 = _ep2.BytesParser(policy=_epol2.compat32).parsebytes(raw_msg2)
+                fb_bytes = None; fb_mime = 'application/octet-stream'; fb_orig = 'invoice'
+                for part2 in msg2.walk():
+                    cd2 = part2.get('Content-Disposition', '')
+                    if not cd2: continue
+                    params2 = {}
+                    for seg2 in cd2.split(';'):
+                        seg2 = seg2.strip()
+                        if '=' in seg2:
+                            k2, _, v2 = seg2.partition('=')
+                            params2[k2.strip().lower()] = v2.strip().strip('"\'')
+                    if params2.get('name') == 'invoice':
+                        pl2 = part2.get_payload(decode=True)
+                        if pl2 is None: continue
+                        fb_bytes = pl2
+                        fb_mime = (part2.get_content_type() or 'application/octet-stream').split(';')[0].strip().lower()
+                        fn2 = params2.get('filename') or part2.get_filename() or ''
+                        if fn2: fb_orig = fn2
+                        break
+                if fb_bytes:
+                    ext2 = _ALLOW2.get(fb_mime)
+                    if not ext2:
+                        _, dot2, orig_ext2 = fb_orig.rpartition('.')
+                        ext2 = ('.' + orig_ext2.lower()) if dot2 else '.bin'
+                    fname2 = str(_uuid2.uuid4()) + ext2
+                    upload_dir = self._INVOICE_UPLOAD_DIR
+                    os.makedirs(upload_dir, exist_ok=True)
+                    with open(os.path.join(upload_dir, fname2), 'wb') as _fh2:
+                        _fh2.write(fb_bytes)
+                    local_url = '/uploads/invoices/' + fname2
+                    mime2, _ = _mt2.guess_type('f' + ext2)
+                    mime2 = mime2 or fb_mime or 'application/octet-stream'
+                    out2 = _json.dumps({'url': local_url, 'type': mime2, 'file': fname2}).encode('utf-8')
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Content-Length', str(len(out2)))
+                    self.end_headers()
+                    self.wfile.write(out2)
+                    print(f'[PROXY/saveBill] Local fallback OK — {local_url} ({len(fb_bytes)} B)')
+                    return
+            except Exception as _fb_err:
+                print(f'[PROXY/saveBill] Local fallback error: {_fb_err}')
+
+            self._json_error(502, 'No se pudo subir el archivo. El servicio de archivos no está disponible en este momento.', code='upstream_error')
 
         except Exception as exc:
             print(f'[PROXY/saveBill] Unexpected error: {exc}')
@@ -11384,6 +11447,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     # (which registers the invoice in CRBOX).  This endpoint is fire-and-
     # forget from the browser — its HTTP response is intentionally ignored.
     def _handle_invoice_email(self):
+        casillero_id = self._portal_auth()
+        if not casillero_id:
+            self._json_error(401, 'Autenticación requerida.', code='auth_required')
+            return
         import email.parser as _ep, email.policy as _epol
         import email.mime.multipart as _mp, email.mime.base as _mb
         import email.mime.text as _mt, email.encoders as _enc
@@ -11463,12 +11530,17 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self.headers.get('Host') or
                 'crbox.cr'
             )
-            _scheme = 'https' if 'replit' not in _req_host else 'https'
+            _scheme = 'https'
+            import hmac as _hmac, hashlib as _hashlib
+            _secret = os.environ.get('ADMIN_PASSWORD', 'crbox-confirm-fallback').encode('utf-8')
+            _sig_msg = f"{user_email}|{wr_id}|{invoice_number}".encode('utf-8')
+            _sig = _hmac.new(_secret, _sig_msg, _hashlib.sha256).hexdigest()[:32]
             _confirm_qs = urllib.parse.urlencode({
                 'email':          user_email,
                 'name':           user_name,
                 'wr_id':          wr_id,
                 'invoice_number': invoice_number,
+                'sig':            _sig,
             })
             _confirm_url = f'{_scheme}://{_req_host}/api/invoice-confirm?{_confirm_qs}'
 
@@ -11607,6 +11679,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def _handle_invoice_confirm(self):
         import email.mime.multipart as _mp2
         import email.mime.text as _mt2
+        import hmac as _hmac_m, hashlib as _hsh
         try:
             qs    = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             def _q(k): return qs.get(k, [''])[0].strip()
@@ -11614,6 +11687,17 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             client_name    = _q('name')
             wr_id          = _q('wr_id')
             invoice_number = _q('invoice_number')
+            sig_given      = _q('sig')
+
+            _secret2   = os.environ.get('ADMIN_PASSWORD', 'crbox-confirm-fallback').encode('utf-8')
+            _sig_msg2  = f"{email_to}|{wr_id}|{invoice_number}".encode('utf-8')
+            _expected  = _hmac_m.new(_secret2, _sig_msg2, _hsh.sha256).hexdigest()[:32]
+            if not sig_given or not _hmac_m.compare_digest(sig_given, _expected):
+                self.send_response(403)
+                self.send_header('Content-Type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write('Enlace inválido o expirado.'.encode('utf-8'))
+                return
 
             if not email_to:
                 self.send_response(400)
