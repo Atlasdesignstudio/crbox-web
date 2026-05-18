@@ -3419,6 +3419,29 @@
           var _savedInvoiceFile = null;
           var fileUrl = '';
 
+          // Send the invoice notification email to facturas@crbox.cr RIGHT NOW,
+          // in parallel with (and independent of) the WordPress upload.
+          // This guarantees the email is always sent even if WP is unavailable.
+          // Fire-and-forget — the user never waits for this and errors are silent.
+          (function() {
+            try {
+              var _tok = (window.CRBOXAuth && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
+              var _fd2 = new FormData();
+              _fd2.append('user_email',     userEmail);
+              _fd2.append('user_name',      _cachedFullName || '');
+              _fd2.append('wr_id',          String(wrId || ''));
+              _fd2.append('invoice_number', numero ? numero.trim() : '');
+              _fd2.append('amount',         monto  ? String(parseFloat(monto)) : '');
+              _fd2.append('description',    desc   ? desc.trim() : '');
+              _fd2.append('invoice_file',   file, file.name);
+              fetch('/api/invoice-email', {
+                method:  'POST',
+                headers: { 'Authorization': 'Bearer ' + _tok },
+                body:    _fd2
+              }).catch(function() {});
+            } catch (_e) {}
+          }());
+
           // Step 1: upload the file to the portal server
           CRBOXPortalAPI.saveBill(userEmail, file, wrId)
             .then(function(saved) {
@@ -3476,29 +3499,6 @@
                 };
                 _saveInvoiceCache();
               }
-
-              // Fire-and-forget: send a copy of the invoice to facturas@crbox.cr.
-              // The user never waits for this — failures are silently swallowed.
-              (function() {
-                try {
-                  var _tok  = (window.CRBOXAuth && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
-                  var _name = '';
-                  try { _name = (CRBOXAuth && CRBOXAuth.getName && CRBOXAuth.getName()) || ''; } catch (_ne) {}
-                  var _fd = new FormData();
-                  _fd.append('user_email',     userEmail);
-                  _fd.append('user_name',      _name);
-                  _fd.append('wr_id',          String(wrId || ''));
-                  _fd.append('invoice_number', numero ? numero.trim() : '');
-                  _fd.append('amount',         monto  ? String(parseFloat(monto)) : '');
-                  _fd.append('description',    desc   ? desc.trim() : '');
-                  _fd.append('invoice_file',   file, file.name);
-                  fetch('/api/invoice-email', {
-                    method:  'POST',
-                    headers: { 'Authorization': 'Bearer ' + _tok },
-                    body:    _fd
-                  }).catch(function() {});
-                } catch (_e) {}
-              }());
 
               // Both writes succeeded — now refresh the package list inline
               // so we can detect and report a refresh failure distinctly.

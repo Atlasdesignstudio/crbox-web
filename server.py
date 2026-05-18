@@ -11622,6 +11622,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 'name':           user_name,
                 'wr_id':          wr_id,
                 'invoice_number': invoice_number,
+                'amount':         amount,
+                'description':    description,
                 'sig':            _sig,
             })
             _confirm_url = f'{_scheme}://{_req_host}/api/invoice-confirm?{_confirm_qs}'
@@ -11769,6 +11771,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             client_name    = _q('name')
             wr_id          = _q('wr_id')
             invoice_number = _q('invoice_number')
+            amount         = _q('amount')
+            description    = _q('description')
             sig_given      = _q('sig')
 
             _secret2   = os.environ.get('ADMIN_PASSWORD', 'crbox-confirm-fallback').encode('utf-8')
@@ -11797,64 +11801,99 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 return
             _, _, smtp_user, _ = settings
 
-            greeting  = f'Hola{" " + client_name if client_name else ""},'
-            inv_label = f' #{invoice_number}' if invoice_number else ''
-            wr_label  = f' para el paquete WR {wr_id}' if wr_id else ''
+            first_name = client_name.split()[0] if client_name else ''
+            greeting   = f'Hola{" " + first_name if first_name else ""},'
+            inv_label  = f' #{invoice_number}' if invoice_number else ''
+            wr_label   = f' (WR {wr_id})' if wr_id else ''
+            amount_fmt = f'USD {float(amount):.2f}' if amount else '—'
 
-            subject_c = f'CRBOX recibió tu factura{inv_label} ✓'
+            # Invoice detail rows for the email — only include rows with data
+            _detail_rows = ''
+            if invoice_number:
+                _detail_rows += f'<tr style="border-bottom:1px solid #E5E7EB;"><td style="padding:9px 0;font-weight:600;color:#374151;width:160px;">N° de factura</td><td style="padding:9px 0;color:#374151;">{invoice_number}</td></tr>'
+            if wr_id:
+                _detail_rows += f'<tr style="border-bottom:1px solid #E5E7EB;"><td style="padding:9px 0;font-weight:600;color:#374151;">Recibo (WR)</td><td style="padding:9px 0;color:#374151;">{wr_id}</td></tr>'
+            if amount:
+                _detail_rows += f'<tr style="border-bottom:1px solid #E5E7EB;"><td style="padding:9px 0;font-weight:600;color:#374151;">Monto</td><td style="padding:9px 0;color:#374151;">{amount_fmt}</td></tr>'
+            if description:
+                _detail_rows += f'<tr><td style="padding:9px 0;font-weight:600;color:#374151;">Descripción</td><td style="padding:9px 0;color:#374151;">{description}</td></tr>'
+
+            subject_c = f'✅ CRBOX recibió tu factura{inv_label}'
             plain_c = (
                 f'{greeting}\n\n'
-                f'Queremos confirmarte que recibimos correctamente tu factura{inv_label}'
-                f'{wr_label}.\n\n'
-                f'Gracias por subirla al portal. Nuestro equipo ya la tiene en revisión '
-                f'y la registrará en tu expediente a la brevedad.\n\n'
-                f'Te mantendremos al tanto de cualquier novedad.\n\n'
-                f'Un saludo,\nEl equipo de CRBOX Costa Rica\n'
-                f'ventas@crbox.cr · www.crbox.cr\n'
+                f'¡Gracias por elegir CRBOX para traer tus compras a Costa Rica!\n\n'
+                f'Recibimos correctamente tu factura{inv_label}{wr_label}.\n'
+                f'Nuestro equipo ya la tiene en revisión y la registrará en tu expediente '
+                f'a la brevedad.\n\n'
+                + (f'Detalles de la factura:\n'
+                   + (f'  N° de factura:  {invoice_number}\n' if invoice_number else '')
+                   + (f'  Recibo (WR):    {wr_id}\n'          if wr_id          else '')
+                   + (f'  Monto:          {amount_fmt}\n'     if amount         else '')
+                   + (f'  Descripción:    {description}\n'    if description    else '')
+                   + '\n' if any([invoice_number, wr_id, amount, description]) else '')
+                + f'¿Qué sigue?\n'
+                  f'  • Tu paquete llegará a nuestro casillero en Miami.\n'
+                  f'  • Lo procesaremos y enviaremos a Costa Rica.\n'
+                  f'  • Te avisaremos en cada etapa del proceso.\n\n'
+                  f'Si tienes alguna duda escríbenos a ventas@crbox.cr.\n\n'
+                  f'Un saludo,\nEl equipo de CRBOX Costa Rica\n'
+                  f'ventas@crbox.cr · www.crbox.cr\n'
             )
             html_c = f'''<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:40px 0;">
 <tr><td align="center">
-<table width="560" cellpadding="0" cellspacing="0"
+<table width="580" cellpadding="0" cellspacing="0"
        style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.09);">
   <!-- Header -->
   <tr><td style="background:#1E3A5F;padding:30px 36px 24px;text-align:center;">
-    <p style="margin:0 0 8px;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:.3px;">
-      CRBOX Costa Rica
-    </p>
-    <p style="margin:0;color:#93C5FD;font-size:13px;">Tu paquete en buenas manos</p>
+    <p style="margin:0 0 6px;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:.3px;">CRBOX Costa Rica</p>
+    <p style="margin:0;color:#93C5FD;font-size:13px;">Tu casillero en Miami, tu paquete en casa</p>
   </td></tr>
   <!-- Check icon -->
   <tr><td style="padding:32px 36px 0;text-align:center;">
-    <div style="display:inline-block;background:#DCFCE7;border-radius:50%;width:64px;height:64px;
-                line-height:64px;font-size:32px;text-align:center;">✓</div>
+    <div style="display:inline-flex;align-items:center;justify-content:center;
+                background:#DCFCE7;border-radius:50%;width:68px;height:68px;font-size:34px;">✅</div>
   </td></tr>
-  <!-- Body -->
-  <tr><td style="padding:20px 36px 32px;text-align:center;">
-    <h2 style="margin:16px 0 8px;color:#111827;font-size:20px;">¡Factura recibida!</h2>
-    <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.6;">
+  <!-- Headline -->
+  <tr><td style="padding:20px 36px 4px;text-align:center;">
+    <h2 style="margin:0;color:#111827;font-size:21px;font-weight:700;">¡Factura recibida con éxito!</h2>
+  </td></tr>
+  <!-- Greeting -->
+  <tr><td style="padding:12px 36px 20px;">
+    <p style="margin:0;color:#374151;font-size:15px;line-height:1.7;">
       {greeting}<br><br>
-      Recibimos correctamente tu factura<strong>{inv_label}</strong>{wr_label}.<br>
+      ¡Gracias por elegir <strong>CRBOX</strong> para traer tus compras a Costa Rica! 🎉<br><br>
+      Recibimos tu factura<strong>{inv_label}</strong>{wr_label} correctamente.
       Nuestro equipo ya la tiene en revisión y la registrará en tu expediente
       <strong>a la brevedad</strong>.
     </p>
-    <p style="margin:0 0 28px;color:#374151;font-size:15px;line-height:1.6;">
-      Gracias por subirla al portal. <strong>Te mantendremos al tanto</strong>
-      de cualquier novedad.
-    </p>
+  </td></tr>
+  {'<!-- Invoice details --><tr><td style="padding:0 36px 24px;"><table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;border-top:1px solid #E5E7EB;">' + _detail_rows + '</table></td></tr>' if _detail_rows else ''}
+  <!-- What's next -->
+  <tr><td style="padding:0 36px 24px;">
+    <p style="margin:0 0 10px;color:#374151;font-size:14px;font-weight:700;">¿Qué sigue?</p>
+    <ul style="margin:0;padding-left:18px;color:#374151;font-size:14px;line-height:1.9;">
+      <li>Tu paquete llegará a nuestro casillero en Miami.</li>
+      <li>Lo procesaremos y enviaremos a Costa Rica.</li>
+      <li>Te avisaremos en cada etapa del proceso.</li>
+    </ul>
+  </td></tr>
+  <!-- CTA -->
+  <tr><td style="padding:4px 36px 32px;text-align:center;">
     <a href="https://crbox.cr/mis-paquetes.html"
-       style="display:inline-block;background:#1E3A5F;color:#ffffff;font-size:14px;
-              font-weight:700;text-decoration:none;padding:13px 32px;border-radius:8px;">
-      Ver mis paquetes
+       style="display:inline-block;background:#FF6B00;color:#ffffff;font-size:14px;
+              font-weight:700;text-decoration:none;padding:13px 32px;border-radius:8px;letter-spacing:.2px;">
+      Ver mis paquetes →
     </a>
   </td></tr>
   <!-- Footer -->
   <tr><td style="background:#F9FAFB;padding:18px 36px;border-top:1px solid #E5E7EB;text-align:center;">
-    <p style="margin:0;color:#9CA3AF;font-size:12px;line-height:1.6;">
-      CRBOX Costa Rica · ventas@crbox.cr<br>
-      <a href="https://crbox.cr" style="color:#9CA3AF;">www.crbox.cr</a>
+    <p style="margin:0;color:#9CA3AF;font-size:12px;line-height:1.7;">
+      ¿Tienes alguna pregunta? Escríbenos a
+      <a href="mailto:ventas@crbox.cr" style="color:#6B7280;">ventas@crbox.cr</a><br>
+      CRBOX Costa Rica · <a href="https://crbox.cr" style="color:#9CA3AF;">www.crbox.cr</a>
     </p>
   </td></tr>
 </table>
