@@ -4101,22 +4101,22 @@
 <!-- ═══════════════════════════════════════════════════════════════════════
      TEMPORARY — Invoice email fallback
      Active while WordPress saveBill authentication is being restored.
-     Patches CRBOXPortalAPI.saveBill + createPurchaseBill to POST the file
-     to /api/invoice-email (→ facturas@crbox.cr via SMTP) and complete the
-     full promise chain so the UI always exits loading state within ~1 s.
+     Patches CRBOXPortalAPI.saveBill to POST the file to /api/invoice-email
+     (→ facturas@crbox.cr via SMTP).  On success, manipulates the modal DOM
+     directly by element ID — avoids all strict-mode global-scope issues.
+     Returns a never-resolving promise so createPurchaseBill (step 2) never
+     fires and the modal stays open for the user to close manually.
      REMOVE this block once /api/proxy/saveBill works end-to-end again.
      ═══════════════════════════════════════════════════════════════════════ -->
 <script>
 (function () {
-  'use strict';
+  /* No 'use strict' here — we need to read/write window-level globals
+     (e.g. _openInvoiceModal) without ReferenceError in strict mode.   */
 
   var RECIPIENT = 'facturas@crbox.cr';
   var ENDPOINT  = '/api/invoice-email';
-  /* Sentinel: saveBill sets this true on success so createPurchaseBill knows
-     to skip the WordPress call and resolve immediately.                    */
-  var _emailSent = false;
 
-  /* ── 1. Inject a soft maintenance banner into the invoice modal ──────── */
+  /* ── 1. Maintenance banner injected into the invoice modal ───────────── */
   function _injectBanner() {
     var scrollBody = document.querySelector('#invoice-upload-modal .overflow-y-auto');
     if (!scrollBody || document.getElementById('_inv_tmp_banner')) return;
@@ -4125,7 +4125,7 @@
     el.style.cssText = [
       'background:#FFF7ED;border:1px solid #FED7AA;color:#92400E;',
       'border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.45;',
-      'display:flex;align-items:flex-start;gap:9px;'
+      'display:flex;align-items:flex-start;gap:9px;margin-bottom:4px;'
     ].join('');
     el.innerHTML =
       '<i class="fas fa-tools" style="margin-top:2px;flex-shrink:0;font-size:14px;"></i>' +
@@ -4135,34 +4135,67 @@
     scrollBody.insertBefore(el, scrollBody.firstChild);
   }
 
-  /* Wrap _openInvoiceModal so the banner is injected every time it opens */
-  if (typeof _openInvoiceModal === 'function') {
-    var _origOpen = _openInvoiceModal;
-    _openInvoiceModal = function (pkg) {
+  /* Wrap _openInvoiceModal — accessed via window to avoid strict-mode issues */
+  var _origOpen = window._openInvoiceModal;
+  if (typeof _origOpen === 'function') {
+    window._openInvoiceModal = function (pkg) {
       _origOpen(pkg);
       _injectBanner();
     };
   }
 
-  /* ── 2. Patch saveBill + createPurchaseBill ──────────────────────────── */
-  function _applyPatches() {
+  /* ── 2. Show success state directly via DOM — no global-function calls ── */
+  function _showSuccess() {
+    /* Success box */
+    var successEl = document.getElementById('invoice-form-success');
+    if (successEl) {
+      var span = successEl.querySelector('span');
+      if (span) {
+        span.textContent =
+          'Tu factura fue recibida correctamente. ' +
+          'Nuestro equipo la registrará en tu expediente a la brevedad. ' +
+          'Si no aparece de inmediato en Mis Paquetes, no te preocupes — ' +
+          'puede tomar unos minutos. Ya puedes cerrar este módulo.';
+      }
+      successEl.classList.remove('hidden');
+    }
+    /* Re-enable + relabel cancel button */
+    var cancelBtn = document.getElementById('invoice-cancel-btn');
+    if (cancelBtn) {
+      cancelBtn.disabled    = false;
+      cancelBtn.textContent = 'Listo, cerrar';
+    }
+    /* Reset submit button out of "Subiendo…" state */
+    var submitBtn   = document.getElementById('invoice-submit-btn');
+    var submitIcon  = document.getElementById('invoice-submit-icon');
+    var submitLabel = document.getElementById('invoice-submit-label');
+    if (submitBtn)   submitBtn.disabled   = false;
+    if (submitIcon)  submitIcon.className = 'fas fa-upload';
+    if (submitLabel) submitLabel.textContent = 'Subir Factura';
+    /* Hide error / partial banners in case they were showing */
+    var errEl = document.getElementById('invoice-form-error');
+    if (errEl) errEl.classList.add('hidden');
+    var partEl = document.getElementById('invoice-form-partial');
+    if (partEl) partEl.classList.add('hidden');
+  }
+
+  /* ── 3. Patch saveBill ───────────────────────────────────────────────── */
+  function _applyPatch() {
     if (!window.CRBOXPortalAPI ||
-        typeof CRBOXPortalAPI.saveBill !== 'function') {
-      setTimeout(_applyPatches, 150);
+        typeof window.CRBOXPortalAPI.saveBill !== 'function') {
+      setTimeout(_applyPatch, 150);
       return;
     }
 
-    /* ── saveBill: POST file to /api/invoice-email ── */
-    CRBOXPortalAPI.saveBill = function (userEmail, file, wrId) {
+    window.CRBOXPortalAPI.saveBill = function (userEmail, file, wrId) {
 
-      /* Resolve the client's full name with a hard 600 ms timeout so we
-         never block the submit even if getUserInfo is slow or fails.      */
+      /* Resolve the client's full name with a 600 ms hard timeout */
       var namePromise = new Promise(function (res) {
-        var done = false;
-        function finish(v) { if (!done) { done = true; res(v); } }
+        var settled = false;
+        function finish(v) { if (!settled) { settled = true; res(v); } }
         setTimeout(function () { finish(''); }, 600);
         try {
-          CRBOXPortalAPI.getUserInfo()
+          window.CRBOXPortalAPI.getUserInfo()
             .then(function (info) {
               try {
                 var c = (info && info.Consignee) ? info.Consignee : {};
@@ -4195,96 +4228,37 @@
                 .catch(function () { return {}; })
                 .then(function (j) {
                   var err = new Error(
-                    j.message || ('No se pudo enviar la factura (' + res.status + '). Intenta de nuevo.')
+                    j.message || ('Error al enviar la factura (' + res.status + '). Intenta de nuevo.')
                   );
                   err.step = 'saveBill';
                   throw err;
                 });
             }
-            /* Success — set sentinel so createPurchaseBill skips WordPress,
-               then resolve with a minimal object matching the expected shape. */
-            _emailSent = true;
-            return { _emailFallback: true, file: '', url: '', type: '' };
+
+            /* ── Success: update modal directly, then hang forever ────── */
+            /* The outer chain calls createPurchaseBill next; by returning a
+               never-resolving promise we skip that step entirely.  The modal
+               stays open and the user closes it manually via the button.   */
+            _showSuccess();
+            return new Promise(function () { /* intentionally never resolves */ });
           })
           .catch(function (err) {
             if (!err.step) err.step = 'saveBill';
             throw err;
           });
+
       }).catch(function (err) {
         if (!err.step) err.step = 'saveBill';
         throw err;
       });
     };
-
-    /* ── createPurchaseBill: skip WordPress when email fallback is active ── */
-    var _origCreate = CRBOXPortalAPI.createPurchaseBill;
-    CRBOXPortalAPI.createPurchaseBill = function (payload) {
-      if (_emailSent) {
-        _emailSent = false;   /* reset for next upload */
-        /* Resolve immediately — the outer then() will show success + close */
-        return Promise.resolve({ ok: true, _emailFallback: true });
-      }
-      /* Pass through to real implementation if somehow not in fallback mode */
-      return _origCreate
-        ? _origCreate.apply(CRBOXPortalAPI, arguments)
-        : Promise.resolve({});
-    };
-
-    /* ── Intercept _setInvoiceSuccess to block auto-close and update copy ── */
-    var _origSetSuccess = typeof _setInvoiceSuccess === 'function'
-      ? _setInvoiceSuccess : null;
-    if (_origSetSuccess) {
-      var _successPatched = false;
-      _setInvoiceSuccess = function (show) {           /* eslint-disable-line no-global-assign */
-        if (show && !_successPatched) {
-          _successPatched = true;
-
-          /* Update success message with friendlier copy */
-          var span = document.querySelector('#invoice-form-success span');
-          if (span) {
-            span.textContent =
-              'Tu factura fue recibida correctamente. ' +
-              'Nuestro equipo la registrará en tu expediente a la brevedad. ' +
-              'Si no aparece reflejada de inmediato en Mis Paquetes, no te preocupes — ' +
-              'puede tomar unos minutos. Ya puedes cerrar este módulo cuando quieras.';
-          }
-
-          /* Change cancel button label so the user knows to click it */
-          var cancelBtn = document.getElementById('invoice-cancel-btn');
-          if (cancelBtn) {
-            cancelBtn.textContent  = 'Listo, cerrar';
-            cancelBtn.disabled     = false;
-          }
-
-          /* Block the auto-close that the outer chain schedules right after
-             this call.  We intercept window.setTimeout for exactly one tick —
-             the very next call is the setTimeout(_closeInvoiceModal, 1800)
-             in the original success handler.  Immediately restore afterwards
-             so no other timers are affected.                                  */
-          var _origST = window.setTimeout;
-          window.setTimeout = function (fn, delay) {
-            window.setTimeout = _origST;   /* restore immediately */
-            /* Silently drop the auto-close; do nothing else */
-            return 0;
-          };
-        }
-
-        _origSetSuccess(show);
-        if (!show) {
-          _successPatched = false;
-          /* Restore cancel button label for next upload */
-          var btn = document.getElementById('invoice-cancel-btn');
-          if (btn) btn.textContent = 'Cancelar';
-        }
-      };
-    }
   }
 
-  /* Run after the page scripts have finished */
+  /* Run once page scripts are ready */
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', _applyPatches);
+    document.addEventListener('DOMContentLoaded', _applyPatch);
   } else {
-    _applyPatches();
+    _applyPatch();
   }
 })();
 </script>
