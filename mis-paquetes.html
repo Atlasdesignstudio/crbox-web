@@ -921,20 +921,10 @@
                             <span class="text-sm">Cargando archivo…</span>
                         </div>
                     </div>
-                    <!-- PDF via object tag (native browser renderer) -->
-                    <object id="invoice-viewer-pdf" data="" type="application/pdf"
-                            class="w-full flex-1 hidden" style="min-height:340px">
-                        <!-- Fallback shown when browser can't render PDF inline -->
-                        <div class="flex flex-col items-center justify-center h-full p-8 text-center">
-                            <i class="fas fa-file-pdf text-5xl text-red-400 mb-4" aria-hidden="true"></i>
-                            <p class="text-sm text-gray-600 mb-4">Tu navegador no puede mostrar el PDF<br>directamente en esta ventana.</p>
-                            <a id="invoice-viewer-pdf-fallback" href="#" target="_blank" rel="noopener"
-                               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-medium transition-colors"
-                               style="background-color:#FF6B00">
-                                <i class="fas fa-download" aria-hidden="true"></i> Descargar PDF
-                            </a>
-                        </div>
-                    </object>
+                    <!-- PDF via iframe — isolates input events from the parent page -->
+                    <iframe id="invoice-viewer-pdf" src="" title="Factura de compra"
+                            class="w-full flex-1 hidden border-0" style="min-height:340px"
+                            sandbox="allow-scripts allow-same-origin allow-forms allow-downloads"></iframe>
                     <!-- Image viewer -->
                     <div id="invoice-viewer-img-wrap" class="hidden w-full flex-1 overflow-auto flex items-start justify-center p-4" style="min-height:300px">
                         <img id="invoice-viewer-img" src="" alt="Factura de compra"
@@ -3281,13 +3271,21 @@
         _setRow('invoice-viewer-monto-wrap',  'invoice-viewer-monto',  _monto);
         _setRow('invoice-viewer-desc-wrap',   'invoice-viewer-desc',   _desc);
 
-        // Action links
+        // Action links — always use the full absolute URL for download / new-tab
         var dlEl   = document.getElementById('invoice-viewer-download');
         var openEl = document.getElementById('invoice-viewer-open');
-        var fbEl   = document.getElementById('invoice-viewer-pdf-fallback');
         if (dlEl)   dlEl.href   = url;
         if (openEl) openEl.href = url;
-        if (fbEl)   fbEl.href   = url;
+
+        // For the embedded iframe use the same-origin /wp-content/uploads/* proxy
+        // so the browser treats it as same-origin.  This prevents the iframe from
+        // stealing pointer events from the rest of the modal AND allows the native
+        // PDF renderer to work.  Falls back to the absolute URL if the path pattern
+        // doesn't match (e.g. an unexpected storage location).
+        var _embedUrl = (function(u) {
+          var m = u.match(/(\/wp-content\/uploads\/.+)/);
+          return m ? m[1] : u;
+        }(url));
 
         // File type detection
         var _type    = (entry && entry.type) || '';
@@ -3299,23 +3297,20 @@
         var imgWrap  = document.getElementById('invoice-viewer-img-wrap');
         var imgEl    = document.getElementById('invoice-viewer-img');
         if (loadEl)  loadEl.classList.remove('hidden');
-        if (pdfEl)   pdfEl.classList.add('hidden');
+        if (pdfEl)   { pdfEl.classList.add('hidden'); pdfEl.src = ''; }
         if (imgWrap) imgWrap.classList.add('hidden');
         if (imgEl)   imgEl.src = '';
 
         if (_isImage && imgEl && imgWrap) {
           imgEl.onload  = function() { if (loadEl) loadEl.classList.add('hidden'); };
           imgEl.onerror = function() { if (loadEl) loadEl.classList.add('hidden'); };
-          imgEl.src = url;
+          imgEl.src = _embedUrl;
           imgWrap.classList.remove('hidden');
         } else if (pdfEl) {
-          // Use object tag for PDF — hide spinner after short delay
-          // (object onload is unreliable cross-browser)
-          setTimeout(function() {
-            if (loadEl) loadEl.classList.add('hidden');
-            pdfEl.classList.remove('hidden');
-          }, 500);
-          pdfEl.setAttribute('data', url);
+          // iframe onload fires once the PDF (or error page) has loaded
+          pdfEl.onload = function() { if (loadEl) loadEl.classList.add('hidden'); };
+          pdfEl.src = _embedUrl;
+          pdfEl.classList.remove('hidden');
         }
 
         modal.classList.remove('hidden');
@@ -3823,9 +3818,9 @@
             if (!modal) return;
             modal.classList.add('hidden');
             document.body.style.overflow = '';
-            // Stop the PDF from loading in the background after close
+            // Stop the PDF/iframe from loading in the background after close
             var pdfEl = document.getElementById('invoice-viewer-pdf');
-            if (pdfEl) pdfEl.setAttribute('data', '');
+            if (pdfEl) pdfEl.src = '';
             var imgEl = document.getElementById('invoice-viewer-img');
             if (imgEl) imgEl.src = '';
           }
