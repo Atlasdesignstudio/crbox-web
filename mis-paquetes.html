@@ -4098,5 +4098,119 @@
         </div>
       </div>
     </div>
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TEMPORARY — Invoice email fallback
+     Active while WordPress saveBill authentication is being restored.
+     Patches CRBOXPortalAPI.saveBill to POST the file + metadata to
+     /api/invoice-email, which forwards it to facturas@crbox.cr via SMTP.
+     Does NOT touch createPurchaseBill or any other existing logic.
+     REMOVE this block once /api/proxy/saveBill works end-to-end again.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  'use strict';
+
+  var RECIPIENT = 'facturas@crbox.cr';
+  var ENDPOINT  = '/api/invoice-email';
+
+  /* ── 1. Inject a soft maintenance banner into the invoice modal ──────── */
+  function _injectBanner() {
+    var scrollBody = document.querySelector('#invoice-upload-modal .overflow-y-auto');
+    if (!scrollBody || document.getElementById('_inv_tmp_banner')) return;
+    var el = document.createElement('div');
+    el.id = '_inv_tmp_banner';
+    el.style.cssText = [
+      'background:#FFF7ED;border:1px solid #FED7AA;color:#92400E;',
+      'border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.45;',
+      'display:flex;align-items:flex-start;gap:9px;'
+    ].join('');
+    el.innerHTML =
+      '<i class="fas fa-tools" style="margin-top:2px;flex-shrink:0;font-size:14px;"></i>' +
+      '<span>El sistema de carga directa está temporalmente en mantenimiento. ' +
+      'Tu factura se enviará a <strong>' + RECIPIENT + '</strong> y ' +
+      'nuestro equipo la registrará manualmente en tu expediente.</span>';
+    scrollBody.insertBefore(el, scrollBody.firstChild);
+  }
+
+  /* Wrap _openInvoiceModal so the banner is injected every time it opens */
+  if (typeof _openInvoiceModal === 'function') {
+    var _origOpen = _openInvoiceModal;
+    _openInvoiceModal = function (pkg) {
+      _origOpen(pkg);
+      _injectBanner();
+    };
+  }
+
+  /* ── 2. Patch saveBill to send via email instead of WordPress ────────── */
+  function _patchSaveBill() {
+    if (!window.CRBOXPortalAPI || typeof CRBOXPortalAPI.saveBill !== 'function') {
+      setTimeout(_patchSaveBill, 150);
+      return;
+    }
+
+    CRBOXPortalAPI.saveBill = function (userEmail, file, wrId) {
+      return new Promise(function (resolve, reject) {
+        /* Build multipart form with all invoice fields */
+        var fd = new FormData();
+        fd.append('user_email',     userEmail || '');
+        fd.append('wr_id',          wrId      || '');
+        fd.append('invoice_file',   file);
+        fd.append('invoice_number', (document.getElementById('invoice-numero')     || {value: ''}).value || '');
+        fd.append('amount',         (document.getElementById('invoice-monto')      || {value: ''}).value || '');
+        fd.append('description',    (document.getElementById('invoice-descripcion')|| {value: ''}).value || '');
+
+        fetch(ENDPOINT, { method: 'POST', body: fd })
+          .then(function (res) {
+            if (!res.ok) {
+              return res.json()
+                .catch(function () { return {}; })
+                .then(function (j) {
+                  var err = new Error(
+                    j.message || ('No se pudo enviar la factura (' + res.status + '). Intenta de nuevo.')
+                  );
+                  err.step = 'saveBill';
+                  err._httpStatus = res.status;
+                  reject(err);
+                });
+            }
+
+            /* ── Success: update UI, close modal; stop the chain here ── */
+            try {
+              /* Replace the default success text with our email-specific copy */
+              var successSpan = document.querySelector('#invoice-form-success span');
+              if (successSpan) {
+                successSpan.textContent =
+                  'Tu factura fue enviada a ' + RECIPIENT + '. ' +
+                  'Nuestro equipo la registrará en tu expediente a la brevedad.';
+              }
+              if (typeof _setInvoiceSuccess    === 'function') _setInvoiceSuccess(true);
+              if (typeof _setInvoiceSubmitting === 'function') _setInvoiceSubmitting(false);
+              setTimeout(function () {
+                if (typeof _closeInvoiceModal === 'function') _closeInvoiceModal();
+              }, 2800);
+            } catch (uiErr) {
+              console.warn('[INV-EMAIL] UI update error:', uiErr);
+            }
+
+            /* Return a never-resolving promise so createPurchaseBill (step 2)
+               is never called — the modal is already showing success & closing. */
+          })
+          .catch(function () {
+            var err = new Error('No se pudo enviar la factura. Revisa tu conexión e intenta de nuevo.');
+            err.step = 'saveBill';
+            reject(err);
+          });
+      });
+    };
+  }
+
+  /* Run after the page scripts have finished */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _patchSaveBill);
+  } else {
+    _patchSaveBill();
+  }
+})();
+</script>
 </body>
 </html>

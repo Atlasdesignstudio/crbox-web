@@ -9736,7 +9736,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             if not _check_rate_limit(client_ip):
                 self._json_error(429, 'Demasiadas solicitudes. Espera un momento e intenta de nuevo.', code='rate_limit')
                 return
-        is_upload = self.path in ('/api/invoice-upload', '/api/proxy/saveBill')
+        is_upload = self.path in ('/api/invoice-upload', '/api/proxy/saveBill', '/api/invoice-email')
         max_body = _MAX_BODY_UPLOAD if is_upload else _MAX_BODY_REGULAR
         content_length = int(self.headers.get('Content-Length', 0) or 0)
         if content_length > max_body:
@@ -9777,6 +9777,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_proxy_savebill()
         elif self.path == '/api/invoice-upload':
             self._handle_invoice_upload()
+        elif self.path == '/api/invoice-email':
+            self._handle_invoice_email()
         else:
             m_status       = re.match(r'^/api/solicitudes/(SCB-\d+)/status$', self.path)
             m_cancel       = re.match(r'^/api/solicitudes/(SCB-\d+)/cancel$', self.path)
@@ -11362,6 +11364,119 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             'type': mime,
             'file': filename,
         })
+
+    # ── POST /api/invoice-email ────────────────────────────────────────────
+    # TEMPORARY fallback: accepts the invoice file + metadata from the portal
+    # and forwards them to facturas@crbox.cr via SMTP so staff can register
+    # the invoice manually.  Active while WordPress saveBill auth is being
+    # restored.  Does NOT write any URL into CRBOX records — purely a
+    # notification email.  Remove this method and its route once WordPress
+    # authentication is fixed and the normal /api/proxy/saveBill flow works.
+    def _handle_invoice_email(self):
+        import email.parser as _ep, email.policy as _epol
+        import email.mime.multipart as _mp, email.mime.base as _mb
+        import email.mime.text as _mt, email.encoders as _enc
+        _FACTURA_RECIPIENT = 'facturas@crbox.cr'
+        try:
+            ct     = self.headers.get('Content-Type', '')
+            length = int(self.headers.get('Content-Length', 0) or 0)
+            if not ct.lower().startswith('multipart/form-data'):
+                self._json_error(400, 'Content-Type must be multipart/form-data.', code='bad_request')
+                return
+            if length <= 0 or length > _MAX_BODY_UPLOAD:
+                self._json_error(413, 'Tamaño de archivo inválido o demasiado grande (máx. 10 MB).', code='payload_too_large')
+                return
+            body = self.rfile.read(length)
+
+            # Parse multipart using email.parser (same approach as _handle_invoice_upload)
+            raw_msg = b'Content-Type: ' + ct.encode() + b'\r\n\r\n' + body
+            msg     = _ep.BytesParser(policy=_epol.compat32).parsebytes(raw_msg)
+
+            user_email     = ''
+            wr_id          = ''
+            invoice_number = ''
+            amount         = ''
+            description    = ''
+            file_bytes     = None
+            file_name      = 'factura'
+            file_mime      = 'application/octet-stream'
+
+            for part in msg.walk():
+                cd = part.get('Content-Disposition', '')
+                if not cd:
+                    continue
+                params = {}
+                for seg in cd.split(';'):
+                    seg = seg.strip()
+                    if '=' in seg:
+                        k, _, v = seg.partition('=')
+                        params[k.strip().lower()] = v.strip().strip('"\'')
+                field = params.get('name', '')
+                raw  = part.get_payload(decode=True)
+                if raw is None:
+                    continue
+                if field == 'user_email':
+                    user_email = raw.decode('utf-8', errors='replace').strip()
+                elif field == 'wr_id':
+                    wr_id = raw.decode('utf-8', errors='replace').strip()
+                elif field == 'invoice_number':
+                    invoice_number = raw.decode('utf-8', errors='replace').strip()
+                elif field == 'amount':
+                    amount = raw.decode('utf-8', errors='replace').strip()
+                elif field == 'description':
+                    description = raw.decode('utf-8', errors='replace').strip()
+                elif field == 'invoice_file':
+                    file_bytes = raw
+                    file_mime  = (part.get_content_type() or 'application/octet-stream').split(';')[0].strip()
+                    fn         = params.get('filename') or part.get_filename() or ''
+                    if fn:
+                        file_name = os.path.basename(fn)
+
+            if not file_bytes:
+                self._json_error(400, 'No se recibió el archivo de factura.', code='no_file')
+                return
+
+            settings = _smtp_settings()
+            if not settings:
+                self._json_error(503, 'El servicio de correo no está disponible. Por favor contacta a soporte@crbox.cr.', code='smtp_unavailable')
+                return
+            _, _, smtp_user, _ = settings
+
+            subject = f'[Factura Portal] {invoice_number or "Sin número"} — WR {wr_id or "?"} — {user_email or "?"}'
+            plain   = (
+                f'Nueva factura recibida desde el Portal de Clientes CRBOX.\n'
+                f'Por favor registrarla manualmente en el sistema.\n\n'
+                f'Cliente:            {user_email     or "—"}\n'
+                f'WR ID:              {wr_id          or "—"}\n'
+                f'Número de factura:  {invoice_number or "—"}\n'
+                f'Monto:              USD {amount      or "—"}\n'
+                f'Descripción:        {description    or "—"}\n\n'
+                f'El archivo de factura se adjunta a este correo.\n'
+            )
+
+            out = _mp.MIMEMultipart()
+            out['Subject']  = subject
+            out['From']     = f'CRBOX Portal <{smtp_user}>'
+            out['To']       = _FACTURA_RECIPIENT
+            if user_email:
+                out['Reply-To'] = user_email
+            out.attach(_mt.MIMEText(plain, 'plain', 'utf-8'))
+
+            att = _mb.MIMEBase('application', 'octet-stream')
+            att.set_payload(file_bytes)
+            _enc.encode_base64(att)
+            att.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
+            att.add_header('Content-Type', file_mime)
+            out.attach(att)
+
+            _send_smtp(out, [_FACTURA_RECIPIENT])
+            print(f'[INVOICE-EMAIL] Sent {file_name} ({len(file_bytes)} B) '
+                  f'wr={wr_id} from={user_email} to={_FACTURA_RECIPIENT}')
+            self._json_response(200, {'ok': True})
+
+        except Exception as exc:
+            print(f'[INVOICE-EMAIL] Error: {exc}')
+            self._json_error(500, 'No se pudo enviar la factura por correo. Intenta de nuevo.', code='email_error')
 
     # ── POST /api/solicitudes/:id/cancel ──────────────────────────────────
     def _handle_cancel_solicitud(self, scb_id):
