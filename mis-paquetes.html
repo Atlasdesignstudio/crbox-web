@@ -2988,18 +2988,11 @@
             if (hasCount && facturaCountEl) facturaCountEl.textContent = String(pkg.invoicesCount);
             var facturaLink = document.getElementById('modal-factura-link');
             if (facturaLink) {
-              if (hasCount) {
-                var receiptNum = pkg.number ? String(pkg.number).trim() : '';
-                if (pkg.invoiceFileUrl) {
-                  facturaLink.href = pkg.invoiceFileUrl;
-                  facturaLink.setAttribute('target', '_blank');
-                  facturaLink.setAttribute('rel', 'noopener');
-                  facturaLink.textContent = 'Ver archivo de factura →';
-                } else {
-                  facturaLink.href = receiptNum ? 'mis-facturas.html?receipt=' + encodeURIComponent(receiptNum) : 'mis-facturas.html';
-                  facturaLink.removeAttribute('target');
-                  facturaLink.textContent = (Number(pkg.invoicesCount) > 1) ? 'Ver facturas relacionadas →' : 'Ver factura completa →';
-                }
+              if (hasCount && pkg.invoiceFileUrl) {
+                facturaLink.href = pkg.invoiceFileUrl;
+                facturaLink.setAttribute('target', '_blank');
+                facturaLink.setAttribute('rel', 'noopener');
+                facturaLink.textContent = (Number(pkg.invoicesCount) > 1) ? 'Ver archivos de factura →' : 'Ver factura completa →';
                 facturaLink.classList.remove('hidden');
               } else {
                 facturaLink.classList.add('hidden');
