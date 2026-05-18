@@ -931,11 +931,11 @@
             </div>
             <!-- Actions -->
             <div class="px-5 pb-5 flex flex-col gap-2">
-                <a id="invoice-viewer-open" href="#" target="_blank" rel="noopener"
-                   class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-medium transition-opacity hover:opacity-90"
+                <button id="invoice-viewer-open" type="button"
+                   class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-medium transition-opacity hover:opacity-90 cursor-pointer border-0"
                    style="background-color:#FF6B00">
                     <i class="fas fa-external-link-alt" aria-hidden="true"></i> Abrir Factura
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -3244,9 +3244,8 @@
         _setRow('invoice-viewer-monto-wrap',  'invoice-viewer-monto',  _monto);
         _setRow('invoice-viewer-desc-wrap',   'invoice-viewer-desc',   _desc);
 
-        // Single CTA — opens file in a new tab
-        var openEl = document.getElementById('invoice-viewer-open');
-        if (openEl) openEl.href = url;
+        // Store URL so the button's direct click handler can call window.open()
+        _viewerCurrentUrl = url;
 
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -3748,7 +3747,9 @@
             .catch(function () {}); // non-critical — default false keeps legacy path
         }());
 
-        // ── Invoice viewer modal close wiring ─────────────────────────────────
+        // ── Invoice viewer modal wiring ───────────────────────────────────────
+        // _viewerCurrentUrl is set by _openInvoiceViewer() each time the modal opens.
+        var _viewerCurrentUrl = '';
         (function _wireInvoiceViewer() {
           function _closeViewer() {
             var modal = document.getElementById('invoice-viewer-modal');
@@ -3758,6 +3759,14 @@
           }
           var closeBtn = document.getElementById('close-invoice-viewer-btn');
           if (closeBtn) closeBtn.addEventListener('click', _closeViewer);
+          // "Abrir Factura" — use window.open() directly so the browser always
+          // treats it as a user-initiated navigation (never blocked as a popup).
+          var openBtn = document.getElementById('invoice-viewer-open');
+          if (openBtn) {
+            openBtn.addEventListener('click', function() {
+              if (_viewerCurrentUrl) window.open(_viewerCurrentUrl, '_blank', 'noopener,noreferrer');
+            });
+          }
           var modal = document.getElementById('invoice-viewer-modal');
           if (modal) {
             modal.addEventListener('click', function(e) {
