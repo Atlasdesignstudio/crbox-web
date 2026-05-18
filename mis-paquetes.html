@@ -807,6 +807,11 @@
             <!-- Scrollable body -->
             <form id="invoice-upload-form" novalidate class="flex flex-col flex-1 min-h-0">
                 <div class="p-5 space-y-4 overflow-y-auto flex-1">
+                    <!-- Notice shown only when adding a second/subsequent invoice to a package -->
+                    <div id="invoice-existing-notice" class="hidden rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm text-blue-700 flex items-start gap-2">
+                        <i class="fas fa-info-circle flex-shrink-0 mt-0.5"></i>
+                        <span>Este paquete ya tiene una factura registrada. Esta nueva factura se <strong>agregará</strong> al historial; la anterior no será eliminada ni modificada.</span>
+                    </div>
                     <!-- Invoice number -->
                     <div>
                         <label for="invoice-numero" class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -2252,7 +2257,7 @@
       }
 
       // Returns the invoice action button HTML for a package.
-      // invoicesCount > 0             → "Ver factura" (opens detail modal)
+      // invoicesCount > 0             → "Ver factura" + compact "+" to add another invoice
       // invoicesCount === 0 (strict)  → "Subir factura" (opens upload modal), only if wrId is known
       // invoicesCount null/undefined  → unknown; show "—" — do not assume invoiceless
       function _renderInvoiceAction(pkg) {
@@ -2264,10 +2269,17 @@
           var fileUrl   = _esc(pkg.invoiceFileUrl || '');
           var receipt   = pkg.number ? encodeURIComponent(pkg.number) : '';
           var fallback  = receipt ? 'mis-facturas.html?receipt=' + receipt : 'mis-facturas.html';
-          return '<button class="btn-view-invoice inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition-colors whitespace-nowrap"' +
+          // Show "Ver factura" + a compact add button so users can upload additional invoices
+          // without removing or replacing existing ones (postcreatepurchasebill always appends).
+          var addBtn = pkg.idwarehousereceipt
+            ? ' <button class="btn-invoice btn-add-invoice inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition-colors flex-shrink-0" title="Agregar otra factura">' +
+              '<i class="fas fa-plus"></i></button>'
+            : '';
+          return '<span class="inline-flex items-center gap-1">' +
+            '<button class="btn-view-invoice inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition-colors whitespace-nowrap"' +
             ' data-invoice-url="' + fileUrl + '" data-fallback-url="' + _esc(fallback) + '">' +
             '<i class="fas fa-file-invoice"></i> Ver factura' +
-            '</button>';
+            '</button>' + addBtn + '</span>';
         }
         if (noInvoice && pkg.idwarehousereceipt) {
           return '<button class="btn-invoice inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition-colors whitespace-nowrap">' +
@@ -3069,6 +3081,18 @@
         var modal = document.getElementById('invoice-upload-modal');
         if (!modal) return;
         _currentInvoicePkg = pkg;
+
+        // Adjust title: "Agregar" when the package already has at least one invoice on record,
+        // so the user knows they are adding a new entry, not replacing the existing one.
+        var alreadyHas = pkg.invoicesCount !== null && pkg.invoicesCount !== undefined && Number(pkg.invoicesCount) > 0;
+        var titleEl = document.getElementById('invoice-modal-title');
+        if (titleEl) titleEl.textContent = alreadyHas ? 'Agregar Factura de Compra' : 'Subir Factura de Compra';
+
+        // Show/hide the "adding to existing" notice
+        var existingNotice = document.getElementById('invoice-existing-notice');
+        if (existingNotice) {
+          existingNotice.classList.toggle('hidden', !alreadyHas);
+        }
 
         // Set subtitle
         var subtitle = document.getElementById('invoice-modal-subtitle');

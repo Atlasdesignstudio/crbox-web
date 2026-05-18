@@ -9268,8 +9268,8 @@ _CSP_POLICY_EMBEDDABLE = (
     "object-src 'none'"
 )
 
-_MAX_BODY_REGULAR  = 512 * 1024      # 512 KB for regular endpoints
-_MAX_BODY_UPLOAD   = 2 * 1024 * 1024   # 2 MB for file-upload endpoints
+_MAX_BODY_REGULAR  = 512 * 1024       # 512 KB for regular endpoints
+_MAX_BODY_UPLOAD   = 10 * 1024 * 1024  # 10 MB for file-upload endpoints — matches UI limit
 
 # ── Legacy URL redirects (old WordPress / former-site paths) ──────────────────
 # Maps old path (with or without trailing slash) → canonical new URL.
@@ -9369,9 +9369,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         # Determine whether the current page is an embeddable portal page.
         # Strip the query string to match the bare path (e.g. /cotizar.html?portal=1 → /cotizar.html).
         bare_path = self.path.split('?', 1)[0]
-        _is_embeddable = bare_path in _EMBEDDABLE_PATHS
-        if not _is_embeddable:
+        _is_embeddable   = bare_path in _EMBEDDABLE_PATHS
+        _is_invoice_path = bare_path.startswith('/uploads/invoices/')
+        if not _is_embeddable and not _is_invoice_path:
             # Standard pages: protect against clickjacking with X-Frame-Options.
+            # Invoice files intentionally omit this so CRBOX admin can embed PDFs cross-origin.
             self.send_header("X-Frame-Options", "SAMEORIGIN")
         # Embeddable pages intentionally omit X-Frame-Options so the portal
         # iframe chain (which may include cross-origin Replit preview frames)
@@ -9387,11 +9389,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         origin = self.headers.get('Origin', '')
         allowed_set = _allowed_origins()
         _bare_cors = self.path.split('?')[0]
-        _is_public_ep = (_bare_cors.startswith('/api/public/') or _bare_cors == '/ai-context.json')
-        if _is_public_ep:
-            # Public read-only endpoints are open to all origins (no credentials)
+        _is_public_ep    = (_bare_cors.startswith('/api/public/') or _bare_cors == '/ai-context.json')
+        _is_invoice_file = _bare_cors.startswith('/uploads/invoices/')
+        if _is_public_ep or _is_invoice_file:
+            # Public read-only endpoints and stored invoice files are open to all origins
+            # so the CRBOX admin tool (crbox.cr) can fetch/embed them without CORS errors.
             self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+            self.send_header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
         elif origin:
             if allowed_set and origin in allowed_set:
                 # Echo back the matching origin (required when allowlist has >1 entry)
@@ -11150,7 +11154,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         ct     = self.headers.get('Content-Type', '')
         length = int(self.headers.get('Content-Length', 0))
         if length <= 0 or length > self._INVOICE_MAX_BYTES:
-            self._json_error(413, 'Tamaño de archivo inválido o demasiado grande (máx. 2 MB).', code='payload_too_large')
+            self._json_error(413, 'Tamaño de archivo inválido o demasiado grande (máx. 10 MB).', code='payload_too_large')
             return
 
         # Read the full body into memory before parsing so there are no
@@ -11172,10 +11176,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_error(400, 'No se pudo leer el formulario. Intenta de nuevo.', code='bad_request')
             return
 
-        # Walk the MIME tree to find the part named "invoice"
+        # Walk the MIME tree to find the part named "invoice" and optional metadata fields.
         file_bytes = None
         mime       = 'application/octet-stream'
         orig_name  = 'invoice'
+        wr_id      = ''
         for part in msg.walk():
             cd = part.get('Content-Disposition', '')
             if not cd:
@@ -11187,17 +11192,21 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 if '=' in segment:
                     k, _, v = segment.partition('=')
                     params[k.strip().lower()] = v.strip().strip('"\'')
-            if params.get('name') != 'invoice':
-                continue
-            payload = part.get_payload(decode=True)
-            if payload is None:
-                continue
-            file_bytes = payload
-            mime       = (part.get_content_type() or 'application/octet-stream').split(';')[0].strip().lower()
-            fn         = params.get('filename') or part.get_filename() or ''
-            if fn:
-                orig_name = fn
-            break
+            field_name = params.get('name', '')
+            if field_name == 'wr_id':
+                # Capture warehouse-receipt ID for traceability logging
+                raw_val = part.get_payload(decode=True)
+                if raw_val is not None:
+                    wr_id = raw_val.decode('utf-8', errors='replace').strip()
+            elif field_name == 'invoice':
+                payload = part.get_payload(decode=True)
+                if payload is None:
+                    continue
+                file_bytes = payload
+                mime       = (part.get_content_type() or 'application/octet-stream').split(';')[0].strip().lower()
+                fn         = params.get('filename') or part.get_filename() or ''
+                if fn:
+                    orig_name = fn
 
         if not file_bytes:
             self._json_error(400, 'Campo "invoice" requerido o archivo vacío.', code='validation_error')
@@ -11226,7 +11235,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_error(500, 'Error al guardar el archivo. Intenta de nuevo.', code='server_error')
             return
 
-        print(f'[INVOICE_UPLOAD] Saved: {filename} ({len(file_bytes)} bytes) casillero={casillero_id}')
+        print(f'[INVOICE_UPLOAD] Saved: {filename} ({len(file_bytes)} bytes) casillero={casillero_id} wr_id={wr_id or "unknown"}')
         self._json_response(200, {
             'url':  '/uploads/invoices/' + filename,
             'type': mime,
