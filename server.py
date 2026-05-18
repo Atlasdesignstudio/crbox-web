@@ -11048,9 +11048,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         import base64 as _b64, json as _json, mimetypes as _mimetypes
         import ssl as _ssl, http.client as _hc
         try:
-            _wp_app_pass = os.environ.get('WP_APP_PASSWORD', '').strip()
-            if not _wp_app_pass:
-                print('[PROXY/saveBill] WP_APP_PASSWORD secret not configured')
+            # Prefer the two-part secrets WP_APP_USER / WP_APP_PASS (more reliable
+            # than WP_APP_PASSWORD which the Replit UI may strip colons from).
+            _wp_user = os.environ.get('WP_APP_USER', '').strip()
+            _wp_pass = os.environ.get('WP_APP_PASS', '').strip()
+            if _wp_user and _wp_pass:
+                _wp_app_pass = f'{_wp_user}:{_wp_pass}'
+            else:
+                _wp_app_pass = os.environ.get('WP_APP_PASSWORD', '').strip()
+            if not _wp_app_pass or ':' not in _wp_app_pass:
+                print('[PROXY/saveBill] WP_APP_USER/WP_APP_PASS (or WP_APP_PASSWORD) not configured')
                 self._json_error(503,
                     'El servicio de subida de facturas no está configurado. '
                     'Por favor contacta a soporte@crbox.cr.',
