@@ -9441,7 +9441,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
     def _read_body(self, max_bytes):
         """Read the request body up to max_bytes; return None if exceeded."""
-        content_length = int(self.headers.get('Content-Length', 0) or 0)
+        try:
+            content_length = int(self.headers.get('Content-Length', 0) or 0)
+        except (ValueError, TypeError):
+            content_length = 0
         if content_length > max_bytes:
             return None
         to_read = content_length if content_length > 0 else 0
@@ -9740,7 +9743,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 return
         is_upload = self.path in ('/api/invoice-upload', '/api/proxy/saveBill', '/api/invoice-email')
         max_body = _MAX_BODY_UPLOAD if is_upload else _MAX_BODY_REGULAR
-        content_length = int(self.headers.get('Content-Length', 0) or 0)
+        try:
+            content_length = int(self.headers.get('Content-Length', 0) or 0)
+        except (ValueError, TypeError):
+            content_length = 0
         if content_length > max_body:
             self._json_error(413, 'Payload too large', code='payload_too_large')
             return
@@ -11737,7 +11743,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_response(500)
             self.send_header('Content-Type', 'text/plain; charset=utf-8')
             self.end_headers()
-            self.wfile.write(f'Error al enviar la confirmación: {exc}'.encode())
+            self.wfile.write(b'Error al procesar la solicitud. Por favor intenta de nuevo.')
 
     # ── POST /api/solicitudes/:id/cancel ──────────────────────────────────
     def _handle_cancel_solicitud(self, scb_id):
