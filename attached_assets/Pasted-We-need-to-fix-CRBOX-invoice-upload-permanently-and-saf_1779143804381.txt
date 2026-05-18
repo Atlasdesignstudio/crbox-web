@@ -1,0 +1,152 @@
+We need to fix CRBOX invoice upload permanently and safely without breaking the new website, legacy admin, existing invoice viewing, or any data.
+
+Current confirmed state:
+1. Old invoice viewing was broken because historical invoice URLs use:
+   https://crbox.cr/wp-content/uploads/...
+
+2. Those files physically exist on the old WordPress server:
+   98.90.3.205
+
+3. We confirmed this works:
+   curl -I --resolve crbox.cr:443:98.90.3.205 https://crbox.cr/wp-content/uploads/2026/05/FacturaCompra-WR606103.pdf
+
+   Response:
+   HTTP/1.1 200 OK
+   Server: Apache
+   Content-Type: application/pdf
+
+4. The new website must remain live on normal crbox.cr routes.
+
+5. The /wp-content/uploads/* proxy/passthrough must remain in place so old invoices continue to open.
+
+Problem still unresolved:
+New invoice uploads through:
+   /wp-json/crbox/v1/saveBill
+
+are returning:
+   {"Error":"The user is not logged in"}
+
+Important:
+Do not keep guessing the auth method. Before changing implementation again, inspect or confirm the actual authentication logic used by the WordPress saveBill plugin/endpoint.
+
+Main goal:
+Make invoice upload work reliably against the old WordPress storage, without using local server/Replit filesystem fallback for production invoice files.
+
+Safety rules:
+- Do not change DNS.
+- Do not delete, move, rename, or modify existing invoice files.
+- Do not mass-update database invoice URLs.
+- Do not break /wp-content/uploads/* proxy for old invoice viewing.
+- Do not break public website routes.
+- Do not break client portal calls to clients.crbox.cr.
+- Do not rely on local /uploads/invoices/* storage for production.
+- If WordPress upload fails, show a clear error and do not write a temporary/local invoice URL into production records.
+- Do not log passwords, application passwords, cookies, Bearer tokens, or Authorization headers.
+
+What to investigate first:
+Inspect the WordPress saveBill endpoint/plugin implementation for:
+   /wp-json/crbox/v1/saveBill
+
+Determine exactly how it authenticates requests. Specifically confirm whether it uses:
+A) is_user_logged_in() / WordPress session cookies
+B) current_user_can(...)
+C) WordPress nonce
+D) WordPress Application Password / Basic Auth
+E) CRBOX portal Bearer token from clients.crbox.cr
+F) custom shared secret/API key
+G) another custom validator
+
+Do not implement more auth changes until this is confirmed.
+
+If the endpoint uses WordPress browser session cookies / is_user_logged_in():
+- A server-side proxy from the new website will not reliably have a valid WordPress browser session cookie.
+- Do not fake this with local fallback.
+- Propose and implement the smallest safe server-to-server authentication upgrade to the WordPress endpoint, preferably one of:
+  1. WordPress Application Password / Basic Auth support, or
+  2. a dedicated shared secret header such as X-CRBOX-Upload-Secret, stored only in environment/secrets.
+
+If the endpoint can already support WordPress Application Password:
+- Use a secret such as:
+  WP_APP_PASSWORD=username:application_password
+- Split only on the first colon.
+- Preserve username.
+- Normalize only the password part by removing spaces before Basic Auth if needed.
+- Send Basic Auth to WordPress.
+- Do not log the secret.
+
+If the endpoint requires a custom shared secret:
+- Add a secret in the new server and validate it in the WordPress plugin.
+- Keep the change narrowly scoped only to /wp-json/crbox/v1/saveBill.
+- Do not weaken general WordPress authentication.
+
+If the old WordPress is being moved to a new subdomain with a new certificate:
+- Verify the correct legacy WordPress host.
+- Verify SSL works.
+- Verify WordPress REST API works.
+- Verify /wp-content/uploads/* still works.
+- Verify /wp-json/crbox/v1/saveBill works on that host.
+- Verify WordPress siteurl/home/cookie behavior does not break the endpoint.
+- If using a new legacy host, make it configurable via environment variables.
+
+Required routing behavior:
+- Normal routes stay on the new website:
+  /
+  /servicios.html
+  /como-funciona.html
+  /tarifas.html
+  /calculadora.html
+  /contacto.html
+  /afiliate.html
+  /login.html
+
+- Old invoice files keep working:
+  /wp-content/uploads/* → old WordPress file server
+
+- Invoice uploads go to persistent WordPress storage:
+  /wp-json/crbox/v1/saveBill → old WordPress endpoint with correct server-to-server auth
+
+Implementation requirements:
+1. Keep the working /wp-content/uploads/* proxy.
+2. Fix /wp-json/crbox/v1/saveBill upload authentication correctly based on the actual plugin logic.
+3. Remove or disable local fallback storage for production invoice uploads.
+4. If WordPress rejects the request, return a clear error to the user.
+5. Ensure new successful uploads return a persistent URL under:
+   https://crbox.cr/wp-content/uploads/...
+   or the approved legacy WordPress files URL, but not /uploads/invoices/*.
+6. Preserve method, multipart/form-data body, file name, content type, and relevant safe headers when proxying.
+7. Do not inject CSP/X-Frame headers into raw PDF/file responses.
+8. Keep code changes minimal and targeted.
+
+Acceptance tests:
+1. Old invoice file still opens:
+   curl -I https://crbox.cr/wp-content/uploads/2026/05/FacturaCompra-WR606103.pdf
+   Expected: 200 and Content-Type: application/pdf
+
+2. Normal website pages still open:
+   /
+   /servicios.html
+   /calculadora.html
+   /contacto.html
+   /login.html
+   Expected: 200
+
+3. New invoice upload succeeds without local fallback.
+   Logs should show WordPress upload success, not Local fallback OK.
+
+4. The returned URL for a new uploaded invoice must be persistent and must not be:
+   /uploads/invoices/<uuid>.pdf
+
+5. Refresh/reopen the new invoice after upload and confirm it still opens.
+
+6. Confirm a WordPress upload auth failure does not create a DB record with a local temporary URL.
+
+7. Confirm no existing invoice records or files were modified.
+
+Deliverables:
+- Exact auth method found in the saveBill WordPress endpoint.
+- Exact code changes made.
+- Confirmation that /wp-content/uploads/* proxy remains working.
+- Confirmation that saveBill uploads now go to WordPress persistent storage.
+- Confirmation that local fallback is disabled for production.
+- Test results for old invoice viewing, new upload, and normal website routes.
+- A code-only rollback plan.

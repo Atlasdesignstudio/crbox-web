@@ -10962,16 +10962,24 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     #
     # Two paths are proxied to the old server:
     #   GET/HEAD /wp-content/uploads/*  →  existing invoice PDFs/images
-    #   POST     /wp-json/crbox/v1/saveBill  →  new invoice file uploads
+    #   POST     /api/proxy/saveBill    →  new invoice file uploads
     #
-    # Both connect by IP with Host: crbox.cr so Apache's virtual-host
-    # routing selects the correct WordPress site.  SSL hostname verification
-    # is disabled (CERT_NONE) because we connect by IP, not by hostname;
-    # the destination is a known, trusted server we control.
-    _LEGACY_WP_IP   = os.environ.get('LEGACY_WORDPRESS_IP',   '98.90.3.205')
-    _LEGACY_WP_HOST = os.environ.get('LEGACY_WORDPRESS_HOST', 'crbox.cr')
-    _SAVEBILL_WP_PATH = '/wp-json/crbox/v1/saveBill'
-    _SAVEBILL_MAX     = _MAX_BODY_UPLOAD
+    # For GET/HEAD the proxy connects by IP with Host: crbox.cr so Apache's
+    # virtual-host routing selects the correct WordPress site.
+    #
+    # For invoice uploads the proxy posts to /wp-json/wp/v2/media on the WP
+    # host (wp.crbox.cr / same IP) using WordPress Application Password auth
+    # (WP_APP_USER + WP_APP_PASS secrets).  The standard wp/v2/media endpoint
+    # fully supports Application Passwords; the custom crbox/v1/saveBill
+    # endpoint does NOT — it was built for browser session cookies only.
+    #
+    # SSL hostname verification is disabled (CERT_NONE) because we connect
+    # by IP; the destination is a known, trusted server we control.
+    _LEGACY_WP_IP       = os.environ.get('LEGACY_WORDPRESS_IP',   '98.90.3.205')
+    _LEGACY_WP_HOST     = os.environ.get('LEGACY_WORDPRESS_HOST', 'crbox.cr')
+    _LEGACY_WP_API_HOST = os.environ.get('LEGACY_WORDPRESS_API_HOST', 'wp.crbox.cr')
+    _SAVEBILL_WP_PATH   = '/wp-json/wp/v2/media'
+    _SAVEBILL_MAX       = _MAX_BODY_UPLOAD
 
     def _proxy_legacy_wp_get(self, method='GET'):
         """Proxy GET or HEAD /wp-content/uploads/* to the legacy WordPress server.
@@ -11032,32 +11040,37 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 pass
 
     # ── POST /api/proxy/saveBill ───────────────────────────────────────────
-    # Forwards the invoice-file upload to the legacy WordPress endpoint,
-    # connecting directly to LEGACY_WORDPRESS_IP to bypass the DNS change.
-    # The browser cannot call crbox.cr/wp-json/... directly (CORS).
+    # Uploads the invoice file to WordPress persistent storage via the standard
+    # WP REST API media endpoint (wp/v2/media), authenticated with a WordPress
+    # Application Password (WP_APP_USER + WP_APP_PASS secrets).
+    #
+    # Why NOT crbox/v1/saveBill: that custom endpoint uses is_user_logged_in()
+    # which only recognises WordPress browser session cookies — it rejects all
+    # server-to-server requests regardless of auth header.
+    #
+    # Why wp/v2/media: it is the standard WP file-upload REST endpoint and
+    # fully supports Application Password auth (confirmed working, HTTP 201).
+    # Files land at https://wp.crbox.cr/wp-content/uploads/...  which is
+    # normalised to https://crbox.cr/wp-content/uploads/... so they resolve
+    # through the existing legacy-content proxy (/wp-content/uploads/*).
+    #
+    # There is NO local-storage fallback.  If WordPress upload fails the
+    # request fails with a clear error — no temporary URL is ever written.
     def _handle_proxy_savebill(self):
-        # ── Auth check ────────────────────────────────────────────────────────
-        # portal-api.js JWTs (clients.crbox.cr / 100.50.198.105) are NOT valid
-        # for WordPress (wp.crbox.cr / 98.90.3.205) — they are separate systems.
-        # This proxy authenticates to WordPress exclusively via a WordPress
-        # Application Password stored in the WP_APP_PASSWORD secret:
-        #   Format: wordpress_username:generated-app-password
-        # Create one at: wp.crbox.cr/wp-admin → Users → Profile → App Passwords
-        # There is NO local-storage fallback.  If WordPress upload fails, the
-        # request fails with a clear error — no fragile local URL is written.
         import base64 as _b64, json as _json, mimetypes as _mimetypes
         import ssl as _ssl, http.client as _hc
+        import re as _re, email.parser as _ep, email.policy as _epol
         try:
-            # Prefer the two-part secrets WP_APP_USER / WP_APP_PASS (more reliable
-            # than WP_APP_PASSWORD which the Replit UI may strip colons from).
+            # Build WP credential string from split secrets (avoids colon-stripping
+            # that occurs when storing "user:pass" as a single Replit secret).
             _wp_user = os.environ.get('WP_APP_USER', '').strip()
             _wp_pass = os.environ.get('WP_APP_PASS', '').strip()
             if _wp_user and _wp_pass:
-                _wp_app_pass = f'{_wp_user}:{_wp_pass}'
+                _wp_cred = f'{_wp_user}:{_wp_pass}'
             else:
-                _wp_app_pass = os.environ.get('WP_APP_PASSWORD', '').strip()
-            if not _wp_app_pass or ':' not in _wp_app_pass:
-                print('[PROXY/saveBill] WP_APP_USER/WP_APP_PASS (or WP_APP_PASSWORD) not configured')
+                _wp_cred = os.environ.get('WP_APP_PASSWORD', '').strip()
+            if not _wp_cred or ':' not in _wp_cred:
+                print('[PROXY/saveBill] WP credentials not configured')
                 self._json_error(503,
                     'El servicio de subida de facturas no está configurado. '
                     'Por favor contacta a soporte@crbox.cr.',
@@ -11074,28 +11087,63 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._json_error(413, 'Tamaño de archivo inválido o demasiado grande.', code='payload_too_large')
                 return
 
-            body = self.rfile.read(length)
+            raw_body = self.rfile.read(length)
 
-            _wp_enc = _b64.b64encode(_wp_app_pass.encode('utf-8')).decode('ascii')
-            fwd_headers = {
-                'Host':           self._LEGACY_WP_HOST,
-                'Content-Type':   ct,
-                'Content-Length': str(length),
-                'Authorization':  f'Basic {_wp_enc}',
-                'User-Agent':     'CRBOX-Portal-Proxy/1.0',
-                'Connection':     'close',
-            }
+            # ── Parse multipart form data to extract the invoice file ──────────
+            # Construct a MIME message the email parser understands.
+            mime_msg = _ep.BytesParser(policy=_epol.compat32).parsebytes(
+                f'Content-Type: {ct}\r\n\r\n'.encode() + raw_body
+            )
 
+            _file_data  = None
+            _file_name  = 'invoice.pdf'
+            _file_ct    = 'application/pdf'
+            _wr_id      = ''
+
+            for part in (mime_msg.get_payload() or []):
+                disp      = part.get('Content-Disposition', '')
+                name_m    = _re.search(r'name="?([^";\r\n]+)"?', disp)
+                if not name_m:
+                    continue
+                field_name = name_m.group(1).strip()
+                payload    = part.get_payload(decode=True)
+                if field_name == 'invoice':
+                    _file_data = payload
+                    fn_m = _re.search(r'filename="?([^";\r\n]+)"?', disp)
+                    if fn_m:
+                        _file_name = fn_m.group(1).strip()
+                    _file_ct = part.get_content_type() or 'application/pdf'
+                elif field_name == 'wr_id':
+                    _wr_id = (payload or b'').decode('utf-8', errors='replace').strip()
+
+            if not _file_data:
+                self._json_error(400, 'No se encontró el archivo de factura en la solicitud.', code='bad_request')
+                return
+
+            # ── Build upload filename matching existing convention ─────────────
+            # Existing invoice files are named FacturaCompra-WR606103.pdf
+            _ext = os.path.splitext(_file_name)[1].lower() or '.pdf'
+            _upload_name = f'FacturaCompra-WR{_wr_id}{_ext}' if _wr_id else _file_name
+
+            # ── POST to wp/v2/media with Application Password auth ────────────
+            _wp_enc  = _b64.b64encode(_wp_cred.encode('utf-8')).decode('ascii')
             _ssl_ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
             _ssl_ctx.check_hostname = False
             _ssl_ctx.verify_mode    = _ssl.CERT_NONE
 
             try:
                 conn = _hc.HTTPSConnection(self._LEGACY_WP_IP, timeout=30, context=_ssl_ctx)
-                conn.request('POST', self._SAVEBILL_WP_PATH, body=body, headers=fwd_headers)
+                conn.request('POST', self._SAVEBILL_WP_PATH, body=_file_data, headers={
+                    'Host':                self._LEGACY_WP_API_HOST,
+                    'Authorization':       f'Basic {_wp_enc}',
+                    'Content-Type':        _file_ct,
+                    'Content-Length':      str(len(_file_data)),
+                    'Content-Disposition': f'attachment; filename="{_upload_name}"',
+                    'User-Agent':          'CRBOX-Portal-Proxy/1.0',
+                    'Connection':          'close',
+                })
                 resp      = conn.getresponse()
                 resp_body = resp.read(1 * 1024 * 1024)
-                resp_ct   = resp.getheader('Content-Type', 'application/json')
                 resp_code = resp.status
                 conn.close()
             except Exception as conn_err:
@@ -11105,75 +11153,55 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                     code='upstream_error')
                 return
 
-            print(f'[PROXY/saveBill] WordPress returned HTTP {resp_code}')
+            print(f'[PROXY/saveBill] WP Media API returned HTTP {resp_code}')
 
-            # Try to extract a file URL from the WordPress JSON response.
-            # Normalize any wp.crbox.cr URLs → crbox.cr so they resolve through
-            # the existing legacy-content proxy and satisfy the URL requirement.
-            if 'json' in resp_ct:
+            if resp_code in (200, 201):
                 try:
                     wp = _json.loads(resp_body.decode('utf-8', errors='replace'))
-                    if isinstance(wp, dict):
-                        # Case-insensitive key lookup covers FileUrl, fileUrl, file_url, etc.
-                        wp_lower = {k.lower(): v for k, v in wp.items()}
-                        candidates = [
-                            wp_lower.get('url', ''),        wp_lower.get('fileurl', ''),
-                            wp_lower.get('file_url', ''),   wp_lower.get('source_url', ''),
-                            wp_lower.get('src', ''),        wp_lower.get('link', ''),
-                            wp_lower.get('location', ''),   wp_lower.get('pdfurl', ''),
-                            wp_lower.get('pdf_url', ''),
-                        ]
-                        def _make_abs(u):
-                            if not u or not isinstance(u, str): return ''
-                            # Normalise the WordPress internal domain to crbox.cr so
-                            # the URL resolves through the existing legacy-content proxy.
-                            u = u.replace('://wp.crbox.cr/', '://crbox.cr/')
-                            if u.startswith('http://') or u.startswith('https://'): return u
-                            if u.startswith('/'): return 'https://' + self._LEGACY_WP_HOST + u
-                            return ''
-                        file_url = next((_make_abs(u) for u in candidates if _make_abs(u)), '')
-                        if file_url:
-                            parsed_path = urllib.parse.urlparse(file_url).path
-                            ext  = os.path.splitext(parsed_path)[1].lower()
-                            mime, _ = _mimetypes.guess_type('f' + ext)
-                            mime = mime or 'application/octet-stream'
-                            base = os.path.basename(parsed_path) or 'invoice'
-                            out  = _json.dumps({'url': file_url, 'type': mime, 'file': base}).encode('utf-8')
-                            self.send_response(200)
-                            self.send_header('Content-Type', 'application/json')
-                            self.send_header('Content-Length', str(len(out)))
-                            self.end_headers()
-                            self.wfile.write(out)
-                            print(f'[PROXY/saveBill] OK — url={file_url}')
-                            return
-                        # WordPress responded with JSON but no file URL — surface the
-                        # WordPress error message so the user knows what went wrong.
-                        wp_error = (wp_lower.get('error') or wp_lower.get('message') or
-                                    wp_lower.get('Error') or '')
-                        if not wp_error:
-                            wp_error = resp_body[:200].decode('utf-8', errors='replace')
-                        print(f'[PROXY/saveBill] WordPress no URL (code={resp_code}): {wp_error}')
-                        if resp_code in (401, 403) or 'not logged in' in wp_error.lower():
-                            self._json_error(502,
-                                'Error de autenticación con el servidor de archivos. '
-                                'Verifica la configuración de WP_APP_PASSWORD.',
-                                code='upstream_auth_error')
-                        else:
-                            self._json_error(502,
-                                f'El servidor de archivos no devolvió una URL válida '
-                                f'({resp_code}). Intenta de nuevo o contacta a soporte@crbox.cr.',
-                                code='upstream_error')
+                    # wp/v2/media returns source_url for the publicly accessible file URL.
+                    raw_url  = (wp.get('source_url') or
+                                (wp.get('guid') or {}).get('rendered', '') or '')
+                    # Normalise wp.crbox.cr → crbox.cr so the URL resolves through
+                    # the existing /wp-content/uploads/* legacy-content proxy.
+                    file_url = raw_url.replace('://wp.crbox.cr/', '://crbox.cr/')
+                    if file_url:
+                        _parsed  = urllib.parse.urlparse(file_url)
+                        _ext2    = os.path.splitext(_parsed.path)[1].lower()
+                        mime, _  = _mimetypes.guess_type('f' + _ext2)
+                        mime     = mime or 'application/octet-stream'
+                        base     = os.path.basename(_parsed.path) or 'invoice'
+                        out      = _json.dumps({'url': file_url, 'type': mime, 'file': base}).encode('utf-8')
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/json')
+                        self.send_header('Content-Length', str(len(out)))
+                        self.end_headers()
+                        self.wfile.write(out)
+                        print(f'[PROXY/saveBill] OK — url={file_url}')
                         return
-                except Exception as norm_err:
-                    print(f'[PROXY/saveBill] Response parse error: {norm_err}')
-
-            # Non-JSON or unhandled error from WordPress
-            _preview = resp_body[:200].decode('utf-8', errors='replace')
-            print(f'[PROXY/saveBill] Unexpected WordPress response (code={resp_code}): {_preview}')
-            self._json_error(502,
-                f'Respuesta inesperada del servidor de archivos ({resp_code}). '
-                'Intenta de nuevo o contacta a soporte@crbox.cr.',
-                code='upstream_error')
+                    _preview = resp_body[:200].decode('utf-8', errors='replace')
+                    print(f'[PROXY/saveBill] WP Media API returned no URL: {_preview}')
+                    self._json_error(502,
+                        'El servidor de archivos no devolvió una URL válida. Intenta de nuevo.',
+                        code='upstream_error')
+                except Exception as parse_err:
+                    print(f'[PROXY/saveBill] Response parse error: {parse_err}')
+                    self._json_error(502,
+                        'Respuesta inesperada del servidor de archivos. Intenta de nuevo.',
+                        code='upstream_error')
+            elif resp_code in (401, 403):
+                _preview = resp_body[:200].decode('utf-8', errors='replace')
+                print(f'[PROXY/saveBill] WP auth rejected ({resp_code}): {_preview}')
+                self._json_error(502,
+                    'Error de autenticación con el servidor de archivos. '
+                    'Verifica la configuración de WP_APP_PASSWORD.',
+                    code='upstream_auth_error')
+            else:
+                _preview = resp_body[:200].decode('utf-8', errors='replace')
+                print(f'[PROXY/saveBill] Unexpected response ({resp_code}): {_preview}')
+                self._json_error(502,
+                    f'Respuesta inesperada del servidor de archivos ({resp_code}). '
+                    'Intenta de nuevo o contacta a soporte@crbox.cr.',
+                    code='upstream_error')
 
         except Exception as exc:
             print(f'[PROXY/saveBill] Unexpected error: {exc}')

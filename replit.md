@@ -17,7 +17,8 @@ A static HTML/CSS/JS website providing package tracking, tariff calculation, and
 - **Optional Env Vars:**
     - `ALERT_EMAIL` (default: `ventas@crbox.cr`)
     - `SMTP_HEALTH_INTERVAL` (default: `300` seconds)
-    - `WP_APP_PASSWORD` **(required for invoice uploads)** — WordPress Application Password for `wp.crbox.cr`. Format: `wordpress_username:generated-app-password`. The `/api/proxy/saveBill` proxy uses this to authenticate to WordPress via HTTP Basic auth. Without it every invoice upload returns a 503 error. To create: log in to `wp.crbox.cr/wp-admin` → Users → Profile → Application Passwords → add one named "CRBOX Portal" → copy the generated value. Invoice files land at `https://crbox.cr/wp-content/uploads/...` (permanent WordPress storage).
+    - `WP_APP_USER` **(required for invoice uploads)** — WordPress username (e.g. `mathias.meneses`). Used together with `WP_APP_PASS` to authenticate the invoice upload proxy.
+    - `WP_APP_PASS` **(required for invoice uploads)** — WordPress Application Password (24-character string, spaces are fine, e.g. `xxxx xxxx xxxx xxxx xxxx xxxx`). The proxy POSTs uploaded invoice files to `wp.crbox.cr/wp-json/wp/v2/media` via HTTP Basic auth. Files land permanently at `https://crbox.cr/wp-content/uploads/...`. To create: log in to `wp.crbox.cr/wp-admin` → Users → Profile → Application Passwords → add one named "CRBOX Portal". **Note:** store username and password as two separate secrets — do NOT combine them with a colon in a single secret (the Replit UI strips colons). The `WP_APP_PASSWORD` secret (combined format) is also accepted as a fallback if both split secrets are absent.
 
 ## Stack
 
