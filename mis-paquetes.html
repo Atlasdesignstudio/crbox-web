@@ -4230,24 +4230,52 @@
         : Promise.resolve({});
     };
 
-    /* ── Intercept the success span text set by the outer chain ── */
+    /* ── Intercept _setInvoiceSuccess to block auto-close and update copy ── */
     var _origSetSuccess = typeof _setInvoiceSuccess === 'function'
       ? _setInvoiceSuccess : null;
     if (_origSetSuccess) {
-      /* Override so we can inject our custom copy the first time it's shown */
       var _successPatched = false;
       _setInvoiceSuccess = function (show) {           /* eslint-disable-line no-global-assign */
         if (show && !_successPatched) {
           _successPatched = true;
+
+          /* Update success message with friendlier copy */
           var span = document.querySelector('#invoice-form-success span');
           if (span) {
             span.textContent =
               'Tu factura fue recibida correctamente. ' +
-              'Nuestro equipo la registrará en tu expediente a la brevedad.';
+              'Nuestro equipo la registrará en tu expediente a la brevedad. ' +
+              'Si no aparece reflejada de inmediato en Mis Paquetes, no te preocupes — ' +
+              'puede tomar unos minutos. Ya puedes cerrar este módulo cuando quieras.';
           }
+
+          /* Change cancel button label so the user knows to click it */
+          var cancelBtn = document.getElementById('invoice-cancel-btn');
+          if (cancelBtn) {
+            cancelBtn.textContent  = 'Listo, cerrar';
+            cancelBtn.disabled     = false;
+          }
+
+          /* Block the auto-close that the outer chain schedules right after
+             this call.  We intercept window.setTimeout for exactly one tick —
+             the very next call is the setTimeout(_closeInvoiceModal, 1800)
+             in the original success handler.  Immediately restore afterwards
+             so no other timers are affected.                                  */
+          var _origST = window.setTimeout;
+          window.setTimeout = function (fn, delay) {
+            window.setTimeout = _origST;   /* restore immediately */
+            /* Silently drop the auto-close; do nothing else */
+            return 0;
+          };
         }
+
         _origSetSuccess(show);
-        if (!show) _successPatched = false;   /* reset when hidden */
+        if (!show) {
+          _successPatched = false;
+          /* Restore cancel button label for next upload */
+          var btn = document.getElementById('invoice-cancel-btn');
+          if (btn) btn.textContent = 'Cancelar';
+        }
       };
     }
   }
