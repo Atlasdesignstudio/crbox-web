@@ -3297,7 +3297,29 @@
 
               // Step 2: create the purchase bill record
               // Field names must match the exact backend contract for postcreatepurchasebill.
-              var clientInvoiceText = '<p>' + desc.trim().replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p>';
+              // ClientInvoiceText is rendered as raw HTML inside a <fieldset> in CRBOX's
+              // internal tool ("Factura Recibida" section). Embed the file inline so staff
+              // can view/download it directly without relying solely on the FileLocation link.
+              var _safeDesc = desc.trim().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+              var _fileType = saved.type || '';
+              var _isImage  = _fileType.indexOf('image/') === 0;
+              var _safeUrl  = fileUrl ? fileUrl.replace(/"/g,'&quot;') : '';
+              var clientInvoiceText = '';
+              if (_isImage && _safeUrl) {
+                // Embed image inline — staff can see it directly in the CRBOX tool
+                clientInvoiceText =
+                  '<p><strong>Descripción:</strong> ' + _safeDesc + '</p>' +
+                  '<p><img src="' + _safeUrl + '" alt="Factura de compra" ' +
+                  'style="max-width:100%;max-height:600px;border:1px solid #ccc;display:block;margin-top:8px;" /></p>';
+              } else if (_safeUrl) {
+                // PDF or other — show a prominent download link staff can click
+                clientInvoiceText =
+                  '<p><strong>Descripción:</strong> ' + _safeDesc + '</p>' +
+                  '<p style="margin-top:8px;"><a href="' + _safeUrl + '" target="_blank" ' +
+                  'rel="noopener" style="color:#0066cc;font-weight:bold;">&#128206; Ver / Descargar archivo de factura</a></p>';
+              } else {
+                clientInvoiceText = '<p>' + _safeDesc + '</p>';
+              }
               var payload = {
                 WRId:              wrId,
                 NumeroFactura:     numero.trim(),
