@@ -4099,87 +4099,66 @@
       </div>
     </div>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TEMPORARY — Invoice email fallback
-     Active while WordPress saveBill authentication is being restored.
-     Patches CRBOXPortalAPI.saveBill to POST the file to /api/invoice-email
-     (→ facturas@crbox.cr via SMTP).  On success, manipulates the modal DOM
-     directly by element ID — avoids all strict-mode global-scope issues.
-     Returns a never-resolving promise so createPurchaseBill (step 2) never
-     fires and the modal stays open for the user to close manually.
-     REMOVE this block once /api/proxy/saveBill works end-to-end again.
+     Invoice notification email — fires on every successful upload.
+     Wraps CRBOXPortalAPI.saveBill so that after the primary WordPress upload
+     succeeds (via /api/proxy/saveBill), a copy of the invoice + metadata is
+     also sent to facturas@crbox.cr via /api/invoice-email (fire-and-forget).
+     The normal CRBOX flow is preserved: createPurchaseBill runs, the package
+     list refreshes, and "Ver factura" opens the WordPress-hosted file.
      ═══════════════════════════════════════════════════════════════════════ -->
 <script>
 (function () {
-  /* No 'use strict' here — we need to read/write window-level globals
-     (e.g. _openInvoiceModal) without ReferenceError in strict mode.   */
 
-  var RECIPIENT = 'facturas@crbox.cr';
-  var ENDPOINT  = '/api/invoice-email';
+  var EMAIL_ENDPOINT = '/api/invoice-email';
 
-  /* ── 1. Maintenance banner injected into the invoice modal ───────────── */
-  function _injectBanner() {
-    var scrollBody = document.querySelector('#invoice-upload-modal .overflow-y-auto');
-    if (!scrollBody || document.getElementById('_inv_tmp_banner')) return;
-    var el = document.createElement('div');
-    el.id = '_inv_tmp_banner';
-    el.style.cssText = [
-      'background:#FFF7ED;border:1px solid #FED7AA;color:#92400E;',
-      'border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.45;',
-      'display:flex;align-items:flex-start;gap:9px;margin-bottom:4px;'
-    ].join('');
-    el.innerHTML =
-      '<i class="fas fa-tools" style="margin-top:2px;flex-shrink:0;font-size:14px;"></i>' +
-      '<span>El sistema de carga directa está temporalmente en mantenimiento. ' +
-      'Tu factura se enviará a <strong>' + RECIPIENT + '</strong> y ' +
-      'nuestro equipo la registrará manualmente en tu expediente.</span>';
-    scrollBody.insertBefore(el, scrollBody.firstChild);
-  }
+  /* ── Send notification email — fire-and-forget, never blocks the upload ── */
+  function _sendNotification(userEmail, file, wrId, invoiceNumber, amount, description) {
+    /* Resolve full name with a 600 ms hard timeout so we never block here */
+    var settled = false;
+    var nameResolve;
+    var namePromise = new Promise(function (res) { nameResolve = res; });
+    var timer = setTimeout(function () {
+      if (!settled) { settled = true; nameResolve(''); }
+    }, 600);
 
-  /* Wrap _openInvoiceModal — accessed via window to avoid strict-mode issues */
-  var _origOpen = window._openInvoiceModal;
-  if (typeof _origOpen === 'function') {
-    window._openInvoiceModal = function (pkg) {
-      _origOpen(pkg);
-      _injectBanner();
-    };
-  }
-
-  /* ── 2. Show success state directly via DOM — no global-function calls ── */
-  function _showSuccess() {
-    /* Success box */
-    var successEl = document.getElementById('invoice-form-success');
-    if (successEl) {
-      var span = successEl.querySelector('span');
-      if (span) {
-        span.textContent =
-          'Tu factura fue recibida correctamente. ' +
-          'Nuestro equipo la registrará en tu expediente a la brevedad. ' +
-          'Si no aparece de inmediato en Mis Paquetes, no te preocupes — ' +
-          'puede tomar unos minutos. Ya puedes cerrar este módulo.';
-      }
-      successEl.classList.remove('hidden');
+    try {
+      window.CRBOXPortalAPI.getUserInfo()
+        .then(function (info) {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          try {
+            var c = (info && info.Consignee) ? info.Consignee : {};
+            var name = [
+              c.consigneename      || c.ConsigneeName      || '',
+              c.consigneelastname1 || c.ConsigneeLastName1 || '',
+              c.consigneelastname2 || c.ConsigneeLastName2 || ''
+            ].map(function (s) { return s.trim(); }).filter(Boolean).join(' ');
+            nameResolve(name);
+          } catch (_e) { nameResolve(''); }
+        })
+        .catch(function () {
+          if (!settled) { settled = true; clearTimeout(timer); nameResolve(''); }
+        });
+    } catch (_e) {
+      if (!settled) { settled = true; clearTimeout(timer); nameResolve(''); }
     }
-    /* Re-enable + relabel cancel button */
-    var cancelBtn = document.getElementById('invoice-cancel-btn');
-    if (cancelBtn) {
-      cancelBtn.disabled    = false;
-      cancelBtn.textContent = 'Listo, cerrar';
-    }
-    /* Reset submit button out of "Subiendo…" state */
-    var submitBtn   = document.getElementById('invoice-submit-btn');
-    var submitIcon  = document.getElementById('invoice-submit-icon');
-    var submitLabel = document.getElementById('invoice-submit-label');
-    if (submitBtn)   submitBtn.disabled   = false;
-    if (submitIcon)  submitIcon.className = 'fas fa-upload';
-    if (submitLabel) submitLabel.textContent = 'Subir Factura';
-    /* Hide error / partial banners in case they were showing */
-    var errEl = document.getElementById('invoice-form-error');
-    if (errEl) errEl.classList.add('hidden');
-    var partEl = document.getElementById('invoice-form-partial');
-    if (partEl) partEl.classList.add('hidden');
+
+    namePromise.then(function (fullName) {
+      var fd = new FormData();
+      fd.append('user_email',     userEmail      || '');
+      fd.append('user_name',      fullName);
+      fd.append('wr_id',          wrId           || '');
+      fd.append('invoice_file',   file);
+      fd.append('invoice_number', invoiceNumber  || '');
+      fd.append('amount',         amount         || '');
+      fd.append('description',    description    || '');
+      fetch(EMAIL_ENDPOINT, { method: 'POST', body: fd })
+        .catch(function () { /* best-effort — swallow errors silently */ });
+    });
   }
 
-  /* ── 3. Patch saveBill ───────────────────────────────────────────────── */
+  /* ── Wrap saveBill: run real upload, then fire notification email ──────── */
   function _applyPatch() {
     if (!window.CRBOXPortalAPI ||
         typeof window.CRBOXPortalAPI.saveBill !== 'function') {
@@ -4187,74 +4166,24 @@
       return;
     }
 
+    var _origSaveBill = window.CRBOXPortalAPI.saveBill;
+
     window.CRBOXPortalAPI.saveBill = function (userEmail, file, wrId) {
+      /* Capture form fields now — they may be reset before the promise resolves */
+      var invoiceNumber = (document.getElementById('invoice-numero')      || {value: ''}).value || '';
+      var amount        = (document.getElementById('invoice-monto')       || {value: ''}).value || '';
+      var description   = (document.getElementById('invoice-descripcion') || {value: ''}).value || '';
 
-      /* Resolve the client's full name with a 600 ms hard timeout */
-      var namePromise = new Promise(function (res) {
-        var settled = false;
-        function finish(v) { if (!settled) { settled = true; res(v); } }
-        setTimeout(function () { finish(''); }, 600);
-        try {
-          window.CRBOXPortalAPI.getUserInfo()
-            .then(function (info) {
-              try {
-                var c = (info && info.Consignee) ? info.Consignee : {};
-                var parts = [
-                  c.consigneename      || c.ConsigneeName      || '',
-                  c.consigneelastname1 || c.ConsigneeLastName1 || '',
-                  c.consigneelastname2 || c.ConsigneeLastName2 || ''
-                ].map(function (s) { return s.trim(); }).filter(Boolean);
-                finish(parts.join(' '));
-              } catch (_e) { finish(''); }
-            })
-            .catch(function () { finish(''); });
-        } catch (_e) { finish(''); }
-      });
-
-      return namePromise.then(function (fullName) {
-        var fd = new FormData();
-        fd.append('user_email',     userEmail || '');
-        fd.append('user_name',      fullName);
-        fd.append('wr_id',          wrId      || '');
-        fd.append('invoice_file',   file);
-        fd.append('invoice_number', (document.getElementById('invoice-numero')      || {value: ''}).value || '');
-        fd.append('amount',         (document.getElementById('invoice-monto')       || {value: ''}).value || '');
-        fd.append('description',    (document.getElementById('invoice-descripcion') || {value: ''}).value || '');
-
-        return fetch(ENDPOINT, { method: 'POST', body: fd })
-          .then(function (res) {
-            if (!res.ok) {
-              return res.json()
-                .catch(function () { return {}; })
-                .then(function (j) {
-                  var err = new Error(
-                    j.message || ('Error al enviar la factura (' + res.status + '). Intenta de nuevo.')
-                  );
-                  err.step = 'saveBill';
-                  throw err;
-                });
-            }
-
-            /* ── Success: update modal directly, then hang forever ────── */
-            /* The outer chain calls createPurchaseBill next; by returning a
-               never-resolving promise we skip that step entirely.  The modal
-               stays open and the user closes it manually via the button.   */
-            _showSuccess();
-            return new Promise(function () { /* intentionally never resolves */ });
-          })
-          .catch(function (err) {
-            if (!err.step) err.step = 'saveBill';
-            throw err;
-          });
-
-      }).catch(function (err) {
-        if (!err.step) err.step = 'saveBill';
-        throw err;
-      });
+      return _origSaveBill.call(window.CRBOXPortalAPI, userEmail, file, wrId)
+        .then(function (result) {
+          /* WordPress upload succeeded: send notification email in background */
+          _sendNotification(userEmail, file, wrId, invoiceNumber, amount, description);
+          return result; /* pass through — createPurchaseBill runs normally */
+        });
+      /* Errors from the real saveBill propagate unchanged to the outer handler */
     };
   }
 
-  /* Run once page scripts are ready */
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', _applyPatch);
   } else {

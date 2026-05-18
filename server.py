@@ -11372,12 +11372,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         })
 
     # ── POST /api/invoice-email ────────────────────────────────────────────
-    # TEMPORARY fallback: accepts the invoice file + metadata from the portal
-    # and forwards them to facturas@crbox.cr via SMTP so staff can register
-    # the invoice manually.  Active while WordPress saveBill auth is being
-    # restored.  Does NOT write any URL into CRBOX records — purely a
-    # notification email.  Remove this method and its route once WordPress
-    # authentication is fixed and the normal /api/proxy/saveBill flow works.
+    # Permanent notification handler: every invoice upload POSTs the file +
+    # metadata here so facturas@crbox.cr always receives a copy as a record.
+    # The primary upload still goes through /api/proxy/saveBill → WordPress
+    # (which registers the invoice in CRBOX).  This endpoint is fire-and-
+    # forget from the browser — its HTTP response is intentionally ignored.
     def _handle_invoice_email(self):
         import email.parser as _ep, email.policy as _epol
         import email.mime.multipart as _mp, email.mime.base as _mb
