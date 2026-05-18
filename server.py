@@ -9601,6 +9601,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_portal_my_packages()
         elif self.path.rstrip('/') == '/api/config':
             self._handle_config()
+        elif self.path.startswith('/api/invoice-confirm'):
+            self._handle_invoice_confirm()
         elif self.path.startswith('/api/admin/rds-shadow-compare'):
             self._handle_admin_rds_shadow_compare()
         elif self.path.startswith('/api/admin/rds-invoices-shadow-compare'):
@@ -11445,6 +11447,22 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 return
             _, _, smtp_user, _ = settings
 
+            # Build the confirm-CTA URL for the internal team email.
+            # Use X-Forwarded-Host → Host → default so it works behind the proxy.
+            _req_host = (
+                self.headers.get('X-Forwarded-Host') or
+                self.headers.get('Host') or
+                'crbox.cr'
+            )
+            _scheme = 'https' if 'replit' not in _req_host else 'https'
+            _confirm_qs = urllib.parse.urlencode({
+                'email':          user_email,
+                'name':           user_name,
+                'wr_id':          wr_id,
+                'invoice_number': invoice_number,
+            })
+            _confirm_url = f'{_scheme}://{_req_host}/api/invoice-confirm?{_confirm_qs}'
+
             client_label = user_name or user_email or '?'
             subject = (
                 f'[Factura Portal] {invoice_number or "Sin número"} — '
@@ -11459,16 +11477,92 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 f'Número de factura:  {invoice_number or "—"}\n'
                 f'Monto:              USD {amount      or "—"}\n'
                 f'Descripción:        {description    or "—"}\n\n'
-                f'El archivo de factura se adjunta a este correo.\n'
+                f'El archivo de factura se adjunta a este correo.\n\n'
+                f'─────────────────────────────────────────\n'
+                f'Confirmar recepción al cliente:\n{_confirm_url}\n'
+                f'─────────────────────────────────────────\n'
             )
+            html = f'''<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:32px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+  <!-- Header -->
+  <tr><td style="background:#1E3A5F;padding:24px 32px;">
+    <span style="color:#ffffff;font-size:20px;font-weight:700;">CRBOX · Nueva Factura Recibida</span>
+  </td></tr>
+  <!-- Body -->
+  <tr><td style="padding:28px 32px 8px;">
+    <p style="margin:0 0 20px;color:#374151;font-size:15px;">
+      Se recibió una factura desde el <strong>Portal de Clientes</strong>.<br>
+      Por favor registrarla manualmente en el sistema.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;color:#374151;">
+      <tr style="border-bottom:1px solid #E5E7EB;">
+        <td style="padding:9px 0;font-weight:600;width:180px;">Nombre completo</td>
+        <td style="padding:9px 0;">{user_name or "—"}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #E5E7EB;">
+        <td style="padding:9px 0;font-weight:600;">Correo</td>
+        <td style="padding:9px 0;">{user_email or "—"}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #E5E7EB;">
+        <td style="padding:9px 0;font-weight:600;">WR ID</td>
+        <td style="padding:9px 0;">{wr_id or "—"}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #E5E7EB;">
+        <td style="padding:9px 0;font-weight:600;">Número de factura</td>
+        <td style="padding:9px 0;">{invoice_number or "—"}</td>
+      </tr>
+      <tr style="border-bottom:1px solid #E5E7EB;">
+        <td style="padding:9px 0;font-weight:600;">Monto</td>
+        <td style="padding:9px 0;">USD {amount or "—"}</td>
+      </tr>
+      <tr>
+        <td style="padding:9px 0;font-weight:600;">Descripción</td>
+        <td style="padding:9px 0;">{description or "—"}</td>
+      </tr>
+    </table>
+  </td></tr>
+  <!-- CTA -->
+  <tr><td style="padding:28px 32px 32px;text-align:center;">
+    <p style="margin:0 0 18px;color:#6B7280;font-size:13px;">
+      Una vez registrada la factura, confirma la recepción al cliente:
+    </p>
+    <a href="{_confirm_url}"
+       style="display:inline-block;background:#16A34A;color:#ffffff;font-size:15px;
+              font-weight:700;text-decoration:none;padding:14px 36px;
+              border-radius:8px;letter-spacing:.3px;">
+      ✓ &nbsp;Confirmar recepción al cliente
+    </a>
+    <p style="margin:14px 0 0;color:#9CA3AF;font-size:11px;">
+      Al hacer clic se enviará un correo automático a <strong>{user_email or "—"}</strong>
+      avisándole que CRBOX recibió su factura.
+    </p>
+  </td></tr>
+  <!-- Footer -->
+  <tr><td style="background:#F9FAFB;padding:16px 32px;border-top:1px solid #E5E7EB;">
+    <p style="margin:0;color:#9CA3AF;font-size:12px;text-align:center;">
+      CRBOX Costa Rica · Portal Interno · Este correo fue generado automáticamente.
+    </p>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>'''
 
-            out = _mp.MIMEMultipart()
+            out = _mp.MIMEMultipart('mixed')
             out['Subject']  = subject
             out['From']     = f'CRBOX Portal <{smtp_user}>'
             out['To']       = _FACTURA_RECIPIENT
             if user_email:
                 out['Reply-To'] = user_email
-            out.attach(_mt.MIMEText(plain, 'plain', 'utf-8'))
+
+            alt = _mp.MIMEMultipart('alternative')
+            alt.attach(_mt.MIMEText(plain, 'plain', 'utf-8'))
+            alt.attach(_mt.MIMEText(html,  'html',  'utf-8'))
+            out.attach(alt)
 
             att = _mb.MIMEBase('application', 'octet-stream')
             att.set_payload(file_bytes)
@@ -11494,6 +11588,153 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             print(f'[INVOICE-EMAIL] Error: {exc}')
             self._json_error(500, 'No se pudo enviar la factura por correo. Intenta de nuevo.', code='email_error')
+
+    # ── GET /api/invoice-confirm ───────────────────────────────────────────
+    # Called by the CRBOX team by clicking the CTA in the internal invoice
+    # notification email.  Sends a confirmation email to the client and
+    # renders a simple HTML success page.
+    # TEMPORARY — remove together with _handle_invoice_email when WordPress
+    # saveBill is restored.
+    def _handle_invoice_confirm(self):
+        import email.mime.multipart as _mp2
+        import email.mime.text as _mt2
+        try:
+            qs    = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            def _q(k): return qs.get(k, [''])[0].strip()
+            email_to       = _q('email')
+            client_name    = _q('name')
+            wr_id          = _q('wr_id')
+            invoice_number = _q('invoice_number')
+
+            if not email_to:
+                self.send_response(400)
+                self.send_header('Content-Type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(b'Falta el parametro email.')
+                return
+
+            settings = _smtp_settings()
+            if not settings:
+                self.send_response(503)
+                self.send_header('Content-Type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                self.wfile.write('Servicio de correo no disponible.'.encode())
+                return
+            _, _, smtp_user, _ = settings
+
+            greeting  = f'Hola{" " + client_name if client_name else ""},'
+            inv_label = f' #{invoice_number}' if invoice_number else ''
+            wr_label  = f' para el paquete WR {wr_id}' if wr_id else ''
+
+            subject_c = f'CRBOX recibió tu factura{inv_label} ✓'
+            plain_c = (
+                f'{greeting}\n\n'
+                f'Queremos confirmarte que recibimos correctamente tu factura{inv_label}'
+                f'{wr_label}.\n\n'
+                f'Gracias por subirla al portal. Nuestro equipo ya la tiene en revisión '
+                f'y la registrará en tu expediente a la brevedad.\n\n'
+                f'Te mantendremos al tanto de cualquier novedad.\n\n'
+                f'Un saludo,\nEl equipo de CRBOX Costa Rica\n'
+                f'ventas@crbox.cr · www.crbox.cr\n'
+            )
+            html_c = f'''<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:40px 0;">
+<tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0"
+       style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.09);">
+  <!-- Header -->
+  <tr><td style="background:#1E3A5F;padding:30px 36px 24px;text-align:center;">
+    <p style="margin:0 0 8px;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:.3px;">
+      CRBOX Costa Rica
+    </p>
+    <p style="margin:0;color:#93C5FD;font-size:13px;">Tu paquete en buenas manos</p>
+  </td></tr>
+  <!-- Check icon -->
+  <tr><td style="padding:32px 36px 0;text-align:center;">
+    <div style="display:inline-block;background:#DCFCE7;border-radius:50%;width:64px;height:64px;
+                line-height:64px;font-size:32px;text-align:center;">✓</div>
+  </td></tr>
+  <!-- Body -->
+  <tr><td style="padding:20px 36px 32px;text-align:center;">
+    <h2 style="margin:16px 0 8px;color:#111827;font-size:20px;">¡Factura recibida!</h2>
+    <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.6;">
+      {greeting}<br><br>
+      Recibimos correctamente tu factura<strong>{inv_label}</strong>{wr_label}.<br>
+      Nuestro equipo ya la tiene en revisión y la registrará en tu expediente
+      <strong>a la brevedad</strong>.
+    </p>
+    <p style="margin:0 0 28px;color:#374151;font-size:15px;line-height:1.6;">
+      Gracias por subirla al portal. <strong>Te mantendremos al tanto</strong>
+      de cualquier novedad.
+    </p>
+    <a href="https://crbox.cr/mis-paquetes.html"
+       style="display:inline-block;background:#1E3A5F;color:#ffffff;font-size:14px;
+              font-weight:700;text-decoration:none;padding:13px 32px;border-radius:8px;">
+      Ver mis paquetes
+    </a>
+  </td></tr>
+  <!-- Footer -->
+  <tr><td style="background:#F9FAFB;padding:18px 36px;border-top:1px solid #E5E7EB;text-align:center;">
+    <p style="margin:0;color:#9CA3AF;font-size:12px;line-height:1.6;">
+      CRBOX Costa Rica · ventas@crbox.cr<br>
+      <a href="https://crbox.cr" style="color:#9CA3AF;">www.crbox.cr</a>
+    </p>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>'''
+
+            msg_c = _mp2.MIMEMultipart('alternative')
+            msg_c['Subject'] = subject_c
+            msg_c['From']    = f'CRBOX Costa Rica <{smtp_user}>'
+            msg_c['To']      = email_to
+            msg_c.attach(_mt2.MIMEText(plain_c, 'plain', 'utf-8'))
+            msg_c.attach(_mt2.MIMEText(html_c,  'html',  'utf-8'))
+
+            _send_smtp(msg_c, [email_to])
+            print(f'[INVOICE-CONFIRM] Sent confirmation to {email_to} wr={wr_id}')
+
+            # Render a simple success page for the team member
+            page = f'''<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<title>Confirmación enviada</title>
+<style>
+  body{{margin:0;padding:0;background:#f4f6f8;font-family:Arial,sans-serif;
+       display:flex;align-items:center;justify-content:center;min-height:100vh;}}
+  .card{{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.09);
+          padding:48px 56px;max-width:480px;text-align:center;}}
+  .icon{{font-size:48px;margin-bottom:16px;}}
+  h1{{margin:0 0 12px;color:#111827;font-size:22px;}}
+  p{{margin:0;color:#6B7280;font-size:14px;line-height:1.6;}}
+  .email{{font-weight:600;color:#1E3A5F;}}
+</style>
+</head><body>
+<div class="card">
+  <div class="icon">✅</div>
+  <h1>Confirmación enviada</h1>
+  <p>Se envió un correo de confirmación a<br>
+     <span class="email">{email_to}</span><br><br>
+     El cliente fue notificado de que CRBOX recibió su factura{inv_label}{wr_label}.
+  </p>
+</div>
+</body></html>'''
+
+            page_b = page.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(page_b)))
+            self.end_headers()
+            self.wfile.write(page_b)
+
+        except Exception as exc:
+            print(f'[INVOICE-CONFIRM] Error: {exc}')
+            self.send_response(500)
+            self.send_header('Content-Type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(f'Error al enviar la confirmación: {exc}'.encode())
 
     # ── POST /api/solicitudes/:id/cancel ──────────────────────────────────
     def _handle_cancel_solicitud(self, scb_id):
