@@ -11010,8 +11010,18 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                             wp.get('pdfUrl', ''),
                             wp.get('pdf_url', ''),
                         ]
+                        # Accept absolute URLs (http/https) and relative WordPress
+                        # paths (e.g. /wp-content/uploads/...) — make them absolute.
+                        def _make_absolute(u):
+                            if not u or not isinstance(u, str):
+                                return ''
+                            if u.startswith('http://') or u.startswith('https://'):
+                                return u
+                            if u.startswith('/'):
+                                return 'https://crbox.cr' + u
+                            return ''
                         file_url = next(
-                            (u for u in candidates if u and isinstance(u, str) and u.startswith('http')),
+                            (_make_absolute(u) for u in candidates if _make_absolute(u)),
                             ''
                         )
                         if file_url:
@@ -11283,8 +11293,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return
 
         print(f'[INVOICE_UPLOAD] Saved: {filename} ({len(file_bytes)} bytes) casillero={casillero_id} wr_id={wr_id or "unknown"}')
+        # Return an absolute URL so FileLocation is resolvable by CRBOX's
+        # internal tool regardless of where the request originates.
+        # crbox.cr is the canonical production domain for this server.
         self._json_response(200, {
-            'url':  '/uploads/invoices/' + filename,
+            'url':  'https://crbox.cr/uploads/invoices/' + filename,
             'type': mime,
             'file': filename,
         })
