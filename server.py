@@ -11393,6 +11393,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             msg     = _ep.BytesParser(policy=_epol.compat32).parsebytes(raw_msg)
 
             user_email     = ''
+            user_name      = ''
             wr_id          = ''
             invoice_number = ''
             amount         = ''
@@ -11417,6 +11418,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                     continue
                 if field == 'user_email':
                     user_email = raw.decode('utf-8', errors='replace').strip()
+                elif field == 'user_name':
+                    user_name = raw.decode('utf-8', errors='replace').strip()
                 elif field == 'wr_id':
                     wr_id = raw.decode('utf-8', errors='replace').strip()
                 elif field == 'invoice_number':
@@ -11442,11 +11445,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 return
             _, _, smtp_user, _ = settings
 
-            subject = f'[Factura Portal] {invoice_number or "Sin número"} — WR {wr_id or "?"} — {user_email or "?"}'
-            plain   = (
+            client_label = user_name or user_email or '?'
+            subject = (
+                f'[Factura Portal] {invoice_number or "Sin número"} — '
+                f'WR {wr_id or "?"} — {client_label}'
+            )
+            plain = (
                 f'Nueva factura recibida desde el Portal de Clientes CRBOX.\n'
                 f'Por favor registrarla manualmente en el sistema.\n\n'
-                f'Cliente:            {user_email     or "—"}\n'
+                f'Nombre completo:    {user_name      or "—"}\n'
+                f'Correo:             {user_email     or "—"}\n'
                 f'WR ID:              {wr_id          or "—"}\n'
                 f'Número de factura:  {invoice_number or "—"}\n'
                 f'Monto:              USD {amount      or "—"}\n'
@@ -11469,10 +11477,19 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             att.add_header('Content-Type', file_mime)
             out.attach(att)
 
-            _send_smtp(out, [_FACTURA_RECIPIENT])
-            print(f'[INVOICE-EMAIL] Sent {file_name} ({len(file_bytes)} B) '
-                  f'wr={wr_id} from={user_email} to={_FACTURA_RECIPIENT}')
+            # Respond immediately so the browser isn't blocked by SMTP latency,
+            # then send the email in a background thread.
             self._json_response(200, {'ok': True})
+
+            import threading as _threading
+            def _bg_send():
+                try:
+                    _send_smtp(out, [_FACTURA_RECIPIENT])
+                    print(f'[INVOICE-EMAIL] Sent {file_name} ({len(file_bytes)} B) '
+                          f'wr={wr_id} name="{user_name}" from={user_email} to={_FACTURA_RECIPIENT}')
+                except Exception as _e:
+                    print(f'[INVOICE-EMAIL] Background send failed: {_e}')
+            _threading.Thread(target=_bg_send, daemon=True).start()
 
         except Exception as exc:
             print(f'[INVOICE-EMAIL] Error: {exc}')

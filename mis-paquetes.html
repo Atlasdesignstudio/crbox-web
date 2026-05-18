@@ -4150,56 +4150,75 @@
 
     CRBOXPortalAPI.saveBill = function (userEmail, file, wrId) {
       return new Promise(function (resolve, reject) {
-        /* Build multipart form with all invoice fields */
-        var fd = new FormData();
-        fd.append('user_email',     userEmail || '');
-        fd.append('wr_id',          wrId      || '');
-        fd.append('invoice_file',   file);
-        fd.append('invoice_number', (document.getElementById('invoice-numero')     || {value: ''}).value || '');
-        fd.append('amount',         (document.getElementById('invoice-monto')      || {value: ''}).value || '');
-        fd.append('description',    (document.getElementById('invoice-descripcion')|| {value: ''}).value || '');
 
-        fetch(ENDPOINT, { method: 'POST', body: fd })
-          .then(function (res) {
-            if (!res.ok) {
-              return res.json()
-                .catch(function () { return {}; })
-                .then(function (j) {
-                  var err = new Error(
-                    j.message || ('No se pudo enviar la factura (' + res.status + '). Intenta de nuevo.')
-                  );
-                  err.step = 'saveBill';
-                  err._httpStatus = res.status;
-                  reject(err);
-                });
-            }
+        /* ── Resolve full name from cached getUserInfo, then POST ── */
+        var namePromise = CRBOXPortalAPI.getUserInfo
+          ? CRBOXPortalAPI.getUserInfo().catch(function () { return null; })
+          : Promise.resolve(null);
 
-            /* ── Success: update UI, close modal; stop the chain here ── */
-            try {
-              /* Replace the default success text with our email-specific copy */
-              var successSpan = document.querySelector('#invoice-form-success span');
-              if (successSpan) {
-                successSpan.textContent =
-                  'Tu factura fue enviada a ' + RECIPIENT + '. ' +
-                  'Nuestro equipo la registrará en tu expediente a la brevedad.';
+        namePromise.then(function (info) {
+          var fullName = '';
+          try {
+            var c = (info && info.Consignee) ? info.Consignee : {};
+            var parts = [
+              c.consigneename        || c.ConsigneeName        || '',
+              c.consigneelastname1   || c.ConsigneeLastName1   || '',
+              c.consigneelastname2   || c.ConsigneeLastName2   || ''
+            ].map(function (s) { return s.trim(); }).filter(Boolean);
+            fullName = parts.join(' ');
+          } catch (_e) {}
+
+          /* Build multipart form with all invoice fields */
+          var fd = new FormData();
+          fd.append('user_email',     userEmail || '');
+          fd.append('user_name',      fullName);
+          fd.append('wr_id',          wrId      || '');
+          fd.append('invoice_file',   file);
+          fd.append('invoice_number', (document.getElementById('invoice-numero')     || {value: ''}).value || '');
+          fd.append('amount',         (document.getElementById('invoice-monto')      || {value: ''}).value || '');
+          fd.append('description',    (document.getElementById('invoice-descripcion')|| {value: ''}).value || '');
+
+          fetch(ENDPOINT, { method: 'POST', body: fd })
+            .then(function (res) {
+              if (!res.ok) {
+                return res.json()
+                  .catch(function () { return {}; })
+                  .then(function (j) {
+                    var err = new Error(
+                      j.message || ('No se pudo enviar la factura (' + res.status + '). Intenta de nuevo.')
+                    );
+                    err.step = 'saveBill';
+                    err._httpStatus = res.status;
+                    reject(err);
+                  });
               }
-              if (typeof _setInvoiceSuccess    === 'function') _setInvoiceSuccess(true);
-              if (typeof _setInvoiceSubmitting === 'function') _setInvoiceSubmitting(false);
-              setTimeout(function () {
-                if (typeof _closeInvoiceModal === 'function') _closeInvoiceModal();
-              }, 2800);
-            } catch (uiErr) {
-              console.warn('[INV-EMAIL] UI update error:', uiErr);
-            }
 
-            /* Return a never-resolving promise so createPurchaseBill (step 2)
-               is never called — the modal is already showing success & closing. */
-          })
-          .catch(function () {
-            var err = new Error('No se pudo enviar la factura. Revisa tu conexión e intenta de nuevo.');
-            err.step = 'saveBill';
-            reject(err);
-          });
+              /* ── Success: update UI, close modal; stop the chain here ── */
+              try {
+                var successSpan = document.querySelector('#invoice-form-success span');
+                if (successSpan) {
+                  successSpan.textContent =
+                    'Tu factura fue recibida correctamente. ' +
+                    'Nuestro equipo la registrará en tu expediente a la brevedad.';
+                }
+                if (typeof _setInvoiceSuccess    === 'function') _setInvoiceSuccess(true);
+                if (typeof _setInvoiceSubmitting === 'function') _setInvoiceSubmitting(false);
+                setTimeout(function () {
+                  if (typeof _closeInvoiceModal === 'function') _closeInvoiceModal();
+                }, 2800);
+              } catch (uiErr) {
+                console.warn('[INV-EMAIL] UI update error:', uiErr);
+              }
+
+              /* Return a never-resolving promise so createPurchaseBill (step 2)
+                 is never called — the modal is already showing success & closing. */
+            })
+            .catch(function () {
+              var err = new Error('No se pudo enviar la factura. Revisa tu conexión e intenta de nuevo.');
+              err.step = 'saveBill';
+              reject(err);
+            });
+        });
       });
     };
   }
