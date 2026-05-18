@@ -1,0 +1,150 @@
+We have confirmed the root cause of the CRBOX invoice/PDF issue. Please solve this carefully without breaking the new website, the legacy admin, or any existing data.
+
+Context:
+The new CRBOX website is now live on crbox.cr. However, the legacy admin still uses invoice/PDF URLs under:
+
+https://crbox.cr/wp-content/uploads/...
+
+Those files do not exist on the new server, so invoice previews/downloads in the legacy admin are failing with 404.
+
+Confirmed evidence:
+The broken live URL:
+
+https://crbox.cr/wp-content/uploads/2026/05/FacturaCompra-WR606103.pdf
+
+currently returns 404 from the new server:
+
+server: SimpleHTTP/0.6 Python/3.11.14
+via: google
+
+But when we test the old WordPress server directly using:
+
+curl -I --resolve crbox.cr:443:98.90.3.205 https://crbox.cr/wp-content/uploads/2026/05/FacturaCompra-WR606103.pdf
+
+it returns:
+
+HTTP/1.1 200 OK
+Server: Apache
+Content-Type: application/pdf
+
+So the files are not lost. They are still being served correctly from the old WordPress server at:
+
+98.90.3.205
+
+The problem is that crbox.cr now points to the new site, so legacy WordPress upload URLs are hitting the wrong server.
+
+Goal:
+Keep the new CRBOX website live for normal public routes, but restore legacy invoice/PDF access and invoice upload behavior permanently.
+
+Required fix:
+Implement a safe legacy passthrough/proxy in the new CRBOX server/app so that these paths are forwarded to the old WordPress server at 98.90.3.205:
+
+1. /wp-content/uploads/*
+2. /wp-json/crbox/v1/saveBill
+
+Expected routing behavior:
+
+- crbox.cr/
+- crbox.cr/servicios
+- crbox.cr/tarifas
+- crbox.cr/calculadora
+- crbox.cr/contacto
+- crbox.cr/afiliate
+- all normal new website routes
+
+must continue being served by the new website.
+
+But:
+
+- crbox.cr/wp-content/uploads/*
+must be proxied to the old WordPress server at 98.90.3.205 so historical invoice PDFs continue loading with their existing URLs.
+
+And:
+
+- crbox.cr/wp-json/crbox/v1/saveBill
+must be proxied to the old WordPress server at 98.90.3.205 so new invoice uploads are stored in the same persistent WordPress/uploads system, not local Replit storage.
+
+Important implementation requirements:
+- Do not change or mass-update database invoice URLs.
+- Do not delete, move, rename, or modify existing invoice files.
+- Do not rely on local Replit/server filesystem storage for production invoices.
+- Disable or bypass any local fallback storage for invoice uploads unless it is explicitly marked as non-production and never writes URLs into production records.
+- Existing invoice URLs must continue working exactly as:
+  https://crbox.cr/wp-content/uploads/...
+- The proxy may need to preserve or set the Host header as crbox.cr when forwarding requests to 98.90.3.205, because the old WordPress server expects requests for crbox.cr.
+- Preserve original path, query string, method, body, and relevant headers for proxied requests.
+- For /wp-content/uploads/*, support PDFs and any other uploaded file types already stored by WordPress.
+- For /wp-json/crbox/v1/saveBill, support the same upload behavior as before, including file upload body/form-data.
+- Do not proxy all /wp-json/* unless required. Start with /wp-json/crbox/v1/saveBill to minimize risk.
+- Do not alter authentication logic for the client portal or admin legacy.
+- Do not break CORS behavior for the existing client portal.
+- Do not change Route 53/DNS from the app unless explicitly instructed.
+
+Recommended implementation approach:
+Add a route-level proxy before the normal static/site routing handles the request.
+
+Pseudo behavior:
+
+if request.path starts with "/wp-content/uploads/":
+    proxy the request to "https://98.90.3.205" while preserving the original Host behavior expected by WordPress
+    return the upstream response exactly, including content-type, status code, and file body
+
+if request.path equals "/wp-json/crbox/v1/saveBill":
+    proxy the request to "https://98.90.3.205" while preserving method, headers, body/form-data, and Host behavior
+    return the upstream response exactly
+
+otherwise:
+    serve the new CRBOX website as usual
+
+If direct HTTPS proxying to 98.90.3.205 has certificate/Host issues, propose and implement the safest equivalent approach, such as:
+- using the correct upstream URL while forcing DNS resolution to 98.90.3.205,
+- preserving Host: crbox.cr,
+- or using an explicitly configured LEGACY_WORDPRESS_BASE_URL / LEGACY_WORDPRESS_IP setup.
+
+Please use environment variables where appropriate, for example:
+LEGACY_WORDPRESS_IP=98.90.3.205
+LEGACY_WORDPRESS_HOST=crbox.cr
+
+Acceptance tests:
+After implementation, verify all of the following:
+
+1. This live URL returns 200 through the normal public domain:
+   https://crbox.cr/wp-content/uploads/2026/05/FacturaCompra-WR606103.pdf
+
+2. The response must include:
+   Content-Type: application/pdf
+
+3. The legacy admin invoice preview/download must load the PDF correctly.
+
+4. Uploading a new invoice must call/proxy:
+   /wp-json/crbox/v1/saveBill
+   to the old WordPress server, not to local storage.
+
+5. A newly uploaded invoice must generate a URL that remains accessible after redeploy/restart.
+
+6. The new public website must continue working normally.
+
+7. Existing routes like:
+   /
+   /servicios.html
+   /como-funciona.html
+   /tarifas.html
+   /calculadora.html
+   /contacto.html
+   /afiliate.html
+   /login.html
+
+   must remain unaffected.
+
+8. Client portal API calls to clients.crbox.cr must remain unaffected.
+
+Safety:
+Before applying changes, identify exactly which server/router file handles unmatched requests and 404s. Implement the smallest possible route-level proxy change. Do not restructure the whole app. Do not modify unrelated files. Do not change DNS. Do not touch production data.
+
+Deliverables:
+- Explain exactly what was changed.
+- Confirm which routes are proxied and which remain served by the new site.
+- Confirm the old invoice test URL returns 200.
+- Confirm new upload routing goes to the old WordPress server.
+- Confirm no local fallback storage is used for production invoices.
+- Provide rollback steps for the code change only.

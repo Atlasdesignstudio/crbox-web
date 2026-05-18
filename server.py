@@ -9520,10 +9520,21 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self.send_header('Access-Control-Allow-Origin', '*')
             self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
             self.end_headers()
+        elif p.startswith('/wp-content/uploads/'):
+            self._proxy_legacy_wp_get(method='HEAD')
         else:
             super().do_HEAD()
 
     def _do_get_inner(self):
+        # ── Legacy WordPress file proxy ────────────────────────────────────────
+        # crbox.cr DNS now points to this new server, but WordPress-uploaded files
+        # are still stored at the old WordPress IP (LEGACY_WORDPRESS_IP).
+        # Forward /wp-content/uploads/* requests directly to that IP so existing
+        # invoice PDF/image URLs stored in CRBOX records continue to resolve.
+        if self.path.split('?')[0].startswith('/wp-content/uploads/'):
+            self._proxy_legacy_wp_get()
+            return
+
         # ── Legacy URL redirects ───────────────────────────────────────────────
         # Check before any other routing so old WordPress / former-site paths
         # return a proper 301 instead of a hard 404.
@@ -10935,18 +10946,88 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             print(f'[CHECK-KNOWN-EMAIL] error: {exc}')
             self._json_response(200, {'known': False})
 
-    # ── POST /api/proxy/saveBill ───────────────────────────────────────────
-    # Server-side proxy for the WordPress invoice-file upload endpoint.
-    # The browser cannot call https://crbox.cr/wp-json/crbox/v1/saveBill
-    # directly because WordPress does not send CORS headers for that route.
-    # This handler forwards the raw multipart/form-data body verbatim to
-    # WordPress, then relays the response back — no CORS restrictions apply
-    # to server-to-server requests.
-    _SAVEBILL_WP_URL = 'https://crbox.cr/wp-json/crbox/v1/saveBill'
-    _SAVEBILL_MAX    = _MAX_BODY_UPLOAD  # hard ceiling aligned with upload cap
+    # ── Legacy WordPress reverse-proxy ────────────────────────────────────
+    # crbox.cr DNS now points to this new server, but the old WordPress
+    # installation is still reachable at LEGACY_WORDPRESS_IP (98.90.3.205).
+    #
+    # Two paths are proxied to the old server:
+    #   GET/HEAD /wp-content/uploads/*  →  existing invoice PDFs/images
+    #   POST     /wp-json/crbox/v1/saveBill  →  new invoice file uploads
+    #
+    # Both connect by IP with Host: crbox.cr so Apache's virtual-host
+    # routing selects the correct WordPress site.  SSL hostname verification
+    # is disabled (CERT_NONE) because we connect by IP, not by hostname;
+    # the destination is a known, trusted server we control.
+    _LEGACY_WP_IP   = os.environ.get('LEGACY_WORDPRESS_IP',   '98.90.3.205')
+    _LEGACY_WP_HOST = os.environ.get('LEGACY_WORDPRESS_HOST', 'crbox.cr')
+    _SAVEBILL_WP_PATH = '/wp-json/crbox/v1/saveBill'
+    _SAVEBILL_MAX     = _MAX_BODY_UPLOAD
 
+    def _proxy_legacy_wp_get(self, method='GET'):
+        """Proxy GET or HEAD /wp-content/uploads/* to the legacy WordPress server.
+
+        Streams the upstream response directly to the client in 64 KB chunks.
+        Uses BaseHTTPRequestHandler.end_headers() (not our override) so that
+        CSP, X-Frame-Options, and other application headers are NOT injected
+        into raw file responses.
+        """
+        import ssl as _ssl, http.client as _hc, http.server as _hs
+        _ssl_ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
+        _ssl_ctx.check_hostname = False
+        _ssl_ctx.verify_mode    = _ssl.CERT_NONE
+        try:
+            conn = _hc.HTTPSConnection(self._LEGACY_WP_IP, timeout=30, context=_ssl_ctx)
+            conn.request(method, self.path, headers={
+                'Host':       self._LEGACY_WP_HOST,
+                'User-Agent': self.headers.get('User-Agent', 'CRBOX-Portal-Proxy/1.0'),
+                'Connection': 'close',
+            })
+            resp        = conn.getresponse()
+            resp_status = resp.status
+            resp_ct     = resp.getheader('Content-Type', 'application/octet-stream')
+            resp_cl     = resp.getheader('Content-Length', '')
+            resp_cd     = resp.getheader('Content-Disposition', '')
+
+            self.send_response(resp_status)
+            self.send_header('Content-Type', resp_ct)
+            if resp_cl:
+                self.send_header('Content-Length', resp_cl)
+            if resp_cd:
+                self.send_header('Content-Disposition', resp_cd)
+            # Allow CRBOX admin tool to fetch/embed invoice files cross-origin.
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS')
+            self.send_header('Cache-Control', 'public, max-age=86400')
+            # Bypass our custom end_headers() so application security headers
+            # (CSP, X-Frame-Options, etc.) are not injected into file responses.
+            _hs.BaseHTTPRequestHandler.end_headers(self)
+
+            if method != 'HEAD':
+                while True:
+                    chunk = resp.read(65536)
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+            conn.close()
+            print(f'[WP_PROXY] {method} {self.path.split("?")[0]} → {resp_status}')
+        except Exception as exc:
+            print(f'[WP_PROXY] Error proxying {method} {self.path}: {exc}')
+            try:
+                import http.server as _hs2
+                self.send_response(502)
+                self.send_header('Content-Type', 'text/plain; charset=utf-8')
+                _hs2.BaseHTTPRequestHandler.end_headers(self)
+                self.wfile.write(b'Bad Gateway: upstream file server unavailable')
+            except Exception:
+                pass
+
+    # ── POST /api/proxy/saveBill ───────────────────────────────────────────
+    # Forwards the invoice-file upload to the legacy WordPress endpoint,
+    # connecting directly to LEGACY_WORDPRESS_IP to bypass the DNS change.
+    # The browser cannot call crbox.cr/wp-json/... directly (CORS).
     def _handle_proxy_savebill(self):
         import base64 as _b64, json as _json, mimetypes as _mimetypes
+        import ssl as _ssl, http.client as _hc
         try:
             ct = self.headers.get('Content-Type', '')
             if not ct.lower().startswith('multipart/form-data'):
@@ -10960,97 +11041,77 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
             body = self.rfile.read(length)
 
-            req = urllib.request.Request(
-                self._SAVEBILL_WP_URL,
-                data=body,
-                method='POST',
-            )
-            req.add_header('Content-Type', ct)
-            req.add_header('Content-Length', str(length))
-            req.add_header('User-Agent', 'CRBOX-Portal-Proxy/1.0')
-
-            # Authenticate with WordPress using the service account credentials.
-            # WordPress REST API accepts HTTP Basic auth when Application Passwords
-            # are enabled (WordPress 5.6+) or via a compatible auth plugin.
+            fwd_headers = {
+                'Host':           self._LEGACY_WP_HOST,
+                'Content-Type':   ct,
+                'Content-Length': str(length),
+                'User-Agent':     'CRBOX-Portal-Proxy/1.0',
+                'Connection':     'close',
+            }
             svc_email = os.environ.get('CRBOX_SVC_EMAIL', '')
             svc_pass  = os.environ.get('CRBOX_SVC_PASSWORD', '')
             if svc_email and svc_pass:
                 creds = _b64.b64encode(f'{svc_email}:{svc_pass}'.encode()).decode()
-                req.add_header('Authorization', f'Basic {creds}')
+                fwd_headers['Authorization'] = f'Basic {creds}'
+
+            _ssl_ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
+            _ssl_ctx.check_hostname = False
+            _ssl_ctx.verify_mode    = _ssl.CERT_NONE
 
             try:
-                with urllib.request.urlopen(req, timeout=30) as resp:
-                    resp_body = resp.read(1 * 1024 * 1024)  # cap at 1 MB
-                    resp_ct   = resp.headers.get('Content-Type', 'application/json')
-                    resp_code = resp.status
-            except urllib.error.HTTPError as exc:
-                resp_body = exc.read(1 * 1024 * 1024)
-                resp_ct   = exc.headers.get('Content-Type', 'application/json')
-                resp_code = exc.code
-                print(f'[PROXY/saveBill] WordPress HTTP {resp_code}')
+                conn = _hc.HTTPSConnection(self._LEGACY_WP_IP, timeout=30, context=_ssl_ctx)
+                conn.request('POST', self._SAVEBILL_WP_PATH, body=body, headers=fwd_headers)
+                resp      = conn.getresponse()
+                resp_body = resp.read(1 * 1024 * 1024)
+                resp_ct   = resp.getheader('Content-Type', 'application/json')
+                resp_code = resp.status
+                conn.close()
+            except Exception as conn_err:
+                print(f'[PROXY/saveBill] Connection error: {conn_err}')
+                self._json_error(502, 'No se pudo conectar con el servidor de archivos. Intenta de nuevo.', code='upstream_error')
+                return
 
-            # On success, normalize the WordPress response to the same
-            # { url, type, file } shape that /api/invoice-upload returns.
-            # This lets portal-api.js::saveBill() parse it identically regardless
-            # of which route was used.
+            print(f'[PROXY/saveBill] WordPress returned HTTP {resp_code}')
+
+            # Normalize to { url, type, file } so portal-api.js can parse it
+            # uniformly regardless of WordPress response field names.
             if resp_code < 400 and 'json' in resp_ct:
                 try:
                     wp = _json.loads(resp_body.decode('utf-8', errors='replace'))
                     if isinstance(wp, dict):
-                        # Try every common field name that WordPress-style file upload
-                        # endpoints use for the stored file URL.
                         candidates = [
-                            wp.get('url', ''),
-                            wp.get('fileUrl', ''),
-                            wp.get('file_url', ''),
-                            wp.get('source_url', ''),
-                            wp.get('src', ''),
-                            wp.get('link', ''),
-                            wp.get('location', ''),
-                            wp.get('pdfUrl', ''),
+                            wp.get('url', ''),        wp.get('fileUrl', ''),
+                            wp.get('file_url', ''),   wp.get('source_url', ''),
+                            wp.get('src', ''),        wp.get('link', ''),
+                            wp.get('location', ''),   wp.get('pdfUrl', ''),
                             wp.get('pdf_url', ''),
                         ]
-                        # Accept absolute URLs (http/https) and relative WordPress
-                        # paths (e.g. /wp-content/uploads/...) — make them absolute.
-                        def _make_absolute(u):
-                            if not u or not isinstance(u, str):
-                                return ''
-                            if u.startswith('http://') or u.startswith('https://'):
-                                return u
-                            if u.startswith('/'):
-                                return 'https://crbox.cr' + u
+                        def _make_abs(u):
+                            if not u or not isinstance(u, str): return ''
+                            if u.startswith('http://') or u.startswith('https://'): return u
+                            if u.startswith('/'): return 'https://' + self._LEGACY_WP_HOST + u
                             return ''
-                        file_url = next(
-                            (_make_absolute(u) for u in candidates if _make_absolute(u)),
-                            ''
-                        )
+                        file_url = next((_make_abs(u) for u in candidates if _make_abs(u)), '')
                         if file_url:
                             parsed_path = urllib.parse.urlparse(file_url).path
                             ext  = os.path.splitext(parsed_path)[1].lower()
                             mime, _ = _mimetypes.guess_type('f' + ext)
                             mime = mime or 'application/octet-stream'
                             base = os.path.basename(parsed_path) or 'invoice'
-                            normalized = _json.dumps(
-                                {'url': file_url, 'type': mime, 'file': base}
-                            ).encode('utf-8')
+                            out  = _json.dumps({'url': file_url, 'type': mime, 'file': base}).encode('utf-8')
                             self.send_response(200)
                             self.send_header('Content-Type', 'application/json')
-                            self.send_header('Content-Length', str(len(normalized)))
+                            self.send_header('Content-Length', str(len(out)))
                             self.end_headers()
-                            self.wfile.write(normalized)
-                            print(f'[PROXY/saveBill] OK — normalized url={file_url}')
+                            self.wfile.write(out)
+                            print(f'[PROXY/saveBill] OK — url={file_url}')
                             return
                 except Exception as norm_err:
                     print(f'[PROXY/saveBill] Normalization error: {norm_err}')
-                # Successful response but no recognizable URL field — pass through raw
-                # so the client can inspect and surface a meaningful error.
-                print(f'[PROXY/saveBill] Pass-through raw response (code={resp_code}, no url field)')
+                print(f'[PROXY/saveBill] Pass-through raw (code={resp_code}, no url field found)')
 
             self.send_response(resp_code)
-            if 'json' in resp_ct:
-                self.send_header('Content-Type', 'application/json')
-            else:
-                self.send_header('Content-Type', resp_ct)
+            self.send_header('Content-Type', 'application/json' if 'json' in resp_ct else resp_ct)
             self.send_header('Content-Length', str(len(resp_body)))
             self.end_headers()
             self.wfile.write(resp_body)

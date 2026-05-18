@@ -619,12 +619,12 @@
 
   // ─── saveBill ─────────────────────────────────────────────────────────────
   // Step 1 of the invoice upload flow.
-  // Primary route: POST /api/proxy/saveBill — forwards the file to the WordPress
-  // endpoint at crbox.cr/wp-json/crbox/v1/saveBill so the file is stored
-  // permanently on CRBOX infrastructure.  The proxy normalises the WordPress
-  // response to { url, type, file } before returning.
-  // Fallback route: POST /api/invoice-upload — stores the file locally on this
-  // server when the WordPress proxy is unreachable or returns a 5xx error.
+  // Routes exclusively through POST /api/proxy/saveBill, which this server
+  // forwards to the legacy WordPress installation at LEGACY_WORDPRESS_IP
+  // (bypassing the DNS change).  WordPress stores the file permanently and
+  // returns an absolute https://crbox.cr/wp-content/uploads/... URL.
+  // No local-storage fallback — Replit's filesystem is ephemeral and must
+  // never write file URLs into CRBOX production records.
   // Rejects with err.step = 'saveBill' so the caller can show a specific message.
   function saveBill(email, file, wrId) {
     var token = CRBOXAuth.getToken();
@@ -683,16 +683,10 @@
       });
     }
 
-    // Try WordPress proxy first; fall back to local storage only on network errors
-    // or 5xx responses (not on 4xx, which indicate a real problem with the file).
-    return _doUpload('/api/proxy/saveBill').catch(function (proxyErr) {
-      if (proxyErr._httpStatus && proxyErr._httpStatus >= 400 && proxyErr._httpStatus < 500) {
-        throw proxyErr;   // 4xx → real error, do not retry
-      }
-      console.warn('[saveBill] WordPress proxy unavailable (' +
-                   (proxyErr._httpStatus || 'network') + '), using local storage.');
-      return _doUpload('/api/invoice-upload');
-    }).catch(function (err) {
+    // Route exclusively through the WordPress proxy — no local-storage fallback.
+    // If the proxy fails, surface the error to the user; do not write ephemeral
+    // local paths into CRBOX production records.
+    return _doUpload('/api/proxy/saveBill').catch(function (err) {
       err.step = 'saveBill';
       throw err;
     });
