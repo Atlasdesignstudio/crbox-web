@@ -3477,6 +3477,29 @@
                 _saveInvoiceCache();
               }
 
+              // Fire-and-forget: send a copy of the invoice to facturas@crbox.cr.
+              // The user never waits for this — failures are silently swallowed.
+              (function() {
+                try {
+                  var _tok  = (window.CRBOXAuth && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
+                  var _name = '';
+                  try { _name = (CRBOXAuth && CRBOXAuth.getName && CRBOXAuth.getName()) || ''; } catch (_ne) {}
+                  var _fd = new FormData();
+                  _fd.append('user_email',     userEmail);
+                  _fd.append('user_name',      _name);
+                  _fd.append('wr_id',          String(wrId || ''));
+                  _fd.append('invoice_number', numero ? numero.trim() : '');
+                  _fd.append('amount',         monto  ? String(parseFloat(monto)) : '');
+                  _fd.append('description',    desc   ? desc.trim() : '');
+                  _fd.append('invoice_file',   file, file.name);
+                  fetch('/api/invoice-email', {
+                    method:  'POST',
+                    headers: { 'Authorization': 'Bearer ' + _tok },
+                    body:    _fd
+                  }).catch(function() {});
+                } catch (_e) {}
+              }());
+
               // Both writes succeeded — now refresh the package list inline
               // so we can detect and report a refresh failure distinctly.
               if (!_cachedConsigneeId) {
