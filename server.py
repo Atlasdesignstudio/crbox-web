@@ -10946,7 +10946,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     _SAVEBILL_MAX    = _MAX_BODY_UPLOAD  # hard ceiling aligned with upload cap
 
     def _handle_proxy_savebill(self):
-        import base64 as _b64
+        import base64 as _b64, json as _json, mimetypes as _mimetypes
         try:
             ct = self.headers.get('Content-Type', '')
             if not ct.lower().startswith('multipart/form-data'):
@@ -10988,6 +10988,53 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 resp_ct   = exc.headers.get('Content-Type', 'application/json')
                 resp_code = exc.code
                 print(f'[PROXY/saveBill] WordPress HTTP {resp_code}')
+
+            # On success, normalize the WordPress response to the same
+            # { url, type, file } shape that /api/invoice-upload returns.
+            # This lets portal-api.js::saveBill() parse it identically regardless
+            # of which route was used.
+            if resp_code < 400 and 'json' in resp_ct:
+                try:
+                    wp = _json.loads(resp_body.decode('utf-8', errors='replace'))
+                    if isinstance(wp, dict):
+                        # Try every common field name that WordPress-style file upload
+                        # endpoints use for the stored file URL.
+                        candidates = [
+                            wp.get('url', ''),
+                            wp.get('fileUrl', ''),
+                            wp.get('file_url', ''),
+                            wp.get('source_url', ''),
+                            wp.get('src', ''),
+                            wp.get('link', ''),
+                            wp.get('location', ''),
+                            wp.get('pdfUrl', ''),
+                            wp.get('pdf_url', ''),
+                        ]
+                        file_url = next(
+                            (u for u in candidates if u and isinstance(u, str) and u.startswith('http')),
+                            ''
+                        )
+                        if file_url:
+                            parsed_path = urllib.parse.urlparse(file_url).path
+                            ext  = os.path.splitext(parsed_path)[1].lower()
+                            mime, _ = _mimetypes.guess_type('f' + ext)
+                            mime = mime or 'application/octet-stream'
+                            base = os.path.basename(parsed_path) or 'invoice'
+                            normalized = _json.dumps(
+                                {'url': file_url, 'type': mime, 'file': base}
+                            ).encode('utf-8')
+                            self.send_response(200)
+                            self.send_header('Content-Type', 'application/json')
+                            self.send_header('Content-Length', str(len(normalized)))
+                            self.end_headers()
+                            self.wfile.write(normalized)
+                            print(f'[PROXY/saveBill] OK — normalized url={file_url}')
+                            return
+                except Exception as norm_err:
+                    print(f'[PROXY/saveBill] Normalization error: {norm_err}')
+                # Successful response but no recognizable URL field — pass through raw
+                # so the client can inspect and surface a meaningful error.
+                print(f'[PROXY/saveBill] Pass-through raw response (code={resp_code}, no url field)')
 
             self.send_response(resp_code)
             if 'json' in resp_ct:

@@ -619,12 +619,13 @@
 
   // ─── saveBill ─────────────────────────────────────────────────────────────
   // Step 1 of the invoice upload flow.
-  // Uploads the invoice file to the portal server (/api/invoice-upload), which
-  // stores it locally under uploads/invoices/<uuid>.<ext> and returns a full
-  // absolute URL pointing to this server.  That URL is then passed as
-  // FileLocation to createPurchaseBill (step 2).
-  // Rejects with a plain Error (step tagged via err.step = 'saveBill') so the
-  // caller can show a specific message and avoid calling step 2.
+  // Primary route: POST /api/proxy/saveBill — forwards the file to the WordPress
+  // endpoint at crbox.cr/wp-json/crbox/v1/saveBill so the file is stored
+  // permanently on CRBOX infrastructure.  The proxy normalises the WordPress
+  // response to { url, type, file } before returning.
+  // Fallback route: POST /api/invoice-upload — stores the file locally on this
+  // server when the WordPress proxy is unreachable or returns a 5xx error.
+  // Rejects with err.step = 'saveBill' so the caller can show a specific message.
   function saveBill(email, file, wrId) {
     var token = CRBOXAuth.getToken();
     if (!token) {
@@ -633,52 +634,67 @@
       return Promise.reject(noAuthErr);
     }
 
-    var fd = new FormData();
-    fd.append('email',   String(email || ''));
-    fd.append('invoice', file);
-    fd.append('wr_id',   String(wrId  || ''));
+    function _makeFormData() {
+      var fd = new FormData();
+      fd.append('email',   String(email || ''));
+      fd.append('invoice', file);
+      fd.append('wr_id',   String(wrId  || ''));
+      return fd;
+    }
 
-    return _request('/api/invoice-upload', {
-      method: 'POST',
-      headers: {
-        'X-Casillero-Email': String(email || ''),
-      },
-      body: fd,
-    }, { timeout: 30000 }).catch(function (netErr) {
-      netErr.step = 'saveBill';
-      throw netErr;
-    }).then(function (res) {
-      if (!res.ok) {
-        return res.text().then(function (txt) {
-          var detail = '';
-          try {
-            var j = JSON.parse(txt);
-            detail = j.message || j.error || '';
-          } catch (_) { detail = txt.length < 200 ? txt.trim() : ''; }
-          var msg = 'No se pudo subir el archivo de factura (' + res.status + ').' +
-                    (detail ? ' ' + detail : ' Intenta de nuevo.');
-          var err = new Error(msg);
-          err.step = 'saveBill';
-          throw err;
+    function _doUpload(endpoint) {
+      return _request(endpoint, {
+        method: 'POST',
+        headers: { 'X-Casillero-Email': String(email || '') },
+        body: _makeFormData(),
+      }, { timeout: 30000 }).then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (txt) {
+            var detail = '';
+            try { var j = JSON.parse(txt); detail = j.message || j.error || ''; }
+            catch (_) { detail = txt.length < 200 ? txt.trim() : ''; }
+            var msg = 'No se pudo subir el archivo de factura (' + res.status + ').' +
+                      (detail ? ' ' + detail : ' Intenta de nuevo.');
+            var err = new Error(msg);
+            err.step = 'saveBill';
+            err._httpStatus = res.status;
+            throw err;
+          });
+        }
+        return res.json().catch(function () {
+          var e = new Error('Respuesta inesperada del servidor. Intenta de nuevo.');
+          e.step = 'saveBill';
+          throw e;
         });
-      }
-      return res.json().catch(function () {
-        var e = new Error('Respuesta inesperada del servidor. Intenta de nuevo.');
-        e.step = 'saveBill';
-        throw e;
+      }).then(function (data) {
+        if (!data || !data.url) {
+          var e2 = new Error('El servidor no devolvió la URL del archivo subido. Intenta de nuevo.');
+          e2.step = 'saveBill';
+          throw e2;
+        }
+        // WordPress URLs are already absolute (https://crbox.cr/...);
+        // local paths are relative (/uploads/invoices/...) and need an origin prefix.
+        var absUrl = (data.url.indexOf('http') === 0)
+          ? data.url
+          : ((typeof window !== 'undefined' && window.location && window.location.origin)
+              ? window.location.origin + data.url
+              : data.url);
+        return { url: absUrl, type: data.type, file: data.file };
       });
-    }).then(function (data) {
-      if (!data || !data.url) {
-        var err2 = new Error('El servidor no devolvió la URL del archivo subido. Intenta de nuevo.');
-        err2.step = 'saveBill';
-        throw err2;
+    }
+
+    // Try WordPress proxy first; fall back to local storage only on network errors
+    // or 5xx responses (not on 4xx, which indicate a real problem with the file).
+    return _doUpload('/api/proxy/saveBill').catch(function (proxyErr) {
+      if (proxyErr._httpStatus && proxyErr._httpStatus >= 400 && proxyErr._httpStatus < 500) {
+        throw proxyErr;   // 4xx → real error, do not retry
       }
-      // Convert the relative path to a full absolute URL so createPurchaseBill
-      // can pass it as FileLocation (the CRBOX backend needs an absolute URL).
-      var absUrl = (typeof window !== 'undefined' && window.location && window.location.origin)
-        ? window.location.origin + data.url
-        : data.url;
-      return { url: absUrl, type: data.type, file: data.file };
+      console.warn('[saveBill] WordPress proxy unavailable (' +
+                   (proxyErr._httpStatus || 'network') + '), using local storage.');
+      return _doUpload('/api/invoice-upload');
+    }).catch(function (err) {
+      err.step = 'saveBill';
+      throw err;
     });
   }
 
@@ -826,6 +842,7 @@
       descripcion:             _str(raw.descripcion),
       invoicesCount:           _num(raw.invoicesCount),
       invoiceFileUrl:          _str(raw.fileLocation || raw.FileLocation || raw.invoiceFileUrl || raw.InvoiceFileUrl || raw.invoiceurl || raw.InvoiceUrl || ''),
+      numerofactura:           _str(raw.numerofactura || raw.NumeroFactura || raw.invoiceNumber || raw.InvoiceNumber || ''),
       hasPackage:              raw.hasPackage === true || raw.hasPackage === 'true',
       impresoFactura:          raw.impresoFactura === true || raw.impresoFactura === 'true',
       consolidadoFactura:      raw.consolidadoFactura === true || raw.consolidadoFactura === 'true',
