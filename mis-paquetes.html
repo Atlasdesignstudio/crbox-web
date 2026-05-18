@@ -923,8 +923,7 @@
                     </div>
                     <!-- PDF via iframe — isolates input events from the parent page -->
                     <iframe id="invoice-viewer-pdf" src="" title="Factura de compra"
-                            class="w-full flex-1 hidden border-0" style="min-height:340px"
-                            sandbox="allow-scripts allow-same-origin allow-forms allow-downloads"></iframe>
+                            class="w-full flex-1 hidden border-0" style="min-height:340px"></iframe>
                     <!-- Image viewer -->
                     <div id="invoice-viewer-img-wrap" class="hidden w-full flex-1 overflow-auto flex items-start justify-center p-4" style="min-height:300px">
                         <img id="invoice-viewer-img" src="" alt="Factura de compra"
@@ -3263,10 +3262,13 @@
           if (text) { val.textContent = text; wrap.classList.remove('hidden'); }
           else      { wrap.classList.add('hidden'); }
         };
-        var _numero = entry && entry.numero     ? String(entry.numero)    : '';
-        var _monto  = entry && entry.monto != null && entry.monto !== ''
-                      ? '$ ' + parseFloat(entry.monto).toFixed(2) + ' USD' : '';
-        var _desc   = entry && entry.descripcion ? String(entry.descripcion) : '';
+        // Use cache entry first; fall back to fields the portal returns in mapPackage
+        var _numero = (entry && entry.numero)     || (pkg && pkg.numerofactura)    || '';
+        var _montoRaw = (entry && entry.monto != null && entry.monto !== '') ? entry.monto
+                      : (pkg  && pkg.montofactura  > 0)                     ? pkg.montofactura
+                      : null;
+        var _monto  = _montoRaw != null ? '$ ' + parseFloat(_montoRaw).toFixed(2) + ' USD' : '';
+        var _desc   = (entry && entry.descripcion) || (pkg && pkg.descripcionfactura) || '';
         _setRow('invoice-viewer-numero-wrap', 'invoice-viewer-numero', _numero);
         _setRow('invoice-viewer-monto-wrap',  'invoice-viewer-monto',  _monto);
         _setRow('invoice-viewer-desc-wrap',   'invoice-viewer-desc',   _desc);
