@@ -3477,14 +3477,16 @@
             userEmail = (CRBOXAuth && CRBOXAuth.getEmail && CRBOXAuth.getEmail()) || '';
           } catch (ex) { userEmail = ''; }
 
-          // Track the uploaded filename so we can delete it if step 2 fails
+          // Track the uploaded filename so we can delete it if step 2 fails.
+          // fileUrl is declared here (outer scope) so both .then() callbacks can read it.
           var _savedInvoiceFile = null;
+          var fileUrl = '';
 
           // Step 1: upload the file to the portal server
           CRBOXPortalAPI.saveBill(userEmail, file, wrId)
             .then(function(saved) {
               _savedInvoiceFile = saved.file || null;
-              var fileUrl = saved.url || saved.file || '';
+              fileUrl = saved.url || saved.file || '';
 
               // Step 2: create the purchase bill record
               // Field names must match the exact backend contract for postcreatepurchasebill.
