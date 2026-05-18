@@ -892,6 +892,93 @@
         </div>
     </div>
 
+    <!-- Modal Visor de Factura de Compra -->
+    <div id="invoice-viewer-modal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="invoice-viewer-title">
+        <div class="bg-white rounded-xl shadow-2xl w-full mx-4 flex flex-col" style="max-width:58rem;max-height:92vh">
+            <!-- Header -->
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center min-w-0">
+                    <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center mr-3 flex-shrink-0" style="color:#16a34a">
+                        <i class="fas fa-file-invoice" aria-hidden="true"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h3 id="invoice-viewer-title" class="text-lg font-bold text-gray-800">Factura de Compra</h3>
+                        <p class="text-xs text-gray-500 truncate" id="invoice-viewer-subtitle">Paquete —</p>
+                    </div>
+                </div>
+                <button id="close-invoice-viewer-btn" class="text-gray-400 hover:text-gray-600 focus:outline-none rounded-full p-1.5 ml-3 flex-shrink-0 transition-colors" aria-label="Cerrar">
+                    <i class="fas fa-times text-lg" aria-hidden="true"></i>
+                </button>
+            </div>
+            <!-- Body: file viewer (left) + metadata (right) -->
+            <div class="flex flex-col sm:flex-row flex-1 min-h-0 overflow-hidden" style="min-height:340px">
+                <!-- File viewer -->
+                <div class="flex-1 min-h-0 bg-gray-50 relative flex flex-col" style="min-height:300px">
+                    <!-- Loading spinner -->
+                    <div id="invoice-viewer-loading" class="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+                        <div class="flex flex-col items-center gap-2 text-gray-400">
+                            <i class="fas fa-spinner fa-spin text-3xl" aria-hidden="true"></i>
+                            <span class="text-sm">Cargando archivo…</span>
+                        </div>
+                    </div>
+                    <!-- PDF via object tag (native browser renderer) -->
+                    <object id="invoice-viewer-pdf" data="" type="application/pdf"
+                            class="w-full flex-1 hidden" style="min-height:340px">
+                        <!-- Fallback shown when browser can't render PDF inline -->
+                        <div class="flex flex-col items-center justify-center h-full p-8 text-center">
+                            <i class="fas fa-file-pdf text-5xl text-red-400 mb-4" aria-hidden="true"></i>
+                            <p class="text-sm text-gray-600 mb-4">Tu navegador no puede mostrar el PDF<br>directamente en esta ventana.</p>
+                            <a id="invoice-viewer-pdf-fallback" href="#" target="_blank" rel="noopener"
+                               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-sm font-medium transition-colors"
+                               style="background-color:#FF6B00">
+                                <i class="fas fa-download" aria-hidden="true"></i> Descargar PDF
+                            </a>
+                        </div>
+                    </object>
+                    <!-- Image viewer -->
+                    <div id="invoice-viewer-img-wrap" class="hidden w-full flex-1 overflow-auto flex items-start justify-center p-4" style="min-height:300px">
+                        <img id="invoice-viewer-img" src="" alt="Factura de compra"
+                             class="max-w-full object-contain rounded shadow-sm">
+                    </div>
+                </div>
+                <!-- Metadata sidebar -->
+                <div class="w-full sm:w-72 flex-shrink-0 border-t sm:border-t-0 sm:border-l border-gray-100 flex flex-col">
+                    <div class="p-5 space-y-4 flex-1 overflow-y-auto">
+                        <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-widest">Detalles</h4>
+                        <div>
+                            <p class="text-xs text-gray-400 mb-0.5">Paquete</p>
+                            <p class="text-sm font-medium text-gray-800 break-all" id="invoice-viewer-pkg">—</p>
+                        </div>
+                        <div id="invoice-viewer-numero-wrap">
+                            <p class="text-xs text-gray-400 mb-0.5">N° de factura</p>
+                            <p class="text-sm font-medium text-gray-800" id="invoice-viewer-numero">—</p>
+                        </div>
+                        <div id="invoice-viewer-monto-wrap">
+                            <p class="text-xs text-gray-400 mb-0.5">Monto</p>
+                            <p class="text-sm font-semibold text-gray-900" id="invoice-viewer-monto">—</p>
+                        </div>
+                        <div id="invoice-viewer-desc-wrap">
+                            <p class="text-xs text-gray-400 mb-0.5">Descripción</p>
+                            <p class="text-sm text-gray-700 leading-relaxed" id="invoice-viewer-desc">—</p>
+                        </div>
+                    </div>
+                    <!-- Action buttons -->
+                    <div class="p-5 pt-0 flex flex-col gap-2 flex-shrink-0">
+                        <a id="invoice-viewer-download" href="#"
+                           class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-medium transition-opacity hover:opacity-90"
+                           style="background-color:#FF6B00">
+                            <i class="fas fa-download" aria-hidden="true"></i> Descargar
+                        </a>
+                        <a id="invoice-viewer-open" href="#" target="_blank" rel="noopener"
+                           class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-external-link-alt" aria-hidden="true"></i> Abrir en nueva pestaña
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Rastreo de Paquete -->
     <div id="tracking-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="tracking-modal-title">
         <div class="bg-white rounded-t-2xl sm:rounded-xl shadow-xl max-w-lg w-full mx-0 sm:mx-4 flex flex-col" style="max-height:90vh">
@@ -2202,13 +2289,20 @@
         try {
           var keys = Object.keys(_invoiceUrlCache);
           if (keys.length > 200) {
-            // Trim oldest 50 entries (keys are insertion-ordered in modern engines)
             var trimmed = {};
             keys.slice(keys.length - 150).forEach(function(k) { trimmed[k] = _invoiceUrlCache[k]; });
             _invoiceUrlCache = trimmed;
           }
           localStorage.setItem(_INVOICE_CACHE_KEY, JSON.stringify(_invoiceUrlCache));
         } catch (_e) { /* storage full or private-mode — ignore */ }
+      }
+      // Returns a normalised entry {url, numero, monto, descripcion, type, pkgNumber}
+      // or null.  Handles legacy string entries (URL only) transparently.
+      function _getCacheEntry(wrId) {
+        var v = _invoiceUrlCache[wrId];
+        if (!v) return null;
+        if (typeof v === 'string') return { url: v };
+        return v;
       }
       var _currentModalPkg = null;
       var _currentInvoicePkg = null;  // Package being invoiced in the upload modal
@@ -2291,8 +2385,9 @@
         var noInvoice  = _invKnown && Number(_invCount) === 0;
         if (hasInvoice) {
           // pkg.invoiceFileUrl is populated when the portal returns fileLocation (rare).
-          // Fall back to the session cache populated on upload success.
-          var fileUrl   = _esc(pkg.invoiceFileUrl || _invoiceUrlCache[pkg.idwarehousereceipt] || '');
+          // Fall back to the persistent cache populated on upload success.
+          var _ce = _getCacheEntry(pkg.idwarehousereceipt);
+          var fileUrl = _esc(pkg.invoiceFileUrl || (_ce && _ce.url) || '');
           var receipt   = pkg.number ? encodeURIComponent(pkg.number) : '';
           var fallback  = receipt ? 'mis-facturas.html?receipt=' + receipt : 'mis-facturas.html';
           // Show "Ver factura" + a compact add button so users can upload additional invoices
@@ -3153,6 +3248,80 @@
         _currentInvoicePkg = null;
       }
 
+      // Opens the invoice viewer modal, embedding the file and showing metadata.
+      // url   — direct URL to the uploaded file (PDF or image)
+      // entry — cache entry {numero, monto, descripcion, type, pkgNumber} or null
+      // pkg   — mapped package object or null
+      function _openInvoiceViewer(url, entry, pkg) {
+        var modal = document.getElementById('invoice-viewer-modal');
+        if (!modal) { window.open(url, '_blank', 'noopener'); return; }
+
+        // Subtitle and package field
+        var pkgLabel = pkg
+          ? (_orDash(pkg.number) + (pkg.descripcion ? ' · ' + pkg.descripcion : ''))
+          : ((entry && entry.pkgNumber) || '—');
+        var subtitleEl = document.getElementById('invoice-viewer-subtitle');
+        var pkgEl      = document.getElementById('invoice-viewer-pkg');
+        if (subtitleEl) subtitleEl.textContent = pkgLabel;
+        if (pkgEl)      pkgEl.textContent       = pkg ? _orDash(pkg.number) : ((entry && entry.pkgNumber) || '—');
+
+        // Metadata fields — hide rows where data is unavailable
+        var _setRow = function(wrapId, valId, text) {
+          var wrap = document.getElementById(wrapId);
+          var val  = document.getElementById(valId);
+          if (!wrap || !val) return;
+          if (text) { val.textContent = text; wrap.classList.remove('hidden'); }
+          else      { wrap.classList.add('hidden'); }
+        };
+        var _numero = entry && entry.numero     ? String(entry.numero)    : '';
+        var _monto  = entry && entry.monto != null && entry.monto !== ''
+                      ? '$ ' + parseFloat(entry.monto).toFixed(2) + ' USD' : '';
+        var _desc   = entry && entry.descripcion ? String(entry.descripcion) : '';
+        _setRow('invoice-viewer-numero-wrap', 'invoice-viewer-numero', _numero);
+        _setRow('invoice-viewer-monto-wrap',  'invoice-viewer-monto',  _monto);
+        _setRow('invoice-viewer-desc-wrap',   'invoice-viewer-desc',   _desc);
+
+        // Action links
+        var dlEl   = document.getElementById('invoice-viewer-download');
+        var openEl = document.getElementById('invoice-viewer-open');
+        var fbEl   = document.getElementById('invoice-viewer-pdf-fallback');
+        if (dlEl)   dlEl.href   = url;
+        if (openEl) openEl.href = url;
+        if (fbEl)   fbEl.href   = url;
+
+        // File type detection
+        var _type    = (entry && entry.type) || '';
+        var _isImage = _type.indexOf('image/') === 0 || /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(url);
+
+        // Reset viewer state
+        var loadEl   = document.getElementById('invoice-viewer-loading');
+        var pdfEl    = document.getElementById('invoice-viewer-pdf');
+        var imgWrap  = document.getElementById('invoice-viewer-img-wrap');
+        var imgEl    = document.getElementById('invoice-viewer-img');
+        if (loadEl)  loadEl.classList.remove('hidden');
+        if (pdfEl)   pdfEl.classList.add('hidden');
+        if (imgWrap) imgWrap.classList.add('hidden');
+        if (imgEl)   imgEl.src = '';
+
+        if (_isImage && imgEl && imgWrap) {
+          imgEl.onload  = function() { if (loadEl) loadEl.classList.add('hidden'); };
+          imgEl.onerror = function() { if (loadEl) loadEl.classList.add('hidden'); };
+          imgEl.src = url;
+          imgWrap.classList.remove('hidden');
+        } else if (pdfEl) {
+          // Use object tag for PDF — hide spinner after short delay
+          // (object onload is unreliable cross-browser)
+          setTimeout(function() {
+            if (loadEl) loadEl.classList.add('hidden');
+            pdfEl.classList.remove('hidden');
+          }, 500);
+          pdfEl.setAttribute('data', url);
+        }
+
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
       function _setInvoiceFileLabel(name) {
         var el   = document.getElementById('invoice-file-name');
         var txt  = document.getElementById('invoice-file-name-text');
@@ -3356,11 +3525,19 @@
               return CRBOXPortalAPI.createPurchaseBill(payload);
             })
             .then(function() {
-              // Persist the file URL so the "Ver factura" button works across
-              // page reloads.  The portal's getuserpackages endpoint returns
-              // invoicesCount but never fileLocation.
+              // Persist upload metadata so the viewer modal can show all fields
+              // across page reloads.  The portal's getuserpackages endpoint returns
+              // invoicesCount but never fileLocation, so we keep everything here.
               if (wrId && fileUrl) {
-                _invoiceUrlCache[wrId] = fileUrl;
+                _invoiceUrlCache[wrId] = {
+                  url:         fileUrl,
+                  numero:      numero ? numero.trim() : '',
+                  monto:       monto  ? parseFloat(monto) : null,
+                  descripcion: desc   ? desc.trim()   : '',
+                  type:        file   ? (file.type || '') : '',
+                  pkgNumber:   _currentInvoicePkg ? (_currentInvoicePkg.number || '') : '',
+                  uploadedAt:  new Date().toISOString()
+                };
                 _saveInvoiceCache();
               }
 
@@ -3541,28 +3718,31 @@
         var viewInvoiceBtn = e.target.closest('.btn-view-invoice');
         if (viewInvoiceBtn) {
           var invoiceUrl = viewInvoiceBtn.getAttribute('data-invoice-url') || '';
+          var _vRow = viewInvoiceBtn.closest('[data-pkg-idx]');
+          var _vPkg = _vRow ? _renderedPackages[parseInt(_vRow.getAttribute('data-pkg-idx'), 10)] : null;
+          var _vWrId = _vPkg ? _vPkg.idwarehousereceipt : null;
+
           if (invoiceUrl) {
-            window.open(invoiceUrl, '_blank', 'noopener');
+            // URL known — open in the viewer modal with any cached metadata
+            _openInvoiceViewer(invoiceUrl, _vWrId ? _getCacheEntry(_vWrId) : null, _vPkg);
             return;
           }
-          // URL not in cache — look it up on the server (WP media search by wr_id).
+
+          // URL not in cache — look it up server-side (WP media search by wr_id).
           // This recovers invoices uploaded before the local cache existed.
-          var _row = viewInvoiceBtn.closest('[data-pkg-idx]');
-          var _pkgForLookup = _row ? _renderedPackages[parseInt(_row.getAttribute('data-pkg-idx'), 10)] : null;
-          var _wrIdForLookup = _pkgForLookup ? _pkgForLookup.idwarehousereceipt : null;
           var _token = (window.CRBOXAuth && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
-          if (_wrIdForLookup && _token) {
+          if (_vWrId && _token) {
             viewInvoiceBtn.disabled = true;
-            fetch('/api/invoice-url-lookup?wr_id=' + encodeURIComponent(String(_wrIdForLookup)), {
+            fetch('/api/invoice-url-lookup?wr_id=' + encodeURIComponent(String(_vWrId)), {
               headers: { 'Authorization': 'Bearer ' + _token }
             }).then(function(r) { return r.json(); }).then(function(d) {
               viewInvoiceBtn.disabled = false;
               if (d && d.url) {
-                // Cache it so future clicks are instant
-                _invoiceUrlCache[_wrIdForLookup] = d.url;
+                var _entry = { url: d.url };
+                _invoiceUrlCache[_vWrId] = _entry;
                 _saveInvoiceCache();
                 viewInvoiceBtn.setAttribute('data-invoice-url', d.url);
-                window.open(d.url, '_blank', 'noopener');
+                _openInvoiceViewer(d.url, _entry, _vPkg);
               } else {
                 showToast('El archivo de factura no está disponible. Usa el botón ✏️ para subirlo nuevamente.', 'info');
               }
@@ -3634,6 +3814,35 @@
               }
             })
             .catch(function () {}); // non-critical — default false keeps legacy path
+        }());
+
+        // ── Invoice viewer modal close wiring ─────────────────────────────────
+        (function _wireInvoiceViewer() {
+          function _closeViewer() {
+            var modal = document.getElementById('invoice-viewer-modal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            // Stop the PDF from loading in the background after close
+            var pdfEl = document.getElementById('invoice-viewer-pdf');
+            if (pdfEl) pdfEl.setAttribute('data', '');
+            var imgEl = document.getElementById('invoice-viewer-img');
+            if (imgEl) imgEl.src = '';
+          }
+          var closeBtn = document.getElementById('close-invoice-viewer-btn');
+          if (closeBtn) closeBtn.addEventListener('click', _closeViewer);
+          var modal = document.getElementById('invoice-viewer-modal');
+          if (modal) {
+            modal.addEventListener('click', function(e) {
+              if (e.target === modal) _closeViewer();
+            });
+          }
+          document.addEventListener('keydown', function(e) {
+            var m = document.getElementById('invoice-viewer-modal');
+            if (m && !m.classList.contains('hidden') && (e.key === 'Escape' || e.key === 'Esc')) {
+              _closeViewer();
+            }
+          });
         }());
 
         // ── EARLY START: begin loading packages immediately if we know the user ───
