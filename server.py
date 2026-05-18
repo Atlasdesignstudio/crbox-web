@@ -9606,6 +9606,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._handle_config()
         elif self.path.startswith('/api/invoice-confirm'):
             self._handle_invoice_confirm()
+        elif self.path.startswith('/api/invoice-url-lookup'):
+            self._handle_invoice_url_lookup()
         elif self.path.startswith('/api/admin/rds-shadow-compare'):
             self._handle_admin_rds_shadow_compare()
         elif self.path.startswith('/api/admin/rds-invoices-shadow-compare'):
@@ -11206,6 +11208,76 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             print(f'[PROXY/saveBill] Unexpected error: {exc}')
             self._json_error(502, 'Error de comunicación con el servicio externo.', code='upstream_error')
+
+    # ── GET /api/invoice-url-lookup?wr_id=XXXX ────────────────────────────
+    # Looks up a previously uploaded invoice file on WordPress by warehouse
+    # receipt ID and returns its public URL.  Used by the frontend when the
+    # CRBOX portal's getuserpackages response doesn't include fileLocation
+    # (which is always the case) so the "Ver factura" button can still open
+    # invoices uploaded in a previous session.
+    #
+    # Auth: requires a valid CRBOX portal Bearer token in Authorization header
+    #       (same check used by all portal-proxy endpoints) — prevents anonymous
+    #       enumeration of invoice files.
+    #
+    # WordPress query: GET /wp-json/wp/v2/media?search=FacturaCompra-WR{wr_id}
+    #                  authenticated with WP Application Password.
+    #
+    # Returns: { url: "https://crbox.cr/wp-content/uploads/..." }
+    #          or 404 { error: "not_found" } if no matching file exists.
+    def _handle_invoice_url_lookup(self):
+        import http.client as _hc, ssl as _ssl, json as _json, base64 as _b64
+        qs = urllib.parse.urlparse(self.path).query
+        params = urllib.parse.parse_qs(qs)
+        wr_id = (params.get('wr_id') or [''])[0].strip()
+        if not wr_id:
+            return self._json_error(400, 'wr_id requerido.', code='missing_param')
+        # Require portal auth token so anonymous callers cannot enumerate files
+        auth_hdr = self.headers.get('Authorization', '')
+        if not auth_hdr.startswith('Bearer '):
+            return self._json_error(401, 'Autenticación requerida.', code='auth_required')
+        # Build WP credentials
+        _wp_user = os.environ.get('WP_APP_USER', '').strip()
+        _wp_pass = os.environ.get('WP_APP_PASS', '').strip()
+        if not _wp_user or not _wp_pass:
+            _wp_cred = os.environ.get('WP_APP_PASSWORD', '').strip()
+            if ':' in _wp_cred:
+                _wp_user, _wp_pass = _wp_cred.split(':', 1)
+        if not _wp_user or not _wp_pass:
+            return self._json_error(503, 'Configuración de WordPress no disponible.', code='config_error')
+        _auth_enc = _b64.b64encode(f'{_wp_user}:{_wp_pass}'.encode()).decode()
+        # Search WordPress media library for files matching this WR ID
+        _search_term = f'FacturaCompra-WR{wr_id}'
+        _search_path = f'/wp-json/wp/v2/media?search={urllib.parse.quote(_search_term)}&per_page=5'
+        _ssl_ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
+        _ssl_ctx.check_hostname = False
+        _ssl_ctx.verify_mode = _ssl.CERT_NONE
+        try:
+            conn = _hc.HTTPSConnection(self._LEGACY_WP_IP, timeout=15, context=_ssl_ctx)
+            conn.request('GET', _search_path, headers={
+                'Host':          self._LEGACY_WP_API_HOST,
+                'Authorization': f'Basic {_auth_enc}',
+                'Accept':        'application/json',
+            })
+            resp = conn.getresponse()
+            body = resp.read(65536)
+            conn.close()
+            if resp.status != 200:
+                print(f'[INVOICE_URL_LOOKUP] WP search returned {resp.status} for wr_id={wr_id}')
+                return self._json_error(502, 'Error al consultar el servidor de archivos.', code='upstream_error')
+            media_items = _json.loads(body)
+            if not isinstance(media_items, list) or len(media_items) == 0:
+                return self._json_error(404, 'Archivo de factura no encontrado.', code='not_found')
+            # Return the most recently uploaded match (WP returns newest first)
+            raw_url = media_items[0].get('source_url', '')
+            # Normalise wp.crbox.cr → crbox.cr so the URL resolves via the
+            # existing /wp-content/uploads/* legacy-content proxy
+            url = raw_url.replace('wp.crbox.cr', self._LEGACY_WP_HOST)
+            print(f'[INVOICE_URL_LOOKUP] wr_id={wr_id} → {url}')
+            self._json_response(200, {'url': url})
+        except Exception as exc:
+            print(f'[INVOICE_URL_LOOKUP] Error for wr_id={wr_id}: {exc}')
+            self._json_error(502, 'Error de comunicación con el servidor de archivos.', code='upstream_error')
 
     # ── GET /api/packages-proxy ────────────────────────────────────────────
     # Server-side proxy for the CRBOX getuserpackages API endpoint.

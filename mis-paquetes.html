@@ -2187,12 +2187,29 @@
 
       var _cachedPackages = [];      // Mapped packages (via CRBOXPortalAPI.mapPackage)
       var _renderedPackages = [];    // Mapped packages currently in render order
-      // Session-level cache: idwarehousereceipt → fileUrl.
+      // Persistent cache: idwarehousereceipt → fileUrl.
       // The CRBOX portal's getuserpackages endpoint returns invoicesCount but
-      // not fileLocation, so pkg.invoiceFileUrl is always empty after a refresh.
-      // We cache the URL here on upload success so the button works immediately,
-      // and fall back to mis-facturas.html on subsequent sessions.
-      var _invoiceUrlCache = {};
+      // never fileLocation, so pkg.invoiceFileUrl is always empty after a page
+      // load.  We store uploaded URLs in localStorage (key crbox_invoice_urls_v1)
+      // so the "Ver factura" button keeps working across reloads for the same
+      // browser/device.  Entries are capped at 200 to limit storage growth.
+      var _INVOICE_CACHE_KEY = 'crbox_invoice_urls_v1';
+      var _invoiceUrlCache = (function () {
+        try { return JSON.parse(localStorage.getItem(_INVOICE_CACHE_KEY) || '{}') || {}; }
+        catch (_e) { return {}; }
+      }());
+      function _saveInvoiceCache() {
+        try {
+          var keys = Object.keys(_invoiceUrlCache);
+          if (keys.length > 200) {
+            // Trim oldest 50 entries (keys are insertion-ordered in modern engines)
+            var trimmed = {};
+            keys.slice(keys.length - 150).forEach(function(k) { trimmed[k] = _invoiceUrlCache[k]; });
+            _invoiceUrlCache = trimmed;
+          }
+          localStorage.setItem(_INVOICE_CACHE_KEY, JSON.stringify(_invoiceUrlCache));
+        } catch (_e) { /* storage full or private-mode — ignore */ }
+      }
       var _currentModalPkg = null;
       var _currentInvoicePkg = null;  // Package being invoiced in the upload modal
       var _invoiceEditMode   = false; // true when modal was opened from the edit button (package already has invoices)
@@ -3339,10 +3356,13 @@
               return CRBOXPortalAPI.createPurchaseBill(payload);
             })
             .then(function() {
-              // Cache the file URL by wrId so _renderInvoiceAction can use it
-              // even after the package list is refreshed (the portal's getuserpackages
-              // endpoint returns invoicesCount but never fileLocation).
-              if (wrId && fileUrl) { _invoiceUrlCache[wrId] = fileUrl; }
+              // Persist the file URL so the "Ver factura" button works across
+              // page reloads.  The portal's getuserpackages endpoint returns
+              // invoicesCount but never fileLocation.
+              if (wrId && fileUrl) {
+                _invoiceUrlCache[wrId] = fileUrl;
+                _saveInvoiceCache();
+              }
 
               // Both writes succeeded — now refresh the package list inline
               // so we can detect and report a refresh failure distinctly.
@@ -3516,21 +3536,40 @@
         }
 
         // View invoice button — opens the user-uploaded file in a new tab.
-        // If the direct URL is unknown (portal doesn't return fileLocation in the
-        // package list), falls back to mis-facturas.html which fetches bill records
-        // that do include the URL.
+        // The URL comes from the localStorage cache populated on upload success,
+        // since the portal's getuserpackages endpoint never returns fileLocation.
         var viewInvoiceBtn = e.target.closest('.btn-view-invoice');
         if (viewInvoiceBtn) {
-          var invoiceUrl  = viewInvoiceBtn.getAttribute('data-invoice-url') || '';
-          var fallbackUrl = viewInvoiceBtn.getAttribute('data-fallback-url') || '';
+          var invoiceUrl = viewInvoiceBtn.getAttribute('data-invoice-url') || '';
           if (invoiceUrl) {
-            // Direct URL known — open the uploaded file in a new tab.
             window.open(invoiceUrl, '_blank', 'noopener');
-          } else if (fallbackUrl) {
-            // Portal didn't return fileLocation in the package list (common).
-            // Navigate to mis-facturas.html which fetches bill records that
-            // do include the URL.
-            window.location.href = fallbackUrl;
+            return;
+          }
+          // URL not in cache — look it up on the server (WP media search by wr_id).
+          // This recovers invoices uploaded before the local cache existed.
+          var _row = viewInvoiceBtn.closest('[data-pkg-idx]');
+          var _pkgForLookup = _row ? _renderedPackages[parseInt(_row.getAttribute('data-pkg-idx'), 10)] : null;
+          var _wrIdForLookup = _pkgForLookup ? _pkgForLookup.idwarehousereceipt : null;
+          var _token = (window.CRBOXAuth && CRBOXAuth.getToken) ? CRBOXAuth.getToken() : '';
+          if (_wrIdForLookup && _token) {
+            viewInvoiceBtn.disabled = true;
+            fetch('/api/invoice-url-lookup?wr_id=' + encodeURIComponent(String(_wrIdForLookup)), {
+              headers: { 'Authorization': 'Bearer ' + _token }
+            }).then(function(r) { return r.json(); }).then(function(d) {
+              viewInvoiceBtn.disabled = false;
+              if (d && d.url) {
+                // Cache it so future clicks are instant
+                _invoiceUrlCache[_wrIdForLookup] = d.url;
+                _saveInvoiceCache();
+                viewInvoiceBtn.setAttribute('data-invoice-url', d.url);
+                window.open(d.url, '_blank', 'noopener');
+              } else {
+                showToast('El archivo de factura no está disponible. Usa el botón ✏️ para subirlo nuevamente.', 'info');
+              }
+            }).catch(function() {
+              viewInvoiceBtn.disabled = false;
+              showToast('El archivo de factura no está disponible. Usa el botón ✏️ para subirlo nuevamente.', 'info');
+            });
           } else {
             showToast('El archivo de factura no está disponible. Usa el botón ✏️ para subirlo nuevamente.', 'info');
           }
