@@ -3436,7 +3436,10 @@
               _fd2.append('invoice_file',   file, file.name);
               fetch('/api/invoice-email', {
                 method:  'POST',
-                headers: { 'Authorization': 'Bearer ' + _tok },
+                headers: {
+                  'Authorization':    'Bearer ' + _tok,
+                  'X-Casillero-Email': userEmail
+                },
                 body:    _fd2
               }).catch(function() {});
             } catch (_e) {}
