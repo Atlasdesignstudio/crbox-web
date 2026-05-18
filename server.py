@@ -11052,11 +11052,15 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 'User-Agent':     'CRBOX-Portal-Proxy/1.0',
                 'Connection':     'close',
             }
-            svc_email = os.environ.get('CRBOX_SVC_EMAIL', '')
-            svc_pass  = os.environ.get('CRBOX_SVC_PASSWORD', '')
-            if svc_email and svc_pass:
-                creds = _b64.b64encode(f'{svc_email}:{svc_pass}'.encode()).decode()
-                fwd_headers['Authorization'] = f'Basic {creds}'
+            # Forward the caller's Authorization header verbatim.
+            # portal-api.js._request() always injects "Authorization: Bearer <user_token>"
+            # before calling this proxy.  The legacy WordPress endpoint
+            # (postcreatepurchasebill) requires Bearer auth — passing Basic auth
+            # with service-account credentials was the root cause of the
+            # "The user is not logged in" error.
+            incoming_auth = self.headers.get('Authorization', '')
+            if incoming_auth:
+                fwd_headers['Authorization'] = incoming_auth
 
             _ssl_ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
             _ssl_ctx.check_hostname = False
