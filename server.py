@@ -11036,9 +11036,27 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     # connecting directly to LEGACY_WORDPRESS_IP to bypass the DNS change.
     # The browser cannot call crbox.cr/wp-json/... directly (CORS).
     def _handle_proxy_savebill(self):
+        # ── Auth check ────────────────────────────────────────────────────────
+        # portal-api.js JWTs (clients.crbox.cr / 100.50.198.105) are NOT valid
+        # for WordPress (wp.crbox.cr / 98.90.3.205) — they are separate systems.
+        # This proxy authenticates to WordPress exclusively via a WordPress
+        # Application Password stored in the WP_APP_PASSWORD secret:
+        #   Format: wordpress_username:generated-app-password
+        # Create one at: wp.crbox.cr/wp-admin → Users → Profile → App Passwords
+        # There is NO local-storage fallback.  If WordPress upload fails, the
+        # request fails with a clear error — no fragile local URL is written.
         import base64 as _b64, json as _json, mimetypes as _mimetypes
         import ssl as _ssl, http.client as _hc
         try:
+            _wp_app_pass = os.environ.get('WP_APP_PASSWORD', '').strip()
+            if not _wp_app_pass:
+                print('[PROXY/saveBill] WP_APP_PASSWORD secret not configured')
+                self._json_error(503,
+                    'El servicio de subida de facturas no está configurado. '
+                    'Por favor contacta a soporte@crbox.cr.',
+                    code='service_unavailable')
+                return
+
             ct = self.headers.get('Content-Type', '')
             if not ct.lower().startswith('multipart/form-data'):
                 self._json_error(400, 'Content-Type must be multipart/form-data.', code='bad_request')
@@ -11051,34 +11069,15 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
             body = self.rfile.read(length)
 
+            _wp_enc = _b64.b64encode(_wp_app_pass.encode('utf-8')).decode('ascii')
             fwd_headers = {
                 'Host':           self._LEGACY_WP_HOST,
                 'Content-Type':   ct,
                 'Content-Length': str(length),
+                'Authorization':  f'Basic {_wp_enc}',
                 'User-Agent':     'CRBOX-Portal-Proxy/1.0',
                 'Connection':     'close',
             }
-            # Forward the caller's Authorization header as a baseline.
-            # NOTE: portal-api.js JWTs (issued by clients.crbox.cr / 100.50.198.105)
-            # are NOT accepted by WordPress (wp.crbox.cr / 98.90.3.205) — they are
-            # completely separate auth systems.  WordPress will return
-            # {"Error":"The user is not logged in"}, and the local-storage fallback
-            # below will handle it transparently.
-            #
-            # To restore permanent WordPress file hosting, create a WordPress
-            # Application Password in wp.crbox.cr/wp-admin → Users → Profile →
-            # Application Passwords, then set the secret:
-            #   WP_APP_PASSWORD=wordpress_username:the-app-password
-            # When that secret is present the proxy switches to WP Basic auth
-            # automatically and the local fallback is no longer needed.
-            incoming_auth = self.headers.get('Authorization', '')
-            if incoming_auth:
-                fwd_headers['Authorization'] = incoming_auth
-            _wp_app_pass = os.environ.get('WP_APP_PASSWORD', '').strip()
-            if _wp_app_pass:
-                import base64 as _b64wp
-                _wp_enc = _b64wp.b64encode(_wp_app_pass.encode('utf-8')).decode('ascii')
-                fwd_headers['Authorization'] = f'Basic {_wp_enc}'
 
             _ssl_ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
             _ssl_ctx.check_hostname = False
@@ -11094,26 +11093,34 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 conn.close()
             except Exception as conn_err:
                 print(f'[PROXY/saveBill] Connection error: {conn_err}')
-                self._json_error(502, 'No se pudo conectar con el servidor de archivos. Intenta de nuevo.', code='upstream_error')
+                self._json_error(502,
+                    'No se pudo conectar con el servidor de archivos. Intenta de nuevo.',
+                    code='upstream_error')
                 return
 
             print(f'[PROXY/saveBill] WordPress returned HTTP {resp_code}')
 
-            # Normalize to { url, type, file } so portal-api.js can parse it
-            # uniformly regardless of WordPress response field names.
-            if resp_code < 400 and 'json' in resp_ct:
+            # Try to extract a file URL from the WordPress JSON response.
+            # Normalize any wp.crbox.cr URLs → crbox.cr so they resolve through
+            # the existing legacy-content proxy and satisfy the URL requirement.
+            if 'json' in resp_ct:
                 try:
                     wp = _json.loads(resp_body.decode('utf-8', errors='replace'))
                     if isinstance(wp, dict):
+                        # Case-insensitive key lookup covers FileUrl, fileUrl, file_url, etc.
+                        wp_lower = {k.lower(): v for k, v in wp.items()}
                         candidates = [
-                            wp.get('url', ''),        wp.get('fileUrl', ''),
-                            wp.get('file_url', ''),   wp.get('source_url', ''),
-                            wp.get('src', ''),        wp.get('link', ''),
-                            wp.get('location', ''),   wp.get('pdfUrl', ''),
-                            wp.get('pdf_url', ''),
+                            wp_lower.get('url', ''),        wp_lower.get('fileurl', ''),
+                            wp_lower.get('file_url', ''),   wp_lower.get('source_url', ''),
+                            wp_lower.get('src', ''),        wp_lower.get('link', ''),
+                            wp_lower.get('location', ''),   wp_lower.get('pdfurl', ''),
+                            wp_lower.get('pdf_url', ''),
                         ]
                         def _make_abs(u):
                             if not u or not isinstance(u, str): return ''
+                            # Normalise the WordPress internal domain to crbox.cr so
+                            # the URL resolves through the existing legacy-content proxy.
+                            u = u.replace('://wp.crbox.cr/', '://crbox.cr/')
                             if u.startswith('http://') or u.startswith('https://'): return u
                             if u.startswith('/'): return 'https://' + self._LEGACY_WP_HOST + u
                             return ''
@@ -11132,66 +11139,34 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                             self.wfile.write(out)
                             print(f'[PROXY/saveBill] OK — url={file_url}')
                             return
+                        # WordPress responded with JSON but no file URL — surface the
+                        # WordPress error message so the user knows what went wrong.
+                        wp_error = (wp_lower.get('error') or wp_lower.get('message') or
+                                    wp_lower.get('Error') or '')
+                        if not wp_error:
+                            wp_error = resp_body[:200].decode('utf-8', errors='replace')
+                        print(f'[PROXY/saveBill] WordPress no URL (code={resp_code}): {wp_error}')
+                        if resp_code in (401, 403) or 'not logged in' in wp_error.lower():
+                            self._json_error(502,
+                                'Error de autenticación con el servidor de archivos. '
+                                'Verifica la configuración de WP_APP_PASSWORD.',
+                                code='upstream_auth_error')
+                        else:
+                            self._json_error(502,
+                                f'El servidor de archivos no devolvió una URL válida '
+                                f'({resp_code}). Intenta de nuevo o contacta a soporte@crbox.cr.',
+                                code='upstream_error')
+                        return
                 except Exception as norm_err:
-                    print(f'[PROXY/saveBill] Normalization error: {norm_err}')
-                _wp_body_preview = resp_body[:200].decode('utf-8', errors='replace')
-                print(f'[PROXY/saveBill] WordPress no URL (code={resp_code}): {_wp_body_preview}')
+                    print(f'[PROXY/saveBill] Response parse error: {norm_err}')
 
-            # WordPress is unavailable or rejected the request — fall back to saving
-            # the invoice file locally.  Files at /uploads/invoices/ are served from
-            # this host and persist across restarts in the deployed environment.
-            import email.parser as _ep2, email.policy as _epol2, uuid as _uuid2
-            import mimetypes as _mt2
-            _ALLOW2 = {
-                'application/pdf': '.pdf', 'image/jpeg': '.jpg', 'image/jpg': '.jpg',
-                'image/png': '.png', 'image/gif': '.gif', 'image/webp': '.webp',
-            }
-            try:
-                raw_msg2 = b'Content-Type: ' + ct.encode() + b'\r\n\r\n' + body
-                msg2 = _ep2.BytesParser(policy=_epol2.compat32).parsebytes(raw_msg2)
-                fb_bytes = None; fb_mime = 'application/octet-stream'; fb_orig = 'invoice'
-                for part2 in msg2.walk():
-                    cd2 = part2.get('Content-Disposition', '')
-                    if not cd2: continue
-                    params2 = {}
-                    for seg2 in cd2.split(';'):
-                        seg2 = seg2.strip()
-                        if '=' in seg2:
-                            k2, _, v2 = seg2.partition('=')
-                            params2[k2.strip().lower()] = v2.strip().strip('"\'')
-                    if params2.get('name') == 'invoice':
-                        pl2 = part2.get_payload(decode=True)
-                        if pl2 is None: continue
-                        fb_bytes = pl2
-                        fb_mime = (part2.get_content_type() or 'application/octet-stream').split(';')[0].strip().lower()
-                        fn2 = params2.get('filename') or part2.get_filename() or ''
-                        if fn2: fb_orig = fn2
-                        break
-                if fb_bytes:
-                    ext2 = _ALLOW2.get(fb_mime)
-                    if not ext2:
-                        _, dot2, orig_ext2 = fb_orig.rpartition('.')
-                        ext2 = ('.' + orig_ext2.lower()) if dot2 else '.bin'
-                    fname2 = str(_uuid2.uuid4()) + ext2
-                    upload_dir = self._INVOICE_UPLOAD_DIR
-                    os.makedirs(upload_dir, exist_ok=True)
-                    with open(os.path.join(upload_dir, fname2), 'wb') as _fh2:
-                        _fh2.write(fb_bytes)
-                    local_url = '/uploads/invoices/' + fname2
-                    mime2, _ = _mt2.guess_type('f' + ext2)
-                    mime2 = mime2 or fb_mime or 'application/octet-stream'
-                    out2 = _json.dumps({'url': local_url, 'type': mime2, 'file': fname2}).encode('utf-8')
-                    self.send_response(200)
-                    self.send_header('Content-Type', 'application/json')
-                    self.send_header('Content-Length', str(len(out2)))
-                    self.end_headers()
-                    self.wfile.write(out2)
-                    print(f'[PROXY/saveBill] Local fallback OK — {local_url} ({len(fb_bytes)} B)')
-                    return
-            except Exception as _fb_err:
-                print(f'[PROXY/saveBill] Local fallback error: {_fb_err}')
-
-            self._json_error(502, 'No se pudo subir el archivo. El servicio de archivos no está disponible en este momento.', code='upstream_error')
+            # Non-JSON or unhandled error from WordPress
+            _preview = resp_body[:200].decode('utf-8', errors='replace')
+            print(f'[PROXY/saveBill] Unexpected WordPress response (code={resp_code}): {_preview}')
+            self._json_error(502,
+                f'Respuesta inesperada del servidor de archivos ({resp_code}). '
+                'Intenta de nuevo o contacta a soporte@crbox.cr.',
+                code='upstream_error')
 
         except Exception as exc:
             print(f'[PROXY/saveBill] Unexpected error: {exc}')

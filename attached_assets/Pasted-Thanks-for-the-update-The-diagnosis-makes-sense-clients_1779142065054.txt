@@ -1,0 +1,41 @@
+Thanks for the update. The diagnosis makes sense: clients.crbox.cr and the WordPress file host are separate systems, so the client portal Bearer token cannot authenticate against WordPress.
+
+However, local fallback storage must not be considered a production fix for invoice uploads.
+
+Invoices are operational/legal documents and must not be stored in local server/Replit filesystem paths such as:
+
+/uploads/invoices/<uuid>.pdf
+
+because those files may be lost or become inaccessible after a redeploy, new deployment, server replacement, or filesystem reset.
+
+Please update the implementation so that local fallback is disabled for production invoice uploads. If WordPress upload/auth fails, the user should see a clear upload error instead of silently saving the invoice locally and writing a fragile URL into CRBOX records.
+
+We do have a WordPress application password. Please implement WordPress authenticated upload properly.
+
+Use a secret:
+
+WP_APP_PASSWORD = wordpress_username:wordpress_application_password
+
+Then make the /wp-json/crbox/v1/saveBill proxy authenticate to WordPress using that credential.
+
+Requirements:
+1. /wp-json/crbox/v1/saveBill must upload to the old WordPress server at 98.90.3.205 using Host: crbox.cr.
+2. The proxy must authenticate with WordPress using the WP_APP_PASSWORD secret.
+3. New invoice uploads must be stored in WordPress /wp-content/uploads/, not in local filesystem.
+4. The returned invoice URL must be a persistent WordPress URL under:
+   https://crbox.cr/wp-content/uploads/...
+5. Local fallback must be disabled in production.
+6. If WordPress returns “The user is not logged in” or any upload/auth error, show a clear error and do not create/save a local invoice URL.
+7. Keep the existing /wp-content/uploads/* legacy proxy working for old invoices.
+8. Do not change DNS.
+9. Do not modify existing invoice database rows.
+10. Do not delete or move any existing files.
+
+Acceptance tests:
+- Upload a new invoice.
+- Confirm logs show WordPress authenticated upload success, not local fallback.
+- Confirm the returned URL is under /wp-content/uploads/.
+- Confirm the new invoice opens after upload.
+- Confirm the new invoice still opens after refresh/redeploy.
+- Confirm an old invoice URL still returns 200.
+- Confirm no new /uploads/invoices/<uuid> URL is written for production uploads.
