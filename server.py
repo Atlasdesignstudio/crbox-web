@@ -12209,7 +12209,19 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 if not token:
                     raise ValueError('No access_token in response')
                 self._json_response(200, {'access_token': token})
-        except Exception:
+        except urllib.error.HTTPError as exc:
+            body_snippet = ''
+            try:
+                body_snippet = exc.read(200).decode('utf-8', errors='replace')
+            except Exception:
+                pass
+            print(f'[SVC-TOKEN] HTTP {exc.code} from upstream — {body_snippet!r}')
+            self._json_error(502, 'Upstream authentication failed.')
+        except urllib.error.URLError as exc:
+            print(f'[SVC-TOKEN] URLError reaching upstream: {exc.reason}')
+            self._json_error(502, 'Upstream authentication failed.')
+        except Exception as exc:
+            print(f'[SVC-TOKEN] Unexpected error: {type(exc).__name__}: {exc}')
             self._json_error(502, 'Upstream authentication failed.')
 
 
