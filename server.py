@@ -25,6 +25,14 @@ from http.server import HTTPServer, ThreadingHTTPServer, SimpleHTTPRequestHandle
 
 CRBOX_AUTH_URL = 'https://clients.crbox.cr/authtoken'
 QUOTE_RECIPIENT = 'ventas@crbox.cr'
+# Recipient for general contact form and FAQ/chat contact widget inquiries
+CONTACT_RECIPIENT = 'Servicioalcliente@crbox.cr'
+# Recipient for consolidation group confirmation emails
+CONSOLIDACIONES_RECIPIENT = 'consolidaciones@crbox.cr'
+
+# Feature flags — set to True to re-enable notifications currently handled by the legacy CRBOX system
+LISTO_EMAIL_ENABLED = False        # "Ready for Pickup" customer notification
+MIAMI_ARRIVAL_EMAIL_ENABLED = False  # "Miami arrival" customer notification
 
 # ── AI / Gemini extraction ────────────────────────────────────────────────────
 _GEMINI_API_KEY  = os.environ.get('GEMINI_API_KEY', '')
@@ -2640,10 +2648,10 @@ def _save_general_inquiry(nombre, correo, telefono, asunto, mensaje, source):
         msg = _mime_mp.MIMEMultipart('alternative')
         msg['Subject'] = subject_line
         msg['From']    = f'CRBOX <{smtp_user}>'
-        msg['To']      = QUOTE_RECIPIENT
+        msg['To']      = CONTACT_RECIPIENT
         msg.attach(_mime_txt.MIMEText(plain, 'plain', 'utf-8'))
         msg.attach(_mime_txt.MIMEText(html_body, 'html', 'utf-8'))
-        _send_smtp(msg, [QUOTE_RECIPIENT])
+        _send_smtp(msg, [CONTACT_RECIPIENT])
         email_ok = True
     except Exception as mail_exc:
         print(f'[CONSULTAS] Email notification failed (record #{new_id} preserved): {mail_exc}')
@@ -12872,7 +12880,6 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return
 
         esc = _html.escape
-        FACTURAS_RECIPIENT = 'facturas@crbox.cr'
 
         # ── Build plain-text body ──
         def _inv_label(raw):
@@ -12994,12 +13001,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             msg = _mime_mp.MIMEMultipart('alternative')
             msg['Subject'] = f'Cliente solicita enviar paquetes juntos — Casillero {locker} — {group_name}'
             msg['From']    = f'CRBOX Portal <{smtp_user}>'
-            msg['To']      = FACTURAS_RECIPIENT
+            msg['To']      = CONSOLIDACIONES_RECIPIENT
             if client_email:
                 msg['Reply-To'] = client_email
             msg.attach(_mime_txt.MIMEText(plain, 'plain', 'utf-8'))
             msg.attach(_mime_txt.MIMEText(html_body, 'html', 'utf-8'))
-            _send_smtp(msg, [FACTURAS_RECIPIENT])
+            _send_smtp(msg, [CONSOLIDACIONES_RECIPIENT])
             print(f'[PKG-GROUP] Confirmation email sent for group "{group_name}" (locker {locker})')
             # Atomically set status to confirmation_sent now that email is confirmed sent.
             # This prevents a race where the client PATCH arrives before the ack endpoint
@@ -13112,43 +13119,47 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             if already_sent:
                 continue
 
-            # Send the arrival email
-            if smtp_user and verified_email:
-                try:
-                    html_body = _build_miami_arrival_email_html(tracking, carrier, cta_url)
-                    plain_body = (
-                        f'Hola,\n\n'
-                        f'Tu paquete {tracking} llegó a Miami.\n'
-                        f'¿Lo enviamos a Costa Rica?\n\n'
-                        f'Crea un grupo de envío aquí:\n{cta_url}\n\n'
-                        f'Equipo CRBOX\n'
-                    )
-                    msg = email.mime.multipart.MIMEMultipart('alternative')
-                    msg['Subject'] = f'Tu paquete {tracking} llegó a Miami — ¿Lo enviamos a Costa Rica?'
-                    msg['From'] = f'CRBOX <{smtp_user}>'
-                    msg['To'] = verified_email
-                    msg['Message-ID'] = f'<{_uuid4_hex()}@crbox.cr>'
-                    msg['Date'] = email.utils.formatdate(localtime=False)
-                    msg.attach(email.mime.text.MIMEText(plain_body, 'plain', 'utf-8'))
-                    msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
-                    _send_smtp(msg, [verified_email])
-                except Exception as exc:
-                    print(f'[MIAMI_ARRIVAL] Email send failed for tracking {tracking}: {exc}')
-                    continue
+            # MIAMI_ARRIVAL_EMAIL_ENABLED = False — notification handled by legacy CRBOX system.
+            # Set MIAMI_ARRIVAL_EMAIL_ENABLED = True at the top of server.py to re-enable.
+            # The dedup table (arrival_emails_sent) and all surrounding logic remain intact.
+            if MIAMI_ARRIVAL_EMAIL_ENABLED:
+                # Send the arrival email
+                if smtp_user and verified_email:
+                    try:
+                        html_body = _build_miami_arrival_email_html(tracking, carrier, cta_url)
+                        plain_body = (
+                            f'Hola,\n\n'
+                            f'Tu paquete {tracking} llegó a Miami.\n'
+                            f'¿Lo enviamos a Costa Rica?\n\n'
+                            f'Crea un grupo de envío aquí:\n{cta_url}\n\n'
+                            f'Equipo CRBOX\n'
+                        )
+                        msg = email.mime.multipart.MIMEMultipart('alternative')
+                        msg['Subject'] = f'Tu paquete {tracking} llegó a Miami — ¿Lo enviamos a Costa Rica?'
+                        msg['From'] = f'CRBOX <{smtp_user}>'
+                        msg['To'] = verified_email
+                        msg['Message-ID'] = f'<{_uuid4_hex()}@crbox.cr>'
+                        msg['Date'] = email.utils.formatdate(localtime=False)
+                        msg.attach(email.mime.text.MIMEText(plain_body, 'plain', 'utf-8'))
+                        msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
+                        _send_smtp(msg, [verified_email])
+                    except Exception as exc:
+                        print(f'[MIAMI_ARRIVAL] Email send failed for tracking {tracking}: {exc}')
+                        continue
 
-            # Record the send so we never repeat it for this package
-            now_ts = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
-            with _DB_LOCK:
-                conn = _get_db()
-                conn.execute(
-                    'INSERT OR IGNORE INTO arrival_emails_sent (casillero_id, tracking_number, sent_at) '
-                    'VALUES (?, ?, ?)',
-                    (casillero_id, tracking, now_ts)
-                )
-                conn.commit()
-                conn.close()
-            sent_count += 1
-            print(f'[MIAMI_ARRIVAL] Sent arrival email to {verified_email} for tracking {tracking}')
+                # Record the send so we never repeat it for this package
+                now_ts = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                with _DB_LOCK:
+                    conn = _get_db()
+                    conn.execute(
+                        'INSERT OR IGNORE INTO arrival_emails_sent (casillero_id, tracking_number, sent_at) '
+                        'VALUES (?, ?, ?)',
+                        (casillero_id, tracking, now_ts)
+                    )
+                    conn.commit()
+                    conn.close()
+                sent_count += 1
+                print(f'[MIAMI_ARRIVAL] Sent arrival email to {verified_email} for tracking {tracking}')
 
         self._json_response(200, {'ok': True, 'sent': sent_count})
 
@@ -13353,10 +13364,10 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             msg = email.mime.multipart.MIMEMultipart('alternative')
             msg['Subject'] = subject
             msg['From']    = f'CRBOX <{smtp_user}>'
-            msg['To']      = QUOTE_RECIPIENT
+            msg['To']      = CONTACT_RECIPIENT
             msg.attach(email.mime.text.MIMEText(plain, 'plain', 'utf-8'))
             msg.attach(email.mime.text.MIMEText(html_body, 'html', 'utf-8'))
-            _send_smtp(msg, [QUOTE_RECIPIENT])
+            _send_smtp(msg, [CONTACT_RECIPIENT])
         except Exception as mail_exc:
             print(f'[FAQ-PREGUNTA] Email notification failed (record #{new_id} preserved): {mail_exc}')
         self._json_response(200, {'ok': True})
@@ -13481,8 +13492,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                         _send_comprado_notification(scb_id, c_email, c_name, c_product, smtp_user)
                         print(f'[ADMIN] comprado email sent: {scb_id}')
                     elif new_status == 'listo_para_retiro':
-                        _send_listo_para_retiro_notification(scb_id, c_email, c_name, c_product, smtp_user)
-                        print(f'[ADMIN] listo_para_retiro email sent: {scb_id}')
+                        # LISTO_EMAIL_ENABLED = False — notification handled by legacy CRBOX system.
+                        # Set LISTO_EMAIL_ENABLED = True at the top of server.py to re-enable.
+                        if LISTO_EMAIL_ENABLED:
+                            _send_listo_para_retiro_notification(scb_id, c_email, c_name, c_product, smtp_user)
+                            print(f'[ADMIN] listo_para_retiro email sent: {scb_id}')
                     elif new_status == 'cancelada':
                         _send_cancellation_email(scb_id, c_email, c_name, c_product, smtp_user)
                         print(f'[ADMIN] admin-cancel email sent: {scb_id}')
