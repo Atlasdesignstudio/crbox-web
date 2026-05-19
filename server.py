@@ -12184,7 +12184,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         # kept exclusively in server env vars, (3) the endpoint only returns a
         # short-lived token usable only for the registration call.
         svc_email = os.environ.get('CRBOX_SVC_EMAIL', '')
-        svc_pass  = os.environ.get('CRBOX_SVC_PASSWORD', '')
+        svc_pass  = (os.environ.get('CRBOX_SVC_PASSWORD_2', '')
+                     or os.environ.get('CRBOX_SVC_PASSWORD', ''))
 
         if not svc_email or not svc_pass:
             self._json_error(503, 'Service account not configured.')
