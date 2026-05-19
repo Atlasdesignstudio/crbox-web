@@ -1,7 +1,7 @@
 # DNS Cutover — Operational Status
 
 **Document date:** 2026-05-14  
-**Last updated:** 2026-05-16 (TXT verification records added to Route 53; Replit custom domains verifying; SSL pre-provisioning in progress)  
+**Last updated:** 2026-05-19 — DNS cutover to `crbox.cr` confirmed complete; SSL confirmed provisioned and live; all 10 blockers resolved. Site is live at `https://crbox.cr`.  
 **Purpose:** Tracks the resolution status of the operational blockers identified in `docs/final-domain-cutover-go-live-checklist.md` Section 4 before Stage 3 (DNS change) can proceed.  
 **Mode:** Operational planning document. No DNS, hosting, code, or secret changes were made in producing this document, with the exception of RDS flag scope correction on 2026-05-14 (see Section 11).  
 **Output discipline:** No raw credentials, passwords, or personally identifying information.
@@ -18,15 +18,14 @@
 | 4 | Old hosting rollback IP documented | Yes | ✅ **Confirmed** — 2026-05-14 |
 | 5 | Old hosting confirmed preserved for 2–4 weeks post-cutover | Yes | ✅ **Confirmed** — Mathias confirmed 2026-05-16; EC2 `CrBox.cr V2` (`98.90.3.205`, us-east-1c, running, 3/3 status checks) will be kept live |
 | 6 | Replit production deployment target (custom domain IP/CNAME) | Yes | ✅ **Confirmed** — A record target `34.111.179.208`; TXT verification token obtained 2026-05-16 |
-| 7 | SSL auto-provisioning confirmed | Yes | ❌ **Open** — domain pre-registered in Replit; SSL provisions automatically once DNS propagates to `34.111.179.208` (no pre-action possible) |
+| 7 | SSL auto-provisioning confirmed | Yes | ✅ **Confirmed** — DNS cutover completed ~2026-05-16; SSL auto-provisioned by Replit; site live at `https://crbox.cr` |
 | 8 | TTL at ~300 s | Yes (rollback risk) | ✅ **Confirmed** — already 300 s on all records; no change needed; no 24 h wait required |
 | 9 | Technical rollback owner (with Route 53 access) assigned | Yes | ✅ **Confirmed** — Mathias; holds Route 53 access, decision authority, and EC2 preservation ownership; confirmed 2026-05-16 |
 | 10 | Communication channel for cutover window designated | Yes | ✅ **Confirmed** — WhatsApp direct chat + direct phone call with Mathias; confirmed 2026-05-16 |
 
-**Current overall rating: A−**  
-**Confirmed resolved: 9 / 10 hard blockers** (items 1, 2, 3, 4, 5, 6, 8, 9, 10)  
-**Item 7 (SSL) self-confirms at cutover — no pre-action possible or required.**  
-**Remaining human action before scheduling: pre-cutover smoke test (checklist item 12).**
+**Current overall rating: A — COMPLETE**  
+**All 10 / 10 hard blockers resolved.** DNS cutover executed ~2026-05-16. Site live at `https://crbox.cr`. SSL confirmed. EC2 standby preserved.  
+**Status as of 2026-05-19:** Cutover phase is closed. No further DNS or cutover actions required.
 
 ---
 

@@ -3,8 +3,8 @@
 **Created:** 2026-05-14  
 **Scope:** `mis-paquetes`, `mis-facturas`, `mi-cuenta`  
 **Author:** Agent (from QA-confirmed dev/test state)  
-**Status:** Awaiting production read-only user creation — blocked on CRBOX infra team running `docs/crbox-portal-ro-setup.sql`  
-**Last updated:** 2026-05-14 — Blocker 2 (read-only user + RDS_PORTAL_* wiring) ⏳ PARTIAL — see Section 3.5
+**Status:** `RDS_PORTAL_PASSWORD` confirmed set (2026-05-19). Single remaining blocker: CRBOX infra team must run `docs/crbox-portal-ro-setup.sql` to create `crbox_portal_ro` on the production RDS instance.  
+**Last updated:** 2026-05-19 — `RDS_PORTAL_PASSWORD` secret confirmed present ✅; domain cutover to `crbox.cr` confirmed complete ✅; `crbox_portal_ro` user creation on production RDS still pending CRBOX infra team action ⏳
 
 ---
 
@@ -200,8 +200,8 @@ if active_db != _expected_db:
 | `rds_client.py` updated — dual `RDS_PORTAL_*` / `MYSQL_*` namespace with clean priority check | ✅ Done |
 | Production env vars set: `RDS_PORTAL_HOST`, `RDS_PORTAL_PORT`, `RDS_PORTAL_DATABASE`, `RDS_PORTAL_USER`, `EXPECTED_RDS_DATABASE=CrBox` | ✅ Done |
 | SQL script prepared for CRBOX infra team | ✅ `docs/crbox-portal-ro-setup.sql` |
-| `RDS_PORTAL_PASSWORD` Replit secret | ⏳ Awaiting user to set secret |
-| `crbox_portal_ro` MySQL user created on production RDS | ⏳ Awaiting CRBOX infra team to run SQL script |
+| `RDS_PORTAL_PASSWORD` Replit secret | ✅ Confirmed set in Replit secrets (2026-05-19) |
+| `crbox_portal_ro` MySQL user created on production RDS | ⏳ Awaiting CRBOX infra team to run `docs/crbox-portal-ro-setup.sql` |
 | Dev environment (`MYSQL_*` / `crbox_dev1`) | ✅ Unaffected — verified clean restart |
 | Frontend flags (`USE_RDS_PACKAGES_FRONTEND`, `USE_RDS_INVOICES_FRONTEND`, `USE_RDS_PROFILE_FRONTEND`) | ✅ All OFF in production |
 
@@ -219,7 +219,7 @@ if active_db != _expected_db:
 
 **Required action (dev team / this agent):**
 
-- Add `RDS_PORTAL_PASSWORD` as a Replit production secret (see below — request is in progress).
+- ~~Add `RDS_PORTAL_PASSWORD` as a Replit production secret~~ — ✅ Done (2026-05-19). Secret is confirmed present.
 
 ---
 
@@ -246,17 +246,17 @@ if active_db != _expected_db:
 | `RDS_PORTAL_PORT` | `3306` | production | ✅ Set |
 | `RDS_PORTAL_DATABASE` | `CrBox` | production | ✅ Set |
 | `RDS_PORTAL_USER` | `crbox_portal_ro` | production | ✅ Set |
-| `RDS_PORTAL_PASSWORD` | (Replit secret — must be added) | global secret | ⏳ Pending |
+| `RDS_PORTAL_PASSWORD` | (Replit secret) | global secret | ✅ Set (2026-05-19) |
 | `EXPECTED_RDS_DATABASE` | `CrBox` | production | ✅ Set |
 
 **Feature flags (both environments):**
 
 | Variable | Development value | Production value | Required? |
 |---|---|---|---|
-| `USE_RDS_PORTAL_API` | `true` | `true` (needed for shadow admin endpoints) | Yes for shadow stage |
-| `USE_RDS_PACKAGES_FRONTEND` | `true` | unset → `false` | Set per stage rollout |
-| `USE_RDS_INVOICES_FRONTEND` | `true` | unset → `false` | Development only |
-| `USE_RDS_PROFILE_FRONTEND` | `true` | unset → `false` | Development only |
+| `USE_RDS_PORTAL_API` | `true` | ⏳ Confirm if set in production — required to enable shadow admin endpoints | Yes for shadow stage |
+| `USE_RDS_PACKAGES_FRONTEND` | `true` | unset → `false` — legacy active | Set per stage rollout |
+| `USE_RDS_INVOICES_FRONTEND` | `true` | unset → `false` — legacy active | Set per stage rollout |
+| `USE_RDS_PROFILE_FRONTEND` | `true` | unset → `false` — legacy active | Set per stage rollout |
 
 ### 4.2 Safe defaults
 

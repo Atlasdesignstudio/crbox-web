@@ -23,4 +23,70 @@ title = "QA Report — Newsletter & RDS Profile"
 id = "HOsXq-iYkOu2SG-nk92Sh"
 uri = "file://docs/rds-production-readiness-plan.md"
 type = "text"
-title = "RDS Portal Core — Production Readiness Plan"
+title = "Production Readiness Plan (updated 2026-05-19)"
+
+[[outputs]]
+id = "-peRD2-r_SgzYxdlTS1Xn"
+uri = "file://crbox-rds-database-docs.zip"
+type = "unspecified"
+title = "All 21 RDS + Cutover Docs (ZIP — includes .sql files)"
+
+[[outputs]]
+id = "IZSN7VlH8hfubCVz9TQYr"
+uri = "file://docs/rds-production-schema-parity-checklist.md"
+type = "text"
+title = "Schema Parity Checklist"
+
+[[outputs]]
+id = "82HvhLImIBJYcSjHXSz2E"
+uri = "file://docs/rds-discovery-report.md"
+type = "text"
+title = "Schema Discovery Report"
+
+[[outputs]]
+id = "6KFT1o39JHzSd-_Ze4707"
+uri = "file://docs/rds-packages-qa-report.md"
+type = "text"
+title = "Packages QA Report (PASSED)"
+
+[[outputs]]
+id = "hrKeEta27fvEPlvhESWbi"
+uri = "file://docs/rds-invoices-browser-qa-report.md"
+type = "text"
+title = "Invoices QA Report (PASSED)"
+
+[[outputs]]
+id = "6aNp333PfLXKD4HhlPOB0"
+uri = "file://docs/rds-packages-shadow-validation.md"
+type = "text"
+title = "Packages Shadow Validation"
+
+[[outputs]]
+id = "-s1OxgU221WSWnQG7ona-"
+uri = "file://docs/rds-invoices-shadow-validation.md"
+type = "text"
+title = "Invoices Shadow Validation"
+
+[[outputs]]
+id = "ekI2ANtHjsXEGvRg9SRaV"
+uri = "file://docs/rds-profile-shadow.md"
+type = "text"
+title = "Profile Shadow Compare Plan"
+
+[[outputs]]
+id = "gp54_tBtlsNlbIBQAA05a"
+uri = "file://docs/rds-observability-fallback-plan.md"
+type = "text"
+title = "Observability & Fallback Plan"
+
+[[outputs]]
+id = "K9gFfopCmEJ1WrnDy4G6I"
+uri = "file://docs/dns-cutover-operational-status.md"
+type = "text"
+title = "DNS Cutover Status (updated 2026-05-19 — COMPLETE)"
+
+[[outputs]]
+id = "iVK6_M1FrXlQyUn90WFyT"
+uri = "file://docs/final-domain-cutover-go-live-checklist.md"
+type = "text"
+title = "Domain Cutover Go-Live Checklist"
