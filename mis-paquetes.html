@@ -3463,13 +3463,22 @@
               } else {
                 clientInvoiceText = '<p>' + _safeDesc + '</p>';
               }
+              // FileLocation must be a path (e.g. /wp-content/uploads/...), NOT a full
+              // URL. The CRBOX admin tool prepends https://crbox.cr to FileLocation when
+              // building both the open/download link and the preview image src. Sending a
+              // full URL produces https://crbox.crhttps://crbox.cr/... (double-prefix) →
+              // host "crbox.crhttps" → "Servidor no encontrado".
+              var _filePath = (function(u) {
+                if (!u) return '';
+                try { return new URL(u).pathname; } catch (_) { return u; }
+              }(fileUrl));
               var payload = {
                 WRId:              wrId,
                 NumeroFactura:     numero.trim(),
                 Monto:             parseFloat(monto),
                 Descripcion:       desc.trim(),
                 ClientInvoiceText: clientInvoiceText,
-                FileLocation:      fileUrl
+                FileLocation:      _filePath
               };
               return CRBOXPortalAPI.createPurchaseBill(payload);
             })
