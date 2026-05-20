@@ -1,0 +1,187 @@
+Step 6A — Controlled Production Enablement Plan for `mis-paquetes` Only
+
+We have completed:
+- Step 1: production frontend RDS flags confirmed OFF.
+- Step 2: production schema parity passed Grade A.
+- Step 3: production RDS vs legacy comparison passed.
+- Step 3B: validation results documented.
+- Rollout dependency review documented.
+- Step 5: RDS observability/logging implemented.
+
+We are now preparing the first staged production flag enablement.
+
+Important:
+Do not enable anything yet. First provide the implementation/activation plan only.
+
+Goal:
+Prepare a safe, controlled activation plan for only:
+
+`USE_RDS_PACKAGES_FRONTEND=true`
+
+This is for `mis-paquetes` only. Do not enable invoices or profile.
+
+Scope:
+- Enable only the RDS packages read path.
+- Keep invoices and profile on legacy.
+- Keep all writes legacy-backed.
+- Keep auth/session/login/logout unchanged.
+- Keep upload factura / saveBill / createPurchaseBill unchanged.
+- No database writes.
+- No schema changes.
+
+Current business decision:
+We are continuing temporarily with the existing production DB user while maintaining strict read-only behavior. The RDS portal read handlers are still required to remain read-only. No RDS writes are allowed.
+
+Before proposing activation, produce a plan that explains:
+
+1. Exact flag change
+State exactly:
+- Which environment variable will be changed.
+- Which environment/scope it will be changed in.
+- What the old value is expected to be.
+- What the new value will be.
+- Confirm that the following remain OFF:
+  - `USE_RDS_INVOICES_FRONTEND`
+  - `USE_RDS_PROFILE_FRONTEND`
+
+2. Expected behavior after activation
+Explain what should change:
+- `mis-paquetes.html` should attempt `/api/portal/my-packages` first.
+- Dashboard package summary may also use the RDS packages path.
+- On RDS success, packages render from RDS.
+- On non-auth RDS failure, frontend falls back to legacy.
+- On auth failure, session handling should behave as before.
+
+Explain what should not change:
+- Login/logout.
+- Account data writes.
+- Invoice list.
+- Profile read/write.
+- Upload factura.
+- Purchase bill creation.
+- Password recovery.
+- Registration.
+- Any other user-facing module.
+
+3. Pre-activation checklist
+Before changing the flag, verify:
+- `/api/config` currently returns:
+  - `useRdsPackages: false`
+  - `useRdsInvoices: false`
+  - `useRdsProfile: false`
+- Step 5 logs are present in the code.
+- Rollback path is understood.
+- No active incident or deployment instability exists.
+- The current deployment is healthy.
+
+Do not run database writes or schema queries.
+
+4. Activation steps
+Give exact safe steps:
+- Set only `USE_RDS_PACKAGES_FRONTEND=true`.
+- Restart/redeploy only if required for the environment to pick up the flag.
+- Confirm `/api/config` returns:
+  - `useRdsPackages: true`
+  - `useRdsInvoices: false`
+  - `useRdsProfile: false`
+- Open `mis-paquetes.html` with an approved account.
+- Confirm packages load.
+- Confirm `[RDS-EVENT] module=packages ... result=success ... db_guard=pass`.
+- Confirm row count is reasonable.
+- Confirm there is no visible user-facing error.
+- Confirm no invoices/profile RDS events are unexpectedly active.
+
+5. Monitoring window
+Define a short human-watch period after activation.
+
+Monitor:
+- Server logs for `[RDS-EVENT] module=packages`.
+- Results:
+  - `success`
+  - `feature_disabled`
+  - `rds_error`
+  - `rds_wrong_db`
+  - `auth_error`
+  - fallback reason in browser console if applicable.
+- Page behavior in:
+  - `mis-paquetes.html`
+  - dashboard package summary
+- Browser console errors.
+- User-facing loading/error states.
+
+Explain what is acceptable:
+- `success` with `db_guard=pass`.
+- Occasional fallback only if explainable.
+
+Explain what is not acceptable:
+- repeated `rds_error`
+- `rds_wrong_db`
+- packages not loading
+- visible user-facing errors
+- auth/session errors
+- dashboard package summary broken
+- unexpected invoice/profile RDS activation
+
+6. Rollback plan
+Rollback must be immediate and simple:
+- Unset or set `USE_RDS_PACKAGES_FRONTEND=false`.
+- Restart/redeploy if required.
+- Confirm `/api/config` returns `useRdsPackages: false`.
+- Refresh `mis-paquetes.html`.
+- Confirm legacy packages path works again.
+- Confirm no RDS package calls occur from normal page load.
+- Document the reason for rollback.
+
+7. Stop conditions
+Stop and rollback immediately if:
+- `rds_wrong_db` appears.
+- repeated `rds_error` appears.
+- package list fails to render.
+- dashboard package summary fails.
+- users are redirected unexpectedly.
+- auth/session behavior changes.
+- any write query is detected.
+- any sensitive data appears in logs.
+- invoices/profile flags are accidentally enabled.
+- any production environment variable other than `USE_RDS_PACKAGES_FRONTEND` is changed unexpectedly.
+
+8. Hard safety rules
+During this step:
+- Do not enable `USE_RDS_INVOICES_FRONTEND`.
+- Do not enable `USE_RDS_PROFILE_FRONTEND`.
+- Do not change auth, login, logout, registration, profile writes, upload factura, saveBill, or createPurchaseBill.
+- Do not run INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, or REVOKE.
+- Do not introduce any RDS write path.
+- Do not change database data.
+- Do not change DNS.
+- Do not expose raw PII in logs or reports.
+- Do not log emails, tokens, passwords, ID numbers, phone numbers, addresses, tracking numbers, invoice numbers, or casillero numbers.
+- Do not test additional accounts without approval.
+
+9. Documentation
+After activation, document the result in a new or existing doc, preferably:
+
+`docs/rds-packages-production-enablement-report.md`
+
+Document:
+- time/date of activation
+- flag changed
+- verification results
+- log samples with no PII
+- whether rollback was needed
+- any issues found
+- final status
+- recommendation for whether to proceed later to invoices
+
+10. Required output now
+Do not execute yet.
+
+First provide:
+- the exact activation plan
+- exact files/env settings involved
+- exact checks you will perform
+- rollback plan
+- monitoring plan
+- what requires approval
+
+Wait for my approval before changing the flag.
