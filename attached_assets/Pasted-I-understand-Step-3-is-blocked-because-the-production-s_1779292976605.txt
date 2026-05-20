@@ -1,0 +1,126 @@
+I understand Step 3 is blocked because the production shadow compare endpoints currently use `rds_client.py`, and `rds_client.py` prioritizes the `RDS_PORTAL_*` namespace, which points to `crbox_portal_ro`.
+
+Since `crbox_portal_ro` does not exist yet, I want to allow a temporary CrBoxUser validation path for the next production validation steps, but only under strict constraints.
+
+Important:
+This is a temporary validation exception only. It does not replace the final architecture. `crbox_portal_ro` is still required before enabling any production user-facing RDS flags.
+
+Do not execute direct Python, temporary scripts, endpoint calls, or database queries yet. This message only authorizes you to propose the mini-plan.
+
+You may propose using CrBoxUser for the next read-only validation steps, but you must not make any change automatically.
+
+Before doing anything, give me a mini-plan explaining exactly how you will run the validation with CrBoxUser.
+
+The mini-plan must answer:
+
+1. What is currently blocked
+- Explain that production `rds_client.py` uses `RDS_PORTAL_*`.
+- Explain that `RDS_PORTAL_USER=crbox_portal_ro`.
+- Explain that `crbox_portal_ro` does not exist yet.
+- Explain why the existing shadow compare endpoints cannot currently run.
+
+2. What temporary workaround you propose
+State clearly whether you need:
+- a temporary code path,
+- a temporary env var override,
+- a one-off local script,
+- or direct Python execution using CrBoxUser.
+
+Preferred approach:
+Use a one-off direct validation script or controlled direct Python execution with CrBoxUser, without changing production env vars and without changing user-facing behavior.
+
+Avoid if possible:
+- changing `rds_client.py`
+- unsetting `RDS_PORTAL_HOST`
+- changing production env vars
+- making production app endpoints use CrBoxUser
+- enabling any frontend RDS flag
+
+3. What exact checks you will run
+Only approved read-only checks:
+- Confirm active database is `CrBox`.
+- Run packages comparison for `prueba@crbox.cr`.
+- Run invoices comparison for `prueba@crbox.cr`.
+- Run profile comparison for `prueba@crbox.cr`.
+- Compare RDS results vs legacy API results.
+- Report only counts, deltas, mismatch categories, and masked summaries.
+
+4. What exact query types are allowed
+Allowed:
+- `SELECT DATABASE() AS db`
+- explicit-column `SELECT` queries needed for the existing compare logic
+- parameterized queries only
+- no `SELECT *`
+
+Forbidden:
+- `INSERT`
+- `UPDATE`
+- `DELETE`
+- `DROP`
+- `ALTER`
+- `CREATE`
+- `TRUNCATE`
+- `GRANT`
+- `REVOKE`
+- any schema change
+- any data change
+- any permission/user change
+
+5. What will not be touched
+Confirm:
+- No production frontend RDS flags will be enabled.
+- No secrets or env vars will be changed.
+- No DNS or deployment settings will be changed.
+- No production code will be changed unless I explicitly approve it.
+- No user-facing behavior will change.
+- No writes will run.
+- No schema changes will run.
+
+6. What would require additional approval
+You must stop and ask for approval before:
+- changing any code
+- changing any env var or secret
+- enabling `USE_RDS_PORTAL_API` if it is currently off
+- enabling any frontend RDS flag
+- using any account other than `prueba@crbox.cr`
+- running any query that could return raw PII
+- adding any temporary endpoint
+- modifying `rds_client.py`
+- using CrBoxUser through the production app runtime instead of a controlled direct validation path
+
+7. PII rules
+Do not output raw:
+- emails
+- ID numbers
+- phone numbers
+- addresses
+- tracking numbers
+- invoice numbers
+- tokens
+- passwords
+- credentials
+
+Mask or omit anything sensitive. Reports should use:
+- counts
+- deltas
+- boolean match/mismatch
+- category summaries
+- masked samples only if absolutely necessary
+
+8. Final report after validation
+After the approved read-only validation, report:
+- Which method was used to validate with CrBoxUser.
+- Which checks were run.
+- Whether active DB was confirmed as `CrBox`.
+- Whether packages comparison passed.
+- Whether invoices comparison passed.
+- Whether profile comparison passed.
+- Whether any writes were executed — expected: no.
+- Whether any schema changes were executed — expected: no.
+- Whether any env vars, secrets, code, DNS, or feature flags were changed — expected: no.
+- Whether production frontend RDS flags remained OFF — expected: yes.
+- Whether final production enablement remains blocked on `crbox_portal_ro` — expected: yes.
+
+Do not execute yet.
+
+First, provide the mini-plan only. I will approve or reject the exact workaround after seeing it.
