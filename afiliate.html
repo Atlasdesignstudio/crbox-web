@@ -3106,6 +3106,9 @@ const locationDatabase = {
         if (!companyName.trim()) { showRegError(form, 'Ingrese el nombre de la empresa.'); return; }
         if (!email.trim())       { showRegError(form, 'Ingrese el correo electrónico.'); return; }
         if (!password || password.length < 8) { showRegError(form, 'La contraseña debe tener al menos 8 caracteres.'); return; }
+        if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+            showRegError(form, 'La contraseña debe incluir al menos una mayúscula, una minúscula y un número (ej: MiClave123).'); return;
+        }
         if (!/^\d{10}$/.test(idNumberNorm)) {
             var _cErr = document.getElementById('biz-cedula-error');
             var _cInp = document.getElementById('biz-cedula-input');
@@ -3123,7 +3126,7 @@ const locationDatabase = {
         var phones = [];
         var firstPhone = true;
         for (var pi = 0; pi < phoneNumbers.length; pi++) {
-            var pNum  = (phoneNumbers[pi].value || '').trim().replace(/\s+/g, '');
+            var pNum  = (phoneNumbers[pi].value || '').trim().replace(/\s+/g, '').replace(/^\+506/, '').replace(/^\+/, '');
             var pType = phoneTypes[pi] ? phoneTypes[pi].value : 'movil';
             if (!pNum) continue;
             var ptObj = CRLocations.getPhoneType(pType);
@@ -3283,7 +3286,7 @@ const locationDatabase = {
         var phones = [];
         var firstPhone = true;
         for (var pi = 0; pi < phoneNumbers.length; pi++) {
-            var pNum  = (phoneNumbers[pi].value || '').trim().replace(/\s+/g, '');
+            var pNum  = (phoneNumbers[pi].value || '').trim().replace(/\s+/g, '').replace(/^\+506/, '').replace(/^\+/, '');
             var pType = phoneTypes[pi] ? phoneTypes[pi].value : 'movil';
             if (!pNum) continue;
             var ptObj = CRLocations.getPhoneType(pType);
@@ -3402,6 +3405,10 @@ const locationDatabase = {
         }
 
         if (!firstName || !lastName1) { showRegError(form, 'Ingrese su nombre y primer apellido.'); return; }
+        if (!password || password.length < 8) { showRegError(form, 'La contraseña debe tener al menos 8 caracteres.'); return; }
+        if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+            showRegError(form, 'La contraseña debe incluir al menos una mayúscula, una minúscula y un número (ej: MiClave123).'); return;
+        }
         if (sucursalError) { showRegError(form, sucursalError); return; }
         if (phones.length === 0) { showRegError(form, 'Agregue al menos un número de teléfono.'); return; }
         if (addresses.length === 0) { showRegError(form, 'Agregue al menos una dirección.'); return; }
