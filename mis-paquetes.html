@@ -3463,13 +3463,20 @@
               } else {
                 clientInvoiceText = '<p>' + _safeDesc + '</p>';
               }
+              // FileLocation must be a path-only URL (no scheme/host) so the CRBOX
+              // admin tool can prepend https://crbox.cr without double-prefixing.
+              // clientInvoiceText still carries the full URL for the <a href> link.
+              var _filePath = (function(u) {
+                if (!u) return '';
+                try { return new URL(u).pathname; } catch (_) { return u; }
+              }(fileUrl));
               var payload = {
                 WRId:              wrId,
                 NumeroFactura:     numero.trim(),
                 Monto:             parseFloat(monto),
                 Descripcion:       desc.trim(),
                 ClientInvoiceText: clientInvoiceText,
-                FileLocation:      fileUrl
+                FileLocation:      _filePath
               };
               return CRBOXPortalAPI.createPurchaseBill(payload);
             })
