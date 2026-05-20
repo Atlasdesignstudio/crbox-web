@@ -1,0 +1,85 @@
+We are going to continue with CrBoxUser as the production RDS user for now, instead of waiting for crbox_portal_ro.
+
+Important:
+This is an approved temporary/business decision, but the strict safety rules remain. CrBoxUser must only be used for the existing read-only RDS portal paths. No writes, no schema changes, no new DB write services, and no feature flags should be enabled until the next safety gate is complete.
+
+Next action:
+Proceed with Step 5 only: logging / observability hardening for the RDS frontend paths.
+
+Do not enable any production RDS frontend flag yet.
+
+Goal:
+Before any user-facing RDS flag is enabled, add safe structured logging and fallback visibility so we can detect whether RDS is working, failing, or silently falling back to legacy.
+
+Scope:
+Implement logging / observability for these RDS read paths:
+- packages: /api/portal/my-packages
+- invoices: /api/portal/invoices-rds
+- profile: /api/portal/profile-rds
+
+Use the existing docs as reference:
+- docs/rds-observability-fallback-plan.md
+- docs/rds-frontend-logging-instrumentation-plan.md
+- docs/rds-production-validation-results.md
+- docs/rds-portal-rollout-dependency-review.md
+
+Hard safety rules:
+- Do not enable USE_RDS_PACKAGES_FRONTEND.
+- Do not enable USE_RDS_INVOICES_FRONTEND.
+- Do not enable USE_RDS_PROFILE_FRONTEND.
+- Do not run INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, or REVOKE.
+- Do not introduce any RDS write path.
+- Do not change database data.
+- Do not change DNS or deployment settings.
+- Do not expose raw PII in logs.
+- Do not log emails, tokens, passwords, credentials, ID numbers, phone numbers, addresses, tracking numbers, invoice numbers, or casillero numbers.
+- Do not log raw SQL or SQL parameters.
+- Do not log raw exception strings if they may include sensitive data.
+- Use safe categories only.
+
+Required logging fields:
+For every RDS request, log a structured safe event with:
+- module: packages / invoices / profile
+- endpoint
+- feature flag state
+- request result: success / fallback / auth_error / rds_error / feature_disabled
+- duration_ms
+- row count where applicable
+- error category only, not raw error text
+- database guard result: pass/fail
+- source: rds or fallback_legacy
+- no PII
+
+Required frontend/fallback visibility:
+Where the frontend catches RDS failures and falls back to legacy, attach a safe fallback reason:
+- feature_disabled
+- rds_error
+- auth_error
+- schema_error
+- timeout
+- unknown
+
+Do not send these events to GA4 yet unless explicitly approved. Console/debug or server logs are enough for now.
+
+Important CrBoxUser-specific requirement:
+Because CrBoxUser has broader permissions than ideal, add explicit safety comments / guardrails in code and documentation stating:
+- RDS portal paths are read-only.
+- CrBoxUser is being used by business decision temporarily.
+- No writes are allowed through these endpoints.
+- Any future write service requires separate design approval.
+
+Also update documentation:
+- Update docs/rds-production-validation-results.md or docs/rds-portal-rollout-dependency-review.md if needed.
+- Create a new doc if cleaner: docs/rds-observability-implementation-report.md
+- Document exactly what was implemented, what logs are emitted, what is intentionally not logged, and how to monitor the first production flag enablement.
+
+Before making code changes:
+Give me a short implementation plan first:
+1. Files you will modify.
+2. Functions you will touch.
+3. Exact logging fields you will add.
+4. How you will avoid PII.
+5. How you will test without enabling RDS frontend flags.
+6. Rollback plan.
+
+Do not execute until I approve that implementation plan.
