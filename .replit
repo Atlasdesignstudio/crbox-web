@@ -66,6 +66,7 @@ RDS_PORTAL_DATABASE = "CrBox"
 RDS_PORTAL_USER = "crbox_portal_ro"
 EXPECTED_RDS_DATABASE = "CrBox"
 ALLOWED_ORIGIN = "https://crbox.cr,https://www.crbox.cr,https://crbox-web.replit.app"
+USE_RDS_PACKAGES_FRONTEND = "true"
 
 [[ports]]
 localPort = 3000
