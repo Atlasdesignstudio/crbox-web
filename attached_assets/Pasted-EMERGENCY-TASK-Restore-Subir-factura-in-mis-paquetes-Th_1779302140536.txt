@@ -1,0 +1,110 @@
+EMERGENCY TASK — Restore “Subir factura” in mis-paquetes
+
+The “Subir factura” / invoice upload flow in `mis-paquetes` appears to have been damaged after the latest deploy.
+
+This is urgent because customers need to upload invoices from the package list.
+
+Goal:
+Restore the upload factura flow to the last known working behavior immediately.
+
+Important:
+Do not touch RDS flags.
+Do not enable RDS packages/invoices/profile.
+Do not change auth, login, registration, profile writes, DNS, secrets, or database schema.
+Do not redesign the UI.
+Focus only on restoring the invoice upload flow in `mis-paquetes`.
+
+Known context:
+Before this deploy, the upload factura flow was confirmed as untouched and legacy-backed:
+- `_handle_invoice_upload`
+- `_handle_proxy_save_bill`
+- `saveBill`
+- `createPurchaseBill`
+- `postcreatepurchasebill`
+
+Now it is not working after deploy, so something in the latest changes may have indirectly broken the flow.
+
+Please do the following immediately:
+
+1. Diagnose the failure
+Check:
+- `mis-paquetes.html`
+- `server.py`
+- any JS involved in upload factura / saveBill / createPurchaseBill
+- browser console errors
+- network requests when clicking “Subir factura”
+- server logs for the failed upload request
+
+Identify exactly:
+- which button/action is failing
+- which request fails
+- the status code
+- the error response
+- whether the failure is frontend, server proxy, WordPress upload, legacy API, or validation-related
+
+2. Compare against last known working behavior
+Find the previous working implementation from before the latest deploy/checkpoint.
+
+Specifically compare:
+- upload factura modal/button behavior
+- `saveBill` call
+- `/api/proxy/saveBill` or equivalent upload proxy
+- `_handle_invoice_upload`
+- `createPurchaseBill`
+- `postcreatepurchasebill`
+- payload format
+- file field name
+- WR/package identifier passed
+- auth headers/token handling
+
+3. Restore working behavior
+If the latest deploy changed anything that affects upload factura, roll back only that broken part to the last known working implementation.
+
+Do not roll back unrelated RDS observability work unless it is directly causing the upload issue.
+
+Priority:
+- Restore customer invoice upload functionality first.
+- Keep the fix minimal.
+- Avoid broad refactors.
+
+4. Validate
+After the fix, verify:
+- clicking “Subir factura” opens the expected flow/modal
+- selecting a valid PDF/image works
+- upload request is sent correctly
+- `saveBill` succeeds
+- `createPurchaseBill` / `postcreatepurchasebill` succeeds if that is part of the flow
+- the UI shows the correct success state
+- no duplicate upload is created
+- no unrelated package fields break
+- RDS flags remain OFF:
+  - `useRdsPackages: false`
+  - `useRdsInvoices: false`
+  - `useRdsProfile: false`
+
+5. Safety rules
+- Do not change database schema.
+- Do not run destructive SQL.
+- Do not modify production data manually.
+- Do not change env vars or secrets.
+- Do not enable any RDS frontend flag.
+- Do not change login/logout/session behavior.
+- Do not change registration.
+- Do not change profile writes.
+- Do not touch invoice list RDS logic unless it directly caused the upload break.
+- Do not expose tokens, credentials, PII, tracking numbers, invoice numbers, or uploaded file contents in logs or reports.
+
+6. Emergency rollback option
+If the issue cannot be fixed quickly:
+- identify the last known working checkpoint before the deploy
+- recommend the smallest safe rollback needed to restore upload factura
+- do not perform a broad rollback unless explicitly approved
+
+Report back with:
+1. Root cause.
+2. Exact file(s) changed.
+3. Exact behavior restored.
+4. Whether it was fixed or rolled back.
+5. Validation result.
+6. Confirmation that RDS flags/env vars were not changed.
+7. Confirmation that upload factura is working again.

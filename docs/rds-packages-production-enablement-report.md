@@ -303,7 +303,7 @@ The most likely cause is that the CRBOX Portal API (`clients.crbox.cr`) does not
 
 **Production is stable.** All portal users are on the legacy package path. No session-wiping behavior is active. The `USE_RDS_PACKAGES_FRONTEND` flag is `false` in production.
 
-Before re-attempting activation, `_portal_auth()` must be redesigned to use a verification mechanism that the production VM IP is permitted to call, or the auth error must be distinguished from a genuine session expiry so the fallback can engage without wiping the session.
+Before re-attempting activation, `_portal_auth_full()` must be changed to distinguish infrastructure verification failures from genuine missing-credential failures, so the fallback can engage without wiping the session. Full analysis and the recommended fix are in `docs/rds-portal-auth-fix-plan.md`.
 
 ---
 

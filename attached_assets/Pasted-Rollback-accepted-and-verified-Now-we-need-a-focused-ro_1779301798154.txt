@@ -1,0 +1,86 @@
+Rollback accepted and verified.
+
+Now we need a focused root-cause/fix plan for the RDS portal auth issue before attempting any re-enable.
+
+Do not execute changes yet.
+Do not change code yet.
+Do not change env vars.
+Do not enable any RDS frontend flags.
+Do not touch database data, DNS, secrets, upload flows, registration, profile writes, saveBill, or createPurchaseBill.
+
+Problem summary:
+When `USE_RDS_PACKAGES_FRONTEND=true`, `mis-paquetes.html` eventually calls `/api/portal/my-packages`.
+That endpoint uses `_portal_auth()` to validate the user's Bearer token by making a server-side request from the Replit production VM to `clients.crbox.cr/getuserinfo`.
+In production, that validation returned 401.
+The same user session still worked through the direct browser legacy path, so the token was valid from the browser context.
+Because the frontend treats RDS 401 as a real auth failure, it clears the session and redirects to login.
+Rollback fixed the user-facing issue.
+
+Goal:
+Design the safest fix so RDS read endpoints do not wipe the user session when server-side legacy verification fails for infrastructure/network reasons.
+
+Please produce a plan only.
+
+Analyze these options:
+
+Option A — Find/confirm a CRBOX API verification path that the production VM can call safely.
+- What endpoint could be used?
+- Does it require service credentials?
+- Does it preserve user identity?
+- Is it safe?
+- What needs testing?
+
+Option B — Change RDS auth failure classification.
+- If `_portal_auth()` cannot verify the user because the server-side legacy call fails, return a non-auth fallback-safe status instead of 401.
+- The frontend would fall back to legacy instead of clearing the session.
+- But true invalid/expired sessions should still clear the session.
+- Explain how to distinguish true auth failure vs server-side verification failure.
+
+Option C — Use service-account verification.
+- Use service credentials server-side to verify user identity/profile instead of forwarding the user's Bearer token to `clients.crbox.cr`.
+- Explain how this would work.
+- Explain security risks.
+- Explain whether it preserves proper account scoping.
+- Explain whether it can be abused.
+- Explain what safeguards are needed.
+
+Option D — Session bootstrap/cache approach.
+- Use already authenticated frontend session data or cached getuserinfo result to verify email/idConsignee.
+- Explain if this is safe or risky.
+- Explain how to prevent spoofing.
+- Explain whether this requires signed server-side session state.
+
+For each option, include:
+- security risk
+- implementation complexity
+- whether it prevents session wiping
+- whether it preserves fallback behavior
+- whether it can be tested without enabling production flags
+- whether it requires CRBOX infra/API support
+- recommended approach
+
+Hard requirements for any future fix:
+- Do not let browser send arbitrary idConsignee.
+- Do not trust client-provided email without server verification.
+- Do not expose tokens or PII in logs.
+- Do not introduce RDS writes.
+- Do not break legacy fallback.
+- True expired sessions should still redirect to login.
+- Infrastructure verification failures should fall back to legacy, not wipe the session.
+- Keep `USE_RDS_PACKAGES_FRONTEND=false` until the fix is implemented and tested.
+- Keep invoices/profile flags false.
+
+Also update or propose updates to:
+- `docs/rds-packages-production-enablement-report.md`
+- a new doc if useful: `docs/rds-portal-auth-fix-plan.md`
+
+Output:
+1. Root cause summary.
+2. Option comparison.
+3. Recommended fix.
+4. Exact files/functions likely affected.
+5. Test plan.
+6. Rollback plan.
+7. What requires approval before implementation.
+
+Do not implement yet.
