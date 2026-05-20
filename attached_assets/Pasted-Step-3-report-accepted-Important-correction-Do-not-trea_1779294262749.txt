@@ -1,0 +1,50 @@
+Step 3 report accepted.
+
+Important correction:
+Do not treat any CrBoxUser action as Step 4.
+
+Step 4 is specifically the final-architecture connectivity check with `crbox_portal_ro`. Since `crbox_portal_ro` does not exist yet, Step 4 remains blocked.
+
+Approved next action:
+Create/update documentation only.
+
+You may document the completed Step 1, Step 2, and Step 3 results in the existing docs, or create a new document in `/docs` if that is cleaner.
+
+Recommended document:
+`docs/rds-production-validation-results.md`
+
+Documentation scope:
+- Step 1A result: production frontend RDS flags confirmed OFF.
+- Step 1B result: CrBoxUser temporary DB guard returned `CrBox`.
+- Step 2 result: production schema parity Grade A.
+- Step 3 result:
+  - Packages PASS: countDelta 0, missingInRds 0, missingInLegacy 0, statusMismatches 0.
+  - Invoices PASS: countDelta 0, amountDelta 0.00, missingInRds 0, missingInLegacy 0, amountMismatch 0.
+  - Profile core fields PASS.
+  - Casillero finding: RDS has `codigoFacturacion`, legacy getuserinfo returns null for the same real production account. Classify as legacy API gap / RDS completeness difference, not RDS data error.
+- Confirm CrBoxUser was used only as a temporary read-only exception.
+- Confirm no writes, schema changes, env changes, code changes, DNS changes, or feature flag changes were made during validation.
+- Confirm production frontend RDS flags remained OFF throughout.
+- Confirm final production enablement remains blocked until `crbox_portal_ro` exists.
+- Confirm Step 4 remains blocked and must be done with `crbox_portal_ro`, not CrBoxUser.
+- Confirm logging instrumentation or written observability acceptance remains pending.
+- Confirm product/business acceptance is required before enabling the profile flag because RDS may show `codigoFacturacion` where legacy returned null.
+
+Hard limits for this documentation step:
+- Do not run any new database queries.
+- Do not run any new API calls.
+- Do not change env vars or secrets.
+- Do not enable feature flags.
+- Do not change runtime logic.
+- Do not modify `rds_client.py`.
+- Do not modify the RDS endpoints.
+- Do not include raw PII, raw emails, ID numbers, phone numbers, addresses, tracking numbers, invoice numbers, tokens, passwords, or credentials in the document.
+- Mask or omit the account email if referenced.
+- Do not document the password or Bearer token in any form.
+
+After documenting, report:
+1. Which document(s) were created or updated.
+2. A short summary of what was recorded.
+3. Confirmation that no new queries/API calls were run.
+4. Confirmation that no runtime/code/env/flag changes were made beyond documentation.
+5. Confirmation that Step 4 remains blocked on `crbox_portal_ro`.
