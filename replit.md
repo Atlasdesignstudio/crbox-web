@@ -69,7 +69,7 @@ A static HTML/CSS/JS website providing package tracking, tariff calculation, and
 ## Gotchas
 
 - **GTM Updates:** Always run `node scripts/inject-gtm.js` after changing `gtm.config.json` and before any deployment.
-- **Invoice Upload Validation:** End-to-end testing of the invoice upload flow (upload -> `postcreatepurchasebill` -> visible in CRBOX admin) is critical and not yet fully confirmed in production.
+- **Invoice Upload Validation:** End-to-end flow (upload → `postcreatepurchasebill` → visible in CRBOX admin) is fully confirmed working in production.
 - **Registration Errors:** Generic "Hubo un error..." during registration can be caused by throwaway email domains, duplicate emails, or duplicate ID numbers – check these first.
 - **Client-side Account State:** `crbox_onboarding` localStorage key controls activation UI; manage carefully to avoid UI glitches.
 - **CSS Versioning:** Remember to bump the `v=` query parameter in HTML for shared CSS files (`styles.css`, `responsive.css`, `dashboard.css`) when making changes to ensure clients receive the latest version.
