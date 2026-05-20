@@ -3,7 +3,7 @@
 **Date:** 2026-05-20  
 **Release:** Publish commit `1f5905117b9b2acc6bf71a39ef5e5fb4bb68bc97`  
 **Flag activated:** `USE_RDS_PACKAGES_FRONTEND=true` (production scope)  
-**Status: STOP — ROLLBACK RECOMMENDED**
+**Status: ROLLED BACK — `USE_RDS_PACKAGES_FRONTEND=false` effective in production as of 18:23:11 UTC**
 
 ---
 
@@ -222,3 +222,89 @@ Before attempting another activation:
 ---
 
 *Report generated: 2026-05-20 post-activation. Author: Replit Agent.*
+
+---
+
+## Rollback Record
+
+### Rollback action taken
+
+| Field | Value |
+|---|---|
+| **Rollback time** | 2026-05-20 18:23:11 UTC (production VM startup after new Publish) |
+| **Action** | `USE_RDS_PACKAGES_FRONTEND` set to `"false"` in the production environment (was `"true"` in both development and production scopes). Development scope left unchanged at `"true"`. |
+| **Publish commit** | `a2cadafd51034c50367761d9ea380e5527687cf8` |
+| **Code changes** | None — env var only |
+
+### Post-rollback `/api/config` (confirmed live)
+
+```json
+{
+  "featureFlags": {
+    "useRdsPackages": false,
+    "useRdsInvoices": false,
+    "useRdsProfile": false
+  }
+}
+```
+
+Source: `curl https://crbox.cr/api/config` immediately after new VM startup confirmed.
+
+### Post-rollback package behavior
+
+At 18:08:34 UTC (before the new Publish completed, while old VM still running) a user visited `mis-paquetes.html`. The deployment log shows:
+
+```
+18:08:34  GET /mis-paquetes.html          200
+18:08:34  GET /api/config                 200
+18:08:35  GET /api/package-groups         200
+18:08:36  POST /api/notify-miami-arrivals 200
+```
+
+No `/api/portal/my-packages` call was made — consistent with legacy path completing before the user changed a filter, or the user not changing a filter during that visit. After the rollback Publish at 18:23:11, no `/api/portal/my-packages` requests of any kind appear in production logs.
+
+### Session-wiping behavior: stopped
+
+- **Before rollback:** `/api/portal/my-packages` returned `401` at 17:53:50. `_handleAuthFailure()` wiped the session and redirected to `login.html?msg=session-expired`.
+- **After rollback:** No `/api/portal/my-packages` calls observed. The legacy `getPackages()` path is used exclusively. No 401s from this endpoint.
+- **Confirmation:** `mis-paquetes.html` continued to be served (18:08:34) and `notify-miami-arrivals` fired (18:08:36) with no intervening package endpoint failure.
+
+### Invoices / profile RDS activity
+
+No `/api/portal/my-invoices` or `/api/portal/my-profile` requests in any production log — `useRdsInvoices` and `useRdsProfile` were never activated and remain `false`. ✓
+
+### Other production errors in the rollback window (unrelated)
+
+| Time | Endpoint | Status | Note |
+|---|---|---|---|
+| 18:07:40–18:10:43 | `POST /api/invoice-email`, `POST /api/proxy/saveBill` | 500 / 502 | Invoice upload retry pattern — pre-existing, unrelated to RDS |
+| 18:12:47 | `POST /api/invoice-email` | 401 | Invoice auth rejection — pre-existing, unrelated to RDS |
+| 18:24:26, 18:17:50 | Same patterns | Same codes | Same — ongoing invoice upload retries, normal operational noise |
+
+These errors pre-date the rollback, appear before and after it, and involve completely separate endpoints. They are not introduced by or related to the `USE_RDS_PACKAGES_FRONTEND` flag change.
+
+---
+
+## Root Cause (confirmed)
+
+The RDS package endpoint failed at the **server-side auth verification layer**.
+
+The user's Bearer token was valid for direct browser-to-legacy API calls (legacy `getPackages()` at `clients.crbox.cr` succeeded). However, `_portal_auth()` in `server.py` relays the same token to `clients.crbox.cr/getuserinfo/<email>` from the **production VM's server process** — not from the user's browser. The CRBOX API returned `401` or `403` for this server-originated request.
+
+Because auth errors in `mis-paquetes.html` (line 2869) intentionally do not fall back to the legacy path, the `_handleAuthFailure()` function in `js/portal-api.js` (line 33) was invoked, which:
+1. Called `CRBOXAuth.clearToken()` — wiping the user's localStorage session
+2. Redirected the browser to `login.html?msg=session-expired`
+
+The most likely cause is that the CRBOX Portal API (`clients.crbox.cr`) does not accept Bearer token verification requests originating from cloud/datacenter IPs, or that the token is bound to the originating client IP. The dev Replit environment and the production VM have different network postures, which explains why pre-activation testing passed in dev but failed in production.
+
+---
+
+## Final Status: ROLLED BACK
+
+**Production is stable.** All portal users are on the legacy package path. No session-wiping behavior is active. The `USE_RDS_PACKAGES_FRONTEND` flag is `false` in production.
+
+Before re-attempting activation, `_portal_auth()` must be redesigned to use a verification mechanism that the production VM IP is permitted to call, or the auth error must be distinguished from a genuine session expiry so the fallback can engage without wiping the session.
+
+---
+
+*Rollback executed: 2026-05-20 18:23:11 UTC. Verified: 18:24 UTC. Author: Replit Agent.*
