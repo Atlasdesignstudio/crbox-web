@@ -14465,9 +14465,23 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def _handle_portal_my_packages(self):
         import datetime as _dt
         import decimal as _decimal
+        # ── RDS portal read-path safety ───────────────────────────────────────────
+        # This handler is READ-ONLY by design. It must never execute INSERT, UPDATE,
+        # DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, REVOKE, or any schema/data
+        # mutation. If a broad-permission DB user is temporarily used by business
+        # decision, this code path must remain strictly read-only. Any future RDS
+        # write service requires separate design review and approval.
+        # ─────────────────────────────────────────────────────────────────────────
+        _t0   = time.monotonic()
+        _dur  = lambda: round((time.monotonic() - _t0) * 1000)
+        _flag = ('enabled'
+                 if os.environ.get('USE_RDS_PACKAGES_FRONTEND', '').strip().lower() == 'true'
+                 else 'disabled')
 
         # 1. Feature flag gate — 503 treated by frontend as "use legacy instead"
-        if os.environ.get('USE_RDS_PACKAGES_FRONTEND', '').strip().lower() != 'true':
+        if _flag != 'enabled':
+            _rds_emit_log('packages', '/api/portal/my-packages', _flag,
+                          'feature_disabled', _dur(), db_guard='skip')
             self._json_error(503,
                 'RDS packages endpoint is disabled.',
                 code='feature_disabled')
@@ -14478,6 +14492,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         #    from query params or an unvalidated header.
         cas_id, verified_email = self._portal_auth_full()
         if not cas_id or not verified_email:
+            _rds_emit_log('packages', '/api/portal/my-packages', _flag,
+                          'auth_error', _dur(), db_guard='skip')
             self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
 
@@ -14552,13 +14568,15 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             active_db    = (db_row or {}).get('db', '')
             _expected_db = os.environ.get('EXPECTED_RDS_DATABASE', '').strip()
             if not _expected_db:
-                print('[MY-PACKAGES] EXPECTED_RDS_DATABASE not set — query aborted')
+                _rds_emit_log('packages', '/api/portal/my-packages', _flag,
+                              'rds_wrong_db', _dur(), db_guard='fail')
                 self._json_error(503,
                     'EXPECTED_RDS_DATABASE not set. Query aborted for safety.',
                     code='unexpected_database')
                 return
             if active_db != _expected_db:
-                print(f'[MY-PACKAGES] unexpected database: {active_db!r} (expected {_expected_db!r})')
+                _rds_emit_log('packages', '/api/portal/my-packages', _flag,
+                              'rds_wrong_db', _dur(), db_guard='fail')
                 self._json_error(503,
                     'Unexpected database active. Query aborted for safety.',
                     code='unexpected_database')
@@ -14571,6 +14589,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             )
             if not cons_row:
                 # Authenticated but no RDS record — return honest empty list
+                _rds_emit_log('packages', '/api/portal/my-packages', _flag,
+                              'success', _dur(), rows=0, db_guard='pass')
                 self._json_response(200, {
                     'ok': True, 'source': 'rds', 'count': 0, 'packages': []
                 })
@@ -14610,14 +14630,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
             rows = _rds.fetch_all(sql, tuple(params))
 
-        except _RdsWrongDatabaseError as exc:
-            print(f'[MY-PACKAGES] wrong database: {exc}')
+        except _RdsWrongDatabaseError:
+            _rds_emit_log('packages', '/api/portal/my-packages', _flag,
+                          'rds_wrong_db', _dur(), db_guard='fail')
             self._json_error(503,
                 'Unexpected database active. Query aborted for safety.',
                 code='unexpected_database')
             return
-        except Exception as exc:
-            print(f'[MY-PACKAGES] query error: {exc}')
+        except Exception:
+            _rds_emit_log('packages', '/api/portal/my-packages', _flag,
+                          'rds_error', _dur(), db_guard='pass')
             self._json_error(502, 'RDS query failed.', code='rds_error')
             return
 
@@ -14651,6 +14673,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 # None/NULL values are omitted — mapPackage handles missing fields
             packages.append(pkg)
 
+        _rds_emit_log('packages', '/api/portal/my-packages', _flag,
+                      'success', _dur(), rows=len(packages), db_guard='pass')
         self._json_response(200, {
             'ok':      True,
             'source':  'rds',
@@ -14830,9 +14854,23 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     def _handle_portal_invoices_rds(self):
         import datetime as _dt
         import decimal  as _decimal
+        # ── RDS portal read-path safety ───────────────────────────────────────────
+        # This handler is READ-ONLY by design. It must never execute INSERT, UPDATE,
+        # DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, REVOKE, or any schema/data
+        # mutation. If a broad-permission DB user is temporarily used by business
+        # decision, this code path must remain strictly read-only. Any future RDS
+        # write service requires separate design review and approval.
+        # ─────────────────────────────────────────────────────────────────────────
+        _t0   = time.monotonic()
+        _dur  = lambda: round((time.monotonic() - _t0) * 1000)
+        _flag = ('enabled'
+                 if os.environ.get('USE_RDS_INVOICES_FRONTEND', '').strip().lower() == 'true'
+                 else 'disabled')
 
         # 1. Feature flag gate — 503 treated by frontend as "use legacy instead"
-        if os.environ.get('USE_RDS_INVOICES_FRONTEND', '').strip().lower() != 'true':
+        if _flag != 'enabled':
+            _rds_emit_log('invoices', '/api/portal/invoices-rds', _flag,
+                          'feature_disabled', _dur(), db_guard='skip')
             self._json_error(503,
                 'RDS invoices endpoint is disabled.',
                 code='feature_disabled')
@@ -14841,6 +14879,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         # 2. Portal auth
         cas_id, verified_email = self._portal_auth_full()
         if not cas_id or not verified_email:
+            _rds_emit_log('invoices', '/api/portal/invoices-rds', _flag,
+                          'auth_error', _dur(), db_guard='skip')
             self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
 
@@ -14893,18 +14933,23 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                                            limit=limit, offset=offset)
             inv_rows = result['invoices']
         except _RdsEmailNotFoundError:
+            _rds_emit_log('invoices', '/api/portal/invoices-rds', _flag,
+                          'success', _dur(), rows=0, db_guard='pass',
+                          extra='recibos=ok')
             self._json_response(200, {
                 'ok': True, 'source': 'rds', 'count': 0, 'facturas': []
             })
             return
-        except _RdsWrongDatabaseError as exc:
-            print(f'[PORTAL-INVOICES-RDS] wrong database: {exc}')
+        except _RdsWrongDatabaseError:
+            _rds_emit_log('invoices', '/api/portal/invoices-rds', _flag,
+                          'rds_wrong_db', _dur(), db_guard='fail')
             self._json_error(502,
                 'RDS invoices endpoint: unexpected database.',
                 code='rds_wrong_db')
             return
-        except Exception as exc:
-            print(f'[PORTAL-INVOICES-RDS] RDS error: {exc}')
+        except Exception:
+            _rds_emit_log('invoices', '/api/portal/invoices-rds', _flag,
+                          'rds_error', _dur(), db_guard='pass')
             self._json_error(502,
                 'RDS invoices query failed.',
                 code='rds_query_failed')
@@ -14914,11 +14959,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         #    guiasHijas may contain multiple space-separated AWB tokens (12.6% of
         #    rows globally); _rds_query_invoice_recibos handles both cases.
         #    id_consignee scopes the WR query to the authenticated user only.
+        _recibos_ok = True
         try:
             recibos_map = _rds_query_invoice_recibos(
                 _rds, result['id_consignee'], inv_rows)
-        except Exception as exc:
-            print(f'[PORTAL-INVOICES-RDS] recibos batch query failed (degraded): {exc}')
+        except Exception:
+            _recibos_ok = False
             recibos_map = {}  # invoices still render; recibos column shows —
 
         # 6. Reshape each invoice into {Factura: {...}, Recibos: [...]} so that
@@ -14930,6 +14976,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             for inv in inv_rows
         ]
 
+        _rds_emit_log('invoices', '/api/portal/invoices-rds', _flag,
+                      'success', _dur(), rows=len(facturas), db_guard='pass',
+                      extra='recibos=degraded' if not _recibos_ok else 'recibos=ok')
         self._json_response(200, {
             'ok':      True,
             'source':  'rds',
@@ -14962,8 +15011,23 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
     #   addresses: [{address1, address2, city, province, addressType, isPrimary}] } }
 
     def _handle_portal_profile_rds(self):
+        # ── RDS portal read-path safety ───────────────────────────────────────────
+        # This handler is READ-ONLY by design. It must never execute INSERT, UPDATE,
+        # DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, REVOKE, or any schema/data
+        # mutation. If a broad-permission DB user is temporarily used by business
+        # decision, this code path must remain strictly read-only. Any future RDS
+        # write service requires separate design review and approval.
+        # ─────────────────────────────────────────────────────────────────────────
+        _t0   = time.monotonic()
+        _dur  = lambda: round((time.monotonic() - _t0) * 1000)
+        _flag = ('enabled'
+                 if os.environ.get('USE_RDS_PROFILE_FRONTEND', '').strip().lower() == 'true'
+                 else 'disabled')
+
         # 1. Feature flag gate — 503 is treated by frontend as "use legacy instead"
-        if os.environ.get('USE_RDS_PROFILE_FRONTEND', '').strip().lower() != 'true':
+        if _flag != 'enabled':
+            _rds_emit_log('profile', '/api/portal/profile-rds', _flag,
+                          'feature_disabled', _dur(), db_guard='skip')
             self._json_error(503,
                 'RDS profile endpoint is disabled.',
                 code='feature_disabled')
@@ -14974,6 +15038,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         #    never from query params or an unvalidated header.
         cas_id, verified_email = self._portal_auth_full()
         if not cas_id or not verified_email:
+            _rds_emit_log('profile', '/api/portal/profile-rds', _flag,
+                          'auth_error', _dur(), db_guard='skip')
             self._json_error(401, 'Autenticación requerida.', code='auth_required')
             return
 
@@ -14984,18 +15050,22 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except _RdsEmailNotFoundError:
             # Authenticated but not yet in RDS — return 503 so the frontend
             # falls back silently to the legacy getUserInfo path.
+            _rds_emit_log('profile', '/api/portal/profile-rds', _flag,
+                          'rds_not_found', _dur(), db_guard='pass')
             self._json_error(503,
                 'Profile not found in RDS. Falling back to legacy.',
                 code='rds_not_found')
             return
-        except _RdsWrongDatabaseError as exc:
-            print(f'[PORTAL-PROFILE-RDS] wrong database: {exc}')
+        except _RdsWrongDatabaseError:
+            _rds_emit_log('profile', '/api/portal/profile-rds', _flag,
+                          'rds_wrong_db', _dur(), db_guard='fail')
             self._json_error(502,
                 'Unexpected database active. Query aborted for safety.',
                 code='unexpected_database')
             return
-        except Exception as exc:
-            print(f'[PORTAL-PROFILE-RDS] RDS error: {exc}')
+        except Exception:
+            _rds_emit_log('profile', '/api/portal/profile-rds', _flag,
+                          'rds_error', _dur(), db_guard='pass')
             self._json_error(502, 'RDS profile query failed.', code='rds_error')
             return
 
@@ -15027,6 +15097,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             for a in (rds_profile.get('addresses') or [])
         ]
 
+        _rds_emit_log('profile', '/api/portal/profile-rds', _flag,
+                      'success', _dur(), rows=1, db_guard='pass')
         self._json_response(200, {
             'ok':     True,
             'source': 'rds',
@@ -15558,6 +15630,40 @@ def _status_distribution(packages, key):
         if val is not None:
             dist[str(val)] = dist.get(str(val), 0) + 1
     return dist
+
+
+def _rds_emit_log(module, endpoint, flag, result, duration_ms,
+                  rows='-', db_guard='-', extra=''):
+    """Emit one structured, PII-free observability line for an RDS read-path request.
+
+    Safe fields only.  The following are intentionally NEVER logged here:
+    email, token, password, ID number, phone number, tracking number, invoice
+    number, casillero number, SQL text, SQL parameters, raw exception strings,
+    or any other user-identifying data.
+
+    Args:
+        module      — packages / invoices / profile
+        endpoint    — the HTTP path constant (no query string, no user data)
+        flag        — enabled / disabled  (read from env var at handler entry)
+        result      — feature_disabled / auth_error / bad_request /
+                      rds_not_found / rds_wrong_db / rds_error / success
+        duration_ms — integer milliseconds from handler entry to this point
+        rows        — integer row count returned, or '-' when not reached
+        db_guard    — pass / fail / skip  (skip = flag gate fired before DB call)
+        extra       — optional short safe tag, e.g. 'recibos=degraded'
+    """
+    parts = [
+        'module='      + str(module),
+        'endpoint='    + str(endpoint),
+        'flag='        + str(flag),
+        'result='      + str(result),
+        'duration_ms=' + str(duration_ms),
+        'rows='        + str(rows),
+        'db_guard='    + str(db_guard),
+    ]
+    if extra:
+        parts.append(str(extra))
+    print('[RDS-EVENT] ' + ' '.join(parts))
 
 
 def _compute_packages_diff(rds_pkgs, legacy_pkgs):

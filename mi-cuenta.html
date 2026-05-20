@@ -1335,6 +1335,16 @@
         // directly; a redirect is already in flight from portal-api.js.
         // When _useRdsProfile is false the call chain is identical to before
         // this block was added — zero code-path difference.
+        function _classifyRdsFallback(err) {
+          if (!err) return 'unknown';
+          if (err.isAuthError)         return 'auth_error';
+          if (err._rdsStatus === 503)  return 'feature_disabled';
+          if (err._rdsStatus === 502)  return 'rds_error';
+          var msg = String(err.message || '').toLowerCase();
+          if (msg.indexOf('timeout') !== -1 || msg.indexOf('network') !== -1) return 'timeout';
+          if (msg.indexOf('schema')  !== -1 || msg.indexOf('json')    !== -1) return 'schema_error';
+          return 'unknown';
+        }
         var _useRds = _useRdsProfile; // snapshot flag at call time
         (function () {
           if (!_useRds) {
@@ -1360,10 +1370,11 @@
           return CRBOXPortalAPI.getProfileRDS()
             .catch(function (rdsErr) {
               if (rdsErr && rdsErr.isAuthError) throw rdsErr; // do not fall back
+              var _reason = _classifyRdsFallback(rdsErr);
               if (typeof console !== 'undefined') {
-                console.debug('[CRBOX] RDS profile failed, falling back to legacy:',
-                  rdsErr && rdsErr.message);
+                console.debug('[CRBOX-RDS] fallback module=profile reason=' + _reason);
               }
+              window.__crboxLastRdsFallback = { module: 'profile', reason: _reason, ts: Date.now() };
               // Fallback result also refreshes the legacy base in case the
               // parallel getUserInfo() above has not yet resolved.
               return CRBOXPortalAPI.getUserInfo().then(function (info) {

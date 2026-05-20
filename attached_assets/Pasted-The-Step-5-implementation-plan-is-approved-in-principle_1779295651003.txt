@@ -1,0 +1,44 @@
+The Step 5 implementation plan is approved in principle, but please revise two things before writing code.
+
+1. Adjust the CrBoxUser safety comment
+
+Do not write a comment that says “RDS is currently accessed via CrBoxUser” inside the production handlers, because the production runtime may still use `RDS_PORTAL_*` / `crbox_portal_ro` depending on environment configuration.
+
+Use safer wording:
+
+# RDS portal read-path safety:
+# These handlers are READ-ONLY by design.
+# They must never execute INSERT, UPDATE, DELETE, DROP, ALTER, CREATE,
+# TRUNCATE, GRANT, REVOKE, or any schema/data mutation.
+# If a broad-permission DB user such as CrBoxUser is temporarily used by
+# business decision, these code paths must remain strictly read-only.
+# Any future RDS write service requires separate design review and approval.
+
+2. Confirm log volume for feature_disabled
+
+Since production frontend RDS flags are currently OFF, the handlers may emit `feature_disabled` logs frequently. That is acceptable only if you confirm it will not create excessive noise.
+
+If possible, keep the log safe and concise. Do not add GA4 events or external beacons. Server stdout / console debug only.
+
+Approved implementation scope after those two revisions:
+- Add safe structured server logs to the three RDS read handlers.
+- Add safe frontend fallback classification.
+- Add `window.__crboxLastRdsFallback` sentinel for debugging.
+- Create `docs/rds-observability-implementation-report.md`.
+
+Hard limits remain:
+- Do not enable any production RDS frontend flag.
+- Do not change env vars or secrets.
+- Do not change DNS or deployment settings.
+- Do not introduce any RDS write path.
+- Do not run INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, or REVOKE.
+- Do not log raw PII, emails, tokens, passwords, credentials, ID numbers, phone numbers, addresses, tracking numbers, invoice numbers, casillero numbers, raw SQL, SQL parameters, or raw exception strings.
+
+After implementation, report:
+1. Files changed.
+2. Functions changed.
+3. Exact log format implemented.
+4. How PII is prevented.
+5. How you tested with production flags OFF.
+6. Confirmation that no flags/env/secrets/database data were changed.
+7. Confirmation that no RDS writes were introduced.

@@ -1114,6 +1114,16 @@
         // by the .catch() below, which preserves the session-expired behavior.
         // When _useRdsInvoices is false the call chain is identical to before
         // this block was added — zero code-path difference.
+        function _classifyRdsFallback(err) {
+          if (!err) return 'unknown';
+          if (err.isAuthError)         return 'auth_error';
+          if (err._rdsStatus === 503)  return 'feature_disabled';
+          if (err._rdsStatus === 502)  return 'rds_error';
+          var msg = String(err.message || '').toLowerCase();
+          if (msg.indexOf('timeout') !== -1 || msg.indexOf('network') !== -1) return 'timeout';
+          if (msg.indexOf('schema')  !== -1 || msg.indexOf('json')    !== -1) return 'schema_error';
+          return 'unknown';
+        }
         var _useRds = _useRdsInvoices; // snapshot flag at call time
         return (function () {
           if (!_useRds) {
@@ -1122,10 +1132,11 @@
           return CRBOXPortalAPI.getBillsRDS(startDate, endDate)
             .catch(function (rdsErr) {
               if (rdsErr && rdsErr.isAuthError) throw rdsErr; // auth — do not fall back
+              var _reason = _classifyRdsFallback(rdsErr);
               if (typeof console !== 'undefined') {
-                console.debug('[CRBOX] RDS invoices failed, falling back to legacy:',
-                  rdsErr && rdsErr.message);
+                console.debug('[CRBOX-RDS] fallback module=invoices reason=' + _reason);
               }
+              window.__crboxLastRdsFallback = { module: 'invoices', reason: _reason, ts: Date.now() };
               return CRBOXPortalAPI.getBills(email, startDate, endDate);
             });
         }())
