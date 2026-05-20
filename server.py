@@ -13336,7 +13336,19 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_error(400, 'Ingresa un correo electrónico válido.', code='validation_error')
             return
         try:
-            new_id = _store_inquiry(nombre, correo, pregunta, 'faq-como-funciona')
+            now_iso = _now_iso()
+            with _DB_LOCK:
+                conn = _get_db()
+                cur = conn.execute(
+                    'INSERT INTO general_inquiries '
+                    '(nombre, correo, telefono, asunto, mensaje, source, submitted_at, email_sent) '
+                    'VALUES (?, ?, ?, ?, ?, ?, ?, 0)',
+                    (nombre.strip(), correo.strip(), '', 'FAQ - Cómo Funciona',
+                     pregunta.strip(), 'faq-como-funciona', now_iso)
+                )
+                new_id = cur.lastrowid
+                conn.commit()
+                conn.close()
         except Exception as db_exc:
             print(f'[FAQ-PREGUNTA] DB insert failed: {db_exc}')
             self._json_error(500, 'Error al guardar la consulta.', code='server_error')
