@@ -1,0 +1,59 @@
+Step 2 is approved as passed.
+
+I accept the corrected final result as Grade A:
+- All 21 required objects exist.
+- All blocking columns used by server.py are present.
+- The consignee mismatch was a false positive caused by expected API field names instead of actual DB column names.
+- No mapping fix is needed.
+
+Approval granted for Step 3 only: Production shadow compare.
+
+You may execute Step 3 with these limits:
+
+Database user:
+- CrBoxUser temporary read-only exception
+
+Allowed endpoints only:
+- Packages: GET /api/admin/rds-shadow-compare
+- Invoices: GET /api/admin/rds-invoices-shadow-compare
+- Profile: GET /api/admin/rds-profile-shadow-compare
+
+Do not use:
+- GET /api/admin/rds-profile-shadow, because it is RDS-only and does not compare against legacy.
+
+Test account:
+- Use prueba@crbox.cr only.
+- Do not test additional accounts without separate written approval.
+
+Allowed purpose:
+- Compare RDS vs legacy API for the controlled test account.
+- Report only counts, deltas, mismatch categories, and masked/safe summaries.
+
+Hard limits:
+- All production frontend RDS flags must remain OFF.
+- Do not enable any feature flags.
+- Do not change code.
+- Do not change secrets or env vars.
+- Do not change DNS or deployment settings.
+- Do not run direct ad-hoc row-level SQL outside the approved compare endpoints.
+- Do not run INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, or REVOKE.
+- Do not output raw PII, raw tracking numbers, raw invoice numbers, tokens, credentials, passwords, phone numbers, ID numbers, or addresses.
+- If any raw PII appears in logs or response output, stop immediately and report.
+
+Before Step 3:
+- Confirm again that /api/config shows:
+  - useRdsPackages: false
+  - useRdsInvoices: false
+  - useRdsProfile: false
+- Confirm the active DB is CrBox before comparison.
+
+After Step 3, stop and report:
+1. Which endpoints were called.
+2. Which database user was used.
+3. Whether active DB was confirmed as CrBox.
+4. Whether production frontend RDS flags remained OFF.
+5. Packages result: countDelta, missingInRds, missingInLegacy, statusMismatch count.
+6. Invoices result: countDelta, amountMismatch, missingInRds, missingInLegacy, recibos mismatch if available.
+7. Profile result: field match/mismatch summary only, with no raw values.
+8. Confirmation that no writes, schema changes, env changes, code changes, or feature flag changes were made.
+9. Whether it is safe to proceed to the next gate, pending my next approval.
