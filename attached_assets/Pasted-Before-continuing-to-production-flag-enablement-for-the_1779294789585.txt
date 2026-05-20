@@ -1,0 +1,177 @@
+Before continuing to production flag enablement for the already validated RDS portal modules, I want to add a strategic discovery checkpoint.
+
+Important:
+This should not replace the current rollout plan. The current steps remain:
+- Step 4: blocked until crbox_portal_ro exists
+- Step 5: logging instrumentation or observability acceptance
+- Step 6: staged production flag enablement
+
+This new task is a planning/discovery checkpoint to help decide the safest rollout strategy before enabling production RDS flags.
+
+Do not execute anything yet.
+Do not change code, env vars, secrets, database data, DNS, deployment settings, or feature flags.
+Do not run database queries or API calls unless separately approved.
+This is a plan/report only.
+
+Context:
+We have already completed:
+- Step 1: production frontend RDS flags confirmed OFF.
+- Step 2: production schema parity passed Grade A.
+- Step 3: production RDS vs legacy comparison passed for packages and invoices.
+- Profile core fields passed, with one documented casillero/codigoFacturacion difference where RDS has the canonical value and legacy returns null.
+- Step 3B: validation results documented.
+- Step 4 remains blocked until CRBOX infra creates crbox_portal_ro.
+- CrBoxUser was used only as a temporary read-only validation exception.
+- No writes, schema changes, env changes, code changes, or feature flag changes were made.
+
+Reason for this checkpoint:
+Before enabling RDS in production for mis-paquetes, mis-facturas, and mi-cuenta, I want to understand whether any nearby portal flows still depend on legacy behavior in a way that could affect rollout. Specifically, I want to know whether we should activate the three validated modules one by one, or whether there are related flows we should understand first, such as upload factura, purchase_bill, invoice file visibility, package-invoice relationships, profile writes, registration, login/logout, and session behavior.
+
+Goal:
+Create a clear recommendation for the safest production rollout strategy:
+- Should we enable mis-paquetes first, then mis-facturas, then mi-cuenta?
+- Should any module wait until nearby flows are better understood?
+- Which remaining legacy dependencies are blockers vs non-blockers?
+- What should be documented before production flag enablement?
+- What should remain legacy for now?
+
+Scope to analyze:
+
+1. Rollout dependency review for the three validated modules
+Analyze:
+- mis-paquetes RDS read path
+- mis-facturas RDS read path
+- mi-cuenta RDS read path
+
+For each module, explain:
+- What is already validated.
+- What still depends on legacy.
+- What user-facing behavior may change.
+- What could break or look different after enabling the RDS flag.
+- Whether fallback to legacy is available.
+- Whether it is safe to enable first, second, or third.
+- Whether any adjacent flow should be checked before enabling.
+
+2. Adjacent flows that could affect rollout
+Review, from code/docs only, these related flows:
+- login / logout / session bootstrap
+- registration / afiliación
+- profile edit / postedituser
+- password change
+- newsletter preferences
+- upload factura / purchase bill
+- invoice file download / invoiceFileUrl
+- package invoice status / invoicesCount
+- package to invoice / recibos relationship
+- dashboard summary cards
+
+Important:
+Do not execute any of these flows.
+Do not upload files.
+Do not create accounts.
+Do not edit profile data.
+Do not change passwords.
+Do not call write endpoints.
+This is an impact/dependency analysis only.
+
+3. Legacy dependency classification
+Classify each flow as:
+
+A. Safe RDS read path already validated
+B. Safe to activate with legacy fallback
+C. Should remain legacy for now
+D. Requires new backend write service before modernization
+E. Needs more discovery before production activation
+
+Include:
+- mis-paquetes list
+- package detail
+- package invoice status
+- upload factura / purchase bill
+- mis-facturas list
+- invoice detail / recibos
+- invoice PDF download
+- mi-cuenta profile read
+- mi-cuenta profile edit
+- newsletter preferences
+- password change
+- login/logout/session
+- registration personal
+- registration business
+- dashboard summary
+
+4. Recommended activation sequence
+Give a specific recommendation:
+
+Option A:
+Enable only mis-paquetes first.
+
+Option B:
+Enable mis-paquetes and mis-facturas together.
+
+Option C:
+Enable all three: mis-paquetes, mis-facturas, mi-cuenta.
+
+Option D:
+Do not enable any yet; investigate adjacent flows first.
+
+For each option, explain:
+- risk level
+- benefits
+- what could go wrong
+- rollback path
+- monitoring needs
+- whether I should approve it or avoid it
+
+Then give one final recommended approach.
+
+5. Modernization implications
+Briefly explain what this means for the longer-term goal of reducing dependency on the old website / legacy API.
+
+For each area, state whether it can be modernized soon or should stay legacy:
+- auth/login
+- registration
+- profile writes
+- package reads
+- invoice reads
+- upload factura / purchase_bill
+- invoice PDF/file storage
+- dashboard summaries
+
+Do not propose replacing everything immediately. Keep the recommendation grounded in the current rollout plan.
+
+6. Safety requirements before enabling any RDS flag
+List the non-negotiables:
+- crbox_portal_ro exists and connectivity passes.
+- production frontend flags remain OFF until approved.
+- logging instrumentation is implemented or observability gap is explicitly accepted.
+- one module is enabled at a time unless there is a strong reason not to.
+- rollback is flag-off + restart.
+- no RDS writes are introduced.
+- writes remain legacy-backed unless a separate backend write service is designed and approved.
+
+7. Documentation
+Recommend whether to update existing docs or create a new doc.
+
+Suggested:
+- Update `docs/rds-production-validation-results.md`
+- Create `docs/rds-portal-rollout-dependency-review.md`
+
+Do not create or edit docs yet unless I approve.
+
+Output required:
+Provide a planning report only with:
+1. Executive summary.
+2. Recommended rollout strategy.
+3. Module-by-module risk assessment.
+4. Adjacent legacy dependency map.
+5. What should be checked before enabling each flag.
+6. What can safely remain legacy for now.
+7. What should not be migrated yet.
+8. Long-term modernization roadmap in simple phases.
+9. Recommended next step.
+
+Do not execute anything.
+Do not make changes.
+Do not run queries.
+Do not call APIs.
