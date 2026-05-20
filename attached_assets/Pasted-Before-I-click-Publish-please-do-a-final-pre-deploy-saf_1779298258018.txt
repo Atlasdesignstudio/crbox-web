@@ -1,0 +1,85 @@
+Before I click Publish, please do a final pre-deploy safety and dev sanity check.
+
+Do not change anything.
+Do not edit code.
+Do not change environment variables.
+Do not enable any additional flags.
+Do not run database writes.
+Do not upload files.
+Do not call write endpoints.
+Do not touch DNS or deployment settings.
+
+Goal:
+Confirm that the pending production Publish will only activate the RDS read path for `mis-paquetes`, and that no upload, purchase bill, invoice upload, login, logout, registration, profile write, or invoice write behavior is affected.
+
+Please verify:
+
+1. Pending production flag state
+- `USE_RDS_PACKAGES_FRONTEND=true` is set in production scope.
+- `USE_RDS_INVOICES_FRONTEND` remains unset/false in production.
+- `USE_RDS_PROFILE_FRONTEND` remains unset/false in production.
+- No shared/global RDS frontend flag is accidentally enabled.
+
+2. Current live production state before Publish
+- `/api/config` still returns:
+  - `useRdsPackages: false`
+  - `useRdsInvoices: false`
+  - `useRdsProfile: false`
+because the production process has not been redeployed yet.
+
+3. Confirm what will change after Publish
+After Publish, only this should change:
+- `mis-paquetes.html` will try the RDS packages read path first.
+- If RDS succeeds, packages render from RDS.
+- If RDS fails with a non-auth error, it falls back to legacy.
+- Auth/session behavior remains unchanged.
+
+4. Confirm what will NOT change after Publish
+Confirm that these flows remain unchanged and legacy-backed:
+- login
+- logout
+- session bootstrap
+- registration / afiliación
+- profile edits / postedituser
+- password change / recovery
+- newsletter preferences
+- upload factura
+- saveBill
+- createPurchaseBill
+- postcreatepurchasebill
+- invoice PDF/file storage
+- mis-facturas RDS flag
+- mi-cuenta RDS flag
+
+5. Dev/prototype sanity check
+In dev/prototype, where the packages RDS path can be tested, confirm:
+- `mis-paquetes.html` loads correctly with RDS enabled.
+- Package rows render correctly.
+- Filters/search/date range behavior still works.
+- No visible user-facing errors appear.
+- Server logs show safe `[RDS-EVENT] module=packages ... result=success ... db_guard=pass`.
+- No raw PII appears in logs.
+- No RDS writes exist or were introduced.
+
+6. Upload factura safety confirmation
+Specifically confirm:
+- Activating `USE_RDS_PACKAGES_FRONTEND` does not change the upload factura flow.
+- No upload endpoint was modified.
+- No call to `saveBill` was modified.
+- No call to `createPurchaseBill` or `postcreatepurchasebill` was modified.
+- No write to `purchase_bill` was introduced.
+- Upload factura remains legacy-backed.
+
+7. Rollback readiness
+Confirm rollback remains:
+- unset or set `USE_RDS_PACKAGES_FRONTEND=false`
+- Publish/redeploy again
+- verify `/api/config` returns `useRdsPackages:false`
+- confirm `mis-paquetes.html` returns to legacy path
+
+8. Final go/no-go
+Give me a short final answer:
+- GO if Publish will only activate packages RDS and everything else remains unchanged.
+- NO-GO if any other flag, code change, env change, upload behavior, write behavior, or unexpected dependency is present.
+
+After this check, stop and wait. Do not publish automatically.
