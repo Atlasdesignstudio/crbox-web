@@ -1,0 +1,122 @@
+Revision needed: allow a temporary CrBoxUser read-only validation exception.
+
+Context:
+We do not currently have the `crbox_portal_ro` production RDS user available. That is why the production validation path is blocked. For this specific moment only, I want to allow a temporary, tightly controlled use of the existing `CrBoxUser` credentials to perform read-only production validation.
+
+This does NOT replace the final architecture. `crbox_portal_ro` remains the required final production user before any broad user-facing RDS enablement.
+
+Please revise the plan as follows:
+
+1. Temporary CrBoxUser exception
+
+Allow `CrBoxUser` only as a temporary read-only validation bridge.
+
+Allowed use:
+- Confirm production schema parity.
+- Run production shadow compare.
+- Validate RDS vs legacy data.
+- Confirm mappings and safety boundaries.
+
+Forbidden use:
+- No INSERT.
+- No UPDATE.
+- No DELETE.
+- No DROP.
+- No ALTER.
+- No CREATE.
+- No TRUNCATE.
+- No GRANT.
+- No REVOKE.
+- No schema changes.
+- No data changes.
+- No user creation.
+- No production frontend RDS flag enablement.
+- No long-term production traffic.
+- No writes of any kind.
+
+2. Production flags must remain OFF
+
+During the temporary CrBoxUser validation:
+- `USE_RDS_PACKAGES_FRONTEND` must remain OFF in production.
+- `USE_RDS_INVOICES_FRONTEND` must remain OFF in production.
+- `USE_RDS_PROFILE_FRONTEND` must remain OFF in production.
+
+No user-facing portal traffic should touch RDS during this validation. This is admin/shadow validation only.
+
+3. Use Plan Mode before executing
+
+Before using CrBoxUser for anything, show me the exact execution plan and wait for approval.
+
+For each proposed action, state:
+- What will be checked.
+- Which file, endpoint, or SQL script will be used.
+- Which database user will be used.
+- Which exact type of query will run.
+- Whether the query is schema-only or row-level read.
+- What sensitive data could appear.
+- How sensitive data will be masked or avoided.
+- What the pass/fail criteria are.
+- What the stop condition is.
+
+4. First action must be flag and DB safety verification
+
+Before schema parity or shadow compare, first verify:
+
+A. Production frontend flags are OFF:
+- `USE_RDS_PACKAGES_FRONTEND`
+- `USE_RDS_INVOICES_FRONTEND`
+- `USE_RDS_PROFILE_FRONTEND`
+
+B. Active database guard:
+- Confirm the active database is exactly `CrBox`.
+- If active database is not `CrBox`, stop immediately.
+
+C. Confirm no writes will be run:
+- Only read-only checks.
+- No DML.
+- No DDL.
+- No permission/user changes.
+
+5. Schema parity rules with CrBoxUser
+
+If using CrBoxUser temporarily for schema parity:
+- Use only `SHOW COLUMNS`, `DESCRIBE`, `SHOW CREATE VIEW`, and other metadata-only reads.
+- Do not run `SELECT *`.
+- Do not query customer rows.
+- Do not output raw customer data.
+- Fill the existing schema parity checklist.
+- If any object or blocking column is missing, stop and report.
+
+6. Shadow compare rules with CrBoxUser
+
+If using CrBoxUser temporarily for shadow compare:
+- Use only approved controlled test account(s).
+- Start with `prueba@crbox.cr`.
+- Additional accounts require explicit written approval.
+- Do not paste raw PII into the report.
+- Mask emails, phone numbers, ID numbers, addresses, tracking numbers, invoice numbers, and tokens.
+- Report only counts, deltas, mismatch categories, and masked samples if absolutely necessary.
+- If any raw PII appears in logs or output, stop immediately.
+- If count deltas, missing records, amount mismatches, or unexplained status mismatches appear, stop and report.
+
+7. CrBoxUser cannot be used for production flag enablement
+
+Even if schema parity and shadow compare pass with CrBoxUser:
+- Do not enable any production RDS frontend flag using CrBoxUser as the active database user.
+- The final production enablement still requires `crbox_portal_ro` or another properly read-only database user.
+- CrBoxUser is only for temporary validation to unblock analysis.
+
+8. Required final report after temporary validation
+
+After any approved read-only validation, report:
+- What was checked.
+- Which user was used.
+- Whether the active database was confirmed as `CrBox`.
+- Whether any writes were executed. Expected: no.
+- Whether any schema changes were executed. Expected: no.
+- Whether production frontend RDS flags remained OFF. Expected: yes.
+- Whether schema parity passed.
+- Whether shadow compare passed.
+- Whether it is still blocked on creation of `crbox_portal_ro` for final production enablement.
+
+Please revise the plan with this temporary exception included, but do not execute anything yet.

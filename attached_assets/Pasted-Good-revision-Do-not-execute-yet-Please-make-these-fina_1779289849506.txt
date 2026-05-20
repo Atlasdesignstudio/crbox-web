@@ -1,0 +1,60 @@
+Good revision. Do not execute yet.
+
+Please make these final corrections before I approve Step 1.
+
+1. Fix Step 1 database user wording
+
+Step 1 currently says “Database user: Not applicable,” but it includes `SELECT DATABASE() AS db`, which does require a database connection.
+
+Please split Step 1 into:
+
+A. Production frontend flag safety check
+- Uses `/api/config`
+- No database user
+- Must confirm:
+  - useRdsPackages: false
+  - useRdsInvoices: false
+  - useRdsProfile: false
+
+B. Temporary DB connection safety check
+- Uses the temporarily approved `CrBoxUser` exception only if I explicitly approve Step 1 execution
+- Runs only:
+  - `SELECT DATABASE() AS db`
+- Expected result:
+  - `CrBox`
+- No row-level queries
+- No schema queries
+- No writes
+
+2. Move `crbox_portal_ro` creation higher in the plan
+
+Do not place creation of `crbox_portal_ro` after logging instrumentation.
+
+The correct relationship is:
+
+- Temporary CrBoxUser validation may unblock schema parity and shadow compare.
+- But final production enablement still requires `crbox_portal_ro`.
+- CRBOX infra should create `crbox_portal_ro` as soon as possible in parallel, not after Step 4.
+
+Please revise the order to:
+
+Step 1 — Safety verification with temporary CrBoxUser exception
+Step 2 — Production schema parity using temporary CrBoxUser exception
+Step 3 — Production shadow compare using temporary CrBoxUser exception
+Parallel / External Step — CRBOX infra creates `crbox_portal_ro`
+Step 4 — Re-verify connectivity using `crbox_portal_ro`
+Step 5 — Logging instrumentation or written acceptance of observability gap
+Step 6 — Staged production flag enablement, one module at a time, using `crbox_portal_ro` only
+
+3. Clarify that CrBoxUser cannot be active at enablement
+
+Please state clearly:
+Even if Steps 1–3 pass with CrBoxUser, no production user-facing RDS flag can be enabled until the active production RDS connection uses `crbox_portal_ro` or another properly read-only database user.
+
+4. Keep Step 1 approval separate
+
+After revising, stop and ask for approval for Step 1 only.
+
+Do not run Step 1 yet.
+Do not connect to production RDS yet.
+Do not run schema parity or shadow compare yet.

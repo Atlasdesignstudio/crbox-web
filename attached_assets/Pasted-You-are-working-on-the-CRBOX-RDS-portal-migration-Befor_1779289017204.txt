@@ -1,0 +1,106 @@
+You are working on the CRBOX RDS portal migration. Before doing anything, stay in Plan Mode and do not modify files, secrets, database records, feature flags, DNS, or production configuration.
+
+Main objective:
+Create a safe, read-only execution plan to validate what remains for the CRBOX RDS portal migration without damaging production data or changing user-facing behavior.
+
+Critical safety rule:
+This task is READ-ONLY unless I explicitly approve a specific write/change step after you present the plan.
+
+Absolute constraints:
+- Do not run INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, GRANT, REVOKE, or any schema-changing SQL.
+- Do not create, modify, or delete database records.
+- Do not change production data.
+- Do not enable production user-facing RDS flags.
+- Do not change DNS, Route 53, Replit deployment settings, secrets, or environment variables.
+- Do not modify code until the plan is reviewed and approved.
+- Do not use CrBoxUser for long-term production frontend traffic.
+- If CrBoxUser is considered temporarily, it may only be proposed for read-only validation with all production frontend flags OFF.
+- Do not expose raw PII in any report: no emails, ID numbers, phone numbers, addresses, tracking numbers, invoice numbers, tokens, passwords, credentials, or raw customer data.
+- Mask or omit sensitive data.
+- Use explicit column lists only. Do not use SELECT *.
+- Confirm the active database before any query.
+- Stop immediately if the active database is not the expected production database.
+- All writes remain legacy-backed. Do not propose RDS writes.
+
+Production behavior must remain unchanged:
+- USE_RDS_PACKAGES_FRONTEND must stay OFF unless explicitly approved.
+- USE_RDS_INVOICES_FRONTEND must stay OFF unless explicitly approved.
+- USE_RDS_PROFILE_FRONTEND must stay OFF unless explicitly approved.
+- Users must continue using the legacy paths until production validation passes.
+- Auth errors must not fall back silently.
+- Non-auth RDS failures must preserve legacy fallback behavior.
+
+Current context to verify, not blindly assume:
+CRBOX has RDS-backed read paths for portal modules. The goal is to eventually serve richer real-time data from RDS while preserving legacy fallback. The current known modules are:
+- mis-paquetes
+- mis-facturas
+- mi-cuenta
+
+Before planning next steps, verify the actual current state in the project:
+- Which backend RDS endpoints exist.
+- Which frontend pages are already wired.
+- Which QA documents say each module has passed.
+- Which production flags are currently scoped to production vs development.
+- Whether production still uses legacy paths.
+- Whether crbox_portal_ro exists or is still pending.
+- Whether production schema parity has been executed.
+- Whether production shadow compare has been executed.
+- Whether observability/logging hardening is still pending.
+
+Plan Mode deliverable:
+Give me a safe execution plan with these sections:
+
+1. Current verified state
+Briefly state what is already done and what is still pending. Do not rely only on memory; base it on the actual files/docs/env state available.
+
+2. Safety boundaries
+List exactly what you will not touch and what remains read-only.
+
+3. Proposed next actions
+Break the work into ordered steps. For each step, include:
+- What you will check
+- Where you will check it
+- Whether it is read-only
+- What command or endpoint category you expect to use, without exposing secrets
+- What result would mean pass/fail
+- Whether approval is required before continuing
+
+4. Database validation plan
+If crbox_portal_ro exists:
+- Propose using only crbox_portal_ro.
+- Run only schema parity and shadow compare after approval.
+If crbox_portal_ro does not exist:
+- Do not attempt to create it.
+- Report that CRBOX infra must create it with the prepared SQL.
+- If proposing temporary CrBoxUser usage, clearly mark it as a temporary exception, read-only only, with frontend flags OFF, and ask for explicit approval before any connection attempt.
+
+5. Feature flag plan
+State that no user-facing RDS production flag should be enabled until:
+- production read-only user is confirmed
+- schema parity passes
+- production shadow compare passes
+- logging/observability blockers are addressed or explicitly accepted
+- rollback plan is confirmed
+
+6. Stop conditions
+Stop and ask before proceeding if:
+- any SQL would require writes or permissions changes
+- active DB is not expected
+- a query could expose raw customer data
+- production flags need to be changed
+- code changes are needed
+- secrets/env vars need to be edited
+- results show mismatches between RDS and legacy
+
+7. Final output after plan approval
+Once approved and after read-only checks only, report:
+- What was checked
+- What passed
+- What failed
+- What remains blocked
+- Whether any writes were executed — expected answer must be no
+- Whether production user-facing flags remained off — expected answer must be yes
+- Whether it is safe to proceed to the next gate
+
+Important:
+Do not execute anything yet. First produce the plan only.
