@@ -1011,8 +1011,7 @@
                                                 <div class="form-group md:col-span-2">
                                                     <label class="block text-gray-700 font-medium mb-1.5 text-xs">Dirección detallada *</label>
                                                     <div class="relative">
-                                                        <textarea name="address_details[]" data-domicilio-required rows="2" maxlength="44" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Ej: Del semáforo, 100 m al norte, casa azul"></textarea>
-                                                        <p class="text-xs text-gray-400 mt-1">Máximo 44 caracteres. Usá señas cortas.</p>
+                                                        <textarea name="address_details[]" data-domicilio-required rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Ej: Del Árbol de Mangos, 200 m al este, casa amarilla con portón azul"></textarea>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1321,8 +1320,7 @@
                                                 </div>
                                                 <div class="form-group md:col-span-2">
                                                     <label class="block text-gray-700 font-medium mb-1.5 text-xs">Dirección detallada *</label>
-                                                    <textarea name="address_details[]" data-domicilio-required rows="2" maxlength="44" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Ej: Del semáforo, 100 m al norte, casa azul"></textarea>
-                                                    <p class="text-xs text-gray-400 mt-1">Máximo 44 caracteres. Usá señas cortas.</p>
+                                                    <textarea name="address_details[]" data-domicilio-required rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Ej: Del Árbol de Mangos, 200 m al este, casa amarilla con portón azul"></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -3179,14 +3177,15 @@ const locationDatabase = {
             if (cantIdx === '0')  { sucursalError = 'No se pudo resolver el código de cantón para "' + cantonVal + '". Contacte soporte.'; break; }
             if (distIdx === '0')  { sucursalError = 'No se pudo resolver el código de distrito para "' + districtVal + '". Contacte soporte.'; break; }
 
-            var line1 = [provinceVal.toUpperCase(), cantonVal.toUpperCase(), districtVal.toUpperCase()].filter(Boolean).join(' ');
+            var line1 = [provinceVal.toUpperCase(), cantonVal.toUpperCase(), districtVal.toUpperCase(), addrDetails].filter(Boolean).join(' ');
+            var direccionTrunc = addrDetails ? addrDetails.substring(0, 44) : '';
             var atObj = CRLocations.getAddressType(addrType);
 
             addresses.push({
-                idaddress: CRBOXAuth.PENDING.newAddressId, line1: line1, line2: addrDetails || '',
+                idaddress: CRBOXAuth.PENDING.newAddressId, line1: line1, line2: direccionTrunc,
                 city: cantonVal.toUpperCase(), zipcode: postalCode || '',
                 isactive: false, isprimary: firstAddr,
-                provincia: provCode, canton: cantIdx, distrito: distIdx, barrio: '0', direccion: addrDetails || '',
+                provincia: provCode, canton: cantIdx, distrito: distIdx, barrio: '0', direccion: direccionTrunc,
                 state: { idstate: parseInt(provCode, 10) || 0, statename: provinceVal,
                     country: { idcountry: 1, countryname: 'Costa Rica', statecountry: null, _bIsDeleted: false, _bIsChanged: true },
                     _bIsDeleted: false, _bIsChanged: true },
@@ -3364,14 +3363,15 @@ const locationDatabase = {
             }
 
             var line1 = [provinceVal.toUpperCase(), cantonVal.toUpperCase(),
-                         districtVal.toUpperCase()].filter(Boolean).join(' ');
+                         districtVal.toUpperCase(), addrDetails].filter(Boolean).join(' ');
+            var direccionTrunc = addrDetails ? addrDetails.substring(0, 44) : '';
 
             var atObj = CRLocations.getAddressType(addrType);
 
             addresses.push({
                 idaddress:  CRBOXAuth.PENDING.newAddressId,
                 line1:      line1,
-                line2:      addrDetails || '',
+                line2:      direccionTrunc,
                 city:       cantonVal.toUpperCase(),
                 zipcode:    postalCode || '',
                 isactive:   false,
@@ -3380,7 +3380,7 @@ const locationDatabase = {
                 canton:     cantIdx,
                 distrito:   distIdx,
                 barrio:     '0',
-                direccion:  addrDetails || '',
+                direccion:  direccionTrunc,
                 state: {
                     idstate:    parseInt(provCode, 10) || 0,
                     statename:  provinceVal,
