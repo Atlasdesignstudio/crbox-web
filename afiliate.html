@@ -1009,9 +1009,9 @@
                                                     <input type="text" name="neighborhood[]" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Opcional">
                                                 </div>
                                                 <div class="form-group md:col-span-2">
-                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Dirección detallada <span class="text-gray-400 font-normal">(opcional)</span></label>
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Dirección detallada *</label>
                                                     <div class="relative">
-                                                        <textarea name="address_details[]" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Calle, avenida, número de casa, señas, etc."></textarea>
+                                                        <textarea name="address_details[]" data-domicilio-required rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Calle, avenida, número de casa, señas, etc."></textarea>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1319,8 +1319,8 @@
                                                     <input type="text" name="neighborhood[]" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Opcional">
                                                 </div>
                                                 <div class="form-group md:col-span-2">
-                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Dirección detallada <span class="text-gray-400 font-normal">(opcional)</span></label>
-                                                    <textarea name="address_details[]" rows="2" maxlength="500" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Calle, avenida, número, señas, etc."></textarea>
+                                                    <label class="block text-gray-700 font-medium mb-1.5 text-xs">Dirección detallada *</label>
+                                                    <textarea name="address_details[]" data-domicilio-required rows="2" maxlength="500" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm" placeholder="Calle, avenida, número, señas, etc."></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -3177,7 +3177,7 @@ const locationDatabase = {
             if (cantIdx === '0')  { sucursalError = 'No se pudo resolver el código de cantón para "' + cantonVal + '". Contacte soporte.'; break; }
             if (distIdx === '0')  { sucursalError = 'No se pudo resolver el código de distrito para "' + districtVal + '". Contacte soporte.'; break; }
 
-            var line1 = [provinceVal, provinceVal.toUpperCase(), cantonVal.toUpperCase(), districtVal.toUpperCase(), addrDetails].filter(Boolean).join(' ');
+            var line1 = [provinceVal.toUpperCase(), cantonVal.toUpperCase(), districtVal.toUpperCase()].filter(Boolean).join(' ');
             var atObj = CRLocations.getAddressType(addrType);
 
             addresses.push({
@@ -3361,8 +3361,8 @@ const locationDatabase = {
                 break;
             }
 
-            var line1 = [provinceVal, provinceVal.toUpperCase(), cantonVal.toUpperCase(),
-                         districtVal.toUpperCase(), addrDetails].filter(Boolean).join(' ');
+            var line1 = [provinceVal.toUpperCase(), cantonVal.toUpperCase(),
+                         districtVal.toUpperCase()].filter(Boolean).join(' ');
 
             var atObj = CRLocations.getAddressType(addrType);
 
