@@ -3245,9 +3245,9 @@ def _build_response_email_html(scb_id, product_name, customer_name,
                                 quote_breakdown=None):
     esc = _html.escape
     avail_labels = {
-        'disponible': 'Disponible',
-        'no_disponible': 'No disponible',
-        'disponible_con_condiciones': 'Disponible con condiciones',
+        'disponible': 'Podemos gestionar el envío',
+        'no_disponible': 'No podemos gestionar este envío',
+        'disponible_con_condiciones': 'Requiere verificación adicional',
     }
     avail_label = avail_labels.get(availability, esc(availability))
     avail_style_map = {
@@ -3677,9 +3677,9 @@ def _send_customer_response(scb_id, customer_email, customer_name, product_name,
                               conditions, difference_explanation, customer_message,
                               smtp_user, quote_breakdown=None):
     avail_labels = {
-        'disponible': 'Disponible',
-        'no_disponible': 'No disponible',
-        'disponible_con_condiciones': 'Disponible con condiciones',
+        'disponible': 'Podemos gestionar el envío',
+        'no_disponible': 'No podemos gestionar este envío',
+        'disponible_con_condiciones': 'Requiere verificación adicional',
     }
     avail_label = avail_labels.get(availability, availability)
     greeting = f'Hola {customer_name},' if customer_name else 'Hola,'
@@ -6060,9 +6060,9 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
 
     # ── Response composer or read-only "Respuesta enviada" block ───────────
     _AVAIL_LABELS = {
-        'disponible': 'Disponible',
-        'no_disponible': 'No disponible',
-        'disponible_con_condiciones': 'Disponible con condiciones',
+        'disponible': 'Se puede enviar',
+        'no_disponible': 'No se puede enviar',
+        'disponible_con_condiciones': 'Requiere revisión',
     }
     composer_html = ''
     if resp_json_raw:
@@ -6174,28 +6174,28 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     <div class="cmp-step">
       <div class="cmp-step-num">1</div>
       <div class="cmp-step-body">
-        <div class="cmp-step-title">Disponibilidad del producto <span class="adm-req">*</span></div>
-        <div class="cmp-avail-grid" role="radiogroup" aria-label="Disponibilidad">
+        <div class="cmp-step-title">¿Se puede gestionar el env&iacute;o? <span class="adm-req">*</span></div>
+        <div class="cmp-avail-grid" role="radiogroup" aria-label="Estado del envío">
           <label class="cmp-avail-card" data-avail="disponible" tabindex="0">
             <input type="radio" name="availability" value="disponible"
                    style="position:absolute;opacity:0;pointer-events:none;" required>
             <div class="cmp-avail-icon cmp-av-ok">&#10003;</div>
-            <div class="cmp-avail-title">Disponible</div>
-            <div class="cmp-avail-desc">Procede con cotizaci&oacute;n</div>
+            <div class="cmp-avail-title">Se puede enviar</div>
+            <div class="cmp-avail-desc">Env&iacute;o se puede gestionar</div>
           </label>
           <label class="cmp-avail-card" data-avail="disponible_con_condiciones" tabindex="0">
             <input type="radio" name="availability" value="disponible_con_condiciones"
                    style="position:absolute;opacity:0;pointer-events:none;">
             <div class="cmp-avail-icon cmp-av-warn">&#9888;</div>
-            <div class="cmp-avail-title">Con condiciones</div>
-            <div class="cmp-avail-desc">Restricciones o requisitos</div>
+            <div class="cmp-avail-title">Requiere revisi&oacute;n</div>
+            <div class="cmp-avail-desc">Hay que verificar detalles</div>
           </label>
           <label class="cmp-avail-card" data-avail="no_disponible" tabindex="0">
             <input type="radio" name="availability" value="no_disponible"
                    style="position:absolute;opacity:0;pointer-events:none;">
             <div class="cmp-avail-icon cmp-av-no">&#10005;</div>
-            <div class="cmp-avail-title">No disponible</div>
-            <div class="cmp-avail-desc">No se puede tramitar</div>
+            <div class="cmp-avail-title">No se puede enviar</div>
+            <div class="cmp-avail-desc">No aplica para este env&iacute;o</div>
           </label>
         </div>
       </div>
@@ -6471,7 +6471,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     }}
 
     /* ── Live email preview ───────────────────────────── */
-    var _AL = {{disponible: 'Disponible', no_disponible: 'No disponible', disponible_con_condiciones: 'Disponible con condiciones'}};
+    var _AL = {{disponible: 'Podemos gestionar el env\u00edo', no_disponible: 'No podemos gestionar este env\u00edo', disponible_con_condiciones: 'Requiere verificaci\u00f3n adicional'}};
     var _AC = {{disponible: '#16a34a', no_disponible: '#dc2626', disponible_con_condiciones: '#d97706'}};
     function _e(s) {{
       return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -13612,16 +13612,20 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         # ── Validate ─────────────────────────────────────────────────────
         errors = []
         confirmed_price = None
-        try:
-            confirmed_price = float(confirmed_price_str)
-            if confirmed_price <= 0:
-                errors.append('El precio de envío confirmado debe ser mayor a cero.')
-        except (ValueError, TypeError):
-            errors.append('El precio de envío confirmado no es un número válido.')
         if availability not in _VALID_AVAIL:
             errors.append('Selecciona una opción de disponibilidad válida.')
-        if not delivery_timeline:
-            errors.append('El tiempo de entrega es obligatorio.')
+        # Price and timeline are only required when the item can be processed.
+        # For no_disponible the admin must only provide the customer message.
+        _needs_pricing = availability in ('disponible', 'disponible_con_condiciones')
+        if _needs_pricing:
+            try:
+                confirmed_price = float(confirmed_price_str)
+                if confirmed_price <= 0:
+                    errors.append('El precio de envío confirmado debe ser mayor a cero.')
+            except (ValueError, TypeError):
+                errors.append('El precio de envío confirmado no es un número válido.')
+            if not delivery_timeline:
+                errors.append('El tiempo de entrega es obligatorio.')
         if not customer_message:
             errors.append('El mensaje al cliente es obligatorio.')
 

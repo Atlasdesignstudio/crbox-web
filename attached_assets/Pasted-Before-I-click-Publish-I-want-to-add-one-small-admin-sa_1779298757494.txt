@@ -1,0 +1,120 @@
+Before I click Publish, I want to add one small admin/sales panel fix to the same release.
+
+Important:
+Do not change the RDS rollout logic.
+Do not change any RDS flags.
+Do not touch `mis-paquetes` RDS activation logic.
+Do not touch invoices/profile RDS flags.
+Do not touch database schema, env vars, DNS, secrets, or deployment settings.
+
+Task:
+Fix the quote request handling in the sales/admin panel when a quoted item cannot be processed, cannot be shipped, or needs extra review.
+
+Current issue:
+When a quote item is marked as “not available” or equivalent, the UI hides fields such as final price or quote details. That part makes sense because those fields should not be required if the item cannot be processed.
+
+However, when trying to submit/send the response, the system still validates those hidden fields as required. This blocks submission even though the selected status means those fields should not be needed.
+
+Expected behavior:
+- If the item is approved / can be processed, price and required quote fields should remain required.
+- If the item needs review / confirmation, the fields needed to explain or complete the quote should remain available and validation should match that state.
+- If the item cannot be processed, hidden pricing/detail fields should NOT be required.
+- The admin should be able to send the response without filling final price fields for an item that cannot be processed.
+- The customer-facing response should clearly explain the situation instead of producing a missing-form error.
+
+Also review the wording:
+The current wording sounds too much like CRBOX is selling a product with “available / not available” inventory. CRBOX is providing a shipping, courier, and logistics service. The language should feel more service-oriented, clear, and helpful.
+
+Please improve the status labels and supporting copy.
+
+Use short internal labels for the card/status UI, but keep the meaning clear for the sales/admin team.
+
+Suggested status language:
+
+1. Positive status — the item can move forward
+
+Internal short label options:
+- “Se puede enviar”
+- “Podemos gestionarlo”
+- “Se puede cotizar”
+
+Meaning:
+The item can be handled by CRBOX and the quote can move forward. Pricing/details should be required.
+
+Customer-facing meaning:
+“Podemos gestionar el envío de este producto.”
+
+2. Middle status — the item may be possible, but needs review
+
+Internal short label options:
+- “Requiere revisión”
+- “Por confirmar”
+- “Necesita validación”
+
+Meaning:
+The item is not rejected, but CRBOX needs to verify something before confirming the final quote. This could be because of product type, dimensions, weight, category, restrictions, taxes, documentation, or missing information.
+
+Customer-facing meaning:
+“Necesitamos revisar algunos detalles antes de confirmar si podemos gestionarlo.”
+
+3. Negative status — the item cannot be processed
+
+Internal short label options:
+- “No se puede enviar”
+- “No podemos gestionarlo”
+- “No aplica para envío”
+
+Meaning:
+CRBOX cannot process or ship this item under the current conditions. Pricing fields should not be required because there is no final quote to calculate.
+
+Customer-facing meaning:
+“No podemos gestionar el envío de este producto bajo las condiciones actuales.”
+
+Please choose the final wording that best fits the existing CRBOX tone and UI space. Keep card labels short, but make tooltips/help text or customer-facing messages clearer if needed.
+
+Requirements:
+- Find the quote/admin/sales panel logic where item status controls which fields are shown.
+- Find the submit validation logic.
+- Make validation conditional based on the selected status.
+- Hidden fields must not block submission.
+- Do not make pricing optional for items that are approved/quotable.
+- Keep the current UI layout as much as possible.
+- Improve only the wording and validation logic needed for this issue.
+- Make sure the customer-facing response remains clear, friendly, and professional.
+- Do not introduce fake data or fake states.
+- Do not break existing quote flows.
+
+Please check:
+- The status selector labels.
+- The fields shown/hidden per status.
+- The validation required per status.
+- The payload sent when an item cannot be processed.
+- The customer-facing message generated for each status.
+- Any edge case where multiple quote items have different statuses.
+
+Important behavior rules:
+- Approved / “Se puede enviar”: require pricing and quote details as usual.
+- Review / “Requiere revisión”: allow the admin to include needed details, notes, or pending information.
+- Rejected / “No se puede enviar”: do not require hidden price fields; require only the explanation/message needed to tell the customer why it cannot be processed.
+- If a quote has multiple items with mixed statuses, validation should apply per item, not globally.
+
+Definition of done:
+- Admin can submit a quote response when an item is marked as not possible / cannot be processed without filling hidden price fields.
+- Approved/quotable items still require the correct price/details.
+- Middle status still allows the needed fields and messaging.
+- Status wording is more aligned with CRBOX as a courier/logistics service, not a product store.
+- No RDS flags or production env vars are changed.
+- No database schema changes.
+- No upload factura, login, registration, profile, or package RDS logic is touched.
+- Existing quote flows still work.
+
+After implementation, report:
+1. Which files were changed.
+2. What validation logic was fixed.
+3. What wording changed.
+4. The final three status labels selected.
+5. What each status means internally.
+6. How each status behaves now.
+7. Confirmation that RDS flags/env vars were not touched.
+8. Confirmation that no unrelated flows were changed.
+9. Whether it is safe to include this in the pending Publish.
