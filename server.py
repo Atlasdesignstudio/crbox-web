@@ -2100,9 +2100,132 @@ def _do_handle_ai_extract(handler):
         handler._json_response(200, result)
         return
 
-# ── SQLite / Solicitudes ──────────────────────────────────────────────────────
-_DB_PATH = 'solicitudes.db'
+# ── Database Backend ─────────────────────────────────────────────────────────
+#
+# Uses PostgreSQL (psycopg2) when DATABASE_URL is set — e.g. Replit's built-in
+# PostgreSQL.  Falls back to SQLite for local development.
+#
+# PRODUCTION NOTE: With PostgreSQL, all data persists across autoscale
+# redeployments because the database is external to the container.  SQLite is
+# recreated empty on every Publish and should ONLY be used for local dev.
+#
+_PG_DSN  = os.environ.get('DATABASE_URL', '').strip()
+_USE_PG  = bool(_PG_DSN)
+_DB_PATH = 'solicitudes.db'   # only used when _USE_PG is False
 _DB_LOCK = threading.Lock()
+
+
+# ── Compatibility wrappers ────────────────────────────────────────────────────
+#
+# Both wrappers expose:  execute(sql, params)  executemany(sql, params_list)
+#                        commit()              close()
+#
+# SQL is always written with '?' placeholders — _DBConn._pg_sql() converts
+# them to '%s' and rewrites 'INSERT OR IGNORE INTO' for PostgreSQL.
+# RealDictCursor gives PostgreSQL rows the same dict-style access as
+# sqlite3.Row, so no call-site changes are needed for row['column_name'].
+#
+
+class _PGCursorWrap:
+    """Wraps a psycopg2 RealDictCursor to match the interface expected by callers."""
+    __slots__ = ('_conn', '_cur')
+
+    def __init__(self, conn, cur):
+        self._conn = conn
+        self._cur  = cur
+
+    def fetchone(self):   return self._cur.fetchone()
+    def fetchall(self):   return self._cur.fetchall()
+
+    @property
+    def rowcount(self):   return self._cur.rowcount
+
+    @property
+    def lastrowid(self):
+        """Use PostgreSQL lastval() — valid after INSERT into a SERIAL table."""
+        try:
+            lv = self._conn.cursor()
+            lv.execute('SELECT lastval()')
+            return lv.fetchone()[0]
+        except Exception:
+            return None
+
+    def __iter__(self):   return iter(self._cur)
+
+
+class _SQLiteCursorWrap:
+    """Wraps a sqlite3 cursor to expose the same interface."""
+    __slots__ = ('_cur',)
+
+    def __init__(self, cur):
+        self._cur = cur
+
+    def fetchone(self):          return self._cur.fetchone()
+    def fetchall(self):          return self._cur.fetchall()
+    @property
+    def rowcount(self):          return self._cur.rowcount
+    @property
+    def lastrowid(self):         return self._cur.lastrowid
+    def __iter__(self):          return iter(self._cur)
+
+
+class _DBConn:
+    """Thin compatibility shim around sqlite3 (dev) and psycopg2 (production).
+
+    SQL should always use '?' placeholders.  execute() converts them to '%s'
+    automatically when the PostgreSQL backend is active, and rewrites
+    'INSERT OR IGNORE INTO' to 'INSERT INTO ... ON CONFLICT DO NOTHING'.
+
+    RealDictCursor gives PostgreSQL rows dict-style access identical to
+    sqlite3.Row, so no call-site changes are needed for row['column_name'].
+    """
+
+    def __init__(self, raw, is_pg):
+        self._raw   = raw
+        self._is_pg = is_pg
+
+    # ── SQL dialect conversion ────────────────────────────────────────────────
+    @staticmethod
+    def _pg_sql(sql):
+        """Convert SQLite-dialect SQL to PostgreSQL."""
+        is_or_ignore = bool(
+            re.search(r'\bINSERT\s+OR\s+IGNORE\s+INTO\b', sql, re.IGNORECASE)
+        )
+        sql = re.sub(
+            r'\bINSERT\s+OR\s+IGNORE\s+INTO\b', 'INSERT INTO', sql,
+            flags=re.IGNORECASE,
+        )
+        sql = sql.replace('?', '%s')
+        if is_or_ignore:
+            sql = sql.rstrip().rstrip(';') + ' ON CONFLICT DO NOTHING'
+        return sql
+
+    # ── execute / executemany ─────────────────────────────────────────────────
+    def execute(self, sql, params=None):
+        if self._is_pg:
+            import psycopg2.extras as _pgx
+            cur = self._raw.cursor(cursor_factory=_pgx.RealDictCursor)
+            cur.execute(self._pg_sql(sql), params or ())
+            return _PGCursorWrap(self._raw, cur)
+        cur = self._raw.execute(sql, params or ())
+        return _SQLiteCursorWrap(cur)
+
+    def executemany(self, sql, params_list):
+        if self._is_pg:
+            cur = self._raw.cursor()
+            cur.executemany(self._pg_sql(sql), list(params_list))
+        else:
+            self._raw.executemany(sql, params_list)
+
+    # ── transaction ───────────────────────────────────────────────────────────
+    def commit(self):
+        self._raw.commit()
+
+    def close(self):
+        try:
+            self._raw.close()
+        except Exception:
+            pass
 
 # /health caches the SMTP probe result for 60 s so monitoring pings
 # (k8s liveness, uptime checks, etc.) don't authenticate against Gmail
@@ -2145,19 +2268,184 @@ _DEV_SALES_TOKEN = 'crbox-dev-sales-token-2026'
 
 
 def _get_db():
-    """Return a thread-local SQLite connection (creates DB/tables on first use)."""
-    conn = sqlite3.connect(_DB_PATH, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    conn.execute('PRAGMA journal_mode=WAL')
-    conn.execute('PRAGMA foreign_keys=ON')
-    return conn
+    """Return a _DBConn wrapping either PostgreSQL or SQLite based on environment."""
+    if _USE_PG:
+        import psycopg2
+        raw = psycopg2.connect(_PG_DSN)
+        raw.autocommit = False
+        return _DBConn(raw, is_pg=True)
+    raw = sqlite3.connect(_DB_PATH, check_same_thread=False)
+    raw.row_factory = sqlite3.Row
+    raw.execute('PRAGMA journal_mode=WAL')
+    raw.execute('PRAGMA foreign_keys=ON')
+    return _DBConn(raw, is_pg=False)
 
 
 def _init_db():
-    """Create tables if they don't exist. Called once at startup."""
+    """Create tables if they don't exist. Dispatches to PG or SQLite path."""
+    if _USE_PG:
+        _init_db_pg()
+    else:
+        _init_db_sqlite()
+
+
+def _init_db_pg():
+    """Create / migrate PostgreSQL schema. Safe to call on every startup."""
     with _DB_LOCK:
         conn = _get_db()
-        conn.executescript('''
+
+        # ── Core tables ───────────────────────────────────────────────────────
+        # All columns are declared up-front so the PG schema never needs
+        # the incremental ALTER TABLE migrations used by SQLite.
+
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS quote_requests (
+                id                        TEXT PRIMARY KEY,
+                casillero_id              TEXT,
+                customer_email            TEXT NOT NULL,
+                customer_name             TEXT,
+                account_type              TEXT NOT NULL DEFAULT 'anonymous',
+                product_name              TEXT NOT NULL,
+                product_url               TEXT,
+                declared_value_usd        REAL NOT NULL,
+                category                  TEXT NOT NULL DEFAULT 'otros',
+                weight_kg                 REAL,
+                length_cm                 REAL,
+                width_cm                  REAL,
+                height_cm                 REAL,
+                customer_notes            TEXT,
+                service_type              TEXT NOT NULL DEFAULT 'aereo',
+                destination_zone          TEXT,
+                estimate_usd              REAL,
+                estimate_breakdown        TEXT,
+                ai_extraction_id          TEXT,
+                data_source               TEXT NOT NULL DEFAULT 'manual',
+                status                    TEXT NOT NULL DEFAULT 'enviada',
+                submitted_at              TEXT NOT NULL,
+                responded_at              TEXT,
+                completed_at              TEXT,
+                cancelled_at              TEXT,
+                expires_at                TEXT,
+                linked_package_id         TEXT,
+                ai_extraction_json        TEXT,
+                response_json             TEXT,
+                reminder_sent_at          TEXT,
+                expected_tracking_number  TEXT,
+                customer_reminder_sent_at TEXT,
+                customs_description       TEXT,
+                products                  TEXT,
+                quote_breakdown           TEXT
+            )
+        ''')
+
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS quote_status_history (
+                id               TEXT PRIMARY KEY,
+                quote_request_id TEXT NOT NULL,
+                from_status      TEXT,
+                to_status        TEXT NOT NULL,
+                changed_at       TEXT NOT NULL,
+                changed_by       TEXT NOT NULL DEFAULT 'system',
+                note             TEXT
+            )
+        ''')
+
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS consultas_generales (
+                id           SERIAL PRIMARY KEY,
+                nombre       TEXT NOT NULL,
+                correo       TEXT NOT NULL,
+                pregunta     TEXT NOT NULL,
+                source       TEXT NOT NULL,
+                submitted_at TEXT NOT NULL,
+                status       TEXT NOT NULL DEFAULT 'nueva',
+                telefono     TEXT,
+                asunto       TEXT,
+                email_sent   INTEGER NOT NULL DEFAULT 0
+            )
+        ''')
+
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS general_inquiries (
+                id           SERIAL PRIMARY KEY,
+                nombre       TEXT NOT NULL,
+                correo       TEXT NOT NULL,
+                telefono     TEXT NOT NULL DEFAULT '',
+                asunto       TEXT NOT NULL DEFAULT '',
+                mensaje      TEXT NOT NULL,
+                source       TEXT NOT NULL DEFAULT 'contacto',
+                submitted_at TEXT NOT NULL,
+                email_sent   INTEGER NOT NULL DEFAULT 0
+            )
+        ''')
+
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS package_groups (
+                pk           SERIAL PRIMARY KEY,
+                casillero_id TEXT NOT NULL,
+                id           TEXT NOT NULL,
+                group_data   TEXT NOT NULL,
+                created_at   TEXT NOT NULL,
+                updated_at   TEXT NOT NULL,
+                ack_token    TEXT,
+                UNIQUE (casillero_id, id)
+            )
+        ''')
+
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS arrival_emails_sent (
+                casillero_id    TEXT NOT NULL,
+                tracking_number TEXT NOT NULL,
+                sent_at         TEXT NOT NULL,
+                PRIMARY KEY (casillero_id, tracking_number)
+            )
+        ''')
+        conn.commit()
+
+        # ── SCB ID sequence ───────────────────────────────────────────────────
+        # Creates a PostgreSQL sequence for atomic, cross-instance SCB-XXXX
+        # generation.  On first boot we advance it to MAX(existing numeric ID)
+        # so that _generate_scb_id() never produces a duplicate.
+        conn.execute("CREATE SEQUENCE IF NOT EXISTS scb_id_seq START WITH 1 INCREMENT BY 1")
+        conn.commit()
+        row = conn.execute(
+            "SELECT COALESCE(MAX("
+            "  CASE WHEN id ~ '^SCB-[0-9]+$'"
+            "  THEN CAST(SPLIT_PART(id, '-', 2) AS INTEGER)"
+            "  ELSE 0 END"
+            "), 0) AS max_id FROM quote_requests"
+        ).fetchone()
+        max_id = int(row['max_id'])
+        if max_id > 0:
+            # setval(seq, val, is_called=true) → next nextval() returns val + 1
+            conn.execute("SELECT setval('scb_id_seq', ?, true)", (max_id,))
+            conn.commit()
+
+        # ── Backfill: products column for legacy single-product rows ──────────
+        try:
+            conn.execute("""
+                UPDATE quote_requests
+                SET products = json_build_array(json_build_object(
+                    'name',               COALESCE(product_name, 'Producto'),
+                    'category',           COALESCE(category, 'otros'),
+                    'declared_value_usd', COALESCE(declared_value_usd, 0),
+                    'url',                COALESCE(product_url, '')
+                ))::text
+                WHERE products IS NULL AND product_name IS NOT NULL
+            """)
+            conn.commit()
+        except Exception as _mig_exc:
+            print(f'[DB] PG products backfill skipped: {_mig_exc}')
+
+        conn.close()
+    print('[DB] PostgreSQL schema ready — data persists across redeployments')
+
+
+def _init_db_sqlite():
+    """Create / migrate SQLite schema (local development only)."""
+    with _DB_LOCK:
+        conn = _get_db()
+        conn._raw.executescript('''
             CREATE TABLE IF NOT EXISTS quote_requests (
                 id                  TEXT PRIMARY KEY,
                 casillero_id        TEXT,
@@ -2241,46 +2529,26 @@ def _init_db():
             );
         ''')
         conn.commit()
-        # Safe migration: add reminder_sent_at if it doesn't exist yet.
-        # executescript() auto-commits, so ALTER TABLE runs in its own transaction.
+        # Incremental column migrations (safe ALTER TABLE IF NOT EXISTS equivalent)
         existing_cols = [row[1] for row in
-                         conn.execute('PRAGMA table_info(quote_requests)').fetchall()]
-        if 'reminder_sent_at' not in existing_cols:
-            conn.execute('ALTER TABLE quote_requests ADD COLUMN reminder_sent_at TEXT')
-            conn.commit()
-            print('[SOLICITUDES] Added reminder_sent_at column to quote_requests')
-        if 'ai_extraction_json' not in existing_cols:
-            conn.execute('ALTER TABLE quote_requests ADD COLUMN ai_extraction_json TEXT')
-            conn.commit()
-            print('[SOLICITUDES] Added ai_extraction_json column to quote_requests')
-        if 'response_json' not in existing_cols:
-            conn.execute('ALTER TABLE quote_requests ADD COLUMN response_json TEXT')
-            conn.commit()
-            print('[SOLICITUDES] Added response_json column to quote_requests')
-        if 'expected_tracking_number' not in existing_cols:
-            conn.execute('ALTER TABLE quote_requests ADD COLUMN expected_tracking_number TEXT')
-            conn.commit()
-            print('[SOLICITUDES] Added expected_tracking_number column to quote_requests')
-        if 'customer_reminder_sent_at' not in existing_cols:
-            conn.execute('ALTER TABLE quote_requests ADD COLUMN customer_reminder_sent_at TEXT')
-            conn.commit()
-            print('[SOLICITUDES] Added customer_reminder_sent_at column to quote_requests')
-        if 'customs_description' not in existing_cols:
-            conn.execute('ALTER TABLE quote_requests ADD COLUMN customs_description TEXT')
-            conn.commit()
-            print('[SOLICITUDES] Added customs_description column to quote_requests')
-        if 'products' not in existing_cols:
-            conn.execute('ALTER TABLE quote_requests ADD COLUMN products TEXT')
-            conn.commit()
-            print('[SOLICITUDES] Added products column to quote_requests')
-        if 'quote_breakdown' not in existing_cols:
-            conn.execute('ALTER TABLE quote_requests ADD COLUMN quote_breakdown TEXT')
-            conn.commit()
-            print('[SOLICITUDES] Added quote_breakdown column to quote_requests')
-        # Backfill legacy single-product rows: wrap columns into products[] JSON so
-        # multi-product code paths always have a usable products list.
+                         conn._raw.execute('PRAGMA table_info(quote_requests)').fetchall()]
+        for col, defn in [
+            ('reminder_sent_at',          'TEXT'),
+            ('ai_extraction_json',        'TEXT'),
+            ('response_json',             'TEXT'),
+            ('expected_tracking_number',  'TEXT'),
+            ('customer_reminder_sent_at', 'TEXT'),
+            ('customs_description',       'TEXT'),
+            ('products',                  'TEXT'),
+            ('quote_breakdown',           'TEXT'),
+        ]:
+            if col not in existing_cols:
+                conn._raw.execute(f'ALTER TABLE quote_requests ADD COLUMN {col} {defn}')
+                conn.commit()
+                print(f'[SOLICITUDES] Added {col} column to quote_requests')
+        # Backfill products column for legacy single-product rows
         try:
-            conn.execute("""
+            conn._raw.execute("""
                 UPDATE quote_requests
                 SET products = json_array(json_object(
                     'name', COALESCE(product_name, 'Producto'),
@@ -2291,34 +2559,26 @@ def _init_db():
                 WHERE products IS NULL AND product_name IS NOT NULL
             """)
             conn.commit()
-            print('[SOLICITUDES] Backfilled products column for legacy single-product rows')
         except Exception as _mig_exc:
             print(f'[SOLICITUDES] Products backfill skipped: {_mig_exc}')
-        # Legacy migration: extend consultas_generales (FAQ path) with extra columns.
-        # New general contact intake now uses the separate general_inquiries table.
+        # consultas_generales column migrations
         cg_cols = [row[1] for row in
-                   conn.execute('PRAGMA table_info(consultas_generales)').fetchall()]
-        if 'telefono' not in cg_cols:
-            conn.execute('ALTER TABLE consultas_generales ADD COLUMN telefono TEXT')
-            conn.commit()
-            print('[CONSULTAS] Added telefono column to consultas_generales')
-        if 'asunto' not in cg_cols:
-            conn.execute('ALTER TABLE consultas_generales ADD COLUMN asunto TEXT')
-            conn.commit()
-            print('[CONSULTAS] Added asunto column to consultas_generales')
-        if 'email_sent' not in cg_cols:
-            conn.execute('ALTER TABLE consultas_generales ADD COLUMN email_sent INTEGER NOT NULL DEFAULT 0')
-            conn.commit()
-            print('[CONSULTAS] Added email_sent column to consultas_generales')
-        # Migrate package_groups: if the old schema (TEXT PRIMARY KEY on id, no pk column)
-        # is detected, drop and recreate so that ownership is correctly keyed to
-        # (casillero_id, id). This is safe because the feature was only just introduced
-        # and there is no existing user data to preserve.
+                   conn._raw.execute('PRAGMA table_info(consultas_generales)').fetchall()]
+        for col, defn in [
+            ('telefono',   'TEXT'),
+            ('asunto',     'TEXT'),
+            ('email_sent', 'INTEGER NOT NULL DEFAULT 0'),
+        ]:
+            if col not in cg_cols:
+                conn._raw.execute(f'ALTER TABLE consultas_generales ADD COLUMN {col} {defn}')
+                conn.commit()
+                print(f'[CONSULTAS] Added {col} column to consultas_generales')
+        # package_groups schema migration (old schema had no pk column)
         pg_cols = [row[1] for row in
-                   conn.execute('PRAGMA table_info(package_groups)').fetchall()]
+                   conn._raw.execute('PRAGMA table_info(package_groups)').fetchall()]
         if pg_cols and 'pk' not in pg_cols:
-            conn.execute('DROP TABLE package_groups')
-            conn.execute('''
+            conn._raw.execute('DROP TABLE package_groups')
+            conn._raw.execute('''
                 CREATE TABLE package_groups (
                     pk           INTEGER PRIMARY KEY AUTOINCREMENT,
                     casillero_id TEXT NOT NULL,
@@ -2331,19 +2591,17 @@ def _init_db():
             ''')
             conn.commit()
             print('[PACKAGE_GROUPS] Recreated table with per-user ownership schema')
-        # Safe migration: add ack_token column if it doesn't exist yet.
         pg_cols2 = [row[1] for row in
-                    conn.execute('PRAGMA table_info(package_groups)').fetchall()]
+                    conn._raw.execute('PRAGMA table_info(package_groups)').fetchall()]
         if 'ack_token' not in pg_cols2:
-            conn.execute('ALTER TABLE package_groups ADD COLUMN ack_token TEXT')
+            conn._raw.execute('ALTER TABLE package_groups ADD COLUMN ack_token TEXT')
             conn.commit()
             print('[PACKAGE_GROUPS] Added ack_token column to package_groups')
-        # Ensure arrival_emails_sent table exists (safe for existing DBs that
-        # were initialised before this table was added to the CREATE script).
+        # Ensure arrival_emails_sent exists in older DBs
         aes_tables = [row[0] for row in
-                      conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+                      conn._raw.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
         if 'arrival_emails_sent' not in aes_tables:
-            conn.execute('''
+            conn._raw.execute('''
                 CREATE TABLE arrival_emails_sent (
                     casillero_id    TEXT NOT NULL,
                     tracking_number TEXT NOT NULL,
@@ -2354,7 +2612,7 @@ def _init_db():
             conn.commit()
             print('[ARRIVALS] Created arrival_emails_sent table')
         conn.close()
-    print('[SOLICITUDES] SQLite schema initialised OK')
+    print('[DB] SQLite schema ready (local dev — data is NOT persisted on redeploy)')
 
 
 def _backfill_portal_response_visible():
@@ -2539,11 +2797,21 @@ def _build_miami_arrival_email_html(tracking_number, carrier_name, cta_url):
 
 
 def _generate_scb_id():
-    """Generate the next SCB-XXXX ID using MAX(rowid) to avoid race-condition duplicates."""
+    """Generate the next SCB-XXXX ID.
+
+    PostgreSQL: uses a server-side sequence (atomic across all autoscale instances).
+    SQLite: uses MAX(rowid)+1 (safe within a single process via _DB_LOCK).
+    """
     with _DB_LOCK:
         conn = _get_db()
-        row = conn.execute('SELECT COALESCE(MAX(rowid), 0) FROM quote_requests').fetchone()
-        count = row[0] + 1
+        if _USE_PG:
+            row = conn.execute("SELECT nextval('scb_id_seq') AS n").fetchone()
+            count = int(row['n'])
+        else:
+            row = conn.execute(
+                'SELECT COALESCE(MAX(rowid), 0) AS n FROM quote_requests'
+            ).fetchone()
+            count = row['n'] + 1
         conn.close()
     if count < 10000:
         return f'SCB-{count:04d}'
@@ -9570,6 +9838,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_admin_solicitudes_get()
             elif path_no_qs == '/admin/consultas':
                 self._handle_admin_consultas_get()
+            elif path_no_qs == '/admin/db-status':
+                self._handle_admin_db_status()
             elif path_no_qs == '/admin/logout':
                 self._handle_admin_logout()
             else:
@@ -9761,7 +10031,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             self._json_error(413, 'Payload too large', code='payload_too_large')
             return
 
-        if self.path == '/admin/login':
+        if self.path == '/admin/migrate-sqlite-to-pg':
+            self._handle_admin_migrate_sqlite_to_pg()
+        elif self.path == '/admin/login':
             self._handle_admin_login_post()
         elif self.path == '/crbox-svc-token':
             self._handle_svc_token()
@@ -14182,6 +14454,338 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             f'/admin/solicitudes?filter={filter_val}&deleted=1'
         )
 
+    # ── GET /admin/db-status ──────────────────────────────────────────────────
+    def _handle_admin_db_status(self):
+        """Show which database backend is active plus row counts for every table."""
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._admin_redirect('/admin/login?msg=expired'); return
+
+        backend = 'PostgreSQL' if _USE_PG else 'SQLite (local dev)'
+        dsn_hint = ''
+        if _USE_PG:
+            import urllib.parse as _urlparse
+            try:
+                _u = _urlparse.urlparse(_PG_DSN)
+                dsn_hint = f'{_u.host}:{_u.port}/{_u.path.lstrip("/")}'
+            except Exception:
+                dsn_hint = '(connected)'
+
+        tables = [
+            'quote_requests', 'quote_status_history',
+            'consultas_generales', 'general_inquiries',
+            'package_groups', 'arrival_emails_sent',
+        ]
+        counts = {}
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                for tbl in tables:
+                    row = conn.execute(f'SELECT COUNT(*) AS n FROM {tbl}').fetchone()
+                    counts[tbl] = row['n'] if row else '?'
+                conn.close()
+        except Exception as exc:
+            counts = {t: f'error: {exc}' for t in tables}
+
+        esc = _html.escape
+        rows_html = ''.join(
+            f'<tr><td style="padding:8px 12px;font-family:monospace;">{esc(t)}</td>'
+            f'<td style="padding:8px 12px;text-align:right;">{counts.get(t, "?")}</td></tr>'
+            for t in tables
+        )
+        sqlite_section = ''
+        if _USE_PG and os.path.exists('solicitudes.db'):
+            sqlite_section = (
+                '<div style="margin-top:24px;padding:16px 20px;background:#fef3c7;'
+                'border-left:4px solid #f59e0b;border-radius:6px;">'
+                '<strong>Local solicitudes.db found.</strong> You can migrate its data to '
+                'PostgreSQL using the button below.<br><br>'
+                '<form method="POST" action="/admin/migrate-sqlite-to-pg" '
+                'onsubmit="return confirm(\'Migrate all SQLite data to PostgreSQL? '
+                'This is safe to run multiple times — existing rows are never duplicated.\');">'
+                '<button type="submit" style="background:#f59e0b;color:#fff;border:none;'
+                'padding:10px 20px;border-radius:6px;cursor:pointer;font-size:14px;">'
+                'Migrate SQLite → PostgreSQL</button>'
+                '</form></div>'
+            )
+        elif not _USE_PG:
+            sqlite_section = (
+                '<div style="margin-top:24px;padding:16px 20px;background:#fee2e2;'
+                'border-left:4px solid #ef4444;border-radius:6px;">'
+                '<strong>Warning:</strong> Running on SQLite. Data will be lost on every '
+                'redeploy. Set the <code>DATABASE_URL</code> environment variable to '
+                'switch to PostgreSQL.'
+                '</div>'
+            )
+
+        html = (
+            '<div style="font-family:sans-serif;padding:40px 24px;max-width:700px;margin:0 auto;">'
+            f'<h1 style="color:#1f2937;margin-bottom:4px;">Database Status</h1>'
+            f'<p style="color:#6b7280;margin-bottom:24px;">Backend: '
+            f'<strong style="color:{"#059669" if _USE_PG else "#dc2626"};">{esc(backend)}</strong>'
+            + (f' &mdash; <code style="font-size:12px;">{esc(dsn_hint)}</code>' if dsn_hint else '')
+            + '</p>'
+            '<table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:8px;">'
+            '<thead><tr style="background:#f9fafb;">'
+            '<th style="padding:10px 12px;text-align:left;color:#374151;">Table</th>'
+            '<th style="padding:10px 12px;text-align:right;color:#374151;">Rows</th>'
+            '</tr></thead>'
+            f'<tbody>{rows_html}</tbody>'
+            '</table>'
+            + sqlite_section +
+            '<p style="margin-top:24px;"><a href="/admin/dashboard" '
+            'style="color:#7c3aed;">&larr; Back to dashboard</a></p>'
+            '</div>'
+        )
+        self._admin_html_response(html)
+
+    # ── POST /admin/migrate-sqlite-to-pg ──────────────────────────────────────
+    def _handle_admin_migrate_sqlite_to_pg(self):
+        """One-time migration: copy all SQLite rows into PostgreSQL.
+
+        Idempotent — existing rows are never duplicated (ON CONFLICT DO NOTHING).
+        Requires a valid admin session and an active PostgreSQL backend.
+        """
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._admin_redirect('/admin/login?msg=expired'); return
+
+        if not _USE_PG:
+            self._admin_html_response(
+                '<div style="font-family:sans-serif;padding:40px;">'
+                '<h2 style="color:#dc2626;">PostgreSQL is not active</h2>'
+                '<p>Set the DATABASE_URL environment variable first.</p>'
+                '<a href="/admin/db-status" style="color:#7c3aed;">&larr; Back</a>'
+                '</div>',
+                status=409,
+            )
+            return
+
+        if not os.path.exists('solicitudes.db'):
+            self._admin_html_response(
+                '<div style="font-family:sans-serif;padding:40px;">'
+                '<h2 style="color:#374151;">No SQLite database found</h2>'
+                '<p>solicitudes.db does not exist in this environment — nothing to migrate.</p>'
+                '<a href="/admin/db-status" style="color:#7c3aed;">&larr; Back</a>'
+                '</div>',
+                status=200,
+            )
+            return
+
+        results = {}
+        errors  = []
+        try:
+            import sqlite3 as _sq3
+            sq = _sq3.connect('solicitudes.db', check_same_thread=False)
+            sq.row_factory = _sq3.Row
+
+            with _DB_LOCK:
+                pg_conn = _get_db()
+
+                # quote_requests
+                try:
+                    rows = sq.execute('SELECT * FROM quote_requests').fetchall()
+                    n = 0
+                    for r in rows:
+                        d = dict(r)
+                        pg_conn.execute(
+                            'INSERT INTO quote_requests '
+                            '(id,casillero_id,customer_email,customer_name,account_type,'
+                            'product_name,product_url,declared_value_usd,category,'
+                            'weight_kg,length_cm,width_cm,height_cm,customer_notes,'
+                            'service_type,destination_zone,estimate_usd,estimate_breakdown,'
+                            'ai_extraction_id,data_source,status,submitted_at,responded_at,'
+                            'completed_at,cancelled_at,expires_at,linked_package_id,'
+                            'ai_extraction_json,response_json,reminder_sent_at,'
+                            'expected_tracking_number,customer_reminder_sent_at,'
+                            'customs_description,products,quote_breakdown) '
+                            'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) '
+                            'ON CONFLICT (id) DO NOTHING',
+                            (
+                                d.get('id'), d.get('casillero_id'), d.get('customer_email'),
+                                d.get('customer_name'), d.get('account_type'), d.get('product_name'),
+                                d.get('product_url'), d.get('declared_value_usd'), d.get('category'),
+                                d.get('weight_kg'), d.get('length_cm'), d.get('width_cm'),
+                                d.get('height_cm'), d.get('customer_notes'), d.get('service_type'),
+                                d.get('destination_zone'), d.get('estimate_usd'),
+                                d.get('estimate_breakdown'), d.get('ai_extraction_id'),
+                                d.get('data_source'), d.get('status'), d.get('submitted_at'),
+                                d.get('responded_at'), d.get('completed_at'), d.get('cancelled_at'),
+                                d.get('expires_at'), d.get('linked_package_id'),
+                                d.get('ai_extraction_json'), d.get('response_json'),
+                                d.get('reminder_sent_at'), d.get('expected_tracking_number'),
+                                d.get('customer_reminder_sent_at'), d.get('customs_description'),
+                                d.get('products'), d.get('quote_breakdown'),
+                            ),
+                        )
+                        n += 1
+                    pg_conn.commit()
+                    results['quote_requests'] = n
+                except Exception as exc:
+                    errors.append(f'quote_requests: {exc}')
+                    results['quote_requests'] = 'ERROR'
+
+                # quote_status_history
+                try:
+                    rows = sq.execute('SELECT * FROM quote_status_history').fetchall()
+                    n = 0
+                    for r in rows:
+                        d = dict(r)
+                        pg_conn.execute(
+                            'INSERT INTO quote_status_history '
+                            '(id,quote_request_id,from_status,to_status,changed_at,changed_by,note) '
+                            'VALUES (?,?,?,?,?,?,?) ON CONFLICT (id) DO NOTHING',
+                            (d.get('id'), d.get('quote_request_id'), d.get('from_status'),
+                             d.get('to_status'), d.get('changed_at'), d.get('changed_by'),
+                             d.get('note')),
+                        )
+                        n += 1
+                    pg_conn.commit()
+                    results['quote_status_history'] = n
+                except Exception as exc:
+                    errors.append(f'quote_status_history: {exc}')
+                    results['quote_status_history'] = 'ERROR'
+
+                # consultas_generales
+                try:
+                    rows = sq.execute('SELECT * FROM consultas_generales').fetchall()
+                    n = 0
+                    for r in rows:
+                        d = dict(r)
+                        pg_conn.execute(
+                            'INSERT INTO consultas_generales '
+                            '(nombre,correo,pregunta,source,submitted_at,status,telefono,asunto,email_sent) '
+                            'VALUES (?,?,?,?,?,?,?,?,?)',
+                            (d.get('nombre'), d.get('correo'), d.get('pregunta'),
+                             d.get('source'), d.get('submitted_at'), d.get('status') or 'nueva',
+                             d.get('telefono'), d.get('asunto'), d.get('email_sent') or 0),
+                        )
+                        n += 1
+                    pg_conn.commit()
+                    results['consultas_generales'] = n
+                except Exception as exc:
+                    errors.append(f'consultas_generales: {exc}')
+                    results['consultas_generales'] = 'ERROR'
+
+                # general_inquiries
+                try:
+                    rows = sq.execute('SELECT * FROM general_inquiries').fetchall()
+                    n = 0
+                    for r in rows:
+                        d = dict(r)
+                        pg_conn.execute(
+                            'INSERT INTO general_inquiries '
+                            '(nombre,correo,telefono,asunto,mensaje,source,submitted_at,email_sent) '
+                            'VALUES (?,?,?,?,?,?,?,?)',
+                            (d.get('nombre'), d.get('correo'), d.get('telefono') or '',
+                             d.get('asunto') or '', d.get('mensaje'), d.get('source') or 'contacto',
+                             d.get('submitted_at'), d.get('email_sent') or 0),
+                        )
+                        n += 1
+                    pg_conn.commit()
+                    results['general_inquiries'] = n
+                except Exception as exc:
+                    errors.append(f'general_inquiries: {exc}')
+                    results['general_inquiries'] = 'ERROR'
+
+                # package_groups
+                try:
+                    rows = sq.execute('SELECT * FROM package_groups').fetchall()
+                    n = 0
+                    for r in rows:
+                        d = dict(r)
+                        pg_conn.execute(
+                            'INSERT INTO package_groups '
+                            '(casillero_id,id,group_data,created_at,updated_at,ack_token) '
+                            'VALUES (?,?,?,?,?,?) ON CONFLICT (casillero_id,id) DO NOTHING',
+                            (d.get('casillero_id'), d.get('id'), d.get('group_data'),
+                             d.get('created_at'), d.get('updated_at'), d.get('ack_token')),
+                        )
+                        n += 1
+                    pg_conn.commit()
+                    results['package_groups'] = n
+                except Exception as exc:
+                    errors.append(f'package_groups: {exc}')
+                    results['package_groups'] = 'ERROR'
+
+                # arrival_emails_sent
+                try:
+                    rows = sq.execute('SELECT * FROM arrival_emails_sent').fetchall()
+                    n = 0
+                    for r in rows:
+                        d = dict(r)
+                        pg_conn.execute(
+                            'INSERT OR IGNORE INTO arrival_emails_sent '
+                            '(casillero_id,tracking_number,sent_at) VALUES (?,?,?)',
+                            (d.get('casillero_id'), d.get('tracking_number'), d.get('sent_at')),
+                        )
+                        n += 1
+                    pg_conn.commit()
+                    results['arrival_emails_sent'] = n
+                except Exception as exc:
+                    errors.append(f'arrival_emails_sent: {exc}')
+                    results['arrival_emails_sent'] = 'ERROR'
+
+                # Re-sync scb_id_seq to highest migrated ID
+                try:
+                    row = pg_conn.execute(
+                        "SELECT COALESCE(MAX("
+                        "  CASE WHEN id ~ '^SCB-[0-9]+$'"
+                        "  THEN CAST(SPLIT_PART(id, '-', 2) AS INTEGER)"
+                        "  ELSE 0 END"
+                        "), 0) AS max_id FROM quote_requests"
+                    ).fetchone()
+                    max_id = int(row['max_id'])
+                    if max_id > 0:
+                        pg_conn.execute("SELECT setval('scb_id_seq', ?, true)", (max_id,))
+                        pg_conn.commit()
+                except Exception as exc:
+                    errors.append(f'sequence sync: {exc}')
+
+                pg_conn.close()
+            sq.close()
+        except Exception as exc:
+            errors.append(f'Fatal: {exc}')
+
+        esc = _html.escape
+        rows_html = ''.join(
+            f'<tr><td style="padding:8px 12px;font-family:monospace;">{esc(t)}</td>'
+            f'<td style="padding:8px 12px;text-align:right;">{results.get(t, "-")}</td></tr>'
+            for t in ['quote_requests', 'quote_status_history', 'consultas_generales',
+                      'general_inquiries', 'package_groups', 'arrival_emails_sent']
+        )
+        err_html = ''
+        if errors:
+            err_html = (
+                '<div style="margin-top:16px;padding:16px;background:#fee2e2;'
+                'border-left:4px solid #ef4444;border-radius:6px;">'
+                '<strong>Errors:</strong><ul style="margin:8px 0;">'
+                + ''.join(f'<li><code>{esc(e)}</code></li>' for e in errors)
+                + '</ul></div>'
+            )
+        html = (
+            '<div style="font-family:sans-serif;padding:40px 24px;max-width:700px;margin:0 auto;">'
+            '<h1 style="color:#1f2937;">Migration complete</h1>'
+            '<p style="color:#6b7280;">Rows processed from SQLite → PostgreSQL '
+            '(existing rows were skipped):</p>'
+            '<table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;">'
+            '<thead><tr style="background:#f9fafb;">'
+            '<th style="padding:10px 12px;text-align:left;">Table</th>'
+            '<th style="padding:10px 12px;text-align:right;">Processed</th>'
+            '</tr></thead>'
+            f'<tbody>{rows_html}</tbody>'
+            '</table>'
+            + err_html +
+            '<p style="margin-top:24px;">'
+            '<a href="/admin/db-status" style="color:#7c3aed;">&larr; Back to DB status</a>'
+            '</p></div>'
+        )
+        self._admin_html_response(html)
+
     # ── Admin-only RDS diagnostic endpoints ───────────────────────────────────
     #
     # All four endpoints share the same gate:
@@ -16886,11 +17490,17 @@ def _group_cleanup_loop():
             )
             with _DB_LOCK:
                 conn = _get_db()
+                if _USE_PG:
+                    status_filter = (
+                        "group_data::json->>'status' IN ('closed', 'confirmation_sent')"
+                    )
+                else:
+                    status_filter = (
+                        "json_extract(group_data, '$.status') "
+                        "IN ('closed', 'confirmation_sent')"
+                    )
                 cursor = conn.execute(
-                    "DELETE FROM package_groups "
-                    "WHERE json_extract(group_data, '$.status') "
-                    "      IN ('closed', 'confirmation_sent') "
-                    "  AND updated_at < ?",
+                    f"DELETE FROM package_groups WHERE {status_filter} AND updated_at < ?",
                     (cutoff,)
                 )
                 removed = cursor.rowcount

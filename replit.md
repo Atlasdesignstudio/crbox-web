@@ -24,7 +24,7 @@ A static HTML/CSS/JS website providing package tracking, tariff calculation, and
 
 - **Frontend:** HTML5, CSS3, JavaScript (ES6+)
 - **Backend:** Python 3 (Flask for API endpoints and static serving)
-- **Database:** SQLite (for admin features, e.g., `solicitudes`, `package_groups`)
+- **Database:** PostgreSQL via Replit's built-in DB (production) / SQLite fallback (local dev only)
 - **AI Integration:** Google Gemini API
 - **Build Tool:** None (static files, some JS scripts for pre-processing)
 
@@ -47,6 +47,7 @@ A static HTML/CSS/JS website providing package tracking, tariff calculation, and
 - **Server-Side Proxy for Sensitive Operations:** `server.py` acts as a proxy for operations requiring CRBOX service account credentials (e.g., registration) or bypassing CORS/origin restrictions (e.g., invoice uploads to WordPress).
 - **Decoupled Calculator Logic:** `js/calculator-engine.js` is pure calculation, `js/tariff-adapter.js` handles data fetching, allowing flexible data sources (estimated, official, user override) without touching core math.
 - **UI-Driven Activation Flow:** Non-dismissable activation card and checklist on the dashboard, combined with deep-linking to `mi-cuenta.html`, guides new users to complete their profile.
+- **Dual-Backend Database Layer:** `server.py` detects `DATABASE_URL` at startup. When set (production / Replit autoscale), it uses psycopg2 + PostgreSQL so all solicitudes, consultas, package groups and arrival-email dedup data survive every redeployment. When unset (local dev), it falls back to SQLite (`solicitudes.db`). The `_DBConn` wrapper transparently converts `?` placeholders to `%s`, rewrites `INSERT OR IGNORE` to `ON CONFLICT DO NOTHING`, and wraps rows with dict-style access — no call-site changes were needed across ~40 DB call sites. SCB-XXXX IDs use a PostgreSQL sequence (`scb_id_seq`) for atomicity across multiple autoscale instances.
 
 ## Product
 
@@ -75,6 +76,8 @@ A static HTML/CSS/JS website providing package tracking, tariff calculation, and
 - **Client-side Account State:** `crbox_onboarding` localStorage key controls activation UI; manage carefully to avoid UI glitches.
 - **CSS Versioning:** Remember to bump the `v=` query parameter in HTML for shared CSS files (`styles.css`, `responsive.css`, `dashboard.css`) when making changes to ensure clients receive the latest version.
 - **AI Extraction Confidence:** Fields with confidence below 0.80 or marked `needs_confirmation` in AI extraction require manual review (highlighted in admin).
+- **Database backend is auto-detected at startup:** If `DATABASE_URL` is set (always the case in production), the server uses PostgreSQL — data persists across redeployments. If it is absent (local dev without Replit secrets), it falls back to SQLite and data is ephemeral. Never hard-code SQLite-specific SQL (e.g. `json_extract`, `AUTOINCREMENT`, `sqlite_master`) outside the `_init_db_sqlite()` path. Use `_USE_PG` to branch when PG and SQLite need different SQL.
+- **One-time dev→prod data migration:** If you have records in a local `solicitudes.db` that you want to preserve in PostgreSQL, log in to the admin panel and visit `/admin/db-status`. If the file is present, a "Migrate SQLite → PostgreSQL" button appears; it copies all rows idempotently (duplicates are skipped with ON CONFLICT DO NOTHING).
 
 ## Pointers
 
