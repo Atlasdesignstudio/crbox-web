@@ -753,6 +753,67 @@
     });
   }
 
+  // ─── getPurchaseBills ─────────────────────────────────────────────────────
+  // Returns the raw array of purchase bills for a given warehouseReceiptId.
+  // Each item includes: IdPurchaseBill, FileLocation, FileTextContent,
+  // NumeroFactura, Monto, Descripcion, CreatedDate.
+  function getPurchaseBills(warehouseReceiptId) {
+    var token = CRBOXAuth.getToken();
+    if (!token) {
+      var e = new Error('Sesión no iniciada.');
+      e.step = 'getPurchaseBills';
+      return Promise.reject(e);
+    }
+    return _request(
+      BASE + '/getpurchasebills/' + encodeURIComponent(String(warehouseReceiptId)),
+      { method: 'GET' }, {}
+    ).then(function (res) {
+      if (!res.ok) {
+        var err = _responseError(res, 'No se pudieron obtener las facturas (' + res.status + ').');
+        err.step = 'getPurchaseBills';
+        throw err;
+      }
+      return _parseJSON(res);
+    });
+  }
+
+  // ─── deletePurchaseBill ───────────────────────────────────────────────────
+  // Deletes the purchase bill for the given warehouseReceiptId / email pair.
+  // Uses the client-facing GET endpoint — no admin credentials required.
+  // Resolves with the raw response on StatusResult === "OK"; rejects otherwise.
+  // IMPORTANT: does NOT log warehouseReceiptId, email, or any PII.
+  function deletePurchaseBill(warehouseReceiptId, email) {
+    var token = CRBOXAuth.getToken();
+    if (!token) {
+      var e = new Error('Sesión no iniciada.');
+      e.step = 'deletePurchaseBill';
+      return Promise.reject(e);
+    }
+    return _request(
+      BASE + '/getdeletepurchasebill/' +
+        encodeURIComponent(String(warehouseReceiptId)) + '/' +
+        encodeURIComponent(String(email)),
+      { method: 'GET' }, {}
+    ).then(function (res) {
+      if (!res.ok) {
+        var err = _responseError(res, 'No se pudo eliminar la factura (' + res.status + ').');
+        err.step = 'deletePurchaseBill';
+        throw err;
+      }
+      return _parseJSON(res);
+    }).then(function (data) {
+      var sr = data && (data.StatusResult || data.statusResult || '');
+      if (sr !== 'OK') {
+        var msg = (data && (data.Message || data.message)) || 'No se pudo eliminar la factura.';
+        var err2 = new Error(msg);
+        err2.step = 'deletePurchaseBill';
+        err2.apiData = data;
+        throw err2;
+      }
+      return data;
+    });
+  }
+
   // ─── recoverPassword ──────────────────────────────────────────────────────
   // GET endpoint — no auth required.
   // Resolves {ok: true|false, message: string}; only rejects on network errors.
@@ -1038,6 +1099,8 @@
     saveBill:             saveBill,
     deleteInvoiceUpload:  deleteInvoiceUpload,
     createPurchaseBill:   createPurchaseBill,
+    getPurchaseBills:     getPurchaseBills,
+    deletePurchaseBill:   deletePurchaseBill,
     recoverPassword:      recoverPassword,
     formatDate:           formatDate,
     formatDateISO:        formatDateISO,

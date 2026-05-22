@@ -936,6 +936,39 @@
                    style="background-color:#FF6B00">
                     <i class="fas fa-external-link-alt" aria-hidden="true"></i> Abrir Factura
                 </button>
+                <!-- Delete / replace — only shown when _viewerCurrentPkg has a WR ID -->
+                <div id="invoice-viewer-manage-btns" class="hidden flex gap-2">
+                    <button id="invoice-viewer-replace" type="button"
+                       class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition-colors">
+                        <i class="fas fa-sync-alt" aria-hidden="true"></i> Reemplazar
+                    </button>
+                    <button id="invoice-viewer-delete" type="button"
+                       class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 transition-colors">
+                        <i class="fas fa-trash-alt" aria-hidden="true"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación — eliminar / reemplazar factura -->
+    <div id="invoice-confirm-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="invoice-confirm-title">
+        <div class="bg-white rounded-xl shadow-2xl w-full mx-4" style="max-width:22rem">
+            <div class="p-5 border-b border-gray-100">
+                <h3 id="invoice-confirm-title" class="text-base font-bold text-gray-800">Confirmar</h3>
+            </div>
+            <div class="p-5">
+                <p id="invoice-confirm-message" class="text-sm text-gray-600 leading-relaxed"></p>
+            </div>
+            <div class="px-5 pb-5 flex gap-2">
+                <button id="invoice-confirm-cancel" type="button"
+                   class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 transition-colors">
+                    Cancelar
+                </button>
+                <button id="invoice-confirm-ok" type="button"
+                   class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 border-0">
+                    Confirmar
+                </button>
             </div>
         </div>
     </div>
@@ -2351,17 +2384,11 @@
           var fileUrl = _esc(pkg.invoiceFileUrl || (_ce && _ce.url) || '');
           var receipt   = pkg.number ? encodeURIComponent(pkg.number) : '';
           var fallback  = receipt ? 'mis-facturas.html?receipt=' + receipt : 'mis-facturas.html';
-          // Show "Ver factura" + a compact add button so users can upload additional invoices
-          // without removing or replacing existing ones (postcreatepurchasebill always appends).
-          var addBtn = pkg.idwarehousereceipt
-            ? ' <button class="btn-invoice btn-edit-invoice inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition-colors flex-shrink-0" title="Editar factura">' +
-              '<i class="fas fa-pencil-alt"></i></button>'
-            : '';
-          return '<span class="inline-flex items-center gap-1">' +
-            '<button class="btn-view-invoice inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition-colors whitespace-nowrap"' +
+          // "Ver factura" — opens the viewer modal, which provides delete / replace actions.
+          return '<button class="btn-view-invoice inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition-colors whitespace-nowrap"' +
             ' data-invoice-url="' + fileUrl + '" data-fallback-url="' + _esc(fallback) + '">' +
             '<i class="fas fa-file-invoice"></i> Ver factura' +
-            '</button>' + addBtn + '</span>';
+            '</button>';
         }
         if (noInvoice && pkg.idwarehousereceipt) {
           return '<button class="btn-invoice inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 transition-colors whitespace-nowrap">' +
@@ -3218,12 +3245,22 @@
         if (modal) modal.classList.add('hidden');
         document.body.style.overflow = '';
         _currentInvoicePkg = null;
+        _invoiceReplaceMode = false;
       }
 
       // Shared URL for the invoice viewer — set by _openInvoiceViewer(), read by
       // the "Abrir Factura" click handler in _wireInvoiceViewer().
       // Declared here (outer scope) so both functions can access it.
       var _viewerCurrentUrl = '';
+      // Package currently shown in the viewer modal — stored so the delete /
+      // replace button handlers (wired in _wireInvoiceViewer) can operate on
+      // the right WR without re-querying the DOM. Cleared on viewer close.
+      var _viewerCurrentPkg = null;
+      // Set to true when the upload modal was opened via "Reemplazar factura"
+      // (the old bill was already deleted before opening). Triggers a recovery
+      // message on upload failure and a "reemplazada" success toast. Always
+      // reset inside _closeInvoiceModal.
+      var _invoiceReplaceMode = false;
 
       // Opens the invoice viewer modal with metadata and a link to open the file.
       // url   — direct URL to the uploaded file (PDF or image)
@@ -3262,6 +3299,17 @@
 
         // Store URL so the button's direct click handler can call window.open()
         _viewerCurrentUrl = url;
+        // Store pkg so the delete / replace handlers can act on the right WR
+        _viewerCurrentPkg = pkg || null;
+        // Show manage buttons only when there is a known WR to act on
+        var _manageBtns = document.getElementById('invoice-viewer-manage-btns');
+        if (_manageBtns) {
+          if (pkg && pkg.idwarehousereceipt) {
+            _manageBtns.classList.remove('hidden');
+          } else {
+            _manageBtns.classList.add('hidden');
+          }
+        }
 
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -3491,6 +3539,10 @@
                 if (window.CRBOX && CRBOX.track) { try { CRBOX.track.invoice_upload_success(); } catch (_e) {} }
                 _setInvoiceSuccess(true);
                 _setInvoiceSubmitting(false);
+                if (_invoiceReplaceMode) {
+                  _invoiceReplaceMode = false;
+                  showToast('Factura reemplazada correctamente.', 'success', 5000);
+                }
                 setTimeout(_closeInvoiceModal, 1800);
                 return;
               }
@@ -3530,6 +3582,10 @@
                 if (window.CRBOX && CRBOX.track) { try { CRBOX.track.invoice_upload_success(); } catch (_e) {} }
                 _setInvoiceSuccess(true);
                 _setInvoiceSubmitting(false);
+                if (_invoiceReplaceMode) {
+                  _invoiceReplaceMode = false;
+                  showToast('Factura reemplazada correctamente.', 'success', 5000);
+                }
                 setTimeout(_closeInvoiceModal, 1800);
               }).catch(function(refreshErr) {
                 // Both writes succeeded but refresh failed — show partial-success, keep modal open
@@ -3545,6 +3601,18 @@
                 '— message:', err && err.message);
 
               if (err && err.isAuthError) return; // redirect already in flight
+
+              // Replace flow: old bill was already deleted before the upload was
+              // attempted. Show a dedicated recovery message so the user knows
+              // their previous bill is gone and they need to re-upload.
+              if (_invoiceReplaceMode) {
+                _invoiceReplaceMode = false;
+                _setInvoiceError(
+                  'La factura anterior fue eliminada, pero la nueva no se pudo subir. ' +
+                  'Por favor intenta subirla nuevamente.',
+                  true);
+                return;
+              }
 
               if (err && err.step === 'saveBill') {
                 // Upload itself failed — surface the specific reason so it's diagnosable
@@ -3779,6 +3847,7 @@
             if (!modal) return;
             modal.classList.add('hidden');
             document.body.style.overflow = '';
+            _viewerCurrentPkg = null;
           }
           var closeBtn = document.getElementById('close-invoice-viewer-btn');
           if (closeBtn) closeBtn.addEventListener('click', _closeViewer);
@@ -3802,6 +3871,174 @@
               _closeViewer();
             }
           });
+
+          // ── Confirm dialog helpers ───────────────────────────────────────
+          function _closeConfirmModal() {
+            var cm = document.getElementById('invoice-confirm-modal');
+            if (cm) cm.classList.add('hidden');
+          }
+          function _showConfirmModal(title, message, confirmLabel, confirmColor, onConfirm) {
+            var cm      = document.getElementById('invoice-confirm-modal');
+            if (!cm) { onConfirm(); return; }
+            var titleEl   = document.getElementById('invoice-confirm-title');
+            var msgEl     = document.getElementById('invoice-confirm-message');
+            var okBtn     = document.getElementById('invoice-confirm-ok');
+            var cancelBtn = document.getElementById('invoice-confirm-cancel');
+            if (titleEl) titleEl.textContent = title;
+            if (msgEl)   msgEl.textContent   = message;
+            if (okBtn)  { okBtn.textContent = confirmLabel; okBtn.style.backgroundColor = confirmColor; }
+            cm.classList.remove('hidden');
+            function _doConfirm() {
+              if (okBtn)     okBtn.removeEventListener('click',  _doConfirm);
+              if (cancelBtn) cancelBtn.removeEventListener('click', _doCancel);
+              _closeConfirmModal();
+              onConfirm();
+            }
+            function _doCancel() {
+              if (okBtn)     okBtn.removeEventListener('click',  _doConfirm);
+              if (cancelBtn) cancelBtn.removeEventListener('click', _doCancel);
+              _closeConfirmModal();
+            }
+            if (okBtn)     okBtn.addEventListener('click',  _doConfirm);
+            if (cancelBtn) cancelBtn.addEventListener('click', _doCancel);
+          }
+          var _confirmModal = document.getElementById('invoice-confirm-modal');
+          if (_confirmModal) {
+            _confirmModal.addEventListener('click', function(e) {
+              if (e.target === _confirmModal) _closeConfirmModal();
+            });
+          }
+
+          // ── Package list refresh after bill deletion ─────────────────────
+          // Mirrors the refresh logic inside the upload success handler so that
+          // delete / replace also update the list without a full page reload.
+          function _refreshPackagesAfterBillChange() {
+            if (!_cachedConsigneeId) return;
+            var _tracking  = (document.getElementById('search-input')  || {}).value || '';
+            var _statusVal = (document.getElementById('status-filter') || {}).value || '';
+            var _dateVal   = (document.getElementById('date-filter')   || {}).value || 'month';
+            CRBOXPortalAPI.getPackages(
+              _cachedConsigneeId,
+              _dateFilterToDate(_dateVal), new Date(),
+              _tracking || '', _statusFilterToCode(_statusVal)
+            ).then(function (data) {
+              var raw;
+              if (Array.isArray(data)) {
+                raw = data;
+              } else {
+                var _eKeys2 = ['Packages','packages','data','Data','Result','result','Items','items'];
+                raw = null;
+                for (var _ri = 0; _ri < _eKeys2.length; _ri++) {
+                  if (Array.isArray(data[_eKeys2[_ri]])) { raw = data[_eKeys2[_ri]]; break; }
+                  if (data[_eKeys2[_ri]] && Array.isArray(data[_eKeys2[_ri]].$values)) {
+                    raw = data[_eKeys2[_ri]].$values; break;
+                  }
+                }
+                if (!raw && Array.isArray(data.$values)) raw = data.$values;
+                if (!raw) raw = [];
+              }
+              var _pkgs2 = raw.map(function (r) { return CRBOXPortalAPI.mapPackage(r); });
+              _cachedPackages = _pkgs2;
+              _renderStats(_pkgs2);
+              _renderAll(_pkgs2, true);
+            }).catch(function () { /* non-critical — user can reload */ });
+          }
+
+          // ── Helper: copy a plain-object package for local state updates ──
+          function _clonePkg(p) {
+            var out = {}, keys = Object.keys(p);
+            for (var _ci = 0; _ci < keys.length; _ci++) { out[keys[_ci]] = p[keys[_ci]]; }
+            return out;
+          }
+
+          // ── "Reemplazar factura" button ──────────────────────────────────
+          var replaceBtn = document.getElementById('invoice-viewer-replace');
+          if (replaceBtn) {
+            replaceBtn.addEventListener('click', function () {
+              var pkg = _viewerCurrentPkg;
+              if (!pkg || !pkg.idwarehousereceipt) return;
+              _showConfirmModal(
+                'Reemplazar factura',
+                'Primero eliminaremos la factura actual y luego podrás subir una nueva. ' +
+                'Si la nueva carga falla, tendrás que intentarlo nuevamente.',
+                'Continuar', '#FF6B00',
+                function () {
+                  var email = (CRBOXAuth && CRBOXAuth.getEmail && CRBOXAuth.getEmail()) || '';
+                  if (!email) { showToast('No pudimos obtener tu sesión. Recarga la página.', 'error'); return; }
+                  replaceBtn.disabled = true;
+                  var _delBtn = document.getElementById('invoice-viewer-delete');
+                  if (_delBtn) _delBtn.disabled = true;
+                  CRBOXPortalAPI.deletePurchaseBill(pkg.idwarehousereceipt, email)
+                    .then(function () {
+                      delete _invoiceUrlCache[pkg.idwarehousereceipt];
+                      _saveInvoiceCache();
+                      _closeViewer();
+                      // Open upload modal as a fresh upload (old bill already gone)
+                      var freshPkg = _clonePkg(pkg);
+                      freshPkg.invoicesCount = 0;
+                      _invoiceReplaceMode = true;
+                      _openInvoiceModal(freshPkg);
+                    })
+                    .catch(function (err) {
+                      replaceBtn.disabled = false;
+                      var _db = document.getElementById('invoice-viewer-delete');
+                      if (_db) _db.disabled = false;
+                      if (err && err.isAuthError) return;
+                      showToast('No pudimos eliminar la factura. Inténtalo de nuevo.', 'error');
+                    });
+                }
+              );
+            });
+          }
+
+          // ── "Eliminar factura" button ────────────────────────────────────
+          var deleteBtn = document.getElementById('invoice-viewer-delete');
+          if (deleteBtn) {
+            deleteBtn.addEventListener('click', function () {
+              var pkg = _viewerCurrentPkg;
+              if (!pkg || !pkg.idwarehousereceipt) return;
+              _showConfirmModal(
+                '¿Eliminar factura?',
+                'Esta acción eliminará la factura asociada a este paquete. Podrás subir una nueva después.',
+                'Eliminar', '#dc2626',
+                function () {
+                  var email = (CRBOXAuth && CRBOXAuth.getEmail && CRBOXAuth.getEmail()) || '';
+                  if (!email) { showToast('No pudimos obtener tu sesión. Recarga la página.', 'error'); return; }
+                  deleteBtn.disabled = true;
+                  var _repBtn = document.getElementById('invoice-viewer-replace');
+                  if (_repBtn) _repBtn.disabled = true;
+                  CRBOXPortalAPI.deletePurchaseBill(pkg.idwarehousereceipt, email)
+                    .then(function () {
+                      delete _invoiceUrlCache[pkg.idwarehousereceipt];
+                      _saveInvoiceCache();
+                      _closeViewer();
+                      // Immediately reflect in UI without waiting for the network refresh
+                      if (_cachedPackages) {
+                        _cachedPackages = _cachedPackages.map(function (p) {
+                          if (p.idwarehousereceipt === pkg.idwarehousereceipt) {
+                            var upd = _clonePkg(p);
+                            upd.invoicesCount = 0;
+                            return upd;
+                          }
+                          return p;
+                        });
+                        _renderStats(_cachedPackages);
+                        _renderAll(_cachedPackages, true);
+                      }
+                      showToast('Factura eliminada correctamente.', 'success');
+                      _refreshPackagesAfterBillChange();
+                    })
+                    .catch(function (err) {
+                      deleteBtn.disabled = false;
+                      var _rb = document.getElementById('invoice-viewer-replace');
+                      if (_rb) _rb.disabled = false;
+                      if (err && err.isAuthError) return;
+                      showToast('No pudimos eliminar la factura. Inténtalo de nuevo.', 'error');
+                    });
+                }
+              );
+            });
+          }
         }());
 
         // ── EARLY START: begin loading packages immediately if we know the user ───

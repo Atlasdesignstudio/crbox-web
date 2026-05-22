@@ -1,0 +1,258 @@
+Implement delete factura and replace factura in the new CRBOX client portal `mis-paquetes`, using the client-facing legacy API endpoints discovered from the old portal.
+
+Important:
+Only implement delete factura and replace factura.
+Do not implement true in-place edit factura.
+Do not use the admin-only `EditPurchaseBill` endpoint.
+Do not automate admin login.
+Do not add admin credentials.
+Do not modify the old admin.
+
+Context:
+We already confirmed the correct upload compatibility behavior:
+
+- `FileLocation` must be the full absolute file URL returned by saveBill, for example:
+  `https://crbox.cr/wp-content/uploads/...`
+  or the equivalent WordPress media URL returned by the upload proxy.
+
+- `ClientInvoiceText` must be clean sanitized description/text HTML only, for example:
+  `<p>description text</p>`
+
+- `ClientInvoiceText` must NOT embed:
+  - `<img src="...">`
+  - `<a href="...">`
+  - `https://crbox.cr`
+  - `https://wp.crbox.cr`
+  - `/wp-content/uploads`
+  - `/uploads/invoices`
+
+The file itself belongs in `FileLocation`, not inside `ClientInvoiceText`.
+
+Known client-facing endpoints from the old portal:
+
+1. Get purchase bills:
+`GET https://clients.crbox.cr/api/crboxwebapi/getpurchasebills/{warehouseReceiptId}`
+
+Observed response includes:
+- `IdPurchaseBill`
+- `FileLocation`
+- `FileTextContent`
+- `NumeroFactura`
+- `Monto`
+- `Descripcion`
+- `CreatedDate`
+
+2. Delete purchase bill:
+`GET https://clients.crbox.cr/api/crboxwebapi/getdeletepurchasebill/{warehouseReceiptId}/{email}`
+
+Observed response:
+`{"StatusResult":"OK","Message":"ok se borro"}`
+
+Request uses:
+- `Authorization: Bearer <user token>`
+- logged-in user email
+
+3. Create purchase bill:
+`POST https://clients.crbox.cr/api/crboxwebapi/postcreatepurchasebill`
+
+Expected final payload:
+- `WRId`
+- `NumeroFactura`
+- `Monto`
+- `Descripcion`
+- `ClientInvoiceText = <p>{sanitized description/text}</p>`
+- `FileLocation = {full absolute file URL returned by saveBill}`
+
+Hard limits:
+- Do not change RDS flags.
+- Do not enable RDS packages, invoices, or profile.
+- Do not change auth/login/session behavior.
+- Do not change env vars, secrets, DNS, AWS, IIS, database schema, deployment settings, or unrelated flows.
+- Do not modify the old admin.
+- Do not automate admin login.
+- Do not add `admin.crbox.cr` credentials.
+- Do not call `admin.crbox.cr/WareHouseReceipt/EditPurchaseBill`.
+- Do not write directly to RDS.
+- Do not patch production DB records manually.
+- Do not change `/api/proxy/saveBill` behavior unless absolutely required and explicitly justified.
+- Do not change invoice-email logic except to confirm it still fires once after successful upload.
+- Do not touch registration, profile writes, password recovery, dashboard, or unrelated portal modules.
+
+Scope approved:
+
+A. Add API support in the new portal
+
+Add or confirm wrappers for:
+
+1. `getPurchaseBills(warehouseReceiptId)`
+- Calls `GET /api/crboxwebapi/getpurchasebills/{warehouseReceiptId}` or the existing direct legacy equivalent used by the portal.
+- Sends the logged-in user Bearer token.
+- Returns normalized bill data:
+  - idPurchaseBill
+  - fileLocation
+  - fileTextContent
+  - numeroFactura
+  - monto
+  - descripcion
+  - createdDate
+
+2. `deletePurchaseBill(warehouseReceiptId, email)`
+- Calls:
+  `GET getdeletepurchasebill/{warehouseReceiptId}/{email}`
+- Sends Authorization Bearer token.
+- Requires `StatusResult === "OK"` to count as success.
+- Does not expose token, email, PII, file URL, invoice number, or WR details in logs.
+
+B. Add “Eliminar factura” UI
+
+Show delete action only when a factura exists for the package.
+
+Before deleting, show confirmation:
+
+“¿Eliminar factura?
+Esta acción eliminará la factura asociada a este paquete. Podrás subir una nueva después.”
+
+On confirm:
+1. Call `deletePurchaseBill(warehouseReceiptId, loggedInEmail)`.
+2. If success:
+   - clear local invoice URL cache for that WR
+   - clear any `data-invoice-url` or equivalent attribute
+   - update invoicesCount / local bill state
+   - refresh the package row or reload package list
+   - show success toast:
+     “Factura eliminada correctamente.”
+   - UI should return to “Subir factura”
+3. If failure:
+   - do not change UI state
+   - show clear error toast:
+     “No pudimos eliminar la factura. Inténtalo de nuevo.”
+
+C. Add “Reemplazar factura” UI
+
+Do not implement true in-place editing.
+
+“Reemplazar factura” means:
+delete existing factura, then upload a new one using the existing corrected upload flow.
+
+Confirmation copy:
+
+“Reemplazar factura
+Primero eliminaremos la factura actual y luego podrás subir una nueva. Si la nueva carga falla, tendrás que intentarlo nuevamente.”
+
+Flow:
+1. User clicks “Reemplazar factura”.
+2. Show confirmation.
+3. If user confirms, call `deletePurchaseBill`.
+4. If delete succeeds:
+   - clear local invoice cache/state for that WR
+   - open the existing upload factura modal
+   - preselect / preserve the same WR package context
+   - user uploads new factura using the existing upload flow
+5. Existing upload flow must send:
+   - `FileLocation = full absolute file URL`
+   - `ClientInvoiceText = sanitized description/text only`
+6. After successful upload:
+   - refresh package row / package list
+   - show success toast:
+     “Factura reemplazada correctamente.”
+7. If delete succeeds but upload fails:
+   - show recovery message:
+     “La factura anterior fue eliminada, pero la nueva no se pudo subir. Por favor intenta subirla nuevamente.”
+   - keep the package in a clear state where user can retry upload.
+8. If delete fails:
+   - do not open upload modal
+   - do not alter current UI state
+   - show error toast.
+
+D. Do not implement true edit factura
+
+Do not add a client UI that claims to edit the existing purchase bill in place unless there is a client-safe edit endpoint.
+
+Do not call:
+
+`POST https://admin.crbox.cr/WareHouseReceipt/EditPurchaseBill`
+
+That endpoint:
+- requires admin ASP.NET session cookies
+- is staff/admin-only
+- uses `BillIdEdit`, `WRIdEdit`, `ClientInvoiceFile`, `FileTextContentEdit`, etc.
+- must not be automated from the client portal
+
+If the current UI uses the word “Editar”, change it to “Reemplazar factura” unless it is truly editing in place through a safe client API.
+
+E. Cache and state handling
+
+After delete or replace:
+- clear any local invoice URL cache for that WR
+- clear stale `invoiceUrl`, `fileLocation`, or `data-invoice-url`
+- refresh `getpurchasebills/{WR}` or package list to confirm state
+- refresh package count / `invoicesCount` if available
+- do not leave the UI showing “Ver factura” when the bill was deleted
+- do not show stale broken links
+
+F. Validation required
+
+Use a controlled test WR/package. Do not use an already corrupted record unless intentionally testing cleanup behavior.
+
+Validate delete factura:
+
+1. Start with a package that has a visible factura.
+2. Confirm `getpurchasebills/{WR}` returns bill data.
+3. Click “Eliminar factura”.
+4. Confirm confirmation modal appears.
+5. Confirm delete endpoint is called:
+   `getdeletepurchasebill/{WR}/{email}`
+6. Confirm response:
+   `StatusResult === "OK"`
+7. Confirm UI returns to “Subir factura”.
+8. Confirm local invoice cache is cleared.
+9. Confirm old client portal no longer shows the factura or reflects deletion correctly.
+10. Confirm legacy admin no longer shows the factura or reflects deletion correctly.
+11. Confirm no RDS flags changed.
+
+Validate replace factura:
+
+1. Start with a package that has a factura.
+2. Click “Reemplazar factura”.
+3. Confirm user sees delete-first warning.
+4. Confirm delete succeeds.
+5. Confirm upload modal opens.
+6. Upload a new test invoice.
+7. Confirm `/api/proxy/saveBill` returns 200.
+8. Confirm `postcreatepurchasebill` succeeds.
+9. Confirm payload has:
+   - `FileLocation = full absolute URL`
+   - `ClientInvoiceText = <p>description/text only</p>`
+   - no embedded img/link/file URL inside `ClientInvoiceText`
+10. Confirm `/api/invoice-email` fires exactly once and returns 200.
+11. Confirm new portal shows “Ver factura”.
+12. Confirm old client portal “Ver factura” works.
+13. Confirm legacy admin `ShowAdminPurchaseBill` displays correctly.
+14. Confirm no:
+   - `https://crbox.crhttps://...`
+   - `/Uploads/FacturaCompra-WR.pdf`
+   - duplicate notification
+   - duplicate visible purchase bill
+
+G. Report after implementation
+
+Report:
+
+1. Files changed.
+2. API wrappers added or reused.
+3. Delete factura flow implemented.
+4. Replace factura flow implemented.
+5. Confirmation true edit was NOT implemented.
+6. Exact endpoint calls used.
+7. Exact success/failure handling.
+8. Cache/state updates.
+9. Validation results.
+10. Whether duplicate bill risk remains.
+11. Confirmation that:
+   - no RDS flags were changed
+   - no auth was changed
+   - no admin automation was added
+   - no admin credentials were added
+   - no AWS/IIS/DNS/env/schema changes were made
+   - no direct DB writes were made
+   - no unrelated flows were touched
