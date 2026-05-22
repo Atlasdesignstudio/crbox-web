@@ -11812,7 +11812,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             _wr_id      = ''
 
             for part in (mime_msg.get_payload() or []):
-                disp      = part.get('Content-Disposition', '')
+                disp      = str(part.get('Content-Disposition', '') or '')
                 name_m    = _re.search(r'name="?([^";\r\n]+)"?', disp)
                 if not name_m:
                     continue
@@ -12206,7 +12206,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         orig_name  = 'invoice'
         wr_id      = ''
         for part in msg.walk():
-            cd = part.get('Content-Disposition', '')
+            cd = str(part.get('Content-Disposition', '') or '')
             if not cd:
                 continue
             # Content-Disposition can be:  form-data; name="invoice"; filename="..."
@@ -12315,7 +12315,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             file_mime      = 'application/octet-stream'
 
             for part in msg.walk():
-                cd = part.get('Content-Disposition', '')
+                cd = str(part.get('Content-Disposition', '') or '')
                 if not cd:
                     continue
                 params = {}
