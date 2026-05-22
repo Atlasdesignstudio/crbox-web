@@ -2375,7 +2375,10 @@ def _init_db_pg():
                 mensaje      TEXT NOT NULL,
                 source       TEXT NOT NULL DEFAULT 'contacto',
                 submitted_at TEXT NOT NULL,
-                email_sent   INTEGER NOT NULL DEFAULT 0
+                email_sent   INTEGER NOT NULL DEFAULT 0,
+                status       TEXT NOT NULL DEFAULT 'nueva',
+                reply_text   TEXT,
+                replied_at   TEXT
             )
         ''')
 
@@ -2451,6 +2454,20 @@ def _init_db_pg():
         except Exception as _mig_exc:
             print(f'[DB] PG products backfill skipped: {_mig_exc}')
 
+        # ── general_inquiries column migrations (live ALTER for existing PG DBs) ─
+        for _col, _defn in [
+            ('status',     "TEXT NOT NULL DEFAULT 'nueva'"),
+            ('reply_text', 'TEXT'),
+            ('replied_at', 'TEXT'),
+        ]:
+            try:
+                conn.execute(
+                    f'ALTER TABLE general_inquiries ADD COLUMN IF NOT EXISTS {_col} {_defn}'
+                )
+                conn.commit()
+            except Exception:
+                pass
+
         conn.close()
     print('[DB] PostgreSQL schema ready — data persists across redeployments')
 
@@ -2522,7 +2539,10 @@ def _init_db_sqlite():
                 mensaje      TEXT NOT NULL,
                 source       TEXT NOT NULL DEFAULT 'contacto',
                 submitted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
-                email_sent   INTEGER NOT NULL DEFAULT 0
+                email_sent   INTEGER NOT NULL DEFAULT 0,
+                status       TEXT NOT NULL DEFAULT 'nueva',
+                reply_text   TEXT,
+                replied_at   TEXT
             );
 
             CREATE TABLE IF NOT EXISTS package_groups (
@@ -2587,6 +2607,18 @@ def _init_db_sqlite():
             conn.commit()
         except Exception as _mig_exc:
             print(f'[SOLICITUDES] Products backfill skipped: {_mig_exc}')
+        # general_inquiries column migrations
+        gi_cols = [row[1] for row in
+                   conn._raw.execute('PRAGMA table_info(general_inquiries)').fetchall()]
+        for col, defn in [
+            ('status',     "TEXT NOT NULL DEFAULT 'nueva'"),
+            ('reply_text', 'TEXT'),
+            ('replied_at', 'TEXT'),
+        ]:
+            if col not in gi_cols:
+                conn._raw.execute(f'ALTER TABLE general_inquiries ADD COLUMN {col} {defn}')
+                conn.commit()
+                print(f'[CONSULTAS] Added {col} column to general_inquiries')
         # consultas_generales column migrations
         cg_cols = [row[1] for row in
                    conn._raw.execute('PRAGMA table_info(consultas_generales)').fetchall()]
@@ -9279,26 +9311,41 @@ a{{color:inherit;text-decoration:none}}
 </html>'''
 
 
-def _build_admin_consultas_detail_html(row):
+def _build_admin_consultas_detail_html(row, flash_ok=None, flash_warn=None, flash_err=None):
     """Render the detail view for a single general inquiry. No quote/pricing UI."""
     esc = _html.escape
-    rid      = str(row.get('id', '—'))
-    nombre   = esc(row.get('nombre') or '—')
-    correo   = esc(row.get('correo') or '—')
-    telefono = esc(row.get('telefono') or '—')
-    asunto   = esc(row.get('asunto') or '—')
-    mensaje  = esc(row.get('mensaje') or row.get('pregunta') or '—').replace('\n', '<br>')
-    source   = esc(row.get('source') or '—')
-    date_str = _admin_format_date(row.get('submitted_at'))
+    rid        = str(row.get('id', '—'))
+    nombre     = esc(row.get('nombre') or '—')
+    correo     = esc(row.get('correo') or '—')
+    telefono   = esc(row.get('telefono') or '—')
+    asunto     = esc(row.get('asunto') or '—')
+    mensaje    = esc(row.get('mensaje') or row.get('pregunta') or '—').replace('\n', '<br>')
+    source     = esc(row.get('source') or '—')
+    date_str   = _admin_format_date(row.get('submitted_at'))
     email_sent = row.get('email_sent', 0)
+    status     = row.get('status') or 'nueva'
+    reply_text = (row.get('reply_text') or '').strip()
+    replied_at = row.get('replied_at')
+    replied_at_str = _admin_format_date(replied_at) if replied_at else ''
+    correo_raw = row.get('correo') or '—'
+
     email_badge = (
         '<span style="display:inline-block;padding:3px 10px;border-radius:999px;'
         'font-size:12px;font-weight:700;border:1px solid #BBF7D0;'
-        'background:#F0FDF4;color:#15803D;">Enviado</span>'
+        'background:#F0FDF4;color:#15803D;">Notif. enviada</span>'
         if email_sent else
         '<span style="display:inline-block;padding:3px 10px;border-radius:999px;'
         'font-size:12px;font-weight:700;border:1px solid #FDBA74;'
-        'background:#FFF7ED;color:#C2410C;">Fallido</span>'
+        'background:#FFF7ED;color:#C2410C;">Notif. fallida</span>'
+    )
+    status_badge = (
+        '<span style="display:inline-block;padding:3px 10px;border-radius:999px;'
+        'font-size:12px;font-weight:700;border:1px solid #C7D2FE;'
+        'background:#EEF2FF;color:#3730A3;">&#9654; Nueva</span>'
+        if status == 'nueva' else
+        '<span style="display:inline-block;padding:3px 10px;border-radius:999px;'
+        'font-size:12px;font-weight:700;border:1px solid #BBF7D0;'
+        'background:#F0FDF4;color:#15803D;">&#10003; Respondida</span>'
     )
 
     # Pre-build the email preview block (avoids backslash-in-f-string restriction)
@@ -9345,6 +9392,86 @@ def _build_admin_consultas_detail_html(row):
         )
     else:
         email_preview_block = ''
+
+    # ── Reply block (pre-built to avoid backslash-in-f-string) ───────────
+    _reply_url = f'/admin/consultas/{rid}/reply'
+    if reply_text:
+        _replied_meta = (
+            f'<span style="color:#94a3b8;font-size:11px;">Enviado el {esc(replied_at_str)} '
+            f'&rarr; <strong>{esc(correo_raw)}</strong></span>'
+            if replied_at_str else
+            f'<span style="color:#94a3b8;font-size:11px;">Enviado a <strong>{esc(correo_raw)}</strong></span>'
+        )
+        reply_block = (
+            '<div class="adm-message-block" style="padding-top:8px">'
+            '<div class="adm-message-label" style="display:flex;justify-content:space-between;align-items:center;">'
+            '<span>&#10003; Respuesta enviada al cliente</span>'
+            + _replied_meta +
+            '</div>'
+            '<div class="adm-message-body" style="white-space:pre-wrap;border-color:#BBF7D0;background:#F0FDF4;color:#166534;">'
+            + esc(reply_text) +
+            '</div>'
+            '<form method="POST" action="' + _reply_url + '" style="margin-top:10px;">'
+            '<textarea name="reply_text" rows="3" placeholder="Enviar otra respuesta..." '
+            'style="width:100%;box-sizing:border-box;padding:10px 12px;font-size:13px;'
+            'border:1px solid #e2e8f0;border-radius:6px;resize:vertical;font-family:inherit;'
+            'color:#374151;background:#fff;" required></textarea>'
+            '<button type="submit" style="margin-top:8px;padding:8px 20px;background:#1e293b;'
+            'color:#fff;font-size:13px;font-weight:600;border:none;border-radius:6px;cursor:pointer;">'
+            'Enviar otra respuesta</button>'
+            '</form>'
+            '</div>'
+        )
+    else:
+        reply_block = (
+            '<div class="adm-message-block" style="padding-top:8px">'
+            '<div class="adm-message-label">Responder al cliente</div>'
+            '<form method="POST" action="' + _reply_url + '">'
+            '<textarea name="reply_text" rows="5" '
+            'placeholder="Escribe tu respuesta aquí. Se enviará directamente al correo del cliente..." '
+            'style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:13px;line-height:1.6;'
+            'border:1px solid #e2e8f0;border-radius:8px;resize:vertical;font-family:inherit;'
+            'color:#374151;background:#fff;transition:border-color .15s;" '
+            'onfocus="this.style.borderColor=\'#FF6B00\'" onblur="this.style.borderColor=\'#e2e8f0\'" '
+            'required></textarea>'
+            '<div style="display:flex;align-items:center;gap:10px;margin-top:10px;">'
+            '<button type="submit" style="padding:9px 22px;background:#FF6B00;color:#fff;'
+            'font-size:13px;font-weight:700;border:none;border-radius:6px;cursor:pointer;'
+            'transition:background .15s;" onmouseover="this.style.background=\'#E05A00\'" '
+            'onmouseout="this.style.background=\'#FF6B00\'">'
+            '&#9993; Enviar respuesta</button>'
+            '<span style="font-size:12px;color:#94a3b8;">Se enviará a <strong>'
+            + esc(correo_raw) +
+            '</strong></span>'
+            '</div>'
+            '</form>'
+            '</div>'
+        )
+
+    # Flash banner (shown via query param on redirect-back)
+    if flash_ok == 'replied':
+        flash_block = (
+            '<div style="margin-bottom:16px;padding:12px 16px;background:#F0FDF4;border:1px solid #BBF7D0;'
+            'border-radius:8px;font-size:13px;color:#15803D;font-weight:600;">'
+            '&#10003; Respuesta enviada al cliente correctamente.'
+            '</div>'
+        )
+    elif flash_ok == 'saved' and flash_warn == 'email':
+        flash_block = (
+            '<div style="margin-bottom:16px;padding:12px 16px;background:#FFF7ED;border:1px solid #FDBA74;'
+            'border-radius:8px;font-size:13px;color:#C2410C;font-weight:600;">'
+            '&#9888; Respuesta guardada pero el correo no pudo enviarse. Verifica la configuración SMTP.'
+            '</div>'
+        )
+    elif flash_err == 'empty':
+        flash_block = (
+            '<div style="margin-bottom:16px;padding:12px 16px;background:#FEF2F2;border:1px solid #FCA5A5;'
+            'border-radius:8px;font-size:13px;color:#B91C1C;font-weight:600;">'
+            '&#10005; El mensaje de respuesta no puede estar vacío.'
+            '</div>'
+        )
+    else:
+        flash_block = ''
 
     return f'''<!DOCTYPE html>
 <html lang="es">
@@ -9446,10 +9573,14 @@ a{{color:inherit;text-decoration:none}}
 </div>
 <main class="adm-main">
   <a href="/admin/consultas" class="adm-back">&#8592; Volver a consultas</a>
+  {flash_block}
   <div class="adm-detail-card">
     <div class="adm-detail-head">
       <div class="adm-detail-id">Consulta <span>#{rid}</span></div>
-      {"<span class='adm-badge-ok'>&#10003; Correo enviado</span>" if email_sent else "<span class='adm-badge-fail'>&#10005; Correo fallido</span>"}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        {status_badge}
+        {email_badge}
+      </div>
     </div>
     <div class="adm-field-grid">
       <div class="adm-field">
@@ -9482,6 +9613,7 @@ a{{color:inherit;text-decoration:none}}
       <div class="adm-message-body">{mensaje}</div>
     </div>
     {email_preview_block}
+    {reply_block}
   </div>
 </main>
 </body>
@@ -10170,6 +10302,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             m_admin_respond   = re.match(r'^/admin/solicitudes/(SCB-\d+)/respond$', self.path)
             m_admin_resend    = re.match(r'^/admin/solicitudes/(SCB-\d+)/resend-response$', self.path)
             m_admin_suggest   = re.match(r'^/admin/solicitudes/(SCB-\d+)/suggest-draft$', self.path)
+            m_cq_reply        = re.match(r'^/admin/consultas/(\d+)/reply$', self.path)
             m_admin_link_pkg  = re.match(r'^/admin/solicitudes/(SCB-\d+)/link-package$', self.path)
             m_admin_add_note  = re.match(r'^/admin/solicitudes/(SCB-\d+)/add-note$', self.path)
             m_admin_delete    = re.match(r'^/admin/solicitudes/(SCB-[\w\-]+)/delete$', self.path)
@@ -10189,6 +10322,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_admin_solicitudes_resend_response(m_admin_resend.group(1))
             elif m_admin_suggest:
                 self._handle_admin_solicitudes_suggest_draft(m_admin_suggest.group(1))
+            elif m_cq_reply:
+                self._handle_admin_consultas_reply(int(m_cq_reply.group(1)))
             elif m_admin_link_pkg:
                 self._handle_admin_solicitudes_link_package(m_admin_link_pkg.group(1))
             elif m_admin_add_note:
@@ -12969,8 +13104,133 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return
         if row is None:
             self.send_response(404); self.end_headers(); return
-        html = _build_admin_consultas_detail_html(dict(row))
+        # Pass any flash params from the query string (set by reply redirect)
+        import urllib.parse as _up
+        qs = _up.parse_qs(self.path.split('?', 1)[1] if '?' in self.path else '')
+        html = _build_admin_consultas_detail_html(
+            dict(row),
+            flash_ok=qs.get('ok', [None])[0],
+            flash_warn=qs.get('warn', [None])[0],
+            flash_err=qs.get('err', [None])[0],
+        )
         self._admin_html_response(html)
+
+    # ── POST /admin/consultas/:id/reply ───────────────────────────────────
+    def _handle_admin_consultas_reply(self, inquiry_id):
+        """Send a reply email to the contact and save it to the DB."""
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._admin_redirect('/admin/login?msg=expired')
+            return
+
+        # Parse reply text from form body
+        try:
+            raw = self._read_body(_MAX_BODY_REGULAR)
+            body_str = (raw or b'').decode('utf-8')
+        except Exception:
+            body_str = ''
+
+        # Support both URL-encoded form and JSON body
+        reply_text = ''
+        try:
+            import urllib.parse as _up
+            params = dict(_up.parse_qsl(body_str))
+            reply_text = params.get('reply_text', '').strip()
+        except Exception:
+            pass
+        if not reply_text:
+            try:
+                reply_text = (json.loads(body_str) or {}).get('reply_text', '').strip()
+            except Exception:
+                pass
+
+        if not reply_text:
+            self._admin_redirect(f'/admin/consultas/{inquiry_id}?err=empty')
+            return
+
+        # Fetch the original inquiry
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                row = conn.execute(
+                    'SELECT * FROM general_inquiries WHERE id=?', (inquiry_id,)
+                ).fetchone()
+                conn.close()
+        except Exception as exc:
+            print(f'[ADMIN/REPLY] DB fetch error: {exc}')
+            self._admin_redirect(f'/admin/consultas/{inquiry_id}?err=db')
+            return
+
+        if row is None:
+            self.send_response(404); self.end_headers(); return
+
+        row = dict(row)
+        client_email = row.get('correo', '')
+        client_name  = row.get('nombre', 'Cliente')
+        asunto_orig  = row.get('asunto') or row.get('mensaje', '')[:60]
+
+        # Send reply email to the client
+        email_ok = False
+        try:
+            import email.mime.multipart as _mime_mp
+            import email.mime.text as _mime_txt
+            settings  = _smtp_settings()
+            smtp_user = settings[2] if settings else 'noreply@crbox.cr'
+            esc = _html.escape
+
+            subject_line = f'Re: {asunto_orig}' if asunto_orig else 'Respuesta a su consulta — CRBOX'
+            plain = (
+                f'Hola {client_name},\n\n'
+                f'{reply_text}\n\n'
+                f'---\nEquipo CRBOX\n'
+                f'ventas@crbox.cr | crbox.cr'
+            )
+            html_body = (
+                f'<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
+                f'max-width:600px;margin:0 auto;color:#1e293b;">'
+                f'<div style="background:#1e293b;padding:16px 24px;border-radius:8px 8px 0 0;">'
+                f'<span style="color:#FF6B00;font-weight:800;font-size:20px;letter-spacing:-.5px;">CRBOX</span>'
+                f'</div>'
+                f'<div style="background:#fff;padding:28px 24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;">'
+                f'<p style="margin:0 0 16px;font-size:15px;">Hola <strong>{esc(client_name)}</strong>,</p>'
+                f'<div style="background:#f8fafc;border-left:3px solid #FF6B00;padding:14px 18px;'
+                f'border-radius:0 6px 6px 0;font-size:14px;line-height:1.7;white-space:pre-wrap;margin-bottom:24px;">'
+                f'{esc(reply_text)}</div>'
+                f'<p style="margin:0;color:#64748b;font-size:12px;border-top:1px solid #f1f5f9;padding-top:16px;">'
+                f'Equipo CRBOX &mdash; <a href="https://crbox.cr" style="color:#FF6B00;">crbox.cr</a>'
+                f'</p></div></div>'
+            )
+            msg = _mime_mp.MIMEMultipart('alternative')
+            msg['Subject'] = subject_line
+            msg['From']    = f'CRBOX <{smtp_user}>'
+            msg['To']      = client_email
+            msg.attach(_mime_txt.MIMEText(plain, 'plain', 'utf-8'))
+            msg.attach(_mime_txt.MIMEText(html_body, 'html', 'utf-8'))
+            _send_smtp(msg, [client_email])
+            email_ok = True
+        except Exception as mail_exc:
+            print(f'[ADMIN/REPLY] Email send failed for inquiry #{inquiry_id}: {mail_exc}')
+
+        # Save reply to DB regardless of email outcome
+        now_iso = _now_iso()
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                conn.execute(
+                    'UPDATE general_inquiries SET reply_text=?, replied_at=?, status=? WHERE id=?',
+                    (reply_text, now_iso, 'respondida', inquiry_id)
+                )
+                conn.commit()
+                conn.close()
+        except Exception as upd_exc:
+            print(f'[ADMIN/REPLY] DB update failed for #{inquiry_id}: {upd_exc}')
+
+        if email_ok:
+            self._admin_redirect(f'/admin/consultas/{inquiry_id}?ok=replied')
+        else:
+            self._admin_redirect(f'/admin/consultas/{inquiry_id}?ok=saved&warn=email')
 
     # ── POST /api/consultas ────────────────────────────────────────────────
     def _handle_api_consultas_post(self):
