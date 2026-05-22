@@ -3912,7 +3912,10 @@
           // ── Package list refresh after bill deletion ─────────────────────
           // Mirrors the refresh logic inside the upload success handler so that
           // delete / replace also update the list without a full page reload.
-          function _refreshPackagesAfterBillChange() {
+          // deletedWrId — optional; when provided, forces invoicesCount=0 for that WR
+          // in the refresh result, protecting against stale CRBOX API responses that
+          // might still return invoicesCount:1 immediately after a successful delete.
+          function _refreshPackagesAfterBillChange(deletedWrId) {
             if (!_cachedConsigneeId) return;
             var _tracking  = (document.getElementById('search-input')  || {}).value || '';
             var _statusVal = (document.getElementById('status-filter') || {}).value || '';
@@ -3938,6 +3941,20 @@
                 if (!raw) raw = [];
               }
               var _pkgs2 = raw.map(function (r) { return CRBOXPortalAPI.mapPackage(r); });
+              // If the CRBOX API still returns invoicesCount > 0 for the just-deleted WR
+              // (stale server response), force it to 0 so the UI stays consistent with
+              // the successful delete. The next full page reload will get fresh data.
+              if (deletedWrId) {
+                _pkgs2 = _pkgs2.map(function (p) {
+                  if (String(p.idwarehousereceipt) === String(deletedWrId) &&
+                      p.invoicesCount > 0) {
+                    var upd = _clonePkg(p);
+                    upd.invoicesCount = 0;
+                    return upd;
+                  }
+                  return p;
+                });
+              }
               _cachedPackages = _pkgs2;
               _renderStats(_pkgs2);
               _renderAll(_pkgs2, true);
@@ -4029,7 +4046,7 @@
                         _renderAll(_cachedPackages, true);
                       }
                       showToast('Factura eliminada correctamente.', 'success');
-                      _refreshPackagesAfterBillChange();
+                      _refreshPackagesAfterBillChange(pkg.idwarehousereceipt);
                     })
                     .catch(function (err) {
                       deleteBtn.disabled = false;
