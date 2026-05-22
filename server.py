@@ -7589,6 +7589,19 @@ def _build_admin_dashboard_html(all_rows, counts):
     total_valor  = sum(r.get('declared_value_usd') or 0 for r in all_rows)
     pendientes   = nuevas + en_revision
 
+    # Total quoted: confirmed shipping price if admin responded, else system estimate
+    total_cotizado = 0.0
+    for _r in all_rows:
+        try:
+            _rj = json.loads(_r.get('response_json') or '{}')
+        except Exception:
+            _rj = {}
+        _cp = _rj.get('confirmed_price_usd')
+        if _cp:
+            total_cotizado += float(_cp)
+        elif _r.get('estimate_usd'):
+            total_cotizado += float(_r.get('estimate_usd') or 0)
+
     # Historical data — build per-day dict for last 90 days
     import datetime as _dt
     today = _dt.date.today()
@@ -7812,8 +7825,9 @@ a{{color:inherit;text-decoration:none}}
 .db-section-title{{font-size:11px;font-weight:700;color:var(--slate400);text-transform:uppercase;
   letter-spacing:.08em;margin-bottom:14px}}
 /* KPI row */
-.db-kpis{{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}}
-@media(max-width:900px){{.db-kpis{{grid-template-columns:repeat(2,1fr)}}}}
+.db-kpis{{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:28px}}
+@media(max-width:1100px){{.db-kpis{{grid-template-columns:repeat(3,1fr)}}}}
+@media(max-width:700px){{.db-kpis{{grid-template-columns:repeat(2,1fr)}}}}
 @media(max-width:480px){{.db-kpis{{grid-template-columns:1fr}}}}
 .db-kpi{{background:#fff;border-radius:var(--r);padding:20px 22px;
   box-shadow:0 1px 6px rgba(0,0,0,.07);border:1px solid var(--slate200);
@@ -7949,6 +7963,12 @@ a{{color:inherit;text-decoration:none}}
       <div class="db-kpi-trend {"db-trend-up" if valor_trend_pct >= 0 else "db-trend-dn"}">
         {"▲" if valor_trend_pct >= 0 else "▼"} {abs(valor_trend_pct)}% últimos 7 días
       </div>
+    </div>
+    <div class="db-kpi" style="border-top:3px solid #7C3AED">
+      <div class="db-kpi-icon">🏷️</div>
+      <div class="db-kpi-val" style="color:#7C3AED;font-size:24px">${total_cotizado:,.0f}</div>
+      <div class="db-kpi-lbl">Ingreso potencial CRBOX</div>
+      <div class="db-kpi-sub">Envíos cotizados a clientes</div>
     </div>
   </div>
 
@@ -9280,6 +9300,52 @@ def _build_admin_consultas_detail_html(row):
         'font-size:12px;font-weight:700;border:1px solid #FDBA74;'
         'background:#FFF7ED;color:#C2410C;">Fallido</span>'
     )
+
+    # Pre-build the email preview block (avoids backslash-in-f-string restriction)
+    _asunto_raw  = row.get('asunto') or ''
+    _nombre_raw  = row.get('nombre') or ''
+    _correo_raw  = row.get('correo') or ''
+    _tel_raw     = row.get('telefono') or '—'
+    _msg_raw     = row.get('mensaje') or row.get('pregunta') or '—'
+    _email_subj  = '[Contacto] Nueva consulta de ' + esc(_nombre_raw) + (' — ' + esc(_asunto_raw) if _asunto_raw else '')
+    _nl          = '\n'
+    _email_body_txt = (
+        'Nueva consulta recibida desde el formulario de contacto.' + _nl + _nl
+        + 'Nombre: '   + esc(_nombre_raw) + _nl
+        + 'Correo: '   + esc(_correo_raw) + _nl
+        + 'Teléfono: ' + esc(_tel_raw)    + _nl
+        + 'Asunto: '   + esc(_asunto_raw or '—') + _nl + _nl
+        + 'Mensaje:' + _nl + esc(_msg_raw)
+    )
+    if email_sent:
+        email_preview_block = (
+            '<div class="adm-message-block" style="padding-top:0">'
+            '<details style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">'
+            '<summary style="padding:12px 16px;background:#f8fafc;font-size:12px;font-weight:700;'
+            'color:#374151;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;'
+            'list-style:none;display:flex;align-items:center;gap:8px;">'
+            '<span style="color:#15803d;">&#10003;</span> Ver correo enviado al equipo'
+            '</summary>'
+            '<div style="padding:16px;background:#fff;font-size:13px;line-height:1.7;'
+            'color:#374151;border-top:1px solid #e2e8f0;">'
+            '<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f1f5f9;">'
+            '<span style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;'
+            'letter-spacing:.06em;">Para</span><br>'
+            '<span style="font-weight:600;">ventas@crbox.cr</span>'
+            '</div>'
+            '<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f1f5f9;">'
+            '<span style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;'
+            'letter-spacing:.06em;">Asunto</span><br>'
+            '<span style="font-weight:600;">' + _email_subj + '</span>'
+            '</div>'
+            '<div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;'
+            'border-radius:6px;padding:12px 14px;font-family:monospace;font-size:12px;color:#374151;">'
+            + _email_body_txt +
+            '</div></div></details></div>'
+        )
+    else:
+        email_preview_block = ''
+
     return f'''<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9415,6 +9481,7 @@ a{{color:inherit;text-decoration:none}}
       <div class="adm-message-label">Mensaje</div>
       <div class="adm-message-body">{mensaje}</div>
     </div>
+    {email_preview_block}
   </div>
 </main>
 </body>
