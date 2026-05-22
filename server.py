@@ -6437,6 +6437,186 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
             f'<span class="adm-detail-val" style="white-space:pre-wrap;">{ro_diff}</span></div>'
         ) if ro_diff else ''
 
+        # ── Saved quote breakdown block (read-only) ──────────────────────────
+        ro_breakdown_html = ''
+        _ro_bd = resp_data.get('quote_breakdown')
+        if not _ro_bd:
+            # Also check the dedicated column (already merged into resp_data
+            # by the migration gate, but fall back just in case)
+            _ro_bd_raw = row.get('quote_breakdown')
+            if _ro_bd_raw:
+                try:
+                    _ro_bd = json.loads(_ro_bd_raw)
+                except Exception:
+                    _ro_bd = None
+
+        def _safe_f(v):
+            """Return float(v) or None — never raises."""
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                return None
+
+        def _fmt_usd(v, fallback='—'):
+            """Format a numeric value as $x,xxx.xx or return fallback."""
+            f = _safe_f(v)
+            return f'${f:,.2f}' if f is not None else fallback
+
+        # Validate top-level shape: must be a dict containing a non-empty
+        # list of dicts in 'products'. Any deviation means no breakdown is shown.
+        _ro_prods_raw = _ro_bd.get('products') if isinstance(_ro_bd, dict) else None
+        _ro_valid = (
+            isinstance(_ro_prods_raw, list)
+            and len(_ro_prods_raw) > 0
+            and all(isinstance(p, dict) for p in _ro_prods_raw)
+        )
+        if _ro_valid:
+            try:
+                _ro_prods  = _ro_prods_raw
+                _ro_grand  = _safe_f(_ro_bd.get('grand_total_usd'))
+                _ro_sep    = _safe_f(_ro_bd.get('separate_total_usd'))
+                _ro_sav    = _safe_f(_ro_bd.get('savings_usd'))
+                _ro_con_bd = _ro_bd.get('consolidated_breakdown')
+                if not isinstance(_ro_con_bd, dict):
+                    _ro_con_bd = {}
+                _line_labels_ro = [
+                    ('freight',  'Flete aéreo'),
+                    ('fuel',     'Combustible (19%)'),
+                    ('handling', 'Manejo'),
+                    ('taxes',    'Impuestos / Aduana'),
+                    ('insurance','Seguro'),
+                    ('delivery', 'Entrega (CR)'),
+                ]
+                _bd_prod_cards = ''
+                for _bpi, _bp in enumerate(_ro_prods):
+                    _bp_name  = esc(str(_bp.get('name') or f'Producto {_bpi+1}'))
+                    _bp_ship  = _safe_f(_bp.get('shipping_usd'))
+                    _bp_val   = _safe_f(_bp.get('declared_value_usd'))
+                    _bp_wkg   = _safe_f(_bp.get('weight_kg'))
+                    _bp_det   = _bp.get('details')
+                    if not isinstance(_bp_det, dict):
+                        _bp_det = {}
+                    _bp_bkg   = _safe_f(_bp_det.get('billableKg'))
+                    _bp_wmode = str(_bp_det.get('weightMode') or 'real')
+                    _bp_l     = _safe_f(_bp.get('length_cm'))
+                    _bp_w     = _safe_f(_bp.get('width_cm'))
+                    _bp_h     = _safe_f(_bp.get('height_cm'))
+                    _bp_vol   = (
+                        round(_bp_l * _bp_w * _bp_h / 5000, 3)
+                        if (_bp_l and _bp_w and _bp_h) else None
+                    )
+                    _ship_str_ro = _fmt_usd(_bp_ship)
+                    _val_str_ro  = f' · {_fmt_usd(_bp_val)} decl.' if _bp_val is not None else ''
+                    _wmode_lbl   = 'volumétrico' if _bp_wmode == 'volumetrico' else 'real'
+                    _wparts = []
+                    if _bp_wkg is not None:
+                        _wparts.append(f'Real: {_bp_wkg:.3f} kg')
+                    if _bp_vol is not None:
+                        _wparts.append(f'Vol: {_bp_vol:.3f} kg')
+                    if _bp_bkg is not None:
+                        _wparts.append(f'Cobro ({_wmode_lbl}): {_bp_bkg:.3f} kg')
+                    _wline = (
+                        f'<div style="font-size:.72rem;color:#6b7280;margin:.15rem 0 .4rem .5rem;">'
+                        f'{esc(" · ".join(_wparts))}</div>'
+                    ) if _wparts else ''
+                    _det_rows = ''
+                    for _lk, _llbl in _line_labels_ro:
+                        _lv = _safe_f(_bp_det.get(_lk))
+                        if _lv is not None:
+                            _tax_note = ' <span style="font-size:.65rem;color:#9ca3af;">(est.)</span>' if _lk == 'taxes' else ''
+                            _det_rows += (
+                                f'<div class="adm-detail-row" style="padding-left:.75rem;">'
+                                f'<span class="adm-detail-label" style="font-size:.75rem;color:#6b7280;">{esc(_llbl)}{_tax_note}</span>'
+                                f'<span class="adm-detail-val" style="font-size:.78rem;">${_lv:,.2f}</span>'
+                                f'</div>'
+                            )
+                    _bd_prod_cards += (
+                        f'<details style="border:1px solid #d1fae5;border-radius:.45rem;'
+                        f'margin-bottom:.45rem;overflow:hidden;" open>'
+                        f'<summary style="font-size:.82rem;font-weight:700;color:#065f46;'
+                        f'padding:.45rem .7rem;background:#ecfdf5;cursor:pointer;'
+                        f'display:flex;justify-content:space-between;align-items:center;'
+                        f'list-style:none;user-select:none;">'
+                        f'<span style="min-width:0;overflow-wrap:anywhere;">{_bpi+1}. {_bp_name}{esc(_val_str_ro)}</span>'
+                        f'<span style="font-size:.75rem;font-weight:600;color:#16a34a;flex-shrink:0;margin-left:.5rem;">'
+                        f'{esc(_ship_str_ro)}</span></summary>'
+                        f'<div style="padding:.35rem .5rem .45rem;">'
+                        f'{_wline}'
+                        f'{_det_rows}'
+                        f'<div class="adm-detail-row" style="border-top:1px solid #d1fae5;margin-top:.25rem;padding-top:.3rem;">'
+                        f'<span class="adm-detail-label" style="font-size:.78rem;font-weight:700;color:#065f46;">Subtotal envío</span>'
+                        f'<span class="adm-detail-val" style="font-size:.82rem;font-weight:700;color:#16a34a;">{esc(_ship_str_ro)}</span>'
+                        f'</div>'
+                        f'</div></details>'
+                    )
+                # Consolidated breakdown card (multi-product only)
+                _con_card = ''
+                if len(_ro_prods) > 1 and _ro_con_bd:
+                    _con_rows_html = ''
+                    for _lk, _llbl in _line_labels_ro:
+                        _lv = _safe_f(_ro_con_bd.get(_lk))
+                        if _lv is not None:
+                            _tax_note = ' <span style="font-size:.65rem;color:#9ca3af;">(est.)</span>' if _lk == 'taxes' else ''
+                            _con_rows_html += (
+                                f'<div class="adm-detail-row" style="padding-left:.75rem;">'
+                                f'<span class="adm-detail-label" style="font-size:.75rem;color:#6b7280;">{esc(_llbl)}{_tax_note}</span>'
+                                f'<span class="adm-detail-val" style="font-size:.78rem;">${_lv:,.2f}</span>'
+                                f'</div>'
+                            )
+                    _grand_str = _fmt_usd(_ro_grand)
+                    _sav_row = ''
+                    if _ro_sav is not None and _ro_sep is not None:
+                        _sav_row = (
+                            f'<div class="adm-detail-row" style="background:#fef9c3;border-radius:.35rem;margin-top:.25rem;">'
+                            f'<span class="adm-detail-label" style="font-size:.75rem;color:#92400e;">&#127381; Ahorro vs separado</span>'
+                            f'<span class="adm-detail-val" style="font-size:.78rem;font-weight:700;color:#92400e;">'
+                            f'{esc(_fmt_usd(_ro_sav))} ({esc(_fmt_usd(_ro_sep))} por separado)</span>'
+                            f'</div>'
+                        )
+                    _con_card = (
+                        f'<details style="border:1px solid #bfdbfe;border-radius:.45rem;'
+                        f'margin-bottom:.45rem;overflow:hidden;">'
+                        f'<summary style="font-size:.82rem;font-weight:700;color:#1e3a8a;'
+                        f'padding:.45rem .7rem;background:#eff6ff;cursor:pointer;'
+                        f'display:flex;justify-content:space-between;align-items:center;'
+                        f'list-style:none;user-select:none;">'
+                        f'<span>&#128230; Desglose consolidado</span>'
+                        f'<span style="font-size:.75rem;font-weight:600;color:#1d4ed8;flex-shrink:0;margin-left:.5rem;">'
+                        f'{esc(_grand_str)}</span></summary>'
+                        f'<div style="padding:.35rem .5rem .45rem;">'
+                        f'{_con_rows_html}'
+                        f'<div class="adm-detail-row" style="border-top:1px solid #bfdbfe;margin-top:.25rem;padding-top:.3rem;">'
+                        f'<span class="adm-detail-label" style="font-size:.78rem;font-weight:700;color:#1e3a8a;">Total consolidado</span>'
+                        f'<span class="adm-detail-val" style="font-size:.82rem;font-weight:700;color:#1d4ed8;">{esc(_grand_str)}</span>'
+                        f'</div>'
+                        f'{_sav_row}'
+                        f'</div></details>'
+                    )
+                elif _ro_grand is not None:
+                    _con_card = (
+                        f'<div class="adm-detail-row" style="border-top:1px solid #d1fae5;margin-top:.3rem;padding-top:.35rem;">'
+                        f'<span class="adm-detail-label" style="font-weight:700;color:#065f46;">Total envío</span>'
+                        f'<span class="adm-detail-val" style="font-size:.88rem;font-weight:700;color:#16a34a;">{esc(_fmt_usd(_ro_grand))}</span>'
+                        f'</div>'
+                    )
+                ro_breakdown_html = (
+                    f'<details class="adm-bd-sent" style="margin:.5rem 0;border:1px solid #d1fae5;'
+                    f'border-radius:.55rem;overflow:hidden;">'
+                    f'<summary style="font-size:.82rem;font-weight:700;color:#065f46;'
+                    f'padding:.5rem .75rem;background:#ecfdf5;cursor:pointer;'
+                    f'display:flex;align-items:center;gap:.4rem;list-style:none;user-select:none;">'
+                    f'<span>&#128200; Desglose de costos enviado</span>'
+                    f'<span style="margin-left:auto;font-size:.7rem;font-weight:400;color:#6b7280;">'
+                    f'{len(_ro_prods)} producto{"s" if len(_ro_prods)!=1 else ""}</span>'
+                    f'</summary>'
+                    f'<div style="padding:.5rem .6rem .6rem;">'
+                    f'{_bd_prod_cards}'
+                    f'{_con_card}'
+                    f'</div></details>'
+                )
+            except Exception:
+                ro_breakdown_html = ''
+
         # Check history for any resend events
         last_resend = next(
             (h for h in reversed(history) if 'reenviada' in (h.get('note') or '').lower()),
@@ -6470,6 +6650,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       <span class="adm-detail-label">Precio confirmado</span>
       <span class="adm-detail-val adm-val-prominent">{esc(ro_price_str)}</span>
     </div>
+    {ro_breakdown_html}
     <div class="adm-detail-row">
       <span class="adm-detail-label">Tiempo de entrega</span>
       <span class="adm-detail-val">{ro_timeline}</span>
