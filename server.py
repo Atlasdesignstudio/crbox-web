@@ -2419,6 +2419,18 @@ def _init_db_pg():
         ''')
         conn.commit()
 
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS invoice_file_urls (
+                id          SERIAL PRIMARY KEY,
+                wr_id       TEXT NOT NULL,
+                file_url    TEXT NOT NULL,
+                source      TEXT NOT NULL DEFAULT \'wp\',
+                uploaded_at TEXT NOT NULL,
+                UNIQUE (wr_id, file_url)
+            )
+        ''')
+        conn.commit()
+
         # ── SCB ID sequence ───────────────────────────────────────────────────
         # Creates a PostgreSQL sequence for atomic, cross-instance SCB-XXXX
         # generation.  On first boot we advance it to MAX(existing numeric ID)
@@ -2572,6 +2584,15 @@ def _init_db_sqlite():
                 body_text    TEXT NOT NULL DEFAULT '',
                 status       TEXT NOT NULL,
                 error        TEXT NOT NULL DEFAULT ''
+            );
+
+            CREATE TABLE IF NOT EXISTS invoice_file_urls (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                wr_id       TEXT NOT NULL,
+                file_url    TEXT NOT NULL,
+                source      TEXT NOT NULL DEFAULT 'wp',
+                uploaded_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                UNIQUE (wr_id, file_url)
             );
         ''')
         conn.commit()
@@ -11686,6 +11707,23 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                         self.end_headers()
                         self.wfile.write(out)
                         print(f'[PROXY/saveBill] OK — url={file_url}')
+                        # Persist WR→URL so invoice-url-lookup works across devices
+                        # even when the client's localStorage cache has been cleared.
+                        if _wr_id:
+                            try:
+                                import datetime as _dt
+                                _idb = _get_db()
+                                _idb.execute(
+                                    'INSERT OR IGNORE INTO invoice_file_urls '
+                                    '(wr_id, file_url, source, uploaded_at) '
+                                    'VALUES (?, ?, ?, ?)',
+                                    (_wr_id, file_url, 'wp',
+                                     _dt.datetime.utcnow().isoformat())
+                                )
+                                _idb.commit()
+                                _idb.close()
+                            except Exception as _dbe:
+                                print(f'[PROXY/saveBill] DB store warning: {_dbe}')
                         return
                     _preview = resp_body[:200].decode('utf-8', errors='replace')
                     print(f'[PROXY/saveBill] WP Media API returned no URL: {_preview}')
@@ -11743,6 +11781,27 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         auth_hdr = self.headers.get('Authorization', '')
         if not auth_hdr.startswith('Bearer '):
             return self._json_error(401, 'Autenticación requerida.', code='auth_required')
+
+        # ── DB-first lookup ───────────────────────────────────────────────────
+        # Check invoice_file_urls table before hitting WordPress — covers both
+        # WP-uploaded files (source='wp') and locally-stored files (source='local')
+        # for any device, not just the one where the upload happened.
+        try:
+            _dbc = _get_db()
+            _db_row = _dbc.execute(
+                'SELECT file_url FROM invoice_file_urls '
+                'WHERE wr_id = ? ORDER BY id DESC LIMIT 1',
+                (wr_id,)
+            ).fetchone()
+            _dbc.close()
+            if _db_row and _db_row['file_url']:
+                _db_url = _db_row['file_url']
+                print(f'[INVOICE_URL_LOOKUP] wr_id={wr_id} → {_db_url} (DB hit)')
+                return self._json_response(200, {'url': _db_url})
+        except Exception as _dbe:
+            print(f'[INVOICE_URL_LOOKUP] DB lookup warning: {_dbe}')
+
+        # ── WordPress media search fallback ───────────────────────────────────
         # Build WP credentials
         _wp_user = os.environ.get('WP_APP_USER', '').strip()
         _wp_pass = os.environ.get('WP_APP_PASS', '').strip()
@@ -12020,11 +12079,29 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return
 
         print(f'[INVOICE_UPLOAD] Saved: {filename} ({len(file_bytes)} bytes) casillero={casillero_id} wr_id={wr_id or "unknown"}')
+        _local_url = 'https://crbox.cr/uploads/invoices/' + filename
+        # Persist WR→URL so invoice-url-lookup can recover this file across
+        # devices / sessions even when the client localStorage cache is absent.
+        if wr_id:
+            try:
+                import datetime as _dt
+                _idb = _get_db()
+                _idb.execute(
+                    'INSERT OR IGNORE INTO invoice_file_urls '
+                    '(wr_id, file_url, source, uploaded_at) '
+                    'VALUES (?, ?, ?, ?)',
+                    (wr_id, _local_url, 'local',
+                     _dt.datetime.utcnow().isoformat())
+                )
+                _idb.commit()
+                _idb.close()
+            except Exception as _dbe:
+                print(f'[INVOICE_UPLOAD] DB store warning: {_dbe}')
         # Return an absolute URL so FileLocation is resolvable by CRBOX's
         # internal tool regardless of where the request originates.
         # crbox.cr is the canonical production domain for this server.
         self._json_response(200, {
-            'url':  'https://crbox.cr/uploads/invoices/' + filename,
+            'url':  _local_url,
             'type': mime,
             'file': filename,
         })

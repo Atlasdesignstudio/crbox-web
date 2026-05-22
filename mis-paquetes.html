@@ -3702,11 +3702,23 @@
                 viewInvoiceBtn.setAttribute('data-invoice-url', d.url);
                 _openInvoiceViewer(d.url, _entry, _vPkg);
               } else {
-                showToast('El archivo de factura no está disponible. Usa el botón ✏️ para subirlo nuevamente.', 'info');
+                // URL not found on server — open mis-facturas as fallback so
+                // the user can at least see customs invoice data for this package.
+                var _fb = viewInvoiceBtn.getAttribute('data-fallback-url') || '';
+                if (_fb) {
+                  window.open(_fb, '_blank', 'noopener,noreferrer');
+                } else {
+                  showToast('El archivo de factura no está disponible. Usa el botón ✏️ para subirlo nuevamente.', 'info');
+                }
               }
             }).catch(function() {
               viewInvoiceBtn.disabled = false;
-              showToast('El archivo de factura no está disponible. Usa el botón ✏️ para subirlo nuevamente.', 'info');
+              var _fb2 = viewInvoiceBtn.getAttribute('data-fallback-url') || '';
+              if (_fb2) {
+                window.open(_fb2, '_blank', 'noopener,noreferrer');
+              } else {
+                showToast('El archivo de factura no está disponible. Usa el botón ✏️ para subirlo nuevamente.', 'info');
+              }
             });
           } else {
             showToast('El archivo de factura no está disponible. Usa el botón ✏️ para subirlo nuevamente.', 'info');
