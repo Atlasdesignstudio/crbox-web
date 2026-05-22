@@ -1,0 +1,572 @@
+We need to finalize the upload factura / purchase bill compatibility fix for the new CRBOX client portal, specifically `mis-paquetes`, using all evidence collected from the new portal, the old WordPress-based client portal, and the legacy admin.
+
+Important domain clarification:
+- The current production public domain is `https://crbox.cr`.
+- `https://wp.crbox.cr` is a legacy WordPress/client-portal subdomain used by the old portal and legacy WordPress upload flow.
+- `https://wp.crbox.cr` is NOT the main current production domain we use publicly now.
+- However, `wp.crbox.cr` is still relevant because the old working factura upload flow uses it for WordPress media storage and returns file URLs from that subdomain.
+- Do not confuse `crbox.cr` and `wp.crbox.cr`. Use the evidence below to determine what the legacy purchase bill API expects.
+
+Please use this as the full consolidated context. Do not assume previous partial reports are complete unless they align with the evidence below.
+
+Objective:
+Fix and validate the new client portal invoice upload flow so invoices uploaded from `mis-paquetes` are correctly created, displayed, downloadable, and visible across:
+
+1. New client portal: `mis-paquetes` on the current production site.
+2. Old WordPress/client portal: `wp.crbox.cr/packages/`.
+3. Legacy admin: `admin.crbox.cr`.
+
+Also document the correct future path for:
+- delete factura
+- replace factura
+- edit factura
+
+without using admin automation.
+
+Hard limits:
+- Do not change RDS flags.
+- Do not enable RDS packages, invoices, or profile.
+- Do not change auth/login/session behavior.
+- Do not change env vars, secrets, DNS, AWS, IIS, database schema, deployment settings, or unrelated flows.
+- Do not modify the old admin.
+- Do not automate admin login.
+- Do not add `admin.crbox.cr` credentials.
+- Do not call admin-only `EditPurchaseBill` from the new client portal.
+- Do not write directly to RDS.
+- Do not patch production DB records automatically.
+- Do not change registration, profile writes, password recovery, dashboard, or unrelated portal modules.
+- Do not implement delete/replace/edit factura yet unless explicitly approved after this report.
+
+---
+
+A. Original problem observed
+
+A factura uploaded from the new client portal became broken when viewed from the legacy admin and the old client portal.
+
+Affected test record:
+
+- warehouseReceiptId / WR: `606979`
+- Invoice number: `45478`
+- Amount: `20.00`
+- Original broken file reference: `9fcf7110-6f58-4203-acd2-50f60bbb7852.png`
+
+Observed broken admin HTML:
+
+<img src="https://crbox.crhttps://crbox.cr/uploads/invoices/9fcf7110-6f58-4203-acd2-50f60bbb7852.png" alt="Factura de compra" style="max-width:100%;max-height:600px;border:1px solid #ccc;display:block;margin-top:8px;">
+
+This confirms the malformed URL was actually present in legacy-generated/stored HTML, not just a browser display issue.
+
+The browser also attempted to load malformed duplicated-host URLs such as:
+
+https://crbox.crhttps://crbox.cr/uploads/invoices/9fcf7110-6f58-4203-acd2-50f60bbb7852.png
+
+The legacy admin and old portal also tried to load:
+
+https://admin.crbox.cr/Uploads/FacturaCompra-WR.pdf
+
+which returned:
+
+404 Not Found
+
+Visible error:
+
+Server Error in '/' Application.
+The resource cannot be found.
+Requested URL: /Uploads/FacturaCompra-WR.pdf
+
+Conclusion:
+WR 606979 is already corrupted and should not be used as a clean validation record.
+
+---
+
+B. Legacy admin evidence
+
+Legacy admin endpoint for viewing purchase bill:
+
+GET https://admin.crbox.cr/WareHouseReceipt/ShowAdminPurchaseBill?warehouseReceiptId=606979
+
+Legacy admin redirect/download endpoint:
+
+GET https://admin.crbox.cr/WareHouseReceipt/RedirectToAdminPurchaseBill?warehouseReceiptId=606979
+
+Observed redirect for the corrupted record:
+
+302 Found
+Location: https://admin.crbox.cr/Uploads/FacturaCompra-WR.pdf
+
+This generic fallback path is invalid because it has no WR number, no UUID, and no unique filename.
+
+Legacy admin edit endpoint discovered via HAR:
+
+POST https://admin.crbox.cr/WareHouseReceipt/EditPurchaseBill
+
+It is:
+- admin-only
+- ASP.NET MVC
+- requires admin ASP.NET session cookies
+- not client Bearer-token based
+- multipart/form-data
+- returns `302 Found` to `/WareHouseReceipt`
+
+Observed `EditPurchaseBill` form fields:
+
+WRIdEdit
+BillIdEdit
+numFacturaEdit
+montoFacturaEdit
+articulosEdit
+descripcionFacturaEdit
+ClientInvoiceFile
+FileTextContentEdit
+
+Important:
+`EditPurchaseBill` is useful to understand the legacy admin model, but it should NOT be used as the new client portal integration path. Do not automate admin login, do not add admin credentials, and do not post to this endpoint from the new client portal.
+
+---
+
+C. Old client portal also breaks for the corrupted record
+
+The old WordPress/client portal at:
+
+https://wp.crbox.cr/packages/
+
+also failed when clicking “Ver factura” for WR 606979.
+
+It showed:
+
+Server Error in '/' Application.
+The resource cannot be found.
+Requested URL: /Uploads/FacturaCompra-WR.pdf
+
+Network confirmed:
+
+GET https://admin.crbox.cr/Uploads/FacturaCompra-WR.pdf
+Status: 404 Not Found
+
+This confirms:
+- the corrupted purchase bill affects both legacy admin and old client portal
+- the problem is in the stored purchase bill content/path, not only in admin rendering
+- WR 606979 should be treated as corrupted and not used as the clean validation case
+
+---
+
+D. Initial new portal bug found
+
+The new portal upload flow previously did this:
+
+1. Upload file through current upload path.
+2. Receive a full URL, for example:
+
+https://crbox.cr/uploads/invoices/9fcf7110-6f58-4203-acd2-50f60bbb7852.png
+
+or WP-style:
+
+https://crbox.cr/wp-content/uploads/...
+
+3. Build `ClientInvoiceText` with embedded full URL:
+
+<img src="https://crbox.cr/uploads/invoices/..." />
+
+or PDF link:
+
+<a href="https://crbox.cr/wp-content/uploads/...">...</a>
+
+4. Separately compute `_filePath` after building `ClientInvoiceText`.
+
+Previous code pattern:
+
+var _safeUrl  = fileUrl ? fileUrl.replace(/"/g,'&quot;') : '';
+// ClientInvoiceText built here using _safeUrl
+var _filePath = (function(u) {
+  if (!u) return '';
+  try { return new URL(u).pathname; } catch (_) { return u; }
+}(fileUrl));
+
+This meant `ClientInvoiceText` used full absolute URLs.
+
+A path-normalization fix was implemented:
+
+var _filePath = (function(u) {
+  if (!u) return '';
+  try { return new URL(u).pathname; } catch (_) { return u; }
+}(fileUrl));
+
+var _safeUrl = _filePath ? _filePath.replace(/"/g,'&quot;') : '';
+
+After that:
+- `_filePath` is computed before `_safeUrl`
+- `_safeUrl` is derived from `_filePath`
+- `ClientInvoiceText` uses a pathname instead of a full URL
+- `FileLocation` still uses `_filePath`
+- `_invoiceUrlCache` still uses the full `fileUrl` for client display
+
+However, additional old portal evidence now refines this conclusion.
+
+---
+
+E. Critical old WordPress/client portal working upload evidence
+
+A fresh working upload was performed from the old WordPress/client portal at:
+
+https://wp.crbox.cr/packages/
+
+This gives the strongest evidence of the correct legacy-compatible convention.
+
+Step 1 — Old portal uploads the file to WordPress
+
+Request:
+
+POST https://wp.crbox.cr/wp-json/crbox/v1/saveBill
+
+FormData:
+
+email = prueba@crbox.cr
+invoice = binary file
+wr_id = 606979
+
+Response:
+
+{
+  "file": "/opt/bitnami/wordpress/wp-content/uploads/2026/05/FacturaCompra-WR606979.pdf",
+  "url": "https://wp.crbox.cr/wp-content/uploads/2026/05/FacturaCompra-WR606979.pdf",
+  "type": "application/pdf"
+}
+
+Step 2 — Old portal creates the purchase bill
+
+Request:
+
+POST https://clients.crbox.cr/api/crboxwebapi/postcreatepurchasebill
+
+Content-Type:
+
+application/x-www-form-urlencoded
+
+Payload observed:
+
+ClientInvoiceText = <p>esooooooo</p>
+Descripcion = ACCESORIOS PARA CELULAR
+FileLocation = https://wp.crbox.cr/wp-content/uploads/2026/05/FacturaCompra-WR606979.pdf
+Monto = 11
+NumeroFactura = 11111
+WRId = 606979
+
+Response:
+
+{
+  "StatusResult": "OK",
+  "Message": "La factura fue almacenada satisfactoriamente"
+}
+
+Step 3 — Old portal retrieves purchase bill
+
+Request:
+
+GET https://clients.crbox.cr/api/crboxwebapi/getpurchasebills/606979
+
+Response includes:
+
+{
+  "IdPurchaseBill": 294479,
+  "FileLocation": "https://wp.crbox.cr/wp-content/uploads/2026/05/FacturaCompra-WR606979.pdf",
+  "FileTextContent": "<p>esooooooo</p>",
+  "CreatedDate": "2026-05-22T17:31:36",
+  "NumeroFactura": "11111",
+  "Monto": 11.0,
+  "Descripcion": "ACCESORIOS PARA CELULAR"
+}
+
+Step 4 — File loads successfully
+
+Request:
+
+GET https://wp.crbox.cr/wp-content/uploads/2026/05/FacturaCompra-WR606979.pdf
+
+Status:
+
+200 OK
+Content-Type: application/pdf
+
+This confirms the file exists and the old portal’s upload/display path works correctly.
+
+---
+
+F. Important correction to previous assumption
+
+The old portal’s working behavior proves:
+
+FileLocation = full absolute WordPress URL
+
+is valid and expected.
+
+Specifically:
+
+FileLocation = https://wp.crbox.cr/wp-content/uploads/2026/05/FacturaCompra-WR606979.pdf
+
+Therefore, the root problem is probably NOT full absolute URL in `FileLocation`.
+
+The stronger root cause is:
+
+The new portal was embedding the invoice file URL inside ClientInvoiceText, while the old portal does not.
+
+Old portal working convention:
+
+FileLocation = full absolute WP URL
+FileTextContent / ClientInvoiceText = clean text/HTML only, no embedded file URL
+
+New portal broken convention:
+
+FileLocation = maybe OK or normalized
+ClientInvoiceText = embedded full image/PDF URL
+
+This likely caused double-host rendering and/or stored malformed HTML.
+
+Therefore, the safest compatibility approach may be:
+
+FileLocation should match old portal behavior:
+https://wp.crbox.cr/wp-content/uploads/...
+
+ClientInvoiceText should be clean description/text HTML only:
+<p>...</p>
+
+Do NOT embed <img src="..."> or <a href="..."> file links inside ClientInvoiceText unless absolutely necessary and proven safe.
+
+Please verify whether the recently implemented path-normalization fix is sufficient or whether a small final correction is needed to match the old portal exactly.
+
+---
+
+G. Delete purchase bill endpoint discovered
+
+The old client portal uses a client-facing delete endpoint:
+
+GET https://clients.crbox.cr/api/crboxwebapi/getdeletepurchasebill/606979/prueba@crbox.cr
+
+Response:
+
+{
+  "StatusResult": "OK",
+  "Message": "ok se borro"
+}
+
+Request details:
+- Method: GET
+- Status: 200 OK
+- Origin: `https://wp.crbox.cr`
+- Authorization: Bearer user token
+- Response Content-Type: application/json
+
+This confirms:
+- delete factura is supported by a client-facing CRBOX API
+- it does not require `admin.crbox.cr`
+- it does not require admin cookies
+- it should be considered for the new portal’s future delete/replace factura feature
+
+Known client-facing purchase bill endpoints:
+
+GET getpurchasebills/{warehouseReceiptId}
+GET getdeletepurchasebill/{warehouseReceiptId}/{email}
+POST postcreatepurchasebill
+GET getuserpackages/{idConsignee}/{start}/{end}/{tracking}/{status}
+
+---
+
+H. Future delete/replace strategy
+
+Do not implement this yet, but document the right direction.
+
+The new client portal should not implement client-side edit/replace by calling:
+
+admin.crbox.cr/WareHouseReceipt/EditPurchaseBill
+
+Instead, safer direction:
+
+Delete factura:
+
+Use:
+
+GET clients.crbox.cr/api/crboxwebapi/getdeletepurchasebill/{warehouseReceiptId}/{email}
+
+Then refresh:
+- package state
+- invoice count
+- local invoice URL cache
+- UI state
+
+Replace factura:
+
+Potential flow:
+
+1. Confirm with user:
+“Esta acción reemplazará la factura actual. Primero se eliminará la factura existente y luego podrás subir una nueva.”
+
+2. Either:
+- delete existing bill first, then open upload modal
+- or, if possible, upload new file first, then delete old bill, then create new bill
+
+Need to determine safest order.
+
+Important unresolved questions for future replace/delete feature:
+
+1. Does `getdeletepurchasebill` delete all bills for the WR/email or only one/latest?
+2. Does it delete only DB purchase bill record or also physical file?
+3. Does it validate that the email owns the WR?
+4. What happens if no bill exists?
+5. What happens if multiple bills exist for same WR?
+6. Does `postcreatepurchasebill` create duplicates if an existing bill is still present?
+7. Does old admin show latest bill, first bill, or all bills?
+8. Does `getpurchasebills/{WR}` return enough data for the new portal to show current bill metadata?
+9. Can new portal safely implement delete first, then upload?
+10. What recovery UX is needed if delete succeeds but upload fails?
+
+Do not implement delete/replace until the upload compatibility fix is validated.
+
+---
+
+I. WR 606979 handling
+
+WR 606979 is not a clean test record anymore.
+
+It has multiple historical states:
+- originally broken by double-host `ClientInvoiceText`
+- old local file `9fcf7110-...png` no longer exists
+- at one point `FileLocation`/redirect became generic `/Uploads/FacturaCompra-WR.pdf`
+- later a fresh old-portal upload created a working bill with:
+  - `IdPurchaseBill = 294479`
+  - `FileLocation = https://wp.crbox.cr/wp-content/uploads/2026/05/FacturaCompra-WR606979.pdf`
+  - `FileTextContent = <p>esooooooo</p>`
+
+Do not patch WR 606979 automatically.
+
+If cleanup is needed:
+- staff can remove old/corrupted duplicate records from the admin
+- or client can re-upload after the fix is live
+- avoid direct DB patching
+
+---
+
+J. What I need you to do now
+
+Before publish, please produce a final implementation recommendation based on all evidence.
+
+Specifically answer:
+
+1. Is the current path-normalization fix sufficient?
+2. Should `FileLocation` remain as full absolute URL, matching old portal behavior?
+3. Should `ClientInvoiceText` stop embedding image/PDF file links entirely and instead only contain clean description/text HTML?
+4. Should the final fix be:
+   - `FileLocation = fileUrl` full absolute URL
+   - `ClientInvoiceText = sanitized description/text only`
+   - `_invoiceUrlCache = fileUrl`
+5. Or is there a reason to keep `ClientInvoiceText` containing a pathname-based `<img>` or `<a>`?
+6. What exact minimal code change is needed in `mis-paquetes.html`, if any, before publish?
+7. Does the new portal currently call the same WP `saveBill` endpoint or a proxy equivalent that returns the same URL?
+8. Does the new portal currently use `https://crbox.cr` or `https://wp.crbox.cr` for the final file URL?
+9. Which domain should be stored in `FileLocation` to match the old portal working convention?
+10. What is the exact expected payload to `postcreatepurchasebill` after the final fix?
+
+Expected final payload should likely match old portal convention:
+
+ClientInvoiceText = <p>{safe user description/text}</p>
+Descripcion = {selected category or description}
+FileLocation = https://wp.crbox.cr/wp-content/uploads/YYYY/MM/FacturaCompra-WR{id}.pdf
+Monto = {invoice amount}
+NumeroFactura = {invoice number}
+WRId = {warehouseReceiptId}
+
+But please confirm from code before implementing.
+
+---
+
+K. Required validation after final fix and publish
+
+Use a fresh test upload. Do not use the originally corrupted state of WR 606979 as proof unless it was cleaned or intentionally reused as controlled test.
+
+Validate all three surfaces:
+
+1. New client portal `mis-paquetes`
+
+Confirm:
+- upload modal opens
+- `/api/proxy/saveBill` or equivalent saveBill returns 200
+- returned `fileUrl` is valid
+- `postcreatepurchasebill` returns:
+
+{
+  "StatusResult": "OK",
+  "Message": "La factura fue almacenada satisfactoriamente"
+}
+
+- payload to `postcreatepurchasebill` has correct:
+  - `FileLocation`
+  - `ClientInvoiceText`
+  - `Descripcion`
+  - `Monto`
+  - `NumeroFactura`
+  - `WRId`
+- `/api/invoice-email` fires exactly once
+- no duplicate notification email
+- package state refreshes correctly
+- UI updates from “Subir Factura” to “Ver Factura” or equivalent
+
+2. Old WordPress/client portal `wp.crbox.cr/packages/`
+
+Confirm:
+- “Ver factura” works
+- no `Server Error in '/' Application`
+- no `/Uploads/FacturaCompra-WR.pdf` 404
+- no `https://crbox.crhttps://...`
+- PDF/image loads correctly
+
+3. Legacy admin `admin.crbox.cr`
+
+Confirm:
+- `ShowAdminPurchaseBill` displays correctly
+- `RedirectToAdminPurchaseBill` points to valid file
+- no generic `/Uploads/FacturaCompra-WR.pdf`
+- no duplicated domain
+- `EditPurchaseBill` hidden form has correct:
+  - `FileLocation`
+  - `FileTextContentEdit`
+  - `BillIdEdit`
+  - `WRIdEdit`
+
+4. Client-facing API check
+
+Confirm:
+
+GET getpurchasebills/{WR}
+
+returns:
+- `IdPurchaseBill`
+- `FileLocation`
+- `FileTextContent`
+- `NumeroFactura`
+- `Monto`
+- `Descripcion`
+- correct created date
+
+---
+
+L. Final report required
+
+Please report:
+
+1. Final root cause.
+2. Exact final code change recommended or already applied.
+3. Whether the current fix needs adjustment based on old portal evidence.
+4. Final expected payload to `postcreatepurchasebill`.
+5. Whether it is safe to publish.
+6. Exact validation checklist.
+7. What to do with WR 606979.
+8. Future delete factura implementation recommendation.
+9. Future replace factura implementation recommendation.
+10. Explicit confirmation that:
+   - no RDS flags were changed
+   - no auth was changed
+   - no admin automation was added
+   - no admin credentials were added
+   - no AWS/IIS/DNS/env/schema changes were made
+   - no direct DB writes were made
+   - no unrelated flows were touched
+
+Do not implement delete/replace/edit factura yet. Only finalize the upload compatibility fix and validation plan.

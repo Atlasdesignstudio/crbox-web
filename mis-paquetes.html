@@ -3439,51 +3439,31 @@
               fileUrl = saved.url || saved.file || '';
 
               // Step 2: create the purchase bill record
-              // Field names must match the exact backend contract for postcreatepurchasebill.
-              // ClientInvoiceText is rendered as raw HTML inside a <fieldset> in CRBOX's
-              // internal tool ("Factura Recibida" section). Embed the file inline so staff
-              // can view/download it directly without relying solely on the FileLocation link.
+              // Field names match the exact backend contract for postcreatepurchasebill.
+              // Convention mirrors the old wp.crbox.cr portal: ClientInvoiceText carries
+              // only the user's description as sanitised HTML; FileLocation carries the
+              // full absolute file URL. The file is opened via RedirectToAdminPurchaseBill
+              // on the admin side and via _invoiceUrlCache / window.open on the client side.
               var _safeDesc = desc.trim().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-              var _fileType = saved.type || '';
-              var _isImage  = _fileType.indexOf('image/') === 0;
-              // _filePath must be computed BEFORE _safeUrl.
-              // The CRBOX admin prepends https://crbox.cr to every src/href value in
-              // ClientInvoiceText (same transform as FileLocation). Using the full absolute
-              // URL (https://crbox.cr/...) here causes the admin to produce the
-              // double-prefix https://crbox.crhttps://crbox.cr/... → broken image/link.
-              // Using the pathname (/wp-content/uploads/... or /uploads/invoices/...)
-              // lets the admin produce the correct https://crbox.cr/... URL.
-              var _filePath = (function(u) {
-                if (!u) return '';
-                try { return new URL(u).pathname; } catch (_) { return u; }
-              }(fileUrl));
-              // _safeUrl is derived from _filePath (pathname), not from fileUrl (full URL).
-              // The browser/client cache (_invoiceUrlCache) continues to use fileUrl
-              // directly (see below) — that still needs the absolute URL for display.
-              var _safeUrl  = _filePath ? _filePath.replace(/"/g,'&quot;') : '';
-              var clientInvoiceText = '';
-              if (_isImage && _safeUrl) {
-                // Embed image inline — staff can see it directly in the CRBOX tool
-                clientInvoiceText =
-                  '<p><strong>Descripción:</strong> ' + _safeDesc + '</p>' +
-                  '<p><img src="' + _safeUrl + '" alt="Factura de compra" ' +
-                  'style="max-width:100%;max-height:600px;border:1px solid #ccc;display:block;margin-top:8px;" /></p>';
-              } else if (_safeUrl) {
-                // PDF or other — show a prominent download link staff can click
-                clientInvoiceText =
-                  '<p><strong>Descripción:</strong> ' + _safeDesc + '</p>' +
-                  '<p style="margin-top:8px;"><a href="' + _safeUrl + '" target="_blank" ' +
-                  'rel="noopener" style="color:#0066cc;font-weight:bold;">&#128206; Ver / Descargar archivo de factura</a></p>';
-              } else {
-                clientInvoiceText = '<p>' + _safeDesc + '</p>';
-              }
+              // ClientInvoiceText: description text only — no embedded <img> or <a> file
+              // links. The old client portal (wp.crbox.cr/packages/) sends only plain HTML
+              // description text here (e.g. "<p>description</p>") and the file is accessed
+              // via FileLocation / RedirectToAdminPurchaseBill. Embedding file URLs caused
+              // the CRBOX admin to apply an https://crbox.cr prefix to the src/href,
+              // producing the broken double-host https://crbox.crhttps://crbox.cr/... URL.
+              var clientInvoiceText = '<p>' + _safeDesc + '</p>';
+              // FileLocation: full absolute WordPress URL — matches old portal convention.
+              // The old portal sends https://wp.crbox.cr/wp-content/uploads/... verbatim.
+              // Our proxy normalises to https://crbox.cr/wp-content/uploads/... (same
+              // server, same file). The CRBOX system stores and returns it verbatim;
+              // RedirectToAdminPurchaseBill redirects directly to this URL.
               var payload = {
                 WRId:              wrId,
                 NumeroFactura:     numero.trim(),
                 Monto:             parseFloat(monto),
                 Descripcion:       desc.trim(),
                 ClientInvoiceText: clientInvoiceText,
-                FileLocation:      _filePath
+                FileLocation:      fileUrl
               };
               return CRBOXPortalAPI.createPurchaseBill(payload);
             })
