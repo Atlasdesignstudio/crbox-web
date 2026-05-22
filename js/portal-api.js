@@ -791,11 +791,14 @@
     }
     // Email is placed raw (not %40-encoded) in the URL path — the CRBOX API
     // matches it as a plain string and rejects percent-encoded variants.
-    var _wrIdSafe = encodeURIComponent(String(warehouseReceiptId));
+    // Timeout is 45 s: the delete endpoint can take 10-15 s to respond on
+    // the CRBOX side, well above the 15 s default, causing false "cancelled"
+    // errors in the browser even though the server processed the delete.
+    var _wrIdSafe  = encodeURIComponent(String(warehouseReceiptId));
     var _emailSafe = String(email); // intentionally not encodeURIComponent
     return _request(
       BASE + '/getdeletepurchasebill/' + _wrIdSafe + '/' + _emailSafe,
-      { method: 'GET' }, {}
+      { method: 'GET' }, { timeout: 45000 }
     ).then(function (res) {
       if (!res.ok) {
         console.warn('[CRBOX] deletePurchaseBill HTTP error:', res.status, res.statusText);
