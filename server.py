@@ -12079,29 +12079,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             return
 
         print(f'[INVOICE_UPLOAD] Saved: {filename} ({len(file_bytes)} bytes) casillero={casillero_id} wr_id={wr_id or "unknown"}')
-        _local_url = 'https://crbox.cr/uploads/invoices/' + filename
-        # Persist WR→URL so invoice-url-lookup can recover this file across
-        # devices / sessions even when the client localStorage cache is absent.
-        if wr_id:
-            try:
-                import datetime as _dt
-                _idb = _get_db()
-                _idb.execute(
-                    'INSERT OR IGNORE INTO invoice_file_urls '
-                    '(wr_id, file_url, source, uploaded_at) '
-                    'VALUES (?, ?, ?, ?)',
-                    (wr_id, _local_url, 'local',
-                     _dt.datetime.utcnow().isoformat())
-                )
-                _idb.commit()
-                _idb.close()
-            except Exception as _dbe:
-                print(f'[INVOICE_UPLOAD] DB store warning: {_dbe}')
+        # NOTE: local-upload files are NOT registered in invoice_file_urls because
+        # they bypass the WordPress / CRBOX admin flow entirely.  Only files uploaded
+        # via /api/proxy/saveBill (→ WordPress → postcreatepurchasebill) are tracked
+        # in invoice_file_urls so that invoice-url-lookup always returns a WP-hosted
+        # URL that the CRBOX admin tool can open, edit, and delete correctly.
         # Return an absolute URL so FileLocation is resolvable by CRBOX's
         # internal tool regardless of where the request originates.
         # crbox.cr is the canonical production domain for this server.
         self._json_response(200, {
-            'url':  _local_url,
+            'url':  'https://crbox.cr/uploads/invoices/' + filename,
             'type': mime,
             'file': filename,
         })
