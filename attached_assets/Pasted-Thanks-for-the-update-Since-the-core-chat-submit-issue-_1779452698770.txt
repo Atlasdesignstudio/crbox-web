@@ -1,0 +1,108 @@
+Thanks for the update. Since the core chat submit issue is now fixed, we can proceed.
+
+Please move forward with Phase 1: document upload, diagnostics, and uploaded report analysis inside the floating CRO Strategist chat.
+
+Do not implement the full proactive copilot expansion yet.
+
+For now, please implement:
+
+1. Diagnostics mode
+- provider used
+- intent detected
+- entities extracted
+- context pack counts
+- document included yes/no
+- document name/type
+- extraction status
+- response mode
+- fallback used yes/no
+- response validation
+- elapsed time
+- no secrets or full raw payloads
+
+2. Upload UI in floating chat
+- paperclip/upload button
+- helper text for PDF, CSV, XLSX
+- uploaded file chip with remove option
+- clear indication when uploaded report context is active
+
+3. Backend upload route
+- POST /api/cro-assistant/upload
+- multer memoryStorage
+- 5MB file limit
+- PDF, CSV, XLSX only
+- reject images for this MVP with a friendly message
+- no permanent storage
+- no uploaded files committed
+- no localStorage persistence for report contents
+
+4. Parsing
+- PDF: extract readable text and summaries
+- CSV: parse headers/rows, detect likely dimensions and metrics
+- XLSX: parse sheet names, headers, representative rows, metrics
+- trim raw previews before sending to Gemini
+- return structured documentContext
+
+5. Gemini integration
+When a document is uploaded, include documentContext in chat and Decision Brief requests.
+
+The assistant should synthesize:
+- uploaded report findings
+- CRO Brain archive
+- learnings
+- proposed roadmap
+- selected page/funnel context
+
+It should not analyze the uploaded report in isolation if CRO Brain context is relevant.
+
+6. Analytics guardrails
+The assistant must:
+- not invent metrics
+- not claim statistical significance unless present
+- not infer causation from correlation
+- label uploaded-report facts separately from CRO Brain facts
+- say when date range, segment, or metric definition is missing
+- say when extraction is partial
+- show conflicts between report findings and CRO Brain history
+
+7. Chat-to-action from uploaded report
+If the report reveals a useful opportunity, offer:
+- Create Opportunity
+- Create Proposed Test
+- Generate Decision Brief
+- Generate Hypothesis
+- Generate Metrics Plan
+- Copy Stakeholder Summary
+- Open Related Archive Evidence
+
+Create Proposed Test should open the wizard with a draft, but never auto-save or mark anything Ready to Launch/Running.
+
+8. Manual QA document
+Create assistant_manual_qa.md with clear steps to test:
+- chat open/close
+- chat submit
+- PDF upload
+- CSV upload
+- XLSX upload
+- unsupported file upload
+- remove uploaded document
+- report + CRO Brain synthesis
+- create proposed test from report finding
+- local fallback
+- security/no API key exposure
+
+Please defer to Phase 2:
+- /audit
+- /grill-me
+- proactive pulses
+- automatic UI filtering
+- automatic DOM manipulation
+- low-evidence proactive nudges
+
+After implementation, report:
+- files changed
+- dependencies added
+- upload route behavior
+- documentContext schema
+- QA results
+- any limitations
