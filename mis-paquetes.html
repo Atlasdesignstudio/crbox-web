@@ -3446,7 +3446,21 @@
               var _safeDesc = desc.trim().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
               var _fileType = saved.type || '';
               var _isImage  = _fileType.indexOf('image/') === 0;
-              var _safeUrl  = fileUrl ? fileUrl.replace(/"/g,'&quot;') : '';
+              // _filePath must be computed BEFORE _safeUrl.
+              // The CRBOX admin prepends https://crbox.cr to every src/href value in
+              // ClientInvoiceText (same transform as FileLocation). Using the full absolute
+              // URL (https://crbox.cr/...) here causes the admin to produce the
+              // double-prefix https://crbox.crhttps://crbox.cr/... → broken image/link.
+              // Using the pathname (/wp-content/uploads/... or /uploads/invoices/...)
+              // lets the admin produce the correct https://crbox.cr/... URL.
+              var _filePath = (function(u) {
+                if (!u) return '';
+                try { return new URL(u).pathname; } catch (_) { return u; }
+              }(fileUrl));
+              // _safeUrl is derived from _filePath (pathname), not from fileUrl (full URL).
+              // The browser/client cache (_invoiceUrlCache) continues to use fileUrl
+              // directly (see below) — that still needs the absolute URL for display.
+              var _safeUrl  = _filePath ? _filePath.replace(/"/g,'&quot;') : '';
               var clientInvoiceText = '';
               if (_isImage && _safeUrl) {
                 // Embed image inline — staff can see it directly in the CRBOX tool
@@ -3463,15 +3477,6 @@
               } else {
                 clientInvoiceText = '<p>' + _safeDesc + '</p>';
               }
-              // FileLocation must be a path (e.g. /wp-content/uploads/...), NOT a full
-              // URL. The CRBOX admin tool prepends https://crbox.cr to FileLocation when
-              // building both the open/download link and the preview image src. Sending a
-              // full URL produces https://crbox.crhttps://crbox.cr/... (double-prefix) →
-              // host "crbox.crhttps" → "Servidor no encontrado".
-              var _filePath = (function(u) {
-                if (!u) return '';
-                try { return new URL(u).pathname; } catch (_) { return u; }
-              }(fileUrl));
               var payload = {
                 WRId:              wrId,
                 NumeroFactura:     numero.trim(),

@@ -1,0 +1,64 @@
+Approved. Implement the minimal safe fix only.
+
+Implement exactly the proposed path-normalization fix in `mis-paquetes.html`:
+
+- Compute `_filePath` before `_safeUrl`.
+- Derive `_safeUrl` from `_filePath`, not from `fileUrl`.
+- Keep `FileLocation` as `_filePath`.
+- Keep browser/client cache or display usage of `fileUrl` unchanged if it needs the full absolute URL.
+
+Expected result:
+- `FileLocation` remains:
+  `/wp-content/uploads/...`
+- `ClientInvoiceText` image src / PDF href becomes:
+  `/wp-content/uploads/...`
+  instead of:
+  `https://crbox.cr/wp-content/uploads/...`
+
+This should allow the legacy admin to prepend `https://crbox.cr` once and render:
+`https://crbox.cr/wp-content/uploads/...`
+instead of:
+`https://crbox.crhttps://crbox.cr/wp-content/uploads/...`
+
+Hard limits:
+- Do not modify `/api/proxy/saveBill`.
+- Do not modify upload storage behavior.
+- Do not modify `postcreatepurchasebill` endpoint behavior.
+- Do not add admin.crbox.cr credentials.
+- Do not automate admin login.
+- Do not modify the old admin.
+- Do not write to the database.
+- Do not change RDS flags.
+- Do not change env vars, secrets, DNS, AWS, IIS, database schema, auth, login, registration, profile writes, or unrelated flows.
+- Do not change invoice-email logic except if absolutely required for this exact upload validation; it should still fire once.
+
+Validation required:
+1. Upload a new test invoice from `mis-paquetes`.
+2. Confirm `/api/proxy/saveBill` returns 200.
+3. Confirm `postcreatepurchasebill` succeeds.
+4. Confirm payload sent to `postcreatepurchasebill` has:
+   - `FileLocation = /wp-content/uploads/...`
+   - `ClientInvoiceText` img src or PDF href = `/wp-content/uploads/...`
+   - no `https://crbox.cr` inside `ClientInvoiceText` src/href
+5. Open the new upload in legacy admin `ShowAdminPurchaseBill`.
+6. Confirm the invoice displays correctly.
+7. Confirm no `https://crbox.crhttps://...` appears.
+8. Confirm `RedirectToAdminPurchaseBill` no longer redirects to `/Uploads/FacturaCompra-WR.pdf` for the new upload.
+9. Confirm `/api/invoice-email` fires exactly once and returns 200.
+10. Confirm no duplicate notification is sent.
+11. Confirm RDS flags remain false.
+
+For WR 606979:
+- Do not attempt to patch it automatically.
+- Document that it is already corrupted and the original local file is gone.
+- Recommend correction only after the systemic fix is live:
+  either customer re-upload after the fix, or staff manual correction/removal from the admin tool.
+
+After implementation, report:
+1. File changed.
+2. Exact code movement/change.
+3. Before/after values for `_safeUrl`, `_filePath`, `FileLocation`, and `ClientInvoiceText`.
+4. Validation results.
+5. Confirmation no unrelated flows changed.
+6. Confirmation RDS flags remain false.
+7. Whether it is safe to publish.
