@@ -1,0 +1,141 @@
+I want to create a strategic modernization roadmap for CRBOX, based on everything we have learned from the RDS portal work.
+
+Do not execute anything.
+Do not change code.
+Do not change env vars, secrets, DNS, database data, feature flags, or deployment settings.
+Do not run database writes.
+Do not migrate files.
+Do not modify production behavior.
+
+Goal:
+Help me decide the safest modernization order for CRBOX across:
+- client portal
+- admin platform
+- RDS direct reads
+- future write services
+- upload factura / purchase bill
+- file storage currently in WordPress
+- possible cloned/staging database
+- future modern authentication
+
+Context:
+We already validated RDS reads for:
+- mis-paquetes
+- mis-facturas
+- mi-cuenta
+
+But production enablement of mis-paquetes exposed an auth verification issue, not a data issue. The RDS data itself matched legacy.
+
+I want to understand what should be modernized first, what should wait, and how to avoid breaking the existing admin/warehouse operation.
+
+Please produce a planning report only.
+
+Analyze:
+
+1. Current architecture
+Explain the current layers:
+- legacy API
+- RDS production database
+- old admin
+- new website/client portal
+- new admin platform
+- WordPress file storage
+- upload factura flow
+- auth/session flow
+
+2. Cloned/staging database strategy
+Explain whether we should create or use a cloned production database now.
+Cover:
+- why it is useful
+- what it should be used for
+- what it should not be used for
+- how it helps test admin writes, upload flows, schema changes, and performance
+- whether it should become the new production database or only a sandbox
+- how to keep it safe and anonymized if needed
+
+3. Client portal modernization
+Explain the recommended next steps:
+- fix RDS auth fallback
+- re-enable mis-paquetes
+- then mis-facturas
+- then mi-cuenta
+- keep writes legacy-backed for now
+
+4. Upload factura / file storage modernization
+Explain how to modernize the upload factura flow:
+- current WordPress storage
+- future storage option such as S3/R2/Supabase Storage
+- metadata table needed
+- how to keep old WordPress files accessible
+- how to migrate old files later
+- how to avoid breaking existing purchase_bill behavior
+
+5. New admin platform modernization
+Analyze whether the new admin should connect directly to RDS for read-only views first.
+Cover:
+- package search
+- customer views
+- invoice views
+- purchase bill visibility
+- dashboard
+- performance benefits
+- risks
+- why writes should wait
+
+6. Future admin write services
+Explain what would be required before the new admin can create or edit packages directly:
+- business rules
+- side effects
+- status changes
+- labels
+- notifications
+- invoice relationships
+- audit logs
+- rollback
+- compatibility with old admin
+
+7. Modern auth
+Explain where modern auth fits:
+- whether it should be done before or after RDS read rollout
+- migration by login
+- linking new auth users to idConsignee/idClient
+- why auth can be modernized without changing the old admin
+- risks and requirements
+
+8. Recommended phased roadmap
+Give me a clear order:
+Phase 1: stabilize RDS client portal reads
+Phase 2: modernize upload factura/file storage
+Phase 3: connect new admin read-only to RDS
+Phase 4: introduce controlled write services
+Phase 5: modern auth
+Phase 6: migrate old WordPress files
+Phase 7: reduce/retire legacy dependencies
+
+For each phase include:
+- objective
+- what changes
+- what remains legacy
+- database impact
+- risk level
+- dependencies
+- rollback strategy
+
+9. What not to do yet
+List things that should not be done now:
+- do not redesign the whole database yet
+- do not move all writes to RDS at once
+- do not replace auth before the portal read path is stable
+- do not remove WordPress until file migration is solved
+- do not break old admin compatibility
+
+10. Recommended next concrete task
+End with the next 1–3 tasks we should actually do now.
+
+Output:
+Create a clear strategic planning report.
+Do not implement anything.
+Do not create a new database.
+Do not write to RDS.
+Do not migrate files.
+Do not change production.
