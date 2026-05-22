@@ -1,0 +1,249 @@
+Good diagnosis, but let’s refine the conclusion before implementing anything. We now have more detailed Inspect/HAR evidence, including the legacy admin `EditPurchaseBill` behavior. Please use all of this in the root-cause analysis.
+
+Observed evidence from Inspect/HAR:
+
+1. Legacy admin `ShowAdminPurchaseBill` generated this broken HTML for WR 606979:
+
+<img src="https://crbox.crhttps://crbox.cr/uploads/invoices/9fcf7110-6f58-4203-acd2-50f60bbb7852.png" alt="Factura de compra" style="max-width:100%;max-height:600px;border:1px solid #ccc;display:block;margin-top:8px;">
+
+This confirms the malformed URL is produced by the legacy admin HTML, not only by the browser.
+
+2. The browser Network Initiator also confirms requests to malformed duplicated-host URLs:
+
+https://crbox.crhttps://crbox.cr/uploads/invoices/9fcf7110-6f58-4203-acd2-50f60bbb7852.png
+
+and similar duplicated URL variants.
+
+3. `RedirectToAdminPurchaseBill` was called as:
+
+GET https://admin.crbox.cr/WareHouseReceipt/RedirectToAdminPurchaseBill?warehouseReceiptId=606979
+
+It returned:
+
+302 Found
+Location: https://admin.crbox.cr/Uploads/FacturaCompra-WR.pdf
+
+That redirect target is invalid/generic because it has no WR number or unique filename. It then 404s at:
+
+https://admin.crbox.cr/Uploads/FacturaCompra-WR.pdf
+
+4. The visible error in the legacy admin says:
+
+Server Error in '/' Application.
+The resource cannot be found.
+Requested URL: /Uploads/FacturaCompra-WR.pdf
+
+5. The `ShowAdminPurchaseBill` response for WR 606979 also contains a hidden edit form:
+
+<form action="WareHouseReceipt/EditPurchaseBill" enctype="multipart/form-data" id="frmPurchaseBillEdit" method="post">
+
+The edit form contains these fields:
+
+- `numFacturaEdit` = 45478
+- `montoFacturaEdit` = 20.00
+- `articulosEdit`
+- `descripcionFacturaEdit`
+- `ClientInvoiceFile`
+- hidden `WRIdEdit`
+- hidden `BillIdEdit`
+- hidden textarea `FileTextContentEdit`
+
+6. The hidden `FileTextContentEdit` textarea contains the same malformed image HTML:
+
+<img src="https://crbox.crhttps://crbox.cr/uploads/invoices/9fcf7110-6f58-4203-acd2-50f60bbb7852.png" alt="Factura de compra" ...>
+
+This is important because it suggests the bad URL may now be persisted inside the admin editable HTML/text content, not just generated at render time.
+
+7. `EditPurchaseBill` is an admin .NET endpoint:
+
+POST https://admin.crbox.cr/WareHouseReceipt/EditPurchaseBill
+
+It returned:
+
+302 Found
+Location: /WareHouseReceipt
+
+It uses the admin ASP.NET session cookie, not the client Bearer token. It is part of the staff-facing legacy admin, not the clients.crbox.cr REST API.
+
+8. The `EditPurchaseBill` request is multipart/form-data and includes:
+- invoice number
+- amount
+- category
+- description
+- optional `ClientInvoiceFile`
+- hidden `WRIdEdit`
+- hidden `BillIdEdit`
+- hidden `FileTextContentEdit`
+
+9. There is a `BillIdEdit`, meaning each purchase bill has an internal bill ID in the legacy admin. The client-facing package API does not appear to expose this ID directly.
+
+10. A key caution:
+Do not jump to implementing server-side admin login automation or admin-cookie sync. Automating `admin.crbox.cr` login/server-side EditPurchaseBill posts would be a privileged staff-admin integration and requires a separate security/design review. It should not be part of this minimal fix.
+
+11. Current affected record:
+- warehouseReceiptId: 606979
+- invoice number: 45478
+- amount: 20.00
+- uploaded/visible timestamp in admin: 22/05/2026 4:15:43 PM
+- description shown: paquete de priueba / paquete de priueba prueeba
+- uploaded file path in the broken img references: `/uploads/invoices/9fcf7110-6f58-4203-acd2-50f60bbb7852.png`
+
+Current likely root cause:
+This is most likely a path-format compatibility bug between the new portal upload flow and the legacy admin renderer.
+
+The likely behavior is:
+- The new portal/WordPress upload flow sends or stores a full URL such as:
+  `https://crbox.cr/uploads/invoices/9fcf7110-6f58-4203-acd2-50f60bbb7852.png`
+- The legacy admin expects a relative path/pathname, or stores HTML in a format where it prepends `https://crbox.cr`.
+- Because the stored value already contains `https://crbox.cr`, the admin renders:
+  `https://crbox.cr` + `https://crbox.cr/uploads/invoices/...`
+- Result:
+  `https://crbox.crhttps://crbox.cr/uploads/invoices/...`
+
+There may also be a second issue:
+- After editing in the old admin, the file path appears to have been overwritten to the admin’s generic fallback/template:
+  `/Uploads/FacturaCompra-WR.pdf`
+- That causes the redirect/download endpoint to 302 to:
+  `https://admin.crbox.cr/Uploads/FacturaCompra-WR.pdf`
+- This file does not exist and returns 404.
+
+What I want you to do next:
+
+Do not implement admin login automation.
+Do not add admin.crbox.cr credentials.
+Do not create server-side admin session sync.
+Do not modify the old admin.
+Do not change AWS, IIS, DNS, env vars, RDS flags, database schema, auth, login, registration, profile writes, saveBill endpoint behavior, or unrelated flows.
+Do not write to the database unless explicitly approved.
+
+Instead, investigate and propose the minimal compatibility fix.
+
+Priority 1 — Confirm exact stored DB values for WR 606979
+
+Using read-only access only, inspect the purchase bill record for WR 606979.
+
+Retrieve only:
+- purchase bill internal ID
+- warehouseReceiptId
+- stored file/path field, likely `FileLocation` or equivalent
+- stored HTML/text field if relevant
+- invoice number
+- amount
+- created/updated timestamp if useful
+
+Do not expose unrelated PII.
+Do not write to DB.
+Do not patch the record automatically.
+
+We need to know whether the DB currently stores:
+A. a full URL: `https://crbox.cr/uploads/invoices/...`
+B. a relative path: `/uploads/invoices/...`
+C. a malformed URL: `https://crbox.crhttps://...`
+D. a generic fallback: `/Uploads/FacturaCompra-WR.pdf`
+E. full HTML content containing an img tag
+F. separate fields for file path and rendered HTML content
+
+Priority 2 — Confirm what the client portal currently sends
+
+Inspect the current new portal upload flow:
+- `/api/proxy/saveBill`
+- `saveBill`
+- `postcreatepurchasebill`
+- `createPurchaseBill`
+- `FileLocation` construction
+- `FileTextContent` / `clientInvoiceText` construction
+- any normalization of upload URL/path
+- any use of `publicUrl`, `fileUrl`, `url`, `pathname`, `uploadedFileUrl`, `storageKey`, or equivalent
+
+Report the exact values sent to the legacy purchase bill creation flow:
+- `FileLocation`
+- text/html content field, if any
+- WR / warehouseReceiptId
+- invoice number
+- amount
+- description
+- file extension/type
+
+Confirm whether the portal currently sends:
+- full `https://crbox.cr/...` URL
+- relative `/uploads/invoices/...` path
+- `/wp-content/uploads/...`
+- `/Uploads/...`
+- HTML containing a full image URL
+- generic `/Uploads/FacturaCompra-WR.pdf`
+
+Priority 3 — Determine expected legacy admin convention
+
+Based on the legacy admin behavior, determine the expected format.
+
+Evidence suggests:
+- the admin may prepend `https://crbox.cr` to the stored file/path value
+- stored value should likely NOT include `https://crbox.cr`
+- stored value may need to be a pathname like `/uploads/invoices/<file>` or `/Uploads/<file>`
+- if FileTextContent contains an img tag, its `src` must not become double-prefixed
+- `RedirectToAdminPurchaseBill` may expect a specific file/path field to point to a valid file, not generic `/Uploads/FacturaCompra-WR.pdf`
+
+Please confirm this from code, payloads, DB values, and admin HTML behavior before fixing.
+
+Important correction:
+Do not assume the cleanest fix is “customer re-upload creates a fresh correct record” unless we first confirm the portal now sends the correct format. If the portal still sends a full URL, every new upload can reproduce the same double-prefix bug.
+
+Also do not assume creating a fresh record alongside the corrupted one is safe. Duplicate purchase bills for the same WR may create operational confusion. If an existing bad record needs repair, propose a one-record correction plan separately and wait for approval.
+
+Minimal safe fix direction:
+If the portal is sending a full URL where legacy expects a pathname:
+- fix portal-side normalization before `postcreatepurchasebill`
+- keep the actual upload/storage behavior unchanged
+- keep `/api/proxy/saveBill` behavior unchanged unless absolutely necessary
+- store/send a legacy-compatible path format
+- avoid storing `https://crbox.cr...` if the old admin prepends `https://crbox.cr`
+- ensure generated `FileTextContent` / `clientInvoiceText` does not embed a double-host URL
+- preserve support for images and PDFs
+- preserve compatibility with existing WordPress/legacy files
+
+Potential normalization concept, pending confirmation:
+
+Full URL:
+`https://crbox.cr/uploads/invoices/9fcf7110-6f58-4203-acd2-50f60bbb7852.png`
+
+Could become:
+`/uploads/invoices/9fcf7110-6f58-4203-acd2-50f60bbb7852.png`
+
+But do not implement until the expected convention is confirmed.
+
+If the issue is one already-corrupted record:
+- do not patch production DB automatically
+- propose a one-record correction plan for WR 606979
+- explain exactly what field would need to change and to what value
+- wait for explicit approval
+
+If the issue affects all new uploads:
+- propose a portal-side fix before any further customer uploads
+- explain whether already-created records need cleanup
+- provide validation steps
+
+Validation after approved fix:
+- Upload a new test invoice from `mis-paquetes`
+- Confirm `/api/proxy/saveBill` returns 200
+- Confirm `postcreatepurchasebill` succeeds
+- Confirm the stored/sent `FileLocation` is legacy-compatible
+- Confirm `FileTextContent` / rendered HTML has a valid image/PDF reference
+- Confirm `ShowAdminPurchaseBill` displays the invoice correctly
+- Confirm `RedirectToAdminPurchaseBill` no longer redirects to `/Uploads/FacturaCompra-WR.pdf`
+- Confirm no `https://crbox.crhttps://...` appears
+- Confirm `/api/invoice-email` still fires only once and returns 200
+- Confirm no duplicate email is sent
+- Confirm RDS flags remain false
+
+Required report:
+1. Exact DB stored value for WR 606979.
+2. Exact portal-sent `FileLocation` / `clientInvoiceText` value.
+3. Exact `EditPurchaseBill` field mapping considered.
+4. Expected legacy admin path convention.
+5. Root cause classification.
+6. Minimal safe fix proposal.
+7. Whether this is one bad record or a systemic issue affecting all new uploads.
+8. Whether WR 606979 requires a one-off correction.
+9. Confirmation that no admin automation, credentials, RDS flags, env vars, AWS/IIS, database schema, or unrelated flows were changed.
+
+Do not implement the fix until the DB value and current portal-sent value are confirmed.
