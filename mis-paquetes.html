@@ -3966,6 +3966,7 @@
                   var email = (CRBOXAuth && CRBOXAuth.getEmail && CRBOXAuth.getEmail()) || '';
                   if (!email) { showToast('No pudimos obtener tu sesión. Recarga la página.', 'error'); return; }
                   replaceBtn.disabled = true;
+                  replaceBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Eliminando…';
                   var _delBtn = document.getElementById('invoice-viewer-delete');
                   if (_delBtn) _delBtn.disabled = true;
                   CRBOXPortalAPI.deletePurchaseBill(pkg.idwarehousereceipt, email)
@@ -3981,6 +3982,7 @@
                     })
                     .catch(function (err) {
                       replaceBtn.disabled = false;
+                      replaceBtn.innerHTML = '<i class="fas fa-sync-alt" aria-hidden="true"></i> Reemplazar';
                       var _db = document.getElementById('invoice-viewer-delete');
                       if (_db) _db.disabled = false;
                       if (err && err.isAuthError) return;
@@ -4005,6 +4007,7 @@
                   var email = (CRBOXAuth && CRBOXAuth.getEmail && CRBOXAuth.getEmail()) || '';
                   if (!email) { showToast('No pudimos obtener tu sesión. Recarga la página.', 'error'); return; }
                   deleteBtn.disabled = true;
+                  deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Eliminando…';
                   var _repBtn = document.getElementById('invoice-viewer-replace');
                   if (_repBtn) _repBtn.disabled = true;
                   CRBOXPortalAPI.deletePurchaseBill(pkg.idwarehousereceipt, email)
@@ -4030,6 +4033,7 @@
                     })
                     .catch(function (err) {
                       deleteBtn.disabled = false;
+                      deleteBtn.innerHTML = '<i class="fas fa-trash-alt" aria-hidden="true"></i> Eliminar';
                       var _rb = document.getElementById('invoice-viewer-replace');
                       if (_rb) _rb.disabled = false;
                       if (err && err.isAuthError) return;
