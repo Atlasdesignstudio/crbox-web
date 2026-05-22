@@ -13184,23 +13184,111 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             plain = (
                 f'Hola {client_name},\n\n'
                 f'{reply_text}\n\n'
-                f'---\nEquipo CRBOX\n'
-                f'ventas@crbox.cr | crbox.cr'
+                f'Estamos a su disposición para cualquier consulta adicional.\n\n'
+                f'Equipo CRBOX\n'
+                f'ventas@crbox.cr | +506 8700-0000 | crbox.cr'
             )
+            _esc_name    = esc(client_name)
+            _esc_reply   = esc(reply_text).replace('\n', '<br>')
             html_body = (
-                f'<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;'
-                f'max-width:600px;margin:0 auto;color:#1e293b;">'
-                f'<div style="background:#1e293b;padding:16px 24px;border-radius:8px 8px 0 0;">'
-                f'<span style="color:#FF6B00;font-weight:800;font-size:20px;letter-spacing:-.5px;">CRBOX</span>'
-                f'</div>'
-                f'<div style="background:#fff;padding:28px 24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;">'
-                f'<p style="margin:0 0 16px;font-size:15px;">Hola <strong>{esc(client_name)}</strong>,</p>'
-                f'<div style="background:#f8fafc;border-left:3px solid #FF6B00;padding:14px 18px;'
-                f'border-radius:0 6px 6px 0;font-size:14px;line-height:1.7;white-space:pre-wrap;margin-bottom:24px;">'
-                f'{esc(reply_text)}</div>'
-                f'<p style="margin:0;color:#64748b;font-size:12px;border-top:1px solid #f1f5f9;padding-top:16px;">'
-                f'Equipo CRBOX &mdash; <a href="https://crbox.cr" style="color:#FF6B00;">crbox.cr</a>'
-                f'</p></div></div>'
+                '<!DOCTYPE html><html lang="es"><head>'
+                '<meta charset="UTF-8">'
+                '<meta name="viewport" content="width=device-width,initial-scale=1">'
+                '</head>'
+                '<body style="margin:0;padding:0;background:#f1f5f9;font-family:'
+                '-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">'
+
+                # Outer wrapper
+                '<table width="100%" cellpadding="0" cellspacing="0" border="0"'
+                ' style="background:#f1f5f9;padding:40px 16px;">'
+                '<tr><td align="center">'
+
+                # Card
+                '<table width="100%" cellpadding="0" cellspacing="0" border="0"'
+                ' style="max-width:580px;background:#ffffff;border-radius:16px;'
+                'overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">'
+
+                # ── Header ──────────────────────────────────────────────────
+                '<tr><td style="background:#0f172a;padding:28px 36px;">'
+                '<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'
+                '<td>'
+                '<span style="font-size:26px;font-weight:900;color:#FF6B00;letter-spacing:-1px;'
+                'font-family:Georgia,serif;">CRBOX</span>'
+                '<span style="display:block;font-size:11px;font-weight:500;color:#64748b;'
+                'letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">'
+                'Tu casillero en Miami</span>'
+                '</td>'
+                '<td align="right">'
+                '<span style="display:inline-block;background:#FF6B00;color:#fff;font-size:11px;'
+                'font-weight:700;padding:4px 12px;border-radius:999px;letter-spacing:0.05em;">'
+                '&#9993;&nbsp; Respuesta a tu consulta</span>'
+                '</td>'
+                '</tr></table>'
+                '</td></tr>'
+
+                # ── Orange accent bar ────────────────────────────────────────
+                '<tr><td style="background:linear-gradient(90deg,#FF6B00,#FF9A40);height:4px;'
+                'font-size:0;line-height:0;">&nbsp;</td></tr>'
+
+                # ── Body ─────────────────────────────────────────────────────
+                '<tr><td style="padding:36px 36px 28px;">'
+
+                # Greeting
+                f'<p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#94a3b8;'
+                f'text-transform:uppercase;letter-spacing:0.08em;">Para</p>'
+                f'<p style="margin:0 0 28px;font-size:22px;font-weight:700;color:#0f172a;">'
+                f'Hola, {_esc_name} &#128075;</p>'
+
+                # Divider
+                '<div style="height:1px;background:#f1f5f9;margin-bottom:28px;"></div>'
+
+                # Reply message card
+                '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;'
+                'padding:22px 24px;margin-bottom:28px;">'
+                '<p style="margin:0 0 14px;font-size:11px;font-weight:700;color:#ea580c;'
+                'text-transform:uppercase;letter-spacing:0.08em;">&#9993;&nbsp; Mensaje del equipo CRBOX</p>'
+                f'<p style="margin:0;font-size:15px;line-height:1.75;color:#1e293b;white-space:pre-wrap;">'
+                f'{_esc_reply}</p>'
+                '</div>'
+
+                # CTA
+                '<p style="margin:0 0 28px;font-size:14px;line-height:1.7;color:#475569;">'
+                'Si tienes alguna pregunta adicional o necesitas más información, '
+                'no dudes en responder a este correo o visitarnos en '
+                '<a href="https://crbox.cr" style="color:#FF6B00;font-weight:600;'
+                'text-decoration:none;">crbox.cr</a>.</p>'
+
+                # Divider
+                '<div style="height:1px;background:#f1f5f9;margin-bottom:24px;"></div>'
+
+                # Sign-off
+                '<table cellpadding="0" cellspacing="0" border="0"><tr>'
+                '<td style="vertical-align:top;padding-right:14px;">'
+                '<div style="width:42px;height:42px;background:#0f172a;border-radius:10px;'
+                'display:flex;align-items:center;justify-content:center;font-size:16px;'
+                'font-weight:900;color:#FF6B00;text-align:center;line-height:42px;">'
+                'CB</div>'
+                '</td>'
+                '<td style="vertical-align:top;">'
+                '<p style="margin:0;font-size:14px;font-weight:700;color:#0f172a;">Equipo CRBOX</p>'
+                '<p style="margin:2px 0 0;font-size:12px;color:#94a3b8;">'
+                'ventas@crbox.cr &nbsp;|&nbsp; crbox.cr</p>'
+                '</td>'
+                '</tr></table>'
+                '</td></tr>'
+
+                # ── Footer ───────────────────────────────────────────────────
+                '<tr><td style="background:#0f172a;padding:20px 36px;">'
+                '<p style="margin:0;font-size:11px;color:#475569;text-align:center;line-height:1.7;">'
+                'Este correo fue enviado como respuesta a tu consulta en '
+                '<a href="https://crbox.cr" style="color:#FF6B00;text-decoration:none;">crbox.cr</a>'
+                '&nbsp;&mdash;&nbsp;Costa Rica'
+                '</p>'
+                '</td></tr>'
+
+                '</table>'  # end card
+                '</td></tr></table>'  # end outer wrapper
+                '</body></html>'
             )
             msg = _mime_mp.MIMEMultipart('alternative')
             msg['Subject'] = subject_line
