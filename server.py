@@ -2335,7 +2335,8 @@ def _init_db_pg():
                 customs_description       TEXT,
                 products                  TEXT,
                 quote_breakdown           TEXT,
-                responded_by              TEXT
+                responded_by              TEXT,
+                internal_service_type     TEXT
             )
         ''')
 
@@ -2470,7 +2471,8 @@ def _init_db_pg():
 
         # ── quote_requests column migrations (live ALTER for existing PG DBs) ─────
         for _col, _defn in [
-            ('responded_by', 'TEXT'),
+            ('responded_by',          'TEXT'),
+            ('internal_service_type', 'TEXT'),
         ]:
             try:
                 conn.execute(
@@ -2625,6 +2627,7 @@ def _init_db_sqlite():
             ('products',                  'TEXT'),
             ('quote_breakdown',           'TEXT'),
             ('responded_by',              'TEXT'),
+            ('internal_service_type',     'TEXT'),
         ]:
             if col not in existing_cols:
                 conn._raw.execute(f'ALTER TABLE quote_requests ADD COLUMN {col} {defn}')
@@ -5309,8 +5312,11 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
     wt_str    = f"{row['weight_kg']} kg" if row.get('weight_kg') is not None else '—'
     notes_str    = esc(row.get('customer_notes') or '—')
     customs_desc = (row.get('customs_description') or '').strip()
-    svc_labels   = {'aereo': 'Aéreo', 'maritimo': 'Marítimo'}
-    svc_str      = svc_labels.get(row.get('service_type') or 'aereo', 'Aéreo')
+    svc_labels        = {'aereo': 'Aéreo', 'maritimo': 'Marítimo'}
+    svc_str           = svc_labels.get(row.get('service_type') or 'aereo', 'Aéreo')
+    internal_svc_raw  = row.get('internal_service_type') or None
+    internal_svc_str  = svc_labels.get(internal_svc_raw, '') if internal_svc_raw else ''
+    override_active   = bool(internal_svc_raw and internal_svc_raw != (row.get('service_type') or 'aereo'))
 
     customs_row_html = ''
     if customs_desc:
@@ -5324,7 +5330,88 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         )
 
     svc_pill_cls = 'adm-pill-aereo' if (row.get('service_type') or 'aereo') == 'aereo' else 'adm-pill-maritimo'
-    svc_pill = f'<span class="adm-pill {svc_pill_cls}">{esc(svc_str)}</span>'
+    # When an override is active, strike through the original and show the internal method
+    if override_active:
+        svc_pill = (
+            f'<span class="adm-pill {svc_pill_cls}" '
+            f'style="text-decoration:line-through;opacity:.55;" '
+            f'title="Método elegido por el cliente">{esc(svc_str)}</span>'
+            f'<span style="font-size:.72rem;color:#6b7280;margin:0 .2rem;">→</span>'
+            f'<span class="adm-pill adm-pill-aereo" '
+            f'style="background:#dcfce7;color:#15803d;border-color:#bbf7d0;" '
+            f'title="Método interno (override activo)">{esc(internal_svc_str)}</span>'
+            f'<span style="display:inline-block;margin-left:.3rem;padding:1px 6px;'
+            f'border-radius:999px;font-size:.65rem;font-weight:700;'
+            f'background:#fef9c3;color:#854d0e;border:1px solid #fde047;" '
+            f'title="Override activo">OVERRIDE</span>'
+        )
+    else:
+        svc_pill = f'<span class="adm-pill {svc_pill_cls}">{esc(svc_str)}</span>'
+
+    # Build the service-type override control shown in the admin detail panel.
+    # Only show the override option when the client chose Marítimo (the stated
+    # operational need is Marítimo → Aéreo; the inverse is out of scope).
+    _scb_svc_raw = row.get('service_type') or 'aereo'
+    _show_override_ctrl = (_scb_svc_raw == 'maritimo')
+    if _show_override_ctrl:
+        _ist_sel_aereo    = 'selected' if internal_svc_raw == 'aereo' else ''
+        _ist_sel_maritimo = 'selected' if (internal_svc_raw == 'maritimo' or not internal_svc_raw) else ''
+        _override_notice  = ''
+        if override_active:
+            _override_notice = (
+                f'<div style="margin-bottom:.5rem;padding:.45rem .65rem;'
+                f'background:#f0fdf4;border:1px solid #bbf7d0;border-radius:.4rem;'
+                f'font-size:.78rem;color:#15803d;font-weight:600;">'
+                f'&#9989;&nbsp;Override activo: Cliente eligió '
+                f'<strong>{esc(svc_str)}</strong> → Procesado como '
+                f'<strong>{esc(internal_svc_str)}</strong>'
+                f'</div>'
+            )
+        _clear_form_html = ''
+        if override_active:
+            _clear_form_html = (
+                f'<form method="POST" '
+                f'action="/admin/solicitudes/{esc(row["id"])}/service-type" '
+                f'style="display:inline;margin:0;">'
+                f'<input type="hidden" name="internal_service_type" value="clear">'
+                f'<input type="hidden" name="filter" value="{esc(filter_val)}">'
+                f'<button type="submit" '
+                f'style="padding:.3rem .6rem;background:none;color:#94a3b8;'
+                f'border:1px solid #e2e8f0;border-radius:.4rem;font-size:.78rem;'
+                f'cursor:pointer;" title="Quitar override">Quitar</button>'
+                f'</form>'
+            )
+        svc_override_html = (
+            f'<div style="margin-top:.6rem;padding:.65rem .8rem;'
+            f'background:#f8fafc;border:1px solid #e2e8f0;border-radius:.5rem;">'
+            f'{_override_notice}'
+            f'<div style="font-size:.72rem;font-weight:700;color:#64748b;'
+            f'text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">'
+            f'&#128736;&#65039;&nbsp;Procesar como (override interno)</div>'
+            f'<div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;">'
+            f'<form method="POST" action="/admin/solicitudes/{esc(row["id"])}/service-type" '
+            f'style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap;margin:0;">'
+            f'<input type="hidden" name="filter" value="{esc(filter_val)}">'
+            f'<select name="internal_service_type" '
+            f'style="padding:.3rem .55rem;border:1px solid #d1d5db;border-radius:.4rem;'
+            f'font-size:.82rem;color:#1f2937;background:#fff;cursor:pointer;">'
+            f'<option value="maritimo" {_ist_sel_maritimo}>Mar&iacute;timo (sin override)</option>'
+            f'<option value="aereo" {_ist_sel_aereo}>A&eacute;reo</option>'
+            f'</select>'
+            f'<button type="submit" '
+            f'style="padding:.3rem .75rem;background:#0f172a;color:#fff;border:none;'
+            f'border-radius:.4rem;font-size:.82rem;font-weight:600;cursor:pointer;">'
+            f'Guardar</button>'
+            f'</form>'
+            f'{_clear_form_html}'
+            f'</div>'
+            f'<div style="font-size:.68rem;color:#94a3b8;margin-top:.3rem;">'
+            f'Solo visible para el equipo CRBOX &mdash; el cliente siempre ve su'
+            f' elecci&oacute;n original.</div>'
+            f'</div>'
+        )
+    else:
+        svc_override_html = ''
 
     if len(_prod_list) > 1:
         # ── Multi-product display ────────────────────────────────────────────
@@ -5377,6 +5464,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       Total declarado: ${_total_val:,.2f}
     </span>
   </div>
+  {svc_override_html}
   {_prod_items_html}
   {customs_row_html}
   <div class="adm-detail-rows" style="margin-top:.4rem;">
@@ -5396,6 +5484,7 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
   </div>
   <div class="adm-prod-name">{esc(row.get('product_name') or '—')}</div>
   <div class="adm-prod-pills">{cat_pill}{svc_pill}</div>
+  {svc_override_html}
   <div class="adm-detail-rows">
     <div class="adm-detail-row">
       <span class="adm-detail-label">Valor declarado</span>
@@ -8493,11 +8582,30 @@ def _build_admin_solicitudes_html(rows, filter_val, counts):
         data_source    = r.get('data_source') or 'manual'
         src_badge_html = src_badges.get(data_source, src_badges['manual'])
 
-        # Service pill
-        svc_pill_color = '#2563eb' if svc_raw == 'aereo' else '#0891b2'
-        svc_pill = (f'<span style="display:inline-block;padding:2px 7px;border-radius:999px;'
-                    f'font-size:10px;font-weight:700;background:#eff6ff;color:{svc_pill_color};'
-                    f'border:1px solid #bfdbfe;">{svc_str}</span>')
+        # Service pill — show override indicator when internal_service_type differs from service_type
+        svc_pill_color   = '#2563eb' if svc_raw == 'aereo' else '#0891b2'
+        _ist_list        = r.get('internal_service_type') or None
+        _list_override   = bool(_ist_list and _ist_list != svc_raw)
+        _ist_list_label  = svc_labels_map.get(_ist_list, '') if _ist_list else ''
+        if _list_override:
+            svc_pill = (
+                f'<span style="display:inline-block;padding:2px 7px;border-radius:999px;'
+                f'font-size:10px;font-weight:700;background:#f1f5f9;color:#94a3b8;'
+                f'border:1px solid #e2e8f0;text-decoration:line-through;" '
+                f'title="Cliente eligió: {svc_str}">{svc_str}</span>'
+                f'<span style="font-size:10px;color:#9ca3af;margin:0 2px;">→</span>'
+                f'<span style="display:inline-block;padding:2px 7px;border-radius:999px;'
+                f'font-size:10px;font-weight:700;background:#f0fdf4;color:#15803d;'
+                f'border:1px solid #bbf7d0;" '
+                f'title="Procesado como (override): {_ist_list_label}">{_ist_list_label}</span>'
+                f'<span style="display:inline-block;margin-left:2px;padding:1px 4px;'
+                f'border-radius:999px;font-size:9px;font-weight:700;'
+                f'background:#fef9c3;color:#854d0e;border:1px solid #fde047;">OVR</span>'
+            )
+        else:
+            svc_pill = (f'<span style="display:inline-block;padding:2px 7px;border-radius:999px;'
+                        f'font-size:10px;font-weight:700;background:#eff6ff;color:{svc_pill_color};'
+                        f'border:1px solid #bfdbfe;">{svc_str}</span>')
 
         # Update controls — expandable sub-row (desktop) / card action (mobile)
         expand_id = f'adm-expand-{rid}'
@@ -10565,6 +10673,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             m_admin_link_pkg  = re.match(r'^/admin/solicitudes/(SCB-\d+)/link-package$', self.path)
             m_admin_add_note  = re.match(r'^/admin/solicitudes/(SCB-\d+)/add-note$', self.path)
             m_admin_delete    = re.match(r'^/admin/solicitudes/(SCB-[\w\-]+)/delete$', self.path)
+            m_admin_svc_type  = re.match(r'^/admin/solicitudes/(SCB-\d+)/service-type$', self.path)
             if m_status:
                 self._handle_solicitudes_status(m_status.group(1))
             elif m_cancel:
@@ -10589,6 +10698,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 self._handle_admin_solicitudes_add_note(m_admin_add_note.group(1))
             elif m_admin_delete:
                 self._handle_admin_solicitudes_delete(m_admin_delete.group(1))
+            elif m_admin_svc_type:
+                self._handle_admin_solicitudes_service_type(m_admin_svc_type.group(1))
             else:
                 self.send_response(404)
                 self.end_headers()
@@ -11487,7 +11598,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                     ).fetchall()
                 conn.close()
 
-            results = [dict(r) for r in rows]
+            # Strip internal-only fields before returning to the client.
+            # internal_service_type is the admin's operational override and must
+            # never be exposed to clients — they only see service_type (their choice).
+            _CLIENT_HIDDEN = {'internal_service_type'}
+            results = [{k: v for k, v in dict(r).items() if k not in _CLIENT_HIDDEN} for r in rows]
             self._json_response(200, {'ok': True, 'solicitudes': results})
         except Exception as exc:
             print(f'[SOLICITUDES] List error: {exc}')
@@ -11535,6 +11650,11 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                 dict(h) for h in history
                 if not (h['from_status'] and h['to_status'] and h['from_status'] == h['to_status'])
             ]
+            # Strip internal-only fields before returning to the client.
+            # internal_service_type is the admin's operational override and must
+            # never be exposed to clients — they only see service_type (their choice).
+            for _hidden in ('internal_service_type',):
+                row_dict.pop(_hidden, None)
             self._json_response(200, {'ok': True, 'solicitud': row_dict})
         except Exception as exc:
             print(f'[SOLICITUDES] Detail error: {exc}')
@@ -14536,6 +14656,68 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             print(f'[ADMIN] Status update error: {exc}')
             self._admin_redirect(redirect_url + '&upd_err=1')
+
+    # ── POST /admin/solicitudes/:id/service-type ─────────────────────────
+    # Lets the admin override the shipping method used internally for a
+    # solicitud without changing the client-visible service_type.
+    # Only the Marítimo → Aéreo direction is supported per task spec.
+    # Accepts form-encoded: internal_service_type=aereo|maritimo|clear, filter, from_detail
+    def _handle_admin_solicitudes_service_type(self, scb_id):
+        if _admin_password() is None:
+            self.send_response(404); self.end_headers(); return
+        token = self._admin_get_session_token()
+        if not _admin_validate_session(token):
+            self._admin_redirect('/admin/login?msg=expired'); return
+        try:
+            length   = int(self.headers.get('Content-Length', 0))
+            raw      = self.rfile.read(length).decode('utf-8')
+            params   = urllib.parse.parse_qs(raw)
+            new_ist  = (params.get('internal_service_type', [''])[0] or '').strip()
+            filter_val = (params.get('filter', ['all'])[0] or 'all').strip()
+            if filter_val not in ('all', 'activas', 'respondidas', 'archivadas'):
+                filter_val = 'all'
+        except Exception:
+            self.send_response(400); self.end_headers(); return
+        # 'clear' means remove the override; only 'aereo' is a valid override target
+        # (task spec: only Marítimo → Aéreo direction is supported).
+        if new_ist not in ('aereo', 'maritimo', 'clear'):
+            self._admin_redirect(f'/admin/solicitudes/{scb_id}?filter={filter_val}')
+            return
+        if new_ist == 'clear':
+            new_ist = None
+        try:
+            with _DB_LOCK:
+                conn = _get_db()
+                # Enforce direction constraint server-side: overrides are only
+                # permitted when the client's original service_type is 'maritimo'.
+                # This prevents the out-of-scope Aéreo → Marítimo case even via
+                # direct POST (not just through the UI).
+                existing = conn.execute(
+                    'SELECT service_type FROM quote_requests WHERE id = ?', (scb_id,)
+                ).fetchone()
+                if existing is None:
+                    conn.close()
+                    self._admin_redirect(f'/admin/solicitudes?filter={filter_val}')
+                    return
+                original_svc = (existing['service_type'] or 'aereo')
+                if new_ist is not None and original_svc != 'maritimo':
+                    # Out-of-scope direction — silently reject and redirect
+                    conn.close()
+                    print(f'[ADMIN] Service-type override rejected: {scb_id} '
+                          f'original={original_svc}, only maritimo→aereo is supported')
+                    self._admin_redirect(f'/admin/solicitudes/{scb_id}?filter={filter_val}')
+                    return
+                conn.execute(
+                    'UPDATE quote_requests SET internal_service_type = ? WHERE id = ?',
+                    (new_ist, scb_id)
+                )
+                conn.commit()
+                conn.close()
+            label = {'aereo': 'Aéreo', 'maritimo': 'Marítimo'}.get(new_ist or '', 'ninguno')
+            print(f'[ADMIN] Service-type override: {scb_id} → internal_service_type={label}')
+        except Exception as exc:
+            print(f'[ADMIN] Service-type override error: {exc}')
+        self._admin_redirect(f'/admin/solicitudes/{scb_id}?filter={filter_val}&svc_updated=1')
 
     # ── POST /admin/solicitudes/:id/add-note ──────────────────────────────
     def _handle_admin_solicitudes_add_note(self, scb_id):

@@ -1210,6 +1210,9 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="sol-field">
                         <label class="sol-label" for="form-service-type">Tipo de servicio</label>
+                        <!-- INTENTIONAL: only service_type (the client's original choice) is
+                             displayed here. The admin-only field internal_service_type is never
+                             surfaced to the client — it exists solely for internal processing. -->
                         <select id="form-service-type" name="service_type" class="sol-input">
                             <option value="aereo">Aéreo</option>
                             <option value="maritimo">Marítimo</option>
