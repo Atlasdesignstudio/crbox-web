@@ -1513,7 +1513,7 @@
 
     <script src="js/analytics.js" defer></script>
     <script src="js/cr-locations.js" defer></script>
-    <script src="js/portal-api.js?v=3"></script>
+    <script src="js/portal-api.js?v=4"></script>
     <script src="js/auth.js?v=4"></script>
     <script src="js/nav-auth.js?v=4" defer></script>
     <script src="js/mobile-drawer.js?v=1" defer></script>
@@ -3998,6 +3998,8 @@
                       _openInvoiceModal(freshPkg);
                     })
                     .catch(function (err) {
+                      console.warn('[CRBOX] replace/delete error — step:', err && err.step,
+                        '| msg:', err && err.message, '| apiData:', err && err.apiData);
                       replaceBtn.disabled = false;
                       replaceBtn.innerHTML = '<i class="fas fa-sync-alt" aria-hidden="true"></i> Reemplazar';
                       var _db = document.getElementById('invoice-viewer-delete');
@@ -4049,6 +4051,8 @@
                       _refreshPackagesAfterBillChange(pkg.idwarehousereceipt);
                     })
                     .catch(function (err) {
+                      console.warn('[CRBOX] delete error — step:', err && err.step,
+                        '| msg:', err && err.message, '| apiData:', err && err.apiData);
                       deleteBtn.disabled = false;
                       deleteBtn.innerHTML = '<i class="fas fa-trash-alt" aria-hidden="true"></i> Eliminar';
                       var _rb = document.getElementById('invoice-viewer-replace');

@@ -789,22 +789,27 @@
       e.step = 'deletePurchaseBill';
       return Promise.reject(e);
     }
+    // Email is placed raw (not %40-encoded) in the URL path — the CRBOX API
+    // matches it as a plain string and rejects percent-encoded variants.
+    var _wrIdSafe = encodeURIComponent(String(warehouseReceiptId));
+    var _emailSafe = String(email); // intentionally not encodeURIComponent
     return _request(
-      BASE + '/getdeletepurchasebill/' +
-        encodeURIComponent(String(warehouseReceiptId)) + '/' +
-        encodeURIComponent(String(email)),
+      BASE + '/getdeletepurchasebill/' + _wrIdSafe + '/' + _emailSafe,
       { method: 'GET' }, {}
     ).then(function (res) {
       if (!res.ok) {
+        console.warn('[CRBOX] deletePurchaseBill HTTP error:', res.status, res.statusText);
         var err = _responseError(res, 'No se pudo eliminar la factura (' + res.status + ').');
         err.step = 'deletePurchaseBill';
         throw err;
       }
       return _parseJSON(res);
     }).then(function (data) {
+      console.log('[CRBOX] deletePurchaseBill response:', JSON.stringify(data));
       var sr = data && (data.StatusResult || data.statusResult || '');
       if (sr !== 'OK') {
         var msg = (data && (data.Message || data.message)) || 'No se pudo eliminar la factura.';
+        console.warn('[CRBOX] deletePurchaseBill StatusResult not OK — msg:', msg, '— raw:', JSON.stringify(data));
         var err2 = new Error(msg);
         err2.step = 'deletePurchaseBill';
         err2.apiData = data;
