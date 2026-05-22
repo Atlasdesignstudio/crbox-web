@@ -2334,7 +2334,8 @@ def _init_db_pg():
                 customer_reminder_sent_at TEXT,
                 customs_description       TEXT,
                 products                  TEXT,
-                quote_breakdown           TEXT
+                quote_breakdown           TEXT,
+                responded_by              TEXT
             )
         ''')
 
@@ -2378,7 +2379,8 @@ def _init_db_pg():
                 email_sent   INTEGER NOT NULL DEFAULT 0,
                 status       TEXT NOT NULL DEFAULT 'nueva',
                 reply_text   TEXT,
-                replied_at   TEXT
+                replied_at   TEXT,
+                replied_by   TEXT
             )
         ''')
 
@@ -2466,11 +2468,24 @@ def _init_db_pg():
         except Exception as _mig_exc:
             print(f'[DB] PG products backfill skipped: {_mig_exc}')
 
+        # ── quote_requests column migrations (live ALTER for existing PG DBs) ─────
+        for _col, _defn in [
+            ('responded_by', 'TEXT'),
+        ]:
+            try:
+                conn.execute(
+                    f'ALTER TABLE quote_requests ADD COLUMN IF NOT EXISTS {_col} {_defn}'
+                )
+                conn.commit()
+            except Exception:
+                pass
+
         # ── general_inquiries column migrations (live ALTER for existing PG DBs) ─
         for _col, _defn in [
             ('status',     "TEXT NOT NULL DEFAULT 'nueva'"),
             ('reply_text', 'TEXT'),
             ('replied_at', 'TEXT'),
+            ('replied_by', 'TEXT'),
         ]:
             try:
                 conn.execute(
@@ -2554,7 +2569,8 @@ def _init_db_sqlite():
                 email_sent   INTEGER NOT NULL DEFAULT 0,
                 status       TEXT NOT NULL DEFAULT 'nueva',
                 reply_text   TEXT,
-                replied_at   TEXT
+                replied_at   TEXT,
+                replied_by   TEXT
             );
 
             CREATE TABLE IF NOT EXISTS package_groups (
@@ -2608,6 +2624,7 @@ def _init_db_sqlite():
             ('customs_description',       'TEXT'),
             ('products',                  'TEXT'),
             ('quote_breakdown',           'TEXT'),
+            ('responded_by',              'TEXT'),
         ]:
             if col not in existing_cols:
                 conn._raw.execute(f'ALTER TABLE quote_requests ADD COLUMN {col} {defn}')
@@ -2635,6 +2652,7 @@ def _init_db_sqlite():
             ('status',     "TEXT NOT NULL DEFAULT 'nueva'"),
             ('reply_text', 'TEXT'),
             ('replied_at', 'TEXT'),
+            ('replied_by', 'TEXT'),
         ]:
             if col not in gi_cols:
                 conn._raw.execute(f'ALTER TABLE general_inquiries ADD COLUMN {col} {defn}')
@@ -6661,6 +6679,12 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
       <span class="adm-detail-label">Mensaje al cliente</span>
       <span class="adm-detail-val" style="white-space:pre-wrap;">{ro_msg}</span>
     </div>
+    {(
+        '<div class="adm-detail-row" style="background:#f8fafc;">'
+        '<span class="adm-detail-label" style="color:#64748b;">&#128100; Atendido por</span>'
+        f'<span class="adm-detail-val" style="color:#374151;">{esc(row.get("responded_by") or "")}</span>'
+        '</div>'
+    ) if (row.get("responded_by") or "").strip() else ""}
   </div>
   <div class="adm-resp-record-actions">
     <form method="POST" action="/admin/solicitudes/{rid}/resend-response">
@@ -6812,6 +6836,18 @@ def _build_admin_detail_html(row, history, filter_val='all', resent=False):
         </div>
       </div>
       <div id="cmp-preview-body" class="cmp-preview-body"></div>
+    </div>
+
+    <!-- Atendido por (internal only) -->
+    <div class="cmp-step">
+      <div class="cmp-step-num" style="background:#e2e8f0;color:#64748b;">&#128100;</div>
+      <div class="cmp-step-body">
+        <div class="cmp-step-title" style="color:#64748b;">Atendido por <span class="adm-optional">(interno, opcional)</span></div>
+        <input class="adm-resp-input" type="text" name="responded_by"
+               placeholder="Nombre de quien atiende esta solicitud&hellip;" maxlength="120"
+               style="max-width:320px;">
+        <p class="adm-hint-sm">Solo visible para el equipo. No se env&iacute;a al cliente.</p>
+      </div>
     </div>
 
     <!-- Botón de envío -->
@@ -9604,6 +9640,14 @@ def _build_admin_consultas_detail_html(row, flash_ok=None, flash_warn=None, flas
             if replied_at_str else
             f'<span style="color:#94a3b8;font-size:11px;">Enviado a <strong>{esc(correo_raw)}</strong></span>'
         )
+        _replied_by_val = (row.get('replied_by') or '').strip()
+        _replied_by_row = (
+            '<div style="margin-top:8px;padding:6px 10px;background:#f8fafc;border-radius:5px;'
+            'font-size:12px;color:#64748b;">'
+            '<span style="font-weight:700;">&#128100; Atendido por:</span> '
+            + esc(_replied_by_val) +
+            '</div>'
+        ) if _replied_by_val else ''
         reply_block = (
             '<div class="adm-message-block" style="padding-top:8px">'
             '<div class="adm-message-label" style="display:flex;justify-content:space-between;align-items:center;">'
@@ -9613,14 +9657,20 @@ def _build_admin_consultas_detail_html(row, flash_ok=None, flash_warn=None, flas
             '<div class="adm-message-body" style="white-space:pre-wrap;border-color:#BBF7D0;background:#F0FDF4;color:#166534;">'
             + esc(reply_text) +
             '</div>'
+            + _replied_by_row +
             '<form method="POST" action="' + _reply_url + '" style="margin-top:10px;">'
             '<textarea name="reply_text" rows="3" placeholder="Enviar otra respuesta..." '
             'style="width:100%;box-sizing:border-box;padding:10px 12px;font-size:13px;'
             'border:1px solid #e2e8f0;border-radius:6px;resize:vertical;font-family:inherit;'
             'color:#374151;background:#fff;" required></textarea>'
-            '<button type="submit" style="margin-top:8px;padding:8px 20px;background:#1e293b;'
-            'color:#fff;font-size:13px;font-weight:600;border:none;border-radius:6px;cursor:pointer;">'
+            '<div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+            '<input type="text" name="replied_by" placeholder="Atendido por (opcional)&hellip;" maxlength="120" '
+            'style="flex:1;min-width:160px;padding:7px 10px;font-size:12px;border:1px solid #e2e8f0;'
+            'border-radius:6px;font-family:inherit;color:#374151;background:#fff;">'
+            '<button type="submit" style="padding:8px 20px;background:#1e293b;'
+            'color:#fff;font-size:13px;font-weight:600;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;">'
             'Enviar otra respuesta</button>'
+            '</div>'
             '</form>'
             '</div>'
         )
@@ -9636,6 +9686,13 @@ def _build_admin_consultas_detail_html(row, flash_ok=None, flash_warn=None, flas
             'color:#374151;background:#fff;transition:border-color .15s;" '
             'onfocus="this.style.borderColor=\'#FF6B00\'" onblur="this.style.borderColor=\'#e2e8f0\'" '
             'required></textarea>'
+            '<div style="margin-top:8px;">'
+            '<input type="text" name="replied_by" placeholder="Atendido por (opcional)&hellip;" maxlength="120" '
+            'style="width:100%;box-sizing:border-box;padding:8px 12px;font-size:12px;'
+            'border:1px solid #e2e8f0;border-radius:6px;font-family:inherit;color:#374151;background:#fff;">'
+            '<span style="display:block;font-size:11px;color:#94a3b8;margin-top:4px;">'
+            'Solo visible para el equipo. No se env&iacute;a al cliente.</span>'
+            '</div>'
             '<div style="display:flex;align-items:center;gap:10px;margin-top:10px;">'
             '<button type="submit" style="padding:9px 22px;background:#FF6B00;color:#fff;'
             'font-size:13px;font-weight:700;border:none;border-radius:6px;cursor:pointer;'
@@ -13379,15 +13436,19 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
         # Support both URL-encoded form and JSON body
         reply_text = ''
+        replied_by = ''
         try:
             import urllib.parse as _up
             params = dict(_up.parse_qsl(body_str))
             reply_text = params.get('reply_text', '').strip()
+            replied_by = params.get('replied_by', '').strip()[:120]
         except Exception:
             pass
         if not reply_text:
             try:
-                reply_text = (json.loads(body_str) or {}).get('reply_text', '').strip()
+                _jb = json.loads(body_str) or {}
+                reply_text = _jb.get('reply_text', '').strip()
+                replied_by = (_jb.get('replied_by', '') or '').strip()[:120]
             except Exception:
                 pass
 
@@ -13552,8 +13613,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             with _DB_LOCK:
                 conn = _get_db()
                 conn.execute(
-                    'UPDATE general_inquiries SET reply_text=?, replied_at=?, status=? WHERE id=?',
-                    (reply_text, now_iso, 'respondida', inquiry_id)
+                    'UPDATE general_inquiries SET reply_text=?, replied_at=?, status=?, replied_by=? WHERE id=?',
+                    (reply_text, now_iso, 'respondida', replied_by or None, inquiry_id)
                 )
                 conn.commit()
                 conn.close()
@@ -14551,6 +14612,7 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             difference_explanation = (params.get('difference_explanation', [''])[0] or '').strip()[:2000]
             customer_message       = (params.get('customer_message', [''])[0] or '').strip()[:5000]
             resp_quote_breakdown_raw = (params.get('resp_quote_breakdown', [''])[0] or '').strip()
+            responded_by           = (params.get('responded_by', [''])[0] or '').strip()[:120]
             # Validate quote_breakdown is valid JSON if provided
             resp_quote_breakdown = None
             if resp_quote_breakdown_raw:
@@ -14749,8 +14811,8 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
             with _DB_LOCK:
                 conn = _get_db()
                 conn.execute(
-                    'UPDATE quote_requests SET status = ?, responded_at = ?, response_json = ?, quote_breakdown = ? WHERE id = ?',
-                    ('respondida', now_iso, resp_payload, resp_quote_breakdown, scb_id)
+                    'UPDATE quote_requests SET status = ?, responded_at = ?, response_json = ?, quote_breakdown = ?, responded_by = ? WHERE id = ?',
+                    ('respondida', now_iso, resp_payload, resp_quote_breakdown, responded_by or None, scb_id)
                 )
                 conn.execute(
                     '''INSERT INTO quote_status_history
