@@ -947,6 +947,10 @@
                         <i class="fas fa-trash-alt" aria-hidden="true"></i> Eliminar
                     </button>
                 </div>
+                <!-- Patience message — shown after ~5 s while delete is in progress -->
+                <p id="invoice-viewer-patience" class="hidden text-xs text-center text-gray-400 mt-1">
+                    <i class="fas fa-clock mr-1" aria-hidden="true"></i>Esto puede tardar un momento, por favor no cierres esta ventana…
+                </p>
             </div>
         </div>
     </div>
@@ -1513,7 +1517,7 @@
 
     <script src="js/analytics.js" defer></script>
     <script src="js/cr-locations.js" defer></script>
-    <script src="js/portal-api.js?v=6"></script>
+    <script src="js/portal-api.js?v=7"></script>
     <script src="js/auth.js?v=4"></script>
     <script src="js/nav-auth.js?v=4" defer></script>
     <script src="js/mobile-drawer.js?v=1" defer></script>
@@ -3986,8 +3990,14 @@
                   replaceBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Eliminando…';
                   var _delBtn = document.getElementById('invoice-viewer-delete');
                   if (_delBtn) _delBtn.disabled = true;
+                  var _rpPatienceEl = document.getElementById('invoice-viewer-patience');
+                  var _rpPatienceTimer = setTimeout(function () {
+                    if (_rpPatienceEl) _rpPatienceEl.classList.remove('hidden');
+                  }, 5000);
                   CRBOXPortalAPI.deletePurchaseBill(pkg.idwarehousereceipt, email)
                     .then(function () {
+                      clearTimeout(_rpPatienceTimer);
+                      if (_rpPatienceEl) _rpPatienceEl.classList.add('hidden');
                       delete _invoiceUrlCache[pkg.idwarehousereceipt];
                       _saveInvoiceCache();
                       _closeViewer();
@@ -3998,6 +4008,8 @@
                       _openInvoiceModal(freshPkg);
                     })
                     .catch(function (err) {
+                      clearTimeout(_rpPatienceTimer);
+                      if (_rpPatienceEl) _rpPatienceEl.classList.add('hidden');
                       console.warn('[CRBOX] replace/delete error — step:', err && err.step,
                         '| msg:', err && err.message, '| apiData:', err && err.apiData);
                       replaceBtn.disabled = false;
@@ -4029,8 +4041,14 @@
                   deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Eliminando…';
                   var _repBtn = document.getElementById('invoice-viewer-replace');
                   if (_repBtn) _repBtn.disabled = true;
+                  var _delPatienceEl = document.getElementById('invoice-viewer-patience');
+                  var _delPatienceTimer = setTimeout(function () {
+                    if (_delPatienceEl) _delPatienceEl.classList.remove('hidden');
+                  }, 5000);
                   CRBOXPortalAPI.deletePurchaseBill(pkg.idwarehousereceipt, email)
                     .then(function () {
+                      clearTimeout(_delPatienceTimer);
+                      if (_delPatienceEl) _delPatienceEl.classList.add('hidden');
                       delete _invoiceUrlCache[pkg.idwarehousereceipt];
                       _saveInvoiceCache();
                       _closeViewer();
@@ -4051,6 +4069,8 @@
                       _refreshPackagesAfterBillChange(pkg.idwarehousereceipt);
                     })
                     .catch(function (err) {
+                      clearTimeout(_delPatienceTimer);
+                      if (_delPatienceEl) _delPatienceEl.classList.add('hidden');
                       console.warn('[CRBOX] delete error — step:', err && err.step,
                         '| msg:', err && err.message, '| apiData:', err && err.apiData);
                       deleteBtn.disabled = false;

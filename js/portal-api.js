@@ -798,7 +798,7 @@
     var _emailSafe = String(email); // intentionally not encodeURIComponent
     return _request(
       BASE + '/getdeletepurchasebill/' + _wrIdSafe + '/' + _emailSafe,
-      { method: 'GET' }, { timeout: 120000 }
+      { method: 'GET' }, { timeout: 240000 }
     ).then(function (res) {
       if (!res.ok) {
         console.warn('[CRBOX] deletePurchaseBill HTTP error:', res.status, res.statusText);
