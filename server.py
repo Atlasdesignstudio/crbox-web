@@ -2400,6 +2400,20 @@ def _init_db_pg():
                 PRIMARY KEY (casillero_id, tracking_number)
             )
         ''')
+
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS quote_submissions (
+                id           SERIAL PRIMARY KEY,
+                submitted_at TEXT NOT NULL,
+                ip           TEXT NOT NULL DEFAULT \'\',
+                name         TEXT NOT NULL DEFAULT \'\',
+                email        TEXT NOT NULL DEFAULT \'\',
+                subject      TEXT NOT NULL DEFAULT \'\',
+                body_text    TEXT NOT NULL DEFAULT \'\',
+                status       TEXT NOT NULL,
+                error        TEXT NOT NULL DEFAULT \'\'
+            )
+        ''')
         conn.commit()
 
         # ── SCB ID sequence ───────────────────────────────────────────────────
@@ -2526,6 +2540,18 @@ def _init_db_sqlite():
                 tracking_number TEXT NOT NULL,
                 sent_at         TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
                 PRIMARY KEY (casillero_id, tracking_number)
+            );
+
+            CREATE TABLE IF NOT EXISTS quote_submissions (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                submitted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+                ip           TEXT NOT NULL DEFAULT '',
+                name         TEXT NOT NULL DEFAULT '',
+                email        TEXT NOT NULL DEFAULT '',
+                subject      TEXT NOT NULL DEFAULT '',
+                body_text    TEXT NOT NULL DEFAULT '',
+                status       TEXT NOT NULL,
+                error        TEXT NOT NULL DEFAULT ''
             );
         ''')
         conn.commit()
@@ -4837,27 +4863,26 @@ def _check_rate_limit(ip):
 
 
 def _log_quote_submission(name: str, email_addr: str, subject: str, status: str,
-                          error: str = '', ip: str = ''):
-    """Append a single JSON record to the quote submission audit log.
+                          error: str = '', ip: str = '', body_text: str = ''):
+    """Persist a quote submission record to the database.
 
-    Failures to write the log are printed but never propagated — logging must
-    never affect the HTTP response sent to the caller.
+    Failures are printed but never propagated — logging must never affect the
+    HTTP response sent to the caller.
     """
     try:
-        record = json.dumps({
-            'ts': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
-            'ip': ip,
-            'name': name,
-            'email': email_addr,
-            'subject': subject,
-            'status': status,
-            'error': error,
-        }, ensure_ascii=False)
-        with _quote_log_lock:
-            with open(_QUOTE_LOG_PATH, 'a', encoding='utf-8') as f:
-                f.write(record + '\n')
+        ts = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+        with _DB_LOCK:
+            conn = _get_db()
+            conn.execute(
+                '''INSERT INTO quote_submissions
+                   (submitted_at, ip, name, email, subject, body_text, status, error)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                (ts, ip, name, email_addr, subject, body_text, status, error),
+            )
+            conn.commit()
+            conn.close()
     except Exception as exc:
-        print(f'[QUOTE LOG] Failed to write audit record: {exc}')
+        print(f'[QUOTE LOG] Failed to save submission record: {exc}')
 
 
 def _quote_text_to_html(body_text):
@@ -10503,14 +10528,14 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         body_text  = (data.get('bodyText') or '').strip()
 
         if not user_email or not body_text:
-            _log_quote_submission(user_name, user_email, subject, 'failed', 'missing_required_fields', ip=client_ip)
+            _log_quote_submission(user_name, user_email, subject, 'failed', 'missing_required_fields', ip=client_ip, body_text=body_text)
             self._json_error(400, 'Faltan campos requeridos (correo o cuerpo del mensaje).',
                              code='validation_error')
             return
 
         # Basic email format guard (frontend validates too, but defense in depth)
         if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', user_email):
-            _log_quote_submission(user_name, user_email, subject, 'failed', 'invalid_email_format', ip=client_ip)
+            _log_quote_submission(user_name, user_email, subject, 'failed', 'invalid_email_format', ip=client_ip, body_text=body_text)
             self._json_error(400, 'Correo electrónico inválido.', code='validation_error')
             return
 
@@ -10544,18 +10569,18 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
                     server.login(smtp_user, smtp_pass)
                     server.sendmail(smtp_user, recipients, msg.as_string())
 
-            _log_quote_submission(user_name, user_email, subject, 'sent', ip=client_ip)
+            _log_quote_submission(user_name, user_email, subject, 'sent', ip=client_ip, body_text=body_text)
             self._json_response(200, {'ok': True})
 
         except smtplib.SMTPAuthenticationError:
-            _log_quote_submission(user_name, user_email, subject, 'failed', 'SMTPAuthenticationError', ip=client_ip)
+            _log_quote_submission(user_name, user_email, subject, 'failed', 'SMTPAuthenticationError', ip=client_ip, body_text=body_text)
             self._json_error(502, 'Error de autenticación SMTP. Verifica las credenciales del servidor.',
                              code='smtp_auth_error')
         except smtplib.SMTPException as e:
-            _log_quote_submission(user_name, user_email, subject, 'failed', f'SMTPException: {e}', ip=client_ip)
+            _log_quote_submission(user_name, user_email, subject, 'failed', f'SMTPException: {e}', ip=client_ip, body_text=body_text)
             self._json_error(502, 'No se pudo enviar el email. Intenta de nuevo.', code='smtp_error')
         except Exception as e:
-            _log_quote_submission(user_name, user_email, subject, 'failed', f'Exception: {e}', ip=client_ip)
+            _log_quote_submission(user_name, user_email, subject, 'failed', f'Exception: {e}', ip=client_ip, body_text=body_text)
             self._json_error(500, 'Error interno del servidor al enviar el email.', code='server_error')
 
     # ── POST /api/solicitudes ──────────────────────────────────────────────
