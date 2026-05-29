@@ -1,0 +1,846 @@
+Act as a senior Growth Measurement Architect, GA4/GTM Implementation Specialist, Paid Media Tracking Strategist, CRO Analyst, Marketing Operations Architect, and Privacy-Safe Data Layer Designer.
+
+We are not ready to launch paid media yet.
+
+Before creating Meta Ads, Google Ads campaigns, funnels, dashboards, lifecycle automations, or AI optimization workflows, we need to build the measurement foundation for the current CRBOX website.
+
+You already know what CRBOX is and you know the current codebase. Do not waste time restating the business context. Focus on auditing the current website and defining the measurement system that must exist before any serious paid media investment.
+
+Your mission:
+Audit the current CRBOX website and portal codebase and produce the foundational document:
+
+CRBOX Measurement Map v1 + Tracking Implementation Plan
+
+This document must become the source of truth for future:
+- GA4 tracking
+- Google Tag Manager
+- Google Ads conversions
+- Meta Pixel
+- Meta Conversions API
+- Looker Studio dashboards
+- CRM / lifecycle tracking
+- n8n automations
+- AI reporting and optimization workflows
+- offline conversion imports
+- paid media campaign optimization
+- CRO experimentation
+
+Important operating rules:
+- Do not implement changes yet.
+- Do not create campaigns.
+- Do not modify UI/design.
+- Do not fake events.
+- Do not invent backend data.
+- Do not expose or send PII to analytics platforms.
+- Do not break existing portal/backend integrations.
+- Do not assume every click is a conversion.
+- Do not classify weak engagement events as primary conversions.
+- Do not optimize for cheap leads at the expense of business quality.
+- Do not recommend automation that changes budgets, pauses campaigns, or publishes campaigns without human approval.
+- Focus only on defining what should be tracked, where it happens, why it matters, how it should fire, how it should be validated, and how it will support future paid media decisions.
+
+Audit scope:
+Audit the full current codebase, including:
+- all public pages
+- all portal pages
+- all forms
+- calculator logic
+- registration flow
+- login flow
+- quote/contact flows
+- WhatsApp links
+- CTA buttons
+- package tracking
+- invoice upload
+- account update flows
+- dashboard interactions
+- any existing GA4/GTM/analytics scripts
+- any Google Ads tags
+- any Meta Pixel scripts
+- any custom analytics.js or tracking utilities
+- any JavaScript files that control meaningful user actions
+- any backend endpoints or frontend API responses that can safely confirm real business events
+
+Use the actual current website structure. Do not invent pages, modules, flows, or backend capabilities.
+
+Think in terms of the full growth funnel:
+
+Visitor
+→ Interested user
+→ Educated user
+→ Lead / registered user
+→ Activated user
+→ First real usage
+→ Repeat customer
+
+For CRBOX, this means tracking the progression from:
+web visit
+→ service/rate/how-it-works exploration
+→ calculator/cotización/WhatsApp intent
+→ registration
+→ login
+→ invoice upload / package interaction
+→ first real package activity
+→ repeat usage
+
+Your output must include the following sections:
+
+1. Executive Summary
+
+Explain:
+- current measurement readiness
+- whether the website is ready or not ready for paid media scaling
+- the biggest measurement gaps
+- the highest-priority events to implement first
+- which conversion events are safe to use now
+- which conversion events are not safe yet
+- what would make campaign optimization unreliable
+- what must be fixed before meaningful budget is invested
+
+Do not over-explain CRBOX. Focus on measurement readiness.
+
+2. Measurement Philosophy and Business Logic
+
+Define the strategic measurement philosophy for this project.
+
+Explain:
+- why CRBOX should not optimize only for clicks or cheap leads
+- why registration_success is useful but incomplete
+- why calculator_complete may be a useful temporary intent signal
+- why WhatsApp clicks can be useful but risky as an optimization goal
+- why invoice_upload_success, first_package_registered, first_package_delivered, and repeat_package are stronger future quality signals
+- how the measurement system should evolve from lead generation to activation and customer quality
+- how paid media should move from soft conversion optimization to quality conversion optimization over time
+
+3. Current Tracking Findings
+
+Identify:
+- whether GA4 is currently installed
+- whether GTM is currently installed
+- whether Google Ads conversion tags exist
+- whether Meta Pixel exists
+- whether any centralized analytics utility exists
+- whether events are currently being tracked
+- which meaningful actions are currently not tracked
+- whether events are duplicated
+- whether tags fire on page load only or on meaningful actions
+- whether success events are based on real success states or just button clicks
+- whether forms have clear success/error states
+- whether portal actions can be safely tracked from the frontend
+- whether any conversion requires backend confirmation
+- whether UTMs are captured
+- whether UTMs persist through relevant flows
+- whether there are privacy/PII risks
+- whether current logs or analytics payloads expose sensitive data
+- whether the current setup is ads-ready, partially ads-ready, or not ads-ready
+
+4. Funnel and Measurement Stages
+
+Define the measurement stages and how events map into them.
+
+Use these stages:
+
+A. Awareness / Engagement
+User is exploring but has not shown strong intent.
+
+B. Education / Consideration
+User is learning how the service works, viewing rates, or comparing options.
+
+C. Intent
+User uses calculator, starts quote, clicks WhatsApp, or visits affiliation.
+
+D. Acquisition
+User registers, submits a quote, or completes a qualified lead action.
+
+E. Activation
+User logs in, uploads invoice, tracks package, or performs first portal action.
+
+F. Quality / Revenue Proxy
+User has first package activity, package delivered, or repeat usage.
+
+For each stage, define:
+- what it means
+- which events belong there
+- what should be used for analysis
+- what can be used for optimization
+- what should not be used for optimization
+
+5. CRBOX Measurement Map v1
+
+Create a detailed table with these columns:
+
+- Event name
+- Funnel stage
+- User action
+- Page/module
+- Exact trigger
+- Trigger type: page load / click / form submit / API success / backend-confirmed / inferred
+- Recommended GA4 event
+- Recommended Meta event/custom event
+- Recommended Google Ads conversion usage
+- Event parameters
+- Primary / secondary / analysis-only / future quality
+- Business value
+- Optimization readiness: ready now / use with caution / future only
+- Required data source: frontend / backend / API response / CRM / manual import
+- Implementation status
+- QA method
+- Deduplication requirement
+- PII risk
+- Notes / risks
+
+Evaluate at least the following events, but refine based on the real codebase:
+
+Engagement / education:
+- page_view
+- cta_click
+- service_page_view
+- rates_page_view
+- how_it_works_view
+- pricing_tab_view
+- faq_open
+- scroll_75
+
+Intent:
+- calculator_start
+- calculator_mode_selected
+- calculator_category_selected
+- calculator_complete
+- calculator_result_view
+- quote_start
+- quote_submit
+- whatsapp_click
+- affiliate_page_view
+
+Acquisition:
+- registration_start
+- account_type_selected
+- personal_registration_submit
+- business_registration_submit
+- registration_success
+- registration_error
+- login_start
+- login_success
+- login_error
+- password_recovery_start
+- password_recovery_success
+
+Activation / quality:
+- first_login_after_signup
+- invoice_upload_start
+- invoice_upload_success
+- package_tracking_search
+- package_status_view
+- first_package_registered
+- first_package_arrived_miami
+- first_package_delivered
+- repeat_package
+
+Portal / lifecycle:
+- dashboard_view
+- my_packages_view
+- package_filter_used
+- package_search_used
+- invoice_page_view
+- account_update_start
+- account_update_success
+- logout
+
+Contact / support:
+- contact_form_start
+- contact_form_submit
+- phone_click
+- email_click
+- location_click
+- whatsapp_click
+
+If an event cannot currently be implemented because the frontend/backend does not expose the required data, mark it clearly as:
+Future / requires backend integration
+
+Do not fake activation, package, invoice, or repeat usage events.
+
+6. Conversion Priority Model
+
+Classify events into four categories:
+
+A. Primary conversions for initial paid media
+
+Recommended starting candidates:
+- registration_success
+- quote_submit
+- calculator_complete only as a temporary optimization signal if registration volume is low
+
+For each one, explain:
+- why it matters
+- what risk it has
+- when it should be used for Google Ads optimization
+- when it should be used for Meta optimization
+- when it should be downgraded
+- what future quality event should eventually replace or supplement it
+
+B. Secondary conversions
+
+Recommended starting candidates:
+- whatsapp_click
+- registration_start
+- calculator_start
+- affiliate_page_view
+- rates_page_view
+- contact_form_submit
+
+For each one, explain:
+- why it is useful
+- why it should not be treated as the main optimization goal too early
+- how it should be used in reporting and remarketing
+
+C. Future quality conversions
+
+Recommended future candidates:
+- invoice_upload_success
+- first_package_registered
+- first_package_arrived_miami
+- first_package_delivered
+- repeat_package
+
+For each one, explain:
+- what backend or CRM data is required
+- why it is a stronger business signal
+- whether it can be sent to Google Ads
+- whether it can be sent to Meta
+- whether it should be imported as an offline conversion
+- how it could support lifecycle marketing
+
+D. Analysis-only events
+
+Examples:
+- scroll
+- FAQ opens
+- tab changes
+- generic CTA clicks
+- page views
+
+Explain:
+- why these should be used for behavioral analysis
+- why they should not be used as optimization goals
+- how they can still help CRO and landing page decisions
+
+7. Event Taxonomy and Naming Convention
+
+Define the rules for event naming.
+
+Include:
+- lowercase snake_case naming
+- no Spanish/English mixing inside event names unless already standardized
+- no dynamic values inside event names
+- no PII inside event names
+- consistent prefixes only if useful
+- difference between event_name and event_parameters
+- examples of good event names
+- examples of bad event names
+
+Define recommended naming structure for:
+- CTA events
+- calculator events
+- registration events
+- quote events
+- portal events
+- package events
+- invoice events
+- lifecycle events
+
+8. Event Parameter Schema
+
+Define a clean, reusable, privacy-safe event parameter system.
+
+Global parameters:
+- page_type
+- page_path
+- page_title
+- user_status
+- account_type
+- traffic_source
+- utm_source
+- utm_medium
+- utm_campaign
+- utm_content
+- utm_term
+- device_type
+- timestamp
+
+CTA parameters:
+- cta_text
+- cta_location
+- cta_destination
+- cta_type
+
+Calculator parameters:
+- calculator_type
+- product_category
+- declared_value_range
+- weight_range
+- destination
+- result_total_range
+- has_result
+
+Registration parameters:
+- account_type
+- form_step
+- registration_method
+- success_status
+- error_type
+
+Quote parameters:
+- quote_type
+- product_count
+- shipping_mode
+- estimated_value_range
+- lead_type
+
+WhatsApp parameters:
+- whatsapp_location
+- whatsapp_context
+- page_type
+- intent_type
+
+Portal/package/invoice parameters:
+- package_status
+- has_invoice
+- invoice_upload_status
+- package_count_range
+
+Privacy rule:
+Never send names, emails, phone numbers, ID numbers, physical addresses, invoice numbers, tracking numbers, package IDs, access tokens, exact declared values, exact package values, or any PII to GA4, Meta, Google Ads, dataLayer, logs, or reporting layers.
+
+Use ranges instead of exact values where needed.
+
+9. Data Contract
+
+Create a formal data contract for the tracking layer.
+
+For each event, define:
+- event name
+- required parameters
+- optional parameters
+- allowed values
+- data type
+- example payload
+- source of truth
+- whether it can be sent to GA4
+- whether it can be sent to Meta
+- whether it can be used in Google Ads
+- whether it can be used in reporting
+- PII risk level
+
+Include at least 8 example event payloads:
+- cta_click
+- calculator_start
+- calculator_complete
+- registration_start
+- registration_success
+- quote_submit
+- whatsapp_click
+- invoice_upload_success
+
+10. Client-side vs Server-side Tracking Boundary
+
+Define which events can be tracked client-side and which require backend confirmation.
+
+Client-side acceptable examples:
+- page_view
+- cta_click
+- calculator_start
+- calculator_complete
+- whatsapp_click
+- faq_open
+- pricing_tab_view
+
+Backend-confirmed or API-success required examples:
+- registration_success
+- login_success
+- quote_submit, if API-based
+- invoice_upload_success
+- account_update_success
+- first_package_registered
+- first_package_delivered
+- repeat_package
+
+For each backend-confirmed event, explain:
+- what response confirms success
+- where in the code it should fire
+- what should not trigger it
+- how to avoid firing on failed submissions
+- how to avoid duplicate firing on reload or retry
+
+11. Deduplication and Event Integrity Plan
+
+Define how to prevent:
+- duplicate page_view events
+- duplicate conversion events
+- double firing from both inline scripts and centralized utility
+- success events firing on button click before API success
+- repeated conversion events on page refresh
+- multiple WhatsApp events from accidental double-clicks
+- duplicate registration_success events
+- duplicate quote_submit events
+
+Recommend:
+- event IDs where relevant
+- session-level flags where appropriate
+- success-state checks
+- one-time firing rules
+- debug logging only in development
+- safe no-op behavior when analytics libraries are unavailable
+
+12. UTM and Attribution Foundation
+
+Define a recommended UTM framework for future paid media.
+
+Include:
+- naming convention for utm_source
+- utm_medium
+- utm_campaign
+- utm_content
+- utm_term
+
+Recommend:
+- how UTMs should be captured
+- whether they should persist during the session
+- whether they should be stored temporarily in localStorage or sessionStorage
+- how they should be attached to relevant conversion events
+- how to prevent overwriting first-touch attribution too aggressively
+- how to capture first-touch and last-touch source if feasible
+- how to avoid storing sensitive data
+- how campaign naming should support future Meta and Google Ads reporting
+
+Do not create campaigns yet. Only define the tracking-ready attribution structure.
+
+13. Consent, Privacy, and PII Safety
+
+Audit and recommend:
+- whether the current site has a cookie/consent mechanism
+- whether analytics runs before consent, if applicable
+- whether PII could accidentally enter event payloads
+- whether form fields are being sent anywhere they should not
+- whether URLs contain sensitive information
+- whether query parameters may include sensitive information
+- whether user portal data is safe to use as analytics parameters
+
+Define:
+- what must never be sent
+- what can be sent as a range/category
+- what can be sent as anonymous state
+- what should stay backend-only
+- what should be excluded from logs
+
+14. Page-by-page Tracking Plan
+
+For each current page/module, list the exact events that should be added.
+
+Cover at least:
+- Homepage
+- Servicios
+- Cómo Funciona
+- Tarifas
+- Calculadora
+- Afíliate
+- Contacto
+- Login
+- Dashboard
+- Mis Paquetes
+- Mis Facturas
+- Mi Cuenta
+
+For each page/module, include:
+- events to track
+- exact trigger location
+- parameters
+- priority
+- implementation risk
+- whether it belongs to Phase 1, Phase 2, Phase 3, or Phase 4
+- whether the event should be sent to GA4
+- whether the event should be sent to Meta
+- whether the event should be configured as a Google Ads conversion
+- whether it is reporting-only
+
+15. Recommended Technical Architecture
+
+Recommend the cleanest tracking architecture based on the current project.
+
+Preferred direction:
+Create or improve a centralized analytics utility, for example:
+
+js/analytics.js
+
+It should expose functions such as:
+- trackEvent(eventName, params)
+- trackCTAClick(params)
+- trackCalculatorStart(params)
+- trackCalculatorComplete(params)
+- trackRegistrationStart(params)
+- trackRegistrationSuccess(params)
+- trackQuoteSubmit(params)
+- trackWhatsAppClick(params)
+- trackPortalAction(params)
+
+The utility should safely support:
+- dataLayer push for GTM
+- GA4 / gtag if currently used
+- Meta Pixel hooks if installed
+- future Meta CAPI compatibility
+- future Google Ads enhanced conversions compatibility
+- graceful no-op behavior if a platform is not loaded
+- consistent event names
+- consistent parameters
+- PII filtering
+- duplicate prevention
+- safe error handling
+- UTM persistence if feasible
+
+Analytics must never break the user experience. If analytics fails, the website must continue working normally.
+
+16. Platform Mapping: GA4, Google Ads, Meta
+
+For every major event, define platform usage:
+
+GA4:
+- should this event be sent?
+- should it be marked as a key event?
+- what parameters should be available for exploration?
+
+Google Ads:
+- should this event be imported as a conversion?
+- primary or secondary?
+- account-default goal or not?
+- should it be used for bidding now or later?
+- what conversion value logic, if any, should apply?
+
+Meta:
+- standard event or custom event?
+- should it be used for optimization?
+- should it be used for custom audiences?
+- should it be used for remarketing?
+- should it be reserved for future CAPI?
+
+17. Conversion Value and Quality Scoring
+
+Recommend an initial conversion value model.
+
+Do not invent revenue if unavailable.
+
+Instead, propose a relative scoring model such as:
+- calculator_complete = low/medium intent
+- quote_submit = high intent
+- registration_success = acquisition
+- invoice_upload_success = activation
+- first_package_delivered = quality/revenue proxy
+- repeat_package = retention/high value
+
+Define:
+- which events should have monetary value now, if any
+- which should use relative values only
+- which require backend revenue or shipment data
+- how this can evolve into value-based bidding later
+
+18. Dashboard and Reporting Readiness
+
+Define what the future Looker Studio or reporting layer should be able to show.
+
+Include:
+- acquisition overview
+- funnel overview
+- campaign performance readiness
+- landing page performance
+- calculator funnel
+- registration funnel
+- quote funnel
+- WhatsApp funnel
+- portal activation
+- invoice/package quality signals
+- conversion quality by channel
+- first-touch vs last-touch if feasible
+- weekly learning log inputs
+
+Specify which events/parameters are required for each dashboard module.
+
+19. AI / n8n Automation Readiness
+
+Define what structured outputs this tracking system should eventually provide to AI/n8n.
+
+Include:
+- daily performance summary inputs
+- weekly learning loop inputs
+- anomaly detection inputs
+- creative performance inputs
+- landing page opportunity inputs
+- search query mining inputs
+- campaign QA inputs
+- lead quality inputs
+- lifecycle opportunity inputs
+
+Clearly state:
+- what AI can recommend
+- what AI should not execute automatically
+- what requires human approval
+
+20. QA Checklist
+
+Create a pre-paid-media tracking QA checklist covering:
+- GA4 DebugView validation
+- GTM Preview validation, if applicable
+- Meta Pixel Helper validation
+- Google Tag Assistant validation
+- dataLayer inspection
+- calculator_start
+- calculator_complete
+- registration_start
+- registration_success
+- registration_error
+- quote_submit
+- whatsapp_click
+- login_success
+- invoice_upload_success, if available
+- no duplicate events
+- no PII leakage
+- UTMs captured correctly
+- UTMs passed into events correctly
+- conversions fire only on real success states
+- failed submissions do not fire success events
+- portal events do not expose sensitive user/package data
+- event parameters match the data contract
+- event names match the taxonomy
+- analytics failures do not break UX
+
+21. QA Evidence Requirements
+
+For each implemented event in the future, define what proof must be provided.
+
+Examples:
+- screenshot of GA4 DebugView
+- screenshot of GTM Preview dataLayer event
+- console log in debug mode
+- example event payload
+- confirmation that no PII is present
+- confirmation of no duplicate firing
+- test case: success path
+- test case: failure path
+- test case: reload/back button path where relevant
+
+22. Implementation Phases
+
+Propose a phased implementation plan.
+
+Phase 1 — Critical pre-paid-media tracking:
+- page_view integrity
+- cta_click
+- calculator_start
+- calculator_complete
+- registration_start
+- registration_success
+- registration_error
+- quote_submit
+- whatsapp_click
+- contact_form_submit
+
+Phase 2 — Portal and activation tracking:
+- login_success
+- dashboard_view
+- my_packages_view
+- invoice_upload_start
+- invoice_upload_success
+- package_tracking_search
+- package_status_view
+- account_update_success
+- logout
+
+Phase 3 — Quality/offline conversion readiness:
+- first_package_registered
+- first_package_arrived_miami
+- first_package_delivered
+- repeat_package
+- CRM/offline conversion import preparation
+
+Phase 4 — Ads platform optimization readiness:
+- Google Ads conversion import structure
+- Meta custom conversion structure
+- Meta CAPI planning
+- enhanced conversions planning
+- conversion value strategy
+
+Phase 5 — AI/reporting readiness:
+- event export structure
+- campaign QA sheet structure
+- learning log structure
+- daily/weekly reporting inputs
+- anomaly detection inputs
+- recommendation engine inputs
+
+For each phase, explain:
+- why it comes in that order
+- what must be true before starting the next phase
+- which parts can be manual at first
+- which parts should not be automated yet
+
+23. Files to Modify
+
+List exactly which files would likely need changes.
+
+For each file, include:
+- why it needs changes
+- which events would be added
+- risk level
+- whether to implement now or later
+- whether it depends on backend data
+- what QA is required
+- whether it affects public pages, portal pages, or shared scripts
+
+Do not modify files yet.
+
+24. Risks / Open Questions
+
+Identify:
+- missing backend data
+- unclear success states
+- ambiguous form behavior
+- duplicate scripts
+- fragile frontend logic
+- privacy risks
+- tracking gaps
+- campaign optimization risks
+- events that may look valuable but are actually weak signals
+- places where we need human/business confirmation
+- platform setup dependencies outside the codebase
+- places where measurement could mislead decision-making
+
+25. What Not To Track Yet
+
+Explicitly list events or data points that should not be tracked yet because they are:
+- too sensitive
+- not reliable
+- not exposed by backend
+- likely to create false optimization signals
+- not useful for business decisions
+- better handled later through CRM/offline conversion imports
+
+26. What Not To Automate Yet
+
+Explicitly list what should not be automated yet, including:
+- budget changes
+- pausing campaigns
+- launching campaigns
+- publishing ads
+- changing conversion goals
+- sending mass CRM messages
+- making pricing claims
+- making customs/tax promises
+- optimizing toward unvalidated WhatsApp leads
+
+27. Recommended Next Action
+
+End with one clear recommendation:
+
+What is the single next action after this audit?
+
+Important:
+Do not implement anything yet.
+Return the audit and plan first.
+The goal is to define the measurement foundation before spending seriously on paid media.
