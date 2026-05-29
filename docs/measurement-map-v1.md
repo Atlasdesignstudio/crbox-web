@@ -1270,6 +1270,47 @@ Before any new event is added to `js/analytics.js`:
 
 ---
 
+### mis-solicitudes.html (My Purchase Requests)
+
+| Event | Trigger | Parameters | Phase | GA4 | Meta | Google Ads | Risk |
+|-------|---------|-----------|-------|-----|------|-----------|------|
+| `page_view` | Page load | `page_type: portal_requests` | 2 | Yes | No | No | None |
+| `portal_section_view` | DOMContentLoaded | `section_name: mis_solicitudes` | 2 | Yes | No | No | None |
+| `api_error` | Request list fails to load | `error_category: network` | 2 | Yes | No | No | None |
+
+**Notes:** This page lists the user's purchase/quote requests. The calculator-powered estimate widget inside `mis-solicitudes.html` fires `calculator_result` if the user runs a calculation from within the solicitud detail. No purchase or payment confirmation events exist here — purchase intent is captured upstream in `cotizar.html` via `quote_request_submit_success`.
+
+---
+
+### solicitud.html (Purchase Request Detail)
+
+| Event | Trigger | Parameters | Phase | GA4 | Meta | Google Ads | Risk |
+|-------|---------|-----------|-------|-----|------|-----------|------|
+| `page_view` | Page load | `page_type: portal_requests` | 2 | Yes | No | No | None |
+| `portal_section_view` | DOMContentLoaded | `section_name: solicitud` | 2 | Yes | No | No | None |
+| `calculator_result` | User runs in-page calculator | `shipping_mode`, `weight_bucket`, `value_bucket`, `destination_country` | 2 | Yes | No | No | None |
+| `api_error` | Solicitud detail fails to load | `error_category: network` | 2 | Yes | No | No | None |
+
+**Notes:** This is the detail page for a single purchase request. It contains an embedded calculator. No new conversion event is needed here — the original `quote_request_submit_success` was already fired when the solicitud was created in `cotizar.html`. Do not re-fire a conversion event when the user views an existing request.
+
+---
+
+### cotizar.html (Quote / Purchase Request Form)
+
+| Event | Trigger | Parameters | Phase | GA4 | Meta | Google Ads | Risk |
+|-------|---------|-----------|-------|-----|------|-----------|------|
+| `page_view` | Page load | `page_type: portal_quotes` | 1 | Yes | Yes | Yes | None |
+| `portal_section_view` | DOMContentLoaded | `section_name: cotizar` | 2 | Yes | No | No | None |
+| `quote_request_start` | First input/focus in quote form (once per session) | `service_type` | 1 | Yes | InitiateCheckout | Secondary | None |
+| `calculator_start` | First input in embedded calculator | `shipping_mode` | 1 | Yes | ViewContent | Secondary | None |
+| `calculator_result` | Calculator produces a result | `shipping_mode`, `weight_bucket`, `value_bucket`, `destination_country` | 1 | Yes | ViewContent | Secondary | None |
+| `quote_request_submit_success` | `POST /api/solicitudes` → `res.ok && data.ok && data.id` | `service_type`, `destination_country` | 1 | Yes | Lead | **Primary** | None — API-gated |
+| `api_error` | Solicitud POST fails | `error_category: network` | 2 | Yes | No | No | None |
+
+**Notes:** `cotizar.html` is accessible to both logged-in users (portal flow) and referred users. The `quote_request_start` session guard uses `sessionStorage` key `crbox_quote_start_fired` — verified in `docs/analytics-taxonomy.md`. This is one of the two highest-value conversion pages alongside `afiliate.html`.
+
+---
+
 ## 15. Recommended Technical Architecture
 
 ### Current state (already good)
