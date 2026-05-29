@@ -184,16 +184,16 @@ Starting with soft conversions (`calculator_result`, `whatsapp_click`) allows th
 
 ### Events currently tracked (confirmed in `js/analytics.js` + tracking-plan.md)
 
-**Public site:**
-`cta_click`, `whatsapp_click`, `phone_click`, `email_click`, `outbound_click`, `nav_click`, `service_card_click`, `contact_form_submit_success`, `form_start`, `form_abandon`, `faq_engage`, `scroll_depth`, `section_visible`, `calculator_start`, `calculator_tab_switch`, `calculator_query`, `calculator_result`
+**Public site (18):**
+`cta_click`, `whatsapp_click`, `phone_click`, `email_click`, `outbound_click`, `nav_click`, `service_card_click`, `contact_form_submit_success`, `contact_form_submit`, `form_start`, `form_abandon`, `faq_engage`, `scroll_depth`, `section_visible`, `calculator_start`, `calculator_tab_switch`, `calculator_query`, `calculator_result`
 
-**Registration / auth:**
+**Registration / auth (10):**
 `signup_start`, `signup_step`, `signup_success`, `signup_error`, `account_type_select`, `login_start`, `login_success`, `login_error`, `logout`, `session_expired`
 
-**Portal:**
+**Portal (17):**
 `portal_section_view`, `package_search`, `package_search_result`, `package_detail_view`, `package_filter_use`, `invoice_upload_start`, `invoice_upload_success`, `invoice_upload_error`, `invoice_filter_use`, `quote_request_start`, `quote_request_submit_success`, `profile_edit_start`, `profile_update_success`, `profile_update_error`, `api_error`, `chat_open`, `chat_message_sent`
 
-**Total: 37 distinct event names** — comprehensive coverage of the current user journey.
+**Total: 45 distinct event names** — confirmed by audit of `js/analytics.js` (all 45 distinct `this.push(...)` call sites; camelCase aliases do not add new event names). Note: `contact_form_submit` (line 131, `analytics.js`) is a separate method from `contact_form_submit_success` — it fires optimistically on submit before the API resolves; it exists in the code but no current callsite invokes it. `contact_form_submit_success` (line 127) is the backend-gated conversion event and the one that matters for optimization.
 
 ### Meaningful actions NOT currently tracked
 
@@ -1272,26 +1272,24 @@ Before any new event is added to `js/analytics.js`:
 
 ### mis-solicitudes.html (My Purchase Requests)
 
-| Event | Trigger | Parameters | Phase | GA4 | Meta | Google Ads | Risk |
-|-------|---------|-----------|-------|-----|------|-----------|------|
-| `page_view` | Page load | `page_type: portal_requests` | 2 | Yes | No | No | None |
-| `portal_section_view` | DOMContentLoaded | `section_name: mis_solicitudes` | 2 | Yes | No | No | None |
-| `api_error` | Request list fails to load | `error_category: network` | 2 | Yes | No | No | None |
+| Event | Trigger | Source | Parameters | Phase | GA4 | Meta | Google Ads | Risk |
+|-------|---------|--------|-----------|-------|-----|------|-----------|------|
+| `page_view` | Page load | GTM auto | `page_type: portal_requests` | 2 | Yes | No | No | None |
+| `portal_section_view` | DOMContentLoaded (auto) | `js/analytics.js` L717–730 | `section_name: mis_solicitudes, page_type: portal_requests` | 2 | Yes | No | No | None |
+| `portal_section_view` | Tab/filter navigation | `js/mis-solicitudes.js` L415, L585, L858 | `section_name` varies per view | 2 | Yes | No | No | None |
 
-**Notes:** This page lists the user's purchase/quote requests. The calculator-powered estimate widget inside `mis-solicitudes.html` fires `calculator_result` if the user runs a calculation from within the solicitud detail. No purchase or payment confirmation events exist here — purchase intent is captured upstream in `cotizar.html` via `quote_request_submit_success`.
+**Notes:** Audit confirmed zero direct `CRBOX.track.*` calls in `mis-solicitudes.html`. `portal_section_view` fires automatically because analytics.js auto-wires it for any page whose `page_type` starts with `portal` (line 720); it fires once on `DOMContentLoaded` with `section_name: mis_solicitudes`. Additional `portal_section_view` fires are made by `js/mis-solicitudes.js` on tab/filter state changes. No `api_error` call exists in either file — if loading fails, users see an empty state; no tracking event accompanies it currently. No purchase or payment confirmation events exist here — purchase intent is captured upstream in `cotizar.html` via `quote_request_submit_success`. Adding `api_error` to `js/mis-solicitudes.js` on failed API responses is a Phase 2 improvement.
 
 ---
 
 ### solicitud.html (Purchase Request Detail)
 
-| Event | Trigger | Parameters | Phase | GA4 | Meta | Google Ads | Risk |
-|-------|---------|-----------|-------|-----|------|-----------|------|
-| `page_view` | Page load | `page_type: portal_requests` | 2 | Yes | No | No | None |
-| `portal_section_view` | DOMContentLoaded | `section_name: solicitud` | 2 | Yes | No | No | None |
-| `calculator_result` | User runs in-page calculator | `shipping_mode`, `weight_bucket`, `value_bucket`, `destination_country` | 2 | Yes | No | No | None |
-| `api_error` | Solicitud detail fails to load | `error_category: network` | 2 | Yes | No | No | None |
+| Event | Trigger | Source | Parameters | Phase | GA4 | Meta | Google Ads | Risk |
+|-------|---------|--------|-----------|-------|-----|------|-----------|------|
+| `page_view` | Page load | GTM auto | `page_type: portal_requests` | 2 | Yes | No | No | None |
+| `portal_section_view` | DOMContentLoaded (auto) | `js/analytics.js` L717–730 | `section_name: solicitud, page_type: portal_requests` | 2 | Yes | No | No | None |
 
-**Notes:** This is the detail page for a single purchase request. It contains an embedded calculator. No new conversion event is needed here — the original `quote_request_submit_success` was already fired when the solicitud was created in `cotizar.html`. Do not re-fire a conversion event when the user views an existing request.
+**Notes:** Audit confirmed zero direct `CRBOX.track.*` calls in both `solicitud.html` and `js/solicitud.js`. `portal_section_view` fires automatically via analytics.js (same mechanism as `mis-solicitudes.html`). The page does not contain a standalone calculator widget that calls `CRBOX.track.calculator_result` — that event belongs to `cotizar.html` and `calculadora.html`. No `api_error` call exists in either file. No new conversion event should be added here — the original `quote_request_submit_success` was already fired in `cotizar.html` when the solicitud was created. Do not re-fire a conversion event when a user views an existing request detail.
 
 ---
 
