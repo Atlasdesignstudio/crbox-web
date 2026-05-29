@@ -1777,6 +1777,10 @@
                                 class="faq-form-error"
                             ></div>
                             <form id="faq-pregunta-form" novalidate>
+                                <!-- Honeypot: hidden from real users, filled only by bots -->
+                                <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+                                    <input type="text" name="website" id="faq-hp-website" tabindex="-1" autocomplete="off" value="">
+                                </div>
                                 <div class="faq-form-field">
                                     <label
                                         class="faq-form-label"
@@ -1863,6 +1867,9 @@
                             form.addEventListener("submit", function (e) {
                                 e.preventDefault();
                                 errBox.style.display = "none";
+                                // Honeypot: bots fill hidden fields, humans don't
+                                var _hp = (document.getElementById("faq-hp-website") || {}).value || '';
+                                if (_hp) { return; } // silently drop bot submissions
                                 var nombre = document
                                     .getElementById("faq-nombre")
                                     .value.trim();
@@ -1891,6 +1898,7 @@
                                         mensaje: pregunta,
                                         asunto: "Pregunta FAQ",
                                         source: "como-funciona",
+                                        _hp: _hp,
                                     }),
                                 })
                                     .then(function (r) {

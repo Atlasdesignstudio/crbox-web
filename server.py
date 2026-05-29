@@ -13763,6 +13763,13 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         except Exception:
             self._json_error(400, 'Datos inválidos.')
             return
+        # Honeypot: real browsers leave this blank; bots fill it automatically.
+        # Return a convincing 200 so the bot thinks it succeeded — no save, no email.
+        _hp = (data.get('_hp') or '').strip()
+        if _hp:
+            print(f'[API/CONSULTAS] Honeypot triggered — bot submission silently dropped')
+            self._json_response(200, {'ok': True})
+            return
         nombre  = (data.get('nombre')  or '').strip()
         correo  = (data.get('correo')  or '').strip()
         telefono = (data.get('telefono') or '').strip()
