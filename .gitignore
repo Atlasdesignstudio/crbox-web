@@ -8,3 +8,4 @@ uploads/invoices/*
 node_modules/
 npm-debug.log*
 .npm
+.DS_Store
