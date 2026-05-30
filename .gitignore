@@ -4,3 +4,7 @@ __pycache__/
 .env
 uploads/invoices/*
 !uploads/invoices/.gitkeep
+
+node_modules/
+npm-debug.log*
+.npm
