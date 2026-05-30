@@ -14,9 +14,24 @@
  * page_path_group registered values (GA4 custom dimension):
  *   public | portal | quote | legal | utility
  *
- * Only the 24 registered GA4 custom dimension parameter names are ever sent.
+ * Only registered GA4 custom dimension parameter names are ever sent.
  * No PII (phone numbers, email addresses, question text, tracking numbers,
  * raw URLs, or user-supplied strings) is included in any payload.
+ *
+ * ── Phase 1 Paid Media Launch: attribution params added to every push ──────
+ * Parameters injected when UTM/click-ID attribution is present in sessionStorage:
+ *   utm_source, utm_medium, utm_campaign, utm_content, utm_term
+ *     → GA4 built-in traffic source dimensions auto-capture these; these
+ *       dataLayer params are primarily for GTM Meta/Google Ads tag variables.
+ *   gclid_present  (boolean)  — dataLayer-ready; GA4 custom dim pending
+ *   fbclid_present (boolean)  — dataLayer-ready; GA4 custom dim pending
+ *   attribution_touch          — dataLayer-ready; GA4 custom dim pending
+ *     Values: 'first_touch' | 'last_touch' | 'both_available' | 'none'
+ *
+ * Raw gclid/fbclid values are stored in sessionStorage only (for future
+ * server-side CAPI / offline conversion use). They are NEVER sent to GA4.
+ *
+ * Attribution is gracefully omitted if sessionStorage is blocked/unavailable.
  */
 
 window.dataLayer = window.dataLayer || [];
@@ -67,6 +82,118 @@ function _crboxPageCtx() {
   };
 }
 
+// ─── Attribution capture (Phase 1 Paid Media Launch) ─────────────────────────
+//
+// Captures UTM parameters and click IDs from the current page URL.
+// Stores attribution in sessionStorage under two keys:
+//   crbox_utm_first_touch — set once per session; never overwritten
+//   crbox_utm_last_touch  — always updated when attribution params are present
+//
+// Whitelist: only utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+//   gclid, fbclid are ever read from the URL. All other query params are ignored.
+//
+// gclid/fbclid raw values are stored in sessionStorage only (for future
+// server-side CAPI/offline conversion use). The analytics payload receives
+// boolean presence flags (gclid_present, fbclid_present) — never raw values.
+//
+// All sessionStorage operations are wrapped in try/catch. If sessionStorage is
+// blocked or throws, attribution is silently omitted — the website never breaks.
+//
+// Values are sanitised: trimmed, capped at 200 chars, and filtered through a
+// strict allowlist (only known attribution keys are stored).
+//
+// Runs immediately on script parse (before DOMContentLoaded) to ensure the URL
+// is captured before any JS navigation can alter it.
+
+var _CRBOX_UTM_KEYS      = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+var _CRBOX_CLICK_ID_KEYS = ['gclid', 'fbclid'];
+var _CRBOX_SS_FIRST      = 'crbox_utm_first_touch';
+var _CRBOX_SS_LAST       = 'crbox_utm_last_touch';
+var _CRBOX_ATTR_MAX_LEN  = 200;
+
+function _crboxSanitizeAttrVal(v) {
+  if (typeof v !== 'string') return '';
+  return v.trim().slice(0, _CRBOX_ATTR_MAX_LEN);
+}
+
+function _crboxCaptureAttribution() {
+  try {
+    var params    = new URLSearchParams(window.location.search);
+    var hasUTM    = false;
+    var hasGclid  = false;
+    var hasFbclid = false;
+    var captured  = {};
+
+    _CRBOX_UTM_KEYS.forEach(function(k) {
+      var v = params.get(k);
+      if (v) { captured[k] = _crboxSanitizeAttrVal(v); hasUTM = true; }
+    });
+
+    _CRBOX_CLICK_ID_KEYS.forEach(function(k) {
+      var v = params.get(k);
+      if (!v) return;
+      if (k === 'gclid')  { hasGclid  = true; captured.gclid_present  = true; }
+      if (k === 'fbclid') { hasFbclid = true; captured.fbclid_present = true; }
+      // Store raw value in sessionStorage for future server-side CAPI/offline
+      // conversion matching. This value is NEVER pushed to dataLayer or GA4.
+      try { sessionStorage.setItem('crbox_' + k, _crboxSanitizeAttrVal(v)); } catch (_e) {}
+    });
+
+    if (!hasUTM && !hasGclid && !hasFbclid) return; // No attribution on this page load
+
+    // Record landing path (pathname only — no query string, no fragment, no PII)
+    captured.landing_page_path = window.location.pathname;
+
+    // First-touch: written once per session; never overwritten on subsequent pages
+    try {
+      if (!sessionStorage.getItem(_CRBOX_SS_FIRST)) {
+        sessionStorage.setItem(_CRBOX_SS_FIRST, JSON.stringify(captured));
+      }
+    } catch (_e) {}
+
+    // Last-touch: always updated when attribution params are present in the URL
+    try {
+      sessionStorage.setItem(_CRBOX_SS_LAST, JSON.stringify(captured));
+    } catch (_e) {}
+
+  } catch (_e) {}
+}
+
+// Returns a safe, attribution-only object to merge into every dataLayer push.
+// Reads last-touch if available, falls back to first-touch.
+// Returns {} if no attribution data is stored (session started without UTMs).
+function _crboxAttribution() {
+  try {
+    var first = null, last = null;
+    try { first = JSON.parse(sessionStorage.getItem(_CRBOX_SS_FIRST) || 'null'); } catch (_e) {}
+    try { last  = JSON.parse(sessionStorage.getItem(_CRBOX_SS_LAST)  || 'null'); } catch (_e) {}
+
+    if (!first && !last) return {};
+
+    // Determine touch model for this event
+    var touch = (first && last) ? 'both_available'
+              : (last           ? 'last_touch'
+              :                   'first_touch');
+
+    // Use last-touch values in the event payload (most recent campaign)
+    var src = last || first;
+
+    var payload = { attribution_touch: touch };
+    _CRBOX_UTM_KEYS.forEach(function(k) {
+      if (src[k]) payload[k] = src[k];
+    });
+    if (src.gclid_present)  payload.gclid_present  = true;
+    if (src.fbclid_present) payload.fbclid_present = true;
+
+    return payload;
+  } catch (_e) {
+    return {};
+  }
+}
+
+// Run attribution capture immediately (before DOMContentLoaded)
+_crboxCaptureAttribution();
+
 // ─── Core namespace ───────────────────────────────────────────────────────────
 
 var CRBOX = window.CRBOX || {};
@@ -74,7 +201,10 @@ var CRBOX = window.CRBOX || {};
 CRBOX.track = {
 
   push: function(event, params) {
-    var payload = Object.assign({ event: event }, _crboxPageCtx(), params || {});
+    // Merge order: page context → attribution → event-specific params.
+    // Event-specific params win over attribution params in case of any key clash.
+    var attr    = _crboxAttribution();
+    var payload = Object.assign({ event: event }, _crboxPageCtx(), attr, params || {});
     window.dataLayer.push(payload);
   },
 
@@ -461,6 +591,21 @@ CRBOX.track = {
 };
 
 window.CRBOX = CRBOX;
+
+// ─── Attribution debug helpers (Phase 1) ──────────────────────────────────────
+// Available in browser console for QA and debugging:
+//   CRBOX.attribution()    → current safe attribution payload (what goes into dataLayer)
+//   CRBOX.getFirstTouch()  → raw first-touch sessionStorage object
+//   CRBOX.getLastTouch()   → raw last-touch sessionStorage object
+// These functions are read-only and never modify any state.
+
+CRBOX.attribution   = _crboxAttribution;
+CRBOX.getFirstTouch = function() {
+  try { return JSON.parse(sessionStorage.getItem(_CRBOX_SS_FIRST) || 'null'); } catch (_e) { return null; }
+};
+CRBOX.getLastTouch = function() {
+  try { return JSON.parse(sessionStorage.getItem(_CRBOX_SS_LAST) || 'null'); } catch (_e) { return null; }
+};
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 

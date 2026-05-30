@@ -1,0 +1,325 @@
+Act as a senior GA4/GTM Implementation Specialist, Paid Media Tracking Engineer, and Privacy-Safe Marketing Operations Architect.
+
+We now have docs/measurement-map-v1.md as the source of truth.
+
+Do not create campaigns.
+Do not modify UI/design.
+Do not change the existing event taxonomy unless absolutely necessary.
+Do not send PII.
+Do not break existing GA4/GTM tracking.
+Do not implement future backend quality events yet.
+Do not rewrite the analytics architecture.
+Do not replace CRBOX.track with random inline gtag(), fbq(), or direct dataLayer.push calls across HTML files.
+
+Your task is to implement only the Phase 1 Paid Media Launch Gate from docs/measurement-map-v1.md.
+
+Goal:
+Make the existing CRBOX measurement foundation ready for a controlled first paid media test by adding attribution persistence and ads-platform readiness while preserving the existing architecture:
+
+CRBOX.track → dataLayer → GTM → GA4
+
+This task is not about launching paid media. It is about making sure the website can correctly attribute and validate conversions before meaningful budget is invested.
+
+Scope:
+1. Implement UTM capture and persistence.
+2. Prepare/extend the dataLayer payload so conversion events can include safe attribution parameters.
+3. Add GTM-ready hooks/documentation for Meta Pixel.
+4. Add GTM-ready hooks/documentation for Google Ads conversions.
+5. Do not hardcode ad platform IDs unless secrets/config are already available.
+6. Produce QA evidence and a clear launch gate checklist.
+7. Clearly separate what can be done in code from what must be done manually in GTM, GA4, Google Ads, or Meta Events Manager.
+
+Read first:
+- docs/measurement-map-v1.md
+- docs/tracking-plan.md
+- docs/analytics-taxonomy.md
+- docs/measurement-guide.md
+- docs/gtm-vs-ga4.md
+- docs/gtm-container-export.json
+- js/analytics.js
+- gtm.config.json
+
+Implementation requirements:
+
+A. UTM Capture + Persistence
+
+Implement a safe UTM attribution layer in js/analytics.js or the existing centralized analytics utility.
+
+Capture these parameters from the URL:
+- utm_source
+- utm_medium
+- utm_campaign
+- utm_content
+- utm_term
+- gclid
+- fbclid
+
+Store safely in sessionStorage.
+
+Recommended structure:
+- crbox_utm_last_touch
+- crbox_utm_first_touch
+
+Rules:
+- First-touch should only be set if empty.
+- Last-touch should update when new attribution params are present.
+- Do not store PII.
+- Do not store full URLs.
+- Do not store arbitrary query params.
+- Do not capture tokens, emails, phone numbers, IDs, tracking numbers, invoice numbers, package IDs, addresses, or invoice data.
+- Do not capture raw form values.
+- Attribution persistence must never break the website if sessionStorage is unavailable.
+- If sessionStorage is blocked or unavailable, tracking should gracefully continue without attribution data.
+- Store only approved attribution keys.
+- Sanitize and truncate attribution values where appropriate to avoid unexpected payload size or unsafe values.
+
+B. Attach Attribution to Events
+
+Add safe attribution parameters to CRBOX.track event payloads if attribution data is available.
+
+Recommended safe attribution parameters:
+- utm_source
+- utm_medium
+- utm_campaign
+- utm_content
+- utm_term
+- gclid_present: true/false
+- fbclid_present: true/false
+- attribution_touch: first_touch / last_touch / both_available / none
+
+Important:
+Before adding new attribution parameters to event payloads, check the existing registered parameter policy in docs/tracking-plan.md and docs/analytics-taxonomy.md.
+
+If adding utm_source, utm_medium, utm_campaign, utm_content, utm_term, gclid_present, fbclid_present, or attribution_touch requires updating the documented GA4 custom dimension registry, document the required GA4/GTM updates clearly.
+
+Do not silently add parameters that GTM/GA4 will not read. If they are added to dataLayer but not yet configured in GTM/GA4, mark them clearly as:
+
+“dataLayer-ready, GTM/GA4 configuration pending”
+
+Do not send raw gclid or raw fbclid to GA4 unless the existing measurement plan explicitly approves it. Prefer boolean presence flags for analytics payloads.
+
+Do not send full landing page URLs or referrer URLs as event parameters.
+
+Apply attribution consistently through the centralized analytics utility so existing and future CRBOX.track events inherit the same attribution behavior.
+
+C. Preserve Existing Event Integrity
+
+Do not rename existing events unless absolutely required and explicitly justified.
+
+Do not break:
+- signup_success
+- quote_request_submit_success
+- contact_form_submit_success
+- calculator_result
+- calculator_start
+- calculator_query
+- whatsapp_click
+- invoice_upload_success
+- login_success
+- logout
+- session_expired
+- portal_section_view
+
+Make sure all existing standard parameters still work:
+- page_path
+- page_name
+- page_type
+- page_path_group
+
+Make sure existing privacy guarantees remain intact:
+- no raw email
+- no raw phone
+- no raw name
+- no raw ID number
+- no raw address
+- no tracking number
+- no invoice number
+- no package ID
+- no token
+- no exact declared value
+- no exact package value
+- no raw error message
+- no raw user-entered search text
+- no raw invoice/file name
+
+D. Google Ads Readiness
+
+Do not create campaigns.
+
+Prepare the implementation plan or GTM configuration notes for Google Ads conversion tracking.
+
+Primary conversion candidates:
+- signup_success
+- quote_request_submit_success
+
+Secondary conversion candidates:
+- contact_form_submit_success
+- calculator_result
+- whatsapp_click only as secondary/audience, not primary optimization
+
+Deliver:
+- Recommended Google Ads conversion action names
+- Which events should be primary vs secondary
+- Which should be account-default goals
+- Which should not be account-default goals
+- Whether each should be imported from GA4 or fired directly from GTM
+- Any GTM tags/triggers/variables that must be created
+- Any Google Ads conversion IDs/labels that must be inserted manually later
+- Any risks with using GA4 import vs direct Google Ads tags
+- QA steps using Google Tag Assistant
+- Launch-gate criteria before Google Ads spend starts
+
+Include a recommendation on whether to use:
+1. GA4 imported key events into Google Ads as the fastest path, or
+2. Direct Google Ads conversion tags in GTM as the cleaner paid-media path.
+
+Explain the tradeoff clearly and recommend the best Phase 1 approach.
+
+If you can safely add GTM container export updates without touching live GTM, create a new proposed export or documentation file. Do not assume live GTM UI changes can be made from code.
+
+E. Meta Pixel Readiness
+
+Do not create campaigns.
+
+Prepare the implementation plan or GTM configuration notes for Meta Pixel.
+
+Recommended event mapping:
+- page_view → PageView
+- signup_start → InitiateCheckout or custom SignupStart
+- signup_success → CompleteRegistration
+- quote_request_submit_success → Lead
+- contact_form_submit_success → Lead
+- calculator_result → ViewContent or custom CalculatorResult
+- whatsapp_click → Contact
+- invoice_upload_success → future CAPI-only quality event, not required for Phase 1 Pixel optimization
+
+Deliver:
+- Recommended Meta standard/custom event mapping
+- Which events should be used for optimization now
+- Which events should be used only for audiences
+- Which events should wait for CAPI
+- Which events should not be optimized toward yet
+- Required GTM tags/triggers/variables
+- Pixel ID configuration recommendation
+- Meta Events Manager setup notes
+- QA steps using Meta Pixel Helper
+- Launch-gate criteria before Meta spend starts
+
+Do not implement Meta CAPI yet.
+Do not send portal quality events to Meta Pixel client-side yet unless explicitly safe and documented.
+Treat invoice_upload_success as a future quality/CAPI candidate, not a Phase 1 Pixel optimization event.
+
+F. Update Documentation
+
+Create or update documentation, but do not rewrite all existing docs.
+
+Preferred output:
+- docs/paid-media-launch-gate-phase-1.md
+
+This document must include:
+1. What changed
+2. Files changed
+3. UTM attribution behavior
+4. First-touch vs last-touch rules
+5. Updated event payload examples
+6. Which new parameters are dataLayer-ready
+7. Which new parameters still require GTM/GA4 custom dimension setup
+8. Google Ads setup instructions
+9. Meta Pixel setup instructions
+10. Manual platform setup required
+11. QA checklist
+12. Launch gate checklist
+13. Known limitations
+14. What remains for Phase 2
+
+Also include a “Manual Platform Setup Required” section that lists anything that cannot be completed from the codebase, such as:
+- creating Google Ads conversion actions
+- linking GA4 and Google Ads if not already linked
+- deciding whether to import GA4 key events or use direct Google Ads conversion tags
+- adding Google Ads conversion IDs/labels
+- adding Meta Pixel ID
+- verifying events in Meta Events Manager
+- publishing GTM changes from the live GTM workspace
+- registering any new GA4 custom dimensions required for attribution
+- confirming that the live GTM container matches the repository export
+- confirming that the production domain is verified where required
+
+G. QA Requirements
+
+Provide evidence or instructions to validate:
+
+- Existing GA4 events still fire
+- Existing standard parameters still attach correctly
+- UTM params are captured from the URL
+- First-touch and last-touch behave correctly
+- Attribution params attach to conversion events
+- Attribution params attach to non-conversion events if intentionally implemented globally
+- No PII enters dataLayer
+- No duplicate events fire
+- signup_success fires only after real API success
+- quote_request_submit_success fires only after real API success
+- contact_form_submit_success fires only after real API success
+- calculator_result still fires correctly
+- whatsapp_click still fires correctly
+- invoice_upload_success still fires correctly
+- analytics failure does not break the website
+- sessionStorage failure does not break the website
+- events still reach GTM Preview / Tag Assistant
+- GA4 DebugView still receives the expected events
+
+Include both positive and negative tests:
+- valid UTM URL
+- URL without UTMs
+- URL with unsupported query parameters
+- URL with suspicious/PII-like query parameters
+- sessionStorage unavailable scenario if feasible
+- failed registration should not fire signup_success
+- failed quote should not fire quote_request_submit_success
+- failed contact form should not fire contact_form_submit_success
+
+H. Files to Modify
+
+Only modify files required for Phase 1.
+
+Likely:
+- js/analytics.js
+- docs/paid-media-launch-gate-phase-1.md
+- optionally a GTM recommendation/export file if safe
+
+Do not modify:
+- campaign files
+- UI styling
+- unrelated portal logic
+- backend logic unless absolutely necessary for safe attribution support
+- existing measurement docs unless a small cross-reference is necessary
+- existing event names unless absolutely necessary and justified
+
+I. Acceptance Criteria
+
+The task is complete only when:
+
+1. UTM capture and persistence is implemented safely.
+2. First-touch and last-touch attribution behavior is documented.
+3. Existing CRBOX.track event behavior is preserved.
+4. Existing GA4/GTM flow is preserved.
+5. New attribution parameters are added only through the centralized analytics utility.
+6. No PII is captured or pushed to dataLayer.
+7. Raw gclid/fbclid are not sent to analytics payloads unless explicitly justified.
+8. The documentation clearly explains what is implemented in code versus what remains manual in GTM/GA4/Google Ads/Meta.
+9. Google Ads conversion readiness is documented with primary/secondary recommendations.
+10. Meta Pixel readiness is documented with standard/custom event mapping.
+11. QA checklist and launch gate checklist are included.
+12. Remaining blockers before first campaign are clearly stated.
+13. No UI or unrelated backend behavior is changed.
+
+Final response format:
+1. Summary of what was implemented
+2. Files changed
+3. Exact UTM behavior
+4. Event payload examples
+5. Google Ads readiness status
+6. Meta Pixel readiness status
+7. QA checklist
+8. Manual platform setup still required
+9. Remaining blockers before first campaign
+10. Recommended next action
