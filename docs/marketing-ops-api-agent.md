@@ -1,8 +1,13 @@
 # CRBOX Marketing Ops API Agent
 
-Status: first read-only scaffold.
+Status: Phase 2A read-only GA4/GTM checker.
 
-This agent is a minimal Node.js CLI for CRBOX paid media readiness checks. It is designed to inspect repository evidence today and provide clean module boundaries for future read-only API validation of GA4, GTM, Google Ads, and Meta.
+This Node.js CLI inspects CRBOX paid media readiness from two sources:
+
+- Static repository evidence for the tracking foundation.
+- Live read-only GA4 Admin API and Google Tag Manager API checks when local credentials are present.
+
+Google Ads and Meta remain skipped placeholders in Phase 2A.
 
 ## Safety Boundary
 
@@ -13,6 +18,7 @@ This agent is a minimal Node.js CLI for CRBOX paid media readiness checks. It is
 - No Google Ads conversions, campaigns, budgets, bidding settings, audiences, or assets are created or changed.
 - No Meta pixels, events, campaigns, ad sets, ads, audiences, domains, or CAPI integrations are created.
 - No customer data is uploaded.
+- `.env` is local only, ignored by Git, and never written into reports.
 
 ## CLI Structure
 
@@ -20,6 +26,8 @@ This agent is a minimal Node.js CLI for CRBOX paid media readiness checks. It is
 scripts/marketing-ops/
   index.js
   config.js
+  env-loader.js
+  google-auth.js
   utils.js
   checks/
     repo-check.js
@@ -30,6 +38,37 @@ scripts/marketing-ops/
   report/
     markdown-report.js
 ```
+
+## Environment Loading
+
+The CLI loads `.env` from the repository root before checks run.
+
+The loader:
+
+- Uses built-in Node.js modules only.
+- Supports simple `KEY=VALUE` lines.
+- Ignores blank lines and comments.
+- Does not overwrite existing `process.env` values.
+- Does not log loaded values.
+- Does not write secrets to files or reports.
+
+## Required GA4/GTM Credentials
+
+The Phase 2A live checks require:
+
+```text
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+GOOGLE_REFRESH_TOKEN
+GA4_PROPERTY_ID
+GA4_MEASUREMENT_ID
+GTM_ACCOUNT_ID
+GTM_CONTAINER_ID
+MARKETING_AGENT_MODE
+```
+
+`GA4_MEASUREMENT_ID` is expected to be `G-B5BPHFRR18`.
+`MARKETING_AGENT_MODE` should remain `read_only`.
 
 ## Commands
 
@@ -45,7 +84,7 @@ npm run marketing:report
 
 `marketing:check` and `marketing:report` update `docs/marketing-ops-readiness-report.md`.
 
-## Current Repository Checks
+## Repository Checks
 
 The repo checker performs conservative static checks against:
 
@@ -58,45 +97,59 @@ The repo checker performs conservative static checks against:
 - `gtm.config.json`
 - `js/analytics.js`
 
-It looks for the expected GA4 Measurement ID, GTM Container ID, approved UTM keys, `gclid`, `fbclid`, `CRBOX.track`, `dataLayer`, sessionStorage attribution persistence, and selected paid-media events.
+It looks for the expected GA4 Measurement ID, GTM Container ID, approved UTM keys, `gclid`, `fbclid`, `CRBOX.track`, `dataLayer`, sessionStorage attribution persistence, selected paid-media events, and raw click ID safety signals.
 
-## Future GA4 Read-Only Checks
+## GA4 Read-Only Checks
 
-- Property exists.
-- Web stream exists.
-- Measurement ID matches `G-B5BPHFRR18`.
-- Required custom dimensions exist.
-- Key events are marked as conversions/key events.
-- Event names align with the tracking taxonomy.
+When credentials are present, the GA4 checker uses read-only Admin API calls to verify:
 
-## Future GTM Read-Only Checks
+- Property accessibility for `GA4_PROPERTY_ID`.
+- Web data stream with measurement ID `G-B5BPHFRR18`.
+- Event-scoped custom dimensions:
+  - `gclid_present`
+  - `fbclid_present`
+  - `attribution_touch`
+  - `utm_content`
+  - `utm_term`
+- Key events/conversions:
+  - `signup_success`
+  - `quote_request_submit_success`
 
-- Account exists.
-- Container exists.
-- Workspace exists or can be created later.
-- GA4 configuration tag exists.
-- Data Layer Variables exist for approved event parameters.
-- Triggers exist for approved CRBOX events.
-- Meta Pixel base/event tags exist or are planned.
-- Raw `gclid`/`fbclid` is not exposed through GTM variables unless explicitly approved.
+If key-event endpoints are unavailable or permission-limited, the checker reports a skipped/warn state rather than failing hard.
 
-## Future Google Ads Read-Only Checks
+## GTM Read-Only Checks
 
-- Customer ID is accessible.
-- GA4 imported conversions exist.
-- Conversion action names match planned CRBOX events.
-- Auto-tagging status can be read.
-- No campaign changes are made by this agent.
+When credentials are present, the GTM checker uses read-only API calls to verify:
 
-## Future Meta Read-Only Checks
+- GTM account accessibility.
+- GTM container accessibility.
+- Workspace listing.
+- Data Layer Variables for approved attribution keys.
+- Custom Event triggers for approved CRBOX paid-media events.
+- GA4-related tag presence.
+- Meta-related tag presence/planning signal.
+- Raw `gclid`/`fbclid` exposure risk in GTM variables.
 
-- Business is accessible.
-- Ad account is accessible.
-- Pixel exists.
-- Domain verification status can be read.
-- AEM/event priority can be reviewed manually or through the API if available.
-- No audience/customer data is uploaded by this agent.
+The checker never creates a workspace, variable, trigger, tag, version, or publication.
 
-## Environment Variables
+## Google Ads and Meta
 
-Required variables are documented in `.env.example` with empty placeholders only. Secrets must be provided through environment variables and must never be committed.
+Google Ads and Meta remain skipped in Phase 2A. Their modules are preserved for future read-only checks, but no API calls are made to those platforms yet.
+
+## Reporting
+
+The readiness report includes:
+
+- Timestamp.
+- Mode.
+- Repo checks.
+- GA4 live API checks.
+- GTM live API checks.
+- Google Ads skipped status.
+- Meta skipped status.
+- Missing GA4 custom dimensions.
+- Missing GA4 key events/conversions.
+- Missing GTM Data Layer Variables.
+- Missing GTM triggers.
+- Warnings and permission/scope issues.
+- Explicit no-mutation statement.

@@ -36,7 +36,10 @@ function maskSecretsInText(text) {
   if (!text) return '';
   return String(text)
     .replace(/([A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|KEY|REFRESH|ACCESS_TOKEN|CLIENT_SECRET)[A-Z0-9_]*=)[^\s]+/gi, '$1[masked]')
-    .replace(/(Bearer\s+)[A-Za-z0-9._~+/-]+=*/gi, '$1[masked]');
+    .replace(/(Bearer\s+)[A-Za-z0-9._~+/-]+=*/gi, '$1[masked]')
+    .replace(/("access_token"\s*:\s*")[^"]+(")/gi, '$1[masked]$2')
+    .replace(/("refresh_token"\s*:\s*")[^"]+(")/gi, '$1[masked]$2')
+    .replace(/("client_secret"\s*:\s*")[^"]+(")/gi, '$1[masked]$2');
 }
 
 function makeCheck(id, label, passed, details, options = {}) {

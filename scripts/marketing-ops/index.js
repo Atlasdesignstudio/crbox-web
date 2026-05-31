@@ -2,6 +2,7 @@
 'use strict';
 
 const { repoRoot } = require('./config');
+const { loadDotEnv } = require('./env-loader');
 const { formatStatus, maskSecretsInText } = require('./utils');
 const { runRepoCheck } = require('./checks/repo-check');
 const { runGa4Check } = require('./checks/ga4-check');
@@ -11,6 +12,7 @@ const { runMetaCheck } = require('./checks/meta-check');
 const { writeMarkdownReport } = require('./report/markdown-report');
 
 const root = repoRoot();
+loadDotEnv(root);
 
 function printResult(result) {
   console.log(`${result.name}: ${formatStatus(result.status)}`);
@@ -22,38 +24,38 @@ function printResult(result) {
   }
 }
 
-function runAll() {
+async function runAll() {
   return [
     runRepoCheck(root),
-    runGa4Check(),
-    runGtmCheck(),
+    await runGa4Check(),
+    await runGtmCheck(),
     runGoogleAdsCheck(),
     runMetaCheck()
   ];
 }
 
-function main() {
+async function main() {
   const command = process.argv[2] || 'check';
   let results;
   let reportPath = null;
 
   switch (command) {
     case 'check':
-      results = runAll();
+      results = await runAll();
       reportPath = writeMarkdownReport(root, results);
       break;
     case 'report':
-      results = runAll();
+      results = await runAll();
       reportPath = writeMarkdownReport(root, results);
       break;
     case 'repo':
       results = [runRepoCheck(root)];
       break;
     case 'ga4':
-      results = [runGa4Check()];
+      results = [await runGa4Check()];
       break;
     case 'gtm':
-      results = [runGtmCheck()];
+      results = [await runGtmCheck()];
       break;
     case 'ads':
     case 'google-ads':
@@ -81,7 +83,10 @@ function main() {
 }
 
 try {
-  main();
+  main().catch((error) => {
+    console.error(maskSecretsInText(error && error.stack ? error.stack : String(error)));
+    process.exitCode = 1;
+  });
 } catch (error) {
   console.error(maskSecretsInText(error && error.stack ? error.stack : String(error)));
   process.exitCode = 1;

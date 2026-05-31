@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Readiness Report
 
-Generated: 2026-05-30T16:51:48.233Z
+Generated: 2026-05-31T00:55:28.030Z
 
 Mode: **read_only**
 
@@ -8,20 +8,13 @@ Mode: **read_only**
 
 ## Summary
 
-- Passed checks: 33
-- Warnings: 0
-- Skipped checks: 4
-- Missing environment variables: 21
+- Passed checks: 45
+- Warnings: 19
+- Skipped checks: 2
+- Missing environment variables: 13
 
 ## Missing Environment Variables
 
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
-- `GOOGLE_REFRESH_TOKEN`
-- `GA4_PROPERTY_ID`
-- `GA4_MEASUREMENT_ID`
-- `GTM_ACCOUNT_ID`
-- `GTM_CONTAINER_ID`
 - `GOOGLE_ADS_DEVELOPER_TOKEN`
 - `GOOGLE_ADS_CLIENT_ID`
 - `GOOGLE_ADS_CLIENT_SECRET`
@@ -35,11 +28,59 @@ Mode: **read_only**
 - `META_AD_ACCOUNT_ID`
 - `META_PIXEL_ID`
 - `CRBOX_DOMAIN`
-- `MARKETING_AGENT_MODE`
 
 ## Warnings
 
-- None.
+- GA4 event-scoped custom dimension gclid_present exists
+- GA4 event-scoped custom dimension fbclid_present exists
+- GA4 event-scoped custom dimension attribution_touch exists
+- GA4 event-scoped custom dimension utm_content exists
+- GA4 event-scoped custom dimension utm_term exists
+- GA4 key event/conversion signup_success exists
+- GA4 key event/conversion quote_request_submit_success exists
+- GTM Data Layer Variable for utm_source exists
+- GTM Data Layer Variable for utm_medium exists
+- GTM Data Layer Variable for utm_campaign exists
+- GTM Data Layer Variable for utm_content exists
+- GTM Data Layer Variable for utm_term exists
+- GTM Data Layer Variable for gclid_present exists
+- GTM Data Layer Variable for fbclid_present exists
+- GTM Data Layer Variable for attribution_touch exists
+- GTM Custom Event trigger for quote_request_submit_success exists
+- GTM Custom Event trigger for contact_form_submit_success exists
+- GTM Custom Event trigger for quote_request_start exists
+- GTM Meta-related tags appear present or planned
+
+## Live Platform Gaps
+
+Missing GA4 custom dimensions:
+- `gclid_present`
+- `fbclid_present`
+- `attribution_touch`
+- `utm_content`
+- `utm_term`
+
+Missing GA4 key events/conversions:
+- `signup_success`
+- `quote_request_submit_success`
+
+Missing GTM Data Layer Variables:
+- `utm_source`
+- `utm_medium`
+- `utm_campaign`
+- `utm_content`
+- `utm_term`
+- `gclid_present`
+- `fbclid_present`
+- `attribution_touch`
+
+Missing GTM triggers:
+- `quote_request_submit_success`
+- `contact_form_submit_success`
+- `quote_request_start`
+
+Permission or scope issues:
+- None detected.
 
 ## Repository static checks
 
@@ -96,16 +137,26 @@ Inspected files:
 
 ## GA4 checks
 
-Status: **SKIPPED**
+Status: **WARN**
 
 Notes:
+- GA4 checks use read-only Admin API get/list endpoints only.
 - No GA4 write endpoints are called.
 - No custom dimensions, key events, properties, or streams are created or changed.
 
 | Check | Status | Details |
 |---|---:|---|
 | GA4 measurement ID matches expected CRBOX value | PASS | Expected G-B5BPHFRR18; received G-B5BPHFRR18 |
-| GA4 Admin API read-only checks | SKIPPED | Not checked — credentials missing: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN, GA4_PROPERTY_ID, GA4_MEASUREMENT_ID |
+| GA4 property is accessible | PASS | Read-only get succeeded for properties/534288079. |
+| GA4 web stream exists for G-B5BPHFRR18 | PASS | Found matching web data stream by read-only list call. |
+| GA4 event-scoped custom dimension gclid_present exists | WARN | Missing from GA4 Admin API read-only list response. |
+| GA4 event-scoped custom dimension fbclid_present exists | WARN | Missing from GA4 Admin API read-only list response. |
+| GA4 event-scoped custom dimension attribution_touch exists | WARN | Missing from GA4 Admin API read-only list response. |
+| GA4 event-scoped custom dimension utm_content exists | WARN | Missing from GA4 Admin API read-only list response. |
+| GA4 event-scoped custom dimension utm_term exists | WARN | Missing from GA4 Admin API read-only list response. |
+| GA4 key event/conversion endpoint is readable | PASS | Used read-only keyEvents endpoint. |
+| GA4 key event/conversion signup_success exists | WARN | Missing from GA4 Admin API read-only list response. |
+| GA4 key event/conversion quote_request_submit_success exists | WARN | Missing from GA4 Admin API read-only list response. |
 
 Future read-only API checks planned for this module:
 - Property exists and is accessible
@@ -115,18 +166,50 @@ Future read-only API checks planned for this module:
 - Key events are marked as conversions/key events
 - Event names align with the tracking taxonomy
 
+Missing GA4 custom dimensions:
+- `gclid_present`
+- `fbclid_present`
+- `attribution_touch`
+- `utm_content`
+- `utm_term`
+
+Missing GA4 key events/conversions:
+- `signup_success`
+- `quote_request_submit_success`
+
 ## GTM checks
 
-Status: **SKIPPED**
+Status: **WARN**
 
 Notes:
+- GTM checks use read-only API get/list endpoints only.
 - No GTM variables, triggers, tags, workspaces, versions, or publications are created.
 - No raw gclid/fbclid Data Layer Variables are approved or created by this checker.
 
 | Check | Status | Details |
 |---|---:|---|
-| GTM container ID matches expected CRBOX value | PASS | Expected GTM-5WD8N53F; received GTM-5WD8N53F |
-| GTM API read-only checks | SKIPPED | Not checked — credentials missing: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN, GTM_ACCOUNT_ID, GTM_CONTAINER_ID |
+| GTM container ID is configured | PASS | Configured as numeric GTM API containerId; public ID will be verified after read-only container lookup. |
+| GTM account is accessible | PASS | Read-only get succeeded for accounts/6351590751. |
+| GTM container is accessible | PASS | Found container by read-only list call using configured ID/public ID. |
+| GTM container public ID matches GTM-5WD8N53F | PASS | Read-only container lookup confirmed public ID GTM-5WD8N53F. |
+| GTM workspaces are readable | PASS | Listed 1 workspace(s); using "Default Workspace" for variable/trigger/tag checks. |
+| GTM Data Layer Variable for utm_source exists | WARN | Missing from GTM API read-only variables list. |
+| GTM Data Layer Variable for utm_medium exists | WARN | Missing from GTM API read-only variables list. |
+| GTM Data Layer Variable for utm_campaign exists | WARN | Missing from GTM API read-only variables list. |
+| GTM Data Layer Variable for utm_content exists | WARN | Missing from GTM API read-only variables list. |
+| GTM Data Layer Variable for utm_term exists | WARN | Missing from GTM API read-only variables list. |
+| GTM Data Layer Variable for gclid_present exists | WARN | Missing from GTM API read-only variables list. |
+| GTM Data Layer Variable for fbclid_present exists | WARN | Missing from GTM API read-only variables list. |
+| GTM Data Layer Variable for attribution_touch exists | WARN | Missing from GTM API read-only variables list. |
+| GTM Custom Event trigger for signup_success exists | PASS | Found by GTM API read-only triggers list. |
+| GTM Custom Event trigger for quote_request_submit_success exists | WARN | Missing from GTM API read-only triggers list. |
+| GTM Custom Event trigger for contact_form_submit_success exists | WARN | Missing from GTM API read-only triggers list. |
+| GTM Custom Event trigger for calculator_result exists | PASS | Found by GTM API read-only triggers list. |
+| GTM Custom Event trigger for whatsapp_click exists | PASS | Found by GTM API read-only triggers list. |
+| GTM Custom Event trigger for quote_request_start exists | WARN | Missing from GTM API read-only triggers list. |
+| GTM GA4-related tags appear present | PASS | Found GA4-related signal in 36 listed tag(s). |
+| GTM Meta-related tags appear present or planned | WARN | No Meta-related signal found in 36 listed tag(s). |
+| No GTM variable appears to expose raw gclid/fbclid | PASS | No raw click ID variables detected by read-only variables list. |
 
 Future read-only API checks planned for this module:
 - Account exists
@@ -137,6 +220,21 @@ Future read-only API checks planned for this module:
 - Triggers exist for approved CRBOX events
 - Meta Pixel base/event tags exist or are planned
 - Raw gclid/fbclid is not exposed through GTM variables unless explicitly approved
+
+Missing GTM Data Layer Variables:
+- `utm_source`
+- `utm_medium`
+- `utm_campaign`
+- `utm_content`
+- `utm_term`
+- `gclid_present`
+- `fbclid_present`
+- `attribution_touch`
+
+Missing GTM triggers:
+- `quote_request_submit_success`
+- `contact_form_submit_success`
+- `quote_request_start`
 
 ## Google Ads checks
 
@@ -179,10 +277,9 @@ Future read-only API checks planned for this module:
 
 ## Recommended Next Actions
 
-- Keep this agent in `read_only` mode until platform read-only API checks are implemented and reviewed.
+- Keep this agent in `read_only` mode.
 - Add credentials only through environment variables; never commit secrets.
-- In a later task, add read-only API clients for GA4 Admin, GTM, Google Ads, and Meta Marketing APIs.
-- Use live platform checks only to verify state; do not create GTM workspaces, tags, GA4 dimensions, Google Ads conversions, or Meta assets from this first version.
+- Use GA4/GTM live checks only to verify state; do not create GTM workspaces, tags, GA4 dimensions, Google Ads conversions, or Meta assets from this version.
 
 ## Mutation Statement
 
