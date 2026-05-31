@@ -45,6 +45,21 @@ function sectionForResult(result) {
     lines.push('');
   }
 
+  const missingGroups = [
+    ['Missing GA4 custom dimensions', result.missingCustomDimensions],
+    ['Missing GA4 key events/conversions', result.missingKeyEvents],
+    ['Missing GTM Data Layer Variables', result.missingDlvs],
+    ['Missing GTM triggers', result.missingTriggers]
+  ].filter(([, items]) => items && items.length);
+
+  for (const [label, items] of missingGroups) {
+    lines.push(label + ':');
+    for (const item of items) {
+      lines.push(`- \`${item}\``);
+    }
+    lines.push('');
+  }
+
   return lines.join('\n');
 }
 
@@ -60,6 +75,17 @@ function buildMarkdownReport(results, options = {}) {
   const warnings = allChecks
     .filter((check) => check.status === 'warn')
     .map((check) => check.label);
+  const missingCustomDimensions = unique(results.flatMap((result) => result.missingCustomDimensions || []));
+  const missingKeyEvents = unique(results.flatMap((result) => result.missingKeyEvents || []));
+  const missingDlvs = unique(results.flatMap((result) => result.missingDlvs || []));
+  const missingTriggers = unique(results.flatMap((result) => result.missingTriggers || []));
+  const ga4Result = results.find((result) => result.name === 'GA4 checks');
+  const gtmResult = results.find((result) => result.name === 'GTM checks');
+  const ga4Evaluated = Boolean(ga4Result && ga4Result.liveApiChecked);
+  const gtmEvaluated = Boolean(gtmResult && gtmResult.liveApiChecked);
+  const permissionIssues = allChecks
+    .filter((check) => /permission|PERMISSION_DENIED|unauthorized|forbidden|HTTP 401|HTTP 403/i.test(`${check.label} ${check.details || ''}`))
+    .map((check) => `${check.label}: ${check.details}`);
 
   const lines = [
     '# CRBOX Marketing Ops Readiness Report',
@@ -85,13 +111,37 @@ function buildMarkdownReport(results, options = {}) {
     '',
     warnings.length ? warnings.map((warning) => `- ${warning}`).join('\n') : '- None.',
     '',
+    '## Live Platform Gaps',
+    '',
+    'Missing GA4 custom dimensions:',
+    ga4Evaluated
+      ? (missingCustomDimensions.length ? missingCustomDimensions.map((item) => `- \`${item}\``).join('\n') : '- None detected.')
+      : '- Not evaluated; GA4 live API check did not complete.',
+    '',
+    'Missing GA4 key events/conversions:',
+    ga4Evaluated
+      ? (missingKeyEvents.length ? missingKeyEvents.map((item) => `- \`${item}\``).join('\n') : '- None detected.')
+      : '- Not evaluated; GA4 live API check did not complete.',
+    '',
+    'Missing GTM Data Layer Variables:',
+    gtmEvaluated
+      ? (missingDlvs.length ? missingDlvs.map((item) => `- \`${item}\``).join('\n') : '- None detected.')
+      : '- Not evaluated; GTM live API check did not complete.',
+    '',
+    'Missing GTM triggers:',
+    gtmEvaluated
+      ? (missingTriggers.length ? missingTriggers.map((item) => `- \`${item}\``).join('\n') : '- None detected.')
+      : '- Not evaluated; GTM live API check did not complete.',
+    '',
+    'Permission or scope issues:',
+    permissionIssues.length ? permissionIssues.map((item) => `- ${item}`).join('\n') : '- None detected.',
+    '',
     ...results.map(sectionForResult),
     '## Recommended Next Actions',
     '',
-    '- Keep this agent in `read_only` mode until platform read-only API checks are implemented and reviewed.',
+    '- Keep this agent in `read_only` mode.',
     '- Add credentials only through environment variables; never commit secrets.',
-    '- In a later task, add read-only API clients for GA4 Admin, GTM, Google Ads, and Meta Marketing APIs.',
-    '- Use live platform checks only to verify state; do not create GTM workspaces, tags, GA4 dimensions, Google Ads conversions, or Meta assets from this first version.',
+    '- Use GA4/GTM live checks only to verify state; do not create GTM workspaces, tags, GA4 dimensions, Google Ads conversions, or Meta assets from this version.',
     '',
     '## Mutation Statement',
     '',
