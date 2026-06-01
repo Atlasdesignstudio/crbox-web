@@ -83,8 +83,8 @@ async function runPlan(scope) {
   console.log('Mutation statement: No GA4 or GTM mutations were performed. This is a dry-run plan only.');
 }
 
-async function runApplyCommand(scope, validateOnly, argv) {
-  const applyResult = runApply(root, { scope, validateOnly, argv });
+async function runApplyCommand(scope, validateOnly, argv, requestedMode) {
+  const applyResult = await runApply(root, { scope, validateOnly, argv, requestedMode });
   const results = await runAll();
   const reportPath = writeMarkdownReport(root, results, { apply: applyResult.summary });
 
@@ -129,7 +129,10 @@ async function main() {
       await runApplyCommand('all', false, process.argv.slice(3));
       return;
     case 'apply:ga4':
-      await runApplyCommand('ga4', false, process.argv.slice(3));
+      await runApplyCommand('ga4', false, process.argv.slice(3), 'preview');
+      return;
+    case 'apply:ga4:create':
+      await runApplyCommand('ga4', false, process.argv.slice(3), 'ga4_controlled_create');
       return;
     case 'apply:gtm':
       await runApplyCommand('gtm', false, process.argv.slice(3));
@@ -152,7 +155,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:gtm|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:validate]');
       process.exitCode = 1;
       return;
   }

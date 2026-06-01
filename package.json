@@ -15,6 +15,7 @@
     "marketing:plan:gtm": "node scripts/marketing-ops/index.js plan:gtm",
     "marketing:apply": "node scripts/marketing-ops/index.js apply",
     "marketing:apply:ga4": "node scripts/marketing-ops/index.js apply:ga4",
+    "marketing:apply:ga4:create": "node scripts/marketing-ops/index.js apply:ga4:create",
     "marketing:apply:gtm": "node scripts/marketing-ops/index.js apply:gtm",
     "marketing:apply:validate": "node scripts/marketing-ops/index.js apply:validate",
     "marketing:report": "node scripts/marketing-ops/index.js report"

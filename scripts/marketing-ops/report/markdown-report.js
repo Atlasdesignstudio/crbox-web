@@ -6,6 +6,7 @@ const { EXPECTED, REQUIRED_ENV } = require('../config');
 const { missingEnv, summarizeStatus, unique } = require('../utils');
 const { readDryRunPlan } = require('../planner/plan-writer');
 const { validateDryRunPlan } = require('../apply/apply-validator');
+const { readGa4CreateResult } = require('../apply/ga4-create-result');
 
 function sectionForResult(result) {
   const lines = [
@@ -87,6 +88,7 @@ function buildMarkdownReport(results, options = {}) {
   const timestamp = options.timestamp || new Date().toISOString();
   const plan = options.plan || null;
   const apply = options.apply || null;
+  const ga4CreateResult = options.ga4CreateResult || readGa4CreateResult(options.root || process.cwd());
   const allChecks = results.flatMap((result) => result.checks || []);
   const summary = summarizeStatus(allChecks);
   const requiredEnvNames = unique(Object.values(REQUIRED_ENV).flat());
@@ -185,6 +187,19 @@ function buildMarkdownReport(results, options = {}) {
     '',
     'No controlled apply mutations were performed. Phase 2C-Prep validates apply readiness only.',
     '',
+    '## Phase 2D GA4 Controlled Create',
+    '',
+    `- GA4 controlled create capability implemented: true
+- GA4 controlled create execution currently run: ${ga4CreateResult.exists && ga4CreateResult.status !== 'not_executed'}
+- GA4 write execution requires explicit env + flags: true
+- GTM controlled create enabled: false
+- Google Ads enabled: false
+- Meta enabled: false
+- Last GA4 create result file exists: ${ga4CreateResult.exists}
+- Last GA4 create result status: ${ga4CreateResult.status || 'not_executed'}`,
+    '',
+    'No Phase 2D GA4 controlled-create mutations are performed unless the dedicated GA4 create command passes every required safety gate.',
+    '',
     ...results.map(sectionForResult),
     '## Recommended Next Actions',
     '',
@@ -217,7 +232,8 @@ function writeMarkdownReport(root, results, options = {}) {
   const markdown = buildMarkdownReport(results, {
     ...options,
     plan: options.plan || readDryRunPlan(root),
-    apply
+    apply,
+    root
   });
   fs.writeFileSync(outputPath, markdown, 'utf8');
   return outputPath;

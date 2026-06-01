@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Readiness Report
 
-Generated: 2026-06-01T19:24:04.254Z
+Generated: 2026-06-01T19:54:03.240Z
 
 Mode: **read_only**
 
@@ -8,7 +8,7 @@ Mode: **read_only**
 
 ## Summary
 
-- Passed checks: 36
+- Passed checks: 40
 - Warnings: 7
 - Skipped checks: 3
 - Missing environment variables: 13
@@ -53,17 +53,17 @@ Missing GA4 key events/conversions:
 - `quote_request_submit_success`
 
 Missing GTM Data Layer Variables:
-- Not evaluated; GTM live API check did not complete.
+- None detected.
 
 Missing GTM triggers:
-- Not evaluated; GTM live API check did not complete.
+- None detected.
 
 Permission or scope issues:
 - None detected.
 
 ## Dry-Run Plan Summary
 
-- Generated: 2026-06-01T19:23:17.728Z
+- Generated: 2026-06-01T19:52:35.315Z
 - Mode: dry_run
 - Proposed GA4 actions: 7
 - Proposed GTM actions: 11
@@ -77,12 +77,25 @@ Permission or scope issues:
 - Dry-run plan valid: true
 - Controlled apply execution enabled: false
 - Eligible GA4 actions: 7
-- Eligible GTM actions: 11
+- Eligible GTM actions: 0
 - Blocked actions: 6
-- Future execution previews: 0
+- Future execution previews: 7
 - Validation errors: 0
 
 No controlled apply mutations were performed. Phase 2C-Prep validates apply readiness only.
+
+## Phase 2D GA4 Controlled Create
+
+- GA4 controlled create capability implemented: true
+- GA4 controlled create execution currently run: false
+- GA4 write execution requires explicit env + flags: true
+- GTM controlled create enabled: false
+- Google Ads enabled: false
+- Meta enabled: false
+- Last GA4 create result file exists: true
+- Last GA4 create result status: not_executed
+
+No Phase 2D GA4 controlled-create mutations are performed unless the dedicated GA4 create command passes every required safety gate.
 
 ## Repository static checks
 
@@ -191,7 +204,11 @@ Notes:
 | Check | Status | Details |
 |---|---:|---|
 | GTM container ID is configured | PASS | Configured as numeric GTM API containerId; public ID will be verified after read-only container lookup. |
-| GTM API read-only checks | SKIPPED | Not checked — HTTP 429 (RESOURCE_EXHAUSTED): Quota exceeded for quota metric 'Queries' and limit 'Queries per minute per user' of service 'tagmanager.googleapis.com' for consumer 'project_number:991109687575'.. Details: {"error":{"code":429,"message":"Quota exceeded for quota metric 'Queries' and limit 'Queries per minute per user' of service 'tagmanager.googleapis.com' for consumer 'project_number:991109687575'.","errors":[{"message":"Quota exceeded for quota metric 'Queries' and limit 'Queries per minute per user' of service 'tagmanager.googleapis.com' for consumer 'project_number:991109687575'.","domain":"global","reason":"rateLimitExceeded"}],"status":"RESOURCE_EXHAUSTED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"RATE_LIMIT_EXCEEDED","domain":"googleapis.com","metadata":{"quota_limit_value":"30","service":"tagmanager.googleapis.com","consumer":"projects/991109687575","quota_limit":"defaultPerMinutePerUser","quota_unit":"1/min/{project}/{user}","quota_location":"global","quota_metric":"tagmanager.googleapis.com/default"}},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Request a higher quota limit.","url":"https://cloud.google.com/docs/quotas/help/request_increase"}]}]}} |
+| GTM account is accessible | PASS | Read-only get succeeded for accounts/6351590751. |
+| GTM container is accessible | PASS | Found container by read-only list call using configured ID/public ID. |
+| GTM container public ID matches GTM-5WD8N53F | PASS | Read-only container lookup confirmed public ID GTM-5WD8N53F. |
+| GTM workspaces are readable | PASS | Listed 1 workspace(s); using "Default Workspace" for variable/trigger/tag checks. |
+| GTM API read-only checks | SKIPPED | Not checked — HTTP 429 (RESOURCE_EXHAUSTED): Quota exceeded for quota metric 'Queries' and limit 'Queries per minute per user' of service 'tagmanager.googleapis.com' for consumer 'project_number:991109687575'.. Details: {"error":{"code":429,"message":"Quota exceeded for quota metric 'Queries' and limit 'Queries per minute per user' of service 'tagmanager.googleapis.com' for consumer 'project_number:991109687575'.","errors":[{"message":"Quota exceeded for quota metric 'Queries' and limit 'Queries per minute per user' of service 'tagmanager.googleapis.com' for consumer 'project_number:991109687575'.","domain":"global","reason":"rateLimitExceeded"}],"status":"RESOURCE_EXHAUSTED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"RATE_LIMIT_EXCEEDED","domain":"googleapis.com","metadata":{"quota_unit":"1/min/{project}/{user}","service":"tagmanager.googleapis.com","quota_limit_value":"30","quota_location":"global","quota_metric":"tagmanager.googleapis.com/default","quota_limit":"defaultPerMinutePerUser","consumer":"projects/991109687575"}},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Request a higher quota limit.","url":"https://cloud.google.com/docs/quotas/help/request_increase"}]}]}} |
 
 Future read-only API checks planned for this module:
 - Account exists

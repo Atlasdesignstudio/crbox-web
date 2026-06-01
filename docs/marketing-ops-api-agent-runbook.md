@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Use this runbook to run read-only CRBOX paid media readiness checks, generate dry-run setup plans for GA4 and Google Tag Manager, and validate controlled apply readiness without executing writes.
+Use this runbook to run read-only CRBOX paid media readiness checks, generate dry-run setup plans for GA4 and Google Tag Manager, validate controlled apply readiness, and run GA4-only controlled create when explicitly approved.
 
 ## Preconditions
 
@@ -12,11 +12,12 @@ Use this runbook to run read-only CRBOX paid media readiness checks, generate dr
 - Never commit secrets.
 - Never print `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`, access tokens, or full credential values.
 - Do not run any create/update/delete/archive/publish endpoint without a separate approved task.
-- Treat Phase 2C-Prep apply commands as validation-only. They must refuse execution.
+- Treat preview apply commands as validation-only. They must refuse execution.
+- Run GA4 controlled create only after separate human approval.
 
 ## Install
 
-The Phase 2C-Prep checker, planner, and apply scaffold use only built-in Node.js modules. No dependency install is required.
+The Phase 2D checker, planner, apply scaffold, and GA4 create executor use only built-in Node.js modules. No dependency install is required.
 
 ## Local `.env`
 
@@ -38,7 +39,7 @@ MARKETING_AGENT_ENABLE_WRITES
 
 The loader does not overwrite variables already set in the shell. This allows CI or local shell exports to take precedence over `.env`.
 
-`MARKETING_AGENT_ENABLE_WRITES` must stay `false` or blank. Phase 2C-Prep still refuses execution if someone sets it to `true`.
+`MARKETING_AGENT_ENABLE_WRITES` must stay `false` or blank unless GA4 controlled create has been explicitly approved.
 
 ## Run All Checks
 
@@ -123,7 +124,45 @@ These commands validate the plan, print eligible action counts, generate future 
 Controlled create execution is not enabled in Phase 2C-Prep. No platform mutations were performed.
 ```
 
-The current scaffold recognizes future-style selection flags such as `--platform`, `--action-id`, `--all`, and `--confirm-human-approval`, but Phase 2C-Prep does not execute anything with them.
+The preview commands recognize selection flags such as `--platform`, `--action-id`, `--all`, and `--confirm-human-approval`, but they do not execute writes.
+
+## GA4 Controlled Create
+
+The GA4-only controlled create command is intentionally verbose:
+
+```bash
+MARKETING_AGENT_MODE=controlled_create MARKETING_AGENT_ENABLE_WRITES=true npm run marketing:apply:ga4:create -- --platform ga4 --all --confirm-human-approval
+```
+
+Do not run that command unless a human has approved execution.
+
+The command can create:
+
+- GA4 custom dimension `gclid_present`
+- GA4 custom dimension `fbclid_present`
+- GA4 custom dimension `attribution_touch`
+- GA4 custom dimension `utm_content`
+- GA4 custom dimension `utm_term`
+- GA4 key event `signup_success`
+- GA4 key event `quote_request_submit_success`
+
+Required gates:
+
+- `MARKETING_AGENT_MODE=controlled_create`
+- `MARKETING_AGENT_ENABLE_WRITES=true`
+- `--platform ga4`
+- `--confirm-human-approval`
+- `--all` or explicit `--action-id` values
+- Valid `docs/marketing-ops-dry-run-plan.json`
+
+The executor performs duplicate checks immediately before each create action. If an object already exists, it records `skipped_existing`. If an API error occurs, execution stops and writes the failed action into:
+
+```text
+docs/marketing-ops-ga4-create-result.md
+docs/marketing-ops-ga4-create-result.json
+```
+
+The key event create endpoint is implemented through the GA4 Admin API `properties/{propertyId}/keyEvents` create method. If credentials lack the required edit scope or the property rejects the call, the command records a failure and stops.
 
 ## Interpreting Results
 
@@ -133,6 +172,7 @@ The current scaffold recognizes future-style selection flags such as `--platform
 - Dry-run proposed actions are not executed.
 - `wouldMutate: true` means the action would mutate a platform if later approved, not that it was executed.
 - Future execution previews describe potential API calls only; they are not API calls.
+- GA4 controlled create result artifacts describe what happened locally and must not contain secrets.
 
 ## GA4 Read-Only Behavior
 
@@ -142,8 +182,8 @@ It must not create or modify:
 
 - Properties.
 - Data streams.
-- Custom dimensions.
-- Key events or conversion events.
+
+Custom dimensions and key events may only be created by the dedicated GA4 controlled create command after every safety gate passes.
 
 ## GTM Read-Only Behavior
 
@@ -177,13 +217,13 @@ Before any future write phase, a human must approve:
 
 ## Google Ads and Meta
 
-Google Ads and Meta are intentionally skipped in Phase 2C-Prep. Do not add API calls for those platforms until a later approved task.
+Google Ads and Meta are intentionally skipped in Phase 2D. Do not add API calls for those platforms until a later approved task.
 
 ## Controlled Apply Safety
 
-Before any future create/write phase, a human must approve the exact action IDs from the JSON plan and the implementation must add explicit write support. Phase 2C-Prep intentionally lacks that write implementation.
+Before GA4 controlled create, a human must approve the exact action IDs from the JSON plan and the command invocation.
 
-GTM publish is not part of Phase 2C-Prep. A later task must separately review workspace changes, container versioning, and publishing approval.
+GTM publish is not part of Phase 2D. A later task must separately review workspace changes, container versioning, and publishing approval.
 
 Google Ads and Meta remain out of scope for controlled apply.
 
@@ -201,4 +241,9 @@ Google Ads and Meta remain out of scope for controlled apply.
 - Some live checks may be skipped if the OAuth token lacks the required read-only scope.
 - Dry-run planning is only a proposed action list; it is not an implementation or approval.
 - Controlled apply in Phase 2C-Prep is validation and preview only; it is not a write implementation.
+- GA4 controlled create is implemented but must not be run without explicit approval and the required env/flag gates.
 - Repo checks are conservative static checks and are not a substitute for GTM Preview, GA4 DebugView, Google Ads diagnostics, or Meta Events Manager verification.
+
+## Rollback Note
+
+GA4 custom dimensions and key events should not be casually deleted after creation. If a mistake occurs, document the issue and use the GA4 admin process to disable, archive, or remediate the configuration if supported.

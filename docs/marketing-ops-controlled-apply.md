@@ -1,10 +1,10 @@
-# CRBOX Marketing Ops Controlled Apply Prep
+# CRBOX Marketing Ops Controlled Apply
 
-Status: Phase 2C-Prep validation scaffold. No platform writes are enabled.
+Status: Phase 2D GA4-only controlled create is implemented behind explicit safety gates. GTM, Google Ads, and Meta writes remain disabled.
 
 ## Purpose
 
-This document describes the controlled apply framework that validates `docs/marketing-ops-dry-run-plan.json` and previews future GA4/GTM setup actions. It prepares the safety gates for a later approved create phase, but it does not create, update, delete, publish, archive, or mutate any GA4, GTM, Google Ads, or Meta object.
+This document describes the controlled apply framework that validates `docs/marketing-ops-dry-run-plan.json`, previews GA4/GTM setup actions, and can execute GA4-only approved create actions when every required safety gate is present. GTM, Google Ads, and Meta writes are still blocked.
 
 ## What Apply Commands Do Today
 
@@ -12,18 +12,20 @@ This document describes the controlled apply framework that validates `docs/mark
 npm run marketing:apply:validate
 npm run marketing:apply
 npm run marketing:apply:ga4
+npm run marketing:apply:ga4:create
 npm run marketing:apply:gtm
 ```
 
 - `marketing:apply:validate` validates the dry-run plan and writes the readiness report.
 - `marketing:apply` validates all proposed GA4/GTM actions, summarizes eligible actions, and refuses execution.
 - `marketing:apply:ga4` validates GA4 actions and prints future GA4 execution previews.
+- `marketing:apply:ga4:create` can execute GA4-only controlled create, but only with explicit env vars and flags.
 - `marketing:apply:gtm` validates GTM actions and prints future GTM execution previews.
 
-All apply commands preserve this boundary:
+Preview commands preserve this boundary:
 
 ```text
-Controlled create execution is not enabled in Phase 2C-Prep. No platform mutations were performed.
+Controlled create execution is disabled for this command. No platform mutations were performed.
 ```
 
 ## Required Validation Gates
@@ -53,7 +55,36 @@ GTM action types:
 - `create_data_layer_variable`
 - `create_custom_event_trigger`
 
-These action types are validated only. They are not executed in Phase 2C-Prep.
+GA4 action types may be executed only by `marketing:apply:ga4:create` when every safety gate passes. GTM action types are still validated only.
+
+## Phase 2D GA4 Controlled Create
+
+The GA4 create command is intentionally manual:
+
+```bash
+MARKETING_AGENT_MODE=controlled_create MARKETING_AGENT_ENABLE_WRITES=true npm run marketing:apply:ga4:create -- --platform ga4 --all --confirm-human-approval
+```
+
+Required gates:
+
+- `MARKETING_AGENT_MODE=controlled_create`
+- `MARKETING_AGENT_ENABLE_WRITES=true`
+- `--platform ga4`
+- `--confirm-human-approval`
+- `--all` or explicit `--action-id` values from `docs/marketing-ops-dry-run-plan.json`
+- Valid dry-run plan
+- Selected actions must be GA4 only
+- Selected actions must be `create_custom_dimension` or `mark_key_event`
+- No GTM, Google Ads, Meta, raw click ID, publish, version, tag, or customer-data action can be selected
+
+The executor re-checks GA4 state before each create call. Existing custom dimensions or key events are recorded as `skipped_existing`.
+
+Implemented GA4 create endpoints:
+
+- `POST https://analyticsadmin.googleapis.com/v1beta/properties/{propertyId}/customDimensions`
+- `POST https://analyticsadmin.googleapis.com/v1beta/properties/{propertyId}/keyEvents`
+
+The key event endpoint is implemented using the official GA4 Admin API v1beta keyEvents create method. If the API rejects a key event create call for permissions, scope, or property state, execution stops and records the failed action.
 
 ## Blocked Actions
 
@@ -97,13 +128,13 @@ Before any future create phase, a human must approve:
 - The final GTM variable and trigger payloads.
 - The decision to keep raw `gclid` and raw `fbclid` out of GTM.
 
-Human approval is required because every proposed action has `wouldMutate: true` even though Phase 2C-Prep does not execute it.
+Human approval is required because every proposed action has `wouldMutate: true`.
 
 ## Environment Safety
 
-`MARKETING_AGENT_MODE` must remain `read_only` or `dry_run` for this task.
+`MARKETING_AGENT_MODE` should remain `read_only` or `dry_run` unless a human explicitly approves GA4 controlled create execution.
 
-`MARKETING_AGENT_ENABLE_WRITES=false` is documented as a future feature flag placeholder. Phase 2C-Prep refuses execution even if this flag is changed.
+`MARKETING_AGENT_ENABLE_WRITES=false` is the safe default. Setting it to `true` is not sufficient by itself; the GA4 create command still requires the explicit CLI flags.
 
 Never commit `.env`. Never include secrets in reports, plans, logs, or docs.
 
@@ -113,4 +144,8 @@ Publishing changes a live GTM container version and has a broader blast radius t
 
 ## Mutation Statement
 
-No controlled apply mutations were performed. Phase 2C-Prep validates apply readiness only.
+No GTM, Google Ads, or Meta controlled apply mutations are supported. GA4 controlled create mutations occur only when the dedicated command passes every safety gate.
+
+## Rollback Note
+
+GA4 custom dimensions and key events should not be casually deleted after creation. If a mistake occurs, document the issue and use the GA4 admin process to disable, archive, or otherwise remediate the configuration if supported.
