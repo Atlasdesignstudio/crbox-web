@@ -101,6 +101,8 @@ async function runGtmCheck() {
   const missing = missingEnv(required);
   const containerId = envValue('GTM_CONTAINER_ID') || EXPECTED.gtmContainerId;
   const accountId = envValue('GTM_ACCOUNT_ID');
+  let selectedWorkspace = null;
+  let resolvedPublicContainerId = '';
   const checks = [
     makeCheck(
       'gtm-env-container-id',
@@ -140,6 +142,7 @@ async function runGtmCheck() {
           : `No listed container matched configured GTM_CONTAINER_ID. Containers visible: ${containers.length}.`
       ));
       if (container) {
+        resolvedPublicContainerId = container.publicId || '';
         checks.push(makeCheck(
           'gtm-container-public-id',
           `GTM container public ID matches ${EXPECTED.gtmContainerId}`,
@@ -158,6 +161,8 @@ async function runGtmCheck() {
           missingEnv: missing,
           missingDlvs: REQUIRED_DLVS.slice(),
           missingTriggers: REQUIRED_TRIGGERS.slice(),
+          accountId,
+          containerId,
           liveApiChecked: checks.some((check) => check.id === 'gtm-account-accessible' && check.status === 'pass'),
           futureChecks: FUTURE_CHECKS.gtm,
           notes: [
@@ -171,6 +176,11 @@ async function runGtmCheck() {
       const workspacesData = await googleApiGet(`${GTM_BASE}/${container.path}/workspaces`, accessToken);
       const workspaces = workspacesData.workspace || [];
       const workspace = chooseWorkspace(workspaces);
+      selectedWorkspace = workspace ? {
+        name: workspace.name || '',
+        workspaceId: workspace.workspaceId || '',
+        path: workspace.path || ''
+      } : null;
       checks.push(makeCheck(
         'gtm-workspaces-readable',
         'GTM workspaces are readable',
@@ -188,6 +198,10 @@ async function runGtmCheck() {
           missingEnv: missing,
           missingDlvs: REQUIRED_DLVS.slice(),
           missingTriggers: REQUIRED_TRIGGERS.slice(),
+          accountId,
+          containerId,
+          publicContainerId: resolvedPublicContainerId,
+          workspace: selectedWorkspace,
           liveApiChecked: checks.some((check) => check.id === 'gtm-account-accessible' && check.status === 'pass'),
           futureChecks: FUTURE_CHECKS.gtm,
           notes: [
@@ -291,6 +305,10 @@ async function runGtmCheck() {
     missingEnv: missing,
     missingDlvs,
     missingTriggers,
+    accountId,
+    containerId,
+    publicContainerId: resolvedPublicContainerId || EXPECTED.gtmContainerId,
+    workspace: selectedWorkspace,
     liveApiChecked: checks.some((check) => check.id === 'gtm-account-accessible' && check.status === 'pass'),
     futureChecks: FUTURE_CHECKS.gtm,
     notes: [

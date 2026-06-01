@@ -2,19 +2,20 @@
 
 ## Purpose
 
-Use this runbook to run read-only CRBOX paid media readiness checks across repository evidence, GA4 Admin API, and Google Tag Manager API.
+Use this runbook to run read-only CRBOX paid media readiness checks and generate dry-run setup plans for GA4 and Google Tag Manager.
 
 ## Preconditions
 
 - Work only on the approved task branch.
-- Keep `MARKETING_AGENT_MODE=read_only`.
+- Keep `MARKETING_AGENT_MODE=read_only` or `dry_run`.
 - Keep `.env` local and ignored by Git.
 - Never commit secrets.
 - Never print `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`, access tokens, or full credential values.
+- Do not run any create/update/delete/archive/publish endpoint without a separate approved task.
 
 ## Install
 
-The Phase 2A checker uses only built-in Node.js modules. No dependency install is required.
+The Phase 2B checker and planner use only built-in Node.js modules. No dependency install is required.
 
 ## Local `.env`
 
@@ -57,19 +58,40 @@ npm run marketing:check:ads
 npm run marketing:check:meta
 ```
 
+## Generate Dry-Run Plans
+
+```bash
+npm run marketing:plan
+npm run marketing:plan:ga4
+npm run marketing:plan:gtm
+```
+
+`marketing:plan` runs GA4 and GTM read-only checks, then writes the complete dry-run plan:
+
+```text
+docs/marketing-ops-dry-run-plan.md
+docs/marketing-ops-dry-run-plan.json
+```
+
+`marketing:plan:ga4` refreshes only the GA4 section of the plan.
+
+`marketing:plan:gtm` refreshes only the GTM section of the plan.
+
 ## Generate Report
 
 ```bash
 npm run marketing:report
 ```
 
+The readiness report references the latest dry-run plan summary if the plan JSON exists.
+
 ## Interpreting Results
 
 - `PASS` means the static or read-only API check found expected evidence.
 - `WARN` means the checker completed but found missing or inconsistent evidence.
 - `SKIPPED` means credentials are missing or an endpoint is unavailable/permission-limited.
-
-Missing credentials do not block repository checks.
+- Dry-run proposed actions are not executed.
+- `wouldMutate: true` means the action would mutate a platform if later approved, not that it was executed.
 
 ## GA4 Read-Only Behavior
 
@@ -95,20 +117,38 @@ It must not create or modify:
 - Versions.
 - Publications.
 
+## Reviewing the Dry-Run Plan
+
+Review both files:
+
+```text
+docs/marketing-ops-dry-run-plan.md
+docs/marketing-ops-dry-run-plan.json
+```
+
+Before any future write phase, a human must approve:
+
+- GA4 custom dimension display names, parameter names, scope, and descriptions.
+- GA4 key event/conversion names and optimization role.
+- GTM Data Layer Variable names, dataLayer keys, and default values.
+- GTM Custom Event trigger names and event names.
+- The explicit exclusion of raw `gclid` and raw `fbclid` variables.
+
 ## Google Ads and Meta
 
-Google Ads and Meta are intentionally skipped in Phase 2A. Do not add API calls for those platforms until a later approved task.
+Google Ads and Meta are intentionally skipped in Phase 2B. Do not add API calls for those platforms until a later approved task.
 
 ## Security Rules
 
 - Never hardcode secrets.
 - Never print secrets.
 - Mask values that look like tokens, secrets, passwords, keys, refresh tokens, or access tokens.
-- Do not create, update, publish, delete, or mutate GA4, GTM, Google Ads, or Meta objects.
+- Do not create, update, publish, delete, archive, or mutate GA4, GTM, Google Ads, or Meta objects.
 - Do not upload customer data.
 
 ## Expected Limitations
 
 - GA4 key events may be exposed as key events or conversion events depending on API version and property state.
 - Some live checks may be skipped if the OAuth token lacks the required read-only scope.
+- Dry-run planning is only a proposed action list; it is not an implementation or approval.
 - Repo checks are conservative static checks and are not a substitute for GTM Preview, GA4 DebugView, Google Ads diagnostics, or Meta Events Manager verification.

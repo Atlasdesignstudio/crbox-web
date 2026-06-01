@@ -10,6 +10,9 @@
     "marketing:check:gtm": "node scripts/marketing-ops/index.js gtm",
     "marketing:check:ads": "node scripts/marketing-ops/index.js ads",
     "marketing:check:meta": "node scripts/marketing-ops/index.js meta",
+    "marketing:plan": "node scripts/marketing-ops/index.js plan",
+    "marketing:plan:ga4": "node scripts/marketing-ops/index.js plan:ga4",
+    "marketing:plan:gtm": "node scripts/marketing-ops/index.js plan:gtm",
     "marketing:report": "node scripts/marketing-ops/index.js report"
   }
 }

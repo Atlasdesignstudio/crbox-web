@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Readiness Report
 
-Generated: 2026-05-31T00:55:28.030Z
+Generated: 2026-06-01T18:00:33.805Z
 
 Mode: **read_only**
 
@@ -81,6 +81,17 @@ Missing GTM triggers:
 
 Permission or scope issues:
 - None detected.
+
+## Dry-Run Plan Summary
+
+- Generated: 2026-06-01T18:00:20.165Z
+- Mode: dry_run
+- Proposed GA4 actions: 7
+- Proposed GTM actions: 11
+- Blocked actions: 6
+- Risk summary: {"low":15,"medium":2,"low/medium":1}
+- Mutation performed: false
+- Plan files: `docs/marketing-ops-dry-run-plan.md`, `docs/marketing-ops-dry-run-plan.json`
 
 ## Repository static checks
 
