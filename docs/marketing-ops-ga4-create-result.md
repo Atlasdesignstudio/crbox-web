@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops GA4 Create Result
 
-Generated: 2026-06-01T19:53:57.699Z
+Generated: 2026-06-01T20:55:30.462Z
 
 Mode: **read_only**
 

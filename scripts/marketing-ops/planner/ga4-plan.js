@@ -4,12 +4,12 @@ const { EXPECTED } = require('../config');
 
 const CUSTOM_DIMENSION_CONFIG = Object.freeze({
   gclid_present: {
-    displayName: 'Click ID — Google present',
+    displayName: 'Click ID Google present',
     description: 'Boolean flag indicating that a Google Ads click ID was present in the session. Raw gclid is not sent to GA4.',
     riskLevel: 'low'
   },
   fbclid_present: {
-    displayName: 'Click ID — Meta present',
+    displayName: 'Click ID Meta present',
     description: 'Boolean flag indicating that a Meta click ID was present in the session. Raw fbclid is not sent to GA4.',
     riskLevel: 'low'
   },

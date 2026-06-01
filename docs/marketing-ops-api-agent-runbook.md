@@ -41,6 +41,44 @@ The loader does not overwrite variables already set in the shell. This allows CI
 
 `MARKETING_AGENT_ENABLE_WRITES` must stay `false` or blank unless GA4 controlled create has been explicitly approved.
 
+## OAuth Re-Authorization for GA4 Controlled Create
+
+If GA4 controlled create fails with `ACCESS_TOKEN_SCOPE_INSUFFICIENT`, obtain a new Google OAuth refresh token for the same OAuth client already configured in local `.env`.
+
+Required scopes for the replacement refresh token:
+
+```text
+https://www.googleapis.com/auth/analytics.edit
+https://www.googleapis.com/auth/analytics.readonly
+https://www.googleapis.com/auth/tagmanager.readonly
+```
+
+Scope boundaries:
+
+- Keep GTM read-only with `tagmanager.readonly`.
+- Do not add a Tag Manager edit scope.
+- Do not add Google Ads scopes.
+- Do not add Meta scopes.
+
+Operator steps:
+
+1. Use the same `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` that are already present in local `.env`.
+2. Complete a Google OAuth consent flow for the exact scopes listed above.
+3. Copy only the new refresh token from the OAuth result.
+4. Replace only `GOOGLE_REFRESH_TOKEN` in local `.env`.
+5. Do not print the refresh token in terminal output, chat, reports, screenshots, or docs.
+6. Do not commit `.env`.
+
+After replacing the token, run only safe checks first:
+
+```bash
+npm run marketing:check:ga4
+npm run marketing:apply:validate
+npm run marketing:apply:ga4:create
+```
+
+The last command must be run without write-enabled environment variables during token verification, so it should refuse execution while confirming that the OAuth token can refresh and read GA4 state.
+
 ## Run All Checks
 
 ```bash
