@@ -197,6 +197,8 @@ async function runGa4Check() {
     missingEnv: missing,
     missingCustomDimensions,
     missingKeyEvents,
+    propertyId,
+    measurementId,
     liveApiChecked: checks.some((check) => check.id === 'ga4-property-accessible' && check.status === 'pass'),
     futureChecks: FUTURE_CHECKS.ga4,
     notes: [

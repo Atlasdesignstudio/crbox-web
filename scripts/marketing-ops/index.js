@@ -10,6 +10,8 @@ const { runGtmCheck } = require('./checks/gtm-check');
 const { runGoogleAdsCheck } = require('./checks/google-ads-check');
 const { runMetaCheck } = require('./checks/meta-check');
 const { writeMarkdownReport } = require('./report/markdown-report');
+const { buildDryRunPlan, mergeDryRunPlan } = require('./planner/dry-run-plan');
+const { readDryRunPlan, writeDryRunPlan } = require('./planner/plan-writer');
 
 const root = repoRoot();
 loadDotEnv(root);
@@ -34,6 +36,52 @@ async function runAll() {
   ];
 }
 
+function printPlanSummary(plan, paths) {
+  console.log(`Dry-run plan: ${plan.mode}`);
+  console.log(`- Proposed GA4 actions: ${plan.summary.totalProposedGa4Actions}`);
+  console.log(`- Proposed GTM actions: ${plan.summary.totalProposedGtmActions}`);
+  console.log(`- Blocked actions: ${plan.summary.totalBlockedActions}`);
+  console.log(`- Mutation performed: ${plan.mutationPerformed}`);
+  if (paths) {
+    console.log(`- Markdown: ${paths.markdownPath}`);
+    console.log(`- JSON: ${paths.jsonPath}`);
+  }
+}
+
+async function runPlan(scope) {
+  let ga4Result = null;
+  let gtmResult = null;
+  let reportResults = null;
+
+  if (scope === 'all') {
+    reportResults = [
+      runRepoCheck(root),
+      await runGa4Check(),
+      await runGtmCheck(),
+      runGoogleAdsCheck(),
+      runMetaCheck()
+    ];
+    ga4Result = reportResults.find((result) => result.name === 'GA4 checks');
+    gtmResult = reportResults.find((result) => result.name === 'GTM checks');
+  } else if (scope === 'ga4') {
+    ga4Result = await runGa4Check();
+  } else if (scope === 'gtm') {
+    gtmResult = await runGtmCheck();
+  }
+
+  const partialPlan = buildDryRunPlan({ ga4Result, gtmResult, scope });
+  const existingPlan = readDryRunPlan(root);
+  const plan = mergeDryRunPlan(existingPlan, partialPlan, scope);
+  const paths = writeDryRunPlan(root, plan);
+
+  if (reportResults) {
+    writeMarkdownReport(root, reportResults, { plan });
+  }
+
+  printPlanSummary(plan, paths);
+  console.log('Mutation statement: No GA4 or GTM mutations were performed. This is a dry-run plan only.');
+}
+
 async function main() {
   const command = process.argv[2] || 'check';
   let results;
@@ -48,6 +96,15 @@ async function main() {
       results = await runAll();
       reportPath = writeMarkdownReport(root, results);
       break;
+    case 'plan':
+      await runPlan('all');
+      return;
+    case 'plan:ga4':
+      await runPlan('ga4');
+      return;
+    case 'plan:gtm':
+      await runPlan('gtm');
+      return;
     case 'repo':
       results = [runRepoCheck(root)];
       break;
@@ -66,7 +123,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|ads|meta]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|ads|meta|plan|plan:ga4|plan:gtm]');
       process.exitCode = 1;
       return;
   }

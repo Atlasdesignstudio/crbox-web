@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { EXPECTED, REQUIRED_ENV } = require('../config');
 const { missingEnv, summarizeStatus, unique } = require('../utils');
+const { readDryRunPlan } = require('../planner/plan-writer');
 
 function sectionForResult(result) {
   const lines = [
@@ -65,6 +66,7 @@ function sectionForResult(result) {
 
 function buildMarkdownReport(results, options = {}) {
   const timestamp = options.timestamp || new Date().toISOString();
+  const plan = options.plan || null;
   const allChecks = results.flatMap((result) => result.checks || []);
   const summary = summarizeStatus(allChecks);
   const requiredEnvNames = unique(Object.values(REQUIRED_ENV).flat());
@@ -136,6 +138,19 @@ function buildMarkdownReport(results, options = {}) {
     'Permission or scope issues:',
     permissionIssues.length ? permissionIssues.map((item) => `- ${item}`).join('\n') : '- None detected.',
     '',
+    '## Dry-Run Plan Summary',
+    '',
+    plan
+      ? `- Generated: ${plan.generatedAt}
+- Mode: ${plan.mode}
+- Proposed GA4 actions: ${plan.summary ? plan.summary.totalProposedGa4Actions : 0}
+- Proposed GTM actions: ${plan.summary ? plan.summary.totalProposedGtmActions : 0}
+- Blocked actions: ${plan.summary ? plan.summary.totalBlockedActions : 0}
+- Risk summary: ${plan.summary ? JSON.stringify(plan.summary.riskSummary) : '{}'}
+- Mutation performed: ${plan.mutationPerformed}
+- Plan files: \`docs/marketing-ops-dry-run-plan.md\`, \`docs/marketing-ops-dry-run-plan.json\``
+      : '- No dry-run plan file found yet.',
+    '',
     ...results.map(sectionForResult),
     '## Recommended Next Actions',
     '',
@@ -151,9 +166,12 @@ function buildMarkdownReport(results, options = {}) {
   return lines.join('\n') + '\n';
 }
 
-function writeMarkdownReport(root, results) {
+function writeMarkdownReport(root, results, options = {}) {
   const outputPath = path.join(root, 'docs', 'marketing-ops-readiness-report.md');
-  const markdown = buildMarkdownReport(results);
+  const markdown = buildMarkdownReport(results, {
+    ...options,
+    plan: options.plan || readDryRunPlan(root)
+  });
   fs.writeFileSync(outputPath, markdown, 'utf8');
   return outputPath;
 }
