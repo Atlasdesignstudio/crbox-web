@@ -12,6 +12,7 @@ const { runMetaCheck } = require('./checks/meta-check');
 const { writeMarkdownReport } = require('./report/markdown-report');
 const { buildDryRunPlan, mergeDryRunPlan } = require('./planner/dry-run-plan');
 const { readDryRunPlan, writeDryRunPlan } = require('./planner/plan-writer');
+const { runApply } = require('./apply/apply-runner');
 
 const root = repoRoot();
 loadDotEnv(root);
@@ -82,6 +83,22 @@ async function runPlan(scope) {
   console.log('Mutation statement: No GA4 or GTM mutations were performed. This is a dry-run plan only.');
 }
 
+async function runApplyCommand(scope, validateOnly, argv) {
+  const applyResult = runApply(root, { scope, validateOnly, argv });
+  const results = await runAll();
+  const reportPath = writeMarkdownReport(root, results, { apply: applyResult.summary });
+
+  for (const line of applyResult.outputLines) {
+    console.log(maskSecretsInText(line));
+  }
+  console.log(`Report written: ${reportPath}`);
+  console.log(applyResult.summary.mutationStatement);
+
+  if (applyResult.exitCode) {
+    process.exitCode = applyResult.exitCode;
+  }
+}
+
 async function main() {
   const command = process.argv[2] || 'check';
   let results;
@@ -105,6 +122,18 @@ async function main() {
     case 'plan:gtm':
       await runPlan('gtm');
       return;
+    case 'apply:validate':
+      await runApplyCommand('all', true, process.argv.slice(3));
+      return;
+    case 'apply':
+      await runApplyCommand('all', false, process.argv.slice(3));
+      return;
+    case 'apply:ga4':
+      await runApplyCommand('ga4', false, process.argv.slice(3));
+      return;
+    case 'apply:gtm':
+      await runApplyCommand('gtm', false, process.argv.slice(3));
+      return;
     case 'repo':
       results = [runRepoCheck(root)];
       break;
@@ -123,7 +152,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|ads|meta|plan|plan:ga4|plan:gtm]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:gtm|apply:validate]');
       process.exitCode = 1;
       return;
   }

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Use this runbook to run read-only CRBOX paid media readiness checks and generate dry-run setup plans for GA4 and Google Tag Manager.
+Use this runbook to run read-only CRBOX paid media readiness checks, generate dry-run setup plans for GA4 and Google Tag Manager, and validate controlled apply readiness without executing writes.
 
 ## Preconditions
 
@@ -12,10 +12,11 @@ Use this runbook to run read-only CRBOX paid media readiness checks and generate
 - Never commit secrets.
 - Never print `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`, access tokens, or full credential values.
 - Do not run any create/update/delete/archive/publish endpoint without a separate approved task.
+- Treat Phase 2C-Prep apply commands as validation-only. They must refuse execution.
 
 ## Install
 
-The Phase 2B checker and planner use only built-in Node.js modules. No dependency install is required.
+The Phase 2C-Prep checker, planner, and apply scaffold use only built-in Node.js modules. No dependency install is required.
 
 ## Local `.env`
 
@@ -32,9 +33,12 @@ GA4_MEASUREMENT_ID
 GTM_ACCOUNT_ID
 GTM_CONTAINER_ID
 MARKETING_AGENT_MODE
+MARKETING_AGENT_ENABLE_WRITES
 ```
 
 The loader does not overwrite variables already set in the shell. This allows CI or local shell exports to take precedence over `.env`.
+
+`MARKETING_AGENT_ENABLE_WRITES` must stay `false` or blank. Phase 2C-Prep still refuses execution if someone sets it to `true`.
 
 ## Run All Checks
 
@@ -85,6 +89,42 @@ npm run marketing:report
 
 The readiness report references the latest dry-run plan summary if the plan JSON exists.
 
+## Validate Controlled Apply Readiness
+
+```bash
+npm run marketing:apply:validate
+```
+
+This command loads `.env`, validates `docs/marketing-ops-dry-run-plan.json`, writes the readiness report, and performs no platform writes.
+
+The validation checks:
+
+- Plan mode is `dry_run`.
+- `mutationPerformed` is `false`.
+- Human approval is required.
+- Every proposed action is GA4 or GTM only.
+- Every proposed action is in the allowlist.
+- Raw `gclid` and raw `fbclid` GTM variables are not proposed.
+- `calculator_result` and `whatsapp_click` are not proposed as key events/conversions.
+- GTM publish, version, tag, customer-data, Google Ads, and Meta actions are not proposed.
+- No credential-like fields or values are present in the plan JSON.
+
+## Preview Future Apply Execution
+
+```bash
+npm run marketing:apply
+npm run marketing:apply:ga4
+npm run marketing:apply:gtm
+```
+
+These commands validate the plan, print eligible action counts, generate future execution previews, and refuse execution with:
+
+```text
+Controlled create execution is not enabled in Phase 2C-Prep. No platform mutations were performed.
+```
+
+The current scaffold recognizes future-style selection flags such as `--platform`, `--action-id`, `--all`, and `--confirm-human-approval`, but Phase 2C-Prep does not execute anything with them.
+
 ## Interpreting Results
 
 - `PASS` means the static or read-only API check found expected evidence.
@@ -92,6 +132,7 @@ The readiness report references the latest dry-run plan summary if the plan JSON
 - `SKIPPED` means credentials are missing or an endpoint is unavailable/permission-limited.
 - Dry-run proposed actions are not executed.
 - `wouldMutate: true` means the action would mutate a platform if later approved, not that it was executed.
+- Future execution previews describe potential API calls only; they are not API calls.
 
 ## GA4 Read-Only Behavior
 
@@ -136,7 +177,15 @@ Before any future write phase, a human must approve:
 
 ## Google Ads and Meta
 
-Google Ads and Meta are intentionally skipped in Phase 2B. Do not add API calls for those platforms until a later approved task.
+Google Ads and Meta are intentionally skipped in Phase 2C-Prep. Do not add API calls for those platforms until a later approved task.
+
+## Controlled Apply Safety
+
+Before any future create/write phase, a human must approve the exact action IDs from the JSON plan and the implementation must add explicit write support. Phase 2C-Prep intentionally lacks that write implementation.
+
+GTM publish is not part of Phase 2C-Prep. A later task must separately review workspace changes, container versioning, and publishing approval.
+
+Google Ads and Meta remain out of scope for controlled apply.
 
 ## Security Rules
 
@@ -151,4 +200,5 @@ Google Ads and Meta are intentionally skipped in Phase 2B. Do not add API calls 
 - GA4 key events may be exposed as key events or conversion events depending on API version and property state.
 - Some live checks may be skipped if the OAuth token lacks the required read-only scope.
 - Dry-run planning is only a proposed action list; it is not an implementation or approval.
+- Controlled apply in Phase 2C-Prep is validation and preview only; it is not a write implementation.
 - Repo checks are conservative static checks and are not a substitute for GTM Preview, GA4 DebugView, Google Ads diagnostics, or Meta Events Manager verification.

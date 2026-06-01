@@ -5,6 +5,7 @@ const path = require('path');
 const { EXPECTED, REQUIRED_ENV } = require('../config');
 const { missingEnv, summarizeStatus, unique } = require('../utils');
 const { readDryRunPlan } = require('../planner/plan-writer');
+const { validateDryRunPlan } = require('../apply/apply-validator');
 
 function sectionForResult(result) {
   const lines = [
@@ -64,9 +65,28 @@ function sectionForResult(result) {
   return lines.join('\n');
 }
 
+function warningSummary(check) {
+  const label = check.label || '';
+  const details = check.details || '';
+
+  if (/^Missing from /i.test(details) && /\bexists$/i.test(label)) {
+    return label.replace(/\bexists$/i, 'missing/not found');
+  }
+
+  if (/^No .* found/i.test(details)) {
+    if (/appear present or planned$/i.test(label)) {
+      return label.replace(/appear present or planned$/i, 'not found or not planned');
+    }
+    return `${label} not found`;
+  }
+
+  return label;
+}
+
 function buildMarkdownReport(results, options = {}) {
   const timestamp = options.timestamp || new Date().toISOString();
   const plan = options.plan || null;
+  const apply = options.apply || null;
   const allChecks = results.flatMap((result) => result.checks || []);
   const summary = summarizeStatus(allChecks);
   const requiredEnvNames = unique(Object.values(REQUIRED_ENV).flat());
@@ -76,7 +96,7 @@ function buildMarkdownReport(results, options = {}) {
   ]);
   const warnings = allChecks
     .filter((check) => check.status === 'warn')
-    .map((check) => check.label);
+    .map(warningSummary);
   const missingCustomDimensions = unique(results.flatMap((result) => result.missingCustomDimensions || []));
   const missingKeyEvents = unique(results.flatMap((result) => result.missingKeyEvents || []));
   const missingDlvs = unique(results.flatMap((result) => result.missingDlvs || []));
@@ -151,6 +171,20 @@ function buildMarkdownReport(results, options = {}) {
 - Plan files: \`docs/marketing-ops-dry-run-plan.md\`, \`docs/marketing-ops-dry-run-plan.json\``
       : '- No dry-run plan file found yet.',
     '',
+    '## Controlled Apply Readiness',
+    '',
+    apply
+      ? `- Dry-run plan valid: ${apply.dryRunPlanValid}
+- Controlled apply execution enabled: ${apply.controlledApplyExecutionEnabled}
+- Eligible GA4 actions: ${apply.eligibleGa4Actions}
+- Eligible GTM actions: ${apply.eligibleGtmActions}
+- Blocked actions: ${apply.blockedActions}
+- Future execution previews: ${apply.futureExecutionPreviews ? apply.futureExecutionPreviews.length : 0}
+- Validation errors: ${apply.validationErrors ? apply.validationErrors.length : 0}`
+      : '- Not evaluated in this run.',
+    '',
+    'No controlled apply mutations were performed. Phase 2C-Prep validates apply readiness only.',
+    '',
     ...results.map(sectionForResult),
     '## Recommended Next Actions',
     '',
@@ -168,9 +202,22 @@ function buildMarkdownReport(results, options = {}) {
 
 function writeMarkdownReport(root, results, options = {}) {
   const outputPath = path.join(root, 'docs', 'marketing-ops-readiness-report.md');
+  const apply = options.apply || (() => {
+    const validation = validateDryRunPlan(root);
+    return {
+      dryRunPlanValid: validation.ok,
+      controlledApplyExecutionEnabled: false,
+      eligibleGa4Actions: validation.ok ? validation.ga4Actions.length : 0,
+      eligibleGtmActions: validation.ok ? validation.gtmActions.length : 0,
+      blockedActions: validation.blockedActions.length,
+      futureExecutionPreviews: [],
+      validationErrors: validation.errors || []
+    };
+  })();
   const markdown = buildMarkdownReport(results, {
     ...options,
-    plan: options.plan || readDryRunPlan(root)
+    plan: options.plan || readDryRunPlan(root),
+    apply
   });
   fs.writeFileSync(outputPath, markdown, 'utf8');
   return outputPath;
