@@ -103,6 +103,18 @@ async function googleApiGet(url, accessToken) {
   return data;
 }
 
+async function googleApiPost(url, accessToken, payload) {
+  const { data } = await requestJson(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload || {})
+  });
+  return data;
+}
+
 function readableGoogleError(error) {
   if (!error) return 'Unknown Google API error.';
   const status = error.status ? `HTTP ${error.status}` : 'Google API error';
@@ -118,5 +130,6 @@ module.exports = {
   GoogleApiError,
   getGoogleAccessToken,
   googleApiGet,
+  googleApiPost,
   readableGoogleError
 };

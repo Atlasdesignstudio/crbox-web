@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops API Agent
 
-Status: Phase 2C-Prep read-only checker, dry-run setup planner, and controlled apply scaffold.
+Status: Phase 2D read-only checker, dry-run setup planner, controlled apply scaffold, and GA4-only controlled create executor.
 
 This Node.js CLI inspects CRBOX paid media readiness from two sources:
 
@@ -9,22 +9,23 @@ This Node.js CLI inspects CRBOX paid media readiness from two sources:
 
 It can also generate a dry-run setup plan for missing GA4 and GTM configuration. The dry-run planner produces proposed actions only; it never creates, updates, deletes, archives, or publishes platform objects.
 
-Phase 2C-Prep adds controlled apply validation and future execution previews. Apply commands validate the dry-run plan and show what would be eligible in a later approved create phase, but execution is disabled and no write endpoints are called.
+Phase 2C-Prep added controlled apply validation and future execution previews. Phase 2D adds GA4-only controlled create capability behind explicit env and CLI gates.
 
-Google Ads and Meta remain skipped placeholders in Phase 2C-Prep.
+Google Ads and Meta remain skipped placeholders in Phase 2D. GTM writes remain disabled.
 
 ## Safety Boundary
 
 - Mode is `read_only` for checks and `dry_run` for planning.
-- No GA4, GTM, Google Ads, or Meta write endpoints are called.
+- No write endpoints are called by default.
+- GA4 write endpoints may be called only by `marketing:apply:ga4:create` when every Phase 2D safety gate is satisfied.
 - No GTM workspaces, variables, triggers, tags, versions, or publications are created.
-- No GA4 custom dimensions, properties, streams, or key events are created or changed.
+- No GA4 properties or streams are created or changed.
 - No Google Ads conversions, campaigns, budgets, bidding settings, audiences, or assets are created or changed.
 - No Meta pixels, events, campaigns, ad sets, ads, audiences, domains, or CAPI integrations are created.
 - No customer data is uploaded.
 - `.env` is local only, ignored by Git, and never written into reports or plans.
 - Human approval is mandatory before any future write/create phase.
-- Controlled create execution is not implemented in this phase, even if `MARKETING_AGENT_MODE=controlled_create` or `MARKETING_AGENT_ENABLE_WRITES=true` is set locally.
+- GTM, Google Ads, and Meta controlled create execution is not implemented.
 
 ## CLI Structure
 
@@ -51,6 +52,7 @@ scripts/marketing-ops/
     apply-validator.js
     apply-policy.js
     ga4-apply.js
+    ga4-create-result.js
     gtm-apply.js
     apply-report.js
   report/
@@ -86,9 +88,9 @@ MARKETING_AGENT_MODE
 ```
 
 `GA4_MEASUREMENT_ID` is expected to be `G-B5BPHFRR18`.
-`MARKETING_AGENT_MODE` should remain `read_only` or `dry_run`.
+`MARKETING_AGENT_MODE` should remain `read_only` or `dry_run` unless a human explicitly approves GA4 controlled create execution.
 
-`MARKETING_AGENT_ENABLE_WRITES` is documented as a future safety flag and should remain `false`. Phase 2C-Prep refuses execution even if the flag is changed.
+`MARKETING_AGENT_ENABLE_WRITES` should remain `false` unless a human explicitly approves GA4 controlled create execution.
 
 ## Commands
 
@@ -105,6 +107,7 @@ npm run marketing:plan:gtm
 npm run marketing:apply:validate
 npm run marketing:apply
 npm run marketing:apply:ga4
+npm run marketing:apply:ga4:create
 npm run marketing:apply:gtm
 npm run marketing:report
 ```
@@ -164,7 +167,40 @@ The validator requires:
 - No raw `gclid` or raw `fbclid` GTM Data Layer Variables.
 - No Google Ads, Meta, GTM publish/version/tag, or customer-data actions.
 
-Future execution previews map proposed actions to the write endpoints that a later approved phase would need, but they do not call those endpoints.
+Future execution previews map proposed actions to write endpoints, but preview commands do not call those endpoints.
+
+## Phase 2D GA4 Controlled Create
+
+The GA4 controlled create command is:
+
+```bash
+MARKETING_AGENT_MODE=controlled_create MARKETING_AGENT_ENABLE_WRITES=true npm run marketing:apply:ga4:create -- --platform ga4 --all --confirm-human-approval
+```
+
+It can create only the approved GA4 actions from `docs/marketing-ops-dry-run-plan.json`:
+
+- Event-scoped custom dimensions for `gclid_present`, `fbclid_present`, `attribution_touch`, `utm_content`, and `utm_term`.
+- Key events for `signup_success` and `quote_request_submit_success`.
+
+The command refuses execution unless all required gates pass:
+
+- `MARKETING_AGENT_MODE=controlled_create`
+- `MARKETING_AGENT_ENABLE_WRITES=true`
+- `--platform ga4`
+- `--confirm-human-approval`
+- `--all` or explicit `--action-id` values
+- Valid dry-run plan
+- GA4-only selected actions
+- Allowlisted action types only
+
+Before each create call, the executor lists current GA4 state and skips existing objects with `skipped_existing`. Execution stops on the first API error and writes a local result artifact:
+
+```text
+docs/marketing-ops-ga4-create-result.md
+docs/marketing-ops-ga4-create-result.json
+```
+
+GTM writes, GTM publish, Google Ads, Meta, raw click IDs, customer-data uploads, and `calculator_result`/`whatsapp_click` primary conversion setup remain blocked.
 
 ## Repository Checks
 
@@ -213,5 +249,6 @@ The readiness report includes:
 - Missing GA4/GTM items.
 - Dry-run plan summary when plan files exist.
 - Controlled apply readiness summary when the dry-run plan exists.
+- Phase 2D GA4 controlled-create capability and last result status.
 - Warnings and permission/scope issues.
 - Explicit no-mutation statement.

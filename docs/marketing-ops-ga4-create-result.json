@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-06-01T19:53:57.699Z",
+  "mode": "read_only",
+  "mutationPerformed": false,
+  "platform": "ga4",
+  "status": "not_executed",
+  "selectedActionCount": 7,
+  "createdActions": [],
+  "skippedExistingActions": [],
+  "failedActions": [],
+  "unsupportedActions": [],
+  "finalVerificationStatus": "not_run",
+  "disabledReason": "MARKETING_AGENT_MODE must be controlled_create. MARKETING_AGENT_ENABLE_WRITES must be true. CLI flag --platform ga4 is required. CLI flag --confirm-human-approval is required. CLI flag --all or at least one --action-id is required.",
+  "mutationStatement": "No GA4 mutations were performed. GA4 controlled create was not executed."
+}
