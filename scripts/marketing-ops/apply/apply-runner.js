@@ -67,7 +67,8 @@ async function runApply(root, options = {}) {
         || preview.variableName
         || preview.triggerName
         || preview.action;
-      lines.push(`- ${preview.actionId}: ${subject} would call ${preview.wouldCall}; executed=false`);
+      const displayName = preview.displayName ? ` displayName="${preview.displayName}";` : '';
+      lines.push(`- ${preview.actionId}: ${subject};${displayName} would call ${preview.wouldCall}; executed=false`);
     }
   }
 

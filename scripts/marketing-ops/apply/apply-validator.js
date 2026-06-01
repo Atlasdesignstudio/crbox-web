@@ -21,6 +21,7 @@ const BLOCKED_ACTION_TYPES = Object.freeze(new Set([
 
 const SUSPICIOUS_KEY_PATTERN = /(secret|token|password|credential|private_key|refresh|access_token|client_secret)/i;
 const SUSPICIOUS_VALUE_PATTERN = /(Bearer\s+[A-Za-z0-9._~+/-]+=*|ya29\.|AIza[0-9A-Za-z_-]+|gh[opsu]_[0-9A-Za-z_]+|xox[baprs]-[0-9A-Za-z-]+)/;
+const GA4_DISPLAY_NAME_PATTERN = /^[A-Za-z0-9_ ]+$/;
 
 function actionSubject(action) {
   return action.parameterName
@@ -107,6 +108,14 @@ function validateProposedAction(action, index) {
     errors.push(`${id}: ${action.eventName} must not be marked as a key event/conversion in this phase.`);
   }
 
+  if (
+    action.platform === 'ga4'
+    && action.action === 'create_custom_dimension'
+    && !GA4_DISPLAY_NAME_PATTERN.test(String(action.displayName || ''))
+  ) {
+    errors.push(`${id}: invalid GA4 custom dimension displayName "${action.displayName || ''}". Must match ${GA4_DISPLAY_NAME_PATTERN}.`);
+  }
+
   if (/publish|version|tag|customer_data/i.test(String(action.action || ''))) {
     errors.push(`${id}: action attempts an out-of-scope publish, version, tag, or customer-data operation.`);
   }
@@ -184,6 +193,7 @@ function validateDryRunPlan(root) {
 module.exports = {
   ALLOWED_ACTIONS,
   BLOCKED_ACTION_TYPES,
+  GA4_DISPLAY_NAME_PATTERN,
   actionId,
   actionSubject,
   validateDryRunPlan
