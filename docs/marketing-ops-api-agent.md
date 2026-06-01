@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops API Agent
 
-Status: Phase 2B read-only checker plus dry-run setup planner.
+Status: Phase 2C-Prep read-only checker, dry-run setup planner, and controlled apply scaffold.
 
 This Node.js CLI inspects CRBOX paid media readiness from two sources:
 
@@ -9,7 +9,9 @@ This Node.js CLI inspects CRBOX paid media readiness from two sources:
 
 It can also generate a dry-run setup plan for missing GA4 and GTM configuration. The dry-run planner produces proposed actions only; it never creates, updates, deletes, archives, or publishes platform objects.
 
-Google Ads and Meta remain skipped placeholders in Phase 2B.
+Phase 2C-Prep adds controlled apply validation and future execution previews. Apply commands validate the dry-run plan and show what would be eligible in a later approved create phase, but execution is disabled and no write endpoints are called.
+
+Google Ads and Meta remain skipped placeholders in Phase 2C-Prep.
 
 ## Safety Boundary
 
@@ -22,6 +24,7 @@ Google Ads and Meta remain skipped placeholders in Phase 2B.
 - No customer data is uploaded.
 - `.env` is local only, ignored by Git, and never written into reports or plans.
 - Human approval is mandatory before any future write/create phase.
+- Controlled create execution is not implemented in this phase, even if `MARKETING_AGENT_MODE=controlled_create` or `MARKETING_AGENT_ENABLE_WRITES=true` is set locally.
 
 ## CLI Structure
 
@@ -43,6 +46,13 @@ scripts/marketing-ops/
     ga4-plan.js
     gtm-plan.js
     plan-writer.js
+  apply/
+    apply-runner.js
+    apply-validator.js
+    apply-policy.js
+    ga4-apply.js
+    gtm-apply.js
+    apply-report.js
   report/
     markdown-report.js
 ```
@@ -78,6 +88,8 @@ MARKETING_AGENT_MODE
 `GA4_MEASUREMENT_ID` is expected to be `G-B5BPHFRR18`.
 `MARKETING_AGENT_MODE` should remain `read_only` or `dry_run`.
 
+`MARKETING_AGENT_ENABLE_WRITES` is documented as a future safety flag and should remain `false`. Phase 2C-Prep refuses execution even if the flag is changed.
+
 ## Commands
 
 ```bash
@@ -90,6 +102,10 @@ npm run marketing:check:meta
 npm run marketing:plan
 npm run marketing:plan:ga4
 npm run marketing:plan:gtm
+npm run marketing:apply:validate
+npm run marketing:apply
+npm run marketing:apply:ga4
+npm run marketing:apply:gtm
 npm run marketing:report
 ```
 
@@ -126,6 +142,29 @@ The planner explicitly does not propose:
 - Google Ads conversions/imports.
 - Meta Pixel/event tags.
 - GTM versions or publication.
+
+## Controlled Apply Prep
+
+Controlled apply commands are validation-only in Phase 2C-Prep:
+
+- `marketing:apply:validate` validates `docs/marketing-ops-dry-run-plan.json` and updates the readiness report.
+- `marketing:apply` validates all GA4/GTM proposed actions, summarizes eligible actions, and refuses execution.
+- `marketing:apply:ga4` validates GA4 proposed actions and prints future GA4 execution previews.
+- `marketing:apply:gtm` validates GTM proposed actions and prints future GTM execution previews.
+
+The validator requires:
+
+- `mode: dry_run`.
+- `mutationPerformed: false`.
+- `requiresHumanApproval: true`.
+- Proposed actions only for `ga4` or `gtm`.
+- Allowed GA4 actions: `create_custom_dimension`, `mark_key_event`.
+- Allowed GTM actions: `create_data_layer_variable`, `create_custom_event_trigger`.
+- `executed: false`, `wouldMutate: true`, and `humanApprovalRequired: true` on every proposed action.
+- No raw `gclid` or raw `fbclid` GTM Data Layer Variables.
+- No Google Ads, Meta, GTM publish/version/tag, or customer-data actions.
+
+Future execution previews map proposed actions to the write endpoints that a later approved phase would need, but they do not call those endpoints.
 
 ## Repository Checks
 
@@ -173,5 +212,6 @@ The readiness report includes:
 - Meta skipped status.
 - Missing GA4/GTM items.
 - Dry-run plan summary when plan files exist.
+- Controlled apply readiness summary when the dry-run plan exists.
 - Warnings and permission/scope issues.
 - Explicit no-mutation statement.

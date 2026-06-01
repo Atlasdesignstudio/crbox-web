@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Readiness Report
 
-Generated: 2026-06-01T18:00:33.805Z
+Generated: 2026-06-01T19:24:04.254Z
 
 Mode: **read_only**
 
@@ -8,9 +8,9 @@ Mode: **read_only**
 
 ## Summary
 
-- Passed checks: 45
-- Warnings: 19
-- Skipped checks: 2
+- Passed checks: 36
+- Warnings: 7
+- Skipped checks: 3
 - Missing environment variables: 13
 
 ## Missing Environment Variables
@@ -31,25 +31,13 @@ Mode: **read_only**
 
 ## Warnings
 
-- GA4 event-scoped custom dimension gclid_present exists
-- GA4 event-scoped custom dimension fbclid_present exists
-- GA4 event-scoped custom dimension attribution_touch exists
-- GA4 event-scoped custom dimension utm_content exists
-- GA4 event-scoped custom dimension utm_term exists
-- GA4 key event/conversion signup_success exists
-- GA4 key event/conversion quote_request_submit_success exists
-- GTM Data Layer Variable for utm_source exists
-- GTM Data Layer Variable for utm_medium exists
-- GTM Data Layer Variable for utm_campaign exists
-- GTM Data Layer Variable for utm_content exists
-- GTM Data Layer Variable for utm_term exists
-- GTM Data Layer Variable for gclid_present exists
-- GTM Data Layer Variable for fbclid_present exists
-- GTM Data Layer Variable for attribution_touch exists
-- GTM Custom Event trigger for quote_request_submit_success exists
-- GTM Custom Event trigger for contact_form_submit_success exists
-- GTM Custom Event trigger for quote_request_start exists
-- GTM Meta-related tags appear present or planned
+- GA4 event-scoped custom dimension gclid_present missing/not found
+- GA4 event-scoped custom dimension fbclid_present missing/not found
+- GA4 event-scoped custom dimension attribution_touch missing/not found
+- GA4 event-scoped custom dimension utm_content missing/not found
+- GA4 event-scoped custom dimension utm_term missing/not found
+- GA4 key event/conversion signup_success missing/not found
+- GA4 key event/conversion quote_request_submit_success missing/not found
 
 ## Live Platform Gaps
 
@@ -65,26 +53,17 @@ Missing GA4 key events/conversions:
 - `quote_request_submit_success`
 
 Missing GTM Data Layer Variables:
-- `utm_source`
-- `utm_medium`
-- `utm_campaign`
-- `utm_content`
-- `utm_term`
-- `gclid_present`
-- `fbclid_present`
-- `attribution_touch`
+- Not evaluated; GTM live API check did not complete.
 
 Missing GTM triggers:
-- `quote_request_submit_success`
-- `contact_form_submit_success`
-- `quote_request_start`
+- Not evaluated; GTM live API check did not complete.
 
 Permission or scope issues:
 - None detected.
 
 ## Dry-Run Plan Summary
 
-- Generated: 2026-06-01T18:00:20.165Z
+- Generated: 2026-06-01T19:23:17.728Z
 - Mode: dry_run
 - Proposed GA4 actions: 7
 - Proposed GTM actions: 11
@@ -92,6 +71,18 @@ Permission or scope issues:
 - Risk summary: {"low":15,"medium":2,"low/medium":1}
 - Mutation performed: false
 - Plan files: `docs/marketing-ops-dry-run-plan.md`, `docs/marketing-ops-dry-run-plan.json`
+
+## Controlled Apply Readiness
+
+- Dry-run plan valid: true
+- Controlled apply execution enabled: false
+- Eligible GA4 actions: 7
+- Eligible GTM actions: 11
+- Blocked actions: 6
+- Future execution previews: 0
+- Validation errors: 0
+
+No controlled apply mutations were performed. Phase 2C-Prep validates apply readiness only.
 
 ## Repository static checks
 
@@ -200,27 +191,7 @@ Notes:
 | Check | Status | Details |
 |---|---:|---|
 | GTM container ID is configured | PASS | Configured as numeric GTM API containerId; public ID will be verified after read-only container lookup. |
-| GTM account is accessible | PASS | Read-only get succeeded for accounts/6351590751. |
-| GTM container is accessible | PASS | Found container by read-only list call using configured ID/public ID. |
-| GTM container public ID matches GTM-5WD8N53F | PASS | Read-only container lookup confirmed public ID GTM-5WD8N53F. |
-| GTM workspaces are readable | PASS | Listed 1 workspace(s); using "Default Workspace" for variable/trigger/tag checks. |
-| GTM Data Layer Variable for utm_source exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for utm_medium exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for utm_campaign exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for utm_content exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for utm_term exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for gclid_present exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for fbclid_present exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for attribution_touch exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Custom Event trigger for signup_success exists | PASS | Found by GTM API read-only triggers list. |
-| GTM Custom Event trigger for quote_request_submit_success exists | WARN | Missing from GTM API read-only triggers list. |
-| GTM Custom Event trigger for contact_form_submit_success exists | WARN | Missing from GTM API read-only triggers list. |
-| GTM Custom Event trigger for calculator_result exists | PASS | Found by GTM API read-only triggers list. |
-| GTM Custom Event trigger for whatsapp_click exists | PASS | Found by GTM API read-only triggers list. |
-| GTM Custom Event trigger for quote_request_start exists | WARN | Missing from GTM API read-only triggers list. |
-| GTM GA4-related tags appear present | PASS | Found GA4-related signal in 36 listed tag(s). |
-| GTM Meta-related tags appear present or planned | WARN | No Meta-related signal found in 36 listed tag(s). |
-| No GTM variable appears to expose raw gclid/fbclid | PASS | No raw click ID variables detected by read-only variables list. |
+| GTM API read-only checks | SKIPPED | Not checked — HTTP 429 (RESOURCE_EXHAUSTED): Quota exceeded for quota metric 'Queries' and limit 'Queries per minute per user' of service 'tagmanager.googleapis.com' for consumer 'project_number:991109687575'.. Details: {"error":{"code":429,"message":"Quota exceeded for quota metric 'Queries' and limit 'Queries per minute per user' of service 'tagmanager.googleapis.com' for consumer 'project_number:991109687575'.","errors":[{"message":"Quota exceeded for quota metric 'Queries' and limit 'Queries per minute per user' of service 'tagmanager.googleapis.com' for consumer 'project_number:991109687575'.","domain":"global","reason":"rateLimitExceeded"}],"status":"RESOURCE_EXHAUSTED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"RATE_LIMIT_EXCEEDED","domain":"googleapis.com","metadata":{"quota_limit_value":"30","service":"tagmanager.googleapis.com","consumer":"projects/991109687575","quota_limit":"defaultPerMinutePerUser","quota_unit":"1/min/{project}/{user}","quota_location":"global","quota_metric":"tagmanager.googleapis.com/default"}},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Request a higher quota limit.","url":"https://cloud.google.com/docs/quotas/help/request_increase"}]}]}} |
 
 Future read-only API checks planned for this module:
 - Account exists
@@ -231,21 +202,6 @@ Future read-only API checks planned for this module:
 - Triggers exist for approved CRBOX events
 - Meta Pixel base/event tags exist or are planned
 - Raw gclid/fbclid is not exposed through GTM variables unless explicitly approved
-
-Missing GTM Data Layer Variables:
-- `utm_source`
-- `utm_medium`
-- `utm_campaign`
-- `utm_content`
-- `utm_term`
-- `gclid_present`
-- `fbclid_present`
-- `attribution_touch`
-
-Missing GTM triggers:
-- `quote_request_submit_success`
-- `contact_form_submit_success`
-- `quote_request_start`
 
 ## Google Ads checks
 
