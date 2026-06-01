@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Readiness Report
 
-Generated: 2026-06-01T20:55:36.917Z
+Generated: 2026-06-01T21:06:20.858Z
 
 Mode: **read_only**
 
@@ -8,8 +8,8 @@ Mode: **read_only**
 
 ## Summary
 
-- Passed checks: 45
-- Warnings: 19
+- Passed checks: 52
+- Warnings: 12
 - Skipped checks: 2
 - Missing environment variables: 13
 
@@ -31,13 +31,6 @@ Mode: **read_only**
 
 ## Warnings
 
-- GA4 event-scoped custom dimension gclid_present missing/not found
-- GA4 event-scoped custom dimension fbclid_present missing/not found
-- GA4 event-scoped custom dimension attribution_touch missing/not found
-- GA4 event-scoped custom dimension utm_content missing/not found
-- GA4 event-scoped custom dimension utm_term missing/not found
-- GA4 key event/conversion signup_success missing/not found
-- GA4 key event/conversion quote_request_submit_success missing/not found
 - GTM Data Layer Variable for utm_source missing/not found
 - GTM Data Layer Variable for utm_medium missing/not found
 - GTM Data Layer Variable for utm_campaign missing/not found
@@ -54,15 +47,10 @@ Mode: **read_only**
 ## Live Platform Gaps
 
 Missing GA4 custom dimensions:
-- `gclid_present`
-- `fbclid_present`
-- `attribution_touch`
-- `utm_content`
-- `utm_term`
+- None detected.
 
 Missing GA4 key events/conversions:
-- `signup_success`
-- `quote_request_submit_success`
+- None detected.
 
 Missing GTM Data Layer Variables:
 - `utm_source`
@@ -96,7 +84,7 @@ Permission or scope issues:
 ## Controlled Apply Readiness
 
 - Dry-run plan valid: true
-- Controlled apply execution enabled: false
+- Controlled apply execution enabled: true
 - Eligible GA4 actions: 7
 - Eligible GTM actions: 0
 - Blocked actions: 6
@@ -108,13 +96,13 @@ No controlled apply mutations were performed. Phase 2C-Prep validates apply read
 ## Phase 2D GA4 Controlled Create
 
 - GA4 controlled create capability implemented: true
-- GA4 controlled create execution currently run: false
+- GA4 controlled create execution currently run: true
 - GA4 write execution requires explicit env + flags: true
 - GTM controlled create enabled: false
 - Google Ads enabled: false
 - Meta enabled: false
 - Last GA4 create result file exists: true
-- Last GA4 create result status: not_executed
+- Last GA4 create result status: executed
 
 No Phase 2D GA4 controlled-create mutations are performed unless the dedicated GA4 create command passes every required safety gate.
 
@@ -173,7 +161,7 @@ Inspected files:
 
 ## GA4 checks
 
-Status: **WARN**
+Status: **PASS**
 
 Notes:
 - GA4 checks use read-only Admin API get/list endpoints only.
@@ -185,14 +173,14 @@ Notes:
 | GA4 measurement ID matches expected CRBOX value | PASS | Expected G-B5BPHFRR18; received G-B5BPHFRR18 |
 | GA4 property is accessible | PASS | Read-only get succeeded for properties/534288079. |
 | GA4 web stream exists for G-B5BPHFRR18 | PASS | Found matching web data stream by read-only list call. |
-| GA4 event-scoped custom dimension gclid_present exists | WARN | Missing from GA4 Admin API read-only list response. |
-| GA4 event-scoped custom dimension fbclid_present exists | WARN | Missing from GA4 Admin API read-only list response. |
-| GA4 event-scoped custom dimension attribution_touch exists | WARN | Missing from GA4 Admin API read-only list response. |
-| GA4 event-scoped custom dimension utm_content exists | WARN | Missing from GA4 Admin API read-only list response. |
-| GA4 event-scoped custom dimension utm_term exists | WARN | Missing from GA4 Admin API read-only list response. |
+| GA4 event-scoped custom dimension gclid_present exists | PASS | Found by GA4 Admin API read-only list call. |
+| GA4 event-scoped custom dimension fbclid_present exists | PASS | Found by GA4 Admin API read-only list call. |
+| GA4 event-scoped custom dimension attribution_touch exists | PASS | Found by GA4 Admin API read-only list call. |
+| GA4 event-scoped custom dimension utm_content exists | PASS | Found by GA4 Admin API read-only list call. |
+| GA4 event-scoped custom dimension utm_term exists | PASS | Found by GA4 Admin API read-only list call. |
 | GA4 key event/conversion endpoint is readable | PASS | Used read-only keyEvents endpoint. |
-| GA4 key event/conversion signup_success exists | WARN | Missing from GA4 Admin API read-only list response. |
-| GA4 key event/conversion quote_request_submit_success exists | WARN | Missing from GA4 Admin API read-only list response. |
+| GA4 key event/conversion signup_success exists | PASS | Found by GA4 Admin API read-only list call. |
+| GA4 key event/conversion quote_request_submit_success exists | PASS | Found by GA4 Admin API read-only list call. |
 
 Future read-only API checks planned for this module:
 - Property exists and is accessible
@@ -201,17 +189,6 @@ Future read-only API checks planned for this module:
 - Required custom dimensions exist
 - Key events are marked as conversions/key events
 - Event names align with the tracking taxonomy
-
-Missing GA4 custom dimensions:
-- `gclid_present`
-- `fbclid_present`
-- `attribution_touch`
-- `utm_content`
-- `utm_term`
-
-Missing GA4 key events/conversions:
-- `signup_success`
-- `quote_request_submit_success`
 
 ## GTM checks
 

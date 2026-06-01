@@ -1,15 +1,64 @@
 {
-  "generatedAt": "2026-06-01T20:55:30.462Z",
-  "mode": "read_only",
-  "mutationPerformed": false,
+  "generatedAt": "2026-06-01T21:06:01.099Z",
+  "mode": "controlled_create",
+  "mutationPerformed": true,
   "platform": "ga4",
-  "status": "not_executed",
+  "status": "executed",
   "selectedActionCount": 7,
-  "createdActions": [],
+  "createdActions": [
+    {
+      "actionId": "ga4:create_custom_dimension:gclid_present",
+      "action": "create_custom_dimension",
+      "parameterName": "gclid_present",
+      "status": "created",
+      "resourceName": "properties/534288079/customDimensions/14985109378"
+    },
+    {
+      "actionId": "ga4:create_custom_dimension:fbclid_present",
+      "action": "create_custom_dimension",
+      "parameterName": "fbclid_present",
+      "status": "created",
+      "resourceName": "properties/534288079/customDimensions/14985106125"
+    },
+    {
+      "actionId": "ga4:create_custom_dimension:attribution_touch",
+      "action": "create_custom_dimension",
+      "parameterName": "attribution_touch",
+      "status": "created",
+      "resourceName": "properties/534288079/customDimensions/14985140213"
+    },
+    {
+      "actionId": "ga4:create_custom_dimension:utm_content",
+      "action": "create_custom_dimension",
+      "parameterName": "utm_content",
+      "status": "created",
+      "resourceName": "properties/534288079/customDimensions/14985105961"
+    },
+    {
+      "actionId": "ga4:create_custom_dimension:utm_term",
+      "action": "create_custom_dimension",
+      "parameterName": "utm_term",
+      "status": "created",
+      "resourceName": "properties/534288079/customDimensions/14984968496"
+    },
+    {
+      "actionId": "ga4:mark_key_event:signup_success",
+      "action": "mark_key_event",
+      "eventName": "signup_success",
+      "status": "created",
+      "resourceName": "properties/534288079/keyEvents/14985142867"
+    },
+    {
+      "actionId": "ga4:mark_key_event:quote_request_submit_success",
+      "action": "mark_key_event",
+      "eventName": "quote_request_submit_success",
+      "status": "created",
+      "resourceName": "properties/534288079/keyEvents/14985142565"
+    }
+  ],
   "skippedExistingActions": [],
   "failedActions": [],
   "unsupportedActions": [],
-  "finalVerificationStatus": "not_run",
-  "disabledReason": "MARKETING_AGENT_MODE must be controlled_create. MARKETING_AGENT_ENABLE_WRITES must be true. CLI flag --platform ga4 is required. CLI flag --confirm-human-approval is required. CLI flag --all or at least one --action-id is required.",
-  "mutationStatement": "No GA4 mutations were performed. GA4 controlled create was not executed."
+  "finalVerificationStatus": "pass",
+  "mutationStatement": "GA4 controlled create executed selected approved actions. No GTM, Google Ads, or Meta mutations were performed."
 }

@@ -1,18 +1,24 @@
 # CRBOX Marketing Ops GA4 Create Result
 
-Generated: 2026-06-01T20:55:30.462Z
+Generated: 2026-06-01T21:06:01.099Z
 
-Mode: **read_only**
+Mode: **controlled_create**
 
-Status: **not_executed**
+Status: **executed**
 
 Platform: ga4
-Mutation performed: false
+Mutation performed: true
 Selected actions: 7
 
 ## Created Actions
 
-- None.
+- gclid_present (create_custom_dimension): created
+- fbclid_present (create_custom_dimension): created
+- attribution_touch (create_custom_dimension): created
+- utm_content (create_custom_dimension): created
+- utm_term (create_custom_dimension): created
+- signup_success (mark_key_event): created
+- quote_request_submit_success (mark_key_event): created
 
 ## Skipped Existing Actions
 
@@ -28,8 +34,8 @@ Selected actions: 7
 
 ## Final Verification
 
-Status: not_run
+Status: pass
 
 ## Mutation Statement
 
-No GA4 mutations were performed. GA4 controlled create was not executed.
+GA4 controlled create executed selected approved actions. No GTM, Google Ads, or Meta mutations were performed.
