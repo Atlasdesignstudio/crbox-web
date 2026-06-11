@@ -14,6 +14,7 @@ const { buildDryRunPlan, mergeDryRunPlan } = require('./planner/dry-run-plan');
 const { readDryRunPlan, writeDryRunPlan } = require('./planner/plan-writer');
 const { runApply } = require('./apply/apply-runner');
 const { runGtmPreflight, printPreflightSummary } = require('./gtm-preflight');
+const { safeOutputLines, writeGtmEditAuthorizationUrl } = require('./oauth-gtm-edit-url');
 
 const root = repoRoot();
 loadDotEnv(root);
@@ -133,6 +134,18 @@ async function main() {
       }
       return;
     }
+    case 'oauth:gtm-edit-url': {
+      try {
+        const oauthUrl = writeGtmEditAuthorizationUrl(root);
+        for (const line of safeOutputLines(oauthUrl)) {
+          console.log(maskSecretsInText(line));
+        }
+      } catch (error) {
+        console.error(maskSecretsInText(error && error.message ? error.message : String(error)));
+        process.exitCode = 1;
+      }
+      return;
+    }
     case 'apply':
       await runApplyCommand('all', false, process.argv.slice(3));
       return;
@@ -166,7 +179,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|gtm:preflight|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|gtm:preflight|oauth:gtm-edit-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:validate]');
       process.exitCode = 1;
       return;
   }

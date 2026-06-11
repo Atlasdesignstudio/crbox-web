@@ -297,6 +297,78 @@ Successful read-only GTM list calls do not prove the GTM edit scope is present. 
 
 Phase 2G never calls GTM create, update, delete, version, or publish endpoints. Keep `MARKETING_AGENT_GTM_CREATE_ENABLED=false`.
 
+## Phase 2H GTM OAuth Re-authorization
+
+Phase 2H prepares a replacement local Google OAuth refresh token with the GTM container edit scope. It does not execute GTM controlled create.
+
+Current verified local status:
+
+- OAuth reauthorization completed successfully.
+- `requiredScopeStatus` is `available`.
+- GTM workspace, variables, and triggers remain readable.
+- 11 future actions remain classified as `would_create`.
+- Duplicate risks and blocked unsafe proposals are both zero.
+- The system is ready for human review before future controlled create, not automatic execution.
+- No GTM write call, object creation, version creation, or publishing occurred.
+
+Add the OAuth redirect URI registered for the existing Google OAuth client to local `.env`:
+
+```text
+GOOGLE_OAUTH_REDIRECT_URI=
+```
+
+Do not guess this value. It must exactly match an authorized redirect URI configured for the same `GOOGLE_CLIENT_ID`.
+
+Generate the consent URL locally:
+
+```bash
+npm run marketing:oauth:gtm-edit-url
+```
+
+The command writes the complete URL to the gitignored local file:
+
+```text
+.oauth-gtm-edit-url.local.txt
+```
+
+It does not print the full client ID, access token, refresh token, or client secret. The requested scope set is exactly:
+
+```text
+https://www.googleapis.com/auth/analytics.edit
+https://www.googleapis.com/auth/analytics.readonly
+https://www.googleapis.com/auth/tagmanager.readonly
+https://www.googleapis.com/auth/tagmanager.edit.containers
+```
+
+Complete Google consent with the same OAuth client used by local `.env`. Exchange the authorization code using the operator's trusted OAuth tool or existing Google OAuth workflow. Phase 2H intentionally does not add an authorization-code exchange command because that would handle refresh-token values.
+
+Replace only `GOOGLE_REFRESH_TOKEN` in local `.env`. Never commit `.env`, the authorization URL file, authorization codes, or token results.
+
+Keep these values disabled:
+
+```text
+MARKETING_AGENT_MODE=read_only
+MARKETING_AGENT_ENABLE_WRITES=false
+MARKETING_AGENT_GTM_CREATE_ENABLED=false
+```
+
+After manually replacing the refresh token, run only:
+
+```bash
+npm run marketing:gtm:preflight
+npm run marketing:report
+```
+
+Expected verification:
+
+- `requiredScopeStatus` becomes `available`.
+- GTM workspace, variables, and triggers remain readable.
+- 11 future GTM actions remain classified without duplicate risks.
+- A ready result means ready for human review before a future controlled-create phase. It is not execution approval.
+- GTM tag creation, version creation, and publishing remain blocked.
+
+Even after successful scope verification, GTM controlled create still requires a separate approved task and every environment, CLI, plan-validation, and human-approval gate.
+
 ## Interpreting Results
 
 - `PASS` means the static or read-only API check found expected evidence.

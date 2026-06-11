@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Readiness Report
 
-Generated: 2026-06-11T22:38:33.482Z
+Generated: 2026-06-11T23:46:20.127Z
 
 Mode: **read_only**
 
@@ -122,21 +122,33 @@ No GTM container versions are created and GTM publishing remains a separate bloc
 
 ## Phase 2G GTM Pre-flight
 
-- Generated: 2026-06-11T22:38:19.773Z
+- Generated: 2026-06-11T23:45:24.707Z
 - Mode: read_only
 - Plan valid: true
 - Workspace readable: true
 - Variables readable: true
 - Triggers readable: true
-- Required GTM edit scope status: missing
+- Required GTM edit scope status: available
 - Future actions checked: 11
 - Already existing: 0
 - Would create later: 11
 - Duplicate risk: 0
 - Blocked unsafe proposed actions: 0
-- Ready for future human review: false
+- Ready for future human review: true
 
 No GTM write calls were made by the Phase 2G pre-flight. No variables, triggers, tags, versions, or publishes were created.
+
+## Phase 2H GTM OAuth Re-authorization
+
+- OAuth reauthorization verified: true
+- Required GTM edit scope status: available
+- Available relevant scopes: https://www.googleapis.com/auth/tagmanager.readonly, https://www.googleapis.com/auth/tagmanager.edit.containers
+- Missing relevant scopes: None detected
+- Ready for human review before future controlled create: true
+- GTM create executed: false
+- GTM published: false
+
+OAuth scope availability does not approve automatic execution. GTM controlled create still requires separate human approval and every safety gate.
 
 ## Repository static checks
 
