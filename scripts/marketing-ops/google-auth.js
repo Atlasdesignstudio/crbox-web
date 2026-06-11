@@ -103,6 +103,12 @@ async function googleApiGet(url, accessToken) {
   return data;
 }
 
+async function getGoogleTokenInfo(accessToken) {
+  const token = encodeURIComponent(accessToken || '');
+  const { data } = await requestJson(`https://oauth2.googleapis.com/tokeninfo?access_token=${token}`);
+  return data;
+}
+
 async function googleApiPost(url, accessToken, payload) {
   const { data } = await requestJson(url, {
     method: 'POST',
@@ -129,6 +135,7 @@ function readableGoogleError(error) {
 module.exports = {
   GoogleApiError,
   getGoogleAccessToken,
+  getGoogleTokenInfo,
   googleApiGet,
   googleApiPost,
   readableGoogleError

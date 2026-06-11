@@ -272,6 +272,31 @@ docs/marketing-ops-gtm-create-result.json
 
 GTM publish is intentionally not part of GTM controlled create. After any future GTM create execution, manually check Variables and Triggers in the GTM workspace, use GTM Preview for QA, and obtain separate explicit approval for any publish phase.
 
+## Phase 2G GTM Pre-flight
+
+Run the read-only GTM pre-flight with:
+
+```bash
+npm run marketing:gtm:preflight
+```
+
+The pre-flight:
+
+- Validates `docs/marketing-ops-dry-run-plan.json`.
+- Reads the configured GTM account, container, workspace, variables, and triggers.
+- Uses Google OAuth token info to inspect granted scopes when available without printing or writing the access token.
+- Checks for the future required scope:
+  `https://www.googleapis.com/auth/tagmanager.edit.containers`
+- Classifies each approved future GTM action as `already_exists`, `would_create`, `duplicate_risk`, `blocked`, or `unknown_due_to_read_error`.
+- Checks duplicates by GTM name and underlying Data Layer Variable key or Custom Event name.
+- Writes:
+  - `docs/marketing-ops-gtm-preflight.md`
+  - `docs/marketing-ops-gtm-preflight.json`
+
+Successful read-only GTM list calls do not prove the GTM edit scope is present. If direct token scope inspection is unavailable, the report uses `requiredScopeStatus: unknown` and does not declare readiness.
+
+Phase 2G never calls GTM create, update, delete, version, or publish endpoints. Keep `MARKETING_AGENT_GTM_CREATE_ENABLED=false`.
+
 ## Interpreting Results
 
 - `PASS` means the static or read-only API check found expected evidence.

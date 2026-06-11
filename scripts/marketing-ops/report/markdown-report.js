@@ -8,6 +8,7 @@ const { readDryRunPlan } = require('../planner/plan-writer');
 const { validateDryRunPlan } = require('../apply/apply-validator');
 const { readGa4CreateResult } = require('../apply/ga4-create-result');
 const { readGtmCreateResult } = require('../apply/gtm-create-result');
+const { readPreflight } = require('../gtm-preflight');
 
 function sectionForResult(result) {
   const lines = [
@@ -91,6 +92,7 @@ function buildMarkdownReport(results, options = {}) {
   const apply = options.apply || null;
   const ga4CreateResult = options.ga4CreateResult || readGa4CreateResult(options.root || process.cwd());
   const gtmCreateResult = options.gtmCreateResult || readGtmCreateResult(options.root || process.cwd());
+  const gtmPreflight = options.gtmPreflight || readPreflight(options.root || process.cwd());
   const allChecks = results.flatMap((result) => result.checks || []);
   const summary = summarizeStatus(allChecks);
   const requiredEnvNames = unique(Object.values(REQUIRED_ENV).flat());
@@ -215,6 +217,26 @@ function buildMarkdownReport(results, options = {}) {
 - Last GTM create result mutationPerformed: ${Boolean(gtmCreateResult.mutationPerformed)}`,
     '',
     'No GTM container versions are created and GTM publishing remains a separate blocked phase requiring explicit approval.',
+    '',
+    '## Phase 2G GTM Pre-flight',
+    '',
+    gtmPreflight
+      ? `- Generated: ${gtmPreflight.generatedAt}
+- Mode: ${gtmPreflight.mode}
+- Plan valid: ${gtmPreflight.planValidation.ok}
+- Workspace readable: ${gtmPreflight.workspace.workspaceReadable}
+- Variables readable: ${gtmPreflight.workspace.variablesReadable}
+- Triggers readable: ${gtmPreflight.workspace.triggersReadable}
+- Required GTM edit scope status: ${gtmPreflight.oauth.requiredScopeStatus}
+- Future actions checked: ${gtmPreflight.futureActions.total}
+- Already existing: ${gtmPreflight.futureActions.alreadyExists}
+- Would create later: ${gtmPreflight.futureActions.wouldCreate}
+- Duplicate risk: ${gtmPreflight.futureActions.duplicateRisk}
+- Blocked unsafe proposed actions: ${gtmPreflight.futureActions.blocked}
+- Ready for future human review: ${gtmPreflight.recommendation.readyForFutureControlledCreate}`
+      : '- No GTM pre-flight artifact found yet.',
+    '',
+    'No GTM write calls were made by the Phase 2G pre-flight. No variables, triggers, tags, versions, or publishes were created.',
     '',
     ...results.map(sectionForResult),
     '## Recommended Next Actions',
