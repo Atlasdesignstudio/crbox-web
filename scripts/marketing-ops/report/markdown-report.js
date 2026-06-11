@@ -7,6 +7,7 @@ const { missingEnv, summarizeStatus, unique } = require('../utils');
 const { readDryRunPlan } = require('../planner/plan-writer');
 const { validateDryRunPlan } = require('../apply/apply-validator');
 const { readGa4CreateResult } = require('../apply/ga4-create-result');
+const { readGtmCreateResult } = require('../apply/gtm-create-result');
 
 function sectionForResult(result) {
   const lines = [
@@ -89,6 +90,7 @@ function buildMarkdownReport(results, options = {}) {
   const plan = options.plan || null;
   const apply = options.apply || null;
   const ga4CreateResult = options.ga4CreateResult || readGa4CreateResult(options.root || process.cwd());
+  const gtmCreateResult = options.gtmCreateResult || readGtmCreateResult(options.root || process.cwd());
   const allChecks = results.flatMap((result) => result.checks || []);
   const summary = summarizeStatus(allChecks);
   const requiredEnvNames = unique(Object.values(REQUIRED_ENV).flat());
@@ -199,6 +201,20 @@ function buildMarkdownReport(results, options = {}) {
 - Last GA4 create result status: ${ga4CreateResult.status || 'not_executed'}`,
     '',
     'No Phase 2D GA4 controlled-create mutations are performed unless the dedicated GA4 create command passes every required safety gate.',
+    '',
+    '## Phase 2F GTM Controlled Create Prep',
+    '',
+    `- GTM controlled create capability implemented: true
+- GTM controlled create execution currently run: ${gtmCreateResult.exists && gtmCreateResult.status !== 'not_executed'}
+- GTM write execution requires explicit env + flags: true
+- GTM publish enabled: false
+- Google Ads enabled: false
+- Meta enabled: false
+- Last GTM create result file exists: ${gtmCreateResult.exists}
+- Last GTM create result status: ${gtmCreateResult.status || 'not_executed'}
+- Last GTM create result mutationPerformed: ${Boolean(gtmCreateResult.mutationPerformed)}`,
+    '',
+    'No GTM container versions are created and GTM publishing remains a separate blocked phase requiring explicit approval.',
     '',
     ...results.map(sectionForResult),
     '## Recommended Next Actions',

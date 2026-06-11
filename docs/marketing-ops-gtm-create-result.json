@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-06-11T21:38:13.267Z",
+  "mode": "read_only",
+  "mutationPerformed": false,
+  "platform": "gtm",
+  "status": "not_executed",
+  "selectedActionCount": 11,
+  "createdActions": [],
+  "skippedExistingActions": [],
+  "failedActions": [],
+  "unsupportedActions": [],
+  "finalVerificationStatus": "not_run",
+  "gtmPublished": false,
+  "gtmVersionCreated": false,
+  "disabledReason": "MARKETING_AGENT_MODE must be controlled_create. MARKETING_AGENT_ENABLE_WRITES must be true. MARKETING_AGENT_GTM_CREATE_ENABLED must be true. CLI flag --platform gtm is required. CLI flag --confirm-human-approval is required. CLI flag --all or at least one --action-id is required.",
+  "mutationStatement": "No GTM mutations were performed. GTM controlled create was not executed."
+}
