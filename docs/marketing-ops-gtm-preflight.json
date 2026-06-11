@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-11T22:38:19.773Z",
+  "generatedAt": "2026-06-11T23:45:24.707Z",
   "phase": "2G",
   "mode": "read_only",
   "mutationPerformed": false,
@@ -23,14 +23,13 @@
   "oauth": {
     "scopeCheckMethod": "google_oauth_tokeninfo",
     "requiredScope": "https://www.googleapis.com/auth/tagmanager.edit.containers",
-    "requiredScopeStatus": "missing",
+    "requiredScopeStatus": "available",
     "availableRelevantScopes": [
-      "https://www.googleapis.com/auth/tagmanager.readonly"
-    ],
-    "missingRelevantScopes": [
+      "https://www.googleapis.com/auth/tagmanager.readonly",
       "https://www.googleapis.com/auth/tagmanager.edit.containers"
     ],
-    "notes": "Google token info was readable, but the required GTM container edit scope was not listed. No token value was logged or written."
+    "missingRelevantScopes": [],
+    "notes": "Google token info confirmed the required GTM container edit scope. No token value was logged or written."
   },
   "planValidation": {
     "ok": true,
@@ -225,8 +224,8 @@
     "secretsPrinted": false
   },
   "recommendation": {
-    "readyForFutureControlledCreate": false,
-    "reason": "Required GTM edit scope status is missing."
+    "readyForFutureControlledCreate": true,
+    "reason": "Ready for human review before future controlled create. This is not approval for automatic execution or GTM publishing."
   },
   "errors": []
 }

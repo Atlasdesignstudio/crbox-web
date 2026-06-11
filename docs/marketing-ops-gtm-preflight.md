@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops GTM Pre-flight
 
-Generated: 2026-06-11T22:38:19.773Z
+Generated: 2026-06-11T23:45:24.707Z
 
 Phase: **2G**
 
@@ -12,7 +12,7 @@ Mode: **read_only**
 - GTM workspace readable: true
 - GTM variables readable: true
 - GTM triggers readable: true
-- Required OAuth scope status: missing
+- Required OAuth scope status: available
 - Future GTM actions checked: 11
 - Already existing: 0
 - Would create later: 11
@@ -36,10 +36,10 @@ Mode: **read_only**
 
 - Check method: `google_oauth_tokeninfo`
 - Required scope: `https://www.googleapis.com/auth/tagmanager.edit.containers`
-- Status: **missing**
-- Available relevant scopes: `https://www.googleapis.com/auth/tagmanager.readonly`
-- Missing relevant scopes: `https://www.googleapis.com/auth/tagmanager.edit.containers`
-- Notes: Google token info was readable, but the required GTM container edit scope was not listed. No token value was logged or written.
+- Status: **available**
+- Available relevant scopes: `https://www.googleapis.com/auth/tagmanager.readonly`, `https://www.googleapis.com/auth/tagmanager.edit.containers`
+- Missing relevant scopes: None detected.
+- Notes: Google token info confirmed the required GTM container edit scope. No token value was logged or written.
 
 ## Future GTM Actions
 
@@ -85,8 +85,8 @@ Mode: **read_only**
 
 ## Recommendation
 
-- Ready for future controlled create: **false**
-- Reason: Required GTM edit scope status is missing.
+- Ready for future controlled create: **true**
+- Reason: Ready for human review before future controlled create. This is not approval for automatic execution or GTM publishing.
 
 ## Mutation Statement
 

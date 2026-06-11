@@ -149,6 +149,35 @@ The pre-flight must not call the GTM create executor and does not require `MARKE
 
 The pre-flight recommendation is never automatic execution approval. A successful result means only that the configuration is ready for human review before a separately approved future controlled-create phase.
 
+## Phase 2H GTM OAuth Scope Preparation
+
+Local OAuth reauthorization has been completed and the read-only preflight now confirms `https://www.googleapis.com/auth/tagmanager.edit.containers` is available. This scope became available only after the operator manually replaced `GOOGLE_REFRESH_TOKEN` in local `.env`; no token value is stored in this repository.
+
+The verified result is ready for human review before future controlled create. It is not approval to execute automatically.
+
+Generate a local Google OAuth consent URL with:
+
+```bash
+npm run marketing:oauth:gtm-edit-url
+```
+
+The command requires `GOOGLE_CLIENT_ID` and `GOOGLE_OAUTH_REDIRECT_URI`. It writes the complete URL to `.oauth-gtm-edit-url.local.txt`, which is ignored by Git, and does not print token values or the full client ID.
+
+The URL requests only the approved analytics and Tag Manager scopes:
+
+- `https://www.googleapis.com/auth/analytics.edit`
+- `https://www.googleapis.com/auth/analytics.readonly`
+- `https://www.googleapis.com/auth/tagmanager.readonly`
+- `https://www.googleapis.com/auth/tagmanager.edit.containers`
+
+No Google Ads, Meta, customer-data, or broader Tag Manager scopes are requested.
+
+Phase 2H does not exchange authorization codes or handle refresh-token output. After the operator obtains a new token through a trusted OAuth workflow, replace only `GOOGLE_REFRESH_TOKEN` in local `.env` and rerun the read-only preflight.
+
+Keep `MARKETING_AGENT_GTM_CREATE_ENABLED=false`. GTM create, tag creation, version creation, and publishing remain unavailable in this phase.
+
+No GTM write calls were made during scope verification. A future GTM create attempt still requires separate approval and all controlled-create gates.
+
 ## Blocked Actions
 
 The apply validator blocks or rejects:

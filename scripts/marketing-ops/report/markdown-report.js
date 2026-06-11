@@ -238,6 +238,20 @@ function buildMarkdownReport(results, options = {}) {
     '',
     'No GTM write calls were made by the Phase 2G pre-flight. No variables, triggers, tags, versions, or publishes were created.',
     '',
+    '## Phase 2H GTM OAuth Re-authorization',
+    '',
+    gtmPreflight
+      ? `- OAuth reauthorization verified: ${gtmPreflight.oauth.requiredScopeStatus === 'available'}
+- Required GTM edit scope status: ${gtmPreflight.oauth.requiredScopeStatus}
+- Available relevant scopes: ${(gtmPreflight.oauth.availableRelevantScopes || []).join(', ') || 'None detected'}
+- Missing relevant scopes: ${(gtmPreflight.oauth.missingRelevantScopes || []).join(', ') || 'None detected'}
+- Ready for human review before future controlled create: ${gtmPreflight.recommendation.readyForFutureControlledCreate}
+- GTM create executed: false
+- GTM published: false`
+      : '- No GTM pre-flight artifact found yet.',
+    '',
+    'OAuth scope availability does not approve automatic execution. GTM controlled create still requires separate human approval and every safety gate.',
+    '',
     ...results.map(sectionForResult),
     '## Recommended Next Actions',
     '',
