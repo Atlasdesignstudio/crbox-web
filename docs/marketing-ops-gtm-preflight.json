@@ -1,0 +1,232 @@
+{
+  "generatedAt": "2026-06-11T22:38:19.773Z",
+  "phase": "2G",
+  "mode": "read_only",
+  "mutationPerformed": false,
+  "gtmWriteCallsMade": false,
+  "gtmVersionsCreated": false,
+  "gtmPublished": false,
+  "gtmCreateDefaultDisabled": true,
+  "workspace": {
+    "accountIdPresent": true,
+    "containerIdPresent": true,
+    "accountReadable": true,
+    "containerReadable": true,
+    "workspacePathPresent": true,
+    "workspaceReadable": true,
+    "variablesReadable": true,
+    "triggersReadable": true,
+    "name": "Default Workspace",
+    "workspaceId": "4",
+    "workspacePath": "accounts/6351590751/containers/250367469/workspaces/4"
+  },
+  "oauth": {
+    "scopeCheckMethod": "google_oauth_tokeninfo",
+    "requiredScope": "https://www.googleapis.com/auth/tagmanager.edit.containers",
+    "requiredScopeStatus": "missing",
+    "availableRelevantScopes": [
+      "https://www.googleapis.com/auth/tagmanager.readonly"
+    ],
+    "missingRelevantScopes": [
+      "https://www.googleapis.com/auth/tagmanager.edit.containers"
+    ],
+    "notes": "Google token info was readable, but the required GTM container edit scope was not listed. No token value was logged or written."
+  },
+  "planValidation": {
+    "ok": true,
+    "errors": [],
+    "blockedActionsCount": 6
+  },
+  "futureActions": {
+    "total": 11,
+    "alreadyExists": 0,
+    "wouldCreate": 11,
+    "duplicateRisk": 0,
+    "blocked": 0,
+    "unknown": 0,
+    "items": [
+      {
+        "actionId": "gtm:create_data_layer_variable:DLV_-_utm_source",
+        "action": "create_data_layer_variable",
+        "platform": "gtm",
+        "intendedName": "DLV - utm_source",
+        "dataLayerVariableName": "utm_source",
+        "status": "would_create",
+        "duplicateMatches": {
+          "byName": [],
+          "byDataLayerKey": [],
+          "byEventName": []
+        },
+        "riskLevel": "low",
+        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+      },
+      {
+        "actionId": "gtm:create_data_layer_variable:DLV_-_utm_medium",
+        "action": "create_data_layer_variable",
+        "platform": "gtm",
+        "intendedName": "DLV - utm_medium",
+        "dataLayerVariableName": "utm_medium",
+        "status": "would_create",
+        "duplicateMatches": {
+          "byName": [],
+          "byDataLayerKey": [],
+          "byEventName": []
+        },
+        "riskLevel": "low",
+        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+      },
+      {
+        "actionId": "gtm:create_data_layer_variable:DLV_-_utm_campaign",
+        "action": "create_data_layer_variable",
+        "platform": "gtm",
+        "intendedName": "DLV - utm_campaign",
+        "dataLayerVariableName": "utm_campaign",
+        "status": "would_create",
+        "duplicateMatches": {
+          "byName": [],
+          "byDataLayerKey": [],
+          "byEventName": []
+        },
+        "riskLevel": "low",
+        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+      },
+      {
+        "actionId": "gtm:create_data_layer_variable:DLV_-_utm_content",
+        "action": "create_data_layer_variable",
+        "platform": "gtm",
+        "intendedName": "DLV - utm_content",
+        "dataLayerVariableName": "utm_content",
+        "status": "would_create",
+        "duplicateMatches": {
+          "byName": [],
+          "byDataLayerKey": [],
+          "byEventName": []
+        },
+        "riskLevel": "low",
+        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+      },
+      {
+        "actionId": "gtm:create_data_layer_variable:DLV_-_utm_term",
+        "action": "create_data_layer_variable",
+        "platform": "gtm",
+        "intendedName": "DLV - utm_term",
+        "dataLayerVariableName": "utm_term",
+        "status": "would_create",
+        "duplicateMatches": {
+          "byName": [],
+          "byDataLayerKey": [],
+          "byEventName": []
+        },
+        "riskLevel": "low",
+        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+      },
+      {
+        "actionId": "gtm:create_data_layer_variable:DLV_-_gclid_present",
+        "action": "create_data_layer_variable",
+        "platform": "gtm",
+        "intendedName": "DLV - gclid_present",
+        "dataLayerVariableName": "gclid_present",
+        "status": "would_create",
+        "duplicateMatches": {
+          "byName": [],
+          "byDataLayerKey": [],
+          "byEventName": []
+        },
+        "riskLevel": "low",
+        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+      },
+      {
+        "actionId": "gtm:create_data_layer_variable:DLV_-_fbclid_present",
+        "action": "create_data_layer_variable",
+        "platform": "gtm",
+        "intendedName": "DLV - fbclid_present",
+        "dataLayerVariableName": "fbclid_present",
+        "status": "would_create",
+        "duplicateMatches": {
+          "byName": [],
+          "byDataLayerKey": [],
+          "byEventName": []
+        },
+        "riskLevel": "low",
+        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+      },
+      {
+        "actionId": "gtm:create_data_layer_variable:DLV_-_attribution_touch",
+        "action": "create_data_layer_variable",
+        "platform": "gtm",
+        "intendedName": "DLV - attribution_touch",
+        "dataLayerVariableName": "attribution_touch",
+        "status": "would_create",
+        "duplicateMatches": {
+          "byName": [],
+          "byDataLayerKey": [],
+          "byEventName": []
+        },
+        "riskLevel": "low",
+        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+      },
+      {
+        "actionId": "gtm:create_custom_event_trigger:quote_request_submit_success",
+        "action": "create_custom_event_trigger",
+        "platform": "gtm",
+        "intendedName": "CE - quote_request_submit_success",
+        "eventName": "quote_request_submit_success",
+        "status": "would_create",
+        "duplicateMatches": {
+          "byName": [],
+          "byDataLayerKey": [],
+          "byEventName": []
+        },
+        "riskLevel": "low/medium",
+        "notes": "No existing GTM trigger matched the intended name or Custom Event name."
+      },
+      {
+        "actionId": "gtm:create_custom_event_trigger:contact_form_submit_success",
+        "action": "create_custom_event_trigger",
+        "platform": "gtm",
+        "intendedName": "CE - contact_form_submit_success",
+        "eventName": "contact_form_submit_success",
+        "status": "would_create",
+        "duplicateMatches": {
+          "byName": [],
+          "byDataLayerKey": [],
+          "byEventName": []
+        },
+        "riskLevel": "low",
+        "notes": "No existing GTM trigger matched the intended name or Custom Event name."
+      },
+      {
+        "actionId": "gtm:create_custom_event_trigger:quote_request_start",
+        "action": "create_custom_event_trigger",
+        "platform": "gtm",
+        "intendedName": "CE - quote_request_start",
+        "eventName": "quote_request_start",
+        "status": "would_create",
+        "duplicateMatches": {
+          "byName": [],
+          "byDataLayerKey": [],
+          "byEventName": []
+        },
+        "riskLevel": "low",
+        "notes": "No existing GTM trigger matched the intended name or Custom Event name."
+      }
+    ]
+  },
+  "safety": {
+    "gtmWriteCallsMade": false,
+    "gtmVariablesCreated": false,
+    "gtmTriggersCreated": false,
+    "gtmTagsCreated": false,
+    "gtmVersionsCreated": false,
+    "gtmPublished": false,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false
+  },
+  "recommendation": {
+    "readyForFutureControlledCreate": false,
+    "reason": "Required GTM edit scope status is missing."
+  },
+  "errors": []
+}

@@ -8,6 +8,7 @@
     "marketing:check:repo": "node scripts/marketing-ops/index.js repo",
     "marketing:check:ga4": "node scripts/marketing-ops/index.js ga4",
     "marketing:check:gtm": "node scripts/marketing-ops/index.js gtm",
+    "marketing:gtm:preflight": "node scripts/marketing-ops/index.js gtm:preflight",
     "marketing:check:ads": "node scripts/marketing-ops/index.js ads",
     "marketing:check:meta": "node scripts/marketing-ops/index.js meta",
     "marketing:plan": "node scripts/marketing-ops/index.js plan",

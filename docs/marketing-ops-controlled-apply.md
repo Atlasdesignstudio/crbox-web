@@ -135,6 +135,20 @@ This scope is not needed for Phase 2F prep validation. Keep Google Ads and Meta 
 
 `MARKETING_AGENT_GTM_CREATE_ENABLED` is a GTM-specific execution gate in addition to the general write flag. It must remain `false` during Phase 2F prep. It is not required for GA4 controlled create.
 
+## Phase 2G GTM Pre-flight
+
+Before any future GTM controlled create approval, run:
+
+```bash
+npm run marketing:gtm:preflight
+```
+
+This command is read-only. It validates the plan, reads GTM workspace variables and triggers, inspects OAuth token scopes when available, and reports duplicate risks for all approved future actions.
+
+The pre-flight must not call the GTM create executor and does not require `MARKETING_AGENT_GTM_CREATE_ENABLED=true`. The flag remains `false`; GTM tag creation, version creation, and publishing remain blocked.
+
+The pre-flight recommendation is never automatic execution approval. A successful result means only that the configuration is ready for human review before a separately approved future controlled-create phase.
+
 ## Blocked Actions
 
 The apply validator blocks or rejects:

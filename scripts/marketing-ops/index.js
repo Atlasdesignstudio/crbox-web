@@ -13,6 +13,7 @@ const { writeMarkdownReport } = require('./report/markdown-report');
 const { buildDryRunPlan, mergeDryRunPlan } = require('./planner/dry-run-plan');
 const { readDryRunPlan, writeDryRunPlan } = require('./planner/plan-writer');
 const { runApply } = require('./apply/apply-runner');
+const { runGtmPreflight, printPreflightSummary } = require('./gtm-preflight');
 
 const root = repoRoot();
 loadDotEnv(root);
@@ -125,6 +126,13 @@ async function main() {
     case 'apply:validate':
       await runApplyCommand('all', true, process.argv.slice(3));
       return;
+    case 'gtm:preflight': {
+      const preflight = await runGtmPreflight(root);
+      for (const line of printPreflightSummary(preflight.report, preflight.paths)) {
+        console.log(line);
+      }
+      return;
+    }
     case 'apply':
       await runApplyCommand('all', false, process.argv.slice(3));
       return;
@@ -158,7 +166,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|gtm:preflight|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:validate]');
       process.exitCode = 1;
       return;
   }

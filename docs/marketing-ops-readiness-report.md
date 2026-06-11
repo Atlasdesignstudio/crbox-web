@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Readiness Report
 
-Generated: 2026-06-11T21:38:27.544Z
+Generated: 2026-06-11T22:38:33.482Z
 
 Mode: **read_only**
 
@@ -72,7 +72,7 @@ Permission or scope issues:
 
 ## Dry-Run Plan Summary
 
-- Generated: 2026-06-01T21:26:45.898Z
+- Generated: 2026-06-11T22:36:54.688Z
 - Mode: dry_run
 - Proposed GA4 actions: 0
 - Proposed GTM actions: 11
@@ -119,6 +119,24 @@ No Phase 2D GA4 controlled-create mutations are performed unless the dedicated G
 - Last GTM create result mutationPerformed: false
 
 No GTM container versions are created and GTM publishing remains a separate blocked phase requiring explicit approval.
+
+## Phase 2G GTM Pre-flight
+
+- Generated: 2026-06-11T22:38:19.773Z
+- Mode: read_only
+- Plan valid: true
+- Workspace readable: true
+- Variables readable: true
+- Triggers readable: true
+- Required GTM edit scope status: missing
+- Future actions checked: 11
+- Already existing: 0
+- Would create later: 11
+- Duplicate risk: 0
+- Blocked unsafe proposed actions: 0
+- Ready for future human review: false
+
+No GTM write calls were made by the Phase 2G pre-flight. No variables, triggers, tags, versions, or publishes were created.
 
 ## Repository static checks
 
