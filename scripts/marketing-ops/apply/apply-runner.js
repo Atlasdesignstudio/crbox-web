@@ -3,9 +3,13 @@
 const { validateDryRunPlan } = require('./apply-validator');
 const { evaluateApplyPolicy, EXECUTION_DISABLED_MESSAGE } = require('./apply-policy');
 const { buildGa4ExecutionPreviews, runGa4ControlledCreate } = require('./ga4-apply');
-const { buildGtmExecutionPreviews } = require('./gtm-apply');
+const { buildGtmExecutionPreviews, runGtmControlledCreate } = require('./gtm-apply');
 const { summarizeApply } = require('./apply-report');
 const { buildNotExecutedResult, writeGa4CreateResult } = require('./ga4-create-result');
+const {
+  buildNotExecutedResult: buildGtmNotExecutedResult,
+  writeGtmCreateResult
+} = require('./gtm-create-result');
 
 async function runApply(root, options = {}) {
   const scope = options.scope || 'all';
@@ -73,6 +77,7 @@ async function runApply(root, options = {}) {
   }
 
   let ga4CreateResult = null;
+  let gtmCreateResult = null;
   if (requestedMode === 'ga4_controlled_create') {
     if (policy.executionEnabled) {
       ga4CreateResult = await runGa4ControlledCreate(root, policy.eligibleGa4Actions, policy);
@@ -86,6 +91,23 @@ async function runApply(root, options = {}) {
       lines.push('GA4 create result status: not_executed');
       summary.mutationStatement = ga4CreateResult.mutationStatement;
     }
+  } else if (requestedMode === 'gtm_controlled_create') {
+    if (policy.executionEnabled) {
+      gtmCreateResult = await runGtmControlledCreate(root, policy.eligibleGtmActions, policy);
+      lines.push(`GTM create result status: ${gtmCreateResult.status}`);
+      lines.push(`GTM mutations performed: ${gtmCreateResult.mutationPerformed}`);
+      lines.push(`GTM version created: ${gtmCreateResult.gtmVersionCreated}`);
+      lines.push(`GTM published: ${gtmCreateResult.gtmPublished}`);
+      summary.mutationStatement = gtmCreateResult.mutationStatement;
+    } else {
+      gtmCreateResult = buildGtmNotExecutedResult(policy, policy.executionDisabledReason);
+      writeGtmCreateResult(root, gtmCreateResult);
+      lines.push(`Execution refused: ${policy.executionDisabledReason}`);
+      lines.push('GTM create result status: not_executed');
+      lines.push('GTM version created: false');
+      lines.push('GTM published: false');
+      summary.mutationStatement = gtmCreateResult.mutationStatement;
+    }
   } else if (!validateOnly) {
     lines.push(`Execution refused: ${EXECUTION_DISABLED_MESSAGE}`);
   }
@@ -96,6 +118,7 @@ async function runApply(root, options = {}) {
     previews,
     summary,
     ga4CreateResult,
+    gtmCreateResult,
     outputLines: lines,
     exitCode: validation.ok ? 0 : 1
   };

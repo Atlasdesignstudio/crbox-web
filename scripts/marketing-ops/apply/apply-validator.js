@@ -101,6 +101,14 @@ function validateProposedAction(action, index) {
   }
 
   if (
+    action.platform === 'gtm'
+    && ['create_data_layer_variable', 'create_custom_event_trigger'].includes(action.action)
+    && !action.workspacePath
+  ) {
+    errors.push(`${id}: GTM controlled create requires workspacePath from the dry-run plan.`);
+  }
+
+  if (
     action.platform === 'ga4'
     && ['mark_key_event', 'create_conversion_event'].includes(action.action)
     && ['calculator_result', 'whatsapp_click'].includes(String(action.eventName || ''))

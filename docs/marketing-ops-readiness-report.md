@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Readiness Report
 
-Generated: 2026-06-01T21:06:20.858Z
+Generated: 2026-06-11T21:38:27.544Z
 
 Mode: **read_only**
 
@@ -72,23 +72,23 @@ Permission or scope issues:
 
 ## Dry-Run Plan Summary
 
-- Generated: 2026-06-01T20:55:07.567Z
+- Generated: 2026-06-01T21:26:45.898Z
 - Mode: dry_run
-- Proposed GA4 actions: 7
+- Proposed GA4 actions: 0
 - Proposed GTM actions: 11
 - Blocked actions: 6
-- Risk summary: {"low":15,"medium":2,"low/medium":1}
+- Risk summary: {"low":10,"low/medium":1}
 - Mutation performed: false
 - Plan files: `docs/marketing-ops-dry-run-plan.md`, `docs/marketing-ops-dry-run-plan.json`
 
 ## Controlled Apply Readiness
 
 - Dry-run plan valid: true
-- Controlled apply execution enabled: true
-- Eligible GA4 actions: 7
-- Eligible GTM actions: 0
+- Controlled apply execution enabled: false
+- Eligible GA4 actions: 0
+- Eligible GTM actions: 11
 - Blocked actions: 6
-- Future execution previews: 7
+- Future execution previews: 0
 - Validation errors: 0
 
 No controlled apply mutations were performed. Phase 2C-Prep validates apply readiness only.
@@ -105,6 +105,20 @@ No controlled apply mutations were performed. Phase 2C-Prep validates apply read
 - Last GA4 create result status: executed
 
 No Phase 2D GA4 controlled-create mutations are performed unless the dedicated GA4 create command passes every required safety gate.
+
+## Phase 2F GTM Controlled Create Prep
+
+- GTM controlled create capability implemented: true
+- GTM controlled create execution currently run: false
+- GTM write execution requires explicit env + flags: true
+- GTM publish enabled: false
+- Google Ads enabled: false
+- Meta enabled: false
+- Last GTM create result file exists: true
+- Last GTM create result status: not_executed
+- Last GTM create result mutationPerformed: false
+
+No GTM container versions are created and GTM publishing remains a separate blocked phase requiring explicit approval.
 
 ## Repository static checks
 

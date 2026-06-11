@@ -137,6 +137,9 @@ async function main() {
     case 'apply:gtm':
       await runApplyCommand('gtm', false, process.argv.slice(3));
       return;
+    case 'apply:gtm:create':
+      await runApplyCommand('gtm', false, process.argv.slice(3), 'gtm_controlled_create');
+      return;
     case 'repo':
       results = [runRepoCheck(root)];
       break;
@@ -155,7 +158,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:validate]');
       process.exitCode = 1;
       return;
   }

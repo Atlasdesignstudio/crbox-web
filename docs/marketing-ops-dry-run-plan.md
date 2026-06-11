@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Dry-Run Plan
 
-Generated: 2026-06-01T20:55:07.567Z
+Generated: 2026-06-01T21:26:45.898Z
 
 Mode: **dry_run**
 
@@ -19,16 +19,11 @@ Mode: **dry_run**
 
 ## Proposed GA4 Custom Dimensions
 
-- `create_custom_dimension` — gclid_present (ga4, risk: low, executed: false)
-- `create_custom_dimension` — fbclid_present (ga4, risk: low, executed: false)
-- `create_custom_dimension` — attribution_touch (ga4, risk: low, executed: false)
-- `create_custom_dimension` — utm_content (ga4, risk: low, executed: false)
-- `create_custom_dimension` — utm_term (ga4, risk: low, executed: false)
+- None.
 
 ## Proposed GA4 Key Events / Conversions
 
-- `mark_key_event` — signup_success (ga4, risk: medium, executed: false)
-- `mark_key_event` — quote_request_submit_success (ga4, risk: medium, executed: false)
+- None.
 
 ## Proposed GTM Data Layer Variables
 
@@ -66,8 +61,7 @@ Mode: **dry_run**
 
 ## Risk Assessment
 
-- low: 15
-- medium: 2
+- low: 10
 - low/medium: 1
 
 ## Human Approval Checklist
