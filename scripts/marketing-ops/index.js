@@ -17,6 +17,7 @@ const { runGtmPreflight, printPreflightSummary } = require('./gtm-preflight');
 const { runGtmPayloadReview, printPayloadReviewSummary } = require('./gtm-payload-review');
 const { runGtmPreviewQaReport, printSummary: printGtmPreviewQaSummary } = require('./gtm-preview-qa-report');
 const { runGtmGa4TagsPayloadReview, printSummary: printGtmGa4TagsPayloadReviewSummary } = require('./gtm-ga4-tags-payload-review');
+const { runGtmGa4TagsControlledCreate, outputLines: gtmGa4TagsCreateOutputLines } = require('./apply/gtm-ga4-tags-create');
 const { safeOutputLines, writeGtmEditAuthorizationUrl } = require('./oauth-gtm-edit-url');
 
 const root = repoRoot();
@@ -185,6 +186,14 @@ async function main() {
     case 'apply:gtm:create':
       await runApplyCommand('gtm', false, process.argv.slice(3), 'gtm_controlled_create');
       return;
+    case 'apply:gtm:ga4-tags:create': {
+      const createRun = await runGtmGa4TagsControlledCreate(root, process.argv.slice(3));
+      for (const line of gtmGa4TagsCreateOutputLines(createRun)) {
+        console.log(maskSecretsInText(line));
+      }
+      if (createRun.exitCode) process.exitCode = createRun.exitCode;
+      return;
+    }
     case 'repo':
       results = [runRepoCheck(root)];
       break;
@@ -203,7 +212,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|oauth:gtm-edit-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|oauth:gtm-edit-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:validate]');
       process.exitCode = 1;
       return;
   }

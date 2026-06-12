@@ -1,0 +1,260 @@
+{
+  "generatedAt": "2026-06-12T14:40:37.257Z",
+  "phase": "2N",
+  "mode": "controlled_create",
+  "platform": "gtm",
+  "status": "executed",
+  "mutationPerformed": true,
+  "gtmWriteCallsMade": true,
+  "gtmPublished": false,
+  "gtmVersionCreated": false,
+  "sourceArtifacts": [
+    "docs/marketing-ops-ga4-event-tags-payload-review.json"
+  ],
+  "executionCommand": "MARKETING_AGENT_MODE=controlled_create MARKETING_AGENT_ENABLE_WRITES=true MARKETING_AGENT_GTM_CREATE_ENABLED=true npm run marketing:apply:gtm:ga4-tags:create -- --platform gtm --all --confirm-human-approval",
+  "selectedActionCount": 3,
+  "preExecutionValidation": {
+    "phase2MConfirmed": true,
+    "approvedTags": 3,
+    "blocked": 0,
+    "allRequiredTriggersExist": true,
+    "allRequiredVariablesExist": true,
+    "rawGclidExcluded": true,
+    "rawFbclidExcluded": true,
+    "piiExcluded": true
+  },
+  "attemptedActions": [
+    {
+      "actionId": "gtm:create_ga4_event_tag:quote_request_start",
+      "action": "create_ga4_event_tag",
+      "tagName": "GA4 - quote_request_start",
+      "eventName": "quote_request_start",
+      "triggerName": "CE - quote_request_start"
+    },
+    {
+      "actionId": "gtm:create_ga4_event_tag:quote_request_submit_success",
+      "action": "create_ga4_event_tag",
+      "tagName": "GA4 - quote_request_submit_success",
+      "eventName": "quote_request_submit_success",
+      "triggerName": "CE - quote_request_submit_success"
+    },
+    {
+      "actionId": "gtm:create_ga4_event_tag:contact_form_submit_success",
+      "action": "create_ga4_event_tag",
+      "tagName": "GA4 - contact_form_submit_success",
+      "eventName": "contact_form_submit_success",
+      "triggerName": "CE - contact_form_submit_success"
+    }
+  ],
+  "createdTags": [
+    {
+      "actionId": "gtm:create_ga4_event_tag:quote_request_start",
+      "action": "create_ga4_event_tag",
+      "tagName": "GA4 - quote_request_start",
+      "eventName": "quote_request_start",
+      "triggerName": "CE - quote_request_start",
+      "triggerId": "111",
+      "tagId": "112",
+      "parameters": [
+        {
+          "parameter": "utm_source",
+          "variableReference": "{{DLV - utm_source}}"
+        },
+        {
+          "parameter": "utm_medium",
+          "variableReference": "{{DLV - utm_medium}}"
+        },
+        {
+          "parameter": "utm_campaign",
+          "variableReference": "{{DLV - utm_campaign}}"
+        },
+        {
+          "parameter": "utm_content",
+          "variableReference": "{{DLV - utm_content}}"
+        },
+        {
+          "parameter": "utm_term",
+          "variableReference": "{{DLV - utm_term}}"
+        },
+        {
+          "parameter": "gclid_present",
+          "variableReference": "{{DLV - gclid_present}}"
+        },
+        {
+          "parameter": "fbclid_present",
+          "variableReference": "{{DLV - fbclid_present}}"
+        },
+        {
+          "parameter": "attribution_touch",
+          "variableReference": "{{DLV - attribution_touch}}"
+        },
+        {
+          "parameter": "page_path",
+          "variableReference": "{{dlv - page_path}}"
+        },
+        {
+          "parameter": "page_name",
+          "variableReference": "{{dlv - page_name}}"
+        },
+        {
+          "parameter": "page_type",
+          "variableReference": "{{dlv - page_type}}"
+        }
+      ],
+      "status": "created"
+    },
+    {
+      "actionId": "gtm:create_ga4_event_tag:quote_request_submit_success",
+      "action": "create_ga4_event_tag",
+      "tagName": "GA4 - quote_request_submit_success",
+      "eventName": "quote_request_submit_success",
+      "triggerName": "CE - quote_request_submit_success",
+      "triggerId": "109",
+      "tagId": "113",
+      "parameters": [
+        {
+          "parameter": "utm_source",
+          "variableReference": "{{DLV - utm_source}}"
+        },
+        {
+          "parameter": "utm_medium",
+          "variableReference": "{{DLV - utm_medium}}"
+        },
+        {
+          "parameter": "utm_campaign",
+          "variableReference": "{{DLV - utm_campaign}}"
+        },
+        {
+          "parameter": "utm_content",
+          "variableReference": "{{DLV - utm_content}}"
+        },
+        {
+          "parameter": "utm_term",
+          "variableReference": "{{DLV - utm_term}}"
+        },
+        {
+          "parameter": "gclid_present",
+          "variableReference": "{{DLV - gclid_present}}"
+        },
+        {
+          "parameter": "fbclid_present",
+          "variableReference": "{{DLV - fbclid_present}}"
+        },
+        {
+          "parameter": "attribution_touch",
+          "variableReference": "{{DLV - attribution_touch}}"
+        },
+        {
+          "parameter": "page_path",
+          "variableReference": "{{dlv - page_path}}"
+        },
+        {
+          "parameter": "page_name",
+          "variableReference": "{{dlv - page_name}}"
+        },
+        {
+          "parameter": "page_type",
+          "variableReference": "{{dlv - page_type}}"
+        },
+        {
+          "parameter": "service_type",
+          "variableReference": "{{dlv - service_type}}"
+        },
+        {
+          "parameter": "shipping_mode",
+          "variableReference": "{{dlv - shipping_mode}}"
+        },
+        {
+          "parameter": "destination_country",
+          "variableReference": "{{dlv - destination_country}}"
+        },
+        {
+          "parameter": "weight_bucket",
+          "variableReference": "{{dlv - weight_bucket}}"
+        },
+        {
+          "parameter": "value_bucket",
+          "variableReference": "{{dlv - value_bucket}}"
+        }
+      ],
+      "status": "created"
+    },
+    {
+      "actionId": "gtm:create_ga4_event_tag:contact_form_submit_success",
+      "action": "create_ga4_event_tag",
+      "tagName": "GA4 - contact_form_submit_success",
+      "eventName": "contact_form_submit_success",
+      "triggerName": "CE - contact_form_submit_success",
+      "triggerId": "110",
+      "tagId": "114",
+      "parameters": [
+        {
+          "parameter": "utm_source",
+          "variableReference": "{{DLV - utm_source}}"
+        },
+        {
+          "parameter": "utm_medium",
+          "variableReference": "{{DLV - utm_medium}}"
+        },
+        {
+          "parameter": "utm_campaign",
+          "variableReference": "{{DLV - utm_campaign}}"
+        },
+        {
+          "parameter": "utm_content",
+          "variableReference": "{{DLV - utm_content}}"
+        },
+        {
+          "parameter": "utm_term",
+          "variableReference": "{{DLV - utm_term}}"
+        },
+        {
+          "parameter": "gclid_present",
+          "variableReference": "{{DLV - gclid_present}}"
+        },
+        {
+          "parameter": "fbclid_present",
+          "variableReference": "{{DLV - fbclid_present}}"
+        },
+        {
+          "parameter": "attribution_touch",
+          "variableReference": "{{DLV - attribution_touch}}"
+        },
+        {
+          "parameter": "form_name",
+          "variableReference": "{{dlv - form_name}}"
+        }
+      ],
+      "status": "created"
+    }
+  ],
+  "skippedExisting": [],
+  "failedActions": [],
+  "stoppedOnError": false,
+  "postCreateVerification": {
+    "tagsExist": true,
+    "duplicateRisk": 0,
+    "unexpectedCreatedObjects": [],
+    "variablesCreated": 0,
+    "triggersCreated": 0,
+    "tagsCreated": 3,
+    "versionsCreated": 0,
+    "gtmPublished": false,
+    "finalVerificationStatus": "pass"
+  },
+  "safety": {
+    "noGtmVersionCreated": true,
+    "noGtmPublish": true,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "secretsPrinted": false,
+    "rawClickIdsExcluded": true,
+    "piiExcluded": true
+  },
+  "recommendation": {
+    "publishApproved": false,
+    "nextPhase": "GTM Preview QA for newly created GA4 Event Tags"
+  },
+  "mutationStatement": "Only the selected approved GA4 Event tags were created in the GTM workspace. No variables, triggers, versions, publications, Google Ads objects, Meta objects, or runtime files were changed."
+}

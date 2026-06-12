@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops GTM Pre-flight
 
-Generated: 2026-06-12T07:54:23.391Z
+Generated: 2026-06-12T14:40:59.157Z
 
 Phase: **2G**
 
