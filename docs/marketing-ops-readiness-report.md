@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Readiness Report
 
-Generated: 2026-06-11T23:46:20.127Z
+Generated: 2026-06-12T00:01:31.766Z
 
 Mode: **read_only**
 
@@ -122,7 +122,7 @@ No GTM container versions are created and GTM publishing remains a separate bloc
 
 ## Phase 2G GTM Pre-flight
 
-- Generated: 2026-06-11T23:45:24.707Z
+- Generated: 2026-06-12T00:01:17.156Z
 - Mode: read_only
 - Plan valid: true
 - Workspace readable: true

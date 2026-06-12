@@ -328,6 +328,8 @@ async function runGtmControlledCreate(root, actions, policy) {
 }
 
 module.exports = {
+  buildCustomEventTriggerPayload,
+  buildDataLayerVariablePayload,
   buildGtmExecutionPreviews,
   runGtmControlledCreate
 };
