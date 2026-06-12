@@ -1,17 +1,206 @@
 {
-  "generatedAt": "2026-06-11T21:38:13.267Z",
-  "mode": "read_only",
-  "mutationPerformed": false,
+  "generatedAt": "2026-06-12T07:53:44.390Z",
+  "phase": "2J",
+  "mode": "controlled_create",
+  "mutationPerformed": true,
+  "gtmWriteCallsMade": true,
   "platform": "gtm",
-  "status": "not_executed",
+  "status": "executed",
   "selectedActionCount": 11,
-  "createdActions": [],
+  "executionCommand": "MARKETING_AGENT_MODE=controlled_create MARKETING_AGENT_ENABLE_WRITES=true MARKETING_AGENT_GTM_CREATE_ENABLED=true npm run marketing:apply:gtm:create -- --platform gtm --all --confirm-human-approval",
+  "preExecutionVerification": {
+    "passed": true,
+    "approvedActions": 11
+  },
+  "attemptedActions": [
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_utm_source",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - utm_source",
+      "dataLayerVariableName": "utm_source"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_utm_medium",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - utm_medium",
+      "dataLayerVariableName": "utm_medium"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_utm_campaign",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - utm_campaign",
+      "dataLayerVariableName": "utm_campaign"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_utm_content",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - utm_content",
+      "dataLayerVariableName": "utm_content"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_utm_term",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - utm_term",
+      "dataLayerVariableName": "utm_term"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_gclid_present",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - gclid_present",
+      "dataLayerVariableName": "gclid_present"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_fbclid_present",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - fbclid_present",
+      "dataLayerVariableName": "fbclid_present"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_attribution_touch",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - attribution_touch",
+      "dataLayerVariableName": "attribution_touch"
+    },
+    {
+      "actionId": "gtm:create_custom_event_trigger:quote_request_submit_success",
+      "action": "create_custom_event_trigger",
+      "triggerName": "CE - quote_request_submit_success",
+      "eventName": "quote_request_submit_success"
+    },
+    {
+      "actionId": "gtm:create_custom_event_trigger:contact_form_submit_success",
+      "action": "create_custom_event_trigger",
+      "triggerName": "CE - contact_form_submit_success",
+      "eventName": "contact_form_submit_success"
+    },
+    {
+      "actionId": "gtm:create_custom_event_trigger:quote_request_start",
+      "action": "create_custom_event_trigger",
+      "triggerName": "CE - quote_request_start",
+      "eventName": "quote_request_start"
+    }
+  ],
+  "createdActions": [
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_utm_source",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - utm_source",
+      "dataLayerVariableName": "utm_source",
+      "status": "created",
+      "resourceName": "accounts/6351590751/containers/250367469/workspaces/4/variables/101"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_utm_medium",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - utm_medium",
+      "dataLayerVariableName": "utm_medium",
+      "status": "created",
+      "resourceName": "accounts/6351590751/containers/250367469/workspaces/4/variables/102"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_utm_campaign",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - utm_campaign",
+      "dataLayerVariableName": "utm_campaign",
+      "status": "created",
+      "resourceName": "accounts/6351590751/containers/250367469/workspaces/4/variables/103"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_utm_content",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - utm_content",
+      "dataLayerVariableName": "utm_content",
+      "status": "created",
+      "resourceName": "accounts/6351590751/containers/250367469/workspaces/4/variables/104"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_utm_term",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - utm_term",
+      "dataLayerVariableName": "utm_term",
+      "status": "created",
+      "resourceName": "accounts/6351590751/containers/250367469/workspaces/4/variables/105"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_gclid_present",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - gclid_present",
+      "dataLayerVariableName": "gclid_present",
+      "status": "created",
+      "resourceName": "accounts/6351590751/containers/250367469/workspaces/4/variables/106"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_fbclid_present",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - fbclid_present",
+      "dataLayerVariableName": "fbclid_present",
+      "status": "created",
+      "resourceName": "accounts/6351590751/containers/250367469/workspaces/4/variables/107"
+    },
+    {
+      "actionId": "gtm:create_data_layer_variable:DLV_-_attribution_touch",
+      "action": "create_data_layer_variable",
+      "variableName": "DLV - attribution_touch",
+      "dataLayerVariableName": "attribution_touch",
+      "status": "created",
+      "resourceName": "accounts/6351590751/containers/250367469/workspaces/4/variables/108"
+    },
+    {
+      "actionId": "gtm:create_custom_event_trigger:quote_request_submit_success",
+      "action": "create_custom_event_trigger",
+      "triggerName": "CE - quote_request_submit_success",
+      "eventName": "quote_request_submit_success",
+      "status": "created",
+      "resourceName": "accounts/6351590751/containers/250367469/workspaces/4/triggers/109"
+    },
+    {
+      "actionId": "gtm:create_custom_event_trigger:contact_form_submit_success",
+      "action": "create_custom_event_trigger",
+      "triggerName": "CE - contact_form_submit_success",
+      "eventName": "contact_form_submit_success",
+      "status": "created",
+      "resourceName": "accounts/6351590751/containers/250367469/workspaces/4/triggers/110"
+    },
+    {
+      "actionId": "gtm:create_custom_event_trigger:quote_request_start",
+      "action": "create_custom_event_trigger",
+      "triggerName": "CE - quote_request_start",
+      "eventName": "quote_request_start",
+      "status": "created",
+      "resourceName": "accounts/6351590751/containers/250367469/workspaces/4/triggers/111"
+    }
+  ],
   "skippedExistingActions": [],
   "failedActions": [],
   "unsupportedActions": [],
-  "finalVerificationStatus": "not_run",
+  "stoppedOnError": false,
+  "createdVariables": 8,
+  "createdTriggers": 3,
+  "createdTags": 0,
+  "gtmVariablesCreated": true,
+  "gtmTriggersCreated": true,
+  "gtmTagsCreated": false,
+  "gtmVersionsCreated": false,
+  "finalVerificationStatus": "pass",
+  "postExecutionVerification": {
+    "alreadyExists": 11,
+    "wouldCreate": 0,
+    "duplicateRisk": 0,
+    "blocked": 0,
+    "requiredScopeStatus": "available",
+    "workspaceReadable": true,
+    "variablesReadable": true,
+    "triggersReadable": true,
+    "gtmPublished": false,
+    "gtmVersionsCreated": false
+  },
   "gtmPublished": false,
   "gtmVersionCreated": false,
-  "disabledReason": "MARKETING_AGENT_MODE must be controlled_create. MARKETING_AGENT_ENABLE_WRITES must be true. MARKETING_AGENT_GTM_CREATE_ENABLED must be true. CLI flag --platform gtm is required. CLI flag --confirm-human-approval is required. CLI flag --all or at least one --action-id is required.",
-  "mutationStatement": "No GTM mutations were performed. GTM controlled create was not executed."
+  "googleAdsTouched": false,
+  "metaTouched": false,
+  "websiteRuntimeFilesTouched": false,
+  "secretsPrinted": false,
+  "mutationStatement": "GTM controlled create executed selected approved workspace actions. No GTM version was created, no GTM container was published, and no Google Ads or Meta mutations were performed.",
+  "createdVersions": 0,
+  "published": false
 }

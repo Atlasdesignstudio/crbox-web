@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Readiness Report
 
-Generated: 2026-06-12T00:01:31.766Z
+Generated: 2026-06-12T07:54:32.092Z
 
 Mode: **read_only**
 
@@ -8,8 +8,8 @@ Mode: **read_only**
 
 ## Summary
 
-- Passed checks: 52
-- Warnings: 12
+- Passed checks: 63
+- Warnings: 1
 - Skipped checks: 2
 - Missing environment variables: 13
 
@@ -31,17 +31,6 @@ Mode: **read_only**
 
 ## Warnings
 
-- GTM Data Layer Variable for utm_source missing/not found
-- GTM Data Layer Variable for utm_medium missing/not found
-- GTM Data Layer Variable for utm_campaign missing/not found
-- GTM Data Layer Variable for utm_content missing/not found
-- GTM Data Layer Variable for utm_term missing/not found
-- GTM Data Layer Variable for gclid_present missing/not found
-- GTM Data Layer Variable for fbclid_present missing/not found
-- GTM Data Layer Variable for attribution_touch missing/not found
-- GTM Custom Event trigger for quote_request_submit_success missing/not found
-- GTM Custom Event trigger for contact_form_submit_success missing/not found
-- GTM Custom Event trigger for quote_request_start missing/not found
 - GTM Meta-related tags not found or not planned
 
 ## Live Platform Gaps
@@ -53,19 +42,10 @@ Missing GA4 key events/conversions:
 - None detected.
 
 Missing GTM Data Layer Variables:
-- `utm_source`
-- `utm_medium`
-- `utm_campaign`
-- `utm_content`
-- `utm_term`
-- `gclid_present`
-- `fbclid_present`
-- `attribution_touch`
+- None detected.
 
 Missing GTM triggers:
-- `quote_request_submit_success`
-- `contact_form_submit_success`
-- `quote_request_start`
+- None detected.
 
 Permission or scope issues:
 - None detected.
@@ -109,20 +89,20 @@ No Phase 2D GA4 controlled-create mutations are performed unless the dedicated G
 ## Phase 2F GTM Controlled Create Prep
 
 - GTM controlled create capability implemented: true
-- GTM controlled create execution currently run: false
+- GTM controlled create execution currently run: true
 - GTM write execution requires explicit env + flags: true
 - GTM publish enabled: false
 - Google Ads enabled: false
 - Meta enabled: false
 - Last GTM create result file exists: true
-- Last GTM create result status: not_executed
-- Last GTM create result mutationPerformed: false
+- Last GTM create result status: executed
+- Last GTM create result mutationPerformed: true
 
 No GTM container versions are created and GTM publishing remains a separate blocked phase requiring explicit approval.
 
 ## Phase 2G GTM Pre-flight
 
-- Generated: 2026-06-12T00:01:17.156Z
+- Generated: 2026-06-12T07:54:23.391Z
 - Mode: read_only
 - Plan valid: true
 - Workspace readable: true
@@ -130,8 +110,8 @@ No GTM container versions are created and GTM publishing remains a separate bloc
 - Triggers readable: true
 - Required GTM edit scope status: available
 - Future actions checked: 11
-- Already existing: 0
-- Would create later: 11
+- Already existing: 11
+- Would create later: 0
 - Duplicate risk: 0
 - Blocked unsafe proposed actions: 0
 - Ready for future human review: true
@@ -250,20 +230,20 @@ Notes:
 | GTM container is accessible | PASS | Found container by read-only list call using configured ID/public ID. |
 | GTM container public ID matches GTM-5WD8N53F | PASS | Read-only container lookup confirmed public ID GTM-5WD8N53F. |
 | GTM workspaces are readable | PASS | Listed 1 workspace(s); using "Default Workspace" for variable/trigger/tag checks. |
-| GTM Data Layer Variable for utm_source exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for utm_medium exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for utm_campaign exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for utm_content exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for utm_term exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for gclid_present exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for fbclid_present exists | WARN | Missing from GTM API read-only variables list. |
-| GTM Data Layer Variable for attribution_touch exists | WARN | Missing from GTM API read-only variables list. |
+| GTM Data Layer Variable for utm_source exists | PASS | Found by GTM API read-only variables list. |
+| GTM Data Layer Variable for utm_medium exists | PASS | Found by GTM API read-only variables list. |
+| GTM Data Layer Variable for utm_campaign exists | PASS | Found by GTM API read-only variables list. |
+| GTM Data Layer Variable for utm_content exists | PASS | Found by GTM API read-only variables list. |
+| GTM Data Layer Variable for utm_term exists | PASS | Found by GTM API read-only variables list. |
+| GTM Data Layer Variable for gclid_present exists | PASS | Found by GTM API read-only variables list. |
+| GTM Data Layer Variable for fbclid_present exists | PASS | Found by GTM API read-only variables list. |
+| GTM Data Layer Variable for attribution_touch exists | PASS | Found by GTM API read-only variables list. |
 | GTM Custom Event trigger for signup_success exists | PASS | Found by GTM API read-only triggers list. |
-| GTM Custom Event trigger for quote_request_submit_success exists | WARN | Missing from GTM API read-only triggers list. |
-| GTM Custom Event trigger for contact_form_submit_success exists | WARN | Missing from GTM API read-only triggers list. |
+| GTM Custom Event trigger for quote_request_submit_success exists | PASS | Found by GTM API read-only triggers list. |
+| GTM Custom Event trigger for contact_form_submit_success exists | PASS | Found by GTM API read-only triggers list. |
 | GTM Custom Event trigger for calculator_result exists | PASS | Found by GTM API read-only triggers list. |
 | GTM Custom Event trigger for whatsapp_click exists | PASS | Found by GTM API read-only triggers list. |
-| GTM Custom Event trigger for quote_request_start exists | WARN | Missing from GTM API read-only triggers list. |
+| GTM Custom Event trigger for quote_request_start exists | PASS | Found by GTM API read-only triggers list. |
 | GTM GA4-related tags appear present | PASS | Found GA4-related signal in 36 listed tag(s). |
 | GTM Meta-related tags appear present or planned | WARN | No Meta-related signal found in 36 listed tag(s). |
 | No GTM variable appears to expose raw gclid/fbclid | PASS | No raw click ID variables detected by read-only variables list. |
@@ -277,21 +257,6 @@ Future read-only API checks planned for this module:
 - Triggers exist for approved CRBOX events
 - Meta Pixel base/event tags exist or are planned
 - Raw gclid/fbclid is not exposed through GTM variables unless explicitly approved
-
-Missing GTM Data Layer Variables:
-- `utm_source`
-- `utm_medium`
-- `utm_campaign`
-- `utm_content`
-- `utm_term`
-- `gclid_present`
-- `fbclid_present`
-- `attribution_touch`
-
-Missing GTM triggers:
-- `quote_request_submit_success`
-- `contact_form_submit_success`
-- `quote_request_start`
 
 ## Google Ads checks
 
