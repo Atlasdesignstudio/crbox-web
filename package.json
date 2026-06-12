@@ -9,6 +9,7 @@
     "marketing:check:ga4": "node scripts/marketing-ops/index.js ga4",
     "marketing:check:gtm": "node scripts/marketing-ops/index.js gtm",
     "marketing:gtm:preflight": "node scripts/marketing-ops/index.js gtm:preflight",
+    "marketing:gtm:payload-review": "node scripts/marketing-ops/index.js gtm:payload-review",
     "marketing:oauth:gtm-edit-url": "node scripts/marketing-ops/index.js oauth:gtm-edit-url",
     "marketing:check:ads": "node scripts/marketing-ops/index.js ads",
     "marketing:check:meta": "node scripts/marketing-ops/index.js meta",
