@@ -18,6 +18,7 @@ const { runGtmPayloadReview, printPayloadReviewSummary } = require('./gtm-payloa
 const { runGtmPreviewQaReport, printSummary: printGtmPreviewQaSummary } = require('./gtm-preview-qa-report');
 const { runGtmGa4TagsPayloadReview, printSummary: printGtmGa4TagsPayloadReviewSummary } = require('./gtm-ga4-tags-payload-review');
 const { runGtmGa4TagsPreviewQa, printSummary: printGtmGa4TagsPreviewQaSummary } = require('./gtm-ga4-tags-preview-qa');
+const { runGtmPublishReadinessReview, printSummary: printGtmPublishReadinessSummary } = require('./gtm-publish-readiness-review');
 const { runGtmGa4TagsControlledCreate, outputLines: gtmGa4TagsCreateOutputLines } = require('./apply/gtm-ga4-tags-create');
 const { safeOutputLines, writeGtmEditAuthorizationUrl } = require('./oauth-gtm-edit-url');
 
@@ -167,6 +168,13 @@ async function main() {
       }
       return;
     }
+    case 'gtm:publish-readiness-review': {
+      const publishReview = await runGtmPublishReadinessReview(root);
+      for (const line of printGtmPublishReadinessSummary(publishReview.review, publishReview.paths)) {
+        console.log(maskSecretsInText(line));
+      }
+      return;
+    }
     case 'oauth:gtm-edit-url': {
       try {
         const oauthUrl = writeGtmEditAuthorizationUrl(root);
@@ -220,7 +228,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|oauth:gtm-edit-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:validate]');
       process.exitCode = 1;
       return;
   }
