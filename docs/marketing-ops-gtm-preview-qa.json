@@ -1,0 +1,121 @@
+{
+  "generatedAt": "2026-06-12T09:32:01.027Z",
+  "phase": "2K",
+  "mode": "manual_qa_report",
+  "mutationPerformed": false,
+  "gtmWriteCallsMade": false,
+  "gtmPublished": false,
+  "sourceArtifacts": [
+    "docs/marketing-ops-gtm-create-result.json",
+    "docs/marketing-ops-gtm-preflight.json",
+    "docs/marketing-ops-gtm-payload-review.json"
+  ],
+  "manualEvidence": {
+    "tagAssistantConnected": true,
+    "gtmContainerDetected": "GTM-5WD8N53F",
+    "ga4MeasurementDetected": "G-B5BPHFRR18",
+    "previewModeActive": true,
+    "gtmPublishedDuringQa": false
+  },
+  "qaResults": {
+    "quote_request_start": {
+      "eventObserved": true,
+      "dataLayerPushObserved": true,
+      "variablesReadable": true,
+      "variables": {
+        "attributionTouch": "none",
+        "fbclidPresent": "false",
+        "gclidPresent": "false",
+        "utmCampaign": "(not set)",
+        "utmContent": "(not set)",
+        "utmMedium": "(not set)",
+        "utmSource": "(not set)",
+        "utmTerm": "(not set)"
+      },
+      "tagsFired": [],
+      "status": "pass_with_no_ga4_tag_firing"
+    },
+    "utmVariables": {
+      "testUrlUsed": "https://crbox.cr/cotizar.html?utm_source=test_source&utm_medium=test_medium&utm_campaign=test_campaign&utm_content=test_content&utm_term=test_term",
+      "observedEvents": [
+        "portal_section_view",
+        "gtm.load",
+        "gtm.dom"
+      ],
+      "pagePath": "/cotizar.html",
+      "pageName": "cotizar",
+      "pageType": "portal_quotes",
+      "utmSource": "test_source",
+      "utmMedium": "test_medium",
+      "utmCampaign": "test_campaign",
+      "utmContent": "test_content",
+      "utmTerm": "test_term",
+      "attributionTouch": "both_available",
+      "gclidPresent": "false",
+      "fbclidPresent": "false",
+      "rawClickIdsExposed": false,
+      "status": "pass"
+    },
+    "contact_form_submit_success": {
+      "eventObserved": true,
+      "dataLayerPushObserved": true,
+      "variablesReadable": true,
+      "variables": {
+        "attributionTouch": "both_available",
+        "fbclidPresent": "false",
+        "gclidPresent": "false",
+        "utmCampaign": "test_campaign",
+        "utmContent": "test_content",
+        "utmMedium": "test_medium",
+        "utmSource": "test_source",
+        "utmTerm": "test_term"
+      },
+      "tagsFired": [],
+      "status": "pass_with_no_ga4_tag_firing"
+    },
+    "quote_request_submit_success": {
+      "quoteUiSuccessObserved": true,
+      "quoteUiMessageObserved": "¡Solicitud enviada!",
+      "exampleReferenceObserved": "#SCB-0026",
+      "eventObserved": false,
+      "status": "fail_not_observed",
+      "notes": "Successful quote UI was observed, but quote_request_submit_success was not observed in Tag Assistant."
+    },
+    "ga4Hits": {
+      "generalHitsObserved": true,
+      "generalEventsObserved": [
+        "Desplazamiento",
+        "portal_section_view",
+        "Vista de una página",
+        "nav_click",
+        "Interacción del usuario",
+        "section_visible"
+      ],
+      "newConversionIntentHitsConfirmed": false,
+      "unconfirmedEvents": [
+        "quote_request_start",
+        "contact_form_submit_success",
+        "quote_request_submit_success"
+      ],
+      "status": "partial"
+    }
+  },
+  "blockersBeforePublish": [
+    "quote_request_submit_success was not observed after successful quote submission.",
+    "No GA4 tags fired on quote_request_start or contact_form_submit_success.",
+    "GA4 hits for the new conversion-intent events were not confirmed."
+  ],
+  "recommendation": {
+    "publishApproved": false,
+    "nextPhase": "Plan GA4 event tags and/or verify runtime emission before publish."
+  },
+  "safety": {
+    "noGtmWrites": true,
+    "noGtmVersionCreated": true,
+    "noGtmPublish": true,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false
+  }
+}
