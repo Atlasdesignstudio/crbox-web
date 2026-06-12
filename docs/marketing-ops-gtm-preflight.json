@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T00:01:17.156Z",
+  "generatedAt": "2026-06-12T07:54:23.391Z",
   "phase": "2G",
   "mode": "read_only",
   "mutationPerformed": false,
@@ -38,8 +38,8 @@
   },
   "futureActions": {
     "total": 11,
-    "alreadyExists": 0,
-    "wouldCreate": 11,
+    "alreadyExists": 11,
+    "wouldCreate": 0,
     "duplicateRisk": 0,
     "blocked": 0,
     "unknown": 0,
@@ -50,14 +50,24 @@
         "platform": "gtm",
         "intendedName": "DLV - utm_source",
         "dataLayerVariableName": "utm_source",
-        "status": "would_create",
+        "status": "already_exists",
         "duplicateMatches": {
-          "byName": [],
-          "byDataLayerKey": [],
+          "byName": [
+            {
+              "name": "DLV - utm_source",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/101"
+            }
+          ],
+          "byDataLayerKey": [
+            {
+              "name": "DLV - utm_source",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/101"
+            }
+          ],
           "byEventName": []
         },
         "riskLevel": "low",
-        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+        "notes": "An existing GTM variable matches both the intended name and Data Layer Variable key."
       },
       {
         "actionId": "gtm:create_data_layer_variable:DLV_-_utm_medium",
@@ -65,14 +75,24 @@
         "platform": "gtm",
         "intendedName": "DLV - utm_medium",
         "dataLayerVariableName": "utm_medium",
-        "status": "would_create",
+        "status": "already_exists",
         "duplicateMatches": {
-          "byName": [],
-          "byDataLayerKey": [],
+          "byName": [
+            {
+              "name": "DLV - utm_medium",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/102"
+            }
+          ],
+          "byDataLayerKey": [
+            {
+              "name": "DLV - utm_medium",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/102"
+            }
+          ],
           "byEventName": []
         },
         "riskLevel": "low",
-        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+        "notes": "An existing GTM variable matches both the intended name and Data Layer Variable key."
       },
       {
         "actionId": "gtm:create_data_layer_variable:DLV_-_utm_campaign",
@@ -80,14 +100,24 @@
         "platform": "gtm",
         "intendedName": "DLV - utm_campaign",
         "dataLayerVariableName": "utm_campaign",
-        "status": "would_create",
+        "status": "already_exists",
         "duplicateMatches": {
-          "byName": [],
-          "byDataLayerKey": [],
+          "byName": [
+            {
+              "name": "DLV - utm_campaign",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/103"
+            }
+          ],
+          "byDataLayerKey": [
+            {
+              "name": "DLV - utm_campaign",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/103"
+            }
+          ],
           "byEventName": []
         },
         "riskLevel": "low",
-        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+        "notes": "An existing GTM variable matches both the intended name and Data Layer Variable key."
       },
       {
         "actionId": "gtm:create_data_layer_variable:DLV_-_utm_content",
@@ -95,14 +125,24 @@
         "platform": "gtm",
         "intendedName": "DLV - utm_content",
         "dataLayerVariableName": "utm_content",
-        "status": "would_create",
+        "status": "already_exists",
         "duplicateMatches": {
-          "byName": [],
-          "byDataLayerKey": [],
+          "byName": [
+            {
+              "name": "DLV - utm_content",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/104"
+            }
+          ],
+          "byDataLayerKey": [
+            {
+              "name": "DLV - utm_content",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/104"
+            }
+          ],
           "byEventName": []
         },
         "riskLevel": "low",
-        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+        "notes": "An existing GTM variable matches both the intended name and Data Layer Variable key."
       },
       {
         "actionId": "gtm:create_data_layer_variable:DLV_-_utm_term",
@@ -110,14 +150,24 @@
         "platform": "gtm",
         "intendedName": "DLV - utm_term",
         "dataLayerVariableName": "utm_term",
-        "status": "would_create",
+        "status": "already_exists",
         "duplicateMatches": {
-          "byName": [],
-          "byDataLayerKey": [],
+          "byName": [
+            {
+              "name": "DLV - utm_term",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/105"
+            }
+          ],
+          "byDataLayerKey": [
+            {
+              "name": "DLV - utm_term",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/105"
+            }
+          ],
           "byEventName": []
         },
         "riskLevel": "low",
-        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+        "notes": "An existing GTM variable matches both the intended name and Data Layer Variable key."
       },
       {
         "actionId": "gtm:create_data_layer_variable:DLV_-_gclid_present",
@@ -125,14 +175,24 @@
         "platform": "gtm",
         "intendedName": "DLV - gclid_present",
         "dataLayerVariableName": "gclid_present",
-        "status": "would_create",
+        "status": "already_exists",
         "duplicateMatches": {
-          "byName": [],
-          "byDataLayerKey": [],
+          "byName": [
+            {
+              "name": "DLV - gclid_present",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/106"
+            }
+          ],
+          "byDataLayerKey": [
+            {
+              "name": "DLV - gclid_present",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/106"
+            }
+          ],
           "byEventName": []
         },
         "riskLevel": "low",
-        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+        "notes": "An existing GTM variable matches both the intended name and Data Layer Variable key."
       },
       {
         "actionId": "gtm:create_data_layer_variable:DLV_-_fbclid_present",
@@ -140,14 +200,24 @@
         "platform": "gtm",
         "intendedName": "DLV - fbclid_present",
         "dataLayerVariableName": "fbclid_present",
-        "status": "would_create",
+        "status": "already_exists",
         "duplicateMatches": {
-          "byName": [],
-          "byDataLayerKey": [],
+          "byName": [
+            {
+              "name": "DLV - fbclid_present",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/107"
+            }
+          ],
+          "byDataLayerKey": [
+            {
+              "name": "DLV - fbclid_present",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/107"
+            }
+          ],
           "byEventName": []
         },
         "riskLevel": "low",
-        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+        "notes": "An existing GTM variable matches both the intended name and Data Layer Variable key."
       },
       {
         "actionId": "gtm:create_data_layer_variable:DLV_-_attribution_touch",
@@ -155,14 +225,24 @@
         "platform": "gtm",
         "intendedName": "DLV - attribution_touch",
         "dataLayerVariableName": "attribution_touch",
-        "status": "would_create",
+        "status": "already_exists",
         "duplicateMatches": {
-          "byName": [],
-          "byDataLayerKey": [],
+          "byName": [
+            {
+              "name": "DLV - attribution_touch",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/108"
+            }
+          ],
+          "byDataLayerKey": [
+            {
+              "name": "DLV - attribution_touch",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/variables/108"
+            }
+          ],
           "byEventName": []
         },
         "riskLevel": "low",
-        "notes": "No existing GTM variable matched the intended name or Data Layer Variable key."
+        "notes": "An existing GTM variable matches both the intended name and Data Layer Variable key."
       },
       {
         "actionId": "gtm:create_custom_event_trigger:quote_request_submit_success",
@@ -170,14 +250,24 @@
         "platform": "gtm",
         "intendedName": "CE - quote_request_submit_success",
         "eventName": "quote_request_submit_success",
-        "status": "would_create",
+        "status": "already_exists",
         "duplicateMatches": {
-          "byName": [],
+          "byName": [
+            {
+              "name": "CE - quote_request_submit_success",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/triggers/109"
+            }
+          ],
           "byDataLayerKey": [],
-          "byEventName": []
+          "byEventName": [
+            {
+              "name": "CE - quote_request_submit_success",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/triggers/109"
+            }
+          ]
         },
         "riskLevel": "low/medium",
-        "notes": "No existing GTM trigger matched the intended name or Custom Event name."
+        "notes": "An existing GTM trigger matches both the intended name and Custom Event name."
       },
       {
         "actionId": "gtm:create_custom_event_trigger:contact_form_submit_success",
@@ -185,14 +275,24 @@
         "platform": "gtm",
         "intendedName": "CE - contact_form_submit_success",
         "eventName": "contact_form_submit_success",
-        "status": "would_create",
+        "status": "already_exists",
         "duplicateMatches": {
-          "byName": [],
+          "byName": [
+            {
+              "name": "CE - contact_form_submit_success",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/triggers/110"
+            }
+          ],
           "byDataLayerKey": [],
-          "byEventName": []
+          "byEventName": [
+            {
+              "name": "CE - contact_form_submit_success",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/triggers/110"
+            }
+          ]
         },
         "riskLevel": "low",
-        "notes": "No existing GTM trigger matched the intended name or Custom Event name."
+        "notes": "An existing GTM trigger matches both the intended name and Custom Event name."
       },
       {
         "actionId": "gtm:create_custom_event_trigger:quote_request_start",
@@ -200,14 +300,24 @@
         "platform": "gtm",
         "intendedName": "CE - quote_request_start",
         "eventName": "quote_request_start",
-        "status": "would_create",
+        "status": "already_exists",
         "duplicateMatches": {
-          "byName": [],
+          "byName": [
+            {
+              "name": "CE - quote_request_start",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/triggers/111"
+            }
+          ],
           "byDataLayerKey": [],
-          "byEventName": []
+          "byEventName": [
+            {
+              "name": "CE - quote_request_start",
+              "resource": "accounts/6351590751/containers/250367469/workspaces/4/triggers/111"
+            }
+          ]
         },
         "riskLevel": "low",
-        "notes": "No existing GTM trigger matched the intended name or Custom Event name."
+        "notes": "An existing GTM trigger matches both the intended name and Custom Event name."
       }
     ]
   },

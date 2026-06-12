@@ -171,18 +171,41 @@ async function createWorkspaceTrigger(accessToken, action) {
 async function runGtmControlledCreate(root, actions, policy) {
   const result = {
     generatedAt: new Date().toISOString(),
+    phase: '2J',
     mode: policy.mode,
     mutationPerformed: false,
+    gtmWriteCallsMade: false,
     platform: 'gtm',
     status: 'not_executed',
     selectedActionCount: actions.length,
+    executionCommand: 'MARKETING_AGENT_MODE=controlled_create MARKETING_AGENT_ENABLE_WRITES=true MARKETING_AGENT_GTM_CREATE_ENABLED=true npm run marketing:apply:gtm:create -- --platform gtm --all --confirm-human-approval',
+    preExecutionVerification: {
+      passed: true,
+      approvedActions: actions.length
+    },
+    attemptedActions: [],
     createdActions: [],
     skippedExistingActions: [],
     failedActions: [],
     unsupportedActions: [],
+    stoppedOnError: false,
+    createdVariables: 0,
+    createdTriggers: 0,
+    createdTags: 0,
+    createdVersions: 0,
+    published: false,
+    gtmVariablesCreated: false,
+    gtmTriggersCreated: false,
+    gtmTagsCreated: false,
+    gtmVersionsCreated: false,
     finalVerificationStatus: 'not_run',
+    postExecutionVerification: null,
     gtmPublished: false,
     gtmVersionCreated: false,
+    googleAdsTouched: false,
+    metaTouched: false,
+    websiteRuntimeFilesTouched: false,
+    secretsPrinted: false,
     mutationStatement: 'No GTM mutations were performed.'
   };
 
@@ -211,6 +234,14 @@ async function runGtmControlledCreate(root, actions, policy) {
   for (let index = 0; index < actions.length; index += 1) {
     const action = actions[index];
     const id = actionId(action, index);
+    result.attemptedActions.push({
+      actionId: id,
+      action: action.action,
+      variableName: action.variableName,
+      triggerName: action.triggerName,
+      dataLayerVariableName: action.dataLayerVariableName,
+      eventName: action.eventName
+    });
     try {
       if (action.action === 'create_data_layer_variable') {
         if (RAW_CLICK_ID_KEYS.has(String(action.dataLayerVariableName || '').toLowerCase())) {
@@ -242,6 +273,7 @@ async function runGtmControlledCreate(root, actions, policy) {
           continue;
         }
 
+        result.gtmWriteCallsMade = true;
         const created = await createWorkspaceVariable(accessToken, action);
         result.createdActions.push({
           actionId: id,
@@ -273,6 +305,7 @@ async function runGtmControlledCreate(root, actions, policy) {
           continue;
         }
 
+        result.gtmWriteCallsMade = true;
         const created = await createWorkspaceTrigger(accessToken, action);
         result.createdActions.push({
           actionId: id,
@@ -293,6 +326,7 @@ async function runGtmControlledCreate(root, actions, policy) {
         reason: 'Only create_data_layer_variable and create_custom_event_trigger are implemented for GTM Phase 2F.'
       });
     } catch (error) {
+      result.stoppedOnError = true;
       result.failedActions.push({
         actionId: id,
         action: action.action,
@@ -312,6 +346,11 @@ async function runGtmControlledCreate(root, actions, policy) {
   } else if (result.createdActions.length || result.skippedExistingActions.length) {
     result.status = 'executed';
   }
+
+  result.createdVariables = result.createdActions.filter((action) => action.action === 'create_data_layer_variable').length;
+  result.createdTriggers = result.createdActions.filter((action) => action.action === 'create_custom_event_trigger').length;
+  result.gtmVariablesCreated = result.createdVariables > 0;
+  result.gtmTriggersCreated = result.createdTriggers > 0;
 
   try {
     const verification = await runGtmCheck();
