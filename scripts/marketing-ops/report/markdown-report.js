@@ -8,6 +8,7 @@ const { readDryRunPlan } = require('../planner/plan-writer');
 const { validateDryRunPlan } = require('../apply/apply-validator');
 const { readGa4CreateResult } = require('../apply/ga4-create-result');
 const { readGtmCreateResult } = require('../apply/gtm-create-result');
+const { readGa4EventTagsCreateResult } = require('../apply/gtm-ga4-tags-create-result');
 const { readPreflight } = require('../gtm-preflight');
 
 function sectionForResult(result) {
@@ -92,6 +93,7 @@ function buildMarkdownReport(results, options = {}) {
   const apply = options.apply || null;
   const ga4CreateResult = options.ga4CreateResult || readGa4CreateResult(options.root || process.cwd());
   const gtmCreateResult = options.gtmCreateResult || readGtmCreateResult(options.root || process.cwd());
+  const ga4EventTagsCreateResult = options.ga4EventTagsCreateResult || readGa4EventTagsCreateResult(options.root || process.cwd());
   const gtmPreflight = options.gtmPreflight || readPreflight(options.root || process.cwd());
   const allChecks = results.flatMap((result) => result.checks || []);
   const summary = summarizeStatus(allChecks);
@@ -237,6 +239,21 @@ function buildMarkdownReport(results, options = {}) {
       : '- No GTM pre-flight artifact found yet.',
     '',
     'No GTM write calls were made by the Phase 2G pre-flight. No variables, triggers, tags, versions, or publishes were created.',
+    '',
+    '## Phase 2N GA4 Event Tags Controlled Create',
+    '',
+    `- Controlled create capability implemented: true
+- Result artifact exists: ${ga4EventTagsCreateResult.exists}
+- Result status: ${ga4EventTagsCreateResult.status}
+- Mutation performed: ${ga4EventTagsCreateResult.mutationPerformed}
+- Tags created: ${ga4EventTagsCreateResult.result?.createdTags?.length || 0}
+- Variables created: ${ga4EventTagsCreateResult.result?.postCreateVerification?.variablesCreated || 0}
+- Triggers created: ${ga4EventTagsCreateResult.result?.postCreateVerification?.triggersCreated || 0}
+- GTM version created: ${ga4EventTagsCreateResult.result?.gtmVersionCreated || false}
+- GTM published: ${ga4EventTagsCreateResult.result?.gtmPublished || false}
+- Publish approved: ${ga4EventTagsCreateResult.result?.recommendation?.publishApproved || false}`,
+    '',
+    'GTM publish remains blocked until the new GA4 Event tags pass a separately reviewed GTM Preview QA phase.',
     '',
     '## Phase 2H GTM OAuth Re-authorization',
     '',

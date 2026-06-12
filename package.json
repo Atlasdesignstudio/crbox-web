@@ -23,6 +23,7 @@
     "marketing:apply:ga4:create": "node scripts/marketing-ops/index.js apply:ga4:create",
     "marketing:apply:gtm": "node scripts/marketing-ops/index.js apply:gtm",
     "marketing:apply:gtm:create": "node scripts/marketing-ops/index.js apply:gtm:create",
+    "marketing:apply:gtm:ga4-tags:create": "node scripts/marketing-ops/index.js apply:gtm:ga4-tags:create",
     "marketing:apply:validate": "node scripts/marketing-ops/index.js apply:validate",
     "marketing:report": "node scripts/marketing-ops/index.js report"
   }

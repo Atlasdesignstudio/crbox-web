@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-12T10:32:30.623Z",
+  "generatedAt": "2026-06-12T14:40:56.066Z",
   "phase": "2M",
   "mode": "review_only",
   "mutationPerformed": false,
@@ -501,6 +501,33 @@
         "firingTriggerId": [
           "61"
         ]
+      },
+      {
+        "name": "GA4 - quote_request_start",
+        "tagId": "112",
+        "type": "gaawe",
+        "eventName": "quote_request_start",
+        "firingTriggerId": [
+          "111"
+        ]
+      },
+      {
+        "name": "GA4 - quote_request_submit_success",
+        "tagId": "113",
+        "type": "gaawe",
+        "eventName": "quote_request_submit_success",
+        "firingTriggerId": [
+          "109"
+        ]
+      },
+      {
+        "name": "GA4 - contact_form_submit_success",
+        "tagId": "114",
+        "type": "gaawe",
+        "eventName": "contact_form_submit_success",
+        "firingTriggerId": [
+          "110"
+        ]
       }
     ]
   },
@@ -785,13 +812,13 @@
           "111"
         ]
       },
-      "status": "would_create",
+      "status": "already_exists",
       "priority": "high",
       "publishBlocker": true,
       "purpose": "Start of quote intent.",
       "keyEventCandidate": false,
       "notes": [
-        "Trigger and all approved parameter variables exist. Payload is ready for human review before a separate controlled-create phase."
+        "An existing GA4 Event tag already matches by name or event: GA4 - quote_request_start."
       ]
     },
     {
@@ -1184,13 +1211,13 @@
           "109"
         ]
       },
-      "status": "would_create",
+      "status": "already_exists",
       "priority": "critical",
       "publishBlocker": true,
       "purpose": "Successful quote request and primary conversion.",
       "keyEventCandidate": true,
       "notes": [
-        "Trigger and all approved parameter variables exist. Payload is ready for human review before a separate controlled-create phase."
+        "An existing GA4 Event tag already matches by name or event: GA4 - quote_request_submit_success."
       ]
     },
     {
@@ -1429,20 +1456,20 @@
           "110"
         ]
       },
-      "status": "would_create",
+      "status": "already_exists",
       "priority": "high",
       "publishBlocker": true,
       "purpose": "Successful contact form lead.",
       "keyEventCandidate": false,
       "notes": [
-        "Trigger and all approved parameter variables exist. Payload is ready for human review before a separate controlled-create phase."
+        "An existing GA4 Event tag already matches by name or event: GA4 - contact_form_submit_success."
       ]
     }
   ],
   "summary": {
     "currentBatch": 3,
-    "wouldCreate": 3,
-    "alreadyExists": 0,
+    "wouldCreate": 0,
+    "alreadyExists": 3,
     "blocked": 0,
     "allRequiredTriggersExist": true,
     "allRequiredVariablesExist": true
@@ -1489,11 +1516,7 @@
       "notes": "Existing trigger CE - whatsapp_click and GA4 Event tag GA4 - whatsapp_click were confirmed by read-only GTM list calls."
     }
   ],
-  "blockers": [
-    "GA4 - quote_request_start is missing and must be created and validated before GTM publish can be considered.",
-    "GA4 - quote_request_submit_success is missing and must be created and validated before GTM publish can be considered.",
-    "GA4 - contact_form_submit_success is missing and must be created and validated before GTM publish can be considered."
-  ],
+  "blockers": [],
   "safety": {
     "noGtmWrites": true,
     "noGtmVersionCreated": true,
@@ -1508,7 +1531,7 @@
   },
   "recommendation": {
     "readyForHumanReview": true,
-    "readyForControlledCreateLater": true,
+    "readyForControlledCreateLater": false,
     "publishApproved": false,
     "nextPhase": "Human review, then a separately approved controlled-create phase for the 3 GA4 Event tags, followed by GTM Preview validation. Publishing remains separate and blocked."
   }

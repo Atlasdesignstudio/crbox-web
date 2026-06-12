@@ -1,6 +1,6 @@
 # CRBOX Marketing Ops Readiness Report
 
-Generated: 2026-06-12T07:54:32.092Z
+Generated: 2026-06-12T14:41:21.506Z
 
 Mode: **read_only**
 
@@ -102,7 +102,7 @@ No GTM container versions are created and GTM publishing remains a separate bloc
 
 ## Phase 2G GTM Pre-flight
 
-- Generated: 2026-06-12T07:54:23.391Z
+- Generated: 2026-06-12T14:40:59.157Z
 - Mode: read_only
 - Plan valid: true
 - Workspace readable: true
@@ -117,6 +117,21 @@ No GTM container versions are created and GTM publishing remains a separate bloc
 - Ready for future human review: true
 
 No GTM write calls were made by the Phase 2G pre-flight. No variables, triggers, tags, versions, or publishes were created.
+
+## Phase 2N GA4 Event Tags Controlled Create
+
+- Controlled create capability implemented: true
+- Result artifact exists: true
+- Result status: executed
+- Mutation performed: true
+- Tags created: 3
+- Variables created: 0
+- Triggers created: 0
+- GTM version created: false
+- GTM published: false
+- Publish approved: false
+
+GTM publish remains blocked until the new GA4 Event tags pass a separately reviewed GTM Preview QA phase.
 
 ## Phase 2H GTM OAuth Re-authorization
 
@@ -244,8 +259,8 @@ Notes:
 | GTM Custom Event trigger for calculator_result exists | PASS | Found by GTM API read-only triggers list. |
 | GTM Custom Event trigger for whatsapp_click exists | PASS | Found by GTM API read-only triggers list. |
 | GTM Custom Event trigger for quote_request_start exists | PASS | Found by GTM API read-only triggers list. |
-| GTM GA4-related tags appear present | PASS | Found GA4-related signal in 36 listed tag(s). |
-| GTM Meta-related tags appear present or planned | WARN | No Meta-related signal found in 36 listed tag(s). |
+| GTM GA4-related tags appear present | PASS | Found GA4-related signal in 39 listed tag(s). |
+| GTM Meta-related tags appear present or planned | WARN | No Meta-related signal found in 39 listed tag(s). |
 | No GTM variable appears to expose raw gclid/fbclid | PASS | No raw click ID variables detected by read-only variables list. |
 
 Future read-only API checks planned for this module:
