@@ -1,0 +1,501 @@
+{
+  "generatedAt": "2026-06-12T18:25:46.233Z",
+  "phase": "2P",
+  "mode": "publish_readiness_review",
+  "mutationPerformed": false,
+  "gtmWriteCallsMade": false,
+  "gtmVersionCreated": false,
+  "gtmPublished": false,
+  "sourceArtifacts": [
+    "docs/marketing-ops-ga4-event-tags-create-result.json",
+    "docs/marketing-ops-ga4-event-tags-preview-qa.json",
+    "docs/marketing-ops-ga4-event-tags-payload-review.json"
+  ],
+  "prerequisites": {
+    "phase2NConfirmed": true,
+    "phase2OConfirmed": true,
+    "previewQaPassed": true
+  },
+  "workspaceReview": {
+    "workspacePath": "accounts/6351590751/containers/250367469/workspaces/4",
+    "workspaceName": "Default Workspace",
+    "expectedTagsPresent": true,
+    "expectedTriggersPresent": true,
+    "expectedVariablesPresent": true,
+    "measurementIdConfirmed": true,
+    "duplicateRisk": 0,
+    "expectedPendingChanges": 14,
+    "pendingChanges": 14,
+    "approvedPendingChanges": 14,
+    "unexpectedObjects": [],
+    "mergeConflicts": 0,
+    "forbiddenParametersFound": [],
+    "piiFound": [],
+    "rawClickIdsFound": [],
+    "changes": [
+      {
+        "type": "tag",
+        "name": "GA4 - quote_request_start",
+        "id": "112",
+        "changeStatus": "added"
+      },
+      {
+        "type": "tag",
+        "name": "GA4 - quote_request_submit_success",
+        "id": "113",
+        "changeStatus": "added"
+      },
+      {
+        "type": "tag",
+        "name": "GA4 - contact_form_submit_success",
+        "id": "114",
+        "changeStatus": "added"
+      },
+      {
+        "type": "trigger",
+        "name": "CE - quote_request_submit_success",
+        "id": "109",
+        "changeStatus": "added"
+      },
+      {
+        "type": "trigger",
+        "name": "CE - contact_form_submit_success",
+        "id": "110",
+        "changeStatus": "added"
+      },
+      {
+        "type": "trigger",
+        "name": "CE - quote_request_start",
+        "id": "111",
+        "changeStatus": "added"
+      },
+      {
+        "type": "variable",
+        "name": "DLV - utm_source",
+        "id": "101",
+        "changeStatus": "added"
+      },
+      {
+        "type": "variable",
+        "name": "DLV - utm_medium",
+        "id": "102",
+        "changeStatus": "added"
+      },
+      {
+        "type": "variable",
+        "name": "DLV - utm_campaign",
+        "id": "103",
+        "changeStatus": "added"
+      },
+      {
+        "type": "variable",
+        "name": "DLV - utm_content",
+        "id": "104",
+        "changeStatus": "added"
+      },
+      {
+        "type": "variable",
+        "name": "DLV - utm_term",
+        "id": "105",
+        "changeStatus": "added"
+      },
+      {
+        "type": "variable",
+        "name": "DLV - gclid_present",
+        "id": "106",
+        "changeStatus": "added"
+      },
+      {
+        "type": "variable",
+        "name": "DLV - fbclid_present",
+        "id": "107",
+        "changeStatus": "added"
+      },
+      {
+        "type": "variable",
+        "name": "DLV - attribution_touch",
+        "id": "108",
+        "changeStatus": "added"
+      }
+    ],
+    "variableReview": [
+      {
+        "name": "DLV - utm_source",
+        "dataLayerKey": "utm_source",
+        "present": true,
+        "duplicateRisk": 0,
+        "matches": [
+          {
+            "variableId": "101",
+            "name": "DLV - utm_source",
+            "dataLayerKey": "utm_source"
+          }
+        ]
+      },
+      {
+        "name": "DLV - utm_medium",
+        "dataLayerKey": "utm_medium",
+        "present": true,
+        "duplicateRisk": 0,
+        "matches": [
+          {
+            "variableId": "102",
+            "name": "DLV - utm_medium",
+            "dataLayerKey": "utm_medium"
+          }
+        ]
+      },
+      {
+        "name": "DLV - utm_campaign",
+        "dataLayerKey": "utm_campaign",
+        "present": true,
+        "duplicateRisk": 0,
+        "matches": [
+          {
+            "variableId": "103",
+            "name": "DLV - utm_campaign",
+            "dataLayerKey": "utm_campaign"
+          }
+        ]
+      },
+      {
+        "name": "DLV - utm_content",
+        "dataLayerKey": "utm_content",
+        "present": true,
+        "duplicateRisk": 0,
+        "matches": [
+          {
+            "variableId": "104",
+            "name": "DLV - utm_content",
+            "dataLayerKey": "utm_content"
+          }
+        ]
+      },
+      {
+        "name": "DLV - utm_term",
+        "dataLayerKey": "utm_term",
+        "present": true,
+        "duplicateRisk": 0,
+        "matches": [
+          {
+            "variableId": "105",
+            "name": "DLV - utm_term",
+            "dataLayerKey": "utm_term"
+          }
+        ]
+      },
+      {
+        "name": "DLV - gclid_present",
+        "dataLayerKey": "gclid_present",
+        "present": true,
+        "duplicateRisk": 0,
+        "matches": [
+          {
+            "variableId": "106",
+            "name": "DLV - gclid_present",
+            "dataLayerKey": "gclid_present"
+          }
+        ]
+      },
+      {
+        "name": "DLV - fbclid_present",
+        "dataLayerKey": "fbclid_present",
+        "present": true,
+        "duplicateRisk": 0,
+        "matches": [
+          {
+            "variableId": "107",
+            "name": "DLV - fbclid_present",
+            "dataLayerKey": "fbclid_present"
+          }
+        ]
+      },
+      {
+        "name": "DLV - attribution_touch",
+        "dataLayerKey": "attribution_touch",
+        "present": true,
+        "duplicateRisk": 0,
+        "matches": [
+          {
+            "variableId": "108",
+            "name": "DLV - attribution_touch",
+            "dataLayerKey": "attribution_touch"
+          }
+        ]
+      }
+    ],
+    "triggerReview": [
+      {
+        "name": "CE - quote_request_start",
+        "eventName": "quote_request_start",
+        "present": true,
+        "triggerId": "111",
+        "duplicateRisk": 0,
+        "matches": [
+          {
+            "triggerId": "111",
+            "name": "CE - quote_request_start",
+            "eventName": "quote_request_start"
+          }
+        ]
+      },
+      {
+        "name": "CE - quote_request_submit_success",
+        "eventName": "quote_request_submit_success",
+        "present": true,
+        "triggerId": "109",
+        "duplicateRisk": 0,
+        "matches": [
+          {
+            "triggerId": "109",
+            "name": "CE - quote_request_submit_success",
+            "eventName": "quote_request_submit_success"
+          }
+        ]
+      },
+      {
+        "name": "CE - contact_form_submit_success",
+        "eventName": "contact_form_submit_success",
+        "present": true,
+        "triggerId": "110",
+        "duplicateRisk": 0,
+        "matches": [
+          {
+            "triggerId": "110",
+            "name": "CE - contact_form_submit_success",
+            "eventName": "contact_form_submit_success"
+          }
+        ]
+      }
+    ]
+  },
+  "tagReview": [
+    {
+      "tagName": "GA4 - quote_request_start",
+      "eventName": "quote_request_start",
+      "tagId": "112",
+      "triggerName": "CE - quote_request_start",
+      "triggerId": "111",
+      "parameters": [
+        {
+          "parameter": "utm_source",
+          "variableReference": "{{DLV - utm_source}}"
+        },
+        {
+          "parameter": "utm_medium",
+          "variableReference": "{{DLV - utm_medium}}"
+        },
+        {
+          "parameter": "utm_campaign",
+          "variableReference": "{{DLV - utm_campaign}}"
+        },
+        {
+          "parameter": "utm_content",
+          "variableReference": "{{DLV - utm_content}}"
+        },
+        {
+          "parameter": "utm_term",
+          "variableReference": "{{DLV - utm_term}}"
+        },
+        {
+          "parameter": "gclid_present",
+          "variableReference": "{{DLV - gclid_present}}"
+        },
+        {
+          "parameter": "fbclid_present",
+          "variableReference": "{{DLV - fbclid_present}}"
+        },
+        {
+          "parameter": "attribution_touch",
+          "variableReference": "{{DLV - attribution_touch}}"
+        },
+        {
+          "parameter": "page_path",
+          "variableReference": "{{dlv - page_path}}"
+        },
+        {
+          "parameter": "page_name",
+          "variableReference": "{{dlv - page_name}}"
+        },
+        {
+          "parameter": "page_type",
+          "variableReference": "{{dlv - page_type}}"
+        }
+      ],
+      "status": "pass",
+      "issues": [],
+      "duplicateRisk": 0,
+      "forbiddenParameters": [],
+      "piiParameters": [],
+      "rawClickIdParameters": [],
+      "unexpectedParameterKeys": []
+    },
+    {
+      "tagName": "GA4 - quote_request_submit_success",
+      "eventName": "quote_request_submit_success",
+      "tagId": "113",
+      "triggerName": "CE - quote_request_submit_success",
+      "triggerId": "109",
+      "parameters": [
+        {
+          "parameter": "utm_source",
+          "variableReference": "{{DLV - utm_source}}"
+        },
+        {
+          "parameter": "utm_medium",
+          "variableReference": "{{DLV - utm_medium}}"
+        },
+        {
+          "parameter": "utm_campaign",
+          "variableReference": "{{DLV - utm_campaign}}"
+        },
+        {
+          "parameter": "utm_content",
+          "variableReference": "{{DLV - utm_content}}"
+        },
+        {
+          "parameter": "utm_term",
+          "variableReference": "{{DLV - utm_term}}"
+        },
+        {
+          "parameter": "gclid_present",
+          "variableReference": "{{DLV - gclid_present}}"
+        },
+        {
+          "parameter": "fbclid_present",
+          "variableReference": "{{DLV - fbclid_present}}"
+        },
+        {
+          "parameter": "attribution_touch",
+          "variableReference": "{{DLV - attribution_touch}}"
+        },
+        {
+          "parameter": "page_path",
+          "variableReference": "{{dlv - page_path}}"
+        },
+        {
+          "parameter": "page_name",
+          "variableReference": "{{dlv - page_name}}"
+        },
+        {
+          "parameter": "page_type",
+          "variableReference": "{{dlv - page_type}}"
+        },
+        {
+          "parameter": "service_type",
+          "variableReference": "{{dlv - service_type}}"
+        },
+        {
+          "parameter": "shipping_mode",
+          "variableReference": "{{dlv - shipping_mode}}"
+        },
+        {
+          "parameter": "destination_country",
+          "variableReference": "{{dlv - destination_country}}"
+        },
+        {
+          "parameter": "weight_bucket",
+          "variableReference": "{{dlv - weight_bucket}}"
+        },
+        {
+          "parameter": "value_bucket",
+          "variableReference": "{{dlv - value_bucket}}"
+        }
+      ],
+      "status": "pass",
+      "issues": [],
+      "duplicateRisk": 0,
+      "forbiddenParameters": [],
+      "piiParameters": [],
+      "rawClickIdParameters": [],
+      "unexpectedParameterKeys": []
+    },
+    {
+      "tagName": "GA4 - contact_form_submit_success",
+      "eventName": "contact_form_submit_success",
+      "tagId": "114",
+      "triggerName": "CE - contact_form_submit_success",
+      "triggerId": "110",
+      "parameters": [
+        {
+          "parameter": "utm_source",
+          "variableReference": "{{DLV - utm_source}}"
+        },
+        {
+          "parameter": "utm_medium",
+          "variableReference": "{{DLV - utm_medium}}"
+        },
+        {
+          "parameter": "utm_campaign",
+          "variableReference": "{{DLV - utm_campaign}}"
+        },
+        {
+          "parameter": "utm_content",
+          "variableReference": "{{DLV - utm_content}}"
+        },
+        {
+          "parameter": "utm_term",
+          "variableReference": "{{DLV - utm_term}}"
+        },
+        {
+          "parameter": "gclid_present",
+          "variableReference": "{{DLV - gclid_present}}"
+        },
+        {
+          "parameter": "fbclid_present",
+          "variableReference": "{{DLV - fbclid_present}}"
+        },
+        {
+          "parameter": "attribution_touch",
+          "variableReference": "{{DLV - attribution_touch}}"
+        },
+        {
+          "parameter": "form_name",
+          "variableReference": "{{dlv - form_name}}"
+        }
+      ],
+      "status": "pass",
+      "issues": [],
+      "duplicateRisk": 0,
+      "forbiddenParameters": [],
+      "piiParameters": [],
+      "rawClickIdParameters": [],
+      "unexpectedParameterKeys": []
+    }
+  ],
+  "proposedVersion": {
+    "versionName": "CRBOX GA4 conversion event tags - Phase 2P",
+    "versionNotes": [
+      "Adds GA4 Event Tags for quote_request_start, quote_request_submit_success, and contact_form_submit_success.",
+      "Uses existing approved Custom Event triggers and Data Layer Variables.",
+      "Includes no new runtime changes.",
+      "Includes no Google Ads or Meta changes.",
+      "GTM Preview QA passed in Phase 2O.",
+      "Monitor GA4 event delivery and duplicate firing after any separately approved publish."
+    ],
+    "createVersionApproved": false
+  },
+  "rollbackPlan": {
+    "previousVersionRollbackRequired": true,
+    "rollbackSteps": [
+      "If issues are detected after publish, revert to the previous GTM container version.",
+      "Verify the core GA4 Configuration tag and existing events still fire.",
+      "Re-run GTM Preview before republishing.",
+      "Keep the Replit runtime unchanged unless a runtime-specific issue is detected."
+    ]
+  },
+  "recommendation": {
+    "publishReadinessStatus": "ready_for_business_owner_publish_approval",
+    "publishApproved": false,
+    "nextPhase": "Phase 2Q - separately approved controlled GTM version/publish execution."
+  },
+  "safety": {
+    "noGtmWrites": true,
+    "noGtmVersionCreated": true,
+    "noGtmPublish": true,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "secretsPrinted": false
+  }
+}
