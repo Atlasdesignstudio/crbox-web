@@ -1,0 +1,1515 @@
+{
+  "generatedAt": "2026-06-12T10:32:30.623Z",
+  "phase": "2M",
+  "mode": "review_only",
+  "mutationPerformed": false,
+  "gtmWriteCallsMade": false,
+  "gtmPublished": false,
+  "sourceArtifacts": [
+    "docs/marketing-ops-gtm-create-result.json",
+    "docs/marketing-ops-gtm-preview-qa.json",
+    "docs/marketing-ops-gtm-preflight.json"
+  ],
+  "prerequisites": {
+    "phase2JConfirmed": true,
+    "phase2KConfirmed": true,
+    "runtimeGapFixedManuallyInReplit": true,
+    "quoteRequestSubmitSuccessObservedAfterFix": true,
+    "gtmPublished": false
+  },
+  "liveReadOnlyAudit": {
+    "workspacePath": "accounts/6351590751/containers/250367469/workspaces/4",
+    "workspaceName": "Default Workspace",
+    "variablesRead": true,
+    "triggersRead": true,
+    "tagsRead": true,
+    "apiCallsReadOnly": true
+  },
+  "existingResources": {
+    "measurementIdVariable": {
+      "name": "GA4 Measurement ID",
+      "variableId": "85",
+      "type": "c",
+      "configuredValue": "G-B5BPHFRR18"
+    },
+    "ga4ConfigurationTag": {
+      "name": "GA4 Configuration",
+      "tagId": "86",
+      "type": "googtag",
+      "configuredTagId": "{{GA4 Measurement ID}}"
+    },
+    "existingTriggers": [
+      {
+        "name": "CE - whatsapp_click",
+        "triggerId": "21",
+        "type": "customEvent",
+        "eventName": "whatsapp_click"
+      },
+      {
+        "name": "CE - signup_success",
+        "triggerId": "26",
+        "type": "customEvent",
+        "eventName": "signup_success"
+      },
+      {
+        "name": "CE - calculator_result",
+        "triggerId": "57",
+        "type": "customEvent",
+        "eventName": "calculator_result"
+      },
+      {
+        "name": "CE - quote_request_submit_success",
+        "triggerId": "109",
+        "type": "customEvent",
+        "eventName": "quote_request_submit_success"
+      },
+      {
+        "name": "CE - contact_form_submit_success",
+        "triggerId": "110",
+        "type": "customEvent",
+        "eventName": "contact_form_submit_success"
+      },
+      {
+        "name": "CE - quote_request_start",
+        "triggerId": "111",
+        "type": "customEvent",
+        "eventName": "quote_request_start"
+      }
+    ],
+    "existingVariables": [
+      {
+        "name": "dlv - page_name",
+        "variableId": "6",
+        "type": "v",
+        "dataLayerVariableName": "page_name"
+      },
+      {
+        "name": "dlv - page_type",
+        "variableId": "9",
+        "type": "v",
+        "dataLayerVariableName": "page_type"
+      },
+      {
+        "name": "dlv - page_path",
+        "variableId": "10",
+        "type": "v",
+        "dataLayerVariableName": "page_path"
+      },
+      {
+        "name": "dlv - form_name",
+        "variableId": "30",
+        "type": "v",
+        "dataLayerVariableName": "form_name"
+      },
+      {
+        "name": "dlv - shipping_mode",
+        "variableId": "35",
+        "type": "v",
+        "dataLayerVariableName": "shipping_mode"
+      },
+      {
+        "name": "dlv - service_type",
+        "variableId": "43",
+        "type": "v",
+        "dataLayerVariableName": "service_type"
+      },
+      {
+        "name": "dlv - weight_bucket",
+        "variableId": "47",
+        "type": "v",
+        "dataLayerVariableName": "weight_bucket"
+      },
+      {
+        "name": "dlv - value_bucket",
+        "variableId": "77",
+        "type": "v",
+        "dataLayerVariableName": "value_bucket"
+      },
+      {
+        "name": "dlv - destination_country",
+        "variableId": "78",
+        "type": "v",
+        "dataLayerVariableName": "destination_country"
+      },
+      {
+        "name": "GA4 Measurement ID",
+        "variableId": "85",
+        "type": "c",
+        "dataLayerVariableName": ""
+      },
+      {
+        "name": "DLV - utm_source",
+        "variableId": "101",
+        "type": "v",
+        "dataLayerVariableName": "utm_source"
+      },
+      {
+        "name": "DLV - utm_medium",
+        "variableId": "102",
+        "type": "v",
+        "dataLayerVariableName": "utm_medium"
+      },
+      {
+        "name": "DLV - utm_campaign",
+        "variableId": "103",
+        "type": "v",
+        "dataLayerVariableName": "utm_campaign"
+      },
+      {
+        "name": "DLV - utm_content",
+        "variableId": "104",
+        "type": "v",
+        "dataLayerVariableName": "utm_content"
+      },
+      {
+        "name": "DLV - utm_term",
+        "variableId": "105",
+        "type": "v",
+        "dataLayerVariableName": "utm_term"
+      },
+      {
+        "name": "DLV - gclid_present",
+        "variableId": "106",
+        "type": "v",
+        "dataLayerVariableName": "gclid_present"
+      },
+      {
+        "name": "DLV - fbclid_present",
+        "variableId": "107",
+        "type": "v",
+        "dataLayerVariableName": "fbclid_present"
+      },
+      {
+        "name": "DLV - attribution_touch",
+        "variableId": "108",
+        "type": "v",
+        "dataLayerVariableName": "attribution_touch"
+      }
+    ],
+    "existingGa4EventTags": [
+      {
+        "name": "GA4 - signup_step",
+        "tagId": "11",
+        "type": "gaawe",
+        "eventName": "signup_step",
+        "firingTriggerId": [
+          "8"
+        ]
+      },
+      {
+        "name": "GA4 - outbound_click",
+        "tagId": "15",
+        "type": "gaawe",
+        "eventName": "outbound_click",
+        "firingTriggerId": [
+          "13"
+        ]
+      },
+      {
+        "name": "GA4 - nav_click",
+        "tagId": "19",
+        "type": "gaawe",
+        "eventName": "nav_click",
+        "firingTriggerId": [
+          "18"
+        ]
+      },
+      {
+        "name": "GA4 - whatsapp_click",
+        "tagId": "22",
+        "type": "gaawe",
+        "eventName": "whatsapp_click",
+        "firingTriggerId": [
+          "21"
+        ]
+      },
+      {
+        "name": "GA4 - form_abandon",
+        "tagId": "31",
+        "type": "gaawe",
+        "eventName": "form_abandon",
+        "firingTriggerId": [
+          "25"
+        ]
+      },
+      {
+        "name": "GA4 - calculator_start",
+        "tagId": "36",
+        "type": "gaawe",
+        "eventName": "calculator_start",
+        "firingTriggerId": [
+          "34"
+        ]
+      },
+      {
+        "name": "GA4 - signup_error",
+        "tagId": "39",
+        "type": "gaawe",
+        "eventName": "signup_error",
+        "firingTriggerId": [
+          "38"
+        ]
+      },
+      {
+        "name": "GA4 - section_visible",
+        "tagId": "41",
+        "type": "gaawe",
+        "eventName": "section_visible",
+        "firingTriggerId": [
+          "40"
+        ]
+      },
+      {
+        "name": "GA4 - login_success",
+        "tagId": "42",
+        "type": "gaawe",
+        "eventName": "login_success",
+        "firingTriggerId": [
+          "28"
+        ]
+      },
+      {
+        "name": "GA4 - quote_start",
+        "tagId": "45",
+        "type": "gaawe",
+        "eventName": "quote_start",
+        "firingTriggerId": [
+          "44"
+        ]
+      },
+      {
+        "name": "GA4 - login_start",
+        "tagId": "46",
+        "type": "gaawe",
+        "eventName": "login_start",
+        "firingTriggerId": [
+          "32"
+        ]
+      },
+      {
+        "name": "GA4 - contact_form_submit",
+        "tagId": "48",
+        "type": "gaawe",
+        "eventName": "contact_form_submit",
+        "firingTriggerId": [
+          "16"
+        ]
+      },
+      {
+        "name": "GA4 - package_search_result",
+        "tagId": "52",
+        "type": "gaawe",
+        "eventName": "package_search_result",
+        "firingTriggerId": [
+          "51"
+        ]
+      },
+      {
+        "name": "GA4 - invoice_upload_success",
+        "tagId": "55",
+        "type": "gaawe",
+        "eventName": "invoice_upload_success",
+        "firingTriggerId": [
+          "54"
+        ]
+      },
+      {
+        "name": "GA4 - service_card_click",
+        "tagId": "60",
+        "type": "gaawe",
+        "eventName": "service_card_click",
+        "firingTriggerId": [
+          "59"
+        ]
+      },
+      {
+        "name": "GA4 - email_click",
+        "tagId": "64",
+        "type": "gaawe",
+        "eventName": "email_click",
+        "firingTriggerId": [
+          "63"
+        ]
+      },
+      {
+        "name": "GA4 - portal_section_view",
+        "tagId": "69",
+        "type": "gaawe",
+        "eventName": "portal_section_view",
+        "firingTriggerId": [
+          "68"
+        ]
+      },
+      {
+        "name": "GA4 - package_search",
+        "tagId": "70",
+        "type": "gaawe",
+        "eventName": "package_search",
+        "firingTriggerId": [
+          "66"
+        ]
+      },
+      {
+        "name": "GA4 - login_error",
+        "tagId": "72",
+        "type": "gaawe",
+        "eventName": "login_error",
+        "firingTriggerId": [
+          "71"
+        ]
+      },
+      {
+        "name": "GA4 - signup_start",
+        "tagId": "73",
+        "type": "gaawe",
+        "eventName": "signup_start",
+        "firingTriggerId": [
+          "62"
+        ]
+      },
+      {
+        "name": "GA4 - package_detail_view",
+        "tagId": "74",
+        "type": "gaawe",
+        "eventName": "package_detail_view",
+        "firingTriggerId": [
+          "67"
+        ]
+      },
+      {
+        "name": "GA4 - signup_success",
+        "tagId": "75",
+        "type": "gaawe",
+        "eventName": "signup_success",
+        "firingTriggerId": [
+          "26"
+        ]
+      },
+      {
+        "name": "GA4 - calculator_result",
+        "tagId": "79",
+        "type": "gaawe",
+        "eventName": "calculator_result",
+        "firingTriggerId": [
+          "57"
+        ]
+      },
+      {
+        "name": "GA4 - invoice_upload_error",
+        "tagId": "81",
+        "type": "gaawe",
+        "eventName": "invoice_upload_error",
+        "firingTriggerId": [
+          "80"
+        ]
+      },
+      {
+        "name": "GA4 - chat_message_sent",
+        "tagId": "84",
+        "type": "gaawe",
+        "eventName": "chat_message_sent",
+        "firingTriggerId": [
+          "82"
+        ]
+      },
+      {
+        "name": "GA4 - scroll_depth",
+        "tagId": "88",
+        "type": "gaawe",
+        "eventName": "scroll_depth",
+        "firingTriggerId": [
+          "29"
+        ]
+      },
+      {
+        "name": "GA4 - invoice_upload_start",
+        "tagId": "90",
+        "type": "gaawe",
+        "eventName": "invoice_upload_start",
+        "firingTriggerId": [
+          "89"
+        ]
+      },
+      {
+        "name": "GA4 - form_start",
+        "tagId": "91",
+        "type": "gaawe",
+        "eventName": "form_start",
+        "firingTriggerId": [
+          "58"
+        ]
+      },
+      {
+        "name": "GA4 - quote_submit",
+        "tagId": "92",
+        "type": "gaawe",
+        "eventName": "quote_submit",
+        "firingTriggerId": [
+          "76"
+        ]
+      },
+      {
+        "name": "GA4 - phone_click",
+        "tagId": "95",
+        "type": "gaawe",
+        "eventName": "phone_click",
+        "firingTriggerId": [
+          "94"
+        ]
+      },
+      {
+        "name": "GA4 - faq_engage",
+        "tagId": "96",
+        "type": "gaawe",
+        "eventName": "faq_engage",
+        "firingTriggerId": [
+          "23"
+        ]
+      },
+      {
+        "name": "GA4 - calculator_query",
+        "tagId": "97",
+        "type": "gaawe",
+        "eventName": "calculator_query",
+        "firingTriggerId": [
+          "53"
+        ]
+      },
+      {
+        "name": "GA4 - calculator_tab_switch",
+        "tagId": "98",
+        "type": "gaawe",
+        "eventName": "calculator_tab_switch",
+        "firingTriggerId": [
+          "65"
+        ]
+      },
+      {
+        "name": "GA4 - chat_open",
+        "tagId": "99",
+        "type": "gaawe",
+        "eventName": "chat_open",
+        "firingTriggerId": [
+          "49"
+        ]
+      },
+      {
+        "name": "GA4 - cta_click",
+        "tagId": "100",
+        "type": "gaawe",
+        "eventName": "cta_click",
+        "firingTriggerId": [
+          "61"
+        ]
+      }
+    ]
+  },
+  "proposedTags": [
+    {
+      "tagName": "GA4 - quote_request_start",
+      "eventName": "quote_request_start",
+      "triggerName": "CE - quote_request_start",
+      "triggerId": "111",
+      "triggerExists": true,
+      "parameters": [
+        {
+          "parameter": "utm_source",
+          "variableName": "DLV - utm_source",
+          "variableReference": "{{DLV - utm_source}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_medium",
+          "variableName": "DLV - utm_medium",
+          "variableReference": "{{DLV - utm_medium}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_campaign",
+          "variableName": "DLV - utm_campaign",
+          "variableReference": "{{DLV - utm_campaign}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_content",
+          "variableName": "DLV - utm_content",
+          "variableReference": "{{DLV - utm_content}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_term",
+          "variableName": "DLV - utm_term",
+          "variableReference": "{{DLV - utm_term}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "gclid_present",
+          "variableName": "DLV - gclid_present",
+          "variableReference": "{{DLV - gclid_present}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "fbclid_present",
+          "variableName": "DLV - fbclid_present",
+          "variableReference": "{{DLV - fbclid_present}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "attribution_touch",
+          "variableName": "DLV - attribution_touch",
+          "variableReference": "{{DLV - attribution_touch}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "page_path",
+          "variableName": "dlv - page_path",
+          "variableReference": "{{dlv - page_path}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "page_name",
+          "variableName": "dlv - page_name",
+          "variableReference": "{{dlv - page_name}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "page_type",
+          "variableName": "dlv - page_type",
+          "variableReference": "{{dlv - page_type}}",
+          "variableExists": true,
+          "blocked": false
+        }
+      ],
+      "payload": {
+        "name": "GA4 - quote_request_start",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "boolean",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "list",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_source"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_medium"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_campaign"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_content"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_content}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_term"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_term}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "gclid_present"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - gclid_present}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "fbclid_present"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - fbclid_present}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "attribution_touch"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - attribution_touch}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "page_path"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - page_path}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "page_name"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - page_name}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "page_type"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - page_type}}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "template",
+            "key": "eventName",
+            "value": "quote_request_start"
+          },
+          {
+            "type": "template",
+            "key": "measurementIdOverride",
+            "value": "G-B5BPHFRR18"
+          }
+        ],
+        "firingTriggerId": [
+          "111"
+        ]
+      },
+      "status": "would_create",
+      "priority": "high",
+      "publishBlocker": true,
+      "purpose": "Start of quote intent.",
+      "keyEventCandidate": false,
+      "notes": [
+        "Trigger and all approved parameter variables exist. Payload is ready for human review before a separate controlled-create phase."
+      ]
+    },
+    {
+      "tagName": "GA4 - quote_request_submit_success",
+      "eventName": "quote_request_submit_success",
+      "triggerName": "CE - quote_request_submit_success",
+      "triggerId": "109",
+      "triggerExists": true,
+      "parameters": [
+        {
+          "parameter": "utm_source",
+          "variableName": "DLV - utm_source",
+          "variableReference": "{{DLV - utm_source}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_medium",
+          "variableName": "DLV - utm_medium",
+          "variableReference": "{{DLV - utm_medium}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_campaign",
+          "variableName": "DLV - utm_campaign",
+          "variableReference": "{{DLV - utm_campaign}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_content",
+          "variableName": "DLV - utm_content",
+          "variableReference": "{{DLV - utm_content}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_term",
+          "variableName": "DLV - utm_term",
+          "variableReference": "{{DLV - utm_term}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "gclid_present",
+          "variableName": "DLV - gclid_present",
+          "variableReference": "{{DLV - gclid_present}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "fbclid_present",
+          "variableName": "DLV - fbclid_present",
+          "variableReference": "{{DLV - fbclid_present}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "attribution_touch",
+          "variableName": "DLV - attribution_touch",
+          "variableReference": "{{DLV - attribution_touch}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "page_path",
+          "variableName": "dlv - page_path",
+          "variableReference": "{{dlv - page_path}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "page_name",
+          "variableName": "dlv - page_name",
+          "variableReference": "{{dlv - page_name}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "page_type",
+          "variableName": "dlv - page_type",
+          "variableReference": "{{dlv - page_type}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "service_type",
+          "variableName": "dlv - service_type",
+          "variableReference": "{{dlv - service_type}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "shipping_mode",
+          "variableName": "dlv - shipping_mode",
+          "variableReference": "{{dlv - shipping_mode}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "destination_country",
+          "variableName": "dlv - destination_country",
+          "variableReference": "{{dlv - destination_country}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "weight_bucket",
+          "variableName": "dlv - weight_bucket",
+          "variableReference": "{{dlv - weight_bucket}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "value_bucket",
+          "variableName": "dlv - value_bucket",
+          "variableReference": "{{dlv - value_bucket}}",
+          "variableExists": true,
+          "blocked": false
+        }
+      ],
+      "payload": {
+        "name": "GA4 - quote_request_submit_success",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "boolean",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "list",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_source"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_medium"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_campaign"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_content"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_content}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_term"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_term}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "gclid_present"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - gclid_present}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "fbclid_present"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - fbclid_present}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "attribution_touch"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - attribution_touch}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "page_path"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - page_path}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "page_name"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - page_name}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "page_type"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - page_type}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "service_type"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - service_type}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "shipping_mode"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - shipping_mode}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "destination_country"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - destination_country}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "weight_bucket"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - weight_bucket}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "value_bucket"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - value_bucket}}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "template",
+            "key": "eventName",
+            "value": "quote_request_submit_success"
+          },
+          {
+            "type": "template",
+            "key": "measurementIdOverride",
+            "value": "G-B5BPHFRR18"
+          }
+        ],
+        "firingTriggerId": [
+          "109"
+        ]
+      },
+      "status": "would_create",
+      "priority": "critical",
+      "publishBlocker": true,
+      "purpose": "Successful quote request and primary conversion.",
+      "keyEventCandidate": true,
+      "notes": [
+        "Trigger and all approved parameter variables exist. Payload is ready for human review before a separate controlled-create phase."
+      ]
+    },
+    {
+      "tagName": "GA4 - contact_form_submit_success",
+      "eventName": "contact_form_submit_success",
+      "triggerName": "CE - contact_form_submit_success",
+      "triggerId": "110",
+      "triggerExists": true,
+      "parameters": [
+        {
+          "parameter": "utm_source",
+          "variableName": "DLV - utm_source",
+          "variableReference": "{{DLV - utm_source}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_medium",
+          "variableName": "DLV - utm_medium",
+          "variableReference": "{{DLV - utm_medium}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_campaign",
+          "variableName": "DLV - utm_campaign",
+          "variableReference": "{{DLV - utm_campaign}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_content",
+          "variableName": "DLV - utm_content",
+          "variableReference": "{{DLV - utm_content}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "utm_term",
+          "variableName": "DLV - utm_term",
+          "variableReference": "{{DLV - utm_term}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "gclid_present",
+          "variableName": "DLV - gclid_present",
+          "variableReference": "{{DLV - gclid_present}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "fbclid_present",
+          "variableName": "DLV - fbclid_present",
+          "variableReference": "{{DLV - fbclid_present}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "attribution_touch",
+          "variableName": "DLV - attribution_touch",
+          "variableReference": "{{DLV - attribution_touch}}",
+          "variableExists": true,
+          "blocked": false
+        },
+        {
+          "parameter": "form_name",
+          "variableName": "dlv - form_name",
+          "variableReference": "{{dlv - form_name}}",
+          "variableExists": true,
+          "blocked": false
+        }
+      ],
+      "payload": {
+        "name": "GA4 - contact_form_submit_success",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "boolean",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "list",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_source"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_medium"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_campaign"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_content"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_content}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "utm_term"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - utm_term}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "gclid_present"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - gclid_present}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "fbclid_present"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - fbclid_present}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "attribution_touch"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{DLV - attribution_touch}}"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "parameter",
+                    "value": "form_name"
+                  },
+                  {
+                    "type": "template",
+                    "key": "parameterValue",
+                    "value": "{{dlv - form_name}}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "template",
+            "key": "eventName",
+            "value": "contact_form_submit_success"
+          },
+          {
+            "type": "template",
+            "key": "measurementIdOverride",
+            "value": "G-B5BPHFRR18"
+          }
+        ],
+        "firingTriggerId": [
+          "110"
+        ]
+      },
+      "status": "would_create",
+      "priority": "high",
+      "publishBlocker": true,
+      "purpose": "Successful contact form lead.",
+      "keyEventCandidate": false,
+      "notes": [
+        "Trigger and all approved parameter variables exist. Payload is ready for human review before a separate controlled-create phase."
+      ]
+    }
+  ],
+  "summary": {
+    "currentBatch": 3,
+    "wouldCreate": 3,
+    "alreadyExists": 0,
+    "blocked": 0,
+    "allRequiredTriggersExist": true,
+    "allRequiredVariablesExist": true
+  },
+  "excluded": [
+    "raw gclid",
+    "raw fbclid",
+    "name",
+    "email",
+    "phone",
+    "address",
+    "company",
+    "message",
+    "item description",
+    "reference number",
+    "exact value",
+    "exact weight",
+    "GTM publish",
+    "GTM version",
+    "Google Ads",
+    "Meta",
+    "runtime files"
+  ],
+  "recommendedNextBatch": [
+    {
+      "eventName": "calculator_result",
+      "triggerExists": true,
+      "tagExists": true,
+      "status": "already_exists_no_action",
+      "notes": "Existing trigger CE - calculator_result and GA4 Event tag GA4 - calculator_result were confirmed by read-only GTM list calls."
+    },
+    {
+      "eventName": "signup_success",
+      "triggerExists": true,
+      "tagExists": true,
+      "status": "already_exists_no_action",
+      "notes": "Existing trigger CE - signup_success and GA4 Event tag GA4 - signup_success were confirmed by read-only GTM list calls."
+    },
+    {
+      "eventName": "whatsapp_click",
+      "triggerExists": true,
+      "tagExists": true,
+      "status": "already_exists_no_action",
+      "notes": "Existing trigger CE - whatsapp_click and GA4 Event tag GA4 - whatsapp_click were confirmed by read-only GTM list calls."
+    }
+  ],
+  "blockers": [
+    "GA4 - quote_request_start is missing and must be created and validated before GTM publish can be considered.",
+    "GA4 - quote_request_submit_success is missing and must be created and validated before GTM publish can be considered.",
+    "GA4 - contact_form_submit_success is missing and must be created and validated before GTM publish can be considered."
+  ],
+  "safety": {
+    "noGtmWrites": true,
+    "noGtmVersionCreated": true,
+    "noGtmPublish": true,
+    "rawGclidExcluded": true,
+    "rawFbclidExcluded": true,
+    "piiExcluded": true,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false
+  },
+  "recommendation": {
+    "readyForHumanReview": true,
+    "readyForControlledCreateLater": true,
+    "publishApproved": false,
+    "nextPhase": "Human review, then a separately approved controlled-create phase for the 3 GA4 Event tags, followed by GTM Preview validation. Publishing remains separate and blocked."
+  }
+}
