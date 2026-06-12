@@ -12,6 +12,7 @@
     "marketing:gtm:payload-review": "node scripts/marketing-ops/index.js gtm:payload-review",
     "marketing:gtm:preview-qa-report": "node scripts/marketing-ops/index.js gtm:preview-qa-report",
     "marketing:gtm:ga4-tags-payload-review": "node scripts/marketing-ops/index.js gtm:ga4-tags-payload-review",
+    "marketing:gtm:ga4-tags-preview-qa": "node scripts/marketing-ops/index.js gtm:ga4-tags-preview-qa",
     "marketing:oauth:gtm-edit-url": "node scripts/marketing-ops/index.js oauth:gtm-edit-url",
     "marketing:check:ads": "node scripts/marketing-ops/index.js ads",
     "marketing:check:meta": "node scripts/marketing-ops/index.js meta",

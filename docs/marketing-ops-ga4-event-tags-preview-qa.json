@@ -1,0 +1,74 @@
+{
+  "generatedAt": "2026-06-12T17:52:45.500Z",
+  "phase": "2O",
+  "mode": "manual_preview_qa",
+  "mutationPerformed": false,
+  "gtmWriteCallsMade": false,
+  "gtmVersionCreated": false,
+  "gtmPublished": false,
+  "sourceArtifacts": [
+    "docs/marketing-ops-ga4-event-tags-create-result.json",
+    "docs/marketing-ops-ga4-event-tags-payload-review.json",
+    "docs/marketing-ops-gtm-preview-qa.json"
+  ],
+  "prerequisites": {
+    "phase2NConfirmed": true,
+    "createdTagsExist": true,
+    "gtmPublished": false
+  },
+  "manualEvidence": {
+    "tagAssistantConnected": true,
+    "gtmContainerDetected": "GTM-5WD8N53F",
+    "ga4MeasurementDetected": "G-B5BPHFRR18",
+    "freshPreviewSessionUsed": true,
+    "stalePreviewSessionObservedBeforeRefresh": true
+  },
+  "qaResults": {
+    "contact_form_submit_success": {
+      "pageTested": "https://crbox.cr/contacto.html",
+      "eventObserved": true,
+      "dataLayerPushObserved": true,
+      "tagFired": true,
+      "tagName": "GA4 - contact_form_submit_success",
+      "tagStatus": "completed",
+      "status": "pass"
+    },
+    "quote_request_submit_success": {
+      "pageTested": "https://crbox.cr/calculadora.html",
+      "eventObserved": true,
+      "dataLayerPushObserved": true,
+      "tagFired": true,
+      "tagName": "GA4 - quote_request_submit_success",
+      "tagStatus": "completed",
+      "status": "pass"
+    },
+    "quote_request_start": {
+      "pageTested": "https://crbox.cr/calculadora.html",
+      "eventObserved": true,
+      "dataLayerPushObserved": true,
+      "tagFired": true,
+      "tagName": "GA4 - quote_request_start",
+      "tagStatus": "completed",
+      "status": "pass"
+    }
+  },
+  "overallStatus": "pass",
+  "blockersBeforePublish": [
+    "No functional blocker found for the 3 newly created GA4 Event Tags in GTM Preview.",
+    "GTM publish still requires a separately approved version/publish phase."
+  ],
+  "recommendation": {
+    "previewQaPassed": true,
+    "publishApproved": false,
+    "nextPhase": "Prepare controlled GTM version/publish review, if business owner approves."
+  },
+  "safety": {
+    "noGtmWrites": true,
+    "noGtmVersionCreated": true,
+    "noGtmPublish": true,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "secretsPrinted": false
+  }
+}
