@@ -369,6 +369,38 @@ Expected verification:
 
 Even after successful scope verification, GTM controlled create still requires a separate approved task and every environment, CLI, plan-validation, and human-approval gate.
 
+## Phase 2Q-A GTM Version/Publish OAuth Scope
+
+Phase 2Q-A prepares a replacement local refresh token that retains the existing Analytics and Tag Manager scopes and adds:
+
+```text
+https://www.googleapis.com/auth/tagmanager.edit.containerversions
+```
+
+Generate the consent URL locally:
+
+```bash
+npm run marketing:oauth:gtm-publish-url
+```
+
+The command writes the complete URL to `.oauth-gtm-publish-url.local.txt` with restricted file permissions. The file is ignored by Git. The helper does not print the full URL, access the client secret or current refresh token, exchange an authorization code, or call GTM APIs.
+
+The requested scope set is:
+
+```text
+https://www.googleapis.com/auth/analytics.edit
+https://www.googleapis.com/auth/analytics.readonly
+https://www.googleapis.com/auth/tagmanager.readonly
+https://www.googleapis.com/auth/tagmanager.edit.containers
+https://www.googleapis.com/auth/tagmanager.edit.containerversions
+```
+
+Open the local file, complete Google consent, and exchange the authorization code manually through OAuth Playground or the configured trusted redirect flow. Replace only `GOOGLE_REFRESH_TOKEN` in local `.env`. Never share or commit the authorization code, access token, refresh token, client secret, full client ID, full OAuth URL, or `.env`.
+
+After replacement, perform a separate read-only token scope and GTM readiness verification. Do not create a container version or publish GTM as part of reauthorization.
+
+Phase 2Q-B completed that read-only verification. Google token info confirmed all five requested scopes, including `tagmanager.edit.containerversions`. The GTM workspace remained readable with 14 approved pending changes, zero unexpected changes, zero duplicate risk, and no forbidden parameters, PII, or raw click IDs. No GTM write call, version creation, or publish was performed. This result permits a separately approved Phase 2Q retry; it does not execute or approve publish by itself.
+
 ## Interpreting Results
 
 - `PASS` means the static or read-only API check found expected evidence.

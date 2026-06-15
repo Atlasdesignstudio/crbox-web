@@ -10,3 +10,4 @@ npm-debug.log*
 .npm
 .DS_Store
 .oauth-gtm-edit-url.local.txt
+.oauth-gtm-publish-url.local.txt

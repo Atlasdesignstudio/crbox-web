@@ -20,7 +20,14 @@ const { runGtmGa4TagsPayloadReview, printSummary: printGtmGa4TagsPayloadReviewSu
 const { runGtmGa4TagsPreviewQa, printSummary: printGtmGa4TagsPreviewQaSummary } = require('./gtm-ga4-tags-preview-qa');
 const { runGtmPublishReadinessReview, printSummary: printGtmPublishReadinessSummary } = require('./gtm-publish-readiness-review');
 const { runGtmGa4TagsControlledCreate, outputLines: gtmGa4TagsCreateOutputLines } = require('./apply/gtm-ga4-tags-create');
-const { safeOutputLines, writeGtmEditAuthorizationUrl } = require('./oauth-gtm-edit-url');
+const {
+  safeOutputLines: gtmEditOauthOutputLines,
+  writeGtmEditAuthorizationUrl
+} = require('./oauth-gtm-edit-url');
+const {
+  safeOutputLines: gtmPublishOauthOutputLines,
+  writeGtmPublishAuthorizationUrl
+} = require('./oauth-gtm-publish-url');
 
 const root = repoRoot();
 loadDotEnv(root);
@@ -178,7 +185,19 @@ async function main() {
     case 'oauth:gtm-edit-url': {
       try {
         const oauthUrl = writeGtmEditAuthorizationUrl(root);
-        for (const line of safeOutputLines(oauthUrl)) {
+        for (const line of gtmEditOauthOutputLines(oauthUrl)) {
+          console.log(maskSecretsInText(line));
+        }
+      } catch (error) {
+        console.error(maskSecretsInText(error && error.message ? error.message : String(error)));
+        process.exitCode = 1;
+      }
+      return;
+    }
+    case 'oauth:gtm-publish-url': {
+      try {
+        const oauthUrl = writeGtmPublishAuthorizationUrl(root);
+        for (const line of gtmPublishOauthOutputLines(oauthUrl)) {
           console.log(maskSecretsInText(line));
         }
       } catch (error) {
@@ -228,7 +247,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|oauth:gtm-publish-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:validate]');
       process.exitCode = 1;
       return;
   }

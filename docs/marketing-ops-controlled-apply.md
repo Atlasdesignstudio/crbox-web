@@ -178,6 +178,26 @@ Keep `MARKETING_AGENT_GTM_CREATE_ENABLED=false`. GTM create, tag creation, versi
 
 No GTM write calls were made during scope verification. A future GTM create attempt still requires separate approval and all controlled-create gates.
 
+## Phase 2Q-A GTM Publish Scope Preparation
+
+GTM container version creation and publication require the additional OAuth scope:
+
+```text
+https://www.googleapis.com/auth/tagmanager.edit.containerversions
+```
+
+Generate a local consent URL with:
+
+```bash
+npm run marketing:oauth:gtm-publish-url
+```
+
+The helper preserves the approved Analytics, GTM read-only, and GTM container-edit scopes while adding the container-version scope. It writes the URL only to the ignored `.oauth-gtm-publish-url.local.txt` file with restricted permissions. It does not print the full URL, inspect token values, exchange authorization codes, call GTM APIs, create a GTM version, or publish GTM.
+
+After a trusted manual code exchange, replace only `GOOGLE_REFRESH_TOKEN` in local `.env`. Scope availability must then be verified read-only before any separately approved publish retry. OAuth reauthorization alone does not authorize or execute GTM publish.
+
+Phase 2Q-B verified through read-only token info and GTM GET/list calls that all five required scopes are available and the Phase 2P workspace remains unchanged: 14 approved pending changes, zero unexpected changes, zero duplicate risk, and no forbidden parameters, PII, or raw click IDs. The controlled publish command was not retried. Phase 2Q remains a separate explicit execution.
+
 ## Blocked Actions
 
 The apply validator blocks or rejects:
