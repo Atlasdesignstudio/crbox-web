@@ -198,6 +198,16 @@ After a trusted manual code exchange, replace only `GOOGLE_REFRESH_TOKEN` in loc
 
 Phase 2Q-B verified through read-only token info and GTM GET/list calls that all five required scopes are available and the Phase 2P workspace remains unchanged: 14 approved pending changes, zero unexpected changes, zero duplicate risk, and no forbidden parameters, PII, or raw click IDs. The controlled publish command was not retried. Phase 2Q remains a separate explicit execution.
 
+Phase 2Q-C adds the separate OAuth scope required by the GTM publish endpoint:
+
+```text
+https://www.googleapis.com/auth/tagmanager.publish
+```
+
+The publish URL helper now requests six scopes in total, retaining all five previously verified scopes. After manual reauthorization, all six scopes must pass read-only token verification before the controlled publish command can be retried. Phase 2Q-C does not create a version or publish GTM.
+
+Phase 2Q-D verified all six scopes and the unchanged Phase 2P workspace through read-only token info and GTM GET/list calls. The result is `pass_ready_for_phase_2q_retry`: 14 approved pending changes, zero unexpected changes, zero duplicate risk, and no forbidden parameters, PII, or raw click IDs. The controlled publish command was not retried.
+
 ## Blocked Actions
 
 The apply validator blocks or rejects:

@@ -371,7 +371,7 @@ Even after successful scope verification, GTM controlled create still requires a
 
 ## Phase 2Q-A GTM Version/Publish OAuth Scope
 
-Phase 2Q-A prepares a replacement local refresh token that retains the existing Analytics and Tag Manager scopes and adds:
+Phase 2Q-A prepares a replacement local refresh token that retains the existing Analytics and Tag Manager scopes and adds the container-version scope:
 
 ```text
 https://www.googleapis.com/auth/tagmanager.edit.containerversions
@@ -400,6 +400,27 @@ Open the local file, complete Google consent, and exchange the authorization cod
 After replacement, perform a separate read-only token scope and GTM readiness verification. Do not create a container version or publish GTM as part of reauthorization.
 
 Phase 2Q-B completed that read-only verification. Google token info confirmed all five requested scopes, including `tagmanager.edit.containerversions`. The GTM workspace remained readable with 14 approved pending changes, zero unexpected changes, zero duplicate risk, and no forbidden parameters, PII, or raw click IDs. No GTM write call, version creation, or publish was performed. This result permits a separately approved Phase 2Q retry; it does not execute or approve publish by itself.
+
+Phase 2Q-C adds the separate scope required by the GTM version publish endpoint:
+
+```text
+https://www.googleapis.com/auth/tagmanager.publish
+```
+
+The `marketing:oauth:gtm-publish-url` command now requests the full six-scope set:
+
+```text
+https://www.googleapis.com/auth/analytics.edit
+https://www.googleapis.com/auth/analytics.readonly
+https://www.googleapis.com/auth/tagmanager.readonly
+https://www.googleapis.com/auth/tagmanager.edit.containers
+https://www.googleapis.com/auth/tagmanager.edit.containerversions
+https://www.googleapis.com/auth/tagmanager.publish
+```
+
+After replacing the local refresh token, verify all six scopes through token info and rerun the read-only GTM preflight/readiness checks. Do not create a version or publish as part of Phase 2Q-C.
+
+Phase 2Q-D completed that final read-only verification. Token info confirmed all six scopes, including `tagmanager.edit.containerversions` and `tagmanager.publish`. The GTM workspace, tags, triggers, and variables remained readable; Phase 2P readiness remained valid with 14 approved pending changes, zero unexpected changes, zero duplicate risk, and no forbidden parameters, PII, or raw click IDs. No GTM write, version creation, or publish occurred. Final status: `pass_ready_for_phase_2q_retry`.
 
 ## Interpreting Results
 
