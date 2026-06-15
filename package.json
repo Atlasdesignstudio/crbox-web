@@ -15,6 +15,7 @@
     "marketing:gtm:ga4-tags-preview-qa": "node scripts/marketing-ops/index.js gtm:ga4-tags-preview-qa",
     "marketing:gtm:publish-readiness-review": "node scripts/marketing-ops/index.js gtm:publish-readiness-review",
     "marketing:oauth:gtm-edit-url": "node scripts/marketing-ops/index.js oauth:gtm-edit-url",
+    "marketing:oauth:gtm-publish-url": "node scripts/marketing-ops/index.js oauth:gtm-publish-url",
     "marketing:check:ads": "node scripts/marketing-ops/index.js ads",
     "marketing:check:meta": "node scripts/marketing-ops/index.js meta",
     "marketing:plan": "node scripts/marketing-ops/index.js plan",
