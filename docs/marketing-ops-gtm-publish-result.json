@@ -1,0 +1,98 @@
+{
+  "generatedAt": "2026-06-15T17:00:54.801Z",
+  "phase": "2Q",
+  "mode": "controlled_publish",
+  "status": "executed",
+  "businessOwnerApproval": true,
+  "mutationPerformed": true,
+  "gtmWriteCallsMade": true,
+  "gtmVersionCreated": true,
+  "gtmPublished": true,
+  "sourceArtifacts": [
+    "docs/marketing-ops-gtm-publish-readiness-review.json",
+    "docs/marketing-ops-ga4-event-tags-preview-qa.json",
+    "docs/marketing-ops-ga4-event-tags-create-result.json"
+  ],
+  "executionCommand": "MARKETING_AGENT_MODE=controlled_publish MARKETING_AGENT_ENABLE_WRITES=true MARKETING_AGENT_GTM_CREATE_ENABLED=true npm run marketing:apply:gtm:publish -- --platform gtm --confirm-human-approval",
+  "executionCount": 1,
+  "gateFailures": [],
+  "prePublishValidation": {
+    "phase2PConfirmed": true,
+    "phase2NConfirmed": true,
+    "phase2OConfirmed": true,
+    "phase2QBConfirmed": true,
+    "phase2QDConfirmed": true,
+    "previewQaPassed": true,
+    "allSixScopesAvailable": true,
+    "tagmanagerEditContainerVersionsAvailable": true,
+    "tagmanagerPublishAvailable": true,
+    "expectedTagsPresent": true,
+    "expectedTriggersPresent": true,
+    "expectedVariablesPresent": true,
+    "pendingChangesApproved": 14,
+    "unexpectedChanges": 0,
+    "duplicateRisk": 0,
+    "forbiddenParametersFound": 0,
+    "piiFound": 0,
+    "rawClickIdsFound": 0,
+    "validationStatus": "pass"
+  },
+  "publishedVersion": {
+    "versionName": "CRBOX GA4 conversion event tags - Phase 2Q",
+    "versionId": "4",
+    "containerVersionPath": "accounts/6351590751/containers/250367469/versions/4",
+    "publishStatus": "published",
+    "publishedAt": "2026-06-15T17:00:58.431Z",
+    "previousLiveVersionId": "3"
+  },
+  "publishedChanges": {
+    "approvedPendingChangesCount": 14,
+    "unexpectedChanges": 0,
+    "createdGa4EventTags": [
+      "GA4 - quote_request_start",
+      "GA4 - quote_request_submit_success",
+      "GA4 - contact_form_submit_success"
+    ]
+  },
+  "postPublishVerification": {
+    "published": true,
+    "versionCreated": true,
+    "versionPublished": true,
+    "tagsStillPresent": true,
+    "triggersStillPresent": true,
+    "variablesStillPresent": true,
+    "forbiddenParametersFound": 0,
+    "piiFound": 0,
+    "rawClickIdsFound": 0,
+    "finalVerificationStatus": "pass"
+  },
+  "rollbackPlan": {
+    "previousVersionId": "3",
+    "rollbackAvailable": true,
+    "rollbackSteps": [
+      "Publish the previous live GTM container version if unexpected tracking behavior is observed.",
+      "Verify the core GA4 Configuration tag and existing events still fire.",
+      "Re-run GTM Preview before republishing another version.",
+      "Keep the Replit runtime unchanged unless a runtime-specific issue is independently confirmed."
+    ]
+  },
+  "safety": {
+    "noRuntimeFilesTouched": true,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "secretsPrinted": false,
+    "tagsCreatedDuringPublish": 0,
+    "triggersCreatedDuringPublish": 0,
+    "variablesCreatedDuringPublish": 0
+  },
+  "recommendation": {
+    "postPublishSmokeTestRequired": true,
+    "monitorGa4Realtime": true,
+    "monitorDebugView": true,
+    "monitorConversions": true,
+    "nextPhase": "Phase 2R - Post-publish smoke test and monitoring"
+  },
+  "failedActions": [],
+  "stoppedOnError": false,
+  "mutationStatement": "Phase 2Q created and published exactly one GTM container version from the approved workspace. No tags, triggers, variables, runtime files, Google Ads objects, or Meta objects were created or changed during publish execution."
+}

@@ -19,6 +19,7 @@ const { runGtmPreviewQaReport, printSummary: printGtmPreviewQaSummary } = requir
 const { runGtmGa4TagsPayloadReview, printSummary: printGtmGa4TagsPayloadReviewSummary } = require('./gtm-ga4-tags-payload-review');
 const { runGtmGa4TagsPreviewQa, printSummary: printGtmGa4TagsPreviewQaSummary } = require('./gtm-ga4-tags-preview-qa');
 const { runGtmPublishReadinessReview, printSummary: printGtmPublishReadinessSummary } = require('./gtm-publish-readiness-review');
+const { runGtmControlledPublish, outputLines: gtmPublishOutputLines } = require('./gtm-publish-execution');
 const { runGtmGa4TagsControlledCreate, outputLines: gtmGa4TagsCreateOutputLines } = require('./apply/gtm-ga4-tags-create');
 const {
   safeOutputLines: gtmEditOauthOutputLines,
@@ -229,6 +230,14 @@ async function main() {
       if (createRun.exitCode) process.exitCode = createRun.exitCode;
       return;
     }
+    case 'apply:gtm:publish': {
+      const publishRun = await runGtmControlledPublish(root, process.argv.slice(3));
+      for (const line of gtmPublishOutputLines(publishRun)) {
+        console.log(maskSecretsInText(line));
+      }
+      if (publishRun.exitCode) process.exitCode = publishRun.exitCode;
+      return;
+    }
     case 'repo':
       results = [runRepoCheck(root)];
       break;
@@ -247,7 +256,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|oauth:gtm-publish-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|oauth:gtm-publish-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:gtm:publish|apply:validate]');
       process.exitCode = 1;
       return;
   }
