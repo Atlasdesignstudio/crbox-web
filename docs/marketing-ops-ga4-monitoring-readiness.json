@@ -1,0 +1,476 @@
+{
+  "generatedAt": "2026-06-15T22:10:09.867Z",
+  "phase": "3A-1",
+  "mode": "ga4_monitoring_readiness_read_only",
+  "sourceArtifacts": [
+    "docs/marketing-ops-gtm-publish-result.json",
+    "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+    "docs/measurement-map-v1.md",
+    "docs/analytics-taxonomy.md"
+  ],
+  "sourceArtifactAvailability": [
+    {
+      "path": "docs/marketing-ops-gtm-publish-result.json",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+      "available": true
+    },
+    {
+      "path": "docs/measurement-map-v1.md",
+      "available": true
+    },
+    {
+      "path": "docs/analytics-taxonomy.md",
+      "available": true
+    }
+  ],
+  "property": {
+    "propertyId": "534288079",
+    "measurementId": "G-B5BPHFRR18",
+    "reachable": true,
+    "measurementIdConfirmed": true
+  },
+  "authReadiness": {
+    "credentialsAvailable": true,
+    "tokenAvailableWithoutPrinting": true,
+    "requiredReadScopesAvailable": true,
+    "requiredReadScopes": [
+      "https://www.googleapis.com/auth/analytics.readonly"
+    ],
+    "writeScopesRequired": false,
+    "missingEnvironmentVariables": []
+  },
+  "adminChecks": {
+    "propertyRead": true,
+    "dataStreamsListed": true,
+    "customDimensionsListed": true,
+    "keyEventsListed": true,
+    "keyEventsEndpoint": "keyEvents",
+    "status": "pass",
+    "errors": []
+  },
+  "expectedCustomDimensions": [
+    {
+      "parameterName": "gclid_present",
+      "required": true,
+      "status": "present",
+      "displayName": "Click ID Google present",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "fbclid_present",
+      "required": true,
+      "status": "present",
+      "displayName": "Click ID Meta present",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "attribution_touch",
+      "required": true,
+      "status": "present",
+      "displayName": "Attribution Touch",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "utm_content",
+      "required": true,
+      "status": "present",
+      "displayName": "UTM Content",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "utm_term",
+      "required": true,
+      "status": "present",
+      "displayName": "UTM Term",
+      "scope": "EVENT"
+    }
+  ],
+  "additionalConfiguredCustomDimensions": [
+    {
+      "parameterName": "page_type",
+      "displayName": "Page Type",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "cta_id",
+      "displayName": "CTA ID",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "page_name",
+      "displayName": "Page Name",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "shipping_mode",
+      "displayName": "Shipping Mode",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "cta_location",
+      "displayName": "CTA Location",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "account_type",
+      "displayName": "Account Type",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "error_category",
+      "displayName": "Error Category",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "destination_country",
+      "displayName": "Destination Country",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "service_type",
+      "displayName": "Service Type",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "value_bucket",
+      "displayName": "Value Bucket",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "destination_type",
+      "displayName": "Destination Type",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "query_length_bucket",
+      "displayName": "Query Length Bucket",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "step_name",
+      "displayName": "Step Name",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "form_name",
+      "displayName": "Form Name",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "link_domain",
+      "displayName": "Link Domain",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "item_count_bucket",
+      "displayName": "Item Count Bucket",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "section_name",
+      "displayName": "Section Name",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "status_category",
+      "displayName": "Status Category",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "cta_text",
+      "displayName": "CTA Text",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "file_type",
+      "displayName": "File Type",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "weight_bucket",
+      "displayName": "Weight Bucket",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "page_path_group",
+      "displayName": "Page Path Group",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "message_type",
+      "displayName": "Message Type",
+      "scope": "EVENT"
+    },
+    {
+      "parameterName": "link_context",
+      "displayName": "Link Context",
+      "scope": "EVENT"
+    }
+  ],
+  "expectedKeyEvents": [
+    {
+      "eventName": "quote_request_submit_success",
+      "required": true,
+      "status": "configured"
+    },
+    {
+      "eventName": "signup_success",
+      "required": true,
+      "status": "configured"
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "required": false,
+      "status": "missing"
+    },
+    {
+      "eventName": "quote_request_start",
+      "required": false,
+      "status": "missing"
+    },
+    {
+      "eventName": "calculator_result",
+      "required": false,
+      "status": "missing"
+    }
+  ],
+  "recentEventObservability": {
+    "status": "pass",
+    "dateRange": {
+      "today": {
+        "startDate": "today",
+        "endDate": "today"
+      },
+      "last7Days": {
+        "startDate": "7daysAgo",
+        "endDate": "today"
+      },
+      "limitation": "GA4 Data API standard reports use property-date ranges; this is not a rolling 24-hour query."
+    },
+    "events": [
+      {
+        "eventName": "quote_request_start",
+        "todayCount": 5,
+        "last7DaysCount": 6,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "quote_request_submit_success",
+        "todayCount": 0,
+        "last7DaysCount": 1,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "contact_form_submit_success",
+        "todayCount": 0,
+        "last7DaysCount": 1,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "calculator_start",
+        "todayCount": 2,
+        "last7DaysCount": 7,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "calculator_query",
+        "todayCount": 5,
+        "last7DaysCount": 29,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "calculator_result",
+        "todayCount": 5,
+        "last7DaysCount": 29,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "signup_success",
+        "todayCount": 1,
+        "last7DaysCount": 12,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "whatsapp_click",
+        "todayCount": 1,
+        "last7DaysCount": 2,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "nav_click",
+        "todayCount": 42,
+        "last7DaysCount": 367,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "cta_click",
+        "todayCount": 7,
+        "last7DaysCount": 102,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "scroll_depth",
+        "todayCount": 335,
+        "last7DaysCount": 3105,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "section_visible",
+        "todayCount": 243,
+        "last7DaysCount": 2152,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "form_start",
+        "todayCount": 115,
+        "last7DaysCount": 1077,
+        "status": "seen_recently"
+      },
+      {
+        "eventName": "portal_section_view",
+        "todayCount": 289,
+        "last7DaysCount": 2675,
+        "status": "seen_recently"
+      }
+    ],
+    "errors": []
+  },
+  "attributionObservability": {
+    "status": "partial",
+    "checkedEvents": [
+      "quote_request_submit_success",
+      "signup_success"
+    ],
+    "checkedDimensions": [
+      {
+        "dimension": "source",
+        "apiName": "source",
+        "metricName": "keyEvents",
+        "status": "observed",
+        "rowsWithValue": 5,
+        "eventCountWithValue": 13,
+        "limitation": ""
+      },
+      {
+        "dimension": "medium",
+        "apiName": "medium",
+        "metricName": "keyEvents",
+        "status": "observed",
+        "rowsWithValue": 5,
+        "eventCountWithValue": 13,
+        "limitation": ""
+      },
+      {
+        "dimension": "campaign",
+        "apiName": "campaignName",
+        "metricName": "keyEvents",
+        "status": "observed",
+        "rowsWithValue": 5,
+        "eventCountWithValue": 13,
+        "limitation": ""
+      },
+      {
+        "dimension": "utm_source",
+        "apiName": "customEvent:utm_source",
+        "metricName": "eventCount",
+        "status": "not_checked",
+        "rowsWithValue": 0,
+        "eventCountWithValue": 0,
+        "limitation": "The event parameter is not registered as a GA4 event-scoped custom dimension, so the Data API cannot query it directly."
+      },
+      {
+        "dimension": "utm_medium",
+        "apiName": "customEvent:utm_medium",
+        "metricName": "eventCount",
+        "status": "not_checked",
+        "rowsWithValue": 0,
+        "eventCountWithValue": 0,
+        "limitation": "The event parameter is not registered as a GA4 event-scoped custom dimension, so the Data API cannot query it directly."
+      },
+      {
+        "dimension": "utm_campaign",
+        "apiName": "customEvent:utm_campaign",
+        "metricName": "eventCount",
+        "status": "not_checked",
+        "rowsWithValue": 0,
+        "eventCountWithValue": 0,
+        "limitation": "The event parameter is not registered as a GA4 event-scoped custom dimension, so the Data API cannot query it directly."
+      },
+      {
+        "dimension": "utm_content",
+        "apiName": "customEvent:utm_content",
+        "metricName": "eventCount",
+        "status": "observed",
+        "rowsWithValue": 1,
+        "eventCountWithValue": 1,
+        "limitation": ""
+      },
+      {
+        "dimension": "utm_term",
+        "apiName": "customEvent:utm_term",
+        "metricName": "eventCount",
+        "status": "observed",
+        "rowsWithValue": 1,
+        "eventCountWithValue": 1,
+        "limitation": ""
+      },
+      {
+        "dimension": "gclid_present",
+        "apiName": "customEvent:gclid_present",
+        "metricName": "eventCount",
+        "status": "observed",
+        "rowsWithValue": 1,
+        "eventCountWithValue": 1,
+        "limitation": ""
+      },
+      {
+        "dimension": "fbclid_present",
+        "apiName": "customEvent:fbclid_present",
+        "metricName": "eventCount",
+        "status": "observed",
+        "rowsWithValue": 1,
+        "eventCountWithValue": 1,
+        "limitation": ""
+      },
+      {
+        "dimension": "attribution_touch",
+        "apiName": "customEvent:attribution_touch",
+        "metricName": "eventCount",
+        "status": "observed",
+        "rowsWithValue": 1,
+        "eventCountWithValue": 1,
+        "limitation": ""
+      }
+    ],
+    "limitations": [
+      "Only aggregate row and event-count signals are retained; dimension values are not written to artifacts.",
+      "Unregistered event parameters cannot be queried directly through the GA4 Data API.",
+      "No raw gclid or fbclid dimension is requested."
+    ]
+  },
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiQueried": false,
+    "piiPrinted": false,
+    "rawClickIdsQueried": false,
+    "rawClickIdsPrinted": false
+  },
+  "readinessStatus": "pass",
+  "readinessDetail": "pass",
+  "limitations": [],
+  "recommendation": {
+    "prerequisites": [],
+    "nextPhase": "Phase 3A-2 - GA4 Event Processing Validation"
+  }
+}
