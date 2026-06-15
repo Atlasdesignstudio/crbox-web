@@ -1,0 +1,573 @@
+{
+  "generatedAt": "2026-06-15T23:16:58.415Z",
+  "phase": "3A-2",
+  "mode": "ga4_event_processing_validation_read_only",
+  "sourceArtifacts": [
+    "docs/marketing-ops-ga4-monitoring-readiness.json",
+    "docs/marketing-ops-ga4-monitoring-readiness.md",
+    "docs/marketing-ops-gtm-publish-result.json",
+    "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+    "docs/measurement-map-v1.md",
+    "docs/analytics-taxonomy.md"
+  ],
+  "sourceArtifactAvailability": [
+    {
+      "path": "docs/marketing-ops-ga4-monitoring-readiness.json",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-ga4-monitoring-readiness.md",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-gtm-publish-result.json",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+      "available": true
+    },
+    {
+      "path": "docs/measurement-map-v1.md",
+      "available": true
+    },
+    {
+      "path": "docs/analytics-taxonomy.md",
+      "available": true
+    }
+  ],
+  "property": {
+    "propertyId": "534288079",
+    "measurementId": "G-B5BPHFRR18",
+    "reachable": true,
+    "measurementIdConfirmed": true
+  },
+  "dateRanges": {
+    "last24Hours": {
+      "startDate": "today",
+      "endDate": "today",
+      "limitation": "GA4 Data API standard reports are date-based; today is used as the closest read-only proxy for last 24 hours."
+    },
+    "today": {
+      "startDate": "today",
+      "endDate": "today"
+    },
+    "yesterday": {
+      "startDate": "yesterday",
+      "endDate": "yesterday"
+    },
+    "last7Days": {
+      "startDate": "7daysAgo",
+      "endDate": "today"
+    }
+  },
+  "eventVolumeValidation": [
+    {
+      "eventName": "quote_request_start",
+      "todayCount": 5,
+      "yesterdayCount": 0,
+      "last24HoursCount": 5,
+      "last7DaysCount": 6,
+      "status": "low_volume_expected"
+    },
+    {
+      "eventName": "quote_request_submit_success",
+      "todayCount": 0,
+      "yesterdayCount": 0,
+      "last24HoursCount": 0,
+      "last7DaysCount": 1,
+      "status": "low_volume_expected"
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "todayCount": 0,
+      "yesterdayCount": 0,
+      "last24HoursCount": 0,
+      "last7DaysCount": 1,
+      "status": "low_volume_expected"
+    },
+    {
+      "eventName": "signup_success",
+      "todayCount": 1,
+      "yesterdayCount": 1,
+      "last24HoursCount": 1,
+      "last7DaysCount": 12,
+      "status": "healthy_recent_volume"
+    },
+    {
+      "eventName": "calculator_start",
+      "todayCount": 2,
+      "yesterdayCount": 0,
+      "last24HoursCount": 2,
+      "last7DaysCount": 7,
+      "status": "low_volume_expected"
+    },
+    {
+      "eventName": "calculator_query",
+      "todayCount": 5,
+      "yesterdayCount": 1,
+      "last24HoursCount": 5,
+      "last7DaysCount": 29,
+      "status": "healthy_recent_volume"
+    },
+    {
+      "eventName": "calculator_result",
+      "todayCount": 5,
+      "yesterdayCount": 1,
+      "last24HoursCount": 5,
+      "last7DaysCount": 29,
+      "status": "healthy_recent_volume"
+    },
+    {
+      "eventName": "whatsapp_click",
+      "todayCount": 1,
+      "yesterdayCount": 0,
+      "last24HoursCount": 1,
+      "last7DaysCount": 2,
+      "status": "low_volume_expected"
+    },
+    {
+      "eventName": "nav_click",
+      "todayCount": 45,
+      "yesterdayCount": 9,
+      "last24HoursCount": 45,
+      "last7DaysCount": 370,
+      "status": "healthy_recent_volume"
+    },
+    {
+      "eventName": "cta_click",
+      "todayCount": 7,
+      "yesterdayCount": 8,
+      "last24HoursCount": 7,
+      "last7DaysCount": 102,
+      "status": "healthy_recent_volume"
+    },
+    {
+      "eventName": "scroll_depth",
+      "todayCount": 352,
+      "yesterdayCount": 75,
+      "last24HoursCount": 352,
+      "last7DaysCount": 3122,
+      "status": "healthy_recent_volume"
+    },
+    {
+      "eventName": "section_visible",
+      "todayCount": 258,
+      "yesterdayCount": 75,
+      "last24HoursCount": 258,
+      "last7DaysCount": 2167,
+      "status": "healthy_recent_volume"
+    },
+    {
+      "eventName": "form_start",
+      "todayCount": 119,
+      "yesterdayCount": 35,
+      "last24HoursCount": 119,
+      "last7DaysCount": 1081,
+      "status": "healthy_recent_volume"
+    },
+    {
+      "eventName": "portal_section_view",
+      "todayCount": 302,
+      "yesterdayCount": 49,
+      "last24HoursCount": 302,
+      "last7DaysCount": 2688,
+      "status": "healthy_recent_volume"
+    }
+  ],
+  "funnelValidation": {
+    "quoteFunnel": {
+      "name": "Quote funnel",
+      "steps": {
+        "starts": 6,
+        "submits": 1,
+        "submitStartRatio": 0.1667
+      },
+      "warnings": [],
+      "status": "pass"
+    },
+    "calculatorFunnel": {
+      "name": "Calculator funnel",
+      "steps": {
+        "calculatorStart": 7,
+        "calculatorQuery": 29,
+        "calculatorResult": 29,
+        "quoteSubmit": 1,
+        "calculatorResultStartRatio": 4.1429,
+        "quoteSubmitCalculatorResultRatio": 0.0345
+      },
+      "warnings": [
+        "calculator_result is higher than calculator_start; this may be normal if users run multiple calculations per start."
+      ],
+      "status": "pass_with_notes"
+    },
+    "contactFunnel": {
+      "name": "Contact funnel",
+      "steps": {
+        "formStart": 1081,
+        "contactSubmitSuccess": 1,
+        "contactSuccessFormStartRatio": 0.0009
+      },
+      "warnings": [
+        "form_start is global and may include non-contact forms."
+      ],
+      "status": "pass_with_context"
+    },
+    "status": "pass_with_limitations"
+  },
+  "pageFlowValidation": {
+    "status": "pass_with_limitations",
+    "results": [
+      {
+        "eventName": "quote_request_start",
+        "expectedPages": [
+          "/calculadora.html",
+          "/cotizar.html"
+        ],
+        "observedPages": [
+          {
+            "pagePath": "/cotizar.html",
+            "pageTitle": "Cotizar Importación a Costa Rica | CRBOX",
+            "eventCount": 4,
+            "classification": "expected_page"
+          },
+          {
+            "pagePath": "/calculadora.html",
+            "pageTitle": "Calculadora de Envíos desde USA a Costa Rica | CRBOX",
+            "eventCount": 2,
+            "classification": "expected_page"
+          }
+        ],
+        "status": "expected_page",
+        "notes": ""
+      },
+      {
+        "eventName": "quote_request_submit_success",
+        "expectedPages": [
+          "/calculadora.html",
+          "/cotizar.html"
+        ],
+        "observedPages": [
+          {
+            "pagePath": "/calculadora.html",
+            "pageTitle": "Calculadora de Envíos desde USA a Costa Rica | CRBOX",
+            "eventCount": 1,
+            "classification": "expected_page"
+          }
+        ],
+        "status": "expected_page",
+        "notes": ""
+      },
+      {
+        "eventName": "contact_form_submit_success",
+        "expectedPages": [
+          "/contacto.html"
+        ],
+        "observedPages": [
+          {
+            "pagePath": "/contacto.html",
+            "pageTitle": "Contacto | CRBOX | Sucursales y Atención al Cliente en Costa Rica",
+            "eventCount": 1,
+            "classification": "expected_page"
+          }
+        ],
+        "status": "expected_page",
+        "notes": ""
+      },
+      {
+        "eventName": "signup_success",
+        "expectedPages": [
+          "/afiliate.html"
+        ],
+        "observedPages": [
+          {
+            "pagePath": "/afiliate.html",
+            "pageTitle": "Afíliate Gratis | CRBOX | Casillero Virtual y Courier en Costa Rica",
+            "eventCount": 12,
+            "classification": "expected_page"
+          }
+        ],
+        "status": "expected_page",
+        "notes": ""
+      },
+      {
+        "eventName": "calculator_start",
+        "expectedPages": [
+          "/calculadora.html"
+        ],
+        "observedPages": [
+          {
+            "pagePath": "/contacto.html",
+            "pageTitle": "Contacto | CRBOX | Sucursales y Atención al Cliente en Costa Rica",
+            "eventCount": 7,
+            "classification": "unexpected_page"
+          }
+        ],
+        "status": "not_observed_on_expected_page",
+        "notes": ""
+      },
+      {
+        "eventName": "calculator_query",
+        "expectedPages": [
+          "/calculadora.html"
+        ],
+        "observedPages": [
+          {
+            "pagePath": "/calculadora.html",
+            "pageTitle": "Calculadora de Envíos desde USA a Costa Rica | CRBOX",
+            "eventCount": 29,
+            "classification": "expected_page"
+          }
+        ],
+        "status": "expected_page",
+        "notes": ""
+      },
+      {
+        "eventName": "calculator_result",
+        "expectedPages": [
+          "/calculadora.html"
+        ],
+        "observedPages": [
+          {
+            "pagePath": "/calculadora.html",
+            "pageTitle": "Calculadora de Envíos desde USA a Costa Rica | CRBOX",
+            "eventCount": 29,
+            "classification": "expected_page"
+          }
+        ],
+        "status": "expected_page",
+        "notes": ""
+      },
+      {
+        "eventName": "whatsapp_click",
+        "expectedPages": [
+          "public/global"
+        ],
+        "observedPages": [],
+        "status": "not_checked",
+        "notes": "Global engagement events are not constrained to a single page."
+      },
+      {
+        "eventName": "nav_click",
+        "expectedPages": [
+          "public/global"
+        ],
+        "observedPages": [],
+        "status": "not_checked",
+        "notes": "Global engagement events are not constrained to a single page."
+      },
+      {
+        "eventName": "cta_click",
+        "expectedPages": [
+          "public/global"
+        ],
+        "observedPages": [],
+        "status": "not_checked",
+        "notes": "Global engagement events are not constrained to a single page."
+      },
+      {
+        "eventName": "scroll_depth",
+        "expectedPages": [
+          "public/global"
+        ],
+        "observedPages": [],
+        "status": "not_checked",
+        "notes": "Global engagement events are not constrained to a single page."
+      },
+      {
+        "eventName": "section_visible",
+        "expectedPages": [
+          "public/global"
+        ],
+        "observedPages": [],
+        "status": "not_checked",
+        "notes": "Global engagement events are not constrained to a single page."
+      }
+    ],
+    "limitations": [
+      "Page checks use pagePath and pageTitle only; full URLs and query strings are not retained."
+    ]
+  },
+  "attributionQuality": {
+    "status": "pass_with_limitations",
+    "sourceMediumCoverage": {
+      "source": {
+        "metricName": "keyEvents",
+        "totalEvents": 14,
+        "countWithValue": 13,
+        "percentageWithValue": 92.86,
+        "rowsWithValue": 5,
+        "status": "observed"
+      },
+      "medium": {
+        "metricName": "keyEvents",
+        "totalEvents": 14,
+        "countWithValue": 13,
+        "percentageWithValue": 92.86,
+        "rowsWithValue": 5,
+        "status": "observed"
+      }
+    },
+    "campaignCoverage": {
+      "metricName": "keyEvents",
+      "totalEvents": 14,
+      "countWithValue": 13,
+      "percentageWithValue": 92.86,
+      "rowsWithValue": 5,
+      "status": "observed"
+    },
+    "defaultChannelGroupDistribution": [
+      {
+        "eventName": "signup_success",
+        "value": "Organic Search",
+        "count": 5
+      },
+      {
+        "eventName": "signup_success",
+        "value": "Direct",
+        "count": 3
+      },
+      {
+        "eventName": "signup_success",
+        "value": "AI Assistant",
+        "count": 2
+      },
+      {
+        "eventName": "quote_request_submit_success",
+        "value": "Unassigned",
+        "count": 1
+      },
+      {
+        "eventName": "signup_success",
+        "value": "Referral",
+        "count": 1
+      },
+      {
+        "eventName": "signup_success",
+        "value": "Unassigned",
+        "count": 1
+      }
+    ],
+    "utmContentCoverage": {
+      "metricName": "eventCount",
+      "totalEvents": 14,
+      "countWithValue": 2,
+      "percentageWithValue": 14.29,
+      "rowsWithValue": 2,
+      "status": "observed"
+    },
+    "utmTermCoverage": {
+      "metricName": "eventCount",
+      "totalEvents": 14,
+      "countWithValue": 2,
+      "percentageWithValue": 14.29,
+      "rowsWithValue": 2,
+      "status": "observed"
+    },
+    "gclidPresentCount": 0,
+    "fbclidPresentCount": 0,
+    "attributionTouchDistribution": [
+      {
+        "eventName": "contact_form_submit_success",
+        "value": "both_available",
+        "count": 1
+      },
+      {
+        "eventName": "quote_request_submit_success",
+        "value": "both_available",
+        "count": 1
+      }
+    ],
+    "limitations": [
+      "`utm_source`, `utm_medium`, and `utm_campaign` are not currently registered as event-scoped custom dimensions, so native GA4 source, medium, and campaign dimensions are used instead.",
+      "Only aggregate attribution dimensions are queried; raw `gclid`, raw `fbclid`, user identifiers, session identifiers, and PII are not queried."
+    ]
+  },
+  "duplicateRiskValidation": {
+    "riskLevel": "low",
+    "signals": [
+      "No aggregate duplicate-risk signal was detected."
+    ],
+    "limitations": [
+      "Exact duplicate detection is intentionally limited because this phase does not query user IDs, client IDs, session IDs, or PII.",
+      "Multiple calculator_query or calculator_result events per calculator_start can be normal user behavior."
+    ]
+  },
+  "unexpectedEventValidation": {
+    "expectedObserved": [
+      "quote_request_start",
+      "quote_request_submit_success",
+      "contact_form_submit_success",
+      "signup_success",
+      "signup_start",
+      "signup_step",
+      "signup_error",
+      "calculator_start",
+      "calculator_query",
+      "calculator_result",
+      "calculator_tab_switch",
+      "whatsapp_click",
+      "email_click",
+      "nav_click",
+      "cta_click",
+      "scroll_depth",
+      "section_visible",
+      "form_start",
+      "form_abandon",
+      "faq_engage",
+      "service_card_click",
+      "portal_section_view",
+      "package_search",
+      "package_detail_view",
+      "invoice_upload_start",
+      "invoice_upload_success",
+      "login_start",
+      "login_success",
+      "login_error",
+      "chat_open",
+      "chat_message_sent"
+    ],
+    "expectedNotObserved": [
+      "phone_click",
+      "invoice_upload_error"
+    ],
+    "unexpectedObserved": [
+      {
+        "eventName": "package_search_result",
+        "count": 27
+      },
+      {
+        "eventName": "outbound_click",
+        "count": 25
+      }
+    ],
+    "legacyAliasesObserved": [],
+    "status": "pass"
+  },
+  "paidMediaReadiness": {
+    "ga4Reporting": "ready",
+    "googleAdsImportPlanning": "ready_with_limitations",
+    "lookerStudioDashboardPlanning": "ready",
+    "metaPixelPlanning": "ready_for_planning_only"
+  },
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiQueried": false,
+    "piiPrinted": false,
+    "rawClickIdsQueried": false,
+    "rawClickIdsPrinted": false
+  },
+  "validationStatus": "pass_with_limitations",
+  "limitations": [],
+  "recommendation": {
+    "nextPhase": "Phase 3A-3 - Monitoring Dashboard Artifact"
+  }
+}
