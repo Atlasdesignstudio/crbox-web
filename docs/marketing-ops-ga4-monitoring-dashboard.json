@@ -1,0 +1,449 @@
+{
+  "generatedAt": "2026-06-15T23:46:34.723Z",
+  "phase": "3A-3",
+  "mode": "ga4_monitoring_dashboard_artifact",
+  "sourceArtifacts": [
+    "docs/marketing-ops-ga4-monitoring-readiness.json",
+    "docs/marketing-ops-ga4-monitoring-readiness.md",
+    "docs/marketing-ops-ga4-event-processing-validation.json",
+    "docs/marketing-ops-ga4-event-processing-validation.md",
+    "docs/marketing-ops-gtm-publish-result.json",
+    "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+    "docs/measurement-map-v1.md",
+    "docs/analytics-taxonomy.md"
+  ],
+  "sourceArtifactAvailability": [
+    {
+      "path": "docs/marketing-ops-ga4-monitoring-readiness.json",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-ga4-monitoring-readiness.md",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-ga4-event-processing-validation.json",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-ga4-event-processing-validation.md",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-gtm-publish-result.json",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+      "available": true
+    },
+    {
+      "path": "docs/measurement-map-v1.md",
+      "available": true
+    },
+    {
+      "path": "docs/analytics-taxonomy.md",
+      "available": true
+    }
+  ],
+  "project": "CRBOX",
+  "dashboardType": "GA4 Monitoring Dashboard Artifact",
+  "overallStatus": "ready_with_limitations",
+  "summary": [
+    "GA4 reporting and Looker Studio planning are ready.",
+    "Google Ads import planning is ready with limitations and requires a conversion map before execution.",
+    "Meta Pixel is ready for planning only.",
+    "Attribution is usable but not fully enriched because some UTM fields are not registered as event-scoped GA4 custom dimensions."
+  ],
+  "systemHealth": {
+    "status": "ready_with_limitations",
+    "checks": [
+      {
+        "label": "GA4 Data API available",
+        "status": "pass",
+        "detail": "pass"
+      },
+      {
+        "label": "GA4 property reachable",
+        "status": "pass",
+        "detail": "534288079"
+      },
+      {
+        "label": "Measurement ID confirmed",
+        "status": "pass",
+        "detail": "G-B5BPHFRR18"
+      },
+      {
+        "label": "GTM Version 4 published",
+        "status": "pass",
+        "detail": "4"
+      },
+      {
+        "label": "Previous GTM version 3 captured",
+        "status": "pass",
+        "detail": "3"
+      },
+      {
+        "label": "Rollback available",
+        "status": "pass",
+        "detail": "yes"
+      },
+      {
+        "label": "Phase 2R smoke test",
+        "status": "pass",
+        "detail": "2R"
+      },
+      {
+        "label": "Phase 3A-1 readiness",
+        "status": "pass",
+        "detail": "3A-1"
+      },
+      {
+        "label": "Phase 3A-2 validation",
+        "status": "pass_with_limitations",
+        "detail": "3A-2"
+      }
+    ]
+  },
+  "coreConversionHealth": {
+    "status": "ready_with_limitations",
+    "events": [
+      {
+        "eventName": "quote_request_start",
+        "label": "Quote request start",
+        "observedRecently": true,
+        "keyEvent": "optional",
+        "keyEventConfigured": "missing",
+        "recentVolumeStatus": "low_volume_expected",
+        "todayCount": 5,
+        "last7DaysCount": 6,
+        "pageFlowStatus": "expected_page",
+        "paidMediaRelevance": "Funnel start / micro-conversion",
+        "notes": "Observed in the recent GA4 validation window."
+      },
+      {
+        "eventName": "quote_request_submit_success",
+        "label": "Quote request submit success",
+        "observedRecently": true,
+        "keyEvent": "yes",
+        "keyEventConfigured": "configured",
+        "recentVolumeStatus": "low_volume_expected",
+        "todayCount": 0,
+        "last7DaysCount": 1,
+        "pageFlowStatus": "expected_page",
+        "paidMediaRelevance": "Primary conversion",
+        "notes": "Observed in the recent GA4 validation window."
+      },
+      {
+        "eventName": "contact_form_submit_success",
+        "label": "Contact form submit success",
+        "observedRecently": true,
+        "keyEvent": "optional",
+        "keyEventConfigured": "missing",
+        "recentVolumeStatus": "low_volume_expected",
+        "todayCount": 0,
+        "last7DaysCount": 1,
+        "pageFlowStatus": "expected_page",
+        "paidMediaRelevance": "Secondary lead-intent conversion",
+        "notes": "Observed in the recent GA4 validation window."
+      },
+      {
+        "eventName": "signup_success",
+        "label": "Signup success",
+        "observedRecently": true,
+        "keyEvent": "yes",
+        "keyEventConfigured": "configured",
+        "recentVolumeStatus": "healthy_recent_volume",
+        "todayCount": 1,
+        "last7DaysCount": 12,
+        "pageFlowStatus": "expected_page",
+        "paidMediaRelevance": "Primary conversion",
+        "notes": "Observed in the recent GA4 validation window."
+      }
+    ]
+  },
+  "funnelHealth": {
+    "status": "pass_with_limitations",
+    "quoteFunnel": {
+      "name": "Quote funnel",
+      "steps": {
+        "starts": 6,
+        "submits": 1,
+        "submitStartRatio": 0.1667
+      },
+      "warnings": [],
+      "status": "pass",
+      "interpretation": "Quote submit/start ratio is useful directionally, but volume is still low."
+    },
+    "calculatorFunnel": {
+      "name": "Calculator funnel",
+      "steps": {
+        "calculatorStart": 7,
+        "calculatorQuery": 29,
+        "calculatorResult": 29,
+        "quoteSubmit": 1,
+        "calculatorResultStartRatio": 4.1429,
+        "quoteSubmitCalculatorResultRatio": 0.0345
+      },
+      "warnings": [
+        "calculator_result is higher than calculator_start; this may be normal if users run multiple calculations per start."
+      ],
+      "status": "pass_with_notes",
+      "interpretation": "Calculator ratios are directional; multiple queries/results per calculator start can be normal."
+    },
+    "contactFunnel": {
+      "name": "Contact funnel",
+      "steps": {
+        "formStart": 1081,
+        "contactSubmitSuccess": 1,
+        "contactSuccessFormStartRatio": 0.0009
+      },
+      "warnings": [
+        "form_start is global and may include non-contact forms."
+      ],
+      "status": "pass_with_context",
+      "interpretation": "Contact ratio is directional because form_start is global and may include non-contact forms."
+    }
+  },
+  "attributionQuality": {
+    "status": "pass_with_limitations",
+    "fields": [
+      {
+        "field": "source",
+        "observed": true,
+        "note": "Native GA4 source is available."
+      },
+      {
+        "field": "medium",
+        "observed": true,
+        "note": "Native GA4 medium is available."
+      },
+      {
+        "field": "campaign",
+        "observed": true,
+        "note": "Native GA4 campaign is available."
+      },
+      {
+        "field": "utm_content",
+        "observed": true,
+        "note": "Registered event-scoped custom dimension."
+      },
+      {
+        "field": "utm_term",
+        "observed": true,
+        "note": "Registered event-scoped custom dimension."
+      },
+      {
+        "field": "gclid_present",
+        "observed": true,
+        "note": "Boolean click-ID presence only; raw ID is excluded."
+      },
+      {
+        "field": "fbclid_present",
+        "observed": true,
+        "note": "Boolean click-ID presence only; raw ID is excluded."
+      },
+      {
+        "field": "attribution_touch",
+        "observed": true,
+        "note": "Registered attribution touch custom dimension."
+      }
+    ],
+    "sourceMediumCoverage": {
+      "source": {
+        "metricName": "keyEvents",
+        "totalEvents": 14,
+        "countWithValue": 13,
+        "percentageWithValue": 92.86,
+        "rowsWithValue": 5,
+        "status": "observed"
+      },
+      "medium": {
+        "metricName": "keyEvents",
+        "totalEvents": 14,
+        "countWithValue": 13,
+        "percentageWithValue": 92.86,
+        "rowsWithValue": 5,
+        "status": "observed"
+      }
+    },
+    "campaignCoverage": {
+      "metricName": "keyEvents",
+      "totalEvents": 14,
+      "countWithValue": 13,
+      "percentageWithValue": 92.86,
+      "rowsWithValue": 5,
+      "status": "observed"
+    },
+    "utmContentCoverage": {
+      "metricName": "eventCount",
+      "totalEvents": 14,
+      "countWithValue": 2,
+      "percentageWithValue": 14.29,
+      "rowsWithValue": 2,
+      "status": "observed"
+    },
+    "utmTermCoverage": {
+      "metricName": "eventCount",
+      "totalEvents": 14,
+      "countWithValue": 2,
+      "percentageWithValue": 14.29,
+      "rowsWithValue": 2,
+      "status": "observed"
+    },
+    "gclidPresentCount": 0,
+    "fbclidPresentCount": 0,
+    "attributionTouchDistribution": [
+      {
+        "eventName": "contact_form_submit_success",
+        "value": "both_available",
+        "count": 1
+      },
+      {
+        "eventName": "quote_request_submit_success",
+        "value": "both_available",
+        "count": 1
+      }
+    ],
+    "limitations": [
+      "`utm_source`, `utm_medium`, and `utm_campaign` are not currently registered as GA4 event-scoped custom dimensions.",
+      "Native GA4 source, medium, and campaign are available.",
+      "Attribution is usable but not fully enriched yet."
+    ]
+  },
+  "paidMediaReadiness": {
+    "ga4Reporting": {
+      "status": "ready",
+      "available": "Core conversion events, event volume, funnels, attribution, and taxonomy coverage are readable.",
+      "remains": "Continue monitoring low-volume conversion events as paid traffic scales."
+    },
+    "googleAdsImportPlanning": {
+      "status": "ready_with_limitations",
+      "available": "Primary conversion candidates are visible and key-event configuration exists for quote_request_submit_success and signup_success.",
+      "remains": "Finalize the conversion map before importing or optimizing against ad-platform conversions."
+    },
+    "lookerStudioDashboardPlanning": {
+      "status": "ready",
+      "available": "Dashboard-ready aggregate fields exist for health, funnels, attribution, and data quality.",
+      "remains": "Define audience-specific views and reporting cadence."
+    },
+    "metaPixelPlanning": {
+      "status": "ready_for_planning_only",
+      "available": "Meta planning can use the validated event taxonomy and conversion priority map.",
+      "remains": "Do not implement Meta events until a separate approved planning/execution phase."
+    }
+  },
+  "eventTaxonomyCoverage": {
+    "status": "pass",
+    "expectedObserved": [
+      "quote_request_start",
+      "quote_request_submit_success",
+      "contact_form_submit_success",
+      "signup_success",
+      "signup_start",
+      "signup_step",
+      "signup_error",
+      "calculator_start",
+      "calculator_query",
+      "calculator_result",
+      "calculator_tab_switch",
+      "whatsapp_click",
+      "email_click",
+      "nav_click",
+      "cta_click",
+      "scroll_depth",
+      "section_visible",
+      "form_start",
+      "form_abandon",
+      "faq_engage",
+      "service_card_click",
+      "portal_section_view",
+      "package_search",
+      "package_detail_view",
+      "invoice_upload_start",
+      "invoice_upload_success",
+      "login_start",
+      "login_success",
+      "login_error",
+      "chat_open",
+      "chat_message_sent"
+    ],
+    "expectedNotObserved": [
+      "phone_click",
+      "invoice_upload_error"
+    ],
+    "unexpectedObserved": [
+      {
+        "eventName": "package_search_result",
+        "count": 27
+      },
+      {
+        "eventName": "outbound_click",
+        "count": 25
+      }
+    ],
+    "legacyAliasesObserved": [],
+    "interpretation": {
+      "phone_click": "Not critical unless phone CTA becomes a paid-media KPI.",
+      "invoice_upload_error": "Expected to be absent during healthy operation because it is an error event."
+    }
+  },
+  "duplicateAndDataQuality": {
+    "duplicateRisk": "low",
+    "signals": [
+      "No aggregate duplicate-risk signal was detected."
+    ],
+    "limitations": [
+      "Exact duplicate detection is intentionally limited because this phase does not query user IDs, client IDs, session IDs, or PII.",
+      "Multiple calculator_query or calculator_result events per calculator_start can be normal user behavior.",
+      "Low conversion volume limits statistical confidence.",
+      "Duplicate-risk analysis is conservative and privacy-safe."
+    ],
+    "privacy": [
+      "No raw gclid/fbclid queried or printed.",
+      "No PII queried or printed.",
+      "No user, client, or session identifiers are included in the dashboard artifact."
+    ]
+  },
+  "limitations": [
+    "The dashboard is generated from existing local read-only artifacts and does not independently re-query GA4.",
+    "Some conversion events are low-volume before paid campaigns launch.",
+    "Attribution is partially observable; utm_source, utm_medium, and utm_campaign are not directly queryable as event-scoped custom dimensions.",
+    "Duplicate-risk checks are aggregate and privacy-safe, not user-level duplicate detection."
+  ],
+  "recommendedNextActions": {
+    "immediateMonitoring": [
+      "Monitor GA4 Realtime.",
+      "Monitor GA4 DebugView.",
+      "Monitor key events.",
+      "Monitor unexpected spikes or drops.",
+      "Monitor duplicate behavior."
+    ],
+    "nextTechnicalPhaseOptions": [
+      "Phase 3A-4: Looker Studio / Dashboard Planning Spec",
+      "Phase 3B: Paid Media Conversion Map",
+      "Phase 3C: Google Ads Linking / Import Planning"
+    ],
+    "recommendedNextPhase": "Phase 3B - Paid Media Conversion Map",
+    "rationale": [
+      "Define primary conversions.",
+      "Define secondary conversions.",
+      "Define diagnostic events.",
+      "Define optimization rules.",
+      "Decide what should and should not be imported into ad platforms before connecting Google Ads."
+    ]
+  },
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiPrinted": false,
+    "rawClickIdsPrinted": false
+  }
+}

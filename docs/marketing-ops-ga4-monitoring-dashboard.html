@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRBOX GA4 Monitoring Dashboard Artifact</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #17202a;
+      --muted: #5d6875;
+      --line: #d9dee5;
+      --good: #0f7a4f;
+      --good-bg: #e8f6ef;
+      --warn: #926200;
+      --warn-bg: #fff4d8;
+      --bad: #a33131;
+      --bad-bg: #fde8e8;
+      --neutral: #4b5563;
+      --neutral-bg: #eef1f5;
+      --accent: #275d8c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    header {
+      background: #12344d;
+      color: #fff;
+      padding: 32px max(24px, calc((100vw - 1180px) / 2));
+    }
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 40px;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(1.8rem, 3vw, 3rem); margin-bottom: 8px; letter-spacing: 0; }
+    h2 { margin: 28px 0 14px; font-size: 1.35rem; }
+    h3 { margin-bottom: 8px; font-size: 1.05rem; }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card, .table-wrap, .note {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card p { color: var(--muted); margin-bottom: 0; }
+    .kicker {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      white-space: normal;
+    }
+    .chip.good { color: var(--good); background: var(--good-bg); }
+    .chip.warn { color: var(--warn); background: var(--warn-bg); }
+    .chip.bad { color: var(--bad); background: var(--bad-bg); }
+    .chip.neutral { color: var(--neutral); background: var(--neutral-bg); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    ul { margin: 0; padding-left: 20px; }
+    footer {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto 32px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+    @media (max-width: 860px) {
+      .summary, .grid, .grid.two { grid-template-columns: 1fr; }
+      .table-wrap { overflow-x: auto; }
+      th, td { min-width: 150px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="kicker">CRBOX · Phase 3A-3</div>
+    <h1>GA4 Monitoring Dashboard Artifact</h1>
+    <p>GA4 reporting and Looker Studio planning are ready. Google Ads import planning is ready with limitations and requires a conversion map before execution. Meta Pixel is ready for planning only. Attribution is usable but not fully enriched because some UTM fields are not registered as event-scoped GA4 custom dimensions.</p>
+    <div class="summary">
+      <div><span class="chip warn">READY WITH LIMITATIONS</span><p>Overall status</p></div>
+      <div><span class="chip warn">READY WITH LIMITATIONS</span><p>System health</p></div>
+      <div><span class="chip good">LOW</span><p>Duplicate risk</p></div>
+      <div><span class="chip warn">READY WITH LIMITATIONS</span><p>Google Ads import planning</p></div>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>System health</h2>
+      <div class="grid">
+      <article class="card">
+        <div class="kicker">GA4 Data API available</div>
+        <span class="chip good">PASS</span>
+        <p>pass</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">GA4 property reachable</div>
+        <span class="chip good">PASS</span>
+        <p>534288079</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">Measurement ID confirmed</div>
+        <span class="chip good">PASS</span>
+        <p>G-B5BPHFRR18</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">GTM Version 4 published</div>
+        <span class="chip good">PASS</span>
+        <p>4</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">Previous GTM version 3 captured</div>
+        <span class="chip good">PASS</span>
+        <p>3</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">Rollback available</div>
+        <span class="chip good">PASS</span>
+        <p>yes</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">Phase 2R smoke test</div>
+        <span class="chip good">PASS</span>
+        <p>2R</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">Phase 3A-1 readiness</div>
+        <span class="chip good">PASS</span>
+        <p>3A-1</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">Phase 3A-2 validation</div>
+        <span class="chip warn">READY WITH LIMITATIONS</span>
+        <p>3A-2</p>
+      </article></div>
+    </section>
+    <section>
+      <h2>Core conversion health</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Event</th><th>Observed</th><th>Key event</th><th>Volume</th><th>Page / flow</th><th>Paid-media relevance</th></tr></thead>
+          <tbody><tr><td><strong>quote_request_start</strong></td><td>yes</td><td>optional</td><td><span class="chip neutral">LOW VOLUME EXPECTED</span></td><td><span class="chip neutral">EXPECTED PAGE</span></td><td>Funnel start / micro-conversion</td></tr>
+<tr><td><strong>quote_request_submit_success</strong></td><td>yes</td><td>yes</td><td><span class="chip neutral">LOW VOLUME EXPECTED</span></td><td><span class="chip neutral">EXPECTED PAGE</span></td><td>Primary conversion</td></tr>
+<tr><td><strong>contact_form_submit_success</strong></td><td>yes</td><td>optional</td><td><span class="chip neutral">LOW VOLUME EXPECTED</span></td><td><span class="chip neutral">EXPECTED PAGE</span></td><td>Secondary lead-intent conversion</td></tr>
+<tr><td><strong>signup_success</strong></td><td>yes</td><td>yes</td><td><span class="chip good">HEALTHY RECENT VOLUME</span></td><td><span class="chip neutral">EXPECTED PAGE</span></td><td>Primary conversion</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Funnel health</h2>
+      <div class="grid">
+        <article class="card"><h3>Quote funnel</h3><span class="chip good">PASS</span><p>Quote submit/start ratio is useful directionally, but volume is still low.</p></article>
+        <article class="card"><h3>Calculator funnel</h3><span class="chip good">PASS WITH NOTES</span><p>Calculator ratios are directional; multiple queries/results per calculator start can be normal.</p></article>
+        <article class="card"><h3>Contact funnel</h3><span class="chip good">PASS WITH CONTEXT</span><p>Contact ratio is directional because form_start is global and may include non-contact forms.</p></article>
+      </div>
+    </section>
+    <section>
+      <h2>Attribution quality</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Observed</th><th>Note</th></tr></thead>
+          <tbody><tr><td>source</td><td>yes</td><td>Native GA4 source is available.</td></tr>
+<tr><td>medium</td><td>yes</td><td>Native GA4 medium is available.</td></tr>
+<tr><td>campaign</td><td>yes</td><td>Native GA4 campaign is available.</td></tr>
+<tr><td>utm_content</td><td>yes</td><td>Registered event-scoped custom dimension.</td></tr>
+<tr><td>utm_term</td><td>yes</td><td>Registered event-scoped custom dimension.</td></tr>
+<tr><td>gclid_present</td><td>yes</td><td>Boolean click-ID presence only; raw ID is excluded.</td></tr>
+<tr><td>fbclid_present</td><td>yes</td><td>Boolean click-ID presence only; raw ID is excluded.</td></tr>
+<tr><td>attribution_touch</td><td>yes</td><td>Registered attribution touch custom dimension.</td></tr></tbody>
+        </table>
+      </div>
+      <div class="note"><ul><li>`utm_source`, `utm_medium`, and `utm_campaign` are not currently registered as GA4 event-scoped custom dimensions.</li><li>Native GA4 source, medium, and campaign are available.</li><li>Attribution is usable but not fully enriched yet.</li></ul></div>
+    </section>
+    <section>
+      <h2>Paid-media readiness</h2>
+      <div class="grid two">
+      <article class="card">
+        <div class="kicker">ga4 Reporting</div>
+        <span class="chip good">READY</span>
+        <p><strong>Available:</strong> Core conversion events, event volume, funnels, attribution, and taxonomy coverage are readable.</p>
+        <p><strong>Remaining:</strong> Continue monitoring low-volume conversion events as paid traffic scales.</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">google Ads Import Planning</div>
+        <span class="chip warn">READY WITH LIMITATIONS</span>
+        <p><strong>Available:</strong> Primary conversion candidates are visible and key-event configuration exists for quote_request_submit_success and signup_success.</p>
+        <p><strong>Remaining:</strong> Finalize the conversion map before importing or optimizing against ad-platform conversions.</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">looker Studio Dashboard Planning</div>
+        <span class="chip good">READY</span>
+        <p><strong>Available:</strong> Dashboard-ready aggregate fields exist for health, funnels, attribution, and data quality.</p>
+        <p><strong>Remaining:</strong> Define audience-specific views and reporting cadence.</p>
+      </article>
+
+      <article class="card">
+        <div class="kicker">meta Pixel Planning</div>
+        <span class="chip good">READY FOR PLANNING ONLY</span>
+        <p><strong>Available:</strong> Meta planning can use the validated event taxonomy and conversion priority map.</p>
+        <p><strong>Remaining:</strong> Do not implement Meta events until a separate approved planning/execution phase.</p>
+      </article></div>
+    </section>
+    <section>
+      <h2>Event taxonomy coverage</h2>
+      <div class="grid two">
+        <article class="card"><h3>Coverage</h3><span class="chip good">PASS</span><p>Observed 31 expected events. Legacy aliases observed: 0.</p></article>
+        <article class="card"><h3>Not observed</h3><p>phone_click, invoice_upload_error</p><p>phone_click is not critical unless phone CTA becomes a KPI; invoice_upload_error is expected to be absent during healthy operation.</p></article>
+      </div>
+    </section>
+    <section>
+      <h2>Data quality and duplicate risk</h2>
+      <div class="note">
+        <p><span class="chip good">LOW</span></p>
+        <ul><li>No aggregate duplicate-risk signal was detected.</li><li>No raw gclid/fbclid queried or printed.</li><li>No PII queried or printed.</li><li>No user, client, or session identifiers are included in the dashboard artifact.</li></ul>
+      </div>
+    </section>
+    <section>
+      <h2>Recommended next actions</h2>
+      <div class="grid two">
+        <article class="card"><h3>Immediate monitoring</h3><ul><li>Monitor GA4 Realtime.</li><li>Monitor GA4 DebugView.</li><li>Monitor key events.</li><li>Monitor unexpected spikes or drops.</li><li>Monitor duplicate behavior.</li></ul></article>
+        <article class="card"><h3>Next phase</h3><p><strong>Phase 3B - Paid Media Conversion Map</strong></p><ul><li>Define primary conversions.</li><li>Define secondary conversions.</li><li>Define diagnostic events.</li><li>Define optimization rules.</li><li>Decide what should and should not be imported into ad platforms before connecting Google Ads.</li></ul></article>
+      </div>
+    </section>
+    <section>
+      <h2>Safety confirmations</h2>
+      <div class="note">
+        <ul>
+          <li>No GA4 writes made.</li>
+          <li>No GTM writes made.</li>
+          <li>GTM not published.</li>
+          <li>No Google Ads or Meta touched.</li>
+          <li>No Replit/runtime or website runtime files touched.</li>
+          <li>No secrets, tokens, PII, or raw click IDs printed.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <footer>
+    Generated 2026-06-15T23:46:34.723Z from local source artifacts: docs/marketing-ops-ga4-monitoring-readiness.json, docs/marketing-ops-ga4-monitoring-readiness.md, docs/marketing-ops-ga4-event-processing-validation.json, docs/marketing-ops-ga4-event-processing-validation.md, docs/marketing-ops-gtm-publish-result.json, docs/marketing-ops-gtm-post-publish-smoke-test.json, docs/measurement-map-v1.md, docs/analytics-taxonomy.md.
+  </footer>
+</body>
+</html>
