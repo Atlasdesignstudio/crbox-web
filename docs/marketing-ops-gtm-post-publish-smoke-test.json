@@ -1,0 +1,133 @@
+{
+  "generatedAt": "2026-06-15T21:06:39Z",
+  "phase": "2R",
+  "mode": "post_publish_smoke_test",
+  "sourceArtifacts": [
+    "docs/marketing-ops-gtm-publish-result.json",
+    "docs/marketing-ops-gtm-publish-result.md"
+  ],
+  "publishedVersion": {
+    "versionId": "4",
+    "previousLiveVersionId": "3",
+    "rollbackAvailable": true
+  },
+  "relatedRuntimeFixes": {
+    "corsAllowlistFixDeployed": true,
+    "cotizarFlow2TrackingFixDeployed": true
+  },
+  "smokeTestScope": [
+    "quote_request_start",
+    "quote_request_submit_success",
+    "contact_form_submit_success"
+  ],
+  "manualEvidence": {
+    "tagAssistantConnected": true,
+    "gtmContainerDetected": "GTM-5WD8N53F",
+    "ga4MeasurementDetected": "G-B5BPHFRR18",
+    "testedUrls": [
+      "https://crbox.cr/calculadora.html",
+      "https://crbox.cr/contacto.html",
+      "https://crbox.cr/cotizar.html"
+    ],
+    "testedFlows": [
+      {
+        "name": "Calculator quote flow",
+        "url": "https://crbox.cr/calculadora.html",
+        "result": "quote_request_start and quote_request_submit_success were observed, and both GA4 tags completed."
+      },
+      {
+        "name": "Contact form flow",
+        "url": "https://crbox.cr/contacto.html",
+        "result": "contact_form_submit_success was observed, and its GA4 tag completed."
+      },
+      {
+        "name": "Cotizar main form",
+        "url": "https://crbox.cr/cotizar.html",
+        "result": "Backend submission succeeded, the UI displayed an SCB reference, and Flow 1 instrumentation was confirmed in the correct success branch."
+      },
+      {
+        "name": "Cotizar AI chat inline quote flow",
+        "url": "https://crbox.cr/cotizar.html",
+        "result": "quote_request_start and quote_request_submit_success were observed, and both GA4 tags completed."
+      }
+    ]
+  },
+  "eventResults": [
+    {
+      "eventName": "quote_request_start",
+      "pageOrFlow": "Calculator flow - https://crbox.cr/calculadora.html",
+      "dataLayerObserved": true,
+      "ga4TagFired": true,
+      "ga4TagCompleted": true,
+      "duplicateObserved": null,
+      "piiObserved": null,
+      "rawClickIdsObserved": null,
+      "status": "pass",
+      "notes": "The event was observed in the dataLayer and GA4 - quote_request_start completed. Duplicate firing, PII, and raw click IDs were not independently assessed in the supplied manual evidence."
+    },
+    {
+      "eventName": "quote_request_submit_success",
+      "pageOrFlow": "Calculator flow - https://crbox.cr/calculadora.html",
+      "dataLayerObserved": true,
+      "ga4TagFired": true,
+      "ga4TagCompleted": true,
+      "duplicateObserved": null,
+      "piiObserved": null,
+      "rawClickIdsObserved": null,
+      "status": "pass",
+      "notes": "The event was observed after a successful quote submission and GA4 - quote_request_submit_success completed. Duplicate firing, PII, and raw click IDs were not independently assessed in the supplied manual evidence."
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "pageOrFlow": "Contact flow - https://crbox.cr/contacto.html",
+      "dataLayerObserved": true,
+      "ga4TagFired": true,
+      "ga4TagCompleted": true,
+      "duplicateObserved": null,
+      "piiObserved": null,
+      "rawClickIdsObserved": null,
+      "status": "pass",
+      "notes": "The event was observed after successful form submission and GA4 - contact_form_submit_success completed. Duplicate firing, PII, and raw click IDs were not independently assessed in the supplied manual evidence."
+    },
+    {
+      "eventName": "quote_request_start",
+      "pageOrFlow": "Cotizar AI chat inline quote flow - https://crbox.cr/cotizar.html",
+      "dataLayerObserved": true,
+      "ga4TagFired": true,
+      "ga4TagCompleted": true,
+      "duplicateObserved": null,
+      "piiObserved": null,
+      "rawClickIdsObserved": null,
+      "status": "pass",
+      "notes": "The event was observed after the deployed Flow 2 tracking fix and GA4 - quote_request_start completed. Duplicate firing, PII, and raw click IDs were not independently assessed in the supplied manual evidence."
+    },
+    {
+      "eventName": "quote_request_submit_success",
+      "pageOrFlow": "Cotizar AI chat inline quote flow - https://crbox.cr/cotizar.html",
+      "dataLayerObserved": true,
+      "ga4TagFired": true,
+      "ga4TagCompleted": true,
+      "duplicateObserved": null,
+      "piiObserved": null,
+      "rawClickIdsObserved": null,
+      "status": "pass",
+      "notes": "The event was observed after successful AI chat quote submission and GA4 - quote_request_submit_success completed. Duplicate firing, PII, and raw click IDs were not independently assessed in the supplied manual evidence."
+    }
+  ],
+  "safety": {
+    "noRuntimeFilesTouchedByGtmPublish": true,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "gtmPublishedAgain": false,
+    "gtmVersionCreatedAgain": false,
+    "secretsPrinted": false
+  },
+  "monitoringRecommendation": {
+    "monitorGA4Realtime": true,
+    "monitorGA4DebugView": true,
+    "monitorKeyEvents": true,
+    "monitorDuplicateFiring": true,
+    "rollbackIfUnexpectedBehavior": true
+  },
+  "finalStatus": "pass"
+}
