@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRBOX Google Ads Account Preflight</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #18212f;
+      --muted: #5f6d7d;
+      --line: #d9dee7;
+      --good: #116b46;
+      --good-bg: #e7f4ec;
+      --warn: #8a5a00;
+      --warn-bg: #fff1ce;
+      --bad: #9a2d2d;
+      --bad-bg: #fde7e7;
+      --neutral: #485465;
+      --neutral-bg: #eef1f5;
+      --header: #12334c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    header {
+      background: var(--header);
+      color: #fff;
+      padding: 32px max(24px, calc((100vw - 1180px) / 2));
+    }
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 44px;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(1.8rem, 3vw, 3rem); margin-bottom: 8px; letter-spacing: 0; }
+    h2 { margin: 30px 0 14px; font-size: 1.35rem; }
+    .summary, .grid {
+      display: grid;
+      gap: 14px;
+    }
+    .summary { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 20px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card, .table-wrap, .note {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card p, .note p { color: var(--muted); }
+    .kicker {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    header .kicker { color: #b8c9da; }
+    .chip {
+      display: inline-flex;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      margin: 2px 0 8px;
+      white-space: nowrap;
+    }
+    .chip.good { color: var(--good); background: var(--good-bg); }
+    .chip.warn { color: var(--warn); background: var(--warn-bg); }
+    .chip.bad { color: var(--bad); background: var(--bad-bg); }
+    .chip.neutral { color: var(--neutral); background: var(--neutral-bg); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    ul { margin: 0; padding-left: 20px; }
+    li + li { margin-top: 7px; }
+    footer {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto 32px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+    @media (max-width: 900px) {
+      .summary, .grid { grid-template-columns: 1fr; }
+      .table-wrap { overflow-x: auto; }
+      th, td { min-width: 150px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="kicker">CRBOX - Phase 3E</div>
+    <h1>Google Ads Read-only Account Preflight</h1>
+    <p>Read-only account/access and duplicate-risk preflight before any Google Ads conversion import or apply phase.</p>
+    <div class="summary">
+      <div><span class="chip bad">BLOCKED MISSING GOOGLE ADS CREDENTIALS</span><p>Overall status</p></div>
+      <div><span class="chip bad">BLOCKED MISSING GOOGLE ADS CREDENTIALS</span><p>Credentials</p></div>
+      <div><span class="chip neutral">NOT AVAILABLE</span><p>API read access</p></div>
+      <div><span class="chip bad">BLOCKED MISSING CREDENTIALS</span><p>Import readiness</p></div>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>Credential/account access status</h2>
+      <div class="grid">
+        <article class="card"><div class="kicker">Customer ID</div><span class="chip neutral">NOT AVAILABLE</span><p>not_available</p></article>
+        <article class="card"><div class="kicker">Login customer ID</div><span class="chip neutral">NOT AVAILABLE</span><p>not_available</p></article>
+        <article class="card"><div class="kicker">Permission</div><span class="chip bad">BLOCKED MISSING GOOGLE ADS CREDENTIALS</span><p>blocked_missing_google_ads_credentials</p></article>
+        <article class="card"><div class="kicker">Existing actions</div><h3>0</h3><p>Safe conversion action inventory count.</p></article>
+      </div>
+    </section>
+    <section>
+      <h2>Account identity</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Value</th></tr></thead>
+          <tbody><tr><td>status</td><td>blocked_missing_google_ads_account_id</td></tr>
+<tr><td>customerId</td><td>not_available</td></tr>
+<tr><td>descriptiveName</td><td>not_checked</td></tr>
+<tr><td>manager</td><td>not_checked</td></tr>
+<tr><td>currencyCode</td><td>not_checked</td></tr>
+<tr><td>timeZone</td><td>not_checked</td></tr>
+<tr><td>accountStatus</td><td>not_checked</td></tr>
+<tr><td>testAccount</td><td>not_checked</td></tr>
+<tr><td>canManageClients</td><td>not_checked</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Existing conversion actions</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Status</th><th>Type</th><th>Category</th><th>Include</th></tr></thead>
+          <tbody><tr><td colspan="6">No conversion action inventory was returned.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Duplicate-risk review</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Planned action</th><th>Classification</th><th>Matches</th><th>Recommendation</th></tr></thead>
+          <tbody><tr><td><strong>CRBOX - Quote Request Submitted</strong></td><td><span class="chip warn">NOT CHECKED</span></td><td>0</td><td>not_checked_no_inventory</td></tr>
+<tr><td><strong>CRBOX - Signup Completed</strong></td><td><span class="chip warn">NOT CHECKED</span></td><td>0</td><td>not_checked_no_inventory</td></tr>
+<tr><td><strong>CRBOX - Contact Form Submitted</strong></td><td><span class="chip warn">NOT CHECKED</span></td><td>0</td><td>not_checked_no_inventory</td></tr>
+<tr><td><strong>CRBOX - Calculator Result Generated</strong></td><td><span class="chip warn">NOT CHECKED</span></td><td>0</td><td>not_checked_no_inventory</td></tr>
+<tr><td><strong>CRBOX - WhatsApp Click</strong></td><td><span class="chip warn">NOT CHECKED</span></td><td>0</td><td>not_checked_no_inventory</td></tr>
+<tr><td><strong>CRBOX - Email Click</strong></td><td><span class="chip warn">NOT CHECKED</span></td><td>0</td><td>not_checked_no_inventory</td></tr>
+<tr><td><strong>CRBOX - Phone Click</strong></td><td><span class="chip warn">NOT CHECKED</span></td><td>0</td><td>not_checked_no_inventory</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Conversion goals preflight</h2>
+      <div class="note"><ul><li>status: not_checked</li><li>goalsListed: false</li><li>leadGoalsDetected: not_checked</li><li>signupGoalsDetected: not_checked</li><li>contactGoalsDetected: not_checked</li><li>limitation: not_available</li></ul></div>
+    </section>
+    <section>
+      <h2>GA4 link status</h2>
+      <div class="note"><ul><li>status: requires_manual_confirmation</li><li>linkedToExpectedGa4Property: not_checked</li><li>importedGa4ConversionsVisible: not_checked</li><li>limitation: Google Ads to GA4 link status requires manual confirmation or a future supported read-only account link query.</li></ul></div>
+    </section>
+    <section>
+      <h2>Auto-tagging status</h2>
+      <div class="note"><ul><li>status: not_checked</li><li>autoTaggingEnabled: not_checked</li></ul></div>
+    </section>
+    <section>
+      <h2>Import readiness classification</h2>
+      <div class="note"><span class="chip bad">BLOCKED MISSING CREDENTIALS</span><p>Google Ads is not marked execution-ready by this phase.</p></div>
+    </section>
+    <section>
+      <h2>Human recommendations</h2>
+      <div class="note"><ul><li><strong>payload_progression:</strong> Resolve the blocked account preflight condition before moving toward apply review.</li><li><strong>duplicate_conversion_names:</strong> Review existing conversion actions before creating or importing any planned action.</li><li><strong>account_linking_prerequisites:</strong> GA4-Google Ads link status remains a required manual confirmation unless a future supported read-only query confirms it.</li><li><strong>primary_candidate:</strong> quote_request_submit_success should remain the only immediate primary bidding candidate unless explicitly changed.</li><li><strong>signup_quality:</strong> signup_success should remain quality-dependent until activation or lead quality is confirmed.</li><li><strong>secondary_conversions:</strong> Secondary conversions should remain observation-only initially.</li><li><strong>phone_click:</strong> phone_click remains blocked until call tracking confirms completed and qualified calls.</li><li><strong>existing_action_mapping:</strong> Existing conversion action mapping was not available or no conversion actions were returned.</li></ul></div>
+    </section>
+    <section>
+      <h2>Safety confirmations</h2>
+      <div class="note">
+        <ul>
+          <li>GA4 writes made: false</li>
+          <li>GTM writes made: false</li>
+          <li>GTM published: false</li>
+          <li>Google Ads writes made: false</li>
+          <li>Google Ads conversion actions created: false</li>
+          <li>Google Ads conversions imported: false</li>
+          <li>Google Ads campaigns created: false</li>
+          <li>Meta touched: false</li>
+          <li>Runtime files touched: false</li>
+          <li>Secrets/tokens/PII/raw click IDs printed: false</li>
+          <li>Apply allowed: false</li>
+          <li>Execute now: false</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <footer>Generated 2026-06-16T10:18:29.880Z from local source artifacts and read-only preflight checks. This browser artifact performs no live API calls.</footer>
+</body>
+</html>

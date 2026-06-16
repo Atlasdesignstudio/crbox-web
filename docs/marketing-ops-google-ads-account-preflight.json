@@ -1,0 +1,280 @@
+{
+  "generatedAt": "2026-06-16T10:18:29.880Z",
+  "phase": "3E",
+  "mode": "google_ads_read_only_account_preflight",
+  "sourceArtifacts": [
+    "docs/marketing-ops-google-ads-import-payload-review.json",
+    "docs/marketing-ops-google-ads-import-payload-review.md",
+    "docs/marketing-ops-google-ads-import-planning.json",
+    "docs/marketing-ops-paid-media-conversion-map.json",
+    "docs/marketing-ops-ga4-monitoring-readiness.json",
+    "docs/marketing-ops-ga4-event-processing-validation.json",
+    "docs/marketing-ops-ga4-monitoring-dashboard.json",
+    "docs/marketing-ops-gtm-publish-result.json",
+    "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+    "docs/measurement-map-v1.md",
+    "docs/analytics-taxonomy.md",
+    "docs/tracking-plan.md",
+    "docs/paid-media-launch-gate-phase-1.md"
+  ],
+  "sourceArtifactAvailability": [
+    {
+      "path": "docs/marketing-ops-google-ads-import-payload-review.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-google-ads-import-payload-review.md",
+      "available": true,
+      "requiredForStatus": false
+    },
+    {
+      "path": "docs/marketing-ops-google-ads-import-planning.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-paid-media-conversion-map.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-ga4-monitoring-readiness.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-ga4-event-processing-validation.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-ga4-monitoring-dashboard.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-gtm-publish-result.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/measurement-map-v1.md",
+      "available": true,
+      "requiredForStatus": false
+    },
+    {
+      "path": "docs/analytics-taxonomy.md",
+      "available": true,
+      "requiredForStatus": false
+    },
+    {
+      "path": "docs/tracking-plan.md",
+      "available": true,
+      "requiredForStatus": false
+    },
+    {
+      "path": "docs/paid-media-launch-gate-phase-1.md",
+      "available": true,
+      "requiredForStatus": false
+    }
+  ],
+  "overallStatus": "blocked_missing_google_ads_credentials",
+  "sourceStatus": {
+    "phase3A1Readiness": "pass",
+    "phase3A2Validation": "pass_with_limitations",
+    "phase3A3Dashboard": "ready_with_limitations",
+    "phase3BConversionMap": "ready_for_import_planning_with_limitations",
+    "phase3CGoogleAdsImportPlanning": "ready_for_google_ads_import_planning_with_limitations",
+    "phase3DPayloadReview": "ready_for_payload_review_with_manual_prerequisites",
+    "phase3DApplyAllowed": false,
+    "phase3DExecuteNow": false,
+    "gtmPublishedVersion": "4",
+    "postPublishSmokeTest": "pass"
+  },
+  "credentialStatus": {
+    "status": "blocked_missing_google_ads_credentials",
+    "requiredCredentialNames": [
+      "GOOGLE_ADS_DEVELOPER_TOKEN",
+      "GOOGLE_ADS_CLIENT_ID",
+      "GOOGLE_ADS_CLIENT_SECRET",
+      "GOOGLE_ADS_REFRESH_TOKEN"
+    ],
+    "optionalAccountEnvNames": [
+      "GOOGLE_ADS_CUSTOMER_ID",
+      "GOOGLE_ADS_LOGIN_CUSTOMER_ID"
+    ],
+    "missingCredentialNames": [
+      "GOOGLE_ADS_DEVELOPER_TOKEN",
+      "GOOGLE_ADS_CLIENT_ID",
+      "GOOGLE_ADS_CLIENT_SECRET",
+      "GOOGLE_ADS_REFRESH_TOKEN"
+    ],
+    "customerIdPresent": false,
+    "loginCustomerIdPresent": false,
+    "customerIdMasked": "not_available",
+    "loginCustomerIdMasked": "not_available",
+    "secretsPrinted": false,
+    "tokensPrinted": false
+  },
+  "accountIdentity": {
+    "status": "blocked_missing_google_ads_account_id",
+    "customerId": "not_available",
+    "descriptiveName": "not_checked",
+    "manager": "not_checked",
+    "currencyCode": "not_checked",
+    "timeZone": "not_checked",
+    "accountStatus": "not_checked",
+    "testAccount": "not_checked",
+    "canManageClients": "not_checked"
+  },
+  "permissionAccessStatus": {
+    "apiReadAccessAvailable": false,
+    "customerIdAccessible": false,
+    "loginCustomerIdNeeded": "unknown",
+    "permissionError": false,
+    "developerTokenError": false,
+    "oauthError": false,
+    "accountNotFound": false,
+    "errorCategory": "blocked_missing_google_ads_credentials",
+    "sanitizedMessage": "blocked_missing_google_ads_credentials"
+  },
+  "existingConversionActions": {
+    "count": 0,
+    "actions": []
+  },
+  "plannedConversionActionNames": [
+    "CRBOX - Quote Request Submitted",
+    "CRBOX - Signup Completed",
+    "CRBOX - Contact Form Submitted",
+    "CRBOX - Calculator Result Generated",
+    "CRBOX - WhatsApp Click",
+    "CRBOX - Email Click",
+    "CRBOX - Phone Click"
+  ],
+  "duplicateRiskReview": {
+    "result": "not_checked",
+    "plannedActions": [
+      {
+        "plannedConversionActionName": "CRBOX - Quote Request Submitted",
+        "classification": "not_checked",
+        "existingMatches": [],
+        "recommendation": "not_checked_no_inventory"
+      },
+      {
+        "plannedConversionActionName": "CRBOX - Signup Completed",
+        "classification": "not_checked",
+        "existingMatches": [],
+        "recommendation": "not_checked_no_inventory"
+      },
+      {
+        "plannedConversionActionName": "CRBOX - Contact Form Submitted",
+        "classification": "not_checked",
+        "existingMatches": [],
+        "recommendation": "not_checked_no_inventory"
+      },
+      {
+        "plannedConversionActionName": "CRBOX - Calculator Result Generated",
+        "classification": "not_checked",
+        "existingMatches": [],
+        "recommendation": "not_checked_no_inventory"
+      },
+      {
+        "plannedConversionActionName": "CRBOX - WhatsApp Click",
+        "classification": "not_checked",
+        "existingMatches": [],
+        "recommendation": "not_checked_no_inventory"
+      },
+      {
+        "plannedConversionActionName": "CRBOX - Email Click",
+        "classification": "not_checked",
+        "existingMatches": [],
+        "recommendation": "not_checked_no_inventory"
+      },
+      {
+        "plannedConversionActionName": "CRBOX - Phone Click",
+        "classification": "not_checked",
+        "existingMatches": [],
+        "recommendation": "not_checked_no_inventory"
+      }
+    ]
+  },
+  "conversionGoalsPreflight": {
+    "status": "not_checked",
+    "goalsListed": false,
+    "leadGoalsDetected": "not_checked",
+    "signupGoalsDetected": "not_checked",
+    "contactGoalsDetected": "not_checked",
+    "limitation": "not_available"
+  },
+  "ga4LinkStatus": {
+    "status": "requires_manual_confirmation",
+    "linkedToExpectedGa4Property": "not_checked",
+    "importedGa4ConversionsVisible": "not_checked",
+    "limitation": "Google Ads to GA4 link status requires manual confirmation or a future supported read-only account link query."
+  },
+  "autoTaggingStatus": {
+    "status": "not_checked",
+    "autoTaggingEnabled": "not_checked"
+  },
+  "importReadinessClassification": "blocked_missing_credentials",
+  "humanRecommendations": [
+    {
+      "topic": "payload_progression",
+      "recommendation": "Resolve the blocked account preflight condition before moving toward apply review."
+    },
+    {
+      "topic": "duplicate_conversion_names",
+      "recommendation": "Review existing conversion actions before creating or importing any planned action."
+    },
+    {
+      "topic": "account_linking_prerequisites",
+      "recommendation": "GA4-Google Ads link status remains a required manual confirmation unless a future supported read-only query confirms it."
+    },
+    {
+      "topic": "primary_candidate",
+      "recommendation": "quote_request_submit_success should remain the only immediate primary bidding candidate unless explicitly changed."
+    },
+    {
+      "topic": "signup_quality",
+      "recommendation": "signup_success should remain quality-dependent until activation or lead quality is confirmed."
+    },
+    {
+      "topic": "secondary_conversions",
+      "recommendation": "Secondary conversions should remain observation-only initially."
+    },
+    {
+      "topic": "phone_click",
+      "recommendation": "phone_click remains blocked until call tracking confirms completed and qualified calls."
+    },
+    {
+      "topic": "existing_action_mapping",
+      "recommendation": "Existing conversion action mapping was not available or no conversion actions were returned."
+    }
+  ],
+  "recommendedNextPhase": "Phase 3E-Fix - Google Ads Credentials / Account Access Setup",
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsTouched": false,
+    "googleAdsWritesMade": false,
+    "googleAdsConversionActionsCreated": false,
+    "googleAdsConversionsImported": false,
+    "googleAdsCampaignsCreated": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiPrinted": false,
+    "rawClickIdsPrinted": false,
+    "applyAllowed": false,
+    "executeNow": false
+  }
+}

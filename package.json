@@ -35,6 +35,7 @@
     "marketing:apply:gtm:publish": "node scripts/marketing-ops/index.js apply:gtm:publish",
     "marketing:apply:validate": "node scripts/marketing-ops/index.js apply:validate",
     "marketing:report": "node scripts/marketing-ops/index.js report",
-    "marketing:google-ads:payload-review": "node scripts/marketing-ops/index.js google-ads:payload-review"
+    "marketing:google-ads:payload-review": "node scripts/marketing-ops/index.js google-ads:payload-review",
+    "marketing:google-ads:account-preflight": "node scripts/marketing-ops/index.js google-ads:account-preflight"
   }
 }
