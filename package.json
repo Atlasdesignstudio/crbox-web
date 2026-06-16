@@ -11,6 +11,7 @@
     "marketing:ga4:event-processing-validation": "node scripts/marketing-ops/index.js ga4:event-processing-validation",
     "marketing:ga4:monitoring-dashboard": "node scripts/marketing-ops/index.js ga4:monitoring-dashboard",
     "marketing:paid-media:conversion-map": "node scripts/marketing-ops/index.js paid-media:conversion-map",
+    "marketing:google-ads:import-planning": "node scripts/marketing-ops/index.js google-ads:import-planning",
     "marketing:check:gtm": "node scripts/marketing-ops/index.js gtm",
     "marketing:gtm:preflight": "node scripts/marketing-ops/index.js gtm:preflight",
     "marketing:gtm:payload-review": "node scripts/marketing-ops/index.js gtm:payload-review",

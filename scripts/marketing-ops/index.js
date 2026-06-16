@@ -36,6 +36,10 @@ const {
   runPaidMediaConversionMap,
   summaryLines: paidMediaConversionMapSummary
 } = require('./paid-media-conversion-map');
+const {
+  runGoogleAdsImportPlanning,
+  summaryLines: googleAdsImportPlanningSummary
+} = require('./google-ads-import-planning');
 const { runGtmGa4TagsControlledCreate, outputLines: gtmGa4TagsCreateOutputLines } = require('./apply/gtm-ga4-tags-create');
 const {
   safeOutputLines: gtmEditOauthOutputLines,
@@ -227,6 +231,13 @@ async function main() {
       }
       return;
     }
+    case 'google-ads:import-planning': {
+      const importPlanning = runGoogleAdsImportPlanning(root);
+      for (const line of googleAdsImportPlanningSummary(importPlanning)) {
+        console.log(maskSecretsInText(line));
+      }
+      return;
+    }
     case 'oauth:gtm-edit-url': {
       try {
         const oauthUrl = writeGtmEditAuthorizationUrl(root);
@@ -300,7 +311,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|ga4:monitoring-readiness|ga4:event-processing-validation|ga4:monitoring-dashboard|paid-media:conversion-map|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|oauth:gtm-publish-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:gtm:publish|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|ga4:monitoring-readiness|ga4:event-processing-validation|ga4:monitoring-dashboard|paid-media:conversion-map|google-ads:import-planning|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|oauth:gtm-publish-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:gtm:publish|apply:validate]');
       process.exitCode = 1;
       return;
   }

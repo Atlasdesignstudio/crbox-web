@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRBOX Google Ads Import Planning</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #627083;
+      --line: #d9dee6;
+      --good: #0f7a4f;
+      --good-bg: #e8f6ef;
+      --warn: #8a5a00;
+      --warn-bg: #fff2d1;
+      --bad: #9b2f2f;
+      --bad-bg: #fde7e7;
+      --neutral: #4b5563;
+      --neutral-bg: #eef1f5;
+      --header: #14324a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    header {
+      background: var(--header);
+      color: #fff;
+      padding: 32px max(24px, calc((100vw - 1180px) / 2));
+    }
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 44px;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(1.8rem, 3vw, 3rem); margin-bottom: 8px; letter-spacing: 0; }
+    h2 { margin: 30px 0 14px; font-size: 1.35rem; }
+    .summary, .grid {
+      display: grid;
+      gap: 14px;
+    }
+    .summary { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 20px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card, .table-wrap, .note {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card p, .note p { color: var(--muted); }
+    .kicker {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    header .kicker { color: #b7c7d8; }
+    .chip {
+      display: inline-flex;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      margin: 2px 0 8px;
+    }
+    .chip.good { color: var(--good); background: var(--good-bg); }
+    .chip.warn { color: var(--warn); background: var(--warn-bg); }
+    .chip.bad { color: var(--bad); background: var(--bad-bg); }
+    .chip.neutral { color: var(--neutral); background: var(--neutral-bg); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    ul { margin: 0; padding-left: 20px; }
+    footer {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto 32px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+    @media (max-width: 900px) {
+      .summary, .grid { grid-template-columns: 1fr; }
+      .table-wrap { overflow-x: auto; }
+      th, td { min-width: 150px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="kicker">CRBOX - Phase 3C</div>
+    <h1>Google Ads Import Planning</h1>
+    <p>Planning-only approval artifact before Google Ads linking, conversion import, or campaign setup.</p>
+    <div class="summary">
+      <div><span class="chip warn">READY FOR GOOGLE ADS IMPORT PLANNING WITH LIMITATIONS</span><p>Overall status</p></div>
+      <div><span class="chip good">YES PRIMARY</span><p>Quote submit candidate</p></div>
+      <div><span class="chip warn">QUALITY DEPENDENT</span><p>Signup handling</p></div>
+      <div><span class="chip neutral">PLANNING ONLY</span><p>No execution in this phase</p></div>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>Strategic recommendation</h2>
+      <div class="note"><ul><li>Google Ads is ready for import planning only.</li><li>No Google Ads changes are made in this phase.</li><li>No conversion actions are created.</li><li>No campaigns are created.</li><li>This document is the approval artifact before any Google Ads execution phase.</li></ul></div>
+    </section>
+    <section>
+      <h2>Recommended import set</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Event</th><th>Action name</th><th>Import</th><th>Conversions column</th><th>Bidding use</th><th>Risk</th></tr></thead>
+          <tbody><tr><td><strong>quote_request_submit_success</strong></td><td>CRBOX - Quote Request Submitted</td><td><span class="chip good">YES PRIMARY</span></td><td>true</td><td>primary_bidding</td><td>low</td></tr>
+<tr><td><strong>signup_success</strong></td><td>CRBOX - Signup Completed</td><td><span class="chip good">YES PRIMARY</span></td><td>later_quality_dependent</td><td>primary_bidding_or_secondary_observation</td><td>medium_quality_dependent</td></tr>
+<tr><td><strong>contact_form_submit_success</strong></td><td>CRBOX - Contact Form Submitted</td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td>secondary_observation</td><td>medium_if_used_for_bidding</td></tr>
+<tr><td><strong>calculator_result</strong></td><td>CRBOX - Calculator Result Generated</td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td>remarketing_signal</td><td>medium_if_used_for_bidding</td></tr>
+<tr><td><strong>whatsapp_click</strong></td><td>CRBOX - WhatsApp Click</td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td>secondary_observation</td><td>medium_if_used_for_bidding</td></tr>
+<tr><td><strong>email_click</strong></td><td>CRBOX - Email Click</td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td>secondary_observation</td><td>medium_if_used_for_bidding</td></tr>
+<tr><td><strong>phone_click</strong></td><td>CRBOX - Phone Click</td><td><span class="chip warn">LATER REQUIRES CALL TRACKING</span></td><td>false</td><td>no</td><td>blocked_until_call_tracking</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Conversion action naming table</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>GA4 event</th><th>Proposed Google Ads conversion action name</th></tr></thead>
+          <tbody><tr><td>quote_request_submit_success</td><td>CRBOX - Quote Request Submitted</td></tr>
+<tr><td>signup_success</td><td>CRBOX - Signup Completed</td></tr>
+<tr><td>contact_form_submit_success</td><td>CRBOX - Contact Form Submitted</td></tr>
+<tr><td>calculator_result</td><td>CRBOX - Calculator Result Generated</td></tr>
+<tr><td>whatsapp_click</td><td>CRBOX - WhatsApp Click</td></tr>
+<tr><td>email_click</td><td>CRBOX - Email Click</td></tr>
+<tr><td>phone_click</td><td>CRBOX - Phone Click</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Include-in-conversions-column plan</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Event</th><th>Include</th><th>Reasoning</th></tr></thead>
+          <tbody><tr><td>quote_request_submit_success</td><td><span class="chip good">TRUE</span></td><td>Clearest lead outcome; keep primary bidding focused on final quote request submission.</td></tr>
+<tr><td>signup_success</td><td><span class="chip warn">QUALITY DEPENDENT</span></td><td>Quality-dependent; include only after activation/lead quality is acceptable, or start as secondary observation.</td></tr>
+<tr><td>contact_form_submit_success</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Useful for reporting and observation, but excluding initially avoids inflating conversions and bidding toward shallow actions.</td></tr>
+<tr><td>calculator_result</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Useful for reporting and observation, but excluding initially avoids inflating conversions and bidding toward shallow actions.</td></tr>
+<tr><td>whatsapp_click</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Useful for reporting and observation, but excluding initially avoids inflating conversions and bidding toward shallow actions.</td></tr>
+<tr><td>email_click</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Useful for reporting and observation, but excluding initially avoids inflating conversions and bidding toward shallow actions.</td></tr>
+<tr><td>phone_click</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Blocked until call tracking confirms completed and qualified calls.</td></tr>
+<tr><td>scroll_depth</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>section_visible</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>nav_click</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>portal_section_view</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>login_success</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>login_error</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>invoice_upload_error</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>package_search</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>package_detail_view</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>package_search_result</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>outbound_click</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>form_abandon</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr>
+<tr><td>signup_error</td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Diagnostic/internal/error/broad event; exclude from the conversions column.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Bidding use plan</h2>
+      <div class="grid">
+        <article class="card"><h3>Primary</h3><p>quote_request_submit_success is the initial primary bidding candidate.</p></article>
+        <article class="card"><h3>Quality-dependent</h3><p>signup_success may be primary or secondary observation depending on activation quality.</p></article>
+        <article class="card"><h3>Secondary</h3><p>Contact, calculator, WhatsApp, and email signals remain observation/reporting first.</p></article>
+        <article class="card"><h3>Blocked</h3><p>phone_click is blocked until call tracking exists.</p></article>
+      </div>
+    </section>
+    <section>
+      <h2>Duplicate-risk controls</h2>
+      <div class="note"><ul><li>Check existing Google Ads conversions before creating or importing new ones.</li><li>Match by conversion action name and GA4 event source.</li><li>Never create duplicate conversion actions for the same GA4 event without explicit approval.</li><li>Use one primary quote submit conversion action initially.</li><li>Keep secondary conversions as observation first.</li><li>Exclude diagnostic and portal/internal events from import.</li></ul></div>
+    </section>
+    <section>
+      <h2>Account/linking prerequisites</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Prerequisite</th><th>Status</th></tr></thead>
+          <tbody><tr><td>Confirm Google Ads account ID</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm manager account / MCC relationship if applicable</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm GA4 property is linked or can be linked</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm user permissions</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm whether auto-tagging is enabled</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm imported GA4 key events are available in Google Ads</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm Google Ads conversion goals UI status</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm whether existing conversion actions already exist</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm timezone and currency if available</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm whether enhanced conversions are desired later</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm consent requirements</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Execution-readiness checklist</h2>
+      <div class="note"><ul><li>Review Phase 3B conversion map.</li><li>Approve the Google Ads import set.</li><li>Confirm Google Ads account ID.</li><li>Confirm no duplicate conversion actions.</li><li>Confirm GA4-Google Ads link status.</li><li>Confirm key events in GA4.</li><li>Confirm conversion action names.</li><li>Confirm which conversions are included in the conversions column.</li><li>Confirm values are set to no value / no fake value initially.</li><li>Confirm secondary conversions are observation-only.</li><li>Confirm rollback / no-op plan.</li></ul></div>
+    </section>
+    <section>
+      <h2>Rollback / no-op plan</h2>
+      <div class="note"><ul><li>If conversion actions are created incorrectly, pause or remove them from the conversions column.</li><li>Rename/deprecate incorrect actions if needed; do not delete without approval.</li><li>If duplicate conversion actions exist, exclude duplicates from the conversions column and document the canonical action.</li><li>If event quality is poor, move the action from primary bidding to secondary observation.</li><li>If signup quality is poor, exclude signup_success from the conversions column until a quality loop exists.</li></ul></div>
+    </section>
+    <section>
+      <h2>Conversion value plan</h2>
+      <div class="note"><ul><li>Do not assign fake conversion values.</li><li>Start with no value or the default platform setting only if required.</li><li>Do not use dynamic values until backend/admin source of truth exists.</li><li>Use offline values only in a future approved phase.</li><li>Quote submit and signup can later receive values from lead quality or shipment/revenue proxies.</li></ul></div>
+    </section>
+    <section>
+      <h2>Future execution sequence</h2>
+      <div class="note"><ol><li><strong>Step 1:</strong> Read-only Google Ads account preflight.</li><li><strong>Step 2:</strong> Verify GA4-Google Ads linking status.</li><li><strong>Step 3:</strong> List existing Google Ads conversion actions.</li><li><strong>Step 4:</strong> Compare existing actions against planned action names.</li><li><strong>Step 5:</strong> Produce final apply payload review.</li><li><strong>Step 6:</strong> Controlled import/create only after explicit approval.</li><li><strong>Step 7:</strong> Post-import verification.</li><li><strong>Step 8:</strong> Observe for several days before using conversions for automated bidding.</li></ol></div>
+    </section>
+    <section>
+      <h2>Safety confirmations</h2>
+      <div class="note">
+        <ul>
+          <li>GA4 writes made: false</li>
+          <li>GTM writes made: false</li>
+          <li>GTM published: false</li>
+          <li>Google Ads touched: false</li>
+          <li>Google Ads conversion actions created: false</li>
+          <li>Google Ads conversions imported: false</li>
+          <li>Google Ads campaigns created: false</li>
+          <li>Meta touched: false</li>
+          <li>Runtime files touched: false</li>
+          <li>Secrets/tokens/PII/raw click IDs printed: false</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <footer>Generated 2026-06-16T08:29:21.925Z from local source artifacts. No Google Ads execution occurs in this phase.</footer>
+</body>
+</html>
