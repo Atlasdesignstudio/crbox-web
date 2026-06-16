@@ -1,0 +1,1767 @@
+{
+  "generatedAt": "2026-06-16T00:25:29.231Z",
+  "phase": "3B",
+  "mode": "paid_media_conversion_map_planning_only",
+  "sourceArtifacts": [
+    "docs/marketing-ops-ga4-monitoring-readiness.json",
+    "docs/marketing-ops-ga4-event-processing-validation.json",
+    "docs/marketing-ops-ga4-monitoring-dashboard.json",
+    "docs/marketing-ops-gtm-publish-result.json",
+    "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+    "docs/measurement-map-v1.md",
+    "docs/analytics-taxonomy.md",
+    "docs/tracking-plan.md",
+    "docs/paid-media-launch-gate-phase-1.md"
+  ],
+  "sourceArtifactAvailability": [
+    {
+      "path": "docs/marketing-ops-ga4-monitoring-readiness.json",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-ga4-event-processing-validation.json",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-ga4-monitoring-dashboard.json",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-gtm-publish-result.json",
+      "available": true
+    },
+    {
+      "path": "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+      "available": true
+    },
+    {
+      "path": "docs/measurement-map-v1.md",
+      "available": true
+    },
+    {
+      "path": "docs/analytics-taxonomy.md",
+      "available": true
+    },
+    {
+      "path": "docs/tracking-plan.md",
+      "available": true
+    },
+    {
+      "path": "docs/paid-media-launch-gate-phase-1.md",
+      "available": true
+    }
+  ],
+  "overallStatus": "ready_for_import_planning_with_limitations",
+  "sourceStatus": {
+    "phase3A1Readiness": "pass",
+    "phase3A2Validation": "pass_with_limitations",
+    "phase3A3Dashboard": "ready_with_limitations",
+    "gtmPublishedVersion": "4",
+    "postPublishSmokeTest": "pass"
+  },
+  "primaryConversions": [
+    {
+      "eventName": "quote_request_submit_success",
+      "businessMeaning": "A quote request was submitted and confirmed. This is the clearest current lead-intent event for service demand.",
+      "funnelRole": "Main quote funnel outcome",
+      "paidMediaRelevance": "Primary lead-generation optimization event",
+      "googleAdsImportCandidate": "yes",
+      "metaOptimizationCandidate": "yes_later",
+      "optimizationPriority": "critical",
+      "caveats": [
+        "Recent volume is still low before paid campaigns scale.",
+        "Lead quality should be reviewed before aggressive automated bidding."
+      ],
+      "minimumRecommendedVolumeBeforeAggressiveOptimization": "At least 30-50 qualified conversions in a 30-day window per platform/campaign family.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "configured",
+      "recentVolumeStatus": "low_volume_expected"
+    },
+    {
+      "eventName": "signup_success",
+      "businessMeaning": "A user completed account registration successfully.",
+      "funnelRole": "Account creation / acquisition outcome",
+      "paidMediaRelevance": "Primary acquisition conversion with quality caveats",
+      "googleAdsImportCandidate": "yes_with_quality_validation",
+      "metaOptimizationCandidate": "yes_later",
+      "optimizationPriority": "high",
+      "caveats": [
+        "Signup quality can vary if some accounts do not become shipping customers.",
+        "Should be interpreted with downstream activation data once available."
+      ],
+      "minimumRecommendedVolumeBeforeAggressiveOptimization": "At least 30-50 qualified conversions in a 30-day window, plus review of activation quality.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "configured",
+      "recentVolumeStatus": "healthy_recent_volume"
+    }
+  ],
+  "secondaryConversions": [
+    {
+      "eventName": "contact_form_submit_success",
+      "businessMeaning": "A contact form was submitted successfully.",
+      "whenUseful": "Useful for measuring lead intent and support/commercial inquiry volume.",
+      "googleAdsImportRecommendation": "yes_secondary_observation",
+      "metaPlanningRecommendation": "secondary",
+      "secondaryOnly": true,
+      "risks": "May include support or general inquiries unless form purpose is clearly commercial.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "missing",
+      "recentVolumeStatus": "low_volume_expected"
+    },
+    {
+      "eventName": "calculator_result",
+      "businessMeaning": "A calculator result was generated after a shipping-cost query.",
+      "whenUseful": "Useful for remarketing, funnel diagnosis, and assessing product/service interest.",
+      "googleAdsImportRecommendation": "yes_secondary_observation",
+      "metaPlanningRecommendation": "secondary",
+      "secondaryOnly": true,
+      "risks": "Not a lead by itself; optimizing to it may favor price shoppers over qualified leads.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "whatsapp_click",
+      "businessMeaning": "A user clicked a WhatsApp contact CTA.",
+      "whenUseful": "Useful as an intent signal and remarketing/audience signal.",
+      "googleAdsImportRecommendation": "yes_secondary_observation",
+      "metaPlanningRecommendation": "secondary",
+      "secondaryOnly": true,
+      "risks": "Click does not confirm a conversation or qualified lead.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "phone_click",
+      "businessMeaning": "A user clicked a phone CTA.",
+      "whenUseful": "Useful if phone calls become a campaign KPI.",
+      "googleAdsImportRecommendation": "later_requires_call_tracking",
+      "metaPlanningRecommendation": "later",
+      "secondaryOnly": true,
+      "risks": "Click does not confirm a completed call; call tracking is needed before optimization.",
+      "currentObservability": "not_observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "not_observed"
+    },
+    {
+      "eventName": "email_click",
+      "businessMeaning": "A user clicked an email CTA.",
+      "whenUseful": "Useful for contact-intent reporting and UX analysis.",
+      "googleAdsImportRecommendation": "yes_secondary_observation",
+      "metaPlanningRecommendation": "secondary",
+      "secondaryOnly": true,
+      "risks": "Weaker than a confirmed form submission and does not confirm that an email was sent.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    }
+  ],
+  "microConversions": [
+    {
+      "eventName": "quote_request_start",
+      "businessMeaning": "The user entered the quote funnel.",
+      "diagnosticValue": "Useful for funnel analysis, audience building, traffic-quality diagnosis, and early campaign learning.",
+      "funnelStage": "funnel_entry",
+      "importRecommendation": "no_primary_import",
+      "optimizationWarning": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "missing",
+      "recentVolumeStatus": "low_volume_expected"
+    },
+    {
+      "eventName": "calculator_start",
+      "businessMeaning": "The calculator became interactive.",
+      "diagnosticValue": "Useful for funnel analysis, audience building, traffic-quality diagnosis, and early campaign learning.",
+      "funnelStage": "early_product_interest",
+      "importRecommendation": "no_primary_import",
+      "optimizationWarning": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "calculator_query",
+      "businessMeaning": "The user submitted a calculator query.",
+      "diagnosticValue": "Useful for funnel analysis, audience building, traffic-quality diagnosis, and early campaign learning.",
+      "funnelStage": "active_product_interest",
+      "importRecommendation": "no_primary_import",
+      "optimizationWarning": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "signup_start",
+      "businessMeaning": "The user started registration.",
+      "diagnosticValue": "Useful for funnel analysis, audience building, traffic-quality diagnosis, and early campaign learning.",
+      "funnelStage": "account_intent",
+      "importRecommendation": "no_primary_import",
+      "optimizationWarning": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "signup_step",
+      "businessMeaning": "The user progressed through registration steps.",
+      "diagnosticValue": "Useful for funnel analysis, audience building, traffic-quality diagnosis, and early campaign learning.",
+      "funnelStage": "account_intent",
+      "importRecommendation": "no_primary_import",
+      "optimizationWarning": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "form_start",
+      "businessMeaning": "The user started a form.",
+      "diagnosticValue": "Useful for funnel analysis, audience building, traffic-quality diagnosis, and early campaign learning.",
+      "funnelStage": "form_intent",
+      "importRecommendation": "no_primary_import",
+      "optimizationWarning": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "faq_engage",
+      "businessMeaning": "The user engaged with FAQ content.",
+      "diagnosticValue": "Useful for funnel analysis, audience building, traffic-quality diagnosis, and early campaign learning.",
+      "funnelStage": "education",
+      "importRecommendation": "no_primary_import",
+      "optimizationWarning": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "service_card_click",
+      "businessMeaning": "The user clicked a service card.",
+      "diagnosticValue": "Useful for funnel analysis, audience building, traffic-quality diagnosis, and early campaign learning.",
+      "funnelStage": "service_interest",
+      "importRecommendation": "no_primary_import",
+      "optimizationWarning": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "cta_click",
+      "businessMeaning": "The user clicked a call-to-action.",
+      "diagnosticValue": "Useful for funnel analysis, audience building, traffic-quality diagnosis, and early campaign learning.",
+      "funnelStage": "engagement",
+      "importRecommendation": "no_primary_import",
+      "optimizationWarning": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    }
+  ],
+  "diagnosticOnlyEvents": [
+    {
+      "eventName": "scroll_depth",
+      "reason": "Engagement depth signal; can inflate performance if optimized.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "section_visible",
+      "reason": "Content visibility signal; useful for UX/CRO, not paid-media optimization.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "nav_click",
+      "reason": "Navigation behavior; too broad for conversion optimization.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "portal_section_view",
+      "reason": "Existing-client portal behavior; not new acquisition intent.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "login_start",
+      "reason": "Existing-user auth behavior; not acquisition conversion.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "login_success",
+      "reason": "Existing-user auth success; not acquisition conversion.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "login_error",
+      "reason": "Operational/auth issue signal; never an optimization target.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "package_search",
+      "reason": "Portal/internal package behavior; useful for product analytics.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "package_detail_view",
+      "reason": "Portal/internal package detail behavior; existing-client action.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "invoice_upload_start",
+      "reason": "Operational shipment workflow start; existing-client activation signal.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "invoice_upload_success",
+      "reason": "Operational activation event; future quality signal, not initial ad-platform import.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "invoice_upload_error",
+      "reason": "Error event; should not be optimized.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "not_observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "not_observed"
+    },
+    {
+      "eventName": "chat_open",
+      "reason": "Support/chat engagement; diagnostic unless a future chat-lead strategy is approved.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "chat_message_sent",
+      "reason": "Support/chat engagement; diagnostic unless qualified lead capture is implemented.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "signup_error",
+      "reason": "Registration error; useful for diagnostics, never optimization.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "form_abandon",
+      "reason": "Funnel-friction signal; useful for CRO, not optimization.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "calculator_tab_switch",
+      "reason": "Calculator UI behavior; diagnostic only.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "observed_recently"
+    },
+    {
+      "eventName": "package_search_result",
+      "reason": "Observed portal/internal event; diagnostic only.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "not_independently_assessed",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "not_checked"
+    },
+    {
+      "eventName": "outbound_click",
+      "reason": "Observed external-click event; too broad for optimization.",
+      "excludeFromPaidMediaOptimization": true,
+      "analyticsUse": "Useful for UX, CRO, product analytics, or operational monitoring depending on context.",
+      "currentObservability": "not_independently_assessed",
+      "ga4KeyEvent": "not_available",
+      "recentVolumeStatus": "not_checked"
+    }
+  ],
+  "doNotOptimizeEvents": [
+    {
+      "eventName": "scroll_depth",
+      "reason": "Optimizing to scroll can inflate engagement quality.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "section_visible",
+      "reason": "Passive visibility signal.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "nav_click",
+      "reason": "Generic navigation signal.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "portal_section_view",
+      "reason": "Can inflate performance or represent low-value/existing-client behavior.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "login_success",
+      "reason": "Can inflate performance or represent low-value/existing-client behavior.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "login_error",
+      "reason": "Can inflate performance or represent low-value/existing-client behavior.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "invoice_upload_error",
+      "reason": "Can inflate performance or represent low-value/existing-client behavior.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "package_search",
+      "reason": "Can inflate performance or represent low-value/existing-client behavior.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "package_detail_view",
+      "reason": "Can inflate performance or represent low-value/existing-client behavior.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "package_search_result",
+      "reason": "Can inflate performance or represent low-value/existing-client behavior.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "outbound_click",
+      "reason": "Can inflate performance or represent low-value/existing-client behavior.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "form_abandon",
+      "reason": "Can inflate performance or represent low-value/existing-client behavior.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    },
+    {
+      "eventName": "signup_error",
+      "reason": "Can inflate performance or represent low-value/existing-client behavior.",
+      "googleAdsPrimaryConversion": false,
+      "metaOptimizationEvent": false
+    }
+  ],
+  "googleAdsImportMap": {
+    "quote_request_submit_success": {
+      "importToGoogleAds": "yes_primary",
+      "includeInConversionsColumn": true,
+      "biddingUse": "primary_bidding",
+      "recommendedInitialAction": "Import as a primary conversion after Google Ads linking/import planning is approved.",
+      "caveats": "Use as the main lead-generation optimization event; monitor quality and duplicate risk."
+    },
+    "signup_success": {
+      "importToGoogleAds": "yes_primary",
+      "includeInConversionsColumn": "later_quality_dependent",
+      "biddingUse": "primary_bidding_or_secondary_observation",
+      "recommendedInitialAction": "Import only after confirming signup quality or start as secondary observation if quality is uncertain.",
+      "caveats": "Registration does not always equal qualified shipping customer."
+    },
+    "contact_form_submit_success": {
+      "importToGoogleAds": "yes_secondary_observation",
+      "includeInConversionsColumn": false,
+      "biddingUse": "secondary_observation",
+      "recommendedInitialAction": "Import as secondary observation only unless commercial lead purpose is confirmed.",
+      "caveats": "May include support/general inquiries."
+    },
+    "calculator_result": {
+      "importToGoogleAds": "yes_secondary_observation",
+      "includeInConversionsColumn": false,
+      "biddingUse": "remarketing_signal",
+      "recommendedInitialAction": "Use for reporting, remarketing, and funnel diagnosis rather than primary bidding.",
+      "caveats": "Can optimize toward calculators instead of leads if used as primary."
+    },
+    "whatsapp_click": {
+      "importToGoogleAds": "yes_secondary_observation",
+      "includeInConversionsColumn": false,
+      "biddingUse": "secondary_observation",
+      "recommendedInitialAction": "Track as secondary/off-site intent until conversation quality is measurable.",
+      "caveats": "Click does not confirm completed WhatsApp conversation."
+    },
+    "phone_click": {
+      "importToGoogleAds": "later_requires_call_tracking",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import for bidding until call tracking confirms completed and qualified calls.",
+      "caveats": "Click is not a completed call."
+    },
+    "email_click": {
+      "importToGoogleAds": "yes_secondary_observation",
+      "includeInConversionsColumn": false,
+      "biddingUse": "secondary_observation",
+      "recommendedInitialAction": "Track as a weak contact-intent signal only.",
+      "caveats": "Click does not confirm message sent or lead quality."
+    },
+    "quote_request_start": {
+      "importToGoogleAds": "no_micro_conversion",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting and funnel analysis; do not use for bidding.",
+      "caveats": "Shallow funnel-start event."
+    },
+    "calculator_start": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "calculator_query": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "signup_start": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "signup_step": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "form_start": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "faq_engage": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "service_card_click": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "cta_click": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "scroll_depth": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import.",
+      "caveats": "Optimizing to scroll can inflate engagement quality."
+    },
+    "section_visible": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import.",
+      "caveats": "Passive visibility signal."
+    },
+    "nav_click": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import.",
+      "caveats": "Generic navigation signal."
+    },
+    "portal_section_view": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import into Google Ads.",
+      "caveats": "Can inflate performance or represent low-value/existing-client behavior."
+    },
+    "login_start": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "login_success": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import into Google Ads.",
+      "caveats": "Can inflate performance or represent low-value/existing-client behavior."
+    },
+    "login_error": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import into Google Ads.",
+      "caveats": "Can inflate performance or represent low-value/existing-client behavior."
+    },
+    "package_search": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import into Google Ads.",
+      "caveats": "Can inflate performance or represent low-value/existing-client behavior."
+    },
+    "package_detail_view": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import into Google Ads.",
+      "caveats": "Can inflate performance or represent low-value/existing-client behavior."
+    },
+    "invoice_upload_start": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "invoice_upload_success": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "invoice_upload_error": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import into Google Ads.",
+      "caveats": "Can inflate performance or represent low-value/existing-client behavior."
+    },
+    "chat_open": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "chat_message_sent": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "signup_error": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import into Google Ads.",
+      "caveats": "Can inflate performance or represent low-value/existing-client behavior."
+    },
+    "form_abandon": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import into Google Ads.",
+      "caveats": "Can inflate performance or represent low-value/existing-client behavior."
+    },
+    "calculator_tab_switch": {
+      "importToGoogleAds": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "biddingUse": "diagnostic_only",
+      "recommendedInitialAction": "Keep in GA4 reporting unless a future approved phase defines a platform use.",
+      "caveats": "Not approved as an ad-platform optimization event."
+    },
+    "package_search_result": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import into Google Ads.",
+      "caveats": "Can inflate performance or represent low-value/existing-client behavior."
+    },
+    "outbound_click": {
+      "importToGoogleAds": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "biddingUse": "no",
+      "recommendedInitialAction": "Do not import into Google Ads.",
+      "caveats": "Can inflate performance or represent low-value/existing-client behavior."
+    }
+  },
+  "metaPlanningMap": {
+    "quote_request_submit_success": {
+      "metaEventCandidate": "yes",
+      "suggestedMetaEventType": "Lead",
+      "capiReadiness": [
+        "later_requires_server_event_id",
+        "later_requires_consent_review",
+        "later_requires_event_match_quality_review"
+      ],
+      "caveats": "Strong lead event, but Meta Pixel/CAPI must be designed separately with consent and deduplication."
+    },
+    "signup_success": {
+      "metaEventCandidate": "yes",
+      "suggestedMetaEventType": "CompleteRegistration",
+      "capiReadiness": [
+        "later_requires_server_event_id",
+        "later_requires_consent_review",
+        "later_requires_event_match_quality_review"
+      ],
+      "caveats": "Useful account-creation event; quality should be reviewed before optimization."
+    },
+    "contact_form_submit_success": {
+      "metaEventCandidate": "secondary",
+      "suggestedMetaEventType": "Contact_or_Lead",
+      "capiReadiness": [
+        "later_requires_server_event_id",
+        "later_requires_consent_review"
+      ],
+      "caveats": "Choose Contact or Lead based on confirmed commercial meaning."
+    },
+    "calculator_result": {
+      "metaEventCandidate": "secondary",
+      "suggestedMetaEventType": "CustomEvent_or_ViewContent",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Useful for remarketing and engagement quality, not primary optimization."
+    },
+    "whatsapp_click": {
+      "metaEventCandidate": "secondary",
+      "suggestedMetaEventType": "Contact",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Off-site click; quality is not confirmed."
+    },
+    "phone_click": {
+      "metaEventCandidate": "later",
+      "suggestedMetaEventType": "Contact",
+      "capiReadiness": [
+        "later_requires_call_tracking",
+        "later_requires_consent_review"
+      ],
+      "caveats": "Requires call tracking or qualified-call evidence."
+    },
+    "email_click": {
+      "metaEventCandidate": "secondary",
+      "suggestedMetaEventType": "Contact",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Weak contact-intent event."
+    },
+    "quote_request_start": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "CustomEvent_or_no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Not approved for Meta optimization in this conversion map."
+    },
+    "calculator_start": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "CustomEvent_or_no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Not approved for Meta optimization in this conversion map."
+    },
+    "calculator_query": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "CustomEvent_or_no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Not approved for Meta optimization in this conversion map."
+    },
+    "signup_start": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "CustomEvent_or_no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Not approved for Meta optimization in this conversion map."
+    },
+    "signup_step": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "CustomEvent_or_no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Not approved for Meta optimization in this conversion map."
+    },
+    "form_start": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "CustomEvent_or_no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Not approved for Meta optimization in this conversion map."
+    },
+    "faq_engage": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "CustomEvent_or_no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Not approved for Meta optimization in this conversion map."
+    },
+    "service_card_click": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "CustomEvent_or_no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Not approved for Meta optimization in this conversion map."
+    },
+    "cta_click": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "CustomEvent_or_no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Not approved for Meta optimization in this conversion map."
+    },
+    "scroll_depth": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "section_visible": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "nav_click": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "portal_section_view": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "login_start": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "login_success": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "login_error": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "package_search": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "package_detail_view": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "invoice_upload_start": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "invoice_upload_success": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "invoice_upload_error": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "chat_open": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "chat_message_sent": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "signup_error": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "form_abandon": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "calculator_tab_switch": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "package_search_result": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    },
+    "outbound_click": {
+      "metaEventCandidate": "no",
+      "suggestedMetaEventType": "no_mapping",
+      "capiReadiness": [
+        "planning_only"
+      ],
+      "caveats": "Diagnostic events should not be optimization events."
+    }
+  },
+  "conversionValueStrategy": [
+    {
+      "eventName": "quote_request_submit_success",
+      "valueStrategy": "offline_value_later",
+      "suggestedApproach": "Start without fake values. Later, use qualified lead or shipment/revenue proxy from backend/admin data if available."
+    },
+    {
+      "eventName": "signup_success",
+      "valueStrategy": "offline_value_later",
+      "suggestedApproach": "Start without fake values. Later, weight signups by activation, shipment, or customer-quality outcomes."
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "valueStrategy": "static_value_later",
+      "suggestedApproach": "Do not assign values initially. A small static value may be considered later only for reporting, not primary bidding."
+    },
+    {
+      "eventName": "calculator_result",
+      "valueStrategy": "static_value_later",
+      "suggestedApproach": "Do not assign values initially. A small static value may be considered later only for reporting, not primary bidding."
+    },
+    {
+      "eventName": "whatsapp_click",
+      "valueStrategy": "static_value_later",
+      "suggestedApproach": "Do not assign values initially. A small static value may be considered later only for reporting, not primary bidding."
+    },
+    {
+      "eventName": "phone_click",
+      "valueStrategy": "static_value_later",
+      "suggestedApproach": "Do not assign values initially. A small static value may be considered later only for reporting, not primary bidding."
+    },
+    {
+      "eventName": "email_click",
+      "valueStrategy": "static_value_later",
+      "suggestedApproach": "Do not assign values initially. A small static value may be considered later only for reporting, not primary bidding."
+    },
+    {
+      "eventName": "quote_request_start",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "calculator_start",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "calculator_query",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "signup_start",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "signup_step",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "form_start",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "faq_engage",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "service_card_click",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "cta_click",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "scroll_depth",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "section_visible",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "nav_click",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "portal_section_view",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "login_start",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "login_success",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "login_error",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "package_search",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "package_detail_view",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "invoice_upload_start",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "invoice_upload_success",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "invoice_upload_error",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "chat_open",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "chat_message_sent",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "signup_error",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "form_abandon",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "calculator_tab_switch",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "package_search_result",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    },
+    {
+      "eventName": "outbound_click",
+      "valueStrategy": "no_value_initially",
+      "suggestedApproach": "No conversion value recommended for planning/diagnostic events."
+    }
+  ],
+  "leadQualityLoopRecommendation": {
+    "status": "future_phase_only",
+    "whyRawLeadsAreNotEnough": "Raw leads can include curiosity, duplicates, support requests, spam, or low-quality registrations. Paid media should eventually optimize toward qualified and activated customers.",
+    "futureStatuses": [
+      "quote_submitted",
+      "contacted",
+      "quoted",
+      "converted",
+      "delivered",
+      "high_value_customer",
+      "spam",
+      "duplicate",
+      "unqualified"
+    ],
+    "requirements": [
+      "Backend/admin source of truth.",
+      "Conversion upload or offline conversion API design.",
+      "Consent/privacy review.",
+      "Stable IDs or platform click IDs handled without exposing PII in analytics artifacts."
+    ]
+  },
+  "privacyAndConsentConsiderations": [
+    "No PII should be sent to GA4, GTM, Google Ads, or Meta analytics payloads.",
+    "Raw gclid/fbclid should not be exposed in client-side analytics payloads.",
+    "Only boolean flags such as gclid_present and fbclid_present are currently used.",
+    "Meta CAPI or offline conversion upload requires a separate privacy-safe design.",
+    "Consent Mode and Meta consent handling should be reviewed before implementation."
+  ],
+  "decisionMatrix": [
+    {
+      "eventName": "quote_request_submit_success",
+      "category": "primary_conversion",
+      "businessValue": "A quote request was submitted and confirmed. This is the clearest current lead-intent event for service demand.",
+      "funnelStage": "Main quote funnel outcome",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "configured",
+      "googleAdsImportRecommendation": "yes_primary",
+      "includeInConversionsColumn": true,
+      "metaPlanningRecommendation": "yes",
+      "optimizationPriority": "critical",
+      "riskLevel": "low",
+      "notes": "Recent volume is still low before paid campaigns scale. Lead quality should be reviewed before aggressive automated bidding."
+    },
+    {
+      "eventName": "signup_success",
+      "category": "primary_conversion",
+      "businessValue": "A user completed account registration successfully.",
+      "funnelStage": "Account creation / acquisition outcome",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "configured",
+      "googleAdsImportRecommendation": "yes_primary",
+      "includeInConversionsColumn": "later_quality_dependent",
+      "metaPlanningRecommendation": "yes",
+      "optimizationPriority": "high",
+      "riskLevel": "medium",
+      "notes": "Signup quality can vary if some accounts do not become shipping customers. Should be interpreted with downstream activation data once available."
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "category": "secondary_conversion",
+      "businessValue": "A contact form was submitted successfully.",
+      "funnelStage": "commercial_intent",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "missing",
+      "googleAdsImportRecommendation": "yes_secondary_observation",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "secondary",
+      "optimizationPriority": "medium",
+      "riskLevel": "low",
+      "notes": "May include support or general inquiries unless form purpose is clearly commercial."
+    },
+    {
+      "eventName": "calculator_result",
+      "category": "secondary_conversion",
+      "businessValue": "A calculator result was generated after a shipping-cost query.",
+      "funnelStage": "commercial_intent",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "yes_secondary_observation",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "secondary",
+      "optimizationPriority": "medium",
+      "riskLevel": "low",
+      "notes": "Not a lead by itself; optimizing to it may favor price shoppers over qualified leads."
+    },
+    {
+      "eventName": "whatsapp_click",
+      "category": "secondary_conversion",
+      "businessValue": "A user clicked a WhatsApp contact CTA.",
+      "funnelStage": "commercial_intent",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "yes_secondary_observation",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "secondary",
+      "optimizationPriority": "medium",
+      "riskLevel": "low",
+      "notes": "Click does not confirm a conversation or qualified lead."
+    },
+    {
+      "eventName": "phone_click",
+      "category": "secondary_conversion",
+      "businessValue": "A user clicked a phone CTA.",
+      "funnelStage": "commercial_intent",
+      "currentObservability": "not_observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "later_requires_call_tracking",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "later",
+      "optimizationPriority": "medium",
+      "riskLevel": "medium",
+      "notes": "Click does not confirm a completed call; call tracking is needed before optimization."
+    },
+    {
+      "eventName": "email_click",
+      "category": "secondary_conversion",
+      "businessValue": "A user clicked an email CTA.",
+      "funnelStage": "commercial_intent",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "yes_secondary_observation",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "secondary",
+      "optimizationPriority": "medium",
+      "riskLevel": "low",
+      "notes": "Weaker than a confirmed form submission and does not confirm that an email was sent."
+    },
+    {
+      "eventName": "quote_request_start",
+      "category": "micro_conversion",
+      "businessValue": "The user entered the quote funnel.",
+      "funnelStage": "funnel_entry",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "missing",
+      "googleAdsImportRecommendation": "no_micro_conversion",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "low",
+      "riskLevel": "medium",
+      "notes": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement."
+    },
+    {
+      "eventName": "calculator_start",
+      "category": "micro_conversion",
+      "businessValue": "The calculator became interactive.",
+      "funnelStage": "early_product_interest",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "low",
+      "riskLevel": "medium",
+      "notes": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement."
+    },
+    {
+      "eventName": "calculator_query",
+      "category": "micro_conversion",
+      "businessValue": "The user submitted a calculator query.",
+      "funnelStage": "active_product_interest",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "low",
+      "riskLevel": "medium",
+      "notes": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement."
+    },
+    {
+      "eventName": "signup_start",
+      "category": "micro_conversion",
+      "businessValue": "The user started registration.",
+      "funnelStage": "account_intent",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "low",
+      "riskLevel": "medium",
+      "notes": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement."
+    },
+    {
+      "eventName": "signup_step",
+      "category": "micro_conversion",
+      "businessValue": "The user progressed through registration steps.",
+      "funnelStage": "account_intent",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "low",
+      "riskLevel": "medium",
+      "notes": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement."
+    },
+    {
+      "eventName": "form_start",
+      "category": "micro_conversion",
+      "businessValue": "The user started a form.",
+      "funnelStage": "form_intent",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "low",
+      "riskLevel": "medium",
+      "notes": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement."
+    },
+    {
+      "eventName": "faq_engage",
+      "category": "micro_conversion",
+      "businessValue": "The user engaged with FAQ content.",
+      "funnelStage": "education",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "low",
+      "riskLevel": "medium",
+      "notes": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement."
+    },
+    {
+      "eventName": "service_card_click",
+      "category": "micro_conversion",
+      "businessValue": "The user clicked a service card.",
+      "funnelStage": "service_interest",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "low",
+      "riskLevel": "medium",
+      "notes": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement."
+    },
+    {
+      "eventName": "cta_click",
+      "category": "micro_conversion",
+      "businessValue": "The user clicked a call-to-action.",
+      "funnelStage": "engagement",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "low",
+      "riskLevel": "medium",
+      "notes": "Do not use as a primary optimization goal; it can over-optimize toward shallow engagement."
+    },
+    {
+      "eventName": "scroll_depth",
+      "category": "diagnostic_only",
+      "businessValue": "Engagement depth signal; can inflate performance if optimized.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "section_visible",
+      "category": "diagnostic_only",
+      "businessValue": "Content visibility signal; useful for UX/CRO, not paid-media optimization.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "nav_click",
+      "category": "diagnostic_only",
+      "businessValue": "Navigation behavior; too broad for conversion optimization.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "portal_section_view",
+      "category": "diagnostic_only",
+      "businessValue": "Existing-client portal behavior; not new acquisition intent.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "login_start",
+      "category": "diagnostic_only",
+      "businessValue": "Existing-user auth behavior; not acquisition conversion.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "login_success",
+      "category": "diagnostic_only",
+      "businessValue": "Existing-user auth success; not acquisition conversion.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "login_error",
+      "category": "diagnostic_only",
+      "businessValue": "Operational/auth issue signal; never an optimization target.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "package_search",
+      "category": "diagnostic_only",
+      "businessValue": "Portal/internal package behavior; useful for product analytics.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "package_detail_view",
+      "category": "diagnostic_only",
+      "businessValue": "Portal/internal package detail behavior; existing-client action.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "invoice_upload_start",
+      "category": "diagnostic_only",
+      "businessValue": "Operational shipment workflow start; existing-client activation signal.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "invoice_upload_success",
+      "category": "diagnostic_only",
+      "businessValue": "Operational activation event; future quality signal, not initial ad-platform import.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "invoice_upload_error",
+      "category": "diagnostic_only",
+      "businessValue": "Error event; should not be optimized.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "not_observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "chat_open",
+      "category": "diagnostic_only",
+      "businessValue": "Support/chat engagement; diagnostic unless a future chat-lead strategy is approved.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "chat_message_sent",
+      "category": "diagnostic_only",
+      "businessValue": "Support/chat engagement; diagnostic unless qualified lead capture is implemented.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "signup_error",
+      "category": "diagnostic_only",
+      "businessValue": "Registration error; useful for diagnostics, never optimization.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "form_abandon",
+      "category": "diagnostic_only",
+      "businessValue": "Funnel-friction signal; useful for CRO, not optimization.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "calculator_tab_switch",
+      "category": "diagnostic_only",
+      "businessValue": "Calculator UI behavior; diagnostic only.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "observed_recently",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_primary_import",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "package_search_result",
+      "category": "diagnostic_only",
+      "businessValue": "Observed portal/internal event; diagnostic only.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "not_independently_assessed",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    },
+    {
+      "eventName": "outbound_click",
+      "category": "diagnostic_only",
+      "businessValue": "Observed external-click event; too broad for optimization.",
+      "funnelStage": "diagnostic_or_operational",
+      "currentObservability": "not_independently_assessed",
+      "ga4KeyEvent": "not_available",
+      "googleAdsImportRecommendation": "no_diagnostic_only",
+      "includeInConversionsColumn": false,
+      "metaPlanningRecommendation": "no",
+      "optimizationPriority": "none",
+      "riskLevel": "high_if_optimized",
+      "notes": "Exclude from paid-media optimization."
+    }
+  ],
+  "recommendedNextPhase": "Phase 3C - Google Ads Import Planning",
+  "finalRecommendation": [
+    "Use this conversion map as the approval artifact before connecting Google Ads.",
+    "Do not import all events.",
+    "Do not optimize toward diagnostic events.",
+    "Start with the smallest safe conversion set.",
+    "Keep secondary events as observation/reporting first."
+  ],
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsTouched": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiPrinted": false,
+    "rawClickIdsPrinted": false
+  }
+}
