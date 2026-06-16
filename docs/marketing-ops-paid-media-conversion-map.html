@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRBOX Paid Media Conversion Map</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #627083;
+      --line: #d9dee6;
+      --good: #0f7a4f;
+      --good-bg: #e8f6ef;
+      --warn: #8a5a00;
+      --warn-bg: #fff2d1;
+      --bad: #9b2f2f;
+      --bad-bg: #fde7e7;
+      --neutral: #4b5563;
+      --neutral-bg: #eef1f5;
+      --header: #14324a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    header {
+      background: var(--header);
+      color: #fff;
+      padding: 32px max(24px, calc((100vw - 1180px) / 2));
+    }
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 44px;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(1.8rem, 3vw, 3rem); margin-bottom: 8px; letter-spacing: 0; }
+    h2 { margin: 30px 0 14px; font-size: 1.35rem; }
+    h3 { font-size: 1.02rem; }
+    .summary, .grid {
+      display: grid;
+      gap: 14px;
+    }
+    .summary { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 20px; }
+    .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card, .table-wrap, .note {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card p { color: var(--muted); }
+    .kicker {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    header .kicker { color: #b7c7d8; }
+    .chip {
+      display: inline-flex;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      margin: 2px 0 8px;
+    }
+    .chip.good { color: var(--good); background: var(--good-bg); }
+    .chip.warn { color: var(--warn); background: var(--warn-bg); }
+    .chip.bad { color: var(--bad); background: var(--bad-bg); }
+    .chip.neutral { color: var(--neutral); background: var(--neutral-bg); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    ul { margin: 0; padding-left: 20px; }
+    footer {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto 32px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+    @media (max-width: 900px) {
+      .summary, .grid, .grid.two { grid-template-columns: 1fr; }
+      .table-wrap { overflow-x: auto; }
+      th, td { min-width: 150px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="kicker">CRBOX · Phase 3B</div>
+    <h1>Paid Media Conversion Map</h1>
+    <p>Planning-only source of truth before connecting Google Ads, Meta, or optimization platforms.</p>
+    <div class="summary">
+      <div><span class="chip warn">READY FOR IMPORT PLANNING WITH LIMITATIONS</span><p>Overall status</p></div>
+      <div><span class="chip good">YES PRIMARY</span><p>Quote submit import candidate</p></div>
+      <div><span class="chip warn">READY WITH LIMITATIONS</span><p>Google Ads import planning</p></div>
+      <div><span class="chip warn">PLANNING ONLY</span><p>Meta Pixel / CAPI</p></div>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>Strategic recommendation</h2>
+      <div class="note">
+        <ul><li>Use this conversion map as the approval artifact before connecting Google Ads.</li><li>Do not import all events.</li><li>Do not optimize toward diagnostic events.</li><li>Start with the smallest safe conversion set.</li><li>Keep secondary events as observation/reporting first.</li></ul>
+      </div>
+    </section>
+    <section>
+      <h2>Primary conversions</h2>
+      <div class="grid two">
+    <article class="card primary">
+      <h3>quote_request_submit_success</h3>
+      <p>A quote request was submitted and confirmed. This is the clearest current lead-intent event for service demand.</p>
+      <span class="chip good">CRITICAL</span>
+      <p><strong>Google Ads:</strong> yes</p>
+      
+      <p><strong>Meta:</strong> yes_later</p>
+      
+    </article>
+
+    <article class="card primary">
+      <h3>signup_success</h3>
+      <p>A user completed account registration successfully.</p>
+      <span class="chip warn">HIGH</span>
+      <p><strong>Google Ads:</strong> yes_with_quality_validation</p>
+      
+      <p><strong>Meta:</strong> yes_later</p>
+      
+    </article></div>
+    </section>
+    <section>
+      <h2>Secondary conversions</h2>
+      <div class="grid">
+    <article class="card ">
+      <h3>contact_form_submit_success</h3>
+      <p>A contact form was submitted successfully.</p>
+      
+      
+      <p><strong>Google Ads:</strong> yes_secondary_observation</p>
+      
+      <p><strong>Meta:</strong> secondary</p>
+    </article>
+
+    <article class="card ">
+      <h3>calculator_result</h3>
+      <p>A calculator result was generated after a shipping-cost query.</p>
+      
+      
+      <p><strong>Google Ads:</strong> yes_secondary_observation</p>
+      
+      <p><strong>Meta:</strong> secondary</p>
+    </article>
+
+    <article class="card ">
+      <h3>whatsapp_click</h3>
+      <p>A user clicked a WhatsApp contact CTA.</p>
+      
+      
+      <p><strong>Google Ads:</strong> yes_secondary_observation</p>
+      
+      <p><strong>Meta:</strong> secondary</p>
+    </article>
+
+    <article class="card ">
+      <h3>phone_click</h3>
+      <p>A user clicked a phone CTA.</p>
+      
+      
+      <p><strong>Google Ads:</strong> later_requires_call_tracking</p>
+      
+      <p><strong>Meta:</strong> later</p>
+    </article>
+
+    <article class="card ">
+      <h3>email_click</h3>
+      <p>A user clicked an email CTA.</p>
+      
+      
+      <p><strong>Google Ads:</strong> yes_secondary_observation</p>
+      
+      <p><strong>Meta:</strong> secondary</p>
+    </article></div>
+    </section>
+    <section>
+      <h2>Micro-conversions</h2>
+      <div class="note"><ul><li><strong>quote_request_start:</strong> The user entered the quote funnel. Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.</li><li><strong>calculator_start:</strong> The calculator became interactive. Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.</li><li><strong>calculator_query:</strong> The user submitted a calculator query. Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.</li><li><strong>signup_start:</strong> The user started registration. Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.</li><li><strong>signup_step:</strong> The user progressed through registration steps. Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.</li><li><strong>form_start:</strong> The user started a form. Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.</li><li><strong>faq_engage:</strong> The user engaged with FAQ content. Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.</li><li><strong>service_card_click:</strong> The user clicked a service card. Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.</li><li><strong>cta_click:</strong> The user clicked a call-to-action. Do not use as a primary optimization goal; it can over-optimize toward shallow engagement.</li></ul></div>
+    </section>
+    <section>
+      <h2>Diagnostic-only events</h2>
+      <div class="note"><ul><li><strong>scroll_depth:</strong> Engagement depth signal; can inflate performance if optimized.</li><li><strong>section_visible:</strong> Content visibility signal; useful for UX/CRO, not paid-media optimization.</li><li><strong>nav_click:</strong> Navigation behavior; too broad for conversion optimization.</li><li><strong>portal_section_view:</strong> Existing-client portal behavior; not new acquisition intent.</li><li><strong>login_start:</strong> Existing-user auth behavior; not acquisition conversion.</li><li><strong>login_success:</strong> Existing-user auth success; not acquisition conversion.</li><li><strong>login_error:</strong> Operational/auth issue signal; never an optimization target.</li><li><strong>package_search:</strong> Portal/internal package behavior; useful for product analytics.</li><li><strong>package_detail_view:</strong> Portal/internal package detail behavior; existing-client action.</li><li><strong>invoice_upload_start:</strong> Operational shipment workflow start; existing-client activation signal.</li><li><strong>invoice_upload_success:</strong> Operational activation event; future quality signal, not initial ad-platform import.</li><li><strong>invoice_upload_error:</strong> Error event; should not be optimized.</li><li><strong>chat_open:</strong> Support/chat engagement; diagnostic unless a future chat-lead strategy is approved.</li><li><strong>chat_message_sent:</strong> Support/chat engagement; diagnostic unless qualified lead capture is implemented.</li><li><strong>signup_error:</strong> Registration error; useful for diagnostics, never optimization.</li><li><strong>form_abandon:</strong> Funnel-friction signal; useful for CRO, not optimization.</li><li><strong>calculator_tab_switch:</strong> Calculator UI behavior; diagnostic only.</li><li><strong>package_search_result:</strong> Observed portal/internal event; diagnostic only.</li><li><strong>outbound_click:</strong> Observed external-click event; too broad for optimization.</li></ul></div>
+    </section>
+    <section>
+      <h2>Do-not-optimize warning</h2>
+      <div class="note"><ul><li>scroll_depth: Optimizing to scroll can inflate engagement quality.</li><li>section_visible: Passive visibility signal.</li><li>nav_click: Generic navigation signal.</li><li>portal_section_view: Can inflate performance or represent low-value/existing-client behavior.</li><li>login_success: Can inflate performance or represent low-value/existing-client behavior.</li><li>login_error: Can inflate performance or represent low-value/existing-client behavior.</li><li>invoice_upload_error: Can inflate performance or represent low-value/existing-client behavior.</li><li>package_search: Can inflate performance or represent low-value/existing-client behavior.</li><li>package_detail_view: Can inflate performance or represent low-value/existing-client behavior.</li><li>package_search_result: Can inflate performance or represent low-value/existing-client behavior.</li><li>outbound_click: Can inflate performance or represent low-value/existing-client behavior.</li><li>form_abandon: Can inflate performance or represent low-value/existing-client behavior.</li><li>signup_error: Can inflate performance or represent low-value/existing-client behavior.</li></ul></div>
+    </section>
+    <section>
+      <h2>Google Ads import matrix</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Event</th><th>Import</th><th>Conversions column</th><th>Bidding use</th><th>Initial action</th></tr></thead>
+          <tbody><tr><td><strong>quote_request_submit_success</strong></td><td><span class="chip good">YES PRIMARY</span></td><td>true</td><td>primary_bidding</td><td>Import as a primary conversion after Google Ads linking/import planning is approved.</td></tr>
+<tr><td><strong>signup_success</strong></td><td><span class="chip good">YES PRIMARY</span></td><td>later_quality_dependent</td><td>primary_bidding_or_secondary_observation</td><td>Import only after confirming signup quality or start as secondary observation if quality is uncertain.</td></tr>
+<tr><td><strong>contact_form_submit_success</strong></td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td>secondary_observation</td><td>Import as secondary observation only unless commercial lead purpose is confirmed.</td></tr>
+<tr><td><strong>calculator_result</strong></td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td>remarketing_signal</td><td>Use for reporting, remarketing, and funnel diagnosis rather than primary bidding.</td></tr>
+<tr><td><strong>whatsapp_click</strong></td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td>secondary_observation</td><td>Track as secondary/off-site intent until conversation quality is measurable.</td></tr>
+<tr><td><strong>phone_click</strong></td><td><span class="chip warn">LATER REQUIRES CALL TRACKING</span></td><td>false</td><td>no</td><td>Do not import for bidding until call tracking confirms completed and qualified calls.</td></tr>
+<tr><td><strong>email_click</strong></td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td>secondary_observation</td><td>Track as a weak contact-intent signal only.</td></tr>
+<tr><td><strong>quote_request_start</strong></td><td><span class="chip bad">NO MICRO CONVERSION</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting and funnel analysis; do not use for bidding.</td></tr>
+<tr><td><strong>calculator_start</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>calculator_query</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>signup_start</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>signup_step</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>form_start</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>faq_engage</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>service_card_click</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>cta_click</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>scroll_depth</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import.</td></tr>
+<tr><td><strong>section_visible</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import.</td></tr>
+<tr><td><strong>nav_click</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import.</td></tr>
+<tr><td><strong>portal_section_view</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import into Google Ads.</td></tr>
+<tr><td><strong>login_start</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>login_success</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import into Google Ads.</td></tr>
+<tr><td><strong>login_error</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import into Google Ads.</td></tr>
+<tr><td><strong>package_search</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import into Google Ads.</td></tr>
+<tr><td><strong>package_detail_view</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import into Google Ads.</td></tr>
+<tr><td><strong>invoice_upload_start</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>invoice_upload_success</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>invoice_upload_error</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import into Google Ads.</td></tr>
+<tr><td><strong>chat_open</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>chat_message_sent</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>signup_error</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import into Google Ads.</td></tr>
+<tr><td><strong>form_abandon</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import into Google Ads.</td></tr>
+<tr><td><strong>calculator_tab_switch</strong></td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td>diagnostic_only</td><td>Keep in GA4 reporting unless a future approved phase defines a platform use.</td></tr>
+<tr><td><strong>package_search_result</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import into Google Ads.</td></tr>
+<tr><td><strong>outbound_click</strong></td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td>no</td><td>Do not import into Google Ads.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Meta Pixel / CAPI planning matrix</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Event</th><th>Candidate</th><th>Suggested type</th><th>CAPI readiness</th><th>Caveats</th></tr></thead>
+          <tbody><tr><td><strong>quote_request_submit_success</strong></td><td><span class="chip neutral">YES</span></td><td>Lead</td><td>later_requires_server_event_id, later_requires_consent_review, later_requires_event_match_quality_review</td><td>Strong lead event, but Meta Pixel/CAPI must be designed separately with consent and deduplication.</td></tr>
+<tr><td><strong>signup_success</strong></td><td><span class="chip neutral">YES</span></td><td>CompleteRegistration</td><td>later_requires_server_event_id, later_requires_consent_review, later_requires_event_match_quality_review</td><td>Useful account-creation event; quality should be reviewed before optimization.</td></tr>
+<tr><td><strong>contact_form_submit_success</strong></td><td><span class="chip warn">SECONDARY</span></td><td>Contact_or_Lead</td><td>later_requires_server_event_id, later_requires_consent_review</td><td>Choose Contact or Lead based on confirmed commercial meaning.</td></tr>
+<tr><td><strong>calculator_result</strong></td><td><span class="chip warn">SECONDARY</span></td><td>CustomEvent_or_ViewContent</td><td>planning_only</td><td>Useful for remarketing and engagement quality, not primary optimization.</td></tr>
+<tr><td><strong>whatsapp_click</strong></td><td><span class="chip warn">SECONDARY</span></td><td>Contact</td><td>planning_only</td><td>Off-site click; quality is not confirmed.</td></tr>
+<tr><td><strong>phone_click</strong></td><td><span class="chip warn">LATER</span></td><td>Contact</td><td>later_requires_call_tracking, later_requires_consent_review</td><td>Requires call tracking or qualified-call evidence.</td></tr>
+<tr><td><strong>email_click</strong></td><td><span class="chip warn">SECONDARY</span></td><td>Contact</td><td>planning_only</td><td>Weak contact-intent event.</td></tr>
+<tr><td><strong>quote_request_start</strong></td><td><span class="chip bad">NO</span></td><td>CustomEvent_or_no_mapping</td><td>planning_only</td><td>Not approved for Meta optimization in this conversion map.</td></tr>
+<tr><td><strong>calculator_start</strong></td><td><span class="chip bad">NO</span></td><td>CustomEvent_or_no_mapping</td><td>planning_only</td><td>Not approved for Meta optimization in this conversion map.</td></tr>
+<tr><td><strong>calculator_query</strong></td><td><span class="chip bad">NO</span></td><td>CustomEvent_or_no_mapping</td><td>planning_only</td><td>Not approved for Meta optimization in this conversion map.</td></tr>
+<tr><td><strong>signup_start</strong></td><td><span class="chip bad">NO</span></td><td>CustomEvent_or_no_mapping</td><td>planning_only</td><td>Not approved for Meta optimization in this conversion map.</td></tr>
+<tr><td><strong>signup_step</strong></td><td><span class="chip bad">NO</span></td><td>CustomEvent_or_no_mapping</td><td>planning_only</td><td>Not approved for Meta optimization in this conversion map.</td></tr>
+<tr><td><strong>form_start</strong></td><td><span class="chip bad">NO</span></td><td>CustomEvent_or_no_mapping</td><td>planning_only</td><td>Not approved for Meta optimization in this conversion map.</td></tr>
+<tr><td><strong>faq_engage</strong></td><td><span class="chip bad">NO</span></td><td>CustomEvent_or_no_mapping</td><td>planning_only</td><td>Not approved for Meta optimization in this conversion map.</td></tr>
+<tr><td><strong>service_card_click</strong></td><td><span class="chip bad">NO</span></td><td>CustomEvent_or_no_mapping</td><td>planning_only</td><td>Not approved for Meta optimization in this conversion map.</td></tr>
+<tr><td><strong>cta_click</strong></td><td><span class="chip bad">NO</span></td><td>CustomEvent_or_no_mapping</td><td>planning_only</td><td>Not approved for Meta optimization in this conversion map.</td></tr>
+<tr><td><strong>scroll_depth</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>section_visible</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>nav_click</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>portal_section_view</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>login_start</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>login_success</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>login_error</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>package_search</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>package_detail_view</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>invoice_upload_start</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>invoice_upload_success</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>invoice_upload_error</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>chat_open</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>chat_message_sent</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>signup_error</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>form_abandon</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>calculator_tab_switch</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>package_search_result</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr>
+<tr><td><strong>outbound_click</strong></td><td><span class="chip bad">NO</span></td><td>no_mapping</td><td>planning_only</td><td>Diagnostic events should not be optimization events.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Conversion value strategy</h2>
+      <div class="note"><ul><li><strong>quote_request_submit_success:</strong> offline_value_later. Start without fake values. Later, use qualified lead or shipment/revenue proxy from backend/admin data if available.</li><li><strong>signup_success:</strong> offline_value_later. Start without fake values. Later, weight signups by activation, shipment, or customer-quality outcomes.</li><li><strong>contact_form_submit_success:</strong> static_value_later. Do not assign values initially. A small static value may be considered later only for reporting, not primary bidding.</li><li><strong>calculator_result:</strong> static_value_later. Do not assign values initially. A small static value may be considered later only for reporting, not primary bidding.</li><li><strong>whatsapp_click:</strong> static_value_later. Do not assign values initially. A small static value may be considered later only for reporting, not primary bidding.</li><li><strong>phone_click:</strong> static_value_later. Do not assign values initially. A small static value may be considered later only for reporting, not primary bidding.</li><li><strong>email_click:</strong> static_value_later. Do not assign values initially. A small static value may be considered later only for reporting, not primary bidding.</li><li><strong>quote_request_start:</strong> no_value_initially. No conversion value recommended for planning/diagnostic events.</li><li><strong>calculator_start:</strong> no_value_initially. No conversion value recommended for planning/diagnostic events.</li><li><strong>calculator_query:</strong> no_value_initially. No conversion value recommended for planning/diagnostic events.</li><li><strong>signup_start:</strong> no_value_initially. No conversion value recommended for planning/diagnostic events.</li><li><strong>signup_step:</strong> no_value_initially. No conversion value recommended for planning/diagnostic events.</li></ul></div>
+    </section>
+    <section>
+      <h2>Lead quality loop</h2>
+      <div class="note">
+        <p>Raw leads can include curiosity, duplicates, support requests, spam, or low-quality registrations. Paid media should eventually optimize toward qualified and activated customers.</p>
+        <ul><li>Backend/admin source of truth.</li><li>Conversion upload or offline conversion API design.</li><li>Consent/privacy review.</li><li>Stable IDs or platform click IDs handled without exposing PII in analytics artifacts.</li></ul>
+      </div>
+    </section>
+    <section>
+      <h2>Privacy and consent notes</h2>
+      <div class="note"><ul><li>No PII should be sent to GA4, GTM, Google Ads, or Meta analytics payloads.</li><li>Raw gclid/fbclid should not be exposed in client-side analytics payloads.</li><li>Only boolean flags such as gclid_present and fbclid_present are currently used.</li><li>Meta CAPI or offline conversion upload requires a separate privacy-safe design.</li><li>Consent Mode and Meta consent handling should be reviewed before implementation.</li></ul></div>
+    </section>
+    <section>
+      <h2>Decision matrix</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Event</th><th>Category</th><th>Observability</th><th>Google Ads</th><th>Conversions column</th><th>Meta</th><th>Risk</th></tr></thead>
+          <tbody><tr><td>quote_request_submit_success</td><td>primary_conversion</td><td>observed_recently</td><td><span class="chip good">YES PRIMARY</span></td><td>true</td><td><span class="chip neutral">YES</span></td><td>low</td></tr>
+<tr><td>signup_success</td><td>primary_conversion</td><td>observed_recently</td><td><span class="chip good">YES PRIMARY</span></td><td>later_quality_dependent</td><td><span class="chip neutral">YES</span></td><td>medium</td></tr>
+<tr><td>contact_form_submit_success</td><td>secondary_conversion</td><td>observed_recently</td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td><span class="chip warn">SECONDARY</span></td><td>low</td></tr>
+<tr><td>calculator_result</td><td>secondary_conversion</td><td>observed_recently</td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td><span class="chip warn">SECONDARY</span></td><td>low</td></tr>
+<tr><td>whatsapp_click</td><td>secondary_conversion</td><td>observed_recently</td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td><span class="chip warn">SECONDARY</span></td><td>low</td></tr>
+<tr><td>phone_click</td><td>secondary_conversion</td><td>not_observed_recently</td><td><span class="chip warn">LATER REQUIRES CALL TRACKING</span></td><td>false</td><td><span class="chip warn">LATER</span></td><td>medium</td></tr>
+<tr><td>email_click</td><td>secondary_conversion</td><td>observed_recently</td><td><span class="chip warn">YES SECONDARY OBSERVATION</span></td><td>false</td><td><span class="chip warn">SECONDARY</span></td><td>low</td></tr>
+<tr><td>quote_request_start</td><td>micro_conversion</td><td>observed_recently</td><td><span class="chip bad">NO MICRO CONVERSION</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>medium</td></tr>
+<tr><td>calculator_start</td><td>micro_conversion</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>medium</td></tr>
+<tr><td>calculator_query</td><td>micro_conversion</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>medium</td></tr>
+<tr><td>signup_start</td><td>micro_conversion</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>medium</td></tr>
+<tr><td>signup_step</td><td>micro_conversion</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>medium</td></tr>
+<tr><td>form_start</td><td>micro_conversion</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>medium</td></tr>
+<tr><td>faq_engage</td><td>micro_conversion</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>medium</td></tr>
+<tr><td>service_card_click</td><td>micro_conversion</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>medium</td></tr>
+<tr><td>cta_click</td><td>micro_conversion</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>medium</td></tr>
+<tr><td>scroll_depth</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>section_visible</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>nav_click</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>portal_section_view</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>login_start</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>login_success</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>login_error</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>package_search</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>package_detail_view</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>invoice_upload_start</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>invoice_upload_success</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>invoice_upload_error</td><td>diagnostic_only</td><td>not_observed_recently</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>chat_open</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>chat_message_sent</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>signup_error</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>form_abandon</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>calculator_tab_switch</td><td>diagnostic_only</td><td>observed_recently</td><td><span class="chip bad">NO PRIMARY IMPORT</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>package_search_result</td><td>diagnostic_only</td><td>not_independently_assessed</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr>
+<tr><td>outbound_click</td><td>diagnostic_only</td><td>not_independently_assessed</td><td><span class="chip bad">NO DIAGNOSTIC ONLY</span></td><td>false</td><td><span class="chip bad">NO</span></td><td>high_if_optimized</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Final next phase recommendation</h2>
+      <div class="note"><p><strong>Phase 3C - Google Ads Import Planning</strong></p><p>Use this conversion map as the approval artifact before connecting Google Ads.</p></div>
+    </section>
+    <section>
+      <h2>Safety confirmations</h2>
+      <div class="note">
+        <ul>
+          <li>GA4 writes made: false</li>
+          <li>GTM writes made: false</li>
+          <li>GTM published: false</li>
+          <li>Google Ads touched: false</li>
+          <li>Meta touched: false</li>
+          <li>Runtime files touched: false</li>
+          <li>Secrets/tokens/PII/raw click IDs printed: false</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <footer>Generated 2026-06-16T00:25:29.231Z from local source artifacts. No live platform write calls are made by this artifact.</footer>
+</body>
+</html>
