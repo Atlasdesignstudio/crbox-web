@@ -1,0 +1,808 @@
+{
+  "generatedAt": "2026-06-16T09:40:27.002Z",
+  "phase": "3D",
+  "mode": "google_ads_import_payload_review_only",
+  "sourceArtifacts": [
+    "docs/marketing-ops-google-ads-import-planning.json",
+    "docs/marketing-ops-google-ads-import-planning.md",
+    "docs/marketing-ops-paid-media-conversion-map.json",
+    "docs/marketing-ops-paid-media-conversion-map.md",
+    "docs/marketing-ops-ga4-monitoring-readiness.json",
+    "docs/marketing-ops-ga4-event-processing-validation.json",
+    "docs/marketing-ops-ga4-monitoring-dashboard.json",
+    "docs/marketing-ops-gtm-publish-result.json",
+    "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+    "docs/measurement-map-v1.md",
+    "docs/analytics-taxonomy.md",
+    "docs/tracking-plan.md",
+    "docs/paid-media-launch-gate-phase-1.md"
+  ],
+  "sourceArtifactAvailability": [
+    {
+      "path": "docs/marketing-ops-google-ads-import-planning.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-google-ads-import-planning.md",
+      "available": true,
+      "requiredForStatus": false
+    },
+    {
+      "path": "docs/marketing-ops-paid-media-conversion-map.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-paid-media-conversion-map.md",
+      "available": true,
+      "requiredForStatus": false
+    },
+    {
+      "path": "docs/marketing-ops-ga4-monitoring-readiness.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-ga4-event-processing-validation.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-ga4-monitoring-dashboard.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-gtm-publish-result.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/marketing-ops-gtm-post-publish-smoke-test.json",
+      "available": true,
+      "requiredForStatus": true
+    },
+    {
+      "path": "docs/measurement-map-v1.md",
+      "available": true,
+      "requiredForStatus": false
+    },
+    {
+      "path": "docs/analytics-taxonomy.md",
+      "available": true,
+      "requiredForStatus": false
+    },
+    {
+      "path": "docs/tracking-plan.md",
+      "available": true,
+      "requiredForStatus": false
+    },
+    {
+      "path": "docs/paid-media-launch-gate-phase-1.md",
+      "available": true,
+      "requiredForStatus": false
+    }
+  ],
+  "overallStatus": "ready_for_payload_review_with_manual_prerequisites",
+  "sourceStatus": {
+    "phase3A1Readiness": "pass",
+    "phase3A2Validation": "pass_with_limitations",
+    "phase3A3Dashboard": "ready_with_limitations",
+    "phase3BConversionMap": "ready_for_import_planning_with_limitations",
+    "phase3CGoogleAdsImportPlanning": "ready_for_google_ads_import_planning_with_limitations",
+    "gtmPublishedVersion": "4",
+    "postPublishSmokeTest": "pass"
+  },
+  "executiveSummary": [
+    "Google Ads import payload has been prepared for review.",
+    "No Google Ads changes are made in this phase.",
+    "No conversion actions are created.",
+    "No conversions are imported.",
+    "No campaigns are created.",
+    "The payload is not approved for execution yet.",
+    "Account/linking prerequisites still require manual confirmation."
+  ],
+  "payloadScope": {
+    "mode": "review_only_no_apply",
+    "applyAllowed": false,
+    "requiresExplicitApprovalBeforeApply": true,
+    "requiresGoogleAdsAccountConfirmation": true,
+    "requiresDuplicateCheckBeforeApply": true,
+    "requiresGA4GoogleAdsLinkConfirmation": true,
+    "requiresConversionGoalReview": true
+  },
+  "proposedConversionActionPayload": {
+    "primaryCandidates": [
+      {
+        "conversionActionName": "CRBOX - Quote Request Submitted",
+        "sourceEventName": "quote_request_submit_success",
+        "importSource": "GA4",
+        "category": "lead",
+        "type": "primary_import_candidate",
+        "includeInConversionsColumn": true,
+        "biddingUse": "primary_bidding",
+        "valueStrategy": "no_fake_value_initially",
+        "optimizationRole": "main_lead_generation_conversion",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "duplicateCheckRequired": true,
+        "caveats": [
+          "Low volume before campaign scale.",
+          "Lead quality should be monitored.",
+          "Avoid duplicate import from GTM or other sources."
+        ]
+      },
+      {
+        "conversionActionName": "CRBOX - Signup Completed",
+        "sourceEventName": "signup_success",
+        "importSource": "GA4",
+        "category": "signup",
+        "type": "primary_quality_dependent_candidate",
+        "includeInConversionsColumn": "quality_dependent",
+        "recommendedInitialSetting": "secondary_observation_until_quality_confirmed",
+        "biddingUse": "primary_bidding_or_secondary_observation",
+        "valueStrategy": "no_fake_value_initially",
+        "optimizationRole": "account_creation_quality_dependent",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "qualityValidationRequired": true,
+        "duplicateCheckRequired": true,
+        "caveats": [
+          "Registration does not always equal qualified customer.",
+          "Quality loop needed before aggressive bidding."
+        ]
+      }
+    ],
+    "secondaryObservationCandidates": [
+      {
+        "conversionActionName": "CRBOX - Contact Form Submitted",
+        "sourceEventName": "contact_form_submit_success",
+        "importSource": "GA4",
+        "category": "lead",
+        "type": "secondary_observation_candidate",
+        "includeInConversionsColumn": false,
+        "biddingUse": "secondary_observation",
+        "valueStrategy": "no_fake_value_initially",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "caveats": [
+          "May include support/general inquiries."
+        ]
+      },
+      {
+        "conversionActionName": "CRBOX - Calculator Result Generated",
+        "sourceEventName": "calculator_result",
+        "importSource": "GA4",
+        "category": "engagement",
+        "type": "secondary_observation_candidate",
+        "includeInConversionsColumn": false,
+        "biddingUse": "remarketing_signal_or_secondary_observation",
+        "valueStrategy": "no_fake_value_initially",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "caveats": [
+          "Can represent price-shopping behavior.",
+          "Not a confirmed lead."
+        ]
+      },
+      {
+        "conversionActionName": "CRBOX - WhatsApp Click",
+        "sourceEventName": "whatsapp_click",
+        "importSource": "GA4",
+        "category": "contact",
+        "type": "secondary_observation_candidate",
+        "includeInConversionsColumn": false,
+        "biddingUse": "secondary_observation",
+        "valueStrategy": "no_fake_value_initially",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "caveats": [
+          "Click does not confirm completed conversation."
+        ]
+      },
+      {
+        "conversionActionName": "CRBOX - Email Click",
+        "sourceEventName": "email_click",
+        "importSource": "GA4",
+        "category": "contact",
+        "type": "secondary_observation_candidate",
+        "includeInConversionsColumn": false,
+        "biddingUse": "secondary_observation",
+        "valueStrategy": "no_fake_value_initially",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "caveats": [
+          "Click does not confirm email sent."
+        ]
+      }
+    ],
+    "blockedCandidates": [
+      {
+        "conversionActionName": "CRBOX - Phone Click",
+        "sourceEventName": "phone_click",
+        "importSource": "GA4",
+        "category": "phone_call",
+        "type": "blocked_until_call_tracking",
+        "includeInConversionsColumn": false,
+        "biddingUse": "blocked_until_call_tracking",
+        "valueStrategy": "no_fake_value_initially",
+        "executionStatus": "blocked_not_executed",
+        "approvalRequired": true,
+        "callTrackingRequired": true,
+        "caveats": [
+          "Click does not confirm completed call.",
+          "Do not import for bidding until call tracking exists."
+        ]
+      }
+    ]
+  },
+  "excludedEvents": [
+    {
+      "eventName": "scroll_depth",
+      "reason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+      "riskIfImported": "Could inflate conversion counts and train bidding toward low-value engagement."
+    },
+    {
+      "eventName": "section_visible",
+      "reason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+      "riskIfImported": "Could inflate conversion counts and train bidding toward low-value engagement."
+    },
+    {
+      "eventName": "nav_click",
+      "reason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+      "riskIfImported": "Could inflate conversion counts and train bidding toward low-value engagement."
+    },
+    {
+      "eventName": "portal_section_view",
+      "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "riskIfImported": "Could optimize acquisition campaigns toward existing-client or operational behavior."
+    },
+    {
+      "eventName": "login_success",
+      "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "riskIfImported": "Could optimize acquisition campaigns toward existing-client or operational behavior."
+    },
+    {
+      "eventName": "login_error",
+      "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "riskIfImported": "Could optimize toward broken or failed sessions."
+    },
+    {
+      "eventName": "invoice_upload_error",
+      "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "riskIfImported": "Could optimize toward broken or failed sessions."
+    },
+    {
+      "eventName": "package_search",
+      "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "riskIfImported": "Could optimize acquisition campaigns toward existing-client or operational behavior."
+    },
+    {
+      "eventName": "package_detail_view",
+      "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "riskIfImported": "Could optimize acquisition campaigns toward existing-client or operational behavior."
+    },
+    {
+      "eventName": "package_search_result",
+      "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+      "riskIfImported": "Could optimize acquisition campaigns toward existing-client or operational behavior."
+    },
+    {
+      "eventName": "outbound_click",
+      "reason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+      "riskIfImported": "Could inflate conversion counts and train bidding toward low-value engagement."
+    },
+    {
+      "eventName": "form_abandon",
+      "reason": "Failure or abandonment signal; useful diagnostically, unsafe as an optimization goal.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Failure or abandonment signal; useful diagnostically, unsafe as an optimization goal.",
+      "riskIfImported": "Could inflate conversion counts and train bidding toward low-value engagement."
+    },
+    {
+      "eventName": "signup_error",
+      "reason": "Failure or abandonment signal; useful diagnostically, unsafe as an optimization goal.",
+      "importAllowed": false,
+      "includeInConversionsColumn": false,
+      "biddingUse": "do_not_import",
+      "exclusionReason": "Failure or abandonment signal; useful diagnostically, unsafe as an optimization goal.",
+      "riskIfImported": "Could optimize toward broken or failed sessions."
+    }
+  ],
+  "payloadValidationRules": [
+    {
+      "rule": "Google Ads account ID must be confirmed.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "GA4-Google Ads link status must be confirmed.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "Existing conversion actions must be listed.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "Planned conversion action names must be checked against existing actions.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "Duplicate action names must block execution.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "Duplicate GA4 event imports must block execution unless explicitly approved.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "quote_request_submit_success must remain the only immediate primary bidding candidate unless explicitly changed.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "Secondary conversions must not be included in conversions column initially.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "signup_success must not be included in conversions column unless quality is approved.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "phone_click must remain blocked until call tracking exists.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "Do-not-import events must not appear in the apply payload.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "No fake conversion values.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "No PII or raw click IDs.",
+      "status": "required_before_apply"
+    },
+    {
+      "rule": "No campaigns created in import apply phase.",
+      "status": "required_before_apply"
+    }
+  ],
+  "payloadValidationStatus": "pass_with_manual_prerequisites",
+  "accountPrerequisites": [
+    {
+      "item": "Confirm Google Ads account ID",
+      "status": "requires_manual_confirmation"
+    },
+    {
+      "item": "Confirm manager account / MCC relationship if applicable",
+      "status": "requires_manual_confirmation"
+    },
+    {
+      "item": "Confirm GA4 property is linked or can be linked",
+      "status": "requires_manual_confirmation"
+    },
+    {
+      "item": "Confirm user permissions",
+      "status": "requires_manual_confirmation"
+    },
+    {
+      "item": "Confirm whether auto-tagging is enabled",
+      "status": "requires_manual_confirmation"
+    },
+    {
+      "item": "Confirm imported GA4 key events are available in Google Ads",
+      "status": "requires_manual_confirmation"
+    },
+    {
+      "item": "Confirm Google Ads conversion goals UI status",
+      "status": "requires_manual_confirmation"
+    },
+    {
+      "item": "Confirm whether existing conversion actions already exist",
+      "status": "requires_manual_confirmation"
+    },
+    {
+      "item": "Confirm timezone and currency if available",
+      "status": "requires_manual_confirmation"
+    },
+    {
+      "item": "Confirm whether enhanced conversions are desired later",
+      "status": "requires_manual_confirmation"
+    },
+    {
+      "item": "Confirm consent requirements",
+      "status": "requires_manual_confirmation"
+    }
+  ],
+  "futureApplyPayload": {
+    "mode": "review_only",
+    "applyAllowed": false,
+    "platform": "google_ads",
+    "operationType": "conversion_import_or_create_review",
+    "accountId": "requires_manual_confirmation",
+    "ga4PropertyLink": "requires_manual_confirmation",
+    "plannedActions": [
+      {
+        "conversionActionName": "CRBOX - Quote Request Submitted",
+        "sourceEventName": "quote_request_submit_success",
+        "importSource": "GA4",
+        "category": "lead",
+        "type": "primary_import_candidate",
+        "includeInConversionsColumn": true,
+        "biddingUse": "primary_bidding",
+        "valueStrategy": "no_fake_value_initially",
+        "optimizationRole": "main_lead_generation_conversion",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "duplicateCheckRequired": true,
+        "caveats": [
+          "Low volume before campaign scale.",
+          "Lead quality should be monitored.",
+          "Avoid duplicate import from GTM or other sources."
+        ]
+      },
+      {
+        "conversionActionName": "CRBOX - Signup Completed",
+        "sourceEventName": "signup_success",
+        "importSource": "GA4",
+        "category": "signup",
+        "type": "primary_quality_dependent_candidate",
+        "includeInConversionsColumn": "quality_dependent",
+        "recommendedInitialSetting": "secondary_observation_until_quality_confirmed",
+        "biddingUse": "primary_bidding_or_secondary_observation",
+        "valueStrategy": "no_fake_value_initially",
+        "optimizationRole": "account_creation_quality_dependent",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "qualityValidationRequired": true,
+        "duplicateCheckRequired": true,
+        "caveats": [
+          "Registration does not always equal qualified customer.",
+          "Quality loop needed before aggressive bidding."
+        ]
+      },
+      {
+        "conversionActionName": "CRBOX - Contact Form Submitted",
+        "sourceEventName": "contact_form_submit_success",
+        "importSource": "GA4",
+        "category": "lead",
+        "type": "secondary_observation_candidate",
+        "includeInConversionsColumn": false,
+        "biddingUse": "secondary_observation",
+        "valueStrategy": "no_fake_value_initially",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "caveats": [
+          "May include support/general inquiries."
+        ]
+      },
+      {
+        "conversionActionName": "CRBOX - Calculator Result Generated",
+        "sourceEventName": "calculator_result",
+        "importSource": "GA4",
+        "category": "engagement",
+        "type": "secondary_observation_candidate",
+        "includeInConversionsColumn": false,
+        "biddingUse": "remarketing_signal_or_secondary_observation",
+        "valueStrategy": "no_fake_value_initially",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "caveats": [
+          "Can represent price-shopping behavior.",
+          "Not a confirmed lead."
+        ]
+      },
+      {
+        "conversionActionName": "CRBOX - WhatsApp Click",
+        "sourceEventName": "whatsapp_click",
+        "importSource": "GA4",
+        "category": "contact",
+        "type": "secondary_observation_candidate",
+        "includeInConversionsColumn": false,
+        "biddingUse": "secondary_observation",
+        "valueStrategy": "no_fake_value_initially",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "caveats": [
+          "Click does not confirm completed conversation."
+        ]
+      },
+      {
+        "conversionActionName": "CRBOX - Email Click",
+        "sourceEventName": "email_click",
+        "importSource": "GA4",
+        "category": "contact",
+        "type": "secondary_observation_candidate",
+        "includeInConversionsColumn": false,
+        "biddingUse": "secondary_observation",
+        "valueStrategy": "no_fake_value_initially",
+        "executionStatus": "not_executed",
+        "approvalRequired": true,
+        "caveats": [
+          "Click does not confirm email sent."
+        ]
+      },
+      {
+        "conversionActionName": "CRBOX - Phone Click",
+        "sourceEventName": "phone_click",
+        "importSource": "GA4",
+        "category": "phone_call",
+        "type": "blocked_until_call_tracking",
+        "includeInConversionsColumn": false,
+        "biddingUse": "blocked_until_call_tracking",
+        "valueStrategy": "no_fake_value_initially",
+        "executionStatus": "blocked_not_executed",
+        "approvalRequired": true,
+        "callTrackingRequired": true,
+        "caveats": [
+          "Click does not confirm completed call.",
+          "Do not import for bidding until call tracking exists."
+        ]
+      }
+    ],
+    "excludedEvents": [
+      {
+        "eventName": "scroll_depth",
+        "reason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+        "riskIfImported": "Could inflate conversion counts and train bidding toward low-value engagement."
+      },
+      {
+        "eventName": "section_visible",
+        "reason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+        "riskIfImported": "Could inflate conversion counts and train bidding toward low-value engagement."
+      },
+      {
+        "eventName": "nav_click",
+        "reason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+        "riskIfImported": "Could inflate conversion counts and train bidding toward low-value engagement."
+      },
+      {
+        "eventName": "portal_section_view",
+        "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "riskIfImported": "Could optimize acquisition campaigns toward existing-client or operational behavior."
+      },
+      {
+        "eventName": "login_success",
+        "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "riskIfImported": "Could optimize acquisition campaigns toward existing-client or operational behavior."
+      },
+      {
+        "eventName": "login_error",
+        "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "riskIfImported": "Could optimize toward broken or failed sessions."
+      },
+      {
+        "eventName": "invoice_upload_error",
+        "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "riskIfImported": "Could optimize toward broken or failed sessions."
+      },
+      {
+        "eventName": "package_search",
+        "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "riskIfImported": "Could optimize acquisition campaigns toward existing-client or operational behavior."
+      },
+      {
+        "eventName": "package_detail_view",
+        "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "riskIfImported": "Could optimize acquisition campaigns toward existing-client or operational behavior."
+      },
+      {
+        "eventName": "package_search_result",
+        "reason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Portal/internal lifecycle or operational event, not an acquisition conversion.",
+        "riskIfImported": "Could optimize acquisition campaigns toward existing-client or operational behavior."
+      },
+      {
+        "eventName": "outbound_click",
+        "reason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.",
+        "riskIfImported": "Could inflate conversion counts and train bidding toward low-value engagement."
+      },
+      {
+        "eventName": "form_abandon",
+        "reason": "Failure or abandonment signal; useful diagnostically, unsafe as an optimization goal.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Failure or abandonment signal; useful diagnostically, unsafe as an optimization goal.",
+        "riskIfImported": "Could inflate conversion counts and train bidding toward low-value engagement."
+      },
+      {
+        "eventName": "signup_error",
+        "reason": "Failure or abandonment signal; useful diagnostically, unsafe as an optimization goal.",
+        "importAllowed": false,
+        "includeInConversionsColumn": false,
+        "biddingUse": "do_not_import",
+        "exclusionReason": "Failure or abandonment signal; useful diagnostically, unsafe as an optimization goal.",
+        "riskIfImported": "Could optimize toward broken or failed sessions."
+      }
+    ],
+    "preflightRequired": true,
+    "duplicateCheckRequired": true,
+    "approvalRequired": true,
+    "executeNow": false,
+    "payloadScope": "review_only_no_apply"
+  },
+  "humanApprovalChecklist": [
+    {
+      "item": "Approve Google Ads account ID.",
+      "approved": false,
+      "requiredBeforeApply": true
+    },
+    {
+      "item": "Approve GA4-Google Ads link.",
+      "approved": false,
+      "requiredBeforeApply": true
+    },
+    {
+      "item": "Approve canonical conversion action names.",
+      "approved": false,
+      "requiredBeforeApply": true
+    },
+    {
+      "item": "Approve primary conversion set.",
+      "approved": false,
+      "requiredBeforeApply": true
+    },
+    {
+      "item": "Decide signup handling: primary immediately, secondary observation first, or exclude until quality validated.",
+      "approved": false,
+      "requiredBeforeApply": true
+    },
+    {
+      "item": "Approve secondary observation events.",
+      "approved": false,
+      "requiredBeforeApply": true
+    },
+    {
+      "item": "Confirm phone click remains blocked.",
+      "approved": false,
+      "requiredBeforeApply": true
+    },
+    {
+      "item": "Confirm do-not-import events.",
+      "approved": false,
+      "requiredBeforeApply": true
+    },
+    {
+      "item": "Confirm no fake values.",
+      "approved": false,
+      "requiredBeforeApply": true
+    },
+    {
+      "item": "Confirm no campaigns are created.",
+      "approved": false,
+      "requiredBeforeApply": true
+    },
+    {
+      "item": "Confirm rollback/no-op plan.",
+      "approved": false,
+      "requiredBeforeApply": true
+    }
+  ],
+  "rollbackNoOpInterpretation": {
+    "phase3DAction": "no_rollback_performed_review_only",
+    "interpretation": [
+      "Phase 3D performs no rollback because it performs no execution.",
+      "If a future apply creates something incorrectly, do not delete automatically.",
+      "Exclude incorrect or duplicate actions from the conversions column.",
+      "Rename or deprecate incorrect actions if needed.",
+      "Document the canonical conversion action.",
+      "Pause or remove incorrect actions from bidding use.",
+      "Review before deletion."
+    ]
+  },
+  "recommendedNextPhase": "Phase 3E - Google Ads Read-only Account Preflight",
+  "recommendedNextPhaseReason": [
+    "Read the Google Ads account safely before producing an executable apply.",
+    "Confirm account ID, access, existing conversion actions, duplicate risks, GA4 link status, conversion goals state, timezone, and currency.",
+    "Do not recommend execution until account prerequisites are confirmed."
+  ],
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsTouched": false,
+    "googleAdsConversionActionsCreated": false,
+    "googleAdsConversionsImported": false,
+    "googleAdsCampaignsCreated": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiPrinted": false,
+    "rawClickIdsPrinted": false,
+    "applyAllowed": false,
+    "executeNow": false
+  }
+}

@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRBOX Google Ads Import Payload Review</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #18212f;
+      --muted: #5f6d7d;
+      --line: #d9dee7;
+      --good: #116b46;
+      --good-bg: #e7f4ec;
+      --warn: #8a5a00;
+      --warn-bg: #fff1ce;
+      --bad: #9a2d2d;
+      --bad-bg: #fde7e7;
+      --neutral: #485465;
+      --neutral-bg: #eef1f5;
+      --header: #12334c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    header {
+      background: var(--header);
+      color: #fff;
+      padding: 32px max(24px, calc((100vw - 1180px) / 2));
+    }
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 24px auto 44px;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(1.8rem, 3vw, 3rem); margin-bottom: 8px; letter-spacing: 0; }
+    h2 { margin: 30px 0 14px; font-size: 1.35rem; }
+    .summary, .grid {
+      display: grid;
+      gap: 14px;
+    }
+    .summary { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 20px; }
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card, .table-wrap, .note {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card p, .note p { color: var(--muted); }
+    .kicker {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    header .kicker { color: #b8c9da; }
+    .chip {
+      display: inline-flex;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      margin: 2px 0 8px;
+      white-space: nowrap;
+    }
+    .chip.good { color: var(--good); background: var(--good-bg); }
+    .chip.warn { color: var(--warn); background: var(--warn-bg); }
+    .chip.bad { color: var(--bad); background: var(--bad-bg); }
+    .chip.neutral { color: var(--neutral); background: var(--neutral-bg); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    ul, ol { margin: 0; padding-left: 20px; }
+    li + li { margin-top: 7px; }
+    footer {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto 32px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+    @media (max-width: 900px) {
+      .summary, .grid { grid-template-columns: 1fr; }
+      .table-wrap { overflow-x: auto; }
+      th, td { min-width: 150px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="kicker">CRBOX - Phase 3D</div>
+    <h1>Google Ads Import Payload Review</h1>
+    <p>Review-only future payload for Google Ads conversion import planning. Nothing is connected, imported, created, or executed.</p>
+    <div class="summary">
+      <div><span class="chip warn">READY FOR PAYLOAD REVIEW WITH MANUAL PREREQUISITES</span><p>Overall status</p></div>
+      <div><span class="chip warn">PASS WITH MANUAL PREREQUISITES</span><p>Payload validation</p></div>
+      <div><span class="chip neutral">NOT AVAILABLE</span><p>Apply allowed</p></div>
+      <div><span class="chip neutral">NOT AVAILABLE</span><p>Execute now</p></div>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>Payload scope</h2>
+      <div class="grid">
+        <article class="card"><div class="kicker">Mode</div><span class="chip warn">REVIEW ONLY NO APPLY</span><p>Future apply is explicitly disabled.</p></article>
+        <article class="card"><div class="kicker">Approval</div><span class="chip neutral">REQUIRES EXPLICIT APPROVAL BEFORE APPLY</span><p>Human approval is required before any execution phase.</p></article>
+        <article class="card"><div class="kicker">Account</div><span class="chip neutral">REQUIRES GOOGLE ADS ACCOUNT CONFIRMATION</span><p>Google Ads account ID and access are not confirmed in this phase.</p></article>
+        <article class="card"><div class="kicker">Duplicate check</div><span class="chip neutral">REQUIRES DUPLICATE CHECK BEFORE APPLY</span><p>Existing conversion actions must be listed before apply.</p></article>
+      </div>
+    </section>
+    <section>
+      <h2>Proposed conversion action payload</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>GA4 event</th><th>Conversion action name</th><th>Type</th><th>Conversions column</th><th>Bidding use</th><th>Execution</th></tr></thead>
+          <tbody><tr><td><strong>quote_request_submit_success</strong></td><td>CRBOX - Quote Request Submitted</td><td><span class="chip good">PRIMARY IMPORT CANDIDATE</span></td><td><span class="chip good">TRUE</span></td><td>primary_bidding</td><td>not_executed</td></tr>
+<tr><td><strong>signup_success</strong></td><td>CRBOX - Signup Completed</td><td><span class="chip warn">PRIMARY QUALITY DEPENDENT CANDIDATE</span></td><td><span class="chip warn">QUALITY DEPENDENT</span></td><td>primary_bidding_or_secondary_observation</td><td>not_executed</td></tr>
+<tr><td><strong>contact_form_submit_success</strong></td><td>CRBOX - Contact Form Submitted</td><td><span class="chip warn">SECONDARY OBSERVATION CANDIDATE</span></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>secondary_observation</td><td>not_executed</td></tr>
+<tr><td><strong>calculator_result</strong></td><td>CRBOX - Calculator Result Generated</td><td><span class="chip warn">SECONDARY OBSERVATION CANDIDATE</span></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>remarketing_signal_or_secondary_observation</td><td>not_executed</td></tr>
+<tr><td><strong>whatsapp_click</strong></td><td>CRBOX - WhatsApp Click</td><td><span class="chip warn">SECONDARY OBSERVATION CANDIDATE</span></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>secondary_observation</td><td>not_executed</td></tr>
+<tr><td><strong>email_click</strong></td><td>CRBOX - Email Click</td><td><span class="chip warn">SECONDARY OBSERVATION CANDIDATE</span></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>secondary_observation</td><td>not_executed</td></tr>
+<tr><td><strong>phone_click</strong></td><td>CRBOX - Phone Click</td><td><span class="chip bad">BLOCKED UNTIL CALL TRACKING</span></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>blocked_until_call_tracking</td><td>blocked_not_executed</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Excluded events</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Event</th><th>Import allowed</th><th>Exclusion reason</th><th>Risk if imported</th></tr></thead>
+          <tbody><tr><td><strong>scroll_depth</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.</td><td>Could inflate conversion counts and train bidding toward low-value engagement.</td></tr>
+<tr><td><strong>section_visible</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.</td><td>Could inflate conversion counts and train bidding toward low-value engagement.</td></tr>
+<tr><td><strong>nav_click</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.</td><td>Could inflate conversion counts and train bidding toward low-value engagement.</td></tr>
+<tr><td><strong>portal_section_view</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Portal/internal lifecycle or operational event, not an acquisition conversion.</td><td>Could optimize acquisition campaigns toward existing-client or operational behavior.</td></tr>
+<tr><td><strong>login_success</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Portal/internal lifecycle or operational event, not an acquisition conversion.</td><td>Could optimize acquisition campaigns toward existing-client or operational behavior.</td></tr>
+<tr><td><strong>login_error</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Portal/internal lifecycle or operational event, not an acquisition conversion.</td><td>Could optimize toward broken or failed sessions.</td></tr>
+<tr><td><strong>invoice_upload_error</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Portal/internal lifecycle or operational event, not an acquisition conversion.</td><td>Could optimize toward broken or failed sessions.</td></tr>
+<tr><td><strong>package_search</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Portal/internal lifecycle or operational event, not an acquisition conversion.</td><td>Could optimize acquisition campaigns toward existing-client or operational behavior.</td></tr>
+<tr><td><strong>package_detail_view</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Portal/internal lifecycle or operational event, not an acquisition conversion.</td><td>Could optimize acquisition campaigns toward existing-client or operational behavior.</td></tr>
+<tr><td><strong>package_search_result</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Portal/internal lifecycle or operational event, not an acquisition conversion.</td><td>Could optimize acquisition campaigns toward existing-client or operational behavior.</td></tr>
+<tr><td><strong>outbound_click</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Broad engagement/navigation signal that can inflate performance and optimize toward shallow behavior.</td><td>Could inflate conversion counts and train bidding toward low-value engagement.</td></tr>
+<tr><td><strong>form_abandon</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Failure or abandonment signal; useful diagnostically, unsafe as an optimization goal.</td><td>Could inflate conversion counts and train bidding toward low-value engagement.</td></tr>
+<tr><td><strong>signup_error</strong></td><td><span class="chip neutral">NOT AVAILABLE</span></td><td>Failure or abandonment signal; useful diagnostically, unsafe as an optimization goal.</td><td>Could optimize toward broken or failed sessions.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Validation rules</h2>
+      <div class="note"><ul><li>Google Ads account ID must be confirmed. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>GA4-Google Ads link status must be confirmed. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>Existing conversion actions must be listed. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>Planned conversion action names must be checked against existing actions. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>Duplicate action names must block execution. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>Duplicate GA4 event imports must block execution unless explicitly approved. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>quote_request_submit_success must remain the only immediate primary bidding candidate unless explicitly changed. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>Secondary conversions must not be included in conversions column initially. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>signup_success must not be included in conversions column unless quality is approved. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>phone_click must remain blocked until call tracking exists. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>Do-not-import events must not appear in the apply payload. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>No fake conversion values. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>No PII or raw click IDs. <span class="chip warn">REQUIRED BEFORE APPLY</span></li><li>No campaigns created in import apply phase. <span class="chip warn">REQUIRED BEFORE APPLY</span></li></ul></div>
+    </section>
+    <section>
+      <h2>Account prerequisites</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Prerequisite</th><th>Status</th></tr></thead>
+          <tbody><tr><td>Confirm Google Ads account ID</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm manager account / MCC relationship if applicable</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm GA4 property is linked or can be linked</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm user permissions</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm whether auto-tagging is enabled</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm imported GA4 key events are available in Google Ads</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm Google Ads conversion goals UI status</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm whether existing conversion actions already exist</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm timezone and currency if available</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm whether enhanced conversions are desired later</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr>
+<tr><td>Confirm consent requirements</td><td><span class="chip warn">REQUIRES MANUAL CONFIRMATION</span></td></tr></tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2>Future apply payload summary</h2>
+      <div class="grid">
+        <article class="card"><div class="kicker">Platform</div><h3>google_ads</h3><p>conversion_import_or_create_review</p></article>
+        <article class="card"><div class="kicker">Planned actions</div><h3>7</h3><p>All remain not executed.</p></article>
+        <article class="card"><div class="kicker">Excluded events</div><h3>13</h3><p>Diagnostic/internal/error events are blocked from import.</p></article>
+        <article class="card"><div class="kicker">Apply</div><span class="chip neutral">NOT AVAILABLE</span><p>Review-only payload, not executable.</p></article>
+      </div>
+    </section>
+    <section>
+      <h2>Human approval checklist</h2>
+      <div class="note"><ul><li>Approve Google Ads account ID.</li><li>Approve GA4-Google Ads link.</li><li>Approve canonical conversion action names.</li><li>Approve primary conversion set.</li><li>Decide signup handling: primary immediately, secondary observation first, or exclude until quality validated.</li><li>Approve secondary observation events.</li><li>Confirm phone click remains blocked.</li><li>Confirm do-not-import events.</li><li>Confirm no fake values.</li><li>Confirm no campaigns are created.</li><li>Confirm rollback/no-op plan.</li></ul></div>
+    </section>
+    <section>
+      <h2>Rollback / no-op interpretation</h2>
+      <div class="note"><ul><li>Phase 3D performs no rollback because it performs no execution.</li><li>If a future apply creates something incorrectly, do not delete automatically.</li><li>Exclude incorrect or duplicate actions from the conversions column.</li><li>Rename or deprecate incorrect actions if needed.</li><li>Document the canonical conversion action.</li><li>Pause or remove incorrect actions from bidding use.</li><li>Review before deletion.</li></ul></div>
+    </section>
+    <section>
+      <h2>Recommended next phase</h2>
+      <div class="note">
+        <p><strong>Phase 3E - Google Ads Read-only Account Preflight</strong></p>
+        <ul><li>Read the Google Ads account safely before producing an executable apply.</li><li>Confirm account ID, access, existing conversion actions, duplicate risks, GA4 link status, conversion goals state, timezone, and currency.</li><li>Do not recommend execution until account prerequisites are confirmed.</li></ul>
+      </div>
+    </section>
+    <section>
+      <h2>Safety confirmations</h2>
+      <div class="note">
+        <ul>
+          <li>GA4 writes made: false</li>
+          <li>GTM writes made: false</li>
+          <li>GTM published: false</li>
+          <li>Google Ads touched: false</li>
+          <li>Google Ads conversion actions created: false</li>
+          <li>Google Ads conversions imported: false</li>
+          <li>Google Ads campaigns created: false</li>
+          <li>Meta touched: false</li>
+          <li>Runtime files touched: false</li>
+          <li>Secrets/tokens/PII/raw click IDs printed: false</li>
+          <li>Apply allowed: false</li>
+          <li>Execute now: false</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <footer>Generated 2026-06-16T09:40:27.002Z from local source artifacts. This static artifact performs no Google Ads API calls.</footer>
+</body>
+</html>
