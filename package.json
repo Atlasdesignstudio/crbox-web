@@ -34,6 +34,7 @@
     "marketing:apply:gtm:ga4-tags:create": "node scripts/marketing-ops/index.js apply:gtm:ga4-tags:create",
     "marketing:apply:gtm:publish": "node scripts/marketing-ops/index.js apply:gtm:publish",
     "marketing:apply:validate": "node scripts/marketing-ops/index.js apply:validate",
-    "marketing:report": "node scripts/marketing-ops/index.js report"
+    "marketing:report": "node scripts/marketing-ops/index.js report",
+    "marketing:google-ads:payload-review": "node scripts/marketing-ops/index.js google-ads:payload-review"
   }
 }
