@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRBOX Google Ads Controlled Import Dry Run</title>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1f2937; background: #f7f8fb; }
+    header { background: #123047; color: white; padding: 32px; }
+    main { max-width: 1180px; margin: 0 auto; padding: 24px; }
+    h1, h2, h3 { margin-top: 0; }
+    .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+    .metric, .card, .notice { background: white; border: 1px solid #dce3ec; border-radius: 8px; padding: 16px; }
+    .metric strong { display: block; font-size: 22px; margin-top: 6px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .notice { border-left: 4px solid #f2b705; margin: 18px 0; }
+    @media (max-width: 800px) { .summary, .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CRBOX Google Ads Controlled Import Apply Plan / Dry Run</h1>
+    <p>Phase 3H · dry_run_apply_plan_ready_no_execution</p>
+  </header>
+  <main>
+    <section class="summary">
+      <div class="metric">Reuse/map<strong>2</strong></div>
+      <div class="metric">Future create/import<strong>4</strong></div>
+      <div class="metric">Blocked<strong>1</strong></div>
+      <div class="metric">Manual blockers<strong>0</strong></div>
+    </section>
+    <div class="notice">Dry-run only: applyAllowed=false, executeNow=false, Phase 3H executed=false. No Google Ads writes were made.</div>
+    <section><h2>Actions To Reuse / Map</h2><div class="grid">
+    <article class="card">
+      <h3>quote_request_submit_success</h3>
+      <p><strong>Plan:</strong> reuse_map_existing</p>
+      <p><strong>Role:</strong> primary</p>
+      <p><strong>Include in conversions:</strong> true</p>
+      <p><strong>Future operation:</strong> map_existing_conversion_action_no_create</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p><strong>Reason:</strong> Owner approved reusing the existing same-event Google Ads action as canonical. A future apply must not create a duplicate.</p>
+    </article>
+
+    <article class="card">
+      <h3>signup_success</h3>
+      <p><strong>Plan:</strong> reuse_map_existing_quality_pending</p>
+      <p><strong>Role:</strong> primary_quality_dependent</p>
+      <p><strong>Include in conversions:</strong> quality_dependent_not_primary_bidding_until_confirmed</p>
+      <p><strong>Future operation:</strong> map_existing_conversion_action_quality_pending_no_create</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p><strong>Reason:</strong> Owner approved reusing the existing same-event action, but signup remains quality-dependent and not primary bidding until quality is confirmed.</p>
+    </article></div></section>
+    <section><h2>Actions To Create / Import In A Future Apply</h2><div class="grid">
+    <article class="card">
+      <h3>contact_form_submit_success</h3>
+      <p><strong>Plan:</strong> future_create_import_secondary_excluded</p>
+      <p><strong>Role:</strong> secondary_observation</p>
+      <p><strong>Include in conversions:</strong> false</p>
+      <p><strong>Future operation:</strong> create_or_import_ga4_conversion_action_as_secondary_excluded</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p><strong>Reason:</strong> Owner approved future secondary observation only. It must be excluded from the conversions column initially.</p>
+    </article>
+
+    <article class="card">
+      <h3>calculator_result</h3>
+      <p><strong>Plan:</strong> future_create_import_secondary_excluded</p>
+      <p><strong>Role:</strong> secondary_observation</p>
+      <p><strong>Include in conversions:</strong> false</p>
+      <p><strong>Future operation:</strong> create_or_import_ga4_conversion_action_as_secondary_excluded</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p><strong>Reason:</strong> Owner approved future secondary observation only. It must be excluded from the conversions column initially.</p>
+    </article>
+
+    <article class="card">
+      <h3>whatsapp_click</h3>
+      <p><strong>Plan:</strong> future_create_import_secondary_excluded</p>
+      <p><strong>Role:</strong> secondary_observation</p>
+      <p><strong>Include in conversions:</strong> false</p>
+      <p><strong>Future operation:</strong> create_or_import_ga4_conversion_action_as_secondary_excluded</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p><strong>Reason:</strong> Owner approved future secondary observation only. It must be excluded from the conversions column initially.</p>
+    </article>
+
+    <article class="card">
+      <h3>email_click</h3>
+      <p><strong>Plan:</strong> future_create_import_secondary_excluded</p>
+      <p><strong>Role:</strong> secondary_observation</p>
+      <p><strong>Include in conversions:</strong> false</p>
+      <p><strong>Future operation:</strong> create_or_import_ga4_conversion_action_as_secondary_excluded</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p><strong>Reason:</strong> Owner approved future secondary observation only. It must be excluded from the conversions column initially.</p>
+    </article></div></section>
+    <section><h2>Actions Blocked</h2><div class="grid">
+    <article class="card">
+      <h3>phone_click</h3>
+      <p><strong>Plan:</strong> blocked</p>
+      <p><strong>Role:</strong> blocked</p>
+      <p><strong>Include in conversions:</strong> false</p>
+      <p><strong>Future operation:</strong> none_blocked</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p><strong>Reason:</strong> Owner kept this action blocked until additional measurement is available.</p>
+    </article></div></section>
+    <div class="notice">Recommended next phase: Phase 3I - Google Ads Controlled Import Apply Execution Approval</div>
+  </main>
+</body>
+</html>
