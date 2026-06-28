@@ -1,0 +1,167 @@
+{
+  "generatedAt": "2026-06-28T19:05:29.996Z",
+  "phase": "3G-Review",
+  "mode": "google_ads_manual_mapping_decision_review_only",
+  "sourceArtifacts": [
+    "docs/marketing-ops-google-ads-controlled-import-approval.json",
+    "docs/marketing-ops-google-ads-apply-payload-final-review.json",
+    "docs/marketing-ops-google-ads-account-preflight.json"
+  ],
+  "sourceArtifactAvailability": {
+    "docs/marketing-ops-google-ads-controlled-import-approval.json": "source_artifact_missing",
+    "docs/marketing-ops-google-ads-apply-payload-final-review.json": "source_artifact_missing",
+    "docs/marketing-ops-google-ads-account-preflight.json": "available"
+  },
+  "overallStatus": "owner_mapping_decisions_recorded_pre_execution",
+  "applyAllowed": false,
+  "executeNow": false,
+  "phase3HExecuted": false,
+  "ownerDecisionSummary": {
+    "approvedReuseMapCount": 2,
+    "approvedCreateSecondaryCount": 4,
+    "blockedCount": 1,
+    "remainingManualDecisions": 0
+  },
+  "actionsApprovedToMapOrReuse": [
+    "quote_request_submit_success",
+    "signup_success"
+  ],
+  "actionsApprovedToCreateAsSecondaryExcluded": [
+    "contact_form_submit_success",
+    "calculator_result",
+    "whatsapp_click",
+    "email_click"
+  ],
+  "actionsBlocked": [
+    "phone_click"
+  ],
+  "manualMappingDecisions": [
+    {
+      "eventName": "quote_request_submit_success",
+      "proposedGoogleAdsActionName": "CRBOX - Quote Request Submitted",
+      "existingActionToMap": "CRBOX Website (web) quote_request_submit_success",
+      "decision": "APPROVE_REUSE_EXISTING_AS_PRIMARY",
+      "recommendation": "reuse_existing",
+      "role": "primary",
+      "includeInConversionsRecommendation": true,
+      "riskLevel": "medium",
+      "status": "approved_to_map_existing",
+      "notes": [
+        "Use the existing action as the canonical quote lead conversion.",
+        "Do not create a duplicate conversion action."
+      ]
+    },
+    {
+      "eventName": "signup_success",
+      "proposedGoogleAdsActionName": "CRBOX - Signup Completed",
+      "existingActionToMap": "CRBOX Website (web) signup_success",
+      "decision": "APPROVE_REUSE_EXISTING_QUALITY_PENDING",
+      "recommendation": "reuse_existing_quality_pending",
+      "role": "primary_quality_dependent",
+      "includeInConversionsRecommendation": "quality_dependent_not_primary_bidding_until_confirmed",
+      "riskLevel": "medium",
+      "status": "approved_to_map_existing_quality_pending",
+      "notes": [
+        "Use the existing action and do not create a duplicate.",
+        "Keep conversion-column inclusion quality-dependent until signup quality is confirmed."
+      ]
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "proposedGoogleAdsActionName": "CRBOX - Contact Form Submitted",
+      "existingActionToMap": null,
+      "decision": "APPROVE_CREATE_SECONDARY_EXCLUDED",
+      "recommendation": "create_secondary_excluded",
+      "role": "secondary_observation",
+      "includeInConversionsRecommendation": false,
+      "riskLevel": "low",
+      "status": "approved_to_create_secondary_excluded",
+      "notes": [
+        "Create or import only as secondary observation and exclude from conversions column initially."
+      ]
+    },
+    {
+      "eventName": "calculator_result",
+      "proposedGoogleAdsActionName": "CRBOX - Calculator Result Generated",
+      "existingActionToMap": null,
+      "decision": "APPROVE_CREATE_SECONDARY_EXCLUDED",
+      "recommendation": "create_secondary_excluded",
+      "role": "secondary_observation",
+      "includeInConversionsRecommendation": false,
+      "riskLevel": "low",
+      "status": "approved_to_create_secondary_excluded",
+      "notes": [
+        "Create or import only as secondary observation and exclude from conversions column initially."
+      ]
+    },
+    {
+      "eventName": "whatsapp_click",
+      "proposedGoogleAdsActionName": "CRBOX - WhatsApp Click",
+      "existingActionToMap": null,
+      "decision": "APPROVE_CREATE_SECONDARY_EXCLUDED",
+      "recommendation": "create_secondary_excluded",
+      "role": "secondary_observation",
+      "includeInConversionsRecommendation": false,
+      "riskLevel": "low",
+      "status": "approved_to_create_secondary_excluded",
+      "notes": [
+        "Create or import only as secondary observation and exclude from conversions column initially."
+      ]
+    },
+    {
+      "eventName": "email_click",
+      "proposedGoogleAdsActionName": "CRBOX - Email Click",
+      "existingActionToMap": null,
+      "decision": "APPROVE_CREATE_SECONDARY_EXCLUDED",
+      "recommendation": "create_secondary_excluded",
+      "role": "secondary_observation",
+      "includeInConversionsRecommendation": false,
+      "riskLevel": "low",
+      "status": "approved_to_create_secondary_excluded",
+      "notes": [
+        "Create or import only as secondary observation and exclude from conversions column initially."
+      ]
+    },
+    {
+      "eventName": "phone_click",
+      "proposedGoogleAdsActionName": "CRBOX - Phone Click",
+      "existingActionToMap": null,
+      "decision": "KEEP_BLOCKED",
+      "recommendation": "block_until_call_tracking",
+      "role": "blocked",
+      "includeInConversionsRecommendation": false,
+      "riskLevel": "medium",
+      "status": "blocked",
+      "notes": [
+        "Keep blocked until call tracking confirms completed and qualified calls."
+      ]
+    }
+  ],
+  "preExecutionDecisionSummary": {
+    "phase3HCanProceedToDryRunApplyPlanOnly": true,
+    "phase3HCanExecuteWrites": false,
+    "remainingManualBlockers": 0,
+    "requiredBoundary": "Proceed only to Phase 3H dry-run/apply-plan review. Do not execute Google Ads writes until separately approved."
+  },
+  "recommendedNextStep": "Proceed to Phase 3H dry-run/apply-plan review only. Do not execute Google Ads writes until separately approved.",
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsTouched": false,
+    "googleAdsWritesMade": false,
+    "googleAdsConversionActionsCreated": false,
+    "googleAdsConversionsImported": false,
+    "googleAdsCampaignsCreated": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiPrinted": false,
+    "rawClickIdsPrinted": false,
+    "applyAllowed": false,
+    "executeNow": false,
+    "phase3HExecuted": false
+  }
+}

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRBOX Google Ads Manual Mapping Decision</title>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17202a; background: #f6f7f9; }
+    header { padding: 32px; background: #14213d; color: white; }
+    main { max-width: 1180px; margin: 0 auto; padding: 24px; }
+    h1, h2 { margin: 0; }
+    .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+    .metric, .card { background: white; border: 1px solid #d9dee7; border-radius: 8px; padding: 16px; }
+    .metric strong { display: block; font-size: 24px; margin-top: 6px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .chip { display: inline-block; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .good { background: #d8f3dc; color: #1b5e20; }
+    .warn { background: #fff3cd; color: #7a4f01; }
+    .bad { background: #fde2e1; color: #8a1c1c; }
+    dl { display: grid; grid-template-columns: 170px 1fr; gap: 8px 12px; margin: 0; }
+    dt { color: #5f6f89; font-weight: 700; }
+    dd { margin: 0; }
+    .notice { margin-top: 20px; background: #fff; border-left: 4px solid #f2b705; padding: 16px; }
+    @media (max-width: 800px) { .summary, .grid { grid-template-columns: 1fr; } dl { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CRBOX Google Ads Manual Mapping Decision</h1>
+    <p>Phase 3G-Review · owner_mapping_decisions_recorded_pre_execution</p>
+  </header>
+  <main>
+    <section class="summary">
+      <div class="metric">Reuse/map approved<strong>2</strong></div>
+      <div class="metric">Create secondary approved<strong>4</strong></div>
+      <div class="metric">Blocked<strong>1</strong></div>
+      <div class="metric">Remaining manual decisions<strong>0</strong></div>
+    </section>
+    <div class="notice">
+      <strong>Review-only boundary:</strong> applyAllowed=false, executeNow=false, Phase 3H executed=false. No Google Ads writes are performed by this artifact.
+    </div>
+    <section class="grid">
+      
+    <section class="card">
+      <div class="card-head">
+        <h2>quote_request_submit_success</h2>
+        <span class="chip good">approved_to_map_existing</span>
+      </div>
+      <dl>
+        <dt>Proposed action</dt><dd>CRBOX - Quote Request Submitted</dd>
+        <dt>Decision</dt><dd>APPROVE_REUSE_EXISTING_AS_PRIMARY</dd>
+        <dt>Recommendation</dt><dd>reuse_existing</dd>
+        <dt>Include in conversions</dt><dd>true</dd>
+        <dt>Risk</dt><dd>medium</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>signup_success</h2>
+        <span class="chip good">approved_to_map_existing_quality_pending</span>
+      </div>
+      <dl>
+        <dt>Proposed action</dt><dd>CRBOX - Signup Completed</dd>
+        <dt>Decision</dt><dd>APPROVE_REUSE_EXISTING_QUALITY_PENDING</dd>
+        <dt>Recommendation</dt><dd>reuse_existing_quality_pending</dd>
+        <dt>Include in conversions</dt><dd>quality_dependent_not_primary_bidding_until_confirmed</dd>
+        <dt>Risk</dt><dd>medium</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>contact_form_submit_success</h2>
+        <span class="chip warn">approved_to_create_secondary_excluded</span>
+      </div>
+      <dl>
+        <dt>Proposed action</dt><dd>CRBOX - Contact Form Submitted</dd>
+        <dt>Decision</dt><dd>APPROVE_CREATE_SECONDARY_EXCLUDED</dd>
+        <dt>Recommendation</dt><dd>create_secondary_excluded</dd>
+        <dt>Include in conversions</dt><dd>false</dd>
+        <dt>Risk</dt><dd>low</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>calculator_result</h2>
+        <span class="chip warn">approved_to_create_secondary_excluded</span>
+      </div>
+      <dl>
+        <dt>Proposed action</dt><dd>CRBOX - Calculator Result Generated</dd>
+        <dt>Decision</dt><dd>APPROVE_CREATE_SECONDARY_EXCLUDED</dd>
+        <dt>Recommendation</dt><dd>create_secondary_excluded</dd>
+        <dt>Include in conversions</dt><dd>false</dd>
+        <dt>Risk</dt><dd>low</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>whatsapp_click</h2>
+        <span class="chip warn">approved_to_create_secondary_excluded</span>
+      </div>
+      <dl>
+        <dt>Proposed action</dt><dd>CRBOX - WhatsApp Click</dd>
+        <dt>Decision</dt><dd>APPROVE_CREATE_SECONDARY_EXCLUDED</dd>
+        <dt>Recommendation</dt><dd>create_secondary_excluded</dd>
+        <dt>Include in conversions</dt><dd>false</dd>
+        <dt>Risk</dt><dd>low</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>email_click</h2>
+        <span class="chip warn">approved_to_create_secondary_excluded</span>
+      </div>
+      <dl>
+        <dt>Proposed action</dt><dd>CRBOX - Email Click</dd>
+        <dt>Decision</dt><dd>APPROVE_CREATE_SECONDARY_EXCLUDED</dd>
+        <dt>Recommendation</dt><dd>create_secondary_excluded</dd>
+        <dt>Include in conversions</dt><dd>false</dd>
+        <dt>Risk</dt><dd>low</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>phone_click</h2>
+        <span class="chip bad">blocked</span>
+      </div>
+      <dl>
+        <dt>Proposed action</dt><dd>CRBOX - Phone Click</dd>
+        <dt>Decision</dt><dd>KEEP_BLOCKED</dd>
+        <dt>Recommendation</dt><dd>block_until_call_tracking</dd>
+        <dt>Include in conversions</dt><dd>false</dd>
+        <dt>Risk</dt><dd>medium</dd>
+      </dl>
+    </section>
+    </section>
+    <div class="notice">
+      <strong>Recommended next step:</strong> Proceed to Phase 3H dry-run/apply-plan review only. Do not execute Google Ads writes until separately approved.
+    </div>
+  </main>
+</body>
+</html>
