@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-16T10:18:29.880Z",
+  "generatedAt": "2026-06-28T19:26:05.385Z",
   "phase": "3E",
   "mode": "google_ads_read_only_account_preflight",
   "sourceArtifacts": [
@@ -84,7 +84,7 @@
       "requiredForStatus": false
     }
   ],
-  "overallStatus": "blocked_missing_google_ads_credentials",
+  "overallStatus": "read_only_preflight_pass_with_findings",
   "sourceStatus": {
     "phase3A1Readiness": "pass",
     "phase3A2Validation": "pass_with_limitations",
@@ -98,7 +98,7 @@
     "postPublishSmokeTest": "pass"
   },
   "credentialStatus": {
-    "status": "blocked_missing_google_ads_credentials",
+    "status": "ready_for_read_only_attempt",
     "requiredCredentialNames": [
       "GOOGLE_ADS_DEVELOPER_TOKEN",
       "GOOGLE_ADS_CLIENT_ID",
@@ -109,44 +109,130 @@
       "GOOGLE_ADS_CUSTOMER_ID",
       "GOOGLE_ADS_LOGIN_CUSTOMER_ID"
     ],
-    "missingCredentialNames": [
-      "GOOGLE_ADS_DEVELOPER_TOKEN",
-      "GOOGLE_ADS_CLIENT_ID",
-      "GOOGLE_ADS_CLIENT_SECRET",
-      "GOOGLE_ADS_REFRESH_TOKEN"
-    ],
-    "customerIdPresent": false,
-    "loginCustomerIdPresent": false,
-    "customerIdMasked": "not_available",
-    "loginCustomerIdMasked": "not_available",
+    "missingCredentialNames": [],
+    "customerIdPresent": true,
+    "loginCustomerIdPresent": true,
+    "customerIdMasked": "144...5096",
+    "loginCustomerIdMasked": "631...9242",
     "secretsPrinted": false,
     "tokensPrinted": false
   },
   "accountIdentity": {
-    "status": "blocked_missing_google_ads_account_id",
-    "customerId": "not_available",
-    "descriptiveName": "not_checked",
-    "manager": "not_checked",
-    "currencyCode": "not_checked",
-    "timeZone": "not_checked",
-    "accountStatus": "not_checked",
-    "testAccount": "not_checked",
-    "canManageClients": "not_checked"
+    "status": "read_success",
+    "customerId": "144...5096",
+    "descriptiveName": "CRBOX",
+    "manager": false,
+    "currencyCode": "USD",
+    "timeZone": "America/Costa_Rica",
+    "accountStatus": "ENABLED",
+    "testAccount": false,
+    "canManageClients": false
   },
   "permissionAccessStatus": {
-    "apiReadAccessAvailable": false,
-    "customerIdAccessible": false,
-    "loginCustomerIdNeeded": "unknown",
+    "apiReadAccessAvailable": true,
+    "customerIdAccessible": true,
+    "loginCustomerIdNeeded": "configured",
     "permissionError": false,
     "developerTokenError": false,
     "oauthError": false,
     "accountNotFound": false,
-    "errorCategory": "blocked_missing_google_ads_credentials",
-    "sanitizedMessage": "blocked_missing_google_ads_credentials"
+    "errorCategory": "none",
+    "sanitizedMessage": "read_only_access_succeeded"
   },
   "existingConversionActions": {
-    "count": 0,
-    "actions": []
+    "count": 5,
+    "actions": [
+      {
+        "resourceName": "customers/1440115096/conversionActions/7650829661",
+        "id": "7650829661",
+        "name": "CRBOX Website (web) close_convert_lead",
+        "status": "HIDDEN",
+        "type": "GOOGLE_ANALYTICS_4_CLOSE_CONVERT_LEAD",
+        "category": "CONVERTED_LEAD",
+        "origin": "WEBSITE",
+        "includeInConversionsMetric": false,
+        "valueSettingsSummary": {
+          "defaultValueConfigured": true,
+          "alwaysUseDefaultValue": false
+        },
+        "countingType": "MANY_PER_CLICK",
+        "attributionModel": "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN",
+        "primaryForGoal": false,
+        "ownerCustomer": "144...5096"
+      },
+      {
+        "resourceName": "customers/1440115096/conversionActions/7650829667",
+        "id": "7650829667",
+        "name": "CRBOX Website (web) purchase",
+        "status": "HIDDEN",
+        "type": "GOOGLE_ANALYTICS_4_PURCHASE",
+        "category": "PURCHASE",
+        "origin": "WEBSITE",
+        "includeInConversionsMetric": false,
+        "valueSettingsSummary": {
+          "defaultValueConfigured": true,
+          "alwaysUseDefaultValue": false
+        },
+        "countingType": "MANY_PER_CLICK",
+        "attributionModel": "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN",
+        "primaryForGoal": false,
+        "ownerCustomer": "144...5096"
+      },
+      {
+        "resourceName": "customers/1440115096/conversionActions/7650829664",
+        "id": "7650829664",
+        "name": "CRBOX Website (web) qualify_lead",
+        "status": "HIDDEN",
+        "type": "GOOGLE_ANALYTICS_4_QUALIFY_LEAD",
+        "category": "QUALIFIED_LEAD",
+        "origin": "WEBSITE",
+        "includeInConversionsMetric": false,
+        "valueSettingsSummary": {
+          "defaultValueConfigured": true,
+          "alwaysUseDefaultValue": false
+        },
+        "countingType": "MANY_PER_CLICK",
+        "attributionModel": "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN",
+        "primaryForGoal": false,
+        "ownerCustomer": "144...5096"
+      },
+      {
+        "resourceName": "customers/1440115096/conversionActions/7651188691",
+        "id": "7651188691",
+        "name": "CRBOX Website (web) quote_request_submit_success",
+        "status": "HIDDEN",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "REQUEST_QUOTE",
+        "origin": "WEBSITE",
+        "includeInConversionsMetric": false,
+        "valueSettingsSummary": {
+          "defaultValueConfigured": true,
+          "alwaysUseDefaultValue": false
+        },
+        "countingType": "MANY_PER_CLICK",
+        "attributionModel": "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN",
+        "primaryForGoal": false,
+        "ownerCustomer": "144...5096"
+      },
+      {
+        "resourceName": "customers/1440115096/conversionActions/7651188688",
+        "id": "7651188688",
+        "name": "CRBOX Website (web) signup_success",
+        "status": "HIDDEN",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "PAGE_VIEW",
+        "origin": "WEBSITE",
+        "includeInConversionsMetric": false,
+        "valueSettingsSummary": {
+          "defaultValueConfigured": true,
+          "alwaysUseDefaultValue": false
+        },
+        "countingType": "MANY_PER_CLICK",
+        "attributionModel": "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN",
+        "primaryForGoal": false,
+        "ownerCustomer": "144...5096"
+      }
+    ]
   },
   "plannedConversionActionNames": [
     "CRBOX - Quote Request Submitted",
@@ -158,59 +244,59 @@
     "CRBOX - Phone Click"
   ],
   "duplicateRiskReview": {
-    "result": "not_checked",
+    "result": "low_no_existing_name_matches",
     "plannedActions": [
       {
         "plannedConversionActionName": "CRBOX - Quote Request Submitted",
-        "classification": "not_checked",
+        "classification": "no_existing_match",
         "existingMatches": [],
-        "recommendation": "not_checked_no_inventory"
+        "recommendation": "no_duplicate_name_detected"
       },
       {
         "plannedConversionActionName": "CRBOX - Signup Completed",
-        "classification": "not_checked",
+        "classification": "no_existing_match",
         "existingMatches": [],
-        "recommendation": "not_checked_no_inventory"
+        "recommendation": "no_duplicate_name_detected"
       },
       {
         "plannedConversionActionName": "CRBOX - Contact Form Submitted",
-        "classification": "not_checked",
+        "classification": "no_existing_match",
         "existingMatches": [],
-        "recommendation": "not_checked_no_inventory"
+        "recommendation": "no_duplicate_name_detected"
       },
       {
         "plannedConversionActionName": "CRBOX - Calculator Result Generated",
-        "classification": "not_checked",
+        "classification": "no_existing_match",
         "existingMatches": [],
-        "recommendation": "not_checked_no_inventory"
+        "recommendation": "no_duplicate_name_detected"
       },
       {
         "plannedConversionActionName": "CRBOX - WhatsApp Click",
-        "classification": "not_checked",
+        "classification": "no_existing_match",
         "existingMatches": [],
-        "recommendation": "not_checked_no_inventory"
+        "recommendation": "no_duplicate_name_detected"
       },
       {
         "plannedConversionActionName": "CRBOX - Email Click",
-        "classification": "not_checked",
+        "classification": "no_existing_match",
         "existingMatches": [],
-        "recommendation": "not_checked_no_inventory"
+        "recommendation": "no_duplicate_name_detected"
       },
       {
         "plannedConversionActionName": "CRBOX - Phone Click",
-        "classification": "not_checked",
+        "classification": "no_existing_match",
         "existingMatches": [],
-        "recommendation": "not_checked_no_inventory"
+        "recommendation": "no_duplicate_name_detected"
       }
     ]
   },
   "conversionGoalsPreflight": {
-    "status": "not_checked",
+    "status": "not_checked_api_limitation",
     "goalsListed": false,
     "leadGoalsDetected": "not_checked",
     "signupGoalsDetected": "not_checked",
     "contactGoalsDetected": "not_checked",
-    "limitation": "not_available"
+    "limitation": "Current read-only preflight does not query conversion goals separately from conversion actions."
   },
   "ga4LinkStatus": {
     "status": "requires_manual_confirmation",
@@ -219,18 +305,18 @@
     "limitation": "Google Ads to GA4 link status requires manual confirmation or a future supported read-only account link query."
   },
   "autoTaggingStatus": {
-    "status": "not_checked",
+    "status": "checked",
     "autoTaggingEnabled": "not_checked"
   },
-  "importReadinessClassification": "blocked_missing_credentials",
+  "importReadinessClassification": "manual_confirmation_required",
   "humanRecommendations": [
     {
       "topic": "payload_progression",
-      "recommendation": "Resolve the blocked account preflight condition before moving toward apply review."
+      "recommendation": "Phase 3D payload can move toward final apply review only after manual account/linking confirmations are complete."
     },
     {
       "topic": "duplicate_conversion_names",
-      "recommendation": "Review existing conversion actions before creating or importing any planned action."
+      "recommendation": "No existing conversion action name matches were detected in the read-only inventory."
     },
     {
       "topic": "account_linking_prerequisites",
@@ -254,15 +340,15 @@
     },
     {
       "topic": "existing_action_mapping",
-      "recommendation": "Existing conversion action mapping was not available or no conversion actions were returned."
+      "recommendation": "Map any matching existing conversion actions instead of recreating duplicates."
     }
   ],
-  "recommendedNextPhase": "Phase 3E-Fix - Google Ads Credentials / Account Access Setup",
+  "recommendedNextPhase": "Phase 3F - Google Ads Apply Payload Final Review",
   "safety": {
     "ga4WritesMade": false,
     "gtmWritesMade": false,
     "gtmPublished": false,
-    "googleAdsTouched": false,
+    "googleAdsTouched": "read_only_only",
     "googleAdsWritesMade": false,
     "googleAdsConversionActionsCreated": false,
     "googleAdsConversionsImported": false,

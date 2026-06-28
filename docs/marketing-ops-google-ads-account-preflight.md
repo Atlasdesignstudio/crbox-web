@@ -4,9 +4,9 @@
 
 - Phase: 3E
 - Mode: google_ads_read_only_account_preflight
-- Generated: 2026-06-16T10:18:29.880Z
-- Overall status: blocked_missing_google_ads_credentials
-- Import readiness classification: blocked_missing_credentials
+- Generated: 2026-06-28T19:26:05.385Z
+- Overall status: read_only_preflight_pass_with_findings
+- Import readiness classification: manual_confirmation_required
 - This phase is read-only account preflight only.
 - No conversion actions are created or imported.
 - No Google Ads campaigns, audiences, goals, GA4 links, GA4 objects, GTM objects, Meta objects, or runtime files are changed.
@@ -37,9 +37,9 @@
 
 | Check | Status |
 | --- | --- |
-| Credential status | blocked_missing_google_ads_credentials |
-| API read access available | false |
-| Customer ID accessible | false |
+| Credential status | ready_for_read_only_attempt |
+| API read access available | true |
+| Customer ID accessible | true |
 | Permission error | false |
 | Developer token error | false |
 | OAuth error | false |
@@ -49,44 +49,50 @@
 
 | Field | Value |
 | --- | --- |
-| status | blocked_missing_google_ads_account_id |
-| customerId | not_available |
-| descriptiveName | not_checked |
-| manager | not_checked |
-| currencyCode | not_checked |
-| timeZone | not_checked |
-| accountStatus | not_checked |
-| testAccount | not_checked |
-| canManageClients | not_checked |
+| status | read_success |
+| customerId | 144...5096 |
+| descriptiveName | CRBOX |
+| manager | false |
+| currencyCode | USD |
+| timeZone | America/Costa_Rica |
+| accountStatus | ENABLED |
+| testAccount | false |
+| canManageClients | false |
 
 ## Existing conversion actions
 
-Existing conversion actions count: 0
+Existing conversion actions count: 5
 
-_No conversion action inventory was returned._
+| ID | Name | Status | Type | Category | Origin | Include in conversions | Primary for goal |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 7650829661 | CRBOX Website (web) close_convert_lead | HIDDEN | GOOGLE_ANALYTICS_4_CLOSE_CONVERT_LEAD | CONVERTED_LEAD | WEBSITE | false | false |
+| 7650829667 | CRBOX Website (web) purchase | HIDDEN | GOOGLE_ANALYTICS_4_PURCHASE | PURCHASE | WEBSITE | false | false |
+| 7650829664 | CRBOX Website (web) qualify_lead | HIDDEN | GOOGLE_ANALYTICS_4_QUALIFY_LEAD | QUALIFIED_LEAD | WEBSITE | false | false |
+| 7651188691 | CRBOX Website (web) quote_request_submit_success | HIDDEN | GOOGLE_ANALYTICS_4_CUSTOM | REQUEST_QUOTE | WEBSITE | false | false |
+| 7651188688 | CRBOX Website (web) signup_success | HIDDEN | GOOGLE_ANALYTICS_4_CUSTOM | PAGE_VIEW | WEBSITE | false | false |
 
 ## Duplicate-risk review
 
-Duplicate-risk result: not_checked
+Duplicate-risk result: low_no_existing_name_matches
 
 | Planned action | Classification | Existing matches | Recommendation |
 | --- | --- | --- | --- |
-| CRBOX - Quote Request Submitted | not_checked | 0 | not_checked_no_inventory |
-| CRBOX - Signup Completed | not_checked | 0 | not_checked_no_inventory |
-| CRBOX - Contact Form Submitted | not_checked | 0 | not_checked_no_inventory |
-| CRBOX - Calculator Result Generated | not_checked | 0 | not_checked_no_inventory |
-| CRBOX - WhatsApp Click | not_checked | 0 | not_checked_no_inventory |
-| CRBOX - Email Click | not_checked | 0 | not_checked_no_inventory |
-| CRBOX - Phone Click | not_checked | 0 | not_checked_no_inventory |
+| CRBOX - Quote Request Submitted | no_existing_match | 0 | no_duplicate_name_detected |
+| CRBOX - Signup Completed | no_existing_match | 0 | no_duplicate_name_detected |
+| CRBOX - Contact Form Submitted | no_existing_match | 0 | no_duplicate_name_detected |
+| CRBOX - Calculator Result Generated | no_existing_match | 0 | no_duplicate_name_detected |
+| CRBOX - WhatsApp Click | no_existing_match | 0 | no_duplicate_name_detected |
+| CRBOX - Email Click | no_existing_match | 0 | no_duplicate_name_detected |
+| CRBOX - Phone Click | no_existing_match | 0 | no_duplicate_name_detected |
 
 ## Conversion goals preflight
 
-- status: not_checked
+- status: not_checked_api_limitation
 - goalsListed: false
 - leadGoalsDetected: not_checked
 - signupGoalsDetected: not_checked
 - contactGoalsDetected: not_checked
-- limitation: not_available
+- limitation: Current read-only preflight does not query conversion goals separately from conversion actions.
 
 ## GA4 link status
 
@@ -97,34 +103,34 @@ Duplicate-risk result: not_checked
 
 ## Auto-tagging status
 
-- status: not_checked
+- status: checked
 - autoTaggingEnabled: not_checked
 
 ## Import readiness classification
 
-- blocked_missing_credentials
+- manual_confirmation_required
 
 ## Human recommendations
 
-- payload_progression: Resolve the blocked account preflight condition before moving toward apply review.
-- duplicate_conversion_names: Review existing conversion actions before creating or importing any planned action.
+- payload_progression: Phase 3D payload can move toward final apply review only after manual account/linking confirmations are complete.
+- duplicate_conversion_names: No existing conversion action name matches were detected in the read-only inventory.
 - account_linking_prerequisites: GA4-Google Ads link status remains a required manual confirmation unless a future supported read-only query confirms it.
 - primary_candidate: quote_request_submit_success should remain the only immediate primary bidding candidate unless explicitly changed.
 - signup_quality: signup_success should remain quality-dependent until activation or lead quality is confirmed.
 - secondary_conversions: Secondary conversions should remain observation-only initially.
 - phone_click: phone_click remains blocked until call tracking confirms completed and qualified calls.
-- existing_action_mapping: Existing conversion action mapping was not available or no conversion actions were returned.
+- existing_action_mapping: Map any matching existing conversion actions instead of recreating duplicates.
 
 ## Recommended next phase
 
-Recommended next phase: Phase 3E-Fix - Google Ads Credentials / Account Access Setup
+Recommended next phase: Phase 3F - Google Ads Apply Payload Final Review
 
 ## Safety confirmations
 
 - GA4 writes made: false
 - GTM writes made: false
 - GTM published: false
-- Google Ads touched: false
+- Google Ads touched: read_only_only
 - Google Ads writes made: false
 - Google Ads conversion actions created: false
 - Google Ads conversions imported: false

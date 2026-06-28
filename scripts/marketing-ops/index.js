@@ -52,6 +52,18 @@ const {
   runGoogleAdsManualMappingDecision,
   summaryLines: googleAdsManualMappingDecisionSummary
 } = require('./google-ads-manual-mapping-decision');
+const {
+  runGoogleAdsApplyPayloadFinalReview,
+  summaryLines: googleAdsApplyPayloadFinalReviewSummary
+} = require('./google-ads-apply-payload-final-review');
+const {
+  runGoogleAdsControlledImportApproval,
+  summaryLines: googleAdsControlledImportApprovalSummary
+} = require('./google-ads-controlled-import-approval');
+const {
+  runGoogleAdsControlledImportDryRun,
+  summaryLines: googleAdsControlledImportDryRunSummary
+} = require('./google-ads-controlled-import-dry-run');
 const { runGtmGa4TagsControlledCreate, outputLines: gtmGa4TagsCreateOutputLines } = require('./apply/gtm-ga4-tags-create');
 const {
   safeOutputLines: gtmEditOauthOutputLines,
@@ -264,9 +276,30 @@ async function main() {
       }
       return;
     }
+    case 'google-ads:apply-payload-final-review': {
+      const finalReview = runGoogleAdsApplyPayloadFinalReview(root);
+      for (const line of googleAdsApplyPayloadFinalReviewSummary(finalReview)) {
+        console.log(maskSecretsInText(line));
+      }
+      return;
+    }
+    case 'google-ads:controlled-import-approval': {
+      const approval = runGoogleAdsControlledImportApproval(root);
+      for (const line of googleAdsControlledImportApprovalSummary(approval)) {
+        console.log(maskSecretsInText(line));
+      }
+      return;
+    }
     case 'google-ads:mapping-decision': {
       const mappingDecision = runGoogleAdsManualMappingDecision(root);
       for (const line of googleAdsManualMappingDecisionSummary(mappingDecision)) {
+        console.log(maskSecretsInText(line));
+      }
+      return;
+    }
+    case 'google-ads:controlled-import-dry-run': {
+      const dryRun = runGoogleAdsControlledImportDryRun(root);
+      for (const line of googleAdsControlledImportDryRunSummary(dryRun)) {
         console.log(maskSecretsInText(line));
       }
       return;
@@ -344,7 +377,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|ga4:monitoring-readiness|ga4:event-processing-validation|ga4:monitoring-dashboard|paid-media:conversion-map|google-ads:import-planning|google-ads:payload-review|google-ads:account-preflight|google-ads:mapping-decision|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|oauth:gtm-publish-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:gtm:publish|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|ga4:monitoring-readiness|ga4:event-processing-validation|ga4:monitoring-dashboard|paid-media:conversion-map|google-ads:import-planning|google-ads:payload-review|google-ads:account-preflight|google-ads:apply-payload-final-review|google-ads:controlled-import-approval|google-ads:mapping-decision|google-ads:controlled-import-dry-run|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|oauth:gtm-publish-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:gtm:publish|apply:validate]');
       process.exitCode = 1;
       return;
   }

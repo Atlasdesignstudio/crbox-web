@@ -37,6 +37,9 @@
     "marketing:report": "node scripts/marketing-ops/index.js report",
     "marketing:google-ads:payload-review": "node scripts/marketing-ops/index.js google-ads:payload-review",
     "marketing:google-ads:account-preflight": "node scripts/marketing-ops/index.js google-ads:account-preflight",
-    "marketing:google-ads:mapping-decision": "node scripts/marketing-ops/index.js google-ads:mapping-decision"
+    "marketing:google-ads:apply-payload-final-review": "node scripts/marketing-ops/index.js google-ads:apply-payload-final-review",
+    "marketing:google-ads:controlled-import-approval": "node scripts/marketing-ops/index.js google-ads:controlled-import-approval",
+    "marketing:google-ads:mapping-decision": "node scripts/marketing-ops/index.js google-ads:mapping-decision",
+    "marketing:google-ads:controlled-import-dry-run": "node scripts/marketing-ops/index.js google-ads:controlled-import-dry-run"
   }
 }

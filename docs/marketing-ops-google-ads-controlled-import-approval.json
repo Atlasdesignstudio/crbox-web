@@ -1,0 +1,86 @@
+{
+  "generatedAt": "2026-06-28T19:22:27.099Z",
+  "phase": "3G",
+  "mode": "google_ads_controlled_import_approval_gate_review_only",
+  "sourceArtifactAvailability": [
+    {
+      "path": "docs/marketing-ops-google-ads-apply-payload-final-review.json",
+      "status": "available"
+    },
+    {
+      "path": "docs/marketing-ops-google-ads-account-preflight.json",
+      "status": "available"
+    }
+  ],
+  "overallStatus": "approval_gate_ready_mapping_review_required",
+  "applyAllowed": false,
+  "executeNow": false,
+  "actionsApprovedForFutureApply": 4,
+  "actionsBlocked": 1,
+  "actionsRequiringMappingReview": 2,
+  "manualConfirmationsRequired": 21,
+  "duplicateConflictStatus": "same_event_existing_actions_require_mapping_review",
+  "approvalGateActions": [
+    {
+      "eventName": "quote_request_submit_success",
+      "approvalGateStatus": "requires_mapping_review",
+      "finalRecommendation": "map_existing_before_apply",
+      "riskLevel": "medium"
+    },
+    {
+      "eventName": "signup_success",
+      "approvalGateStatus": "requires_mapping_review_quality_pending",
+      "finalRecommendation": "map_existing_quality_pending",
+      "riskLevel": "medium"
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "approvalGateStatus": "approved_for_future_secondary_create",
+      "finalRecommendation": "create_secondary_excluded_after_approval",
+      "riskLevel": "low"
+    },
+    {
+      "eventName": "calculator_result",
+      "approvalGateStatus": "approved_for_future_secondary_create",
+      "finalRecommendation": "create_secondary_excluded_after_approval",
+      "riskLevel": "low"
+    },
+    {
+      "eventName": "whatsapp_click",
+      "approvalGateStatus": "approved_for_future_secondary_create",
+      "finalRecommendation": "create_secondary_excluded_after_approval",
+      "riskLevel": "low"
+    },
+    {
+      "eventName": "email_click",
+      "approvalGateStatus": "approved_for_future_secondary_create",
+      "finalRecommendation": "create_secondary_excluded_after_approval",
+      "riskLevel": "low"
+    },
+    {
+      "eventName": "phone_click",
+      "approvalGateStatus": "blocked",
+      "finalRecommendation": "keep_blocked_until_call_tracking",
+      "riskLevel": "medium"
+    }
+  ],
+  "recommendedNextPhase": "Phase 3H - Google Ads Controlled Import Apply Execution",
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsTouched": false,
+    "googleAdsWritesMade": false,
+    "googleAdsConversionActionsCreated": false,
+    "googleAdsConversionsImported": false,
+    "googleAdsCampaignsCreated": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiPrinted": false,
+    "rawClickIdsPrinted": false,
+    "applyAllowed": false,
+    "executeNow": false
+  }
+}

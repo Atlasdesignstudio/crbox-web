@@ -1,0 +1,120 @@
+{
+  "generatedAt": "2026-06-28T19:22:26.840Z",
+  "phase": "3F",
+  "mode": "google_ads_apply_payload_final_review_only",
+  "sourceArtifactAvailability": [
+    {
+      "path": "docs/marketing-ops-google-ads-account-preflight.json",
+      "status": "available"
+    },
+    {
+      "path": "docs/marketing-ops-google-ads-import-planning.json",
+      "status": "available"
+    },
+    {
+      "path": "docs/marketing-ops-google-ads-import-payload-review.json",
+      "status": "available"
+    }
+  ],
+  "overallStatus": "ready_for_apply_payload_final_review_with_mapping_required",
+  "payloadValidationStatus": "pass_with_mapping_review_required",
+  "applyAllowed": false,
+  "executeNow": false,
+  "eligibleActionsCount": 6,
+  "blockedManualActionsCount": 3,
+  "duplicateConflictStatus": "same_event_existing_actions_require_mapping_review",
+  "manualConfirmationsRequired": 9,
+  "finalReviewActions": [
+    {
+      "eventName": "quote_request_submit_success",
+      "proposedActionName": "CRBOX - Quote Request Submitted",
+      "finalReviewStatus": "mapping_required_reuse_existing",
+      "existingActionToReview": "CRBOX Website (web) quote_request_submit_success",
+      "includeInConversionsRecommendation": true,
+      "role": "primary",
+      "eligibleForFutureApply": true,
+      "manualConfirmationRequired": true,
+      "reason": "Existing same-event action requires mapping review before any future apply."
+    },
+    {
+      "eventName": "signup_success",
+      "proposedActionName": "CRBOX - Signup Completed",
+      "finalReviewStatus": "mapping_required_quality_pending",
+      "existingActionToReview": "CRBOX Website (web) signup_success",
+      "includeInConversionsRecommendation": "quality_dependent",
+      "role": "primary_quality_dependent",
+      "eligibleForFutureApply": true,
+      "manualConfirmationRequired": true,
+      "reason": "Existing same-event action requires mapping review and quality decision before bidding use."
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "proposedActionName": "CRBOX - Contact Form Submitted",
+      "finalReviewStatus": "eligible_create_secondary_excluded",
+      "includeInConversionsRecommendation": false,
+      "role": "secondary_observation",
+      "eligibleForFutureApply": true,
+      "manualConfirmationRequired": true,
+      "reason": "Future apply may create/import as secondary observation only."
+    },
+    {
+      "eventName": "calculator_result",
+      "proposedActionName": "CRBOX - Calculator Result Generated",
+      "finalReviewStatus": "eligible_create_secondary_excluded",
+      "includeInConversionsRecommendation": false,
+      "role": "secondary_observation",
+      "eligibleForFutureApply": true,
+      "manualConfirmationRequired": true,
+      "reason": "Future apply may create/import as secondary observation only."
+    },
+    {
+      "eventName": "whatsapp_click",
+      "proposedActionName": "CRBOX - WhatsApp Click",
+      "finalReviewStatus": "eligible_create_secondary_excluded",
+      "includeInConversionsRecommendation": false,
+      "role": "secondary_observation",
+      "eligibleForFutureApply": true,
+      "manualConfirmationRequired": true,
+      "reason": "Future apply may create/import as secondary observation only."
+    },
+    {
+      "eventName": "email_click",
+      "proposedActionName": "CRBOX - Email Click",
+      "finalReviewStatus": "eligible_create_secondary_excluded",
+      "includeInConversionsRecommendation": false,
+      "role": "secondary_observation",
+      "eligibleForFutureApply": true,
+      "manualConfirmationRequired": true,
+      "reason": "Future apply may create/import as secondary observation only."
+    },
+    {
+      "eventName": "phone_click",
+      "proposedActionName": "CRBOX - Phone Click",
+      "finalReviewStatus": "blocked_until_call_tracking",
+      "includeInConversionsRecommendation": false,
+      "role": "blocked",
+      "eligibleForFutureApply": false,
+      "manualConfirmationRequired": true,
+      "reason": "Blocked until call tracking confirms completed and qualified calls."
+    }
+  ],
+  "recommendedNextPhase": "Phase 3G - Google Ads Controlled Import Apply Approval",
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsTouched": false,
+    "googleAdsWritesMade": false,
+    "googleAdsConversionActionsCreated": false,
+    "googleAdsConversionsImported": false,
+    "googleAdsCampaignsCreated": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiPrinted": false,
+    "rawClickIdsPrinted": false,
+    "applyAllowed": false,
+    "executeNow": false
+  }
+}
