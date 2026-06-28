@@ -1,0 +1,172 @@
+{
+  "generatedAt": "2026-06-28T19:35:30.468Z",
+  "phase": "3I",
+  "mode": "google_ads_apply_execution_approval_only",
+  "sourceArtifacts": [
+    "docs/marketing-ops-google-ads-controlled-import-dry-run.json",
+    "docs/marketing-ops-google-ads-manual-mapping-decision.json",
+    "docs/marketing-ops-google-ads-account-preflight.json"
+  ],
+  "sourceStatus": {
+    "phase3HDryRun": "dry_run_apply_plan_ready_no_execution",
+    "phase3HApplyAllowed": false,
+    "phase3HExecuteNow": false,
+    "phase3HExecuted": false
+  },
+  "overallStatus": "approval_required_before_controlled_apply_execution",
+  "applyAllowed": false,
+  "executeNow": false,
+  "phase3IExecuted": false,
+  "requiredOwnerApprovalPhrase": "I approve Phase 3I controlled Google Ads conversion apply execution for CRBOX, limited to mapping existing quote_request_submit_success and signup_success actions, creating secondary excluded conversion actions for contact_form_submit_success, calculator_result, whatsapp_click, and email_click, and keeping phone_click blocked. I understand this will modify Google Ads conversions but will not create campaigns.",
+  "approvalChecklist": [
+    "Confirm Google Ads account is CRBOX and read-only preflight remains current.",
+    "Confirm existing quote_request_submit_success action is mapped/reused and no duplicate is created.",
+    "Confirm existing signup_success action is mapped/reused with quality-dependent handling.",
+    "Confirm four secondary actions are excluded from conversions column initially.",
+    "Confirm phone_click remains blocked.",
+    "Confirm no campaigns will be created.",
+    "Confirm rollback/no-op handling is accepted."
+  ],
+  "actionsToReuseOrMap": [
+    {
+      "eventName": "quote_request_submit_success",
+      "proposedGoogleAdsActionName": "CRBOX - Quote Request Submitted",
+      "existingActionToMap": "CRBOX Website (web) quote_request_submit_success",
+      "role": "primary",
+      "includeInConversionsSetting": true,
+      "riskLevel": "medium",
+      "ownerApprovalStatus": "approved_to_map_existing",
+      "approvalStatus": "requires_explicit_owner_execution_approval",
+      "operationType": "map_existing_conversion_action",
+      "operationAllowedNow": false,
+      "exactFutureOperation": "Map/reuse existing Google Ads action \"CRBOX Website (web) quote_request_submit_success\" as the canonical primary conversion for quote_request_submit_success. Do not create a duplicate.",
+      "rollbackNote": "If mapping is incorrect, remove it from the apply record and restore the previous canonical mapping; do not delete the existing action automatically."
+    },
+    {
+      "eventName": "signup_success",
+      "proposedGoogleAdsActionName": "CRBOX - Signup Completed",
+      "existingActionToMap": "CRBOX Website (web) signup_success",
+      "role": "primary_quality_dependent",
+      "includeInConversionsSetting": "quality_dependent_not_primary_bidding_until_confirmed",
+      "riskLevel": "medium",
+      "ownerApprovalStatus": "approved_to_map_existing_quality_pending",
+      "approvalStatus": "requires_explicit_owner_execution_approval",
+      "operationType": "map_existing_conversion_action_quality_pending",
+      "operationAllowedNow": false,
+      "exactFutureOperation": "Map/reuse existing Google Ads action \"CRBOX Website (web) signup_success\" for signup_success, keeping quality-dependent handling and avoiding primary bidding until quality is confirmed.",
+      "rollbackNote": "If signup quality is poor, keep the action observation-only or exclude it from primary bidding until a quality loop exists."
+    }
+  ],
+  "actionsToCreateSecondaryExcluded": [
+    {
+      "eventName": "contact_form_submit_success",
+      "proposedGoogleAdsActionName": "CRBOX - Contact Form Submitted",
+      "existingActionToMap": null,
+      "role": "secondary_observation",
+      "includeInConversionsSetting": false,
+      "riskLevel": "low",
+      "ownerApprovalStatus": "approved_to_create_secondary_excluded",
+      "approvalStatus": "requires_explicit_owner_execution_approval",
+      "operationType": "create_or_import_secondary_excluded_conversion_action",
+      "operationAllowedNow": false,
+      "exactFutureOperation": "Create/import contact_form_submit_success as a secondary observation conversion action excluded from the conversions column initially.",
+      "rollbackNote": "If created incorrectly, exclude from conversions column, document deprecation, and avoid deletion without owner approval."
+    },
+    {
+      "eventName": "calculator_result",
+      "proposedGoogleAdsActionName": "CRBOX - Calculator Result Generated",
+      "existingActionToMap": null,
+      "role": "secondary_observation",
+      "includeInConversionsSetting": false,
+      "riskLevel": "low",
+      "ownerApprovalStatus": "approved_to_create_secondary_excluded",
+      "approvalStatus": "requires_explicit_owner_execution_approval",
+      "operationType": "create_or_import_secondary_excluded_conversion_action",
+      "operationAllowedNow": false,
+      "exactFutureOperation": "Create/import calculator_result as a secondary observation conversion action excluded from the conversions column initially.",
+      "rollbackNote": "If created incorrectly, exclude from conversions column, document deprecation, and avoid deletion without owner approval."
+    },
+    {
+      "eventName": "whatsapp_click",
+      "proposedGoogleAdsActionName": "CRBOX - WhatsApp Click",
+      "existingActionToMap": null,
+      "role": "secondary_observation",
+      "includeInConversionsSetting": false,
+      "riskLevel": "low",
+      "ownerApprovalStatus": "approved_to_create_secondary_excluded",
+      "approvalStatus": "requires_explicit_owner_execution_approval",
+      "operationType": "create_or_import_secondary_excluded_conversion_action",
+      "operationAllowedNow": false,
+      "exactFutureOperation": "Create/import whatsapp_click as a secondary observation conversion action excluded from the conversions column initially.",
+      "rollbackNote": "If created incorrectly, exclude from conversions column, document deprecation, and avoid deletion without owner approval."
+    },
+    {
+      "eventName": "email_click",
+      "proposedGoogleAdsActionName": "CRBOX - Email Click",
+      "existingActionToMap": null,
+      "role": "secondary_observation",
+      "includeInConversionsSetting": false,
+      "riskLevel": "low",
+      "ownerApprovalStatus": "approved_to_create_secondary_excluded",
+      "approvalStatus": "requires_explicit_owner_execution_approval",
+      "operationType": "create_or_import_secondary_excluded_conversion_action",
+      "operationAllowedNow": false,
+      "exactFutureOperation": "Create/import email_click as a secondary observation conversion action excluded from the conversions column initially.",
+      "rollbackNote": "If created incorrectly, exclude from conversions column, document deprecation, and avoid deletion without owner approval."
+    }
+  ],
+  "actionsBlocked": [
+    {
+      "eventName": "phone_click",
+      "proposedGoogleAdsActionName": "CRBOX - Phone Click",
+      "existingActionToMap": null,
+      "role": "blocked",
+      "includeInConversionsSetting": false,
+      "riskLevel": "medium",
+      "ownerApprovalStatus": "blocked",
+      "approvalStatus": "blocked_no_execution",
+      "operationType": "blocked_no_operation",
+      "operationAllowedNow": false,
+      "exactFutureOperation": "Do not create/import phone_click; keep blocked until call tracking confirms completed and qualified calls.",
+      "rollbackNote": "No rollback needed because no operation should be performed."
+    }
+  ],
+  "approvalSummary": {
+    "reuseMapCount": 2,
+    "createSecondaryExcludedCount": 4,
+    "blockedCount": 1,
+    "explicitApprovalPhraseRequired": true
+  },
+  "risks": [
+    "Mapping the wrong existing conversion action could affect reporting continuity.",
+    "Creating duplicate same-event conversions could inflate reporting; the future apply must block duplicates.",
+    "Secondary conversions must remain excluded from conversions column initially to avoid shallow optimization.",
+    "signup_success remains quality-dependent until downstream quality is confirmed."
+  ],
+  "rollbackNotes": [
+    "Do not delete conversion actions automatically.",
+    "If an action is configured incorrectly, exclude it from conversions column and document the canonical action.",
+    "If duplicate conversion actions are detected, keep only the approved canonical action active for reporting/bidding.",
+    "If signup quality is poor, keep signup_success observation-only until a quality loop exists."
+  ],
+  "recommendedNextPhase": "Phase 3J - Google Ads Controlled Import Apply Execution",
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsTouched": false,
+    "googleAdsWritesMade": false,
+    "googleAdsConversionActionsCreated": false,
+    "googleAdsConversionsImported": false,
+    "googleAdsCampaignsCreated": false,
+    "metaTouched": false,
+    "runtimeFilesTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiPrinted": false,
+    "rawClickIdsPrinted": false,
+    "applyAllowed": false,
+    "executeNow": false
+  }
+}

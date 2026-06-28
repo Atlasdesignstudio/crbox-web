@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CRBOX Google Ads Apply Execution Approval</title>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1f2937; background: #f7f8fb; }
+    header { background: #123047; color: white; padding: 32px; }
+    main { max-width: 1180px; margin: 0 auto; padding: 24px; }
+    .notice, .card { background: white; border: 1px solid #dce3ec; border-radius: 8px; padding: 16px; }
+    .notice { border-left: 4px solid #f2b705; margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CRBOX Google Ads Apply Execution Approval</h1>
+    <p>Phase 3I · approval_required_before_controlled_apply_execution</p>
+  </header>
+  <main>
+    <div class="notice">Approval-only: applyAllowed=false, executeNow=false. No Google Ads writes were made.</div>
+    <section class="notice"><h2>Required Owner Approval Phrase</h2><p>I approve Phase 3I controlled Google Ads conversion apply execution for CRBOX, limited to mapping existing quote_request_submit_success and signup_success actions, creating secondary excluded conversion actions for contact_form_submit_success, calculator_result, whatsapp_click, and email_click, and keeping phone_click blocked. I understand this will modify Google Ads conversions but will not create campaigns.</p></section>
+    <section><h2>Reuse / Map Existing Actions</h2><div class="grid">
+    <article class="card">
+      <h3>quote_request_submit_success</h3>
+      <p><strong>Operation:</strong> map_existing_conversion_action</p>
+      <p><strong>Include in conversions:</strong> true</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p>Map/reuse existing Google Ads action &quot;CRBOX Website (web) quote_request_submit_success&quot; as the canonical primary conversion for quote_request_submit_success. Do not create a duplicate.</p>
+    </article>
+
+    <article class="card">
+      <h3>signup_success</h3>
+      <p><strong>Operation:</strong> map_existing_conversion_action_quality_pending</p>
+      <p><strong>Include in conversions:</strong> quality_dependent_not_primary_bidding_until_confirmed</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p>Map/reuse existing Google Ads action &quot;CRBOX Website (web) signup_success&quot; for signup_success, keeping quality-dependent handling and avoiding primary bidding until quality is confirmed.</p>
+    </article></div></section>
+    <section><h2>Create Secondary Excluded Actions</h2><div class="grid">
+    <article class="card">
+      <h3>contact_form_submit_success</h3>
+      <p><strong>Operation:</strong> create_or_import_secondary_excluded_conversion_action</p>
+      <p><strong>Include in conversions:</strong> false</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p>Create/import contact_form_submit_success as a secondary observation conversion action excluded from the conversions column initially.</p>
+    </article>
+
+    <article class="card">
+      <h3>calculator_result</h3>
+      <p><strong>Operation:</strong> create_or_import_secondary_excluded_conversion_action</p>
+      <p><strong>Include in conversions:</strong> false</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p>Create/import calculator_result as a secondary observation conversion action excluded from the conversions column initially.</p>
+    </article>
+
+    <article class="card">
+      <h3>whatsapp_click</h3>
+      <p><strong>Operation:</strong> create_or_import_secondary_excluded_conversion_action</p>
+      <p><strong>Include in conversions:</strong> false</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p>Create/import whatsapp_click as a secondary observation conversion action excluded from the conversions column initially.</p>
+    </article>
+
+    <article class="card">
+      <h3>email_click</h3>
+      <p><strong>Operation:</strong> create_or_import_secondary_excluded_conversion_action</p>
+      <p><strong>Include in conversions:</strong> false</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p>Create/import email_click as a secondary observation conversion action excluded from the conversions column initially.</p>
+    </article></div></section>
+    <section><h2>Blocked Actions</h2><div class="grid">
+    <article class="card">
+      <h3>phone_click</h3>
+      <p><strong>Operation:</strong> blocked_no_operation</p>
+      <p><strong>Include in conversions:</strong> false</p>
+      <p><strong>Allowed now:</strong> false</p>
+      <p>Do not create/import phone_click; keep blocked until call tracking confirms completed and qualified calls.</p>
+    </article></div></section>
+  </main>
+</body>
+</html>
