@@ -40,6 +40,7 @@
     "marketing:google-ads:apply-payload-final-review": "node scripts/marketing-ops/index.js google-ads:apply-payload-final-review",
     "marketing:google-ads:controlled-import-approval": "node scripts/marketing-ops/index.js google-ads:controlled-import-approval",
     "marketing:google-ads:mapping-decision": "node scripts/marketing-ops/index.js google-ads:mapping-decision",
-    "marketing:google-ads:controlled-import-dry-run": "node scripts/marketing-ops/index.js google-ads:controlled-import-dry-run"
+    "marketing:google-ads:controlled-import-dry-run": "node scripts/marketing-ops/index.js google-ads:controlled-import-dry-run",
+    "marketing:google-ads:apply-execution-approval": "node scripts/marketing-ops/index.js google-ads:apply-execution-approval"
   }
 }
