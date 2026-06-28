@@ -36,6 +36,7 @@
     "marketing:apply:validate": "node scripts/marketing-ops/index.js apply:validate",
     "marketing:report": "node scripts/marketing-ops/index.js report",
     "marketing:google-ads:payload-review": "node scripts/marketing-ops/index.js google-ads:payload-review",
-    "marketing:google-ads:account-preflight": "node scripts/marketing-ops/index.js google-ads:account-preflight"
+    "marketing:google-ads:account-preflight": "node scripts/marketing-ops/index.js google-ads:account-preflight",
+    "marketing:google-ads:mapping-decision": "node scripts/marketing-ops/index.js google-ads:mapping-decision"
   }
 }

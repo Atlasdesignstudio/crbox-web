@@ -48,6 +48,10 @@ const {
   runGoogleAdsAccountPreflight,
   summaryLines: googleAdsAccountPreflightSummary
 } = require('./google-ads-account-preflight');
+const {
+  runGoogleAdsManualMappingDecision,
+  summaryLines: googleAdsManualMappingDecisionSummary
+} = require('./google-ads-manual-mapping-decision');
 const { runGtmGa4TagsControlledCreate, outputLines: gtmGa4TagsCreateOutputLines } = require('./apply/gtm-ga4-tags-create');
 const {
   safeOutputLines: gtmEditOauthOutputLines,
@@ -260,6 +264,13 @@ async function main() {
       }
       return;
     }
+    case 'google-ads:mapping-decision': {
+      const mappingDecision = runGoogleAdsManualMappingDecision(root);
+      for (const line of googleAdsManualMappingDecisionSummary(mappingDecision)) {
+        console.log(maskSecretsInText(line));
+      }
+      return;
+    }
     case 'oauth:gtm-edit-url': {
       try {
         const oauthUrl = writeGtmEditAuthorizationUrl(root);
@@ -333,7 +344,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|ga4:monitoring-readiness|ga4:event-processing-validation|ga4:monitoring-dashboard|paid-media:conversion-map|google-ads:import-planning|google-ads:payload-review|google-ads:account-preflight|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|oauth:gtm-publish-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:gtm:publish|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|ga4:monitoring-readiness|ga4:event-processing-validation|ga4:monitoring-dashboard|paid-media:conversion-map|google-ads:import-planning|google-ads:payload-review|google-ads:account-preflight|google-ads:mapping-decision|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|oauth:gtm-publish-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:gtm:publish|apply:validate]');
       process.exitCode = 1;
       return;
   }
