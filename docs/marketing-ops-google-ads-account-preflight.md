@@ -4,7 +4,7 @@
 
 - Phase: 3E
 - Mode: google_ads_read_only_account_preflight
-- Generated: 2026-06-29T03:27:59.347Z
+- Generated: 2026-06-29T03:43:23.427Z
 - Overall status: read_only_preflight_pass_with_findings
 - Import readiness classification: manual_confirmation_required
 - This phase is read-only account preflight only.
