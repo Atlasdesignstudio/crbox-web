@@ -128,7 +128,7 @@
         <article class="card"><div class="kicker">Customer ID</div><span class="chip good">TRUE</span><p>144...5096</p></article>
         <article class="card"><div class="kicker">Login customer ID</div><span class="chip good">TRUE</span><p>631...9242</p></article>
         <article class="card"><div class="kicker">Permission</div><span class="chip neutral">NONE</span><p>read_only_access_succeeded</p></article>
-        <article class="card"><div class="kicker">Existing actions</div><h3>5</h3><p>Safe conversion action inventory count.</p></article>
+        <article class="card"><div class="kicker">Existing actions</div><h3>9</h3><p>Safe conversion action inventory count.</p></article>
       </div>
     </section>
     <section>
@@ -153,11 +153,15 @@
       <div class="table-wrap">
         <table>
           <thead><tr><th>ID</th><th>Name</th><th>Status</th><th>Type</th><th>Category</th><th>Include</th></tr></thead>
-          <tbody><tr><td>7650829661</td><td><strong>CRBOX Website (web) close_convert_lead</strong></td><td><span class="chip neutral">HIDDEN</span></td><td>GOOGLE_ANALYTICS_4_CLOSE_CONVERT_LEAD</td><td>CONVERTED_LEAD</td><td>false</td></tr>
+          <tbody><tr><td>7665375056</td><td><strong>CRBOX Website (web) calculator_result</strong></td><td><span class="chip good">ENABLED</span></td><td>GOOGLE_ANALYTICS_4_CUSTOM</td><td>DEFAULT</td><td>false</td></tr>
+<tr><td>7650829661</td><td><strong>CRBOX Website (web) close_convert_lead</strong></td><td><span class="chip neutral">HIDDEN</span></td><td>GOOGLE_ANALYTICS_4_CLOSE_CONVERT_LEAD</td><td>CONVERTED_LEAD</td><td>false</td></tr>
+<tr><td>7665741588</td><td><strong>CRBOX Website (web) contact_form_submit_success</strong></td><td><span class="chip good">ENABLED</span></td><td>GOOGLE_ANALYTICS_4_CUSTOM</td><td>DEFAULT</td><td>false</td></tr>
+<tr><td>7665748306</td><td><strong>CRBOX Website (web) email_click</strong></td><td><span class="chip good">ENABLED</span></td><td>GOOGLE_ANALYTICS_4_CUSTOM</td><td>DEFAULT</td><td>false</td></tr>
 <tr><td>7650829667</td><td><strong>CRBOX Website (web) purchase</strong></td><td><span class="chip neutral">HIDDEN</span></td><td>GOOGLE_ANALYTICS_4_PURCHASE</td><td>PURCHASE</td><td>false</td></tr>
 <tr><td>7650829664</td><td><strong>CRBOX Website (web) qualify_lead</strong></td><td><span class="chip neutral">HIDDEN</span></td><td>GOOGLE_ANALYTICS_4_QUALIFY_LEAD</td><td>QUALIFIED_LEAD</td><td>false</td></tr>
-<tr><td>7651188691</td><td><strong>CRBOX Website (web) quote_request_submit_success</strong></td><td><span class="chip neutral">HIDDEN</span></td><td>GOOGLE_ANALYTICS_4_CUSTOM</td><td>REQUEST_QUOTE</td><td>false</td></tr>
-<tr><td>7651188688</td><td><strong>CRBOX Website (web) signup_success</strong></td><td><span class="chip neutral">HIDDEN</span></td><td>GOOGLE_ANALYTICS_4_CUSTOM</td><td>PAGE_VIEW</td><td>false</td></tr></tbody>
+<tr><td>7651188691</td><td><strong>CRBOX Website (web) quote_request_submit_success</strong></td><td><span class="chip good">ENABLED</span></td><td>GOOGLE_ANALYTICS_4_CUSTOM</td><td>REQUEST_QUOTE</td><td>true</td></tr>
+<tr><td>7651188688</td><td><strong>CRBOX Website (web) signup_success</strong></td><td><span class="chip good">ENABLED</span></td><td>GOOGLE_ANALYTICS_4_CUSTOM</td><td>PAGE_VIEW</td><td>false</td></tr>
+<tr><td>7665743016</td><td><strong>CRBOX Website (web) whatsapp_click</strong></td><td><span class="chip good">ENABLED</span></td><td>GOOGLE_ANALYTICS_4_CUSTOM</td><td>DEFAULT</td><td>false</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -170,8 +174,8 @@
 <tr><td><strong>CRBOX - Signup Completed</strong></td><td><span class="chip neutral">NO EXISTING MATCH</span></td><td>0</td><td>no_duplicate_name_detected</td></tr>
 <tr><td><strong>CRBOX - Contact Form Submitted</strong></td><td><span class="chip neutral">NO EXISTING MATCH</span></td><td>0</td><td>no_duplicate_name_detected</td></tr>
 <tr><td><strong>CRBOX - Calculator Result Generated</strong></td><td><span class="chip neutral">NO EXISTING MATCH</span></td><td>0</td><td>no_duplicate_name_detected</td></tr>
-<tr><td><strong>CRBOX - WhatsApp Click</strong></td><td><span class="chip neutral">NO EXISTING MATCH</span></td><td>0</td><td>no_duplicate_name_detected</td></tr>
-<tr><td><strong>CRBOX - Email Click</strong></td><td><span class="chip neutral">NO EXISTING MATCH</span></td><td>0</td><td>no_duplicate_name_detected</td></tr>
+<tr><td><strong>CRBOX - WhatsApp Click</strong></td><td><span class="chip neutral">POSSIBLE DUPLICATE SIMILAR NAME</span></td><td>1</td><td>requires_human_review</td></tr>
+<tr><td><strong>CRBOX - Email Click</strong></td><td><span class="chip neutral">POSSIBLE DUPLICATE SIMILAR NAME</span></td><td>1</td><td>requires_human_review</td></tr>
 <tr><td><strong>CRBOX - Phone Click</strong></td><td><span class="chip neutral">NO EXISTING MATCH</span></td><td>0</td><td>no_duplicate_name_detected</td></tr></tbody>
         </table>
       </div>
@@ -194,7 +198,7 @@
     </section>
     <section>
       <h2>Human recommendations</h2>
-      <div class="note"><ul><li><strong>payload_progression:</strong> Phase 3D payload can move toward final apply review only after manual account/linking confirmations are complete.</li><li><strong>duplicate_conversion_names:</strong> No existing conversion action name matches were detected in the read-only inventory.</li><li><strong>account_linking_prerequisites:</strong> GA4-Google Ads link status remains a required manual confirmation unless a future supported read-only query confirms it.</li><li><strong>primary_candidate:</strong> quote_request_submit_success should remain the only immediate primary bidding candidate unless explicitly changed.</li><li><strong>signup_quality:</strong> signup_success should remain quality-dependent until activation or lead quality is confirmed.</li><li><strong>secondary_conversions:</strong> Secondary conversions should remain observation-only initially.</li><li><strong>phone_click:</strong> phone_click remains blocked until call tracking confirms completed and qualified calls.</li><li><strong>existing_action_mapping:</strong> Map any matching existing conversion actions instead of recreating duplicates.</li></ul></div>
+      <div class="note"><ul><li><strong>payload_progression:</strong> Phase 3D payload can move toward final apply review only after manual account/linking confirmations are complete.</li><li><strong>duplicate_conversion_names:</strong> Review existing conversion actions before creating or importing any planned action.</li><li><strong>account_linking_prerequisites:</strong> GA4-Google Ads link status remains a required manual confirmation unless a future supported read-only query confirms it.</li><li><strong>primary_candidate:</strong> quote_request_submit_success should remain the only immediate primary bidding candidate unless explicitly changed.</li><li><strong>signup_quality:</strong> signup_success should remain quality-dependent until activation or lead quality is confirmed.</li><li><strong>secondary_conversions:</strong> Secondary conversions should remain observation-only initially.</li><li><strong>phone_click:</strong> phone_click remains blocked until call tracking confirms completed and qualified calls.</li><li><strong>existing_action_mapping:</strong> Map any matching existing conversion actions instead of recreating duplicates.</li></ul></div>
     </section>
     <section>
       <h2>Safety confirmations</h2>
@@ -216,6 +220,6 @@
       </div>
     </section>
   </main>
-  <footer>Generated 2026-06-28T19:26:05.385Z from local source artifacts and read-only preflight checks. This browser artifact performs no live API calls.</footer>
+  <footer>Generated 2026-06-28T20:09:48.063Z from local source artifacts and read-only preflight checks. This browser artifact performs no live API calls.</footer>
 </body>
 </html>

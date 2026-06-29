@@ -4,7 +4,7 @@
 
 - Phase: 3E
 - Mode: google_ads_read_only_account_preflight
-- Generated: 2026-06-28T19:26:05.385Z
+- Generated: 2026-06-28T20:09:48.063Z
 - Overall status: read_only_preflight_pass_with_findings
 - Import readiness classification: manual_confirmation_required
 - This phase is read-only account preflight only.
@@ -61,19 +61,23 @@
 
 ## Existing conversion actions
 
-Existing conversion actions count: 5
+Existing conversion actions count: 9
 
 | ID | Name | Status | Type | Category | Origin | Include in conversions | Primary for goal |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 7665375056 | CRBOX Website (web) calculator_result | ENABLED | GOOGLE_ANALYTICS_4_CUSTOM | DEFAULT | WEBSITE | false | false |
 | 7650829661 | CRBOX Website (web) close_convert_lead | HIDDEN | GOOGLE_ANALYTICS_4_CLOSE_CONVERT_LEAD | CONVERTED_LEAD | WEBSITE | false | false |
+| 7665741588 | CRBOX Website (web) contact_form_submit_success | ENABLED | GOOGLE_ANALYTICS_4_CUSTOM | DEFAULT | WEBSITE | false | false |
+| 7665748306 | CRBOX Website (web) email_click | ENABLED | GOOGLE_ANALYTICS_4_CUSTOM | DEFAULT | WEBSITE | false | false |
 | 7650829667 | CRBOX Website (web) purchase | HIDDEN | GOOGLE_ANALYTICS_4_PURCHASE | PURCHASE | WEBSITE | false | false |
 | 7650829664 | CRBOX Website (web) qualify_lead | HIDDEN | GOOGLE_ANALYTICS_4_QUALIFY_LEAD | QUALIFIED_LEAD | WEBSITE | false | false |
-| 7651188691 | CRBOX Website (web) quote_request_submit_success | HIDDEN | GOOGLE_ANALYTICS_4_CUSTOM | REQUEST_QUOTE | WEBSITE | false | false |
-| 7651188688 | CRBOX Website (web) signup_success | HIDDEN | GOOGLE_ANALYTICS_4_CUSTOM | PAGE_VIEW | WEBSITE | false | false |
+| 7651188691 | CRBOX Website (web) quote_request_submit_success | ENABLED | GOOGLE_ANALYTICS_4_CUSTOM | REQUEST_QUOTE | WEBSITE | true | true |
+| 7651188688 | CRBOX Website (web) signup_success | ENABLED | GOOGLE_ANALYTICS_4_CUSTOM | PAGE_VIEW | WEBSITE | false | false |
+| 7665743016 | CRBOX Website (web) whatsapp_click | ENABLED | GOOGLE_ANALYTICS_4_CUSTOM | DEFAULT | WEBSITE | false | false |
 
 ## Duplicate-risk review
 
-Duplicate-risk result: low_no_existing_name_matches
+Duplicate-risk result: ready_with_duplicate_review_required
 
 | Planned action | Classification | Existing matches | Recommendation |
 | --- | --- | --- | --- |
@@ -81,8 +85,8 @@ Duplicate-risk result: low_no_existing_name_matches
 | CRBOX - Signup Completed | no_existing_match | 0 | no_duplicate_name_detected |
 | CRBOX - Contact Form Submitted | no_existing_match | 0 | no_duplicate_name_detected |
 | CRBOX - Calculator Result Generated | no_existing_match | 0 | no_duplicate_name_detected |
-| CRBOX - WhatsApp Click | no_existing_match | 0 | no_duplicate_name_detected |
-| CRBOX - Email Click | no_existing_match | 0 | no_duplicate_name_detected |
+| CRBOX - WhatsApp Click | possible_duplicate_similar_name | 1 | requires_human_review |
+| CRBOX - Email Click | possible_duplicate_similar_name | 1 | requires_human_review |
 | CRBOX - Phone Click | no_existing_match | 0 | no_duplicate_name_detected |
 
 ## Conversion goals preflight
@@ -113,7 +117,7 @@ Duplicate-risk result: low_no_existing_name_matches
 ## Human recommendations
 
 - payload_progression: Phase 3D payload can move toward final apply review only after manual account/linking confirmations are complete.
-- duplicate_conversion_names: No existing conversion action name matches were detected in the read-only inventory.
+- duplicate_conversion_names: Review existing conversion actions before creating or importing any planned action.
 - account_linking_prerequisites: GA4-Google Ads link status remains a required manual confirmation unless a future supported read-only query confirms it.
 - primary_candidate: quote_request_submit_success should remain the only immediate primary bidding candidate unless explicitly changed.
 - signup_quality: signup_success should remain quality-dependent until activation or lead quality is confirmed.

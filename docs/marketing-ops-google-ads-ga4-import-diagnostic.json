@@ -1,0 +1,104 @@
+{
+  "generatedAt": "2026-06-28T20:05:28.677Z",
+  "phase": "3J-Diagnostic",
+  "mode": "google_ads_ga4_import_read_only_diagnostic",
+  "googleAdsCustomerIdMasked": "144...5096",
+  "ga4PropertyId": "534288079",
+  "ga4AuthStatus": "oauth_error",
+  "ga4AuthErrorCategory": "oauth_error",
+  "ga4GoogleAdsLink": {
+    "status": "not_checked_ga4_oauth_unavailable",
+    "links": [],
+    "error": "HTTP 400 (invalid_grant): invalid_grant.",
+    "linkToTargetCustomer": "inferred_from_existing_ga4_imported_conversion_actions"
+  },
+  "keyEvents": {
+    "status": "not_checked_ga4_oauth_unavailable",
+    "endpoint": "",
+    "targetEventsConfigured": [],
+    "targetEventsMissing": [
+      "contact_form_submit_success",
+      "calculator_result",
+      "whatsapp_click",
+      "email_click"
+    ]
+  },
+  "googleAdsConversionActionInventory": {
+    "count": 9,
+    "targetVisibleActions": [
+      "contact_form_submit_success",
+      "calculator_result",
+      "whatsapp_click",
+      "email_click"
+    ],
+    "targetMissingActions": []
+  },
+  "targetEvents": [
+    {
+      "eventName": "contact_form_submit_success",
+      "ga4Last7DaysCount": 1,
+      "observedInGa4Reporting": true,
+      "ga4KeyEventConfigured": false,
+      "visibleInGoogleAdsConversionActions": true,
+      "expectedImportedActionName": "CRBOX Website (web) contact_form_submit_success",
+      "plannedActionName": "CRBOX - Contact Form Submitted",
+      "status": "observed_but_not_key_event"
+    },
+    {
+      "eventName": "calculator_result",
+      "ga4Last7DaysCount": 29,
+      "observedInGa4Reporting": true,
+      "ga4KeyEventConfigured": false,
+      "visibleInGoogleAdsConversionActions": true,
+      "expectedImportedActionName": "CRBOX Website (web) calculator_result",
+      "plannedActionName": "CRBOX - Calculator Result Generated",
+      "status": "observed_but_not_key_event"
+    },
+    {
+      "eventName": "whatsapp_click",
+      "ga4Last7DaysCount": 2,
+      "observedInGa4Reporting": true,
+      "ga4KeyEventConfigured": false,
+      "visibleInGoogleAdsConversionActions": true,
+      "expectedImportedActionName": "CRBOX Website (web) whatsapp_click",
+      "plannedActionName": "CRBOX - WhatsApp Click",
+      "status": "observed_but_not_key_event"
+    },
+    {
+      "eventName": "email_click",
+      "ga4Last7DaysCount": 0,
+      "observedInGa4Reporting": false,
+      "ga4KeyEventConfigured": false,
+      "visibleInGoogleAdsConversionActions": true,
+      "expectedImportedActionName": "CRBOX Website (web) email_click",
+      "plannedActionName": "CRBOX - Email Click",
+      "status": "observed_but_not_key_event"
+    }
+  ],
+  "blockerClassification": "events_not_marked_as_key_events",
+  "evidence": [
+    "GA4 link to target customer found: inferred_from_existing_ga4_imported_conversion_actions.",
+    "Target events observed in GA4 reporting: contact_form_submit_success, calculator_result, whatsapp_click.",
+    "Target events configured as GA4 key events: none.",
+    "Target events visible in Google Ads conversion actions: contact_form_submit_success, calculator_result, whatsapp_click, email_click."
+  ],
+  "recommendedManualFix": [
+    "In GA4 Admin, mark the approved secondary events as key events if they should be importable into Google Ads.",
+    "Confirm the GA4 property is linked to Google Ads customer 1440115096.",
+    "Wait for Google Ads to surface the newly eligible GA4 key events as importable conversion actions.",
+    "Rerun the read-only diagnostic and Phase 3J preflight before any future write attempt."
+  ],
+  "phase3JShouldRemainBlocked": true,
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "googleAdsWritesMade": false,
+    "googleAdsConversionActionsCreated": false,
+    "googleAdsConversionsImported": false,
+    "googleAdsCampaignsCreated": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiPrinted": false,
+    "rawClickIdsPrinted": false
+  }
+}

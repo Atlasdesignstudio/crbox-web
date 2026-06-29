@@ -1,0 +1,278 @@
+{
+  "generatedAt": "2026-06-28T20:09:36.181Z",
+  "phase": "3J",
+  "mode": "google_ads_controlled_import_apply_execution",
+  "overallStatus": "controlled_apply_execution_complete",
+  "exitCode": 0,
+  "ownerApprovalPhraseProvided": true,
+  "confirmOwnerApprovalFlagPresent": true,
+  "sourceArtifacts": [
+    "docs/marketing-ops-google-ads-apply-execution-approval.json",
+    "docs/marketing-ops-google-ads-controlled-import-dry-run.json",
+    "docs/marketing-ops-google-ads-account-preflight.json"
+  ],
+  "accountName": "CRBOX",
+  "accountIdentityStatus": "read_success",
+  "existingConversionActionsCount": 9,
+  "finalConversionActionCount": 9,
+  "duplicateStatus": "ready_with_duplicate_review_required",
+  "blockers": [],
+  "operations": [
+    {
+      "eventName": "quote_request_submit_success",
+      "actionName": "CRBOX Website (web) quote_request_submit_success",
+      "plannedOperation": "reuse_map_existing_no_duplicate",
+      "allowedIfNoBlockers": true,
+      "status": "ready_existing_action_found",
+      "existingResourceName": "customers/1440115096/conversionActions/7651188691",
+      "includeInConversionsSetting": true,
+      "role": "canonical_primary_quote_lead",
+      "writeOperationWouldBe": "update_existing_conversion_action_mapping_or_goal_settings_if_supported",
+      "writeExecuted": true
+    },
+    {
+      "eventName": "signup_success",
+      "actionName": "CRBOX Website (web) signup_success",
+      "plannedOperation": "reuse_map_existing_no_duplicate",
+      "allowedIfNoBlockers": true,
+      "status": "ready_existing_action_found",
+      "existingResourceName": "customers/1440115096/conversionActions/7651188688",
+      "includeInConversionsSetting": "quality_dependent_not_primary_bidding_until_confirmed",
+      "role": "quality_dependent_signup",
+      "writeOperationWouldBe": "update_existing_conversion_action_mapping_or_goal_settings_if_supported",
+      "writeExecuted": true
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "actionName": "CRBOX - Contact Form Submitted",
+      "plannedOperation": "create_or_import_secondary_excluded",
+      "allowedIfNoBlockers": true,
+      "status": "ready_existing_ga4_import_action_found",
+      "existingResourceName": "customers/1440115096/conversionActions/7665741588",
+      "includeInConversionsSetting": false,
+      "role": "secondary_observation_excluded",
+      "writeOperationWouldBe": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "writeExecuted": true
+    },
+    {
+      "eventName": "calculator_result",
+      "actionName": "CRBOX - Calculator Result Generated",
+      "plannedOperation": "create_or_import_secondary_excluded",
+      "allowedIfNoBlockers": true,
+      "status": "ready_existing_ga4_import_action_found",
+      "existingResourceName": "customers/1440115096/conversionActions/7665375056",
+      "includeInConversionsSetting": false,
+      "role": "secondary_observation_excluded",
+      "writeOperationWouldBe": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "writeExecuted": true
+    },
+    {
+      "eventName": "whatsapp_click",
+      "actionName": "CRBOX - WhatsApp Click",
+      "plannedOperation": "create_or_import_secondary_excluded",
+      "allowedIfNoBlockers": true,
+      "status": "ready_existing_ga4_import_action_found",
+      "existingResourceName": "customers/1440115096/conversionActions/7665743016",
+      "includeInConversionsSetting": false,
+      "role": "secondary_observation_excluded",
+      "writeOperationWouldBe": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "writeExecuted": true
+    },
+    {
+      "eventName": "email_click",
+      "actionName": "CRBOX - Email Click",
+      "plannedOperation": "create_or_import_secondary_excluded",
+      "allowedIfNoBlockers": true,
+      "status": "ready_existing_ga4_import_action_found",
+      "existingResourceName": "customers/1440115096/conversionActions/7665748306",
+      "includeInConversionsSetting": false,
+      "role": "secondary_observation_excluded",
+      "writeOperationWouldBe": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "writeExecuted": true
+    },
+    {
+      "eventName": "phone_click",
+      "actionName": "CRBOX - Phone Click",
+      "plannedOperation": "blocked_no_operation",
+      "allowedIfNoBlockers": false,
+      "status": "blocked_until_call_tracking",
+      "existingResourceName": null,
+      "includeInConversionsSetting": false,
+      "role": "blocked",
+      "writeOperationWouldBe": "none",
+      "writeExecuted": false
+    }
+  ],
+  "validateOnlyMutation": {
+    "attempted": true,
+    "succeeded": true,
+    "responseResultCount": 0
+  },
+  "mutationError": null,
+  "operationsAttempted": [
+    {
+      "eventName": "quote_request_submit_success",
+      "plannedOperation": "reuse_map_existing_no_duplicate",
+      "attempted": true,
+      "status": "ready_existing_action_found"
+    },
+    {
+      "eventName": "signup_success",
+      "plannedOperation": "reuse_map_existing_no_duplicate",
+      "attempted": true,
+      "status": "ready_existing_action_found"
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "plannedOperation": "create_or_import_secondary_excluded",
+      "attempted": true,
+      "status": "ready_existing_ga4_import_action_found"
+    },
+    {
+      "eventName": "calculator_result",
+      "plannedOperation": "create_or_import_secondary_excluded",
+      "attempted": true,
+      "status": "ready_existing_ga4_import_action_found"
+    },
+    {
+      "eventName": "whatsapp_click",
+      "plannedOperation": "create_or_import_secondary_excluded",
+      "attempted": true,
+      "status": "ready_existing_ga4_import_action_found"
+    },
+    {
+      "eventName": "email_click",
+      "plannedOperation": "create_or_import_secondary_excluded",
+      "attempted": true,
+      "status": "ready_existing_ga4_import_action_found"
+    },
+    {
+      "eventName": "phone_click",
+      "plannedOperation": "blocked_no_operation",
+      "attempted": false,
+      "status": "blocked_until_call_tracking"
+    }
+  ],
+  "operationsSucceeded": [
+    {
+      "eventName": "quote_request_submit_success",
+      "resourceName": "customers/1440115096/conversionActions/7651188691",
+      "operation": "update_existing_conversion_action_mapping_or_goal_settings_if_supported",
+      "status": "succeeded"
+    },
+    {
+      "eventName": "signup_success",
+      "resourceName": "customers/1440115096/conversionActions/7651188688",
+      "operation": "update_existing_conversion_action_mapping_or_goal_settings_if_supported",
+      "status": "succeeded"
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "resourceName": "customers/1440115096/conversionActions/7665741588",
+      "operation": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "status": "succeeded"
+    },
+    {
+      "eventName": "calculator_result",
+      "resourceName": "customers/1440115096/conversionActions/7665375056",
+      "operation": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "status": "succeeded"
+    },
+    {
+      "eventName": "whatsapp_click",
+      "resourceName": "customers/1440115096/conversionActions/7665743016",
+      "operation": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "status": "succeeded"
+    },
+    {
+      "eventName": "email_click",
+      "resourceName": "customers/1440115096/conversionActions/7665748306",
+      "operation": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "status": "succeeded"
+    }
+  ],
+  "operationsSkipped": [
+    {
+      "eventName": "phone_click",
+      "reason": "blocked_until_call_tracking"
+    }
+  ],
+  "conversionActionsReusedMapped": [
+    {
+      "eventName": "quote_request_submit_success",
+      "resourceName": "customers/1440115096/conversionActions/7651188691",
+      "operation": "update_existing_conversion_action_mapping_or_goal_settings_if_supported",
+      "status": "succeeded"
+    },
+    {
+      "eventName": "signup_success",
+      "resourceName": "customers/1440115096/conversionActions/7651188688",
+      "operation": "update_existing_conversion_action_mapping_or_goal_settings_if_supported",
+      "status": "succeeded"
+    }
+  ],
+  "conversionActionsCreatedImported": [
+    {
+      "eventName": "contact_form_submit_success",
+      "resourceName": "customers/1440115096/conversionActions/7665741588",
+      "operation": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "status": "succeeded"
+    },
+    {
+      "eventName": "calculator_result",
+      "resourceName": "customers/1440115096/conversionActions/7665375056",
+      "operation": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "status": "succeeded"
+    },
+    {
+      "eventName": "whatsapp_click",
+      "resourceName": "customers/1440115096/conversionActions/7665743016",
+      "operation": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "status": "succeeded"
+    },
+    {
+      "eventName": "email_click",
+      "resourceName": "customers/1440115096/conversionActions/7665748306",
+      "operation": "update_existing_ga4_imported_conversion_action_status_enabled_primary_for_goal_false",
+      "status": "succeeded"
+    }
+  ],
+  "blockedActions": [
+    "phone_click"
+  ],
+  "includeInConversionsSettings": {
+    "quote_request_submit_success": true,
+    "signup_success": "quality_dependent_not_primary_bidding_until_confirmed",
+    "contact_form_submit_success": false,
+    "calculator_result": false,
+    "whatsapp_click": false,
+    "email_click": false,
+    "phone_click": false
+  },
+  "googleAdsWritesMade": true,
+  "rollbackNoOpNotes": [
+    "If unexpected behavior is observed, set affected conversion actions back to secondary/excluded or HIDDEN only after separate review.",
+    "Do not create duplicate conversion actions for quote_request_submit_success or signup_success.",
+    "Campaigns were not touched."
+  ],
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsWritesMade": true,
+    "googleAdsConversionActionsCreated": false,
+    "googleAdsConversionsImported": true,
+    "googleAdsCampaignsCreated": false,
+    "campaignsTouched": false,
+    "metaTouched": false,
+    "replitTouched": false,
+    "vercelTouched": false,
+    "runtimeFilesTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiPrinted": false,
+    "rawClickIdsPrinted": false
+  },
+  "paths": {}
+}
