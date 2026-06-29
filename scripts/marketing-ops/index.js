@@ -76,6 +76,10 @@ const {
   runGoogleAdsGa4ImportDiagnostic,
   summaryLines: googleAdsGa4ImportDiagnosticSummary
 } = require('./google-ads-ga4-import-diagnostic');
+const {
+  runGoogleAdsPostApplyMonitoring,
+  summaryLines: googleAdsPostApplyMonitoringSummary
+} = require('./google-ads-post-apply-monitoring');
 const { runGtmGa4TagsControlledCreate, outputLines: gtmGa4TagsCreateOutputLines } = require('./apply/gtm-ga4-tags-create');
 const {
   safeOutputLines: gtmEditOauthOutputLines,
@@ -338,6 +342,13 @@ async function main() {
       }
       return;
     }
+    case 'google-ads:post-apply-monitoring': {
+      const monitoring = await runGoogleAdsPostApplyMonitoring(root);
+      for (const line of googleAdsPostApplyMonitoringSummary(monitoring)) {
+        console.log(maskSecretsInText(line));
+      }
+      return;
+    }
     case 'oauth:gtm-edit-url': {
       try {
         const oauthUrl = writeGtmEditAuthorizationUrl(root);
@@ -411,7 +422,7 @@ async function main() {
       break;
     default:
       console.error(`Unknown command: ${command}`);
-      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|ga4:monitoring-readiness|ga4:event-processing-validation|ga4:monitoring-dashboard|paid-media:conversion-map|google-ads:import-planning|google-ads:payload-review|google-ads:account-preflight|google-ads:apply-payload-final-review|google-ads:controlled-import-approval|google-ads:mapping-decision|google-ads:controlled-import-dry-run|google-ads:apply-execution-approval|google-ads:controlled-import-apply|google-ads:ga4-import-diagnostic|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|oauth:gtm-publish-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:gtm:publish|apply:validate]');
+      console.error('Usage: node scripts/marketing-ops/index.js [check|report|repo|ga4|ga4:monitoring-readiness|ga4:event-processing-validation|ga4:monitoring-dashboard|paid-media:conversion-map|google-ads:import-planning|google-ads:payload-review|google-ads:account-preflight|google-ads:apply-payload-final-review|google-ads:controlled-import-approval|google-ads:mapping-decision|google-ads:controlled-import-dry-run|google-ads:apply-execution-approval|google-ads:controlled-import-apply|google-ads:ga4-import-diagnostic|google-ads:post-apply-monitoring|gtm|gtm:preflight|gtm:payload-review|gtm:preview-qa-report|gtm:ga4-tags-payload-review|gtm:ga4-tags-preview-qa|gtm:publish-readiness-review|oauth:gtm-edit-url|oauth:gtm-publish-url|ads|meta|plan|plan:ga4|plan:gtm|apply|apply:ga4|apply:ga4:create|apply:gtm|apply:gtm:create|apply:gtm:ga4-tags:create|apply:gtm:publish|apply:validate]');
       process.exitCode = 1;
       return;
   }
