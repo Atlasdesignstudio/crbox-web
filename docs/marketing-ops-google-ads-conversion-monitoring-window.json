@@ -1,0 +1,203 @@
+{
+  "generatedAt": "2026-06-29T03:43:25.139Z",
+  "phase": "3L",
+  "mode": "google_ads_conversion_monitoring_window_read_only",
+  "overallStatus": "pass",
+  "sourceArtifacts": [
+    "docs/marketing-ops-google-ads-controlled-import-apply-execution.json",
+    "docs/marketing-ops-google-ads-post-apply-monitoring.json",
+    "docs/marketing-ops-google-ads-account-preflight.json"
+  ],
+  "account": {
+    "status": "read_success",
+    "descriptiveName": "CRBOX",
+    "customerId": "144...5096"
+  },
+  "finalConversionActionCount": 9,
+  "conversionActionVerification": [
+    {
+      "eventName": "quote_request_submit_success",
+      "actionName": "CRBOX Website (web) quote_request_submit_success",
+      "role": "primary_included",
+      "status": "pass",
+      "checks": {
+        "present": true,
+        "enabled": true,
+        "primaryForGoalMatches": true,
+        "includeInConversionsMatches": true
+      },
+      "observed": {
+        "name": "CRBOX Website (web) quote_request_submit_success",
+        "status": "ENABLED",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "REQUEST_QUOTE",
+        "primaryForGoal": true,
+        "includeInConversionsMetric": true
+      }
+    },
+    {
+      "eventName": "signup_success",
+      "actionName": "CRBOX Website (web) signup_success",
+      "role": "secondary_excluded_quality_dependent",
+      "status": "pass",
+      "checks": {
+        "present": true,
+        "enabled": true,
+        "primaryForGoalMatches": true,
+        "includeInConversionsMatches": true
+      },
+      "observed": {
+        "name": "CRBOX Website (web) signup_success",
+        "status": "ENABLED",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "PAGE_VIEW",
+        "primaryForGoal": false,
+        "includeInConversionsMetric": false
+      }
+    },
+    {
+      "eventName": "contact_form_submit_success",
+      "actionName": "CRBOX Website (web) contact_form_submit_success",
+      "role": "secondary_excluded",
+      "status": "pass",
+      "checks": {
+        "present": true,
+        "enabled": true,
+        "primaryForGoalMatches": true,
+        "includeInConversionsMatches": true
+      },
+      "observed": {
+        "name": "CRBOX Website (web) contact_form_submit_success",
+        "status": "ENABLED",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "DEFAULT",
+        "primaryForGoal": false,
+        "includeInConversionsMetric": false
+      }
+    },
+    {
+      "eventName": "calculator_result",
+      "actionName": "CRBOX Website (web) calculator_result",
+      "role": "secondary_excluded",
+      "status": "pass",
+      "checks": {
+        "present": true,
+        "enabled": true,
+        "primaryForGoalMatches": true,
+        "includeInConversionsMatches": true
+      },
+      "observed": {
+        "name": "CRBOX Website (web) calculator_result",
+        "status": "ENABLED",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "DEFAULT",
+        "primaryForGoal": false,
+        "includeInConversionsMetric": false
+      }
+    },
+    {
+      "eventName": "whatsapp_click",
+      "actionName": "CRBOX Website (web) whatsapp_click",
+      "role": "secondary_excluded",
+      "status": "pass",
+      "checks": {
+        "present": true,
+        "enabled": true,
+        "primaryForGoalMatches": true,
+        "includeInConversionsMatches": true
+      },
+      "observed": {
+        "name": "CRBOX Website (web) whatsapp_click",
+        "status": "ENABLED",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "DEFAULT",
+        "primaryForGoal": false,
+        "includeInConversionsMetric": false
+      }
+    },
+    {
+      "eventName": "email_click",
+      "actionName": "CRBOX Website (web) email_click",
+      "role": "secondary_excluded",
+      "status": "pass",
+      "checks": {
+        "present": true,
+        "enabled": true,
+        "primaryForGoalMatches": true,
+        "includeInConversionsMatches": true
+      },
+      "observed": {
+        "name": "CRBOX Website (web) email_click",
+        "status": "ENABLED",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "DEFAULT",
+        "primaryForGoal": false,
+        "includeInConversionsMetric": false
+      }
+    }
+  ],
+  "phoneClick": {
+    "status": "absent_blocked",
+    "matches": []
+  },
+  "duplicateStatus": {
+    "result": "pass_no_blocking_duplicate_conflicts",
+    "preflightResult": "ready_with_duplicate_review_required",
+    "exactPlannedNameMatchCount": 0,
+    "notes": [
+      "Phase 3J reused the existing GA4-imported quote and signup actions instead of creating duplicates.",
+      "The four secondary actions remain existing GA4-imported conversion actions enabled as secondary/excluded."
+    ]
+  },
+  "metricsWindows": {
+    "last24Hours": {
+      "status": "not_available_daily_granularity",
+      "limitation": "Google Ads conversion action reporting is queried with date segments here; true rolling 24-hour data was not available in this safe read-only phase."
+    },
+    "today": {
+      "status": "checked",
+      "dateRange": "TODAY",
+      "rows": [],
+      "totalConversions": 0,
+      "totalAllConversions": 0,
+      "limitation": "No TODAY Google Ads conversion rows returned for the monitored actions."
+    },
+    "last7Days": {
+      "status": "checked",
+      "dateRange": "LAST_7_DAYS",
+      "rows": [],
+      "totalConversions": 0,
+      "totalAllConversions": 0,
+      "limitation": "No LAST_7_DAYS Google Ads conversion rows returned for the monitored actions."
+    }
+  },
+  "warnings": [
+    "no_today_conversion_rows_observed",
+    "no_last_7_days_conversion_rows_observed"
+  ],
+  "trackingInactivity": {
+    "todayNoRows": true,
+    "last7DaysNoRows": true,
+    "interpretation": "No recent Google Ads conversion rows were observed for monitored actions during this early monitoring window."
+  },
+  "recommendedNextPhase": "Phase 3M - Paid Media Launch Readiness / Conversion Use Review",
+  "safety": {
+    "ga4WritesMade": false,
+    "gtmWritesMade": false,
+    "gtmPublished": false,
+    "googleAdsWritesMade": false,
+    "googleAdsConversionActionsCreated": false,
+    "googleAdsConversionsImported": false,
+    "googleAdsCampaignsCreated": false,
+    "campaignsTouched": false,
+    "metaTouched": false,
+    "replitTouched": false,
+    "runtimeFilesTouched": false,
+    "websiteRuntimeFilesTouched": false,
+    "secretsPrinted": false,
+    "tokensPrinted": false,
+    "piiPrinted": false,
+    "rawClickIdsPrinted": false
+  },
+  "paths": {}
+}

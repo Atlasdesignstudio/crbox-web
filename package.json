@@ -44,6 +44,7 @@
     "marketing:google-ads:apply-execution-approval": "node scripts/marketing-ops/index.js google-ads:apply-execution-approval",
     "marketing:google-ads:controlled-import-apply": "node scripts/marketing-ops/index.js google-ads:controlled-import-apply",
     "marketing:google-ads:ga4-import-diagnostic": "node scripts/marketing-ops/index.js google-ads:ga4-import-diagnostic",
-    "marketing:google-ads:post-apply-monitoring": "node scripts/marketing-ops/index.js google-ads:post-apply-monitoring"
+    "marketing:google-ads:post-apply-monitoring": "node scripts/marketing-ops/index.js google-ads:post-apply-monitoring",
+    "marketing:google-ads:conversion-monitoring-window": "node scripts/marketing-ops/index.js google-ads:conversion-monitoring-window"
   }
 }
