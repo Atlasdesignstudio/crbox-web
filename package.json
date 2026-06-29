@@ -41,6 +41,8 @@
     "marketing:google-ads:controlled-import-approval": "node scripts/marketing-ops/index.js google-ads:controlled-import-approval",
     "marketing:google-ads:mapping-decision": "node scripts/marketing-ops/index.js google-ads:mapping-decision",
     "marketing:google-ads:controlled-import-dry-run": "node scripts/marketing-ops/index.js google-ads:controlled-import-dry-run",
-    "marketing:google-ads:apply-execution-approval": "node scripts/marketing-ops/index.js google-ads:apply-execution-approval"
+    "marketing:google-ads:apply-execution-approval": "node scripts/marketing-ops/index.js google-ads:apply-execution-approval",
+    "marketing:google-ads:controlled-import-apply": "node scripts/marketing-ops/index.js google-ads:controlled-import-apply",
+    "marketing:google-ads:ga4-import-diagnostic": "node scripts/marketing-ops/index.js google-ads:ga4-import-diagnostic"
   }
 }

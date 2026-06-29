@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-28T19:26:05.385Z",
+  "generatedAt": "2026-06-28T20:09:48.063Z",
   "phase": "3E",
   "mode": "google_ads_read_only_account_preflight",
   "sourceArtifacts": [
@@ -140,8 +140,26 @@
     "sanitizedMessage": "read_only_access_succeeded"
   },
   "existingConversionActions": {
-    "count": 5,
+    "count": 9,
     "actions": [
+      {
+        "resourceName": "customers/1440115096/conversionActions/7665375056",
+        "id": "7665375056",
+        "name": "CRBOX Website (web) calculator_result",
+        "status": "ENABLED",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "DEFAULT",
+        "origin": "WEBSITE",
+        "includeInConversionsMetric": false,
+        "valueSettingsSummary": {
+          "defaultValueConfigured": true,
+          "alwaysUseDefaultValue": false
+        },
+        "countingType": "MANY_PER_CLICK",
+        "attributionModel": "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN",
+        "primaryForGoal": false,
+        "ownerCustomer": "144...5096"
+      },
       {
         "resourceName": "customers/1440115096/conversionActions/7650829661",
         "id": "7650829661",
@@ -149,6 +167,42 @@
         "status": "HIDDEN",
         "type": "GOOGLE_ANALYTICS_4_CLOSE_CONVERT_LEAD",
         "category": "CONVERTED_LEAD",
+        "origin": "WEBSITE",
+        "includeInConversionsMetric": false,
+        "valueSettingsSummary": {
+          "defaultValueConfigured": true,
+          "alwaysUseDefaultValue": false
+        },
+        "countingType": "MANY_PER_CLICK",
+        "attributionModel": "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN",
+        "primaryForGoal": false,
+        "ownerCustomer": "144...5096"
+      },
+      {
+        "resourceName": "customers/1440115096/conversionActions/7665741588",
+        "id": "7665741588",
+        "name": "CRBOX Website (web) contact_form_submit_success",
+        "status": "ENABLED",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "DEFAULT",
+        "origin": "WEBSITE",
+        "includeInConversionsMetric": false,
+        "valueSettingsSummary": {
+          "defaultValueConfigured": true,
+          "alwaysUseDefaultValue": false
+        },
+        "countingType": "MANY_PER_CLICK",
+        "attributionModel": "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN",
+        "primaryForGoal": false,
+        "ownerCustomer": "144...5096"
+      },
+      {
+        "resourceName": "customers/1440115096/conversionActions/7665748306",
+        "id": "7665748306",
+        "name": "CRBOX Website (web) email_click",
+        "status": "ENABLED",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "DEFAULT",
         "origin": "WEBSITE",
         "includeInConversionsMetric": false,
         "valueSettingsSummary": {
@@ -200,9 +254,27 @@
         "resourceName": "customers/1440115096/conversionActions/7651188691",
         "id": "7651188691",
         "name": "CRBOX Website (web) quote_request_submit_success",
-        "status": "HIDDEN",
+        "status": "ENABLED",
         "type": "GOOGLE_ANALYTICS_4_CUSTOM",
         "category": "REQUEST_QUOTE",
+        "origin": "WEBSITE",
+        "includeInConversionsMetric": true,
+        "valueSettingsSummary": {
+          "defaultValueConfigured": true,
+          "alwaysUseDefaultValue": false
+        },
+        "countingType": "MANY_PER_CLICK",
+        "attributionModel": "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN",
+        "primaryForGoal": true,
+        "ownerCustomer": "144...5096"
+      },
+      {
+        "resourceName": "customers/1440115096/conversionActions/7651188688",
+        "id": "7651188688",
+        "name": "CRBOX Website (web) signup_success",
+        "status": "ENABLED",
+        "type": "GOOGLE_ANALYTICS_4_CUSTOM",
+        "category": "PAGE_VIEW",
         "origin": "WEBSITE",
         "includeInConversionsMetric": false,
         "valueSettingsSummary": {
@@ -215,12 +287,12 @@
         "ownerCustomer": "144...5096"
       },
       {
-        "resourceName": "customers/1440115096/conversionActions/7651188688",
-        "id": "7651188688",
-        "name": "CRBOX Website (web) signup_success",
-        "status": "HIDDEN",
+        "resourceName": "customers/1440115096/conversionActions/7665743016",
+        "id": "7665743016",
+        "name": "CRBOX Website (web) whatsapp_click",
+        "status": "ENABLED",
         "type": "GOOGLE_ANALYTICS_4_CUSTOM",
-        "category": "PAGE_VIEW",
+        "category": "DEFAULT",
         "origin": "WEBSITE",
         "includeInConversionsMetric": false,
         "valueSettingsSummary": {
@@ -244,7 +316,7 @@
     "CRBOX - Phone Click"
   ],
   "duplicateRiskReview": {
-    "result": "low_no_existing_name_matches",
+    "result": "ready_with_duplicate_review_required",
     "plannedActions": [
       {
         "plannedConversionActionName": "CRBOX - Quote Request Submitted",
@@ -272,15 +344,29 @@
       },
       {
         "plannedConversionActionName": "CRBOX - WhatsApp Click",
-        "classification": "no_existing_match",
-        "existingMatches": [],
-        "recommendation": "no_duplicate_name_detected"
+        "classification": "possible_duplicate_similar_name",
+        "existingMatches": [
+          {
+            "id": "7665743016",
+            "name": "CRBOX Website (web) whatsapp_click",
+            "status": "ENABLED",
+            "type": "GOOGLE_ANALYTICS_4_CUSTOM"
+          }
+        ],
+        "recommendation": "requires_human_review"
       },
       {
         "plannedConversionActionName": "CRBOX - Email Click",
-        "classification": "no_existing_match",
-        "existingMatches": [],
-        "recommendation": "no_duplicate_name_detected"
+        "classification": "possible_duplicate_similar_name",
+        "existingMatches": [
+          {
+            "id": "7665748306",
+            "name": "CRBOX Website (web) email_click",
+            "status": "ENABLED",
+            "type": "GOOGLE_ANALYTICS_4_CUSTOM"
+          }
+        ],
+        "recommendation": "requires_human_review"
       },
       {
         "plannedConversionActionName": "CRBOX - Phone Click",
@@ -316,7 +402,7 @@
     },
     {
       "topic": "duplicate_conversion_names",
-      "recommendation": "No existing conversion action name matches were detected in the read-only inventory."
+      "recommendation": "Review existing conversion actions before creating or importing any planned action."
     },
     {
       "topic": "account_linking_prerequisites",
